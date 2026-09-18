@@ -1,0 +1,101 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Focus Deck — Settings</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head><body>
+<div class="wrap">
+  <header class="topbar"><div class="brand"><span class="brand-mark">🧭</span><h1>Settings</h1></div><a href="index.html" class="link-btn">← Back</a></header>
+  <section class="card">
+    <h2 style="margin-bottom:10px;">GitHub token</h2>
+    <p class="muted small" style="margin-bottom:14px;">
+      Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained personal access token</a>
+      scoped to <b>All repositories</b> with <b>Issues: Read-only</b> and <b>Metadata: Read-only</b> repository permissions,
+      plus <b>Gists: Read and write</b> under Account permissions. Paste it below — it's stored only in this browser and sent only to api.github.com.
+    </p>
+    <div class="add-project-form">
+      <input type="password" id="token-input" placeholder="github_pat_…">
+      <button type="button" id="save-token">Save</button>
+    </div>
+    <p id="token-status" class="muted small" style="margin-top:10px;"></p>
+  </section>
+  <section class="card">
+    <h2 style="margin-bottom:10px;">Cross-device sync</h2>
+    <p id="gist-status" class="muted small" style="margin-bottom:14px;"></p>
+    <button type="button" id="create-gist" class="btn primary">Create sync Gist</button>
+    <div class="add-project-form">
+      <input type="text" id="gist-id-input" placeholder="Paste an existing Gist ID to connect this device to it">
+      <button type="button" id="connect-gist">Connect</button>
+    </div>
+  </section>
+</div>
+<script type="module">
+  import { getToken, setToken, validateToken } from './js/github.js';
+  const input = document.getElementById('token-input');
+  const status = document.getElementById('token-status');
+  if (getToken()) input.placeholder = '•••••••••••••••• (saved — paste a new one to replace)';
+  document.getElementById('save-token').addEventListener('click', async () => {
+    const val = input.value.trim();
+    if (!val) return;
+    status.textContent = 'Checking…';
+    setToken(val);
+    try {
+      const login = await validateToken();
+      status.textContent = 'Connected as @' + login + '.';
+      input.value = '';
+    } catch (e) {
+      status.textContent = 'Could not verify: ' + e.message;
+    }
+  });
+</script>
+<script type="module">
+  import { ghFetch } from './js/github.js';
+  import { loadState, saveStateLocal } from './js/state.js';
+
+  const state = loadState();
+  const gistStatusEl = document.getElementById('gist-status');
+  const createBtn = document.getElementById('create-gist');
+
+  function renderGistStatus() {
+    if (state.gistId) {
+      gistStatusEl.textContent = 'Sync Gist connected (' + state.gistId + '). This device will read/write it automatically.';
+      createBtn.textContent = 'Re-create (only if you lost the old one)';
+    } else {
+      gistStatusEl.textContent = 'No sync Gist yet — create one on your first device, then paste its ID (shown after creating) into Settings on your other devices instead of creating a second one.';
+    }
+  }
+  renderGistStatus();
+
+  createBtn.addEventListener('click', async () => {
+    createBtn.disabled = true;
+    try {
+      const gist = await ghFetch('/gists', {
+        method: 'POST',
+        body: JSON.stringify({
+          description: 'Focus Deck sync data — do not edit manually',
+          public: false,
+          files: { 'focus-deck-state.json': { content: JSON.stringify(state) } },
+        }),
+      });
+      state.gistId = gist.id;
+      saveStateLocal(state);
+      gistStatusEl.textContent = 'Created! Gist ID: ' + gist.id + ' — on your other device, paste this ID into the field below and click "Connect".';
+    } catch (e) {
+      gistStatusEl.textContent = 'Failed: ' + e.message;
+    } finally {
+      createBtn.disabled = false;
+    }
+  });
+</script>
+<script type="module">
+  import { loadState, saveStateLocal } from './js/state.js';
+  document.getElementById('connect-gist').addEventListener('click', () => {
+    const id = document.getElementById('gist-id-input').value.trim();
+    if (!id) return;
+    const state = loadState();
+    state.gistId = id;
+    saveStateLocal(state);
+    document.getElementById('gist-status').textContent = 'Connected to Gist ' + id + ' — reload the app to pull its data.';
+  });
+</script>
+</body></html>

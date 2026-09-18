@@ -1,0 +1,31 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Focus Deck — one-time import</title></head>
+<body style="font-family:sans-serif;max-width:640px;margin:40px auto;">
+<h1>Import your Focus Deck data</h1>
+<p>Paste the JSON from your Claude Artifact below (open the artifact, view page source, copy everything inside <code>&lt;script type="application/json" id="initial-state"&gt;</code>), then click Import. Do this once, then delete this page.</p>
+<textarea id="json-in" rows="14" style="width:100%;font-family:monospace;"></textarea>
+<br><button id="go">Import into this browser</button>
+<p id="result"></p>
+<script>
+document.getElementById('go').addEventListener('click', () => {
+  const raw = document.getElementById('json-in').value.trim();
+  try {
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data.projects)) throw new Error('missing "projects" array — did you paste the right JSON?');
+    // stamp updatedAt on every task the artifact didn't have that field on, so Task 6's
+    // conflict resolution has a value to compare instead of crashing on undefined
+    const now = Date.now();
+    data.projects.forEach((p) => p.tasks.forEach((t) => { if (!t.updatedAt) t.updatedAt = now; }));
+    if (!data.categories) data.categories = [];
+    if (!data.pinnedRepos) data.pinnedRepos = [];
+    if (!data.gistId) data.gistId = null;
+    localStorage.setItem('focusdeck-state-v1', JSON.stringify(data));
+    document.getElementById('result').textContent =
+      'Imported ' + data.projects.length + ' projects, ' +
+      data.projects.reduce((n, p) => n + p.tasks.length, 0) + ' tasks. Open the real app now.';
+  } catch (e) {
+    document.getElementById('result').textContent = 'Import failed: ' + e.message;
+  }
+});
+</script>
+</body></html>

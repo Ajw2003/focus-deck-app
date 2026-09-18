@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ADHD-friendly project dashboard with focus picker and GitHub sync">
+  <meta name="theme-color" content="#3D5A80">
+  <title>Focus Deck</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><text x='50%' y='50%' font-size='120' dominant-baseline='middle' text-anchor='middle'>🧭</text></svg>">
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">🧭</span><h1>Focus Deck</h1></div>
+      <form id="capture-form" class="capture-form" autocomplete="off">
+        <input id="capture-input" type="text" placeholder="Capture a stray thought…" maxlength="200">
+        <button type="submit">Add</button>
+      </form>
+      <a href="settings.html" class="link-btn small" aria-label="Settings">⚙️</a>
+    </header>
+    <div id="app"></div>
+  </div>
+  <script type="module" src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js').catch(console.error);
+      });
+    }
+  </script>
+</body>
+</html>
