@@ -1,3 +1,4 @@
+import os
 from PIL import Image, ImageDraw
 
 def make_icon(path, size, maskable=False):
@@ -68,6 +69,7 @@ def make_icon(path, size, maskable=False):
 
     img.save(path)
 
+os.makedirs('icons', exist_ok=True)
 make_icon('icons/icon-192.png', 192)
 make_icon('icons/icon-512.png', 512)
 make_icon('icons/icon-maskable-512.png', 512, maskable=True)
