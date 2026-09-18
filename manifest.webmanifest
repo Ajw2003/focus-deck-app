@@ -1,0 +1,16 @@
+{
+  "name": "Focus Deck",
+  "short_name": "Focus Deck",
+  "description": "ADHD-friendly project dashboard with focus picker and GitHub sync",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F3F5F2",
+  "theme_color": "#3D5A80",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
