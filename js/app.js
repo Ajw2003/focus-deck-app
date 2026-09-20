@@ -6,13 +6,13 @@ import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
 import { syncGithub, addRepoManually } from './github-sync.js';
 import { filterAndSortProjects } from './project-filter.js';
 
-export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name' };
+export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: {}, editingProjectCategory: null };
 
 export function renderApp(st) {
   st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   return R.renderSyncStatus(st) + R.renderStats(st) + R.renderFocus(st, findTaskWithProject) + R.renderDone(st) + R.renderInbox(st, ui)
-    + R.renderProjectFilterBar(st, ui)
+    + R.renderProjectFilterBar(st, ui, visibleProjects)
     + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
       + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
     + '</div>'
@@ -67,6 +67,15 @@ function onAppClick(e) {
     ui.projectFilter = cat === '' ? undefined : (cat === '__uncat__' ? null : cat);
     paint();
   }
+  else if (action === 'toggle-project-collapse') { ui.projectCollapsed[projectId] = !ui.projectCollapsed[projectId]; paint(); }
+  else if (action === 'toggle-collapse-all') {
+    const visible = filterAndSortProjects(state.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
+    const allCollapsed = visible.length > 0 && visible.every((p) => ui.projectCollapsed[p.id]);
+    visible.forEach((p) => { ui.projectCollapsed[p.id] = !allCollapsed; });
+    paint();
+  }
+  else if (action === 'edit-project-category') { ui.editingProjectCategory = projectId; paint(); }
+  else if (action === 'cancel-edit-project-category') { ui.editingProjectCategory = null; paint(); }
 }
 
 function onAppChange(e) {
@@ -75,6 +84,18 @@ function onAppChange(e) {
   } else if (e.target.matches && e.target.matches('[data-action="set-project-sort"]')) {
     ui.projectSort = e.target.value;
     paint();
+  } else if (e.target.matches && e.target.matches('[data-action="set-project-category"]')) {
+    const projectId = e.target.getAttribute('data-project');
+    let categoryId = e.target.value;
+    // ui.editingProjectCategory is cleared *before* the mutation: M.setProjectCategory ->
+    // persist() repaints synchronously, so clearing it after the call would still show the
+    // select for this project in that repaint.
+    ui.editingProjectCategory = null;
+    if (categoryId === '__new__') {
+      const name = prompt('New project category name:');
+      categoryId = name ? M.addProjectCategory(name, nextHue) : '';
+    }
+    M.setProjectCategory(projectId, categoryId || null);
   }
 }
 

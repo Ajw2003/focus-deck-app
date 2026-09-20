@@ -212,6 +212,17 @@ a{color:inherit;}
   padding:7px 10px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font-size:.82rem;
 }
 
+.chip.chip-btn{cursor:pointer;}
+.chip.chip-btn:hover{filter:brightness(1.08);}
+.chip.cat-chip.chip-placeholder{background:var(--surface-2); color:var(--ink-faint); border:1px dashed var(--line); font-weight:600;}
+.project-cat-edit{display:inline-flex; align-items:center; gap:4px;}
+.project-cat-edit select{
+  padding:4px 9px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font-size:.75rem;
+}
+.collapse-toggle{font-size:.85rem; line-height:1; padding:4px 8px;}
+.project-card.is-collapsed{padding-bottom:16px;}
+.project-card.is-collapsed .progress-track{margin-bottom:0;}
+
 .projects-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px;}
 .project-card{border-top:3px solid var(--proj-color);}
 .project-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap;}

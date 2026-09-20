@@ -129,7 +129,7 @@ export function renderTaskRow(t, p, categories, ui) {
     + '</div>';
 }
 
-export function renderProjectFilterBar(st, ui) {
+export function renderProjectFilterBar(st, ui, visibleProjects) {
   if (!st.projects.length) return '';
   const usedCategoryIds = new Set(st.projects.map((p) => p.categoryId).filter(Boolean));
   const hasUncategorized = st.projects.some((p) => !p.categoryId);
@@ -144,10 +144,15 @@ export function renderProjectFilterBar(st, ui) {
   const sortOptions = [
     ['name', 'Name (A–Z)'], ['open-tasks', 'Most open tasks'], ['deadline', 'Closest deadline'], ['recent-sync', 'Recently synced'],
   ].map(([value, label]) => '<option value="' + value + '"' + (ui.projectSort === value ? ' selected' : '') + '>' + esc(label) + '</option>').join('');
+  const allCollapsed = !!(visibleProjects && visibleProjects.length && visibleProjects.every((p) => ui.projectCollapsed[p.id]));
+  const collapseAllBtn = visibleProjects && visibleProjects.length
+    ? '<button type="button" class="btn-text small" data-action="toggle-collapse-all">' + (allCollapsed ? 'Expand all' : 'Collapse all') + '</button>'
+    : '';
   return '<div class="project-filter-bar">'
     + '<div class="filter-pills">' + pillsHTML + '</div>'
     + '<input type="text" class="project-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
     + '<select class="project-sort-select" data-action="set-project-sort">' + sortOptions + '</select>'
+    + collapseAllBtn
     + '</div>';
 }
 
@@ -159,42 +164,53 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
   const pct = total ? Math.round((done.length / total) * 100) : 0;
   const doneOpen = !!ui.doneOpen[p.id];
   const pendingRemove = !!ui.pendingRemove[p.id];
+  const collapsed = !!ui.projectCollapsed[p.id];
   const ghBadge = p.source === 'github' ? '<a class="chip gh-chip small" href="' + esc(p.htmlUrl || '#') + '" target="_blank" rel="noopener">' + (p.private ? '🔒 ' : '') + 'GitHub ↗</a>' : '';
   const projCat = projectCategories.find((c) => c.id === p.categoryId);
-  const projCatChip = projCat ? '<span class="chip cat-chip small" style="--chip-color:' + projCat.color + '">' + esc(projCat.name) + '</span>' : '';
+  const editingCat = ui.editingProjectCategory === p.id;
+  const projCatOptions = projectCategories.map((c) => '<option value="' + c.id + '"' + (p.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
+  const projCatControl = editingCat
+    ? '<span class="project-cat-edit"><select data-action="set-project-category" data-project="' + p.id + '"><option value="">No category</option>' + projCatOptions + '<option value="__new__">+ Add new…</option></select>'
+      + '<button type="button" class="mini-x" data-action="cancel-edit-project-category" data-project="' + p.id + '" aria-label="Cancel category edit">×</button></span>'
+    : (projCat
+        ? '<button type="button" class="chip cat-chip small chip-btn" data-action="edit-project-category" data-project="' + p.id + '" style="--chip-color:' + projCat.color + '">' + esc(projCat.name) + '</button>'
+        : '<button type="button" class="chip cat-chip small chip-btn chip-placeholder" data-action="edit-project-category" data-project="' + p.id + '">+ Category</button>');
+  const collapseBtn = '<button type="button" class="btn-text collapse-toggle" data-action="toggle-project-collapse" data-project="' + p.id + '" aria-label="' + (collapsed ? 'Expand project' : 'Minimize project') + '">' + (collapsed ? '▸' : '▾') + '</button>';
   const rightControls = pendingRemove
     ? '<span class="remove-confirm">Remove' + (total ? (' &amp; ' + total + ' task' + (total === 1 ? '' : 's')) : '') + '? <button type="button" class="btn-text danger" data-action="confirm-remove-project" data-project="' + p.id + '">Yes</button><button type="button" class="btn-text" data-action="cancel-remove-project" data-project="' + p.id + '">No</button></span>'
     : '<button type="button" class="btn-text" data-action="remove-project" data-project="' + p.id + '">Remove</button>';
-  return '<section class="card project-card" id="proj-' + p.id + '" style="--proj-color:' + p.color + '">'
+  return '<section class="card project-card' + (collapsed ? ' is-collapsed' : '') + '" id="proj-' + p.id + '" style="--proj-color:' + p.color + '">'
     + '<div class="project-head">'
-      + '<div class="project-title"><span class="dot"></span><h3>' + esc(p.name) + '</h3>' + ghBadge + projCatChip + '</div>'
-      + '<div class="project-head-right">' + (p.deadline ? deadlineChip(p.deadline) : '') + rightControls + '</div>'
+      + '<div class="project-title"><span class="dot"></span><h3>' + esc(p.name) + '</h3>' + ghBadge + projCatControl + '</div>'
+      + '<div class="project-head-right">' + (p.deadline ? deadlineChip(p.deadline) : '') + collapseBtn + rightControls + '</div>'
     + '</div>'
     + '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>'
-    + (doing.length ? '<div class="task-group"><h4 class="group-label">In progress</h4>' + doing.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
-    + (next.length ? '<div class="task-group"><h4 class="group-label">Up next</h4>' + next.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
-    + (!doing.length && !next.length ? '<p class="muted small">Nothing open — add a task below.</p>' : '')
-    + (done.length ? (
-        '<button type="button" class="section-toggle small" data-action="toggle-done" data-project="' + p.id + '">' + (doneOpen ? '−' : '+') + ' ' + done.length + ' done</button>'
-        + (doneOpen ? '<div class="task-group done-group">' + done.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
-      ) : '')
-    + '<form class="add-task-form" data-action="add-task" data-project="' + p.id + '">'
-      + '<input type="text" name="title" placeholder="Add a task…" maxlength="140" required>'
-      + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
-      + '<select name="energy">'
-        + '<option value="auto" selected>Auto</option>'
-        + '<option value="low">Low</option>'
-        + '<option value="medium">Medium</option>'
-        + '<option value="high">High</option>'
-      + '</select>'
-      + '<select name="category">'
-        + '<option value="">No category</option>'
-        + categories.map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('')
-        + '<option value="__new__">+ Add new…</option>'
-      + '</select>'
-      + '<input type="date" name="deadline">'
-      + '<button type="submit" aria-label="Add task">+</button>'
-    + '</form>'
+    + (collapsed ? '' : (
+      (doing.length ? '<div class="task-group"><h4 class="group-label">In progress</h4>' + doing.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
+      + (next.length ? '<div class="task-group"><h4 class="group-label">Up next</h4>' + next.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
+      + (!doing.length && !next.length ? '<p class="muted small">Nothing open — add a task below.</p>' : '')
+      + (done.length ? (
+          '<button type="button" class="section-toggle small" data-action="toggle-done" data-project="' + p.id + '">' + (doneOpen ? '−' : '+') + ' ' + done.length + ' done</button>'
+          + (doneOpen ? '<div class="task-group done-group">' + done.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
+        ) : '')
+      + '<form class="add-task-form" data-action="add-task" data-project="' + p.id + '">'
+        + '<input type="text" name="title" placeholder="Add a task…" maxlength="140" required>'
+        + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
+        + '<select name="energy">'
+          + '<option value="auto" selected>Auto</option>'
+          + '<option value="low">Low</option>'
+          + '<option value="medium">Medium</option>'
+          + '<option value="high">High</option>'
+        + '</select>'
+        + '<select name="category">'
+          + '<option value="">No category</option>'
+          + categories.map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('')
+          + '<option value="__new__">+ Add new…</option>'
+        + '</select>'
+        + '<input type="date" name="deadline">'
+        + '<button type="submit" aria-label="Add task">+</button>'
+      + '</form>'
+    ))
     + '</section>';
 }
 
