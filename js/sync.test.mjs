@@ -43,4 +43,16 @@ const remoteMissingTask = { projects: [{ id: 'p1', tasks: [{ id: 't1', title: 's
 const mergedNoDelete = mergeStates(localWithExtra, remoteMissingTask);
 assert.strictEqual(mergedNoDelete.projects[0].tasks.length, 2, 'a task missing from remote should NOT be deleted locally');
 
+// projectCategories merge mirrors categories: union-of-ids, and tolerates a remote object saved by
+// a pre-feature client that has no projectCategories field at all.
+const localWithPCat = { projects: [], inbox: [], categories: [], projectCategories: [{ id: 'pcat_work', name: 'Work', color: 'blue' }], githubSync: { lastSyncedAt: 0 } };
+const remoteWithPCat = { projects: [], inbox: [], categories: [], projectCategories: [{ id: 'pcat_personal', name: 'Personal', color: 'green' }], githubSync: { lastSyncedAt: 0 } };
+const mergedPCat = mergeStates(localWithPCat, remoteWithPCat);
+assert.strictEqual(mergedPCat.projectCategories.length, 2, 'new remote project category should be added');
+assert.ok(mergedPCat.projectCategories.some((c) => c.id === 'pcat_personal'), 'remote-only project category should be present after merge');
+
+const remoteMissingPCatField = { projects: [], inbox: [], categories: [], githubSync: { lastSyncedAt: 0 } };
+const mergedMissingPCatField = mergeStates(localWithPCat, remoteMissingPCatField);
+assert.strictEqual(mergedMissingPCatField.projectCategories.length, 1, 'a remote with no projectCategories field should not error and should keep local project categories');
+
 console.log('MERGE TESTS PASSED');

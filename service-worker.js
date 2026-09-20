@@ -1,4 +1,4 @@
-const CACHE_NAME = 'focus-deck-shell-v4';
+const CACHE_NAME = 'focus-deck-shell-v5';
 const SHELL_ASSETS = [
   '/',
   '/index.html',
@@ -13,6 +13,8 @@ const SHELL_ASSETS = [
   '/js/sync.js',
   '/js/github.js',
   '/js/github-sync.js',
+  '/js/complexity.js',
+  '/js/project-filter.js',
 ];
 
 self.addEventListener('install', (event) => {

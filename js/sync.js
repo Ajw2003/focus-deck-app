@@ -35,6 +35,9 @@ export function mergeStates(local, remote) {
   const localCatIds = new Set(local.categories.map((c) => c.id));
   remote.categories.forEach((rc) => { if (!localCatIds.has(rc.id)) merged.categories.push(rc); });
 
+  const localPCatIds = new Set((local.projectCategories || []).map((c) => c.id));
+  (remote.projectCategories || []).forEach((rpc) => { if (!localPCatIds.has(rpc.id)) merged.projectCategories.push(rpc); });
+
   // last-write-wins for singleton fields — focus/githubSync aren't meaningfully mergeable per-field
   if ((remote.githubSync?.lastSyncedAt || 0) > (local.githubSync?.lastSyncedAt || 0)) merged.githubSync = remote.githubSync;
 
