@@ -3,7 +3,7 @@ import { state, findTaskWithProject, findProjectIdForTask, candidatesForEnergy, 
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
-import { syncGithub, addRepoManually, linkTaskToIssue, unlinkTask } from './github-sync.js';
+import { syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask } from './github-sync.js';
 import { filterAndSortProjects } from './project-filter.js';
 
 export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: {}, editingProjectCategory: null };
@@ -82,6 +82,13 @@ function onAppClick(e) {
   }
   else if (action === 'unlink-github-issue') {
     if (confirm('Unlink this task from its GitHub issue? Both the task and the issue stay as they are — only the connection is removed.')) unlinkTask(taskId);
+  }
+  else if (action === 'create-github-issue') {
+    // when the task's own project is already tied to a repo, push straight there — no need to
+    // ask again for a repo the app already knows
+    const proj = state.projects.find((p) => p.id === projectId);
+    const input = (proj && proj.repoFullName) || prompt('Create a new issue in which repo? Enter "owner/repo" or a github.com URL:');
+    if (input) createGithubIssueFromTask(taskId, input, ui).then(paint);
   }
 }
 

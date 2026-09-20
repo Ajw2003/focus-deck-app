@@ -48,6 +48,15 @@ task stays exactly as it is locally (now a manual task), the issue is untouched 
 GitHub, and the issue is remembered as excluded so the next repo-wide sync doesn't
 recreate a duplicate task for it.
 
+### Creating an issue from a task — `createGithubIssueFromTask` (js/github-sync.js:141)
+
+Creates a brand-new GitHub issue from a task that doesn't have one yet, and links the
+two — the reverse of `linkTaskToIssue` (which attaches to an issue that already
+exists). The task's steps (if any) become the issue body as a checklist, and its
+category (if any) becomes a label, created on the repo first if it isn't there yet.
+If the task is already marked done locally, the new issue is opened and then
+immediately closed to match.
+
 ### Standalone-linked-tasks reconciliation pass — `syncGithub` (js/github-sync.js:284-311)
 
 Tasks manually linked (via `linkTaskToIssue`) to an issue in a repo that isn't itself
@@ -69,6 +78,8 @@ repo-wide path.
 - Every task linked to an issue outside the currently-synced repo candidate set must
   still get its status/category reconciled each `syncGithub()` run (see the
   standalone-linked-tasks pass above).
+- `createGithubIssueFromTask` refuses to run on a task that's already linked
+  (`task.source === 'github'`) — unlink it first.
 
 ## Traps
 
@@ -79,3 +90,6 @@ repo-wide path.
 - `applyCategoryFromLabels` can silently create new categories as a side effect of
   syncing labels — this is intentional, not a bug, but it means syncing can grow
   `state.categories` without any explicit user action.
+- `createGithubIssueFromTask` persists the newly-linked task *before* the done-task
+  close-issue call; if that close call fails, the task is still linked locally even
+  though the GitHub issue is left open.

@@ -1,7 +1,7 @@
 // focus-deck-app/js/github-sync.js
 import { state, uid, nextHue, findTaskWithProject } from './state.js';
 import {
-  validateToken, listRepos, listIssues, getIssue, ghFetch,
+  validateToken, listRepos, listIssues, getIssue, createIssue, ghFetch,
   setIssueState, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists,
 } from './github.js';
 import { persist } from './sync.js';
@@ -131,6 +131,36 @@ export function unlinkTask(taskId) {
   delete task.issueNumber;
   delete task.url;
   persist();
+}
+
+// See docs/systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs141
+export async function createGithubIssueFromTask(taskId, repoInput, ui) {
+  const found = findTaskWithProject(taskId);
+  if (!found) return;
+  const task = found.task;
+  if (task.source === 'github') { ui.syncError = 'This task is already linked to a GitHub issue — unlink it first.'; return; }
+  const fullName = parseRepoInput(repoInput);
+  if (!fullName) { ui.syncError = 'Enter it as "owner/repo" or a full github.com URL.'; return; }
+  const [owner, name] = fullName.split('/');
+
+  ui.syncing = true;
+  ui.syncError = null;
+  try {
+    const cat = state.categories.find((c) => c.id === task.categoryId);
+    if (cat) await ensureLabelExists(owner, name, cat.name);
+    const body = (task.steps && task.steps.length) ? task.steps.map((s) => '- [ ] ' + s).join('\n') : '';
+    const iss = await createIssue(owner, name, task.title, body, cat ? [cat.name] : []);
+    task.source = 'github';
+    task.repoFullName = fullName;
+    task.issueNumber = iss.number;
+    task.url = iss.html_url;
+    ui.syncing = false;
+    persist();
+    if (task.status === 'done') await setIssueState(owner, name, iss.number, 'closed');
+  } catch (e) {
+    ui.syncing = false;
+    ui.syncError = 'Could not create the issue: ' + e.message;
+  }
 }
 
 export function energyFromLabels(labels) {

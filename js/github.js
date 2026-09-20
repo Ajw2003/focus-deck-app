@@ -63,6 +63,15 @@ export async function getIssue(owner, repo, number) {
   return mapIssue(await ghFetch('/repos/' + owner + '/' + repo + '/issues/' + number));
 }
 
+// Requires a token with "Issues: Read and write" — used to turn a Focus Deck task into a new
+// GitHub issue.
+export async function createIssue(owner, repo, title, body, labels) {
+  return mapIssue(await ghFetch('/repos/' + owner + '/' + repo + '/issues', {
+    method: 'POST',
+    body: JSON.stringify({ title, body, labels: labels && labels.length ? labels : undefined }),
+  }));
+}
+
 // Requires a token with "Issues: Read and write" — used for the task/issue linking feature.
 export async function setIssueState(owner, repo, number, issueState) {
   return ghFetch('/repos/' + owner + '/' + repo + '/issues/' + number, {

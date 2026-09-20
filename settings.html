@@ -8,14 +8,21 @@
   <header class="topbar"><div class="brand"><span class="brand-mark">🧭</span><h1>Settings</h1></div><a href="index.html" class="link-btn">← Back</a></header>
   <section class="card">
     <h2 style="margin-bottom:10px;">GitHub token</h2>
+    <p class="muted small" style="margin-bottom:10px;">
+      Focus Deck uses this token to link tasks to issues, create new issues from tasks, close/reopen a linked
+      issue when you complete a task, and keep categories in sync as GitHub labels. Set it up once:
+    </p>
+    <ol class="muted small" style="margin:0 0 10px 20px; padding:0;">
+      <li style="margin-bottom:4px;">Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a> on GitHub.</li>
+      <li style="margin-bottom:4px;">Under <b>Repository access</b>, choose <b>All repositories</b> — or <b>Only select repositories</b> and add every repo you want Focus Deck to link, create issues in, or sync labels with.</li>
+      <li style="margin-bottom:4px;">Under <b>Repository permissions</b>, set <b>Issues</b> to <b>Read and write</b> — this one setting covers linking, creating issues, closing/reopening, and adding/removing labels (GitHub doesn't split those into separate permissions). Leave <b>Metadata</b> at its default <b>Read-only</b> (GitHub requires it on every fine-grained token).</li>
+      <li style="margin-bottom:4px;">Under <b>Account permissions</b>, set <b>Gists</b> to <b>Read and write</b> — only needed for the cross-device sync below.</li>
+      <li>Generate the token and paste it below. It's stored only in this browser and sent only to api.github.com.</li>
+    </ol>
     <p class="muted small" style="margin-bottom:14px;">
-      Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained personal access token</a>
-      scoped to <b>All repositories</b> with <b>Issues: Read and write</b> and <b>Metadata: Read-only</b> repository permissions,
-      plus <b>Gists: Read and write</b> under Account permissions. Read and write on Issues is needed to link tasks to issues,
-      close/reopen a linked issue when you complete a task, and keep categories in sync as labels.
-      If you already have a token with Issues: Read-only, edit its permissions on GitHub (same token, no need to paste a new one) —
-      linking still works read-only, but completing a task or changing its category won't reach the issue until it's upgraded.
-      Paste it below — it's stored only in this browser and sent only to api.github.com.
+      Already have a token? Edit its permissions on that same token on GitHub — no need to paste a new one here.
+      If linking works but completing a task or changing its category never reaches the issue, that token's Issues
+      permission is still Read-only; upgrade it there.
     </p>
     <div class="add-project-form">
       <input type="password" id="token-input" placeholder="github_pat_…">
