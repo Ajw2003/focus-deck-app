@@ -2,6 +2,7 @@
 import { state, uid, nextHue } from './state.js';
 import { validateToken, listRepos, listIssues, ghFetch } from './github.js';
 import { persist } from './sync.js';
+import { parseChecklistItems, wordCount, estimateComplexity, tierFromScore } from './complexity.js';
 
 function normLabel(s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); }
 
@@ -12,6 +13,20 @@ export function energyFromLabels(labels) {
   if (norm.some((l) => HIGH.includes(l))) return 'high';
   if (norm.some((l) => LOW.includes(l))) return 'low';
   return 'medium';
+}
+
+export function resolveIssueEnergy(iss) {
+  const labelEnergy = energyFromLabels(iss.labels);
+  if (labelEnergy !== 'medium') return labelEnergy; // an explicit priority label always wins
+  const body = iss.body || '';
+  const text = [iss.title, body].filter(Boolean).join(' ');
+  const score = estimateComplexity({
+    stepCount: parseChecklistItems(body).length,
+    text,
+    wordCount: wordCount(body),
+    labelCount: (iss.labels || []).length,
+  });
+  return tierFromScore(score);
 }
 
 export function statusFromLabels(labels) {
@@ -61,6 +76,7 @@ function upsertRepoProject(repo, issues, ui) {
     project.htmlUrl = repo.html_url;
     project.private = !!repo.private;
   }
+  project.lastSyncedAt = Date.now();
 
   const openNumbers = new Set(labeled.map((iss) => iss.number));
   project.tasks.forEach((t) => {
@@ -77,7 +93,7 @@ function upsertRepoProject(repo, issues, ui) {
       existing.title = iss.title;
       existing.url = repo.html_url + '/issues/' + iss.number;
     } else {
-      project.tasks.push({ id: uid('t'), title: iss.title, energy: energyFromLabels(iss.labels), status: statusFromLabels(iss.labels), deadline: null, categoryId: null, source: 'github', issueNumber: iss.number, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() });
+      project.tasks.push({ id: uid('t'), title: iss.title, energy: resolveIssueEnergy(iss), status: statusFromLabels(iss.labels), deadline: null, categoryId: null, source: 'github', issueNumber: iss.number, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() });
     }
   });
 }

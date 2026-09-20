@@ -4,20 +4,31 @@ import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
 import { syncGithub, addRepoManually } from './github-sync.js';
+import { filterAndSortProjects } from './project-filter.js';
 
-export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, editingTask: null };
+export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name' };
 
 export function renderApp(st) {
   st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
+  const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   return R.renderSyncStatus(st) + R.renderStats(st) + R.renderFocus(st, findTaskWithProject) + R.renderDone(st) + R.renderInbox(st, ui)
-    + '<div class="projects-grid">' + st.projects.map((p) => R.renderProjectCard(p, ui, st.categories)).join('') + '</div>'
-    + R.renderAddProjectForm();
+    + R.renderProjectFilterBar(st, ui)
+    + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
+      + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
+    + '</div>'
+    + R.renderAddProjectForm(st.projectCategories);
 }
 
 export function paint() {
   const scrollY = window.scrollY;
+  const active = document.activeElement;
+  const restoreSearch = active && active.matches && active.matches('.project-search') ? { start: active.selectionStart, end: active.selectionEnd } : null;
   document.getElementById('app').innerHTML = renderApp(state);
   window.scrollTo(0, scrollY);
+  if (restoreSearch) {
+    const el = document.querySelector('.project-search');
+    if (el) { el.focus(); el.setSelectionRange(restoreSearch.start, restoreSearch.end); }
+  }
 }
 
 registerPaint(paint);
@@ -51,11 +62,26 @@ function onAppClick(e) {
   else if (action === 'pull-now') { pullFromGist().then(paint).catch((e) => { ui.syncError = e.message; paint(); }); }
   else if (action === 'edit-task') { ui.editingTask = { taskId, projectId }; paint(); }
   else if (action === 'cancel-task-edit') { ui.editingTask = null; paint(); }
+  else if (action === 'set-project-filter') {
+    const cat = el.getAttribute('data-category');
+    ui.projectFilter = cat === '' ? undefined : (cat === '__uncat__' ? null : cat);
+    paint();
+  }
 }
 
 function onAppChange(e) {
   if (e.target.matches && e.target.matches('[data-action="toggle-task"]')) {
     M.toggleTask(e.target.getAttribute('data-task'), e.target.getAttribute('data-project'));
+  } else if (e.target.matches && e.target.matches('[data-action="set-project-sort"]')) {
+    ui.projectSort = e.target.value;
+    paint();
+  }
+}
+
+function onAppInput(e) {
+  if (e.target.matches && e.target.matches('[data-action="set-project-query"]')) {
+    ui.projectQuery = e.target.value;
+    paint();
   }
 }
 
@@ -69,13 +95,19 @@ function onAppSubmit(e) {
       const name = prompt('New category name:');
       categoryId = name ? M.addCategory(name, nextHue) : '';
     }
-    M.addTask(addTaskForm.getAttribute('data-project'), fd.get('title'), fd.get('energy'), fd.get('deadline'), categoryId);
+    M.addTask(addTaskForm.getAttribute('data-project'), fd.get('title'), fd.get('energy'), fd.get('deadline'), categoryId, fd.get('steps'));
     return;
   }
   const addProjectForm = e.target.closest('[data-action="add-project"]');
   if (addProjectForm) {
     e.preventDefault();
-    M.addProject(new FormData(addProjectForm).get('name'), nextHue);
+    const fd = new FormData(addProjectForm);
+    let categoryId = fd.get('category');
+    if (categoryId === '__new__') {
+      const name = prompt('New project category name:');
+      categoryId = name ? M.addProjectCategory(name, nextHue) : '';
+    }
+    M.addProject(fd.get('name'), nextHue, categoryId);
     return;
   }
   const addRepoForm = e.target.closest('[data-action="add-repo"]');
@@ -100,7 +132,7 @@ function onAppSubmit(e) {
       editCategoryId = name ? M.addCategory(name, nextHue) : '';
     }
     M.editTask(editForm.getAttribute('data-task'), editForm.getAttribute('data-project'), {
-      title: fd.get('title'), energy: fd.get('energy'), deadline: fd.get('deadline'), categoryId: editCategoryId,
+      title: fd.get('title'), energy: fd.get('energy'), deadline: fd.get('deadline'), categoryId: editCategoryId, steps: fd.get('steps'),
     });
     return;
   }
@@ -119,6 +151,7 @@ function init() {
   const app = document.getElementById('app');
   app.addEventListener('click', onAppClick);
   app.addEventListener('change', onAppChange);
+  app.addEventListener('input', onAppInput);
   app.addEventListener('submit', onAppSubmit);
   app.addEventListener('keydown', onAppKeydown);
   const captureForm = document.getElementById('capture-form');

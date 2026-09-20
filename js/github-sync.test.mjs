@@ -1,5 +1,5 @@
 // focus-deck-app/js/github-sync.test.mjs — run with: node js/github-sync.test.mjs
-import { energyFromLabels, statusFromLabels, parseRepoInput } from './github-sync.js';
+import { energyFromLabels, statusFromLabels, parseRepoInput, resolveIssueEnergy } from './github-sync.js';
 import assert from 'node:assert';
 
 // HIGH-priority label variant
@@ -28,5 +28,21 @@ assert.strictEqual(parseRepoInput('https://github.com/owner/repo'), 'owner/repo'
 assert.strictEqual(parseRepoInput('https://github.com/owner/repo/'), 'owner/repo', 'URL with a trailing slash should parse to owner/repo');
 assert.strictEqual(parseRepoInput('https://github.com/owner/repo.git'), 'owner/repo', 'URL with a .git suffix should parse to owner/repo');
 assert.strictEqual(parseRepoInput('not a valid repo input'), null, 'invalid input should return null');
+
+// resolveIssueEnergy: an explicit priority label wins over the complexity estimate
+assert.strictEqual(resolveIssueEnergy({ title: 'x', body: '', labels: ['high-priority'] }), 'high', 'an explicit high-priority label should win over the complexity estimate');
+assert.strictEqual(resolveIssueEnergy({ title: 'x', body: '', labels: ['good-first-issue'] }), 'low', 'an explicit low-priority label should win over the complexity estimate');
+
+// resolveIssueEnergy: no priority label -> falls back to the complexity estimate
+assert.strictEqual(resolveIssueEnergy({ title: 'Quick typo fix', body: '', labels: [] }), 'low', 'a simple issue with no priority label should estimate low');
+assert.strictEqual(
+  resolveIssueEnergy({
+    title: 'Design and overhaul the sync layer',
+    body: '- [ ] one\n- [ ] two\n- [ ] three\n- [ ] four\n- [ ] five\n- [ ] six\n- [ ] seven\n- [ ] eight\n- [ ] nine',
+    labels: ['enhancement', 'backend', 'ui'],
+  }),
+  'high',
+  'a complex issue with a 9-item checklist and 3 labels should estimate high even with no priority label'
+);
 
 console.log('GITHUB SYNC HEURISTIC TESTS PASSED');

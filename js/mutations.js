@@ -1,6 +1,13 @@
 // focus-deck-app/js/mutations.js
 import { state, uid } from './state.js';
 import { persist } from './sync.js';
+import { parseSteps, wordCount, estimateComplexity, tierFromScore } from './complexity.js';
+
+function computeAutoEnergy(title, steps) {
+  const text = [title, (steps || []).join(' ')].filter(Boolean).join(' ');
+  const score = estimateComplexity({ stepCount: (steps || []).length, text, wordCount: wordCount(text) });
+  return tierFromScore(score);
+}
 
 export function addCapture(text) {
   text = (text || '').trim();
@@ -25,12 +32,17 @@ export function discardInbox(inboxId) {
   persist();
 }
 
-export function addTask(projectId, title, energy, deadline, categoryId) {
+export function addTask(projectId, title, energy, deadline, categoryId, stepsText) {
   title = (title || '').trim();
   if (!title) return;
   const project = state.projects.find((p) => p.id === projectId);
   if (!project) return;
-  project.tasks.push({ id: uid('t'), title, energy: energy || 'medium', status: 'next', deadline: deadline || null, categoryId: categoryId || null, source: 'manual', updatedAt: Date.now() });
+  const steps = parseSteps(stepsText);
+  const energyAuto = !energy || energy === 'auto';
+  const resolvedEnergy = energyAuto ? computeAutoEnergy(title, steps) : energy;
+  const task = { id: uid('t'), title, energy: resolvedEnergy, energyAuto, status: 'next', deadline: deadline || null, categoryId: categoryId || null, source: 'manual', updatedAt: Date.now() };
+  if (steps.length) task.steps = steps;
+  project.tasks.push(task);
   persist();
 }
 
@@ -40,9 +52,21 @@ export function editTask(taskId, projectId, fields) {
   const task = project.tasks.find((t) => t.id === taskId);
   if (!task) return;
   if (fields.title !== undefined) { const t = fields.title.trim(); if (t) task.title = t; }
-  if (fields.energy !== undefined) task.energy = fields.energy;
+  if (fields.steps !== undefined) {
+    const steps = parseSteps(fields.steps);
+    if (steps.length) task.steps = steps; else delete task.steps;
+  }
   if (fields.deadline !== undefined) task.deadline = fields.deadline || null;
   if (fields.categoryId !== undefined) task.categoryId = fields.categoryId || null;
+  if (fields.energy !== undefined) {
+    if (fields.energy === 'auto') {
+      task.energyAuto = true;
+      task.energy = computeAutoEnergy(task.title, task.steps || []);
+    } else {
+      task.energyAuto = false;
+      task.energy = fields.energy;
+    }
+  }
   task.updatedAt = Date.now();
   persist();
 }
@@ -81,6 +105,7 @@ export function cycleEnergy(taskId, projectId) {
   if (!task || task.status === 'done') return;
   const order = ['low', 'medium', 'high'];
   task.energy = order[(order.indexOf(task.energy) + 1) % order.length];
+  task.energyAuto = false;
   task.updatedAt = Date.now();
   persist();
 }
@@ -119,11 +144,35 @@ export function completeFocus(findProjectIdForTask) {
   toggleTask(state.focus.taskId, pid);
 }
 
-export function addProject(name, nextHue) {
+export function addProject(name, nextHue, categoryId) {
   name = (name || '').trim();
   if (!name) return;
   const hue = nextHue();
-  state.projects.push({ id: uid('proj'), name, color: 'hsl(' + hue + ' var(--proj-sat) var(--proj-light))', deadline: null, source: 'manual', tasks: [] });
+  state.projects.push({ id: uid('proj'), name, color: 'hsl(' + hue + ' var(--proj-sat) var(--proj-light))', deadline: null, source: 'manual', categoryId: categoryId || null, tasks: [] });
+  persist();
+}
+
+export function addProjectCategory(name, nextHue) {
+  name = (name || '').trim();
+  if (!name) return null;
+  const existing = state.projectCategories.find((c) => c.name.toLowerCase() === name.toLowerCase());
+  if (existing) return existing.id;
+  const id = uid('pcat');
+  state.projectCategories.push({ id, name, color: 'hsl(' + nextHue() + ' var(--proj-sat) var(--proj-light))' });
+  persist();
+  return id;
+}
+
+export function removeProjectCategory(id) {
+  state.projectCategories = state.projectCategories.filter((c) => c.id !== id);
+  state.projects.forEach((p) => { if (p.categoryId === id) p.categoryId = null; });
+  persist();
+}
+
+export function setProjectCategory(projectId, categoryId) {
+  const project = state.projects.find((p) => p.id === projectId);
+  if (!project) return;
+  project.categoryId = categoryId || null;
   persist();
 }
 

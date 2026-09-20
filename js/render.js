@@ -97,10 +97,13 @@ export function renderInbox(st, ui) {
 
 export function renderTaskEditForm(t, p, categories) {
   const catOptions = categories.map((c) => '<option value="' + c.id + '"' + (t.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
+  const energyValue = t.energyAuto ? 'auto' : t.energy;
   return '<form class="task-edit-form" data-action="save-task-edit" data-task="' + t.id + '" data-project="' + p.id + '">'
     + '<input type="text" name="title" value="' + esc(t.title) + '" maxlength="140" required autofocus>'
+    + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2">' + esc((t.steps || []).join('\n')) + '</textarea>'
     + '<select name="energy">'
-      + ['low', 'medium', 'high'].map((lvl) => '<option value="' + lvl + '"' + (t.energy === lvl ? ' selected' : '') + '>' + ENERGY[lvl].label + '</option>').join('')
+      + '<option value="auto"' + (energyValue === 'auto' ? ' selected' : '') + '>Auto</option>'
+      + ['low', 'medium', 'high'].map((lvl) => '<option value="' + lvl + '"' + (energyValue === lvl ? ' selected' : '') + '>' + ENERGY[lvl].label + '</option>').join('')
     + '</select>'
     + '<select name="category"><option value="">No category</option>' + catOptions + '<option value="__new__">+ Add new…</option></select>'
     + '<input type="date" name="deadline" value="' + (t.deadline || '') + '">'
@@ -126,7 +129,29 @@ export function renderTaskRow(t, p, categories, ui) {
     + '</div>';
 }
 
-export function renderProjectCard(p, ui, categories) {
+export function renderProjectFilterBar(st, ui) {
+  if (!st.projects.length) return '';
+  const usedCategoryIds = new Set(st.projects.map((p) => p.categoryId).filter(Boolean));
+  const hasUncategorized = st.projects.some((p) => !p.categoryId);
+  const pills = [{ key: '', label: 'All' }]
+    .concat(st.projectCategories.filter((c) => usedCategoryIds.has(c.id)).map((c) => ({ key: c.id, label: c.name })))
+    .concat(hasUncategorized ? [{ key: '__uncat__', label: 'Uncategorized' }] : []);
+  const activeKey = ui.projectFilter === undefined ? '' : (ui.projectFilter === null ? '__uncat__' : ui.projectFilter);
+  const pillsHTML = pills.map((pill) => {
+    const active = pill.key === activeKey;
+    return '<button type="button" class="filter-pill' + (active ? ' active' : '') + '" data-action="set-project-filter" data-category="' + pill.key + '">' + esc(pill.label) + '</button>';
+  }).join('');
+  const sortOptions = [
+    ['name', 'Name (A–Z)'], ['open-tasks', 'Most open tasks'], ['deadline', 'Closest deadline'], ['recent-sync', 'Recently synced'],
+  ].map(([value, label]) => '<option value="' + value + '"' + (ui.projectSort === value ? ' selected' : '') + '>' + esc(label) + '</option>').join('');
+  return '<div class="project-filter-bar">'
+    + '<div class="filter-pills">' + pillsHTML + '</div>'
+    + '<input type="text" class="project-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
+    + '<select class="project-sort-select" data-action="set-project-sort">' + sortOptions + '</select>'
+    + '</div>';
+}
+
+export function renderProjectCard(p, ui, categories, projectCategories) {
   const doing = p.tasks.filter((t) => t.status === 'doing');
   const next = p.tasks.filter((t) => t.status === 'next');
   const done = p.tasks.filter((t) => t.status === 'done');
@@ -135,12 +160,14 @@ export function renderProjectCard(p, ui, categories) {
   const doneOpen = !!ui.doneOpen[p.id];
   const pendingRemove = !!ui.pendingRemove[p.id];
   const ghBadge = p.source === 'github' ? '<a class="chip gh-chip small" href="' + esc(p.htmlUrl || '#') + '" target="_blank" rel="noopener">' + (p.private ? '🔒 ' : '') + 'GitHub ↗</a>' : '';
+  const projCat = projectCategories.find((c) => c.id === p.categoryId);
+  const projCatChip = projCat ? '<span class="chip cat-chip small" style="--chip-color:' + projCat.color + '">' + esc(projCat.name) + '</span>' : '';
   const rightControls = pendingRemove
     ? '<span class="remove-confirm">Remove' + (total ? (' &amp; ' + total + ' task' + (total === 1 ? '' : 's')) : '') + '? <button type="button" class="btn-text danger" data-action="confirm-remove-project" data-project="' + p.id + '">Yes</button><button type="button" class="btn-text" data-action="cancel-remove-project" data-project="' + p.id + '">No</button></span>'
     : '<button type="button" class="btn-text" data-action="remove-project" data-project="' + p.id + '">Remove</button>';
   return '<section class="card project-card" id="proj-' + p.id + '" style="--proj-color:' + p.color + '">'
     + '<div class="project-head">'
-      + '<div class="project-title"><span class="dot"></span><h3>' + esc(p.name) + '</h3>' + ghBadge + '</div>'
+      + '<div class="project-title"><span class="dot"></span><h3>' + esc(p.name) + '</h3>' + ghBadge + projCatChip + '</div>'
       + '<div class="project-head-right">' + (p.deadline ? deadlineChip(p.deadline) : '') + rightControls + '</div>'
     + '</div>'
     + '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>'
@@ -153,9 +180,11 @@ export function renderProjectCard(p, ui, categories) {
       ) : '')
     + '<form class="add-task-form" data-action="add-task" data-project="' + p.id + '">'
       + '<input type="text" name="title" placeholder="Add a task…" maxlength="140" required>'
+      + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
       + '<select name="energy">'
+        + '<option value="auto" selected>Auto</option>'
         + '<option value="low">Low</option>'
-        + '<option value="medium" selected>Medium</option>'
+        + '<option value="medium">Medium</option>'
         + '<option value="high">High</option>'
       + '</select>'
       + '<select name="category">'
@@ -169,9 +198,11 @@ export function renderProjectCard(p, ui, categories) {
     + '</section>';
 }
 
-export function renderAddProjectForm() {
+export function renderAddProjectForm(projectCategories) {
+  const catOptions = projectCategories.map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('');
   return '<form class="add-project-form" data-action="add-project">'
     + '<input type="text" name="name" placeholder="New project name…" maxlength="60" required>'
+    + '<select name="category"><option value="">No category</option>' + catOptions + '<option value="__new__">+ Add new…</option></select>'
     + '<button type="submit">+ Add project</button>'
     + '</form>'
     + '<form class="add-project-form" data-action="add-repo" style="margin-top:8px;">'
