@@ -212,6 +212,12 @@ a{color:inherit;}
   padding:7px 10px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font-size:.82rem;
 }
 
+.cat-color-group-label{font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-family:'IBM Plex Sans',sans-serif; margin:16px 0 8px;}
+.cat-color-group-label:first-child{margin-top:0;}
+.cat-color-list{display:flex; flex-direction:column; gap:8px;}
+.cat-color-row{display:flex; align-items:center; justify-content:space-between; gap:12px; border-top:1px solid var(--line); padding-top:8px;}
+.cat-color-row:first-child{border-top:none; padding-top:0;}
+.cat-color-input{width:40px; height:32px; padding:2px; border:1px solid var(--line); border-radius:6px; background:none; cursor:pointer;}
 .chip.chip-btn{cursor:pointer;}
 .chip.chip-btn:hover{filter:brightness(1.08);}
 .chip.cat-chip.chip-placeholder{background:var(--surface-2); color:var(--ink-faint); border:1px dashed var(--line); font-weight:600;}

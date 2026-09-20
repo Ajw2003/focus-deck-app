@@ -28,6 +28,16 @@
       <button type="button" id="connect-gist">Connect</button>
     </div>
   </section>
+  <section class="card">
+    <h2 style="margin-bottom:10px;">Category colors</h2>
+    <p class="muted small" style="margin-bottom:6px;">
+      Pick a color for each category. It updates everywhere that category's chip appears, and syncs to your other devices like any other change.
+    </p>
+    <p class="cat-color-group-label">Project categories</p>
+    <div id="proj-cat-list" class="cat-color-list"></div>
+    <p class="cat-color-group-label">Task categories</p>
+    <div id="task-cat-list" class="cat-color-list"></div>
+  </section>
 </div>
 <script type="module">
   import { getToken, setToken, validateToken } from './js/github.js';
@@ -96,6 +106,52 @@
     state.gistId = id;
     saveStateLocal(state);
     document.getElementById('gist-status').textContent = 'Connected to Gist ' + id + ' — reload the app to pull its data.';
+  });
+</script>
+<script type="module">
+  // Uses the shared `state` singleton (not loadState(), which returns a fresh, disconnected
+  // object) and the mutations.js setters, so color edits go through the same persist()/Gist-sync
+  // pipeline as every other change in the app instead of silently bypassing it.
+  import { state, esc } from './js/state.js';
+  import { setCategoryColor, setProjectCategoryColor } from './js/mutations.js';
+
+  // Resolves any CSS color string this app uses for a category — a literal hsl(), or one built
+  // from var(--proj-sat)/var(--proj-light) custom properties — to a #rrggbb hex value, so an
+  // <input type="color"> can be pre-filled regardless of which form it's stored in.
+  function cssColorToHex(cssColor) {
+    const el = document.createElement('span');
+    el.style.color = cssColor;
+    document.body.appendChild(el);
+    const rgb = getComputedStyle(el).color;
+    document.body.removeChild(el);
+    const nums = rgb.match(/\d+/g);
+    if (!nums) return '#888888';
+    return '#' + nums.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, '0')).join('');
+  }
+
+  function renderCategoryList(container, categories) {
+    container.innerHTML = categories.map((c) => (
+      '<div class="cat-color-row">'
+        + '<span class="chip cat-chip" style="--chip-color:' + esc(c.color) + '">' + esc(c.name) + '</span>'
+        + '<input type="color" class="cat-color-input" data-id="' + c.id + '" value="' + cssColorToHex(c.color) + '">'
+      + '</div>'
+    )).join('') || '<p class="muted small">None yet.</p>';
+  }
+
+  const projCatList = document.getElementById('proj-cat-list');
+  const taskCatList = document.getElementById('task-cat-list');
+  renderCategoryList(projCatList, state.projectCategories);
+  renderCategoryList(taskCatList, state.categories);
+
+  projCatList.addEventListener('input', (e) => {
+    if (!e.target.matches('.cat-color-input')) return;
+    setProjectCategoryColor(e.target.getAttribute('data-id'), e.target.value);
+    renderCategoryList(projCatList, state.projectCategories);
+  });
+  taskCatList.addEventListener('input', (e) => {
+    if (!e.target.matches('.cat-color-input')) return;
+    setCategoryColor(e.target.getAttribute('data-id'), e.target.value);
+    renderCategoryList(taskCatList, state.categories);
   });
 </script>
 </body></html>

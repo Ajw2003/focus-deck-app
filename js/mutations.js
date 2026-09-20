@@ -163,6 +163,13 @@ export function addProjectCategory(name, nextHue) {
   return id;
 }
 
+export function setProjectCategoryColor(id, color) {
+  const cat = state.projectCategories.find((c) => c.id === id);
+  if (!cat || !color) return;
+  cat.color = color;
+  persist();
+}
+
 export function removeProjectCategory(id) {
   state.projectCategories = state.projectCategories.filter((c) => c.id !== id);
   state.projects.forEach((p) => { if (p.categoryId === id) p.categoryId = null; });
@@ -185,6 +192,13 @@ export function addCategory(name, nextHue) {
   state.categories.push({ id, name, color: 'hsl(' + nextHue() + ' var(--proj-sat) var(--proj-light))' });
   persist();
   return id;
+}
+
+export function setCategoryColor(id, color) {
+  const cat = state.categories.find((c) => c.id === id);
+  if (!cat || !color) return;
+  cat.color = color;
+  persist();
 }
 
 export function removeCategory(id) {
