@@ -1,5 +1,5 @@
 // focus-deck-app/js/app.js
-import { state, findTaskWithProject, findProjectIdForTask, candidatesForEnergy, nextHue } from './state.js';
+import { state, findTaskWithProject, findProjectIdForTask, candidatesForEnergy, nextHue, cssColorToHex } from './state.js';
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
@@ -76,6 +76,36 @@ function onAppClick(e) {
   }
   else if (action === 'edit-project-category') { ui.editingProjectCategory = projectId; paint(); }
   else if (action === 'cancel-edit-project-category') { ui.editingProjectCategory = null; paint(); }
+}
+
+// Right-clicking a category chip opens a native color picker for that category. The picker's
+// <input> is appended to <body>, outside #app — persist()'s full #app.innerHTML replace would
+// otherwise destroy it mid-drag and close the picker. Only 'change' (fires once, on commit)
+// persists; 'input' just live-updates the chip's own color.
+function onAppContextMenu(e) {
+  const chip = e.target.closest('[data-cat-id]');
+  if (!chip) return;
+  e.preventDefault();
+  const catId = chip.getAttribute('data-cat-id');
+  const catType = chip.getAttribute('data-cat-type');
+  const list = catType === 'project' ? state.projectCategories : state.categories;
+  const cat = list.find((c) => c.id === catId);
+  if (!cat) return;
+
+  const picker = document.createElement('input');
+  picker.type = 'color';
+  picker.value = cssColorToHex(cat.color);
+  picker.style.cssText = 'position:fixed; opacity:0; width:1px; height:1px; pointer-events:none; left:' + e.clientX + 'px; top:' + e.clientY + 'px;';
+  document.body.appendChild(picker);
+  const cleanup = () => picker.remove();
+  picker.addEventListener('input', () => chip.style.setProperty('--chip-color', picker.value));
+  picker.addEventListener('change', () => {
+    if (catType === 'project') M.setProjectCategoryColor(catId, picker.value);
+    else M.setCategoryColor(catId, picker.value);
+    cleanup();
+  });
+  picker.addEventListener('blur', () => setTimeout(cleanup, 200));
+  if (picker.showPicker) picker.showPicker(); else picker.click();
 }
 
 function onAppChange(e) {
@@ -175,6 +205,7 @@ function init() {
   app.addEventListener('input', onAppInput);
   app.addEventListener('submit', onAppSubmit);
   app.addEventListener('keydown', onAppKeydown);
+  app.addEventListener('contextmenu', onAppContextMenu);
   const captureForm = document.getElementById('capture-form');
   captureForm.addEventListener('submit', (e) => {
     e.preventDefault();

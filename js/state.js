@@ -111,3 +111,17 @@ export function deadlineChip(iso) {
 export function shortName(name) { return name.length > 14 ? name.slice(0, 13) + '…' : name; }
 
 export function nextHue() { return Math.round((state.projects.length * 137.508) % 360); }
+
+// Resolves any category color string (literal hsl(), or one referencing var(--proj-sat)/
+// var(--proj-light)) to #rrggbb, for pre-filling <input type="color">. Shared by settings.html
+// and app.js.
+export function cssColorToHex(cssColor) {
+  const el = document.createElement('span');
+  el.style.color = cssColor;
+  document.body.appendChild(el);
+  const rgb = getComputedStyle(el).color;
+  document.body.removeChild(el);
+  const nums = rgb.match(/\d+/g);
+  if (!nums) return '#888888';
+  return '#' + nums.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, '0')).join('');
+}

@@ -112,22 +112,8 @@
   // Uses the shared `state` singleton (not loadState(), which returns a fresh, disconnected
   // object) and the mutations.js setters, so color edits go through the same persist()/Gist-sync
   // pipeline as every other change in the app instead of silently bypassing it.
-  import { state, esc } from './js/state.js';
+  import { state, esc, cssColorToHex } from './js/state.js';
   import { setCategoryColor, setProjectCategoryColor } from './js/mutations.js';
-
-  // Resolves any CSS color string this app uses for a category — a literal hsl(), or one built
-  // from var(--proj-sat)/var(--proj-light) custom properties — to a #rrggbb hex value, so an
-  // <input type="color"> can be pre-filled regardless of which form it's stored in.
-  function cssColorToHex(cssColor) {
-    const el = document.createElement('span');
-    el.style.color = cssColor;
-    document.body.appendChild(el);
-    const rgb = getComputedStyle(el).color;
-    document.body.removeChild(el);
-    const nums = rgb.match(/\d+/g);
-    if (!nums) return '#888888';
-    return '#' + nums.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, '0')).join('');
-  }
 
   function renderCategoryList(container, categories) {
     container.innerHTML = categories.map((c) => (
@@ -138,20 +124,27 @@
     )).join('') || '<p class="muted small">None yet.</p>';
   }
 
+  // 'input' fires continuously while the native color picker is open (including on every drag
+  // tick across the gradient) — it must only touch the preview chip in place, never rebuild the
+  // list, or it destroys and recreates the open <input> mid-drag and closes the picker. 'change'
+  // fires once, when the picker is closed/committed, which is when it's safe to persist.
+  function wireList(container, setColorFn) {
+    container.addEventListener('input', (e) => {
+      if (!e.target.matches('.cat-color-input')) return;
+      const chip = e.target.closest('.cat-color-row').querySelector('.cat-chip');
+      if (chip) chip.style.setProperty('--chip-color', e.target.value);
+    });
+    container.addEventListener('change', (e) => {
+      if (!e.target.matches('.cat-color-input')) return;
+      setColorFn(e.target.getAttribute('data-id'), e.target.value);
+    });
+  }
+
   const projCatList = document.getElementById('proj-cat-list');
   const taskCatList = document.getElementById('task-cat-list');
   renderCategoryList(projCatList, state.projectCategories);
   renderCategoryList(taskCatList, state.categories);
-
-  projCatList.addEventListener('input', (e) => {
-    if (!e.target.matches('.cat-color-input')) return;
-    setProjectCategoryColor(e.target.getAttribute('data-id'), e.target.value);
-    renderCategoryList(projCatList, state.projectCategories);
-  });
-  taskCatList.addEventListener('input', (e) => {
-    if (!e.target.matches('.cat-color-input')) return;
-    setCategoryColor(e.target.getAttribute('data-id'), e.target.value);
-    renderCategoryList(taskCatList, state.categories);
-  });
+  wireList(projCatList, setProjectCategoryColor);
+  wireList(taskCatList, setCategoryColor);
 </script>
 </body></html>
