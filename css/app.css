@@ -198,6 +198,20 @@ a{color:inherit;}
 }
 .mini-x{border:none; background:var(--surface-2); color:var(--ink-soft); width:22px; height:22px; border-radius:50%; line-height:1;}
 
+.project-filter-bar{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:14px;}
+.filter-pills{display:flex; flex-wrap:wrap; gap:6px;}
+.filter-pill{
+  border:1px solid var(--line); background:var(--surface); border-radius:999px;
+  padding:6px 13px; font-size:.8rem; font-weight:600; color:var(--ink-soft);
+}
+.filter-pill.active{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
+.project-search{
+  flex:1 1 160px; min-width:0; padding:7px 12px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font-size:.85rem;
+}
+.project-sort-select{
+  padding:7px 10px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font-size:.82rem;
+}
+
 .projects-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px;}
 .project-card{border-top:3px solid var(--proj-color);}
 .project-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
@@ -225,6 +239,9 @@ a{color:inherit;}
 .task-edit-form button{padding:6px 12px; border:none; border-radius:6px; font-weight:600; font-size:.82rem;}
 .task-edit-form button[type="submit"]{background:var(--accent); color:var(--accent-ink);}
 .task-edit-form button[type="button"]{background:var(--surface-2); color:var(--ink-soft);}
+.task-edit-form textarea,.add-task-form textarea{
+  flex:1 1 160px; min-width:0; padding:6px 9px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); font:inherit; font-size:.82rem; resize:vertical;
+}
 .done-group{margin-top:4px;}
 .add-task-form{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; border-top:1px dashed var(--line); padding-top:12px;}
 .add-task-form input[type="text"]{
@@ -239,6 +256,9 @@ a{color:inherit;}
 .add-project-form{display:flex; gap:8px;}
 .add-project-form input[type="text"]{
   flex:1; min-width:0; padding:11px 14px; border:1.5px dashed var(--line); border-radius:var(--radius); background:transparent; color:var(--ink);
+}
+.add-project-form select{
+  padding:11px 10px; border:1.5px dashed var(--line); border-radius:var(--radius); background:transparent; color:var(--ink); font-size:.9rem;
 }
 .add-project-form button{
   padding:11px 18px; border:none; border-radius:var(--radius); background:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;

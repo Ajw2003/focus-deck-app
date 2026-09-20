@@ -16,6 +16,11 @@ function defaultState() {
       { id: 'cat_feature', name: 'Feature', color: 'hsl(150 55% 40%)' },
       { id: 'cat_chore', name: 'Chore', color: 'hsl(210 15% 55%)' },
     ],
+    projectCategories: [
+      { id: 'pcat_work', name: 'Work', color: 'hsl(210 55% 45%)' },
+      { id: 'pcat_personal', name: 'Personal', color: 'hsl(150 50% 40%)' },
+      { id: 'pcat_learning', name: 'Learning', color: 'hsl(35 65% 45%)' },
+    ],
     githubSync: { user: null, lastSyncedAt: null },
     gistId: null,
   };
@@ -31,6 +36,7 @@ export function loadState() {
       return Object.assign(d, parsed, {
         projects: parsed.projects || d.projects,
         categories: parsed.categories || d.categories,
+        projectCategories: parsed.projectCategories || d.projectCategories,
       });
     }
   } catch (e) { /* fall through to default */ }

@@ -49,5 +49,6 @@ export async function listIssues(owner, repo) {
     number: i.number,
     title: i.title,
     labels: i.labels.map((l) => (typeof l === 'string' ? l : l.name)),
+    body: i.body || '',
   }));
 }
