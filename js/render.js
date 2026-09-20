@@ -115,7 +115,10 @@ export function renderTaskEditForm(t, p, categories) {
 export function renderTaskRow(t, p, categories, ui) {
   if (ui.editingTask && ui.editingTask.taskId === t.id) return renderTaskEditForm(t, p, categories);
   const isDone = t.status === 'done';
-  const ghBadge = t.source === 'github' ? '<a class="chip gh-chip small" href="' + esc(t.url || '#') + '" target="_blank" rel="noopener">#' + (t.issueNumber != null ? t.issueNumber : '') + '</a>' : '';
+  const ghBadge = t.source === 'github'
+    ? '<a class="chip gh-chip small" href="' + esc(t.url || '#') + '" target="_blank" rel="noopener">#' + (t.issueNumber != null ? t.issueNumber : '') + '</a>'
+      + '<button type="button" class="link-btn small" data-action="unlink-github-issue" data-task="' + t.id + '" data-project="' + p.id + '" title="Unlink from this GitHub issue">Unlink</button>'
+    : '<button type="button" class="link-btn small" data-action="link-github-issue" data-task="' + t.id + '" data-project="' + p.id + '" title="Link this task to a GitHub issue">🔗 Link</button>';
   const cat = categories.find((c) => c.id === t.categoryId);
   const catChip = cat ? '<span class="chip cat-chip small" data-cat-id="' + cat.id + '" data-cat-type="task" title="Right-click to change color" style="--chip-color:' + cat.color + '">' + esc(cat.name) + '</span>' : '';
   return '<div class="task-row' + (isDone ? ' is-done' : '') + '" data-task="' + t.id + '" data-project="' + p.id + '">'

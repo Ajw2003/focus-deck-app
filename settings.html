@@ -10,8 +10,12 @@
     <h2 style="margin-bottom:10px;">GitHub token</h2>
     <p class="muted small" style="margin-bottom:14px;">
       Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained personal access token</a>
-      scoped to <b>All repositories</b> with <b>Issues: Read-only</b> and <b>Metadata: Read-only</b> repository permissions,
-      plus <b>Gists: Read and write</b> under Account permissions. Paste it below — it's stored only in this browser and sent only to api.github.com.
+      scoped to <b>All repositories</b> with <b>Issues: Read and write</b> and <b>Metadata: Read-only</b> repository permissions,
+      plus <b>Gists: Read and write</b> under Account permissions. Read and write on Issues is needed to link tasks to issues,
+      close/reopen a linked issue when you complete a task, and keep categories in sync as labels.
+      If you already have a token with Issues: Read-only, edit its permissions on GitHub (same token, no need to paste a new one) —
+      linking still works read-only, but completing a task or changing its category won't reach the issue until it's upgraded.
+      Paste it below — it's stored only in this browser and sent only to api.github.com.
     </p>
     <div class="add-project-form">
       <input type="password" id="token-input" placeholder="github_pat_…">

@@ -2,6 +2,7 @@
 import { state, uid } from './state.js';
 import { persist } from './sync.js';
 import { parseSteps, wordCount, estimateComplexity, tierFromScore } from './complexity.js';
+import { syncIssueCompletion, pushCategoryToIssue } from './github-sync.js';
 
 function computeAutoEnergy(title, steps) {
   const text = [title, (steps || []).join(' ')].filter(Boolean).join(' ');
@@ -57,7 +58,11 @@ export function editTask(taskId, projectId, fields) {
     if (steps.length) task.steps = steps; else delete task.steps;
   }
   if (fields.deadline !== undefined) task.deadline = fields.deadline || null;
-  if (fields.categoryId !== undefined) task.categoryId = fields.categoryId || null;
+  let categoryIdBefore;
+  if (fields.categoryId !== undefined) {
+    categoryIdBefore = task.categoryId;
+    task.categoryId = fields.categoryId || null;
+  }
   if (fields.energy !== undefined) {
     if (fields.energy === 'auto') {
       task.energyAuto = true;
@@ -69,6 +74,7 @@ export function editTask(taskId, projectId, fields) {
   }
   task.updatedAt = Date.now();
   persist();
+  if (categoryIdBefore !== undefined && task.categoryId !== categoryIdBefore) pushCategoryToIssue(task, categoryIdBefore);
 }
 
 export function deleteTask(taskId, projectId) {
@@ -96,6 +102,7 @@ export function toggleTask(taskId, projectId) {
   }
   task.updatedAt = Date.now();
   persist();
+  syncIssueCompletion(task); // fire-and-forget: closes/reopens the linked issue to match, if any
 }
 
 export function cycleEnergy(taskId, projectId) {

@@ -3,7 +3,7 @@ import { state, findTaskWithProject, findProjectIdForTask, candidatesForEnergy, 
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
-import { syncGithub, addRepoManually } from './github-sync.js';
+import { syncGithub, addRepoManually, linkTaskToIssue, unlinkTask } from './github-sync.js';
 import { filterAndSortProjects } from './project-filter.js';
 
 export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: {}, editingProjectCategory: null };
@@ -76,6 +76,13 @@ function onAppClick(e) {
   }
   else if (action === 'edit-project-category') { ui.editingProjectCategory = projectId; paint(); }
   else if (action === 'cancel-edit-project-category') { ui.editingProjectCategory = null; paint(); }
+  else if (action === 'link-github-issue') {
+    const input = prompt('Link to which GitHub issue? Paste "owner/repo#123" or the issue URL:');
+    if (input) linkTaskToIssue(taskId, input, ui).then(paint);
+  }
+  else if (action === 'unlink-github-issue') {
+    if (confirm('Unlink this task from its GitHub issue? Both the task and the issue stay as they are — only the connection is removed.')) unlinkTask(taskId);
+  }
 }
 
 // Right-clicking a category chip opens a native color picker for that category. The picker's

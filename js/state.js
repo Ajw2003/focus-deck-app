@@ -11,6 +11,7 @@ function defaultState() {
     completedLog: [],
     excludedRepos: [],
     pinnedRepos: [],
+    excludedIssues: [], // "owner/repo#123" entries for issues explicitly unlinked — keeps repo sync from re-creating them
     categories: [
       { id: 'cat_bug', name: 'Bug', color: 'hsl(4 70% 55%)' },
       { id: 'cat_feature', name: 'Feature', color: 'hsl(150 55% 40%)' },

@@ -45,10 +45,55 @@ export async function listIssues(owner, repo) {
   const raw = await ghFetch('/repos/' + owner + '/' + repo + '/issues?state=open&per_page=100');
   // the REST issues endpoint includes pull requests — exclude them (the MCP list_issues tool
   // used earlier in this project did this filtering internally; here it's explicit)
-  return raw.filter((i) => !i.pull_request).map((i) => ({
+  return raw.filter((i) => !i.pull_request).map(mapIssue);
+}
+
+function mapIssue(i) {
+  return {
     number: i.number,
     title: i.title,
     labels: i.labels.map((l) => (typeof l === 'string' ? l : l.name)),
     body: i.body || '',
-  }));
+    state: i.state,
+    html_url: i.html_url,
+  };
+}
+
+export async function getIssue(owner, repo, number) {
+  return mapIssue(await ghFetch('/repos/' + owner + '/' + repo + '/issues/' + number));
+}
+
+// Requires a token with "Issues: Read and write" — used for the task/issue linking feature.
+export async function setIssueState(owner, repo, number, issueState) {
+  return ghFetch('/repos/' + owner + '/' + repo + '/issues/' + number, {
+    method: 'PATCH',
+    body: JSON.stringify({ state: issueState }),
+  });
+}
+
+export async function addLabelsToIssue(owner, repo, number, labels) {
+  return ghFetch('/repos/' + owner + '/' + repo + '/issues/' + number + '/labels', {
+    method: 'POST',
+    body: JSON.stringify({ labels }),
+  });
+}
+
+export async function removeLabelFromIssue(owner, repo, number, name) {
+  return ghFetch('/repos/' + owner + '/' + repo + '/issues/' + number + '/labels/' + encodeURIComponent(name), { method: 'DELETE' })
+    .catch((e) => { if (e.status !== 404) throw e; }); // already off the issue — fine
+}
+
+// Creates the repo label if it doesn't exist yet, so adding a category to an issue never fails
+// just because that category has never been used as a label in this repo before.
+export async function ensureLabelExists(owner, repo, name) {
+  try {
+    await ghFetch('/repos/' + owner + '/' + repo + '/labels/' + encodeURIComponent(name));
+  } catch (e) {
+    if (e.status === 404) {
+      await ghFetch('/repos/' + owner + '/' + repo + '/labels', {
+        method: 'POST',
+        body: JSON.stringify({ name, color: 'ededed' }),
+      }).catch(() => {}); // best-effort; a 422 "already exists" race is harmless
+    }
+  }
 }
