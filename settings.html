@@ -35,8 +35,16 @@
     </p>
     <p class="cat-color-group-label">Project categories</p>
     <div id="proj-cat-list" class="cat-color-list"></div>
+    <form class="add-project-form cat-add-form" id="add-proj-cat-form" style="margin-top:10px;">
+      <input type="text" name="name" placeholder="New project category…" maxlength="40" required>
+      <button type="submit">+ Add</button>
+    </form>
     <p class="cat-color-group-label">Task categories</p>
     <div id="task-cat-list" class="cat-color-list"></div>
+    <form class="add-project-form cat-add-form" id="add-task-cat-form" style="margin-top:10px;">
+      <input type="text" name="name" placeholder="New task category…" maxlength="40" required>
+      <button type="submit">+ Add</button>
+    </form>
   </section>
 </div>
 <script type="module">
@@ -110,25 +118,41 @@
 </script>
 <script type="module">
   // Uses the shared `state` singleton (not loadState(), which returns a fresh, disconnected
-  // object) and the mutations.js setters, so color edits go through the same persist()/Gist-sync
-  // pipeline as every other change in the app instead of silently bypassing it.
+  // object) and the mutations.js setters, so every edit here goes through the same persist()/
+  // Gist-sync pipeline as everything else in the app instead of silently bypassing it.
   import { state, esc, cssColorToHex } from './js/state.js';
-  import { setCategoryColor, setProjectCategoryColor } from './js/mutations.js';
+  import {
+    setCategoryColor, setProjectCategoryColor,
+    addCategory, addProjectCategory, removeCategory, removeProjectCategory,
+  } from './js/mutations.js';
+  import { nextHue } from './js/state.js';
 
   function renderCategoryList(container, categories) {
     container.innerHTML = categories.map((c) => (
       '<div class="cat-color-row">'
         + '<span class="chip cat-chip" style="--chip-color:' + esc(c.color) + '">' + esc(c.name) + '</span>'
-        + '<input type="color" class="cat-color-input" data-id="' + c.id + '" value="' + cssColorToHex(c.color) + '">'
+        + '<div class="cat-color-row-actions">'
+          + '<input type="color" class="cat-color-input" data-id="' + c.id + '" value="' + cssColorToHex(c.color) + '">'
+          + '<button type="button" class="mini-x cat-remove-btn" data-id="' + c.id + '" aria-label="Remove ' + esc(c.name) + '">×</button>'
+        + '</div>'
       + '</div>'
     )).join('') || '<p class="muted small">None yet.</p>';
+  }
+
+  // How many projects (or tasks, for task categories) currently reference this category — shown
+  // in the removal confirmation so a category in use isn't dropped by accident.
+  function usageCount(type, id) {
+    if (type === 'project') return state.projects.filter((p) => p.categoryId === id).length;
+    let count = 0;
+    state.projects.forEach((p) => p.tasks.forEach((t) => { if (t.categoryId === id) count++; }));
+    return count;
   }
 
   // 'input' fires continuously while the native color picker is open (including on every drag
   // tick across the gradient) — it must only touch the preview chip in place, never rebuild the
   // list, or it destroys and recreates the open <input> mid-drag and closes the picker. 'change'
   // fires once, when the picker is closed/committed, which is when it's safe to persist.
-  function wireList(container, setColorFn) {
+  function wireList(container, categoriesOf, type, setColorFn, removeFn) {
     container.addEventListener('input', (e) => {
       if (!e.target.matches('.cat-color-input')) return;
       const chip = e.target.closest('.cat-color-row').querySelector('.cat-chip');
@@ -138,13 +162,40 @@
       if (!e.target.matches('.cat-color-input')) return;
       setColorFn(e.target.getAttribute('data-id'), e.target.value);
     });
+    container.addEventListener('click', (e) => {
+      if (!e.target.matches('.cat-remove-btn')) return;
+      const id = e.target.getAttribute('data-id');
+      const cat = categoriesOf().find((c) => c.id === id);
+      if (!cat) return;
+      const count = usageCount(type, id);
+      const noun = type === 'project' ? 'project' : 'task';
+      const warning = count > 0 ? ' It\'s currently on ' + count + ' ' + noun + (count === 1 ? '' : 's') + ' — removing it clears that assignment.' : '';
+      if (!confirm('Remove "' + cat.name + '"?' + warning)) return;
+      removeFn(id);
+      renderCategoryList(container, categoriesOf());
+    });
   }
 
   const projCatList = document.getElementById('proj-cat-list');
   const taskCatList = document.getElementById('task-cat-list');
   renderCategoryList(projCatList, state.projectCategories);
   renderCategoryList(taskCatList, state.categories);
-  wireList(projCatList, setProjectCategoryColor);
-  wireList(taskCatList, setCategoryColor);
+  wireList(projCatList, () => state.projectCategories, 'project', setProjectCategoryColor, removeProjectCategory);
+  wireList(taskCatList, () => state.categories, 'task', setCategoryColor, removeCategory);
+
+  document.getElementById('add-proj-cat-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = e.target.elements.name;
+    addProjectCategory(input.value, nextHue);
+    input.value = '';
+    renderCategoryList(projCatList, state.projectCategories);
+  });
+  document.getElementById('add-task-cat-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = e.target.elements.name;
+    addCategory(input.value, nextHue);
+    input.value = '';
+    renderCategoryList(taskCatList, state.categories);
+  });
 </script>
 </body></html>
