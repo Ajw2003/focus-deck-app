@@ -46,7 +46,11 @@ function onAppClick(e) {
   else if (action === 'complete-focus') M.completeFocus(findProjectIdForTask);
   else if (action === 'focus-task') M.setFocusTask(taskId);
   else if (action === 'cycle-energy') M.cycleEnergy(taskId, projectId);
-  else if (action === 'delete-task') M.deleteTask(taskId, projectId);
+  else if (action === 'delete-task') {
+    const found = findTaskWithProject(taskId);
+    const title = found ? found.task.title : 'this task';
+    if (confirm('Delete "' + title + '"? This can\'t be undone.')) M.deleteTask(taskId, projectId);
+  }
   else if (action === 'file-inbox') M.fileInboxItem(el.getAttribute('data-inbox'), projectId);
   else if (action === 'discard-inbox') M.discardInbox(el.getAttribute('data-inbox'));
   else if (action === 'remove-project') { ui.pendingRemove[projectId] = true; paint(); }

@@ -36,12 +36,37 @@ assert.strictEqual(mergedNew.projects[0].tasks[0].title, 'New from remote');
 assert.strictEqual(mergedNew.inbox.length, 1, 'new remote inbox item should be added');
 assert.strictEqual(mergedNew.categories.length, 1, 'new remote category should be added');
 
-// deletion-is-not-propagated: an item present locally but absent remotely survives the merge
-// (union-of-ids by design — see the comment above mergeStates in sync.js).
+// a task missing from the OTHER side survives the merge, as long as neither side has actually
+// decided to delete it (no tombstone) — the other side simply hasn't seen it yet.
 const localWithExtra = { projects: [{ id: 'p1', tasks: [{ id: 't1', title: 'still here', updatedAt: 1 }, { id: 't-gone-on-remote', title: 'local only', updatedAt: 1 }] }], inbox: [], categories: [], githubSync: { lastSyncedAt: 0 } };
 const remoteMissingTask = { projects: [{ id: 'p1', tasks: [{ id: 't1', title: 'still here', updatedAt: 1 }] }], inbox: [], categories: [], githubSync: { lastSyncedAt: 0 } };
 const mergedNoDelete = mergeStates(localWithExtra, remoteMissingTask);
-assert.strictEqual(mergedNoDelete.projects[0].tasks.length, 2, 'a task missing from remote should NOT be deleted locally');
+assert.strictEqual(mergedNoDelete.projects[0].tasks.length, 2, 'a task the other side has not seen yet (no tombstone) should NOT be deleted locally');
+
+// deletion tombstones: a task deleted locally must not be resurrected by an older remote copy.
+const localDeleted = { projects: [{ id: 'p1', tasks: [] }], inbox: [], categories: [], deletedTaskIds: { 't-deleted': 500 }, githubSync: { lastSyncedAt: 0 } };
+const remoteStillHasIt = { projects: [{ id: 'p1', tasks: [{ id: 't-deleted', title: 'should stay deleted', updatedAt: 400 }] }], inbox: [], categories: [], githubSync: { lastSyncedAt: 0 } };
+const mergedAfterDelete = mergeStates(localDeleted, remoteStillHasIt);
+assert.strictEqual(mergedAfterDelete.projects[0].tasks.length, 0, 'a task deleted locally (tombstoned) must not be resurrected by an older remote copy — this is the "deleted task comes back after reload" bug');
+
+// ...but an edit made elsewhere AFTER the local deletion still wins, same as any other newer write.
+const remoteEditedAfterDelete = { projects: [{ id: 'p1', tasks: [{ id: 't-deleted', title: 'edited elsewhere after delete', updatedAt: 600 }] }], inbox: [], categories: [], githubSync: { lastSyncedAt: 0 } };
+const mergedAfterLaterEdit = mergeStates(localDeleted, remoteEditedAfterDelete);
+assert.strictEqual(mergedAfterLaterEdit.projects[0].tasks.length, 1, 'a remote edit made after the local deletion should still win, like any other newer write');
+assert.strictEqual(mergedAfterLaterEdit.projects[0].tasks[0].title, 'edited elsewhere after delete');
+
+// symmetric case: the task was deleted on the remote (tombstoned there); a stale local copy
+// that never heard about the deletion should be removed too.
+const localStillHasIt = { projects: [{ id: 'p1', tasks: [{ id: 't-remote-deleted', title: 'stale local copy', updatedAt: 100 }] }], inbox: [], categories: [], githubSync: { lastSyncedAt: 0 } };
+const remoteDeletedIt = { projects: [{ id: 'p1', tasks: [] }], inbox: [], categories: [], deletedTaskIds: { 't-remote-deleted': 200 }, githubSync: { lastSyncedAt: 0 } };
+const mergedRemoteDelete = mergeStates(localStillHasIt, remoteDeletedIt);
+assert.strictEqual(mergedRemoteDelete.projects[0].tasks.length, 0, 'a task deleted on the remote (tombstone newer than the stale local copy) should be removed locally too');
+
+// deletedTaskIds itself unions across both sides, keeping the later timestamp for an id seen on both.
+const localTombstones = { projects: [], inbox: [], categories: [], deletedTaskIds: { a: 100 }, githubSync: { lastSyncedAt: 0 } };
+const remoteTombstones = { projects: [], inbox: [], categories: [], deletedTaskIds: { a: 50, b: 200 }, githubSync: { lastSyncedAt: 0 } };
+const mergedTombstones = mergeStates(localTombstones, remoteTombstones);
+assert.deepStrictEqual(mergedTombstones.deletedTaskIds, { a: 100, b: 200 }, 'deletedTaskIds should union, keeping the later timestamp for an id present on both sides');
 
 // projectCategories merge mirrors categories: union-of-ids, and tolerates a remote object saved by
 // a pre-feature client that has no projectCategories field at all.

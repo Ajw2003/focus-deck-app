@@ -12,6 +12,7 @@ function defaultState() {
     excludedRepos: [],
     pinnedRepos: [],
     excludedIssues: [], // "owner/repo#123" entries for issues explicitly unlinked — keeps repo sync from re-creating them
+    deletedTaskIds: {}, // taskId -> deletion timestamp; stops a stale remote copy from resurrecting a deleted task
     categories: [
       { id: 'cat_bug', name: 'Bug', color: 'hsl(4 70% 55%)' },
       { id: 'cat_feature', name: 'Feature', color: 'hsl(150 55% 40%)' },
@@ -38,6 +39,7 @@ export function loadState() {
         projects: parsed.projects || d.projects,
         categories: parsed.categories || d.categories,
         projectCategories: parsed.projectCategories || d.projectCategories,
+        deletedTaskIds: parsed.deletedTaskIds || d.deletedTaskIds,
       });
     }
   } catch (e) { /* fall through to default */ }

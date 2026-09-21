@@ -6,15 +6,17 @@ import { ghFetch } from './github.js';
 let paintFn = () => {};
 export function registerPaint(fn) { paintFn = fn; }
 
-// Per-task updatedAt (added in Task 3) decides the winner when the same task differs between
-// local and remote; projects and inbox items merge by union-of-ids (nothing here deletes something
-// the other side didn't also decide to delete — for a single user's own two devices that's the safe
-// default: an item removed on one device while the other was offline reappears rather than silently
-// vanishing, and gets deleted again once both are synced, which is a far better failure mode than
-// silent data loss).
+// doc-ref bce8 docs/systems/gist-sync.md
 export function mergeStates(local, remote) {
   if (!remote) return local;
   const merged = JSON.parse(JSON.stringify(local));
+
+  const deletedIds = Object.assign({}, local.deletedTaskIds, remote.deletedTaskIds);
+  Object.keys(remote.deletedTaskIds || {}).forEach((id) => {
+    const l = (local.deletedTaskIds || {})[id] || 0;
+    deletedIds[id] = Math.max(l, remote.deletedTaskIds[id]);
+  });
+  merged.deletedTaskIds = deletedIds;
 
   const localProjectIds = new Set(local.projects.map((p) => p.id));
   remote.projects.forEach((rp) => {
@@ -22,10 +24,21 @@ export function mergeStates(local, remote) {
     const lp = merged.projects.find((p) => p.id === rp.id);
     const localTaskIds = new Set(lp.tasks.map((t) => t.id));
     rp.tasks.forEach((rt) => {
+      const tombstoneAt = deletedIds[rt.id];
+      if (tombstoneAt !== undefined && tombstoneAt >= (rt.updatedAt || 0)) return; // stays deleted
       if (!localTaskIds.has(rt.id)) { lp.tasks.push(rt); return; }
       const lt = lp.tasks.find((t) => t.id === rt.id);
       const lu = lt.updatedAt || 0, ru = rt.updatedAt || 0;
       if (ru > lu) Object.assign(lt, rt);
+    });
+  });
+
+  // Covers the symmetric case: a tombstone that arrived without its task (the other side already
+  // dropped it from its own list) still needs to remove any surviving copy that's no newer than it.
+  merged.projects.forEach((p) => {
+    p.tasks = p.tasks.filter((t) => {
+      const tombstoneAt = deletedIds[t.id];
+      return tombstoneAt === undefined || tombstoneAt < (t.updatedAt || 0);
     });
   });
 

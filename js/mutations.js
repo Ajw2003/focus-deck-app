@@ -81,6 +81,8 @@ export function deleteTask(taskId, projectId) {
   const project = state.projects.find((p) => p.id === projectId);
   if (!project) return;
   project.tasks = project.tasks.filter((t) => t.id !== taskId);
+  if (!state.deletedTaskIds) state.deletedTaskIds = {};
+  state.deletedTaskIds[taskId] = Date.now(); // tombstone — see mergeStates in sync.js
   if (state.focus && state.focus.taskId === taskId) state.focus = null;
   state.completedLog = state.completedLog.filter((e) => e.taskId !== taskId);
   persist();
