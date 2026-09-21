@@ -1,20 +1,21 @@
-const CACHE_NAME = 'focus-deck-shell-v5';
+// Paths below must stay relative — see docs/systems/pwa-shell.md#invariants
+const CACHE_NAME = 'focus-deck-shell-v6';
 const SHELL_ASSETS = [
-  '/',
-  '/index.html',
-  '/css/app.css',
-  '/manifest.webmanifest',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/js/state.js',
-  '/js/mutations.js',
-  '/js/render.js',
-  '/js/app.js',
-  '/js/sync.js',
-  '/js/github.js',
-  '/js/github-sync.js',
-  '/js/complexity.js',
-  '/js/project-filter.js',
+  './',
+  './index.html',
+  './css/app.css',
+  './manifest.webmanifest',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './js/state.js',
+  './js/mutations.js',
+  './js/render.js',
+  './js/app.js',
+  './js/sync.js',
+  './js/github.js',
+  './js/github-sync.js',
+  './js/complexity.js',
+  './js/project-filter.js',
 ];
 
 self.addEventListener('install', (event) => {
