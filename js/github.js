@@ -92,16 +92,22 @@ export async function removeLabelFromIssue(owner, repo, number, name) {
     .catch((e) => { if (e.status !== 404) throw e; }); // already off the issue — fine
 }
 
-// Creates the repo label if it doesn't exist yet, so adding a category to an issue never fails
-// just because that category has never been used as a label in this repo before.
-export async function ensureLabelExists(owner, repo, name) {
+// doc-ref 0c0e docs/systems/github-sync.md
+export async function ensureLabelExists(owner, repo, name, color) {
+  const hex = color ? color.replace(/^#/, '').toLowerCase() : null;
   try {
-    await ghFetch('/repos/' + owner + '/' + repo + '/labels/' + encodeURIComponent(name));
+    const existing = await ghFetch('/repos/' + owner + '/' + repo + '/labels/' + encodeURIComponent(name));
+    if (hex && existing.color && existing.color.toLowerCase() !== hex) {
+      await ghFetch('/repos/' + owner + '/' + repo + '/labels/' + encodeURIComponent(name), {
+        method: 'PATCH',
+        body: JSON.stringify({ color: hex }),
+      }).catch(() => {}); // best-effort — a color mismatch is cosmetic, never block the label apply
+    }
   } catch (e) {
     if (e.status === 404) {
       await ghFetch('/repos/' + owner + '/' + repo + '/labels', {
         method: 'POST',
-        body: JSON.stringify({ name, color: 'ededed' }),
+        body: JSON.stringify({ name, color: hex || 'ededed' }),
       }).catch(() => {}); // best-effort; a 422 "already exists" race is harmless
     }
   }

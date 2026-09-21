@@ -79,8 +79,29 @@ project) still need their status/labels reconciled — this pass fetches each su
 issue individually and applies the same completion/category sync as the normal
 repo-wide path.
 
+### Label colors — `ensureLabelExists` (js/github.js:101), `pushCategoryColorToLinkedIssues` (js/github-sync.js:92)
+
+<!-- ref:0c0e -->
+Creates the repo label if it doesn't exist yet, so adding a category to an issue
+never fails just because that category has never been used as a label in this repo
+before. `color` (a hex string, with or without a leading #) is Focus Deck's own
+color for the category — when given, it's applied on create and, if the label
+already exists with a different color, patched to match, so a category's color
+stays in sync going forward instead of drifting from whatever GitHub's default was.
+Omitting it keeps the old gray-default create-only behavior.
+
+<!-- ref:fce6 -->
+`pushCategoryColorToLinkedIssues` is fire-and-forget, called after a category is
+recolored (see `setCategoryColor` in `mutations.js`). It pushes the new color to
+that category's label in every repo a github-sourced task is currently using it in
+— recoloring doesn't change any task's `categoryId`, so nothing else would ever
+tell those repos' labels to catch up.
+
 ## Invariants
 
+- A GitHub label's color always follows Focus Deck's category color; GitHub-side
+  manual recoloring is never pulled back into Focus Deck — sync is one-directional,
+  Focus Deck to GitHub.
 - `RESERVED_LABELS` (priority/status labels) are never treated as category
   candidates in `applyCategoryFromLabels`.
 - `applyCategoryFromLabels` must be called *after* `task.status` is set, because
@@ -109,3 +130,9 @@ repo-wide path.
 - `createGithubIssueFromTask` persists the newly-linked task *before* the done-task
   close-issue call; if that close call fails, the task is still linked locally even
   though the GitHub issue is left open.
+- Color resolution depends on `cssColorToHex` (`js/state.js:121`), which needs a
+  live DOM/stylesheet to resolve a category's CSS color — including the
+  `var(--proj-sat)`/`var(--proj-light)` custom properties, which literally differ
+  between light/dark theme. So the color GitHub ends up seeing is whatever theme is
+  active in the browser at the moment of the push, and there's no single "true" hex
+  value independent of that.

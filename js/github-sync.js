@@ -1,5 +1,5 @@
 // focus-deck-app/js/github-sync.js
-import { state, uid, nextHue, findTaskWithProject } from './state.js';
+import { state, uid, nextHue, findTaskWithProject, cssColorToHex } from './state.js';
 import {
   validateToken, listRepos, listIssues, getIssue, createIssue, ghFetch,
   setIssueState, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists,
@@ -74,7 +74,7 @@ export async function pushCategoryToIssue(task, oldCategoryId) {
   const newCat = state.categories.find((c) => c.id === task.categoryId);
   try {
     if (newCat) {
-      await ensureLabelExists(owner, name, newCat.name);
+      await ensureLabelExists(owner, name, newCat.name, cssColorToHex(newCat.color));
       await addLabelsToIssue(owner, name, task.issueNumber, [newCat.name]);
     }
     if (oldCat && (!newCat || oldCat.id !== newCat.id)) {
@@ -82,6 +82,25 @@ export async function pushCategoryToIssue(task, oldCategoryId) {
     }
   } catch (e) {
     reportSyncError('Couldn’t update the linked issue’s labels: ' + e.message);
+  }
+}
+
+// doc-ref fce6 docs/systems/github-sync.md
+export async function pushCategoryColorToLinkedIssues(categoryId) {
+  const cat = state.categories.find((c) => c.id === categoryId);
+  if (!cat) return;
+  const hex = cssColorToHex(cat.color);
+  const repos = new Set();
+  state.projects.forEach((p) => p.tasks.forEach((t) => {
+    if (t.source === 'github' && t.categoryId === categoryId && t.repoFullName) repos.add(t.repoFullName);
+  }));
+  for (const repoFullName of repos) {
+    const [owner, name] = repoFullName.split('/');
+    try {
+      await ensureLabelExists(owner, name, cat.name, hex);
+    } catch (e) {
+      reportSyncError('Couldn’t update the “' + cat.name + '” label color: ' + e.message);
+    }
   }
 }
 
@@ -186,7 +205,7 @@ export async function createGithubIssueFromTask(taskId, repoInput, ui) {
   ui.syncError = null;
   try {
     const cat = state.categories.find((c) => c.id === task.categoryId);
-    if (cat) await ensureLabelExists(owner, name, cat.name);
+    if (cat) await ensureLabelExists(owner, name, cat.name, cssColorToHex(cat.color));
     const body = (task.steps && task.steps.length) ? task.steps.map((s) => '- [ ] ' + s).join('\n') : '';
     const iss = await createIssue(owner, name, task.title, body, cat ? [cat.name] : []);
     task.source = 'github';
