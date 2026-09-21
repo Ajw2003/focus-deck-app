@@ -46,6 +46,12 @@ READ-ONLY daily check-in for the Focus Deck app. Do not create/edit/close/reopen
 
 ## Progress checklist
 
-- [ ] Gist ID obtained
-- [ ] Scheduled task created
-- [ ] Test-fired and verified
+- [x] Gist ID obtained (supplied by Ayden on 2026-09-21)
+- [x] Scheduled task created
+- [ ] Test-fired and verified (see execution notes)
+
+## Execution notes (2026-09-21)
+
+- Scheduled task "Focus Deck daily check-in" created: id `trig_01DrH7KqRxHMEzANb9kgbYKe`, cron `0 13 * * *` (13:00 UTC daily, about 8-9am US Central/Eastern; Ayden's timezone was not stated, so this is an assumption and easy to change), push notification on, runs in the cloud only.
+- Step 1 could not be verified from the authoring session: this sandbox's git/API proxy answers `403 This GitHub API path is not available: sessions are bound to their configured repositories` for `api.github.com/gists/...`. That is an environment restriction, not evidence about the Gist itself. The task's prompt tells a scheduled run NOT to work around a block (no mirrors or alternate hosts) and to push-notify the exact error instead.
+- A test firing was started (`fire_trigger`, session `cse_01WEwFTW9BkR9DYFCvP5ADWg`). If scheduled sessions carry the same restriction, Ayden gets a "could not read the Gist" notification; the design needs a rethink then (for example a scheduled session that is allowed gist reads, or a repo-scoped data source such as a file committed to this repo).
