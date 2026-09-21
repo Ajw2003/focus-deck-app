@@ -9,13 +9,22 @@ import { parseChecklistItems, wordCount, estimateComplexity, tierFromScore } fro
 
 function normLabel(s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); }
 
-// Reserved so priority/status labels can't be mistaken for a category.
-// See docs/systems/github-sync.md#category-resolution-from-labels--applycategoryfromlabels-jsgithub-syncjs20
-const RESERVED_LABELS = ['highpriority', 'critical', 'urgent', 'blocker', 'p0', 'p1', 'lowpriority', 'goodfirstissue', 'easy', 'p3', 'p4', 'inprogress', 'wip', 'doing'];
+// Provenance labels — see docs/systems/claude-integration.md
+export const CLAUDE_CREATED_LABEL = 'Claude created this';
+export const CLAUDE_COMPLETED_LABEL = 'Claude completed this';
 
-// See docs/systems/github-sync.md#category-resolution-from-labels--applycategoryfromlabels-jsgithub-syncjs20
-function applyCategoryFromLabels(task, labels) {
+// Reserved so priority/status/provenance labels can't be mistaken for a category.
+// See docs/systems/github-sync.md#category-resolution-from-labels--applycategoryfromlabels-jsgithub-syncjs22
+const RESERVED_LABELS = ['highpriority', 'critical', 'urgent', 'blocker', 'p0', 'p1', 'lowpriority', 'goodfirstissue', 'easy', 'p3', 'p4', 'inprogress', 'wip', 'doing', normLabel(CLAUDE_CREATED_LABEL), normLabel(CLAUDE_COMPLETED_LABEL)];
+
+// Callers must set task.status BEFORE calling (claudeCompleted depends on it).
+// See docs/systems/github-sync.md#category-resolution-from-labels--applycategoryfromlabels-jsgithub-syncjs22
+export function applyCategoryFromLabels(task, labels) {
   labels = labels || [];
+  const norm = labels.map(normLabel);
+  if (norm.includes(normLabel(CLAUDE_CREATED_LABEL))) task.claudeCreated = true; // sticky: never cleared here
+  if (norm.includes(normLabel(CLAUDE_COMPLETED_LABEL)) && task.status === 'done') task.claudeCompleted = true;
+  else delete task.claudeCompleted; // live: absent label or reopened task
   if (!labels.length) return;
   let match = state.categories.find((c) => labels.some((l) => normLabel(l) === normLabel(c.name)));
   if (!match) {
@@ -33,7 +42,31 @@ function reportSyncError(msg) {
   persist(); // re-triggers the registered paint so the error becomes visible
 }
 
-// See docs/systems/github-sync.md#pushing-a-category-back-to-github--pushcategorytoissue-jsgithub-syncjs42
+// Reopen cleanup: the completed label is "live", so once a task is no longer done, take it off the issue.
+// See docs/systems/claude-integration.md
+export async function dropStaleCompletedLabel(task, labels) {
+  if (task.status === 'done') return;
+  if (!(labels || []).some((l) => normLabel(l) === normLabel(CLAUDE_COMPLETED_LABEL))) return;
+  const [owner, name] = task.repoFullName.split('/');
+  try {
+    await removeLabelFromIssue(owner, name, task.issueNumber, CLAUDE_COMPLETED_LABEL);
+  } catch (e) {
+    reportSyncError('Couldn’t clear the “' + CLAUDE_COMPLETED_LABEL + '” label: ' + e.message);
+  }
+}
+
+// Newly-closed issues vanish from the open list, so their labels are never seen — fetch them once.
+export async function refreshClosedTaskLabels(tasks) {
+  for (const t of tasks) {
+    try {
+      const [owner, name] = t.repoFullName.split('/');
+      const iss = await getIssue(owner, name, t.issueNumber);
+      if (iss.state === 'closed') applyCategoryFromLabels(t, iss.labels);
+    } catch (e) { /* best-effort: the chip just won't show */ }
+  }
+}
+
+// See docs/systems/github-sync.md#pushing-a-category-back-to-github--pushcategorytoissue-jsgithub-syncjs70
 export async function pushCategoryToIssue(task, oldCategoryId) {
   if (task.source !== 'github' || !task.repoFullName || task.issueNumber == null) return;
   const [owner, name] = task.repoFullName.split('/');
@@ -53,12 +86,17 @@ export async function pushCategoryToIssue(task, oldCategoryId) {
 }
 
 // Fire-and-forget; no local rollback on failure. See
-// docs/systems/github-sync.md#completion-sync--syncissuecompletion-jsgithub-syncjs63
+// docs/systems/github-sync.md#completion-sync--syncissuecompletion-jsgithub-syncjs90
 export async function syncIssueCompletion(task) {
   if (task.source !== 'github' || !task.repoFullName || task.issueNumber == null) return;
   const [owner, name] = task.repoFullName.split('/');
   try {
     await setIssueState(owner, name, task.issueNumber, task.status === 'done' ? 'closed' : 'open');
+    if (task.status !== 'done' && task.claudeCompleted) {
+      delete task.claudeCompleted;
+      await removeLabelFromIssue(owner, name, task.issueNumber, CLAUDE_COMPLETED_LABEL);
+      persist();
+    }
   } catch (e) {
     reportSyncError('Couldn’t update the linked issue: ' + e.message);
   }
@@ -81,7 +119,7 @@ function findTaskByIssue(repoFullName, number) {
   return null;
 }
 
-// See docs/systems/github-sync.md#linking-a-task-to-an-issue--linktasktoissue-jsgithub-syncjs94
+// See docs/systems/github-sync.md#linking-a-task-to-an-issue--linktasktoissue-jsgithub-syncjs123
 export async function linkTaskToIssue(taskId, input, ui) {
   const found = findTaskWithProject(taskId);
   if (!found) return;
@@ -104,6 +142,7 @@ export async function linkTaskToIssue(taskId, input, ui) {
     task.title = iss.title;
     task.status = iss.state === 'closed' ? 'done' : statusFromLabels(iss.labels);
     applyCategoryFromLabels(task, iss.labels);
+    dropStaleCompletedLabel(task, iss.labels); // fire-and-forget
     const exIdx = state.excludedIssues.indexOf(repoFullName + '#' + iss.number);
     if (exIdx !== -1) state.excludedIssues.splice(exIdx, 1);
     ui.syncing = false;
@@ -118,7 +157,7 @@ export async function linkTaskToIssue(taskId, input, ui) {
   }
 }
 
-// See docs/systems/github-sync.md#unlinking-a-task--unlinktask-jsgithub-syncjs133
+// See docs/systems/github-sync.md#unlinking-a-task--unlinktask-jsgithub-syncjs161
 export function unlinkTask(taskId) {
   const found = findTaskWithProject(taskId);
   if (!found) return;
@@ -133,7 +172,7 @@ export function unlinkTask(taskId) {
   persist();
 }
 
-// See docs/systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs141
+// See docs/systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs176
 export async function createGithubIssueFromTask(taskId, repoInput, ui) {
   const found = findTaskWithProject(taskId);
   if (!found) return;
@@ -212,7 +251,8 @@ export async function addRepoManually(input, ui) {
     const exIdx = state.excludedRepos.indexOf(fullName);
     if (exIdx !== -1) state.excludedRepos.splice(exIdx, 1); // re-adding un-excludes it
     const issues = await listIssues(owner, name);
-    upsertRepoProject(repo, issues, ui);
+    const closedNow = upsertRepoProject(repo, issues, ui);
+    await refreshClosedTaskLabels(closedNow);
     ui.syncing = false;
     persist();
   } catch (e) {
@@ -221,10 +261,10 @@ export async function addRepoManually(input, ui) {
   }
 }
 
-function upsertRepoProject(repo, issues, ui) {
+export function upsertRepoProject(repo, issues, ui) {
   const labeled = issues.filter((iss) => iss.labels && iss.labels.length > 0 && !state.excludedIssues.includes(repo.full_name + '#' + iss.number));
   let project = state.projects.find((p) => p.source === 'github' && p.repoFullName === repo.full_name);
-  if (!project && labeled.length === 0 && !state.pinnedRepos.includes(repo.full_name)) return;
+  if (!project && labeled.length === 0 && !state.pinnedRepos.includes(repo.full_name)) return [];
 
   if (!project) {
     project = { id: uid('gh'), name: repo.name, color: 'hsl(' + nextHue() + ' var(--proj-sat) var(--proj-light))', deadline: null, source: 'github', repoFullName: repo.full_name, htmlUrl: repo.html_url, private: !!repo.private, tasks: [] };
@@ -236,10 +276,12 @@ function upsertRepoProject(repo, issues, ui) {
   project.lastSyncedAt = Date.now();
 
   const openNumbers = new Set(labeled.map((iss) => iss.number));
+  const newlyClosed = [];
   project.tasks.forEach((t) => {
     if (t.source === 'github' && t.status !== 'done' && !openNumbers.has(t.issueNumber)) {
       t.status = 'done';
       t.updatedAt = Date.now();
+      newlyClosed.push(t);
       state.completedLog.unshift({ id: uid('log'), taskId: t.id, title: t.title, projectId: project.id, color: project.color, completedAt: Date.now() });
     }
   });
@@ -254,12 +296,14 @@ function upsertRepoProject(repo, issues, ui) {
       // the open+labeled set now, so it was reopened on GitHub — reflect that here too
       if (existing.status === 'done') existing.status = statusFromLabels(iss.labels);
       applyCategoryFromLabels(existing, iss.labels);
+      dropStaleCompletedLabel(existing, iss.labels);
     } else {
       const task = { id: uid('t'), title: iss.title, energy: resolveIssueEnergy(iss), status: statusFromLabels(iss.labels), deadline: null, categoryId: null, source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
       applyCategoryFromLabels(task, iss.labels);
       project.tasks.push(task);
     }
   });
+  return newlyClosed;
 }
 
 export async function syncGithub(ui) {
@@ -290,17 +334,18 @@ export async function syncGithub(ui) {
 
     const candidates = Object.values(byName).filter((r) => !state.excludedRepos.includes(r.full_name)).slice(0, 20);
     const skipped = [];
+    const closedNow = [];
     for (const repo of candidates) {
       try {
         const [owner, name] = repo.full_name.split('/');
         const issues = await listIssues(owner, name);
-        upsertRepoProject(repo, issues, ui);
+        closedNow.push(...upsertRepoProject(repo, issues, ui));
       } catch (e) {
         skipped.push(repo.name);
       }
     }
 
-    // See docs/systems/github-sync.md#standalone-linked-tasks-reconciliation-pass--syncgithub-jsgithub-syncjs284-311
+    // See docs/systems/github-sync.md#standalone-linked-tasks-reconciliation-pass--syncgithub-jsgithub-syncjs348-374
     const syncedRepos = new Set(candidates.map((r) => r.full_name));
     const linked = [];
     state.projects.forEach((p) => p.tasks.forEach((t) => {
@@ -322,11 +367,13 @@ export async function syncGithub(ui) {
           state.completedLog = state.completedLog.filter((e) => e.taskId !== t.id);
         }
         applyCategoryFromLabels(t, iss.labels);
+        dropStaleCompletedLabel(t, iss.labels);
       } catch (e) {
         skipped.push(t.repoFullName + '#' + t.issueNumber);
       }
     }
 
+    await refreshClosedTaskLabels(closedNow);
     state.githubSync = { user: username, lastSyncedAt: Date.now() };
     ui.syncing = false;
     ui.syncError = skipped.length ? ('Synced, but couldn’t reach: ' + skipped.join(', ') + '.') : null;

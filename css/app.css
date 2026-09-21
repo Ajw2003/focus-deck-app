@@ -157,6 +157,8 @@ a{color:inherit;}
 .chip.gh-chip.small{font-size:.7rem; padding:3px 8px;}
 .chip.gh-chip:hover{color:var(--accent);}
 .chip.cat-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color); font-weight:700;}
+.chip.claude-chip{border-color:transparent; background:color-mix(in srgb, var(--accent) 14%, transparent); color:var(--accent);}
+.chip.claude-chip.small{font-size:.7rem; padding:3px 8px;}
 .focus-title{font-size:1.7rem; line-height:1.25; margin-bottom:16px;}
 .focus-actions{display:flex; flex-wrap:wrap; gap:10px;}
 .btn{border-radius:999px; padding:10px 18px; font-weight:600; border:1px solid var(--line); background:var(--surface-2);}
