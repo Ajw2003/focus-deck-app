@@ -202,5 +202,7 @@ is just this repo's static files plus the generated icons.
 ## Further reading
 
 `docs/systems/` documents the parts of the codebase that are trickier than they look — currently
-just [GitHub sync](docs/systems/github-sync.md), which covers issue/label/completion syncing,
-its invariants, and the ways it can go wrong.
+[GitHub sync](docs/systems/github-sync.md), which covers issue/label/completion syncing,
+its invariants, and the ways it can go wrong, and the
+[Claude integration contract](docs/systems/claude-integration.md), which governs how Claude
+may act on issues (create/comment/close/reopen only, never delete).
