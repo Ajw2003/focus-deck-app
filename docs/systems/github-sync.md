@@ -9,7 +9,7 @@ tasks to specific issues.
 
 ## How it works
 
-### Category resolution from labels — `applyCategoryFromLabels` (js/github-sync.js:20)
+### Category resolution from labels — `applyCategoryFromLabels` (js/github-sync.js:22)
 
 Resolves a task's category from an issue's labels: a label matching an existing
 category name wins; otherwise the first label that isn't a priority/status label
@@ -21,34 +21,48 @@ Priority/status labels (see `energyFromLabels`/`statusFromLabels`) are never mis
 for a category — this keeps "urgent" or "wip" from becoming a bogus auto-created
 category. These are listed in `RESERVED_LABELS`.
 
-### Pushing a category back to GitHub — `pushCategoryToIssue` (js/github-sync.js:42)
+The provenance labels `Claude created this` and `Claude completed this` are also
+reserved, and are read into `task.claudeCreated` / `task.claudeCompleted` in the same
+pass (see [claude-integration.md](./claude-integration.md)).
+
+### Reopen cleanup and closed-issue label refresh — `dropStaleCompletedLabel`, `refreshClosedTaskLabels`
+
+`claudeCompleted` only means something while a task is done, so when a task is no longer
+done but its issue still carries `Claude completed this`, `dropStaleCompletedLabel`
+removes that label from the issue (best-effort; errors are surfaced, never rolled back).
+It runs in the repo-wide pass, the standalone-linked pass, and `linkTaskToIssue`.
+`refreshClosedTaskLabels` covers the opposite blind spot: a newly closed issue leaves the
+open-issue list, so its labels would never be read; each task `upsertRepoProject` newly
+marked done gets its issue fetched once and its labels applied if it is closed.
+
+### Pushing a category back to GitHub — `pushCategoryToIssue` (js/github-sync.js:70)
 
 Pushes a task's local category onto its linked issue as a label: adds the new
 category's label (creating it on the repo first if needed) and removes the old one,
 if any — every other label on the issue (priority, status, anything unrelated) is
 left untouched.
 
-### Completion sync — `syncIssueCompletion` (js/github-sync.js:63)
+### Completion sync — `syncIssueCompletion` (js/github-sync.js:90)
 
 Closes or reopens a task's linked issue to match its local status. Fire-and-forget:
 local state already reflects the toggle by the time this is called, so a failure
 here just means GitHub didn't follow — it's surfaced but never rolled back locally.
 
-### Linking a task to an issue — `linkTaskToIssue` (js/github-sync.js:94)
+### Linking a task to an issue — `linkTaskToIssue` (js/github-sync.js:123)
 
 Links an existing task (manual or already GitHub-sourced) to a specific issue: pulls
 the issue's title/state/labels in immediately, and if the task already had a local
 category but the issue has no category-equivalent label, pushes that category onto
 the issue so both sides end up in sync rather than the pull silently winning.
 
-### Unlinking a task — `unlinkTask` (js/github-sync.js:133)
+### Unlinking a task — `unlinkTask` (js/github-sync.js:161)
 
 Detaches a task from its linked issue without touching either side's content: the
 task stays exactly as it is locally (now a manual task), the issue is untouched on
 GitHub, and the issue is remembered as excluded so the next repo-wide sync doesn't
 recreate a duplicate task for it.
 
-### Creating an issue from a task — `createGithubIssueFromTask` (js/github-sync.js:141)
+### Creating an issue from a task — `createGithubIssueFromTask` (js/github-sync.js:176)
 
 Creates a brand-new GitHub issue from a task that doesn't have one yet, and links the
 two — the reverse of `linkTaskToIssue` (which attaches to an issue that already
@@ -57,7 +71,7 @@ category (if any) becomes a label, created on the repo first if it isn't there y
 If the task is already marked done locally, the new issue is opened and then
 immediately closed to match.
 
-### Standalone-linked-tasks reconciliation pass — `syncGithub` (js/github-sync.js:284-311)
+### Standalone-linked-tasks reconciliation pass — `syncGithub` (js/github-sync.js:348-374)
 
 Tasks manually linked (via `linkTaskToIssue`) to an issue in a repo that isn't itself
 being synced in the main candidates loop (e.g. the task lives in an unrelated
@@ -69,6 +83,8 @@ repo-wide path.
 
 - `RESERVED_LABELS` (priority/status labels) are never treated as category
   candidates in `applyCategoryFromLabels`.
+- `applyCategoryFromLabels` must be called *after* `task.status` is set, because
+  `claudeCompleted` depends on it.
 - `pushCategoryToIssue` only ever adds the new category label and removes the old
   one; it never touches other labels on the issue.
 - `syncIssueCompletion` never rolls back local state on failure — GitHub failing to
