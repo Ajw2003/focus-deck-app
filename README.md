@@ -57,9 +57,8 @@ out of your head. File it into a project (or a new one) whenever you're ready, n
   reopen the issue there and the task comes back here.
 
 **Cross-device sync** — an optional private GitHub Gist acts as a small sync target so your
-state follows you between devices, with a last-write-wins merge per task and union merges for
-lists (nothing is silently deleted just because one device was offline when a change happened
-elsewhere).
+state follows you between devices (see [Syncing across devices](#syncing-across-devices-github-gist)
+below).
 
 **Auto complexity estimate** — a lightweight, fully local heuristic (step count, description
 length, a couple of keyword scans, and label count for GitHub-sourced tasks) sorts tasks into a
@@ -113,6 +112,30 @@ python3 -m http.server 8000
 Then open `http://localhost:8000` in a browser. Any other static file server works the same way
 (`npx serve`, VS Code's Live Server, etc.) — the app has no server-side logic at all.
 
+## Installing it as an app
+
+The deployed site (`https://ajw2003.github.io/focus-deck-app/`) is a PWA, so most browsers can
+install it as a standalone app instead of leaving it as a tab. Installing vs. using it in a tab
+makes no functional difference — it's the same app either way — it's just a more app-like way to
+open it.
+
+**Phone (Android, Chrome):** open the site, tap the ⋮ menu, then **Add to Home screen** /
+**Install app**.
+
+**Phone (iOS, Safari):** open the site, tap the Share icon, then **Add to Home Screen**.
+
+**Computer (Chrome or Edge):** open the site and click the install icon at the right end of the
+address bar (a monitor with a ↓), or use the ⋮ menu → **Install Focus Deck…**. It then opens in
+its own window with a normal taskbar/dock icon.
+
+**Computer (Opera):** Opera's desktop browser doesn't support installing PWAs — there's no
+install button in the address bar, unlike other Chromium browsers. Opera's own "Create desktop
+shortcut" option just opens the site in a regular Opera tab, not a standalone app window. To get
+the real installed-app experience on Windows/macOS/Linux while using Opera day to day, open the
+site in Edge (built into Windows) or Chrome instead and install it from there — Opera itself has
+no workaround for this. (Opera on Android is unaffected — Add to Home screen works normally
+there.)
+
 ## Setting up GitHub sync (optional)
 
 Everything above works with zero setup, entirely offline, storing data in your browser's
@@ -121,6 +144,44 @@ follow the walkthrough there to generate a fine-grained GitHub personal access t
 "Issues: Read and write" on whichever repos you want to link, and optionally "Gists: Read and
 write" if you also want cross-device sync. The token is stored only in your browser and is only
 ever sent to `api.github.com`.
+
+## Syncing across devices (GitHub Gist)
+
+"Cross-device sync" doesn't use `git` directly — it uses a **GitHub Gist** as a small JSON
+storage bucket for your whole Focus Deck state (every project, task, category, and the inbox).
+A Gist is a lighter-weight GitHub object than a repo, but it's still backed by git underneath;
+Focus Deck just talks to it over GitHub's REST API (`js/sync.js`) rather than running git
+commands, so there's nothing to clone or push by hand.
+
+How it works:
+
+1. **On your first device**, open Settings and click **Create sync Gist**. This creates a new
+   private Gist under your GitHub account containing a snapshot of your current state, and shows
+   you its Gist ID.
+2. **On each additional device**, open Settings there, paste that same Gist ID into the
+   "Connect" field, and click **Connect**, then reload the page to pull its data in.
+3. From then on, every device with that Gist ID connected both **pushes** its own changes to the
+   Gist (debounced, shortly after you make a change) and **pulls** the Gist's latest contents on
+   load — so editing a task on your phone shows up on your laptop the next time it syncs.
+
+**Merging, not overwriting:** if two devices both made changes while offline, Focus Deck doesn't
+just let whichever one syncs last win outright. `mergeStates()` in `js/sync.js` merges per task —
+each task carries an `updatedAt` timestamp, and the newer edit wins for that specific task, not
+for your whole state. Projects, inbox items, and categories merge by combining both devices' IDs,
+so an item added on one device while the other was offline shows up rather than getting wiped.
+The only way something is permanently removed is if a device that's aware of the deletion syncs
+again after it happened — a device that was offline when something was deleted and comes back
+online will see it reappear, then it'll be deleted again once it resyncs. That's a deliberate
+trade-off: for a personal sync tool, briefly reviving an item you meant to delete is a far better
+failure mode than one offline device silently losing data.
+
+**This is per-person, not per-team.** The Gist holds one person's entire state — it's meant to
+connect *your own* devices, not to be shared between different people. Pointing two different
+people's Focus Decks at the same Gist ID would work mechanically (both would push/pull against
+it), but their tasks, projects, and categories would all merge into one combined state rather
+than staying separate — not what you'd want for two people's independent work. For sharing
+progress between multiple people, the GitHub issue sync above (which lives in the repo itself,
+not in a personal Gist) is the layer that's actually built for that.
 
 ## Running the tests
 
