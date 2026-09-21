@@ -16,6 +16,20 @@ excluded on purpose so it isn't fought over its own cache headers) are never int
 — and it opportunistically caches any new same-origin GET response it sees, so future
 asset additions are picked up without bumping `CACHE_NAME`.
 
+### Select backgrounds must stay opaque — `.add-project-form select` (css/app.css:280-282)
+
+<!-- ref:63c4 -->
+Unlike the sibling text input, this can't stay `background:transparent` — a `<select>`'s
+box and its native popup fall back to the OS/browser's own widget background when nothing
+opaque is set, so `color:var(--ink)` (light in dark mode) was landing on a native-white
+background. Every other `<select>` in this file sets an explicit solid background for the
+same reason; this one has to match. (Fixes GitHub issue #14: category selector dropdown
+rendering white-on-white in the downloaded/installed version — `.add-project-form select`
+was the only `<select>` in the stylesheet using `background:transparent`, copied from its
+sibling ghost-styled text input, instead of `background:var(--surface)` like
+`.task-edit-form select`, `.add-task-form select`, `.project-sort-select`, and
+`.project-cat-edit select`.)
+
 ## Invariants
 
 All paths in `SHELL_ASSETS`, plus `start_url` and `scope` in `manifest.webmanifest`, and
@@ -24,6 +38,10 @@ deployed as a GitHub Pages *project* page under `/focus-deck-app/`, not a domain
 root-absolute path resolves against the bare domain instead of the actual subpath and
 404s there. Paths must resolve against wherever the script's own URL actually is, whether
 that's a GitHub Pages subpath or a local dev server's root.
+- Every `<select>` in css/app.css must set an explicit opaque `background` (never
+  `transparent`) — there's no `appearance:none` anywhere in the codebase, so nothing
+  guarantees CSS fully controls the native widget's rendering; without an opaque
+  background, the OS/browser's own popup background can show through instead.
 
 ## Traps
 
