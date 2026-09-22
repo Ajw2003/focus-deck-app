@@ -3,7 +3,8 @@ import { state, uid, nextHue, saveStateLocal, findTaskWithProject } from './stat
 import { syncIssueCompletion, pushCategoryToIssue, pushCategoryColorToLinkedIssues } from './github-sync.js';
 
 function persist() {
-  saveStateLocal();
+  // Must pass `state` explicitly -- see doc-ref 2425 docs/systems/gist-sync.md
+  saveStateLocal(state);
   // registered separately by sync.js to avoid a circular import; see sync.js:persist
   if (state._persistHook) state._persistHook();
 }

@@ -64,3 +64,38 @@ identically.
   accumulates an entry for a class that stops being used.
 
 **Status.** Standing.
+---
+## 2026-09-22 — Fix silent state-wiping bug in `persist()` and add a regression test
+
+**Context.** A user reported losing all local data and their sync Gist ID ("the changes made
+deleted all of my credentials from my local copy and the web version got cleared too... with a
+gist Id that is simply gone now"). The user attributed what they *saw* to Chrome's "Desktop
+site" mode, but that only explains a rendering/viewport issue and cannot explain actual data
+loss, since toggling a browser display mode does not touch localStorage. Auditing every
+`saveStateLocal()` call site in the app (`docs/systems/gist-sync.md`) turned up a real, severe,
+currently-live bug that fit the reported symptoms exactly: `js/mutations.js`'s `persist()`
+called `saveStateLocal()` with no arguments, so `state.js`'s `saveStateLocal(state)` received
+`undefined` for its `state` parameter instead of picking up the module's `state` singleton.
+`JSON.stringify(undefined)` stringifies to the literal text `"undefined"`, which
+`localStorage.setItem` happily wrote on every mutation. The app looked fine in the moment
+(the in-memory `state` singleton was still correct), but the next `loadState()` — a reload, or
+a new tab — called `JSON.parse("undefined")`, threw, was silently swallowed, and fell back to
+`defaultState()`, wiping every project, category, and the gistId.
+
+**Decision.** Changed `persist()` in `js/mutations.js` to call `saveStateLocal(state)`,
+matching every other call site (`js/sync.js`, `settings.html`). Added
+`js/persist-storage.test.mjs`, a regression test that exercises the real module (mocked
+localStorage with the same `String()`-coercion `setItem()` behavior as the real API) rather
+than a text-pattern check, calling a real mutation and inspecting both what lands in
+localStorage and what `loadState()` reads back afterward — reproducing the reload where the
+user actually saw their data disappear. Recorded the invariant ("every `saveStateLocal()` call
+site must pass `state` explicitly") and this incident in `docs/systems/gist-sync.md`
+(see `#invariants` and `#traps`, doc-ref `2425`).
+
+**Why.** A static/text-pattern check (like `style-contract.test.mjs`'s class-name matching)
+would not have caught this: the defect is a runtime data-flow bug, not a shape mismatch — the
+call site is syntactically valid, it just silently drops its argument. Only a test that
+actually calls the mutation and inspects the real serialized/deserialized round-trip surfaces
+it, so that's the form the regression test takes.
+
+**Status.** Fixed and standing; regression test is green (`js/persist-storage.test.mjs`).
