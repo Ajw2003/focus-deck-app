@@ -2,12 +2,47 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 permissions:
   contents: read
   pages: write
   id-token: write
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Needed for scripts/guard-file-churn.mjs, which diffs against the commit(s) this push
+          # or PR actually introduces -- a shallow (depth-1) checkout has no parent to diff against.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run unit + style-contract tests
+        run: node --test js/*.test.mjs
+      - name: Guard against silent large-scale file overwrites
+        # See docs/systems/styling.md#traps (GitHub issue #17) and docs/Decisions.md for why this
+        # exists. On push, diff every commit the push actually introduces against its parent; on a
+        # PR, diff the PR's whole range against its base. A brand-new branch/PR base with no prior
+        # history (event.before all-zero) has nothing to diff against and is skipped.
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+            node scripts/guard-file-churn.mjs --base "$BASE" --head "$HEAD"
+          else
+            BEFORE="${{ github.event.before }}"
+            if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ]; then
+              echo "guard-file-churn: no prior commit to diff against (new branch) -- skipping"
+            else
+              node scripts/guard-file-churn.mjs --base "$BEFORE" --head "${{ github.sha }}"
+            fi
+          fi
   deploy:
+    needs: test
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
