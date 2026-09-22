@@ -78,10 +78,13 @@
   });
 </script>
 <script type="module">
+  // Uses the shared `state` singleton (not loadState(), which returns a fresh, disconnected
+  // object) -- see the same note on the category-color block below. A copy taken here at
+  // page-load time would go stale the moment that block (or any other) mutates the real state,
+  // and clicking "Create sync Gist" would silently revert those edits by saving the stale copy.
   import { ghFetch } from './js/github.js';
-  import { loadState, saveStateLocal } from './js/state.js';
+  import { state, saveStateLocal } from './js/state.js';
 
-  const state = loadState();
   const gistStatusEl = document.getElementById('gist-status');
   const createBtn = document.getElementById('create-gist');
 
