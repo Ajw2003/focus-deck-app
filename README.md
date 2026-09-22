@@ -94,7 +94,12 @@ css/app.css             all styling
 service-worker.js       offline caching for the installed PWA
 manifest.webmanifest    PWA metadata (name, icons, theme color)
 generate_icons.py       generates the PWA icons at deploy time (not committed to the repo)
-docs/systems/           deep-dive docs for the trickier subsystems (currently: GitHub sync)
+scripts/
+  guard-file-churn.mjs   blocks a commit that silently deletes most of an existing file
+.githooks/               optional local hooks (commit-msg runs the guard above); see below
+docs/systems/           deep-dive docs for the trickier subsystems (currently: GitHub sync,
+                         PWA shell, GitHub-Issues provenance, Gist sync, styling)
+docs/Decisions.md       dated log of non-obvious decisions and why they were made
 ```
 
 The render pattern is simple on purpose: every state change re-renders the whole `#app` element
@@ -187,17 +192,28 @@ not in a personal Gist) is the layer that's actually built for that.
 
 Each module with non-trivial logic (`complexity.js`, `project-filter.js`, `sync.js`'s state
 merge, `github-sync.js`) has a plain `node:test`-based `*.test.mjs` file next to it, with no
-test framework beyond Node's own `node:test` and `node:assert`:
+test framework beyond Node's own `node:test` and `node:assert` — including `css/app.css` itself,
+via `js/style-contract.test.mjs` (see [Styling](docs/systems/styling.md)):
 
 ```bash
 node --test js/*.test.mjs
 ```
 
+There's also a guard against a commit silently deleting most of an existing file while its
+message describes something much smaller (`scripts/guard-file-churn.mjs`, see
+[Decisions](docs/Decisions.md)). It always runs in CI; to also get it locally as a commit-msg
+hook, once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Deployment
 
-Pushing to `main` triggers `.github/workflows/deploy.yml`, which generates the PWA icons and
-publishes the whole directory to GitHub Pages — there's nothing to build, so the deployed site
-is just this repo's static files plus the generated icons.
+Pushing to `main` triggers `.github/workflows/deploy.yml`: a `test` job runs the full test suite
+and the file-churn guard first, and `deploy` (which generates the PWA icons and publishes the
+whole directory to GitHub Pages) only runs if `test` passes — there's nothing to build, so the
+deployed site is just this repo's static files plus the generated icons.
 
 ## Further reading
 

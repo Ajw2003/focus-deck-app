@@ -11,3 +11,6 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
   (`js/github-sync.js`, `js/render.js`).
 - [gist-sync.md](./gist-sync.md) — merging local state with the remote Gist copy, including
   deletion tombstones (`js/sync.js`).
+- [styling.md](./styling.md) — the stylesheet and its contract with the markup that references it
+  (`css/app.css`, `js/render.js`), plus the guardrails against it silently breaking
+  (`js/style-contract.test.mjs`, `scripts/guard-file-churn.mjs`).

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Blocks a commit whose diff silently replaces most of an existing file's content, unless the
+# message explicitly acknowledges it. See scripts/guard-file-churn.mjs and
+# docs/systems/styling.md#traps for why this exists.
+#
+# Enabled per-clone (git hooks aren't committed/activated automatically) with:
+#   git config core.hooksPath .githooks
+# This is a local convenience only -- .github/workflows/deploy.yml runs the same check on every
+# push as the real backstop, since --no-verify (or simply never enabling this) skips this hook.
+
+node "$(git rev-parse --show-toplevel)/scripts/guard-file-churn.mjs" --staged --message-file "$1"
