@@ -8,13 +8,16 @@ wires the service worker into the page.
 
 ## How it works
 
-`SHELL_ASSETS` (service-worker.js:9) lists the app's core files; on `install`, the
-service worker opens a cache and pre-caches all of them in one `cache.addAll()` call
-(service-worker.js:27-32). The `fetch` handler (service-worker.js:43-63) is cache-first
-with a same-origin-only guard — cross-origin requests (including the Google Fonts CDN,
-excluded on purpose so it isn't fought over its own cache headers) are never intercepted
-— and it opportunistically caches any new same-origin GET response it sees, so future
-asset additions are picked up without bumping `CACHE_NAME`.
+`SHELL_ASSETS` lists the app's core files; on `install`, the service worker pre-caches all of
+them in one `cache.addAll()` call. The `fetch` handler is **network-first** with a
+same-origin-only guard: it always tries the network, stores each good response in the cache,
+and falls back to the cache only when offline. Cross-origin requests (including the Google
+Fonts CDN) are never intercepted. `index.html` registers it with `updateViaCache: 'none'` so the
+browser checks for a new `service-worker.js` on every load.
+
+It used to be cache-first. Because `service-worker.js` itself didn't change when
+`js/mutations.js` was fixed, installed copies kept serving the old file, which wrote
+`"undefined"` over the saved data, indefinitely. Don't go back to cache-first for app code.
 
 ### Select backgrounds must stay opaque — `.add-project-form select` (css/app.css:280-282)
 
