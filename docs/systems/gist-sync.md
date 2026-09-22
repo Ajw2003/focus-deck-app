@@ -4,7 +4,9 @@
 
 Merging local Focus Deck state with the remote copy stored in a GitHub Gist, so edits made
 on two devices (or a device and a stale local cache) combine instead of one clobbering the
-other. Lives in `js/sync.js`, principally `mergeStates` (`js/sync.js:19`).
+other. `mergeStates` lives in `js/merge.js` (pure, shared with `js/state.js`); pulling and
+pushing live in `js/sync.js`. Local storage and the Gist ID's own key are in
+[local-storage.md](./local-storage.md).
 
 ## How it works
 
@@ -23,7 +25,17 @@ deleted), but a copy edited elsewhere *after* the deletion still wins, same as a
 newer write. Without this, deleting a task and reloading before the Gist push lands
 (`persist()` debounces it 3s) would pull the old copy straight back in.
 
+### Push merges first
+
+`pushToGist` reads the Gist and merges it in before writing. A device that hasn't pulled yet
+(offline start, failed pull, a fresh browser) adds to the Gist rather than replacing it with
+its smaller copy. `focusdeck-push-pending` survives a reload inside the 3s debounce, so that
+change is pushed on the next load. There is one `persist()` (`js/sync.js`); `mutations.js`
+re-exports it. Its old private copy saved locally but never pushed.
+
 ## Invariants
+
+- A push never writes the Gist without first merging what's in it.
 
 - A deletion tombstone beats a task copy that is no newer than it; a copy edited after the
   tombstone still wins (deletion is just another timestamped write, not a special case that

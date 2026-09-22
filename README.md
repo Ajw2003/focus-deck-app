@@ -80,13 +80,14 @@ clone and immediately understand without learning a build toolchain first.
 index.html            entry point — loads js/app.js as a module, registers the service worker
 settings.html          GitHub token, cross-device sync, and category-color settings
 js/
-  state.js             the single in-memory state object + localStorage persistence
+  state.js             the single in-memory state object + localStorage persistence and backups
+  merge.js             mergeStates(): pure local/remote state merge
   mutations.js         every way state is allowed to change (adding/editing/completing tasks, etc.)
   render.js             pure functions: state -> HTML strings
   app.js                wires DOM events to mutations, and mutations back to a repaint
   github.js             thin GitHub REST API client (issues, labels, gists)
   github-sync.js         issue <-> task linking, category <-> label sync, completion sync
-  sync.js                cross-device sync via a GitHub Gist, and state merging
+  sync.js                cross-device sync via a GitHub Gist
   complexity.js          the local low/medium/high complexity heuristic
   project-filter.js      project search/sort/filter logic
   *.test.mjs             plain node:test files alongside the modules they test
@@ -163,14 +164,15 @@ How it works:
 1. **On your first device**, open Settings and click **Create sync Gist**. This creates a new
    private Gist under your GitHub account containing a snapshot of your current state, and shows
    you its Gist ID.
-2. **On each additional device**, open Settings there, paste that same Gist ID into the
-   "Connect" field, and click **Connect**, then reload the page to pull its data in.
+2. **On each additional device**, open Settings there and save the same GitHub token. Focus Deck
+   finds your existing sync Gist by itself and pulls its data in. (Pasting the Gist ID into the
+   "Connect" field also works.) The same happens if a browser ever loses its Gist ID.
 3. From then on, every device with that Gist ID connected both **pushes** its own changes to the
    Gist (debounced, shortly after you make a change) and **pulls** the Gist's latest contents on
    load — so editing a task on your phone shows up on your laptop the next time it syncs.
 
 **Merging, not overwriting:** if two devices both made changes while offline, Focus Deck doesn't
-just let whichever one syncs last win outright. `mergeStates()` in `js/sync.js` merges per task —
+just let whichever one syncs last win outright. `mergeStates()` in `js/merge.js` merges per task —
 each task carries an `updatedAt` timestamp, and the newer edit wins for that specific task, not
 for your whole state. Projects, inbox items, and categories merge by combining both devices' IDs,
 so an item added on one device while the other was offline shows up rather than getting wiped.

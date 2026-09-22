@@ -1,5 +1,5 @@
 // Paths below must stay relative — see docs/systems/pwa-shell.md#invariants
-const CACHE_NAME = 'focus-deck-shell-v11';
+const CACHE_NAME = 'focus-deck-shell-v12';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,10 @@ const SHELL_ASSETS = [
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './settings.html',
   './js/state.js',
+  './js/merge.js',
+  './js/project-filter.js',
   './js/mutations.js',
   './js/sync.js',
   './js/github.js',
@@ -41,16 +44,16 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
+  // Network-first: a code fix must reach an installed app on its next load. Cache-first kept
+  // serving an old js/mutations.js that wrote "undefined" over the saved data, long after the fix
+  // shipped. The cache is only the offline fallback. See docs/systems/pwa-shell.md.
   event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req).then((resp) => {
-        if (resp.ok) {
-          const copy = resp.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-        }
-        return resp;
-      });
-    })
+    fetch(req).then((resp) => {
+      if (resp.ok) {
+        const copy = resp.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+      }
+      return resp;
+    }).catch(() => caches.match(req).then((cached) => cached || Response.error()))
   );
 });

@@ -1,7 +1,15 @@
 // focus-deck-app/js/state.js
+import { mergeStates } from './merge.js';
+
 export const ENERGY = { low: { label: 'Low' }, medium: { label: 'Medium' }, high: { label: 'High' } };
 
-const STORAGE_KEY = 'focusdeck-state-v1';
+// doc-ref 7f3a docs/systems/local-storage.md
+// These key names are part of the user's data: renaming one without a migration that reads the
+// old key first orphans everything stored under it.
+export const STORAGE_KEY = 'focusdeck-state-v1';
+export const GIST_ID_KEY = 'focusdeck-gist-id';
+export const BACKUPS_KEY = 'focusdeck-state-backups';
+const MAX_BACKUPS = 5;
 
 function defaultState() {
   return {
@@ -28,29 +36,202 @@ function defaultState() {
   };
 }
 
-export function loadState() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // fill in fields added after a user's save predates them
-      const d = defaultState();
-      return Object.assign(d, parsed, {
-        projects: parsed.projects || d.projects,
-        categories: parsed.categories || d.categories,
-        projectCategories: parsed.projectCategories || d.projectCategories,
-        deletedTaskIds: parsed.deletedTaskIds || d.deletedTaskIds,
-      });
-    }
-  } catch (e) { /* fall through to default */ }
-  return defaultState();
+// Set when loading or saving hit a problem the user needs to know about (unreadable saved data,
+// storage full). app.js surfaces it; nothing here clears it.
+export let storageProblem = null;
+
+// The saveId of the copy this page last read or wrote. If storage holds a different one when we
+// save, another tab/window (or this page restored from the back-forward cache) wrote in between,
+// and a blind write would roll its changes back — see saveStateLocal.
+let lastSaveId = null;
+
+function readRaw(key) {
+  if (typeof localStorage === 'undefined') return null; // Node tests that don't mock it
+  try { return localStorage.getItem(key); } catch (e) { console.error('localStorage read failed:', e); return null; }
 }
 
-export function saveStateLocal(state) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* storage full/blocked — non-fatal */ }
+function parseSaved(raw) {
+  if (raw == null) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && Array.isArray(parsed.projects)) return parsed;
+  } catch (e) { /* unreadable — caller decides */ }
+  return null;
+}
+
+function contentSize(st) {
+  if (!st) return 0;
+  const tasks = (st.projects || []).reduce((n, p) => n + ((p && p.tasks) || []).length, 0);
+  return (st.projects || []).length + tasks + (st.inbox || []).length + (st.gistId ? 1 : 0);
+}
+
+export function readBackups() {
+  try { return JSON.parse(readRaw(BACKUPS_KEY)) || []; } catch (e) { return []; }
+}
+
+// Copies a raw saved value aside before anything replaces it. Never throws: a failed backup is
+// logged, and the caller still gets to decide whether to proceed.
+export function backupRaw(raw, reason) {
+  if (raw == null || raw === '') return;
+  try {
+    const backups = readBackups().filter((b) => b.raw !== raw);
+    backups.unshift({ at: Date.now(), reason, raw });
+    localStorage.setItem(BACKUPS_KEY, JSON.stringify(backups.slice(0, MAX_BACKUPS)));
+  } catch (e) { console.error('Could not back up Focus Deck data (' + reason + '):', e); }
+}
+
+// Only these two functions ever change the stored Gist ID. Everything else that sees a missing
+// gistId restores it from GIST_ID_KEY instead of saving the gap.
+export function setGistId(id) {
+  id = String(id || '').trim();
+  if (!id) return;
+  try { localStorage.setItem(GIST_ID_KEY, id); } catch (e) { console.error('Could not save Gist ID:', e); }
+  state.gistId = id;
+  saveStateLocal(state);
+}
+
+export function disconnectGist() {
+  try { localStorage.removeItem(GIST_ID_KEY); } catch (e) { console.error('Could not clear Gist ID:', e); }
+  state.gistId = null;
+  saveStateLocal(state, { allowGistDisconnect: true });
+}
+
+function withDefaults(parsed) {
+  const d = defaultState();
+  return Object.assign(d, parsed, {
+    projects: parsed.projects || d.projects,
+    categories: parsed.categories || d.categories,
+    projectCategories: parsed.projectCategories || d.projectCategories,
+    deletedTaskIds: parsed.deletedTaskIds || d.deletedTaskIds,
+    inbox: Array.isArray(parsed.inbox) ? parsed.inbox : d.inbox,
+    completedLog: Array.isArray(parsed.completedLog) ? parsed.completedLog : d.completedLog,
+    excludedRepos: Array.isArray(parsed.excludedRepos) ? parsed.excludedRepos : d.excludedRepos,
+    pinnedRepos: Array.isArray(parsed.pinnedRepos) ? parsed.pinnedRepos : d.pinnedRepos,
+    excludedIssues: Array.isArray(parsed.excludedIssues) ? parsed.excludedIssues : d.excludedIssues,
+  });
+}
+
+// Repairs shapes older code saved by mistake, so the data they carried is used instead of being
+// silently ignored: a category object stored where its id belongs, and categories saved without a
+// color (the nextHue function was passed as the color and dropped by JSON.stringify).
+function repairLoaded(st) {
+  const fixRef = (holder) => {
+    if (holder && holder.categoryId && typeof holder.categoryId === 'object') holder.categoryId = holder.categoryId.id || null;
+  };
+  st.projects.forEach((p) => { fixRef(p); (p.tasks || []).forEach(fixRef); });
+  [st.categories, st.projectCategories].forEach((list, listIdx) => (list || []).forEach((c, i) => {
+    if (typeof c.color !== 'string' || !c.color) c.color = 'hsl(' + Math.round(((i + listIdx * 7) * 137.508) % 360) + ' var(--proj-sat) var(--proj-light))';
+  }));
+  return st;
+}
+
+// Never returns defaults over data it couldn't read without first copying that data aside and
+// trying the backups — an unreadable save is a problem to report, not an empty deck.
+export function loadState() {
+  const raw = readRaw(STORAGE_KEY);
+  let parsed = parseSaved(raw);
+  if (raw != null && !parsed) {
+    backupRaw(raw, 'unreadable on load');
+    const recovered = readBackups().map((b) => parseSaved(b.raw)).find((b) => b && contentSize(b) > 0);
+    parsed = recovered || null;
+    storageProblem = recovered
+      ? 'Your saved data couldn’t be read, so Focus Deck restored the most recent backup.'
+      : 'Your saved data couldn’t be read. It was kept as a backup, not deleted.';
+    console.error(storageProblem, 'Raw value starts with:', String(raw).slice(0, 80));
+  }
+  // One known-good snapshot per page load, so a later corruption always has something local to
+  // fall back to even if no shrinking save happened in between.
+  if (parsed && raw != null && contentSize(parsed) > 0) backupRaw(raw, 'last good copy at load');
+  const loaded = parsed ? repairLoaded(withDefaults(parsed)) : defaultState();
+
+  const storedGistId = readRaw(GIST_ID_KEY);
+  if (!loaded.gistId && storedGistId) loaded.gistId = storedGistId;
+  if (loaded.gistId && !storedGistId) {
+    try { localStorage.setItem(GIST_ID_KEY, loaded.gistId); } catch (e) { /* retried on next save */ }
+  }
+  return loaded;
+}
+
+// Drops runtime-only fields (anything starting with "_", e.g. the UI object app.js hangs on
+// state) so they never reach localStorage or the Gist.
+export function serializeState(st) {
+  return JSON.stringify(st, (key, value) => (key.startsWith('_') ? undefined : value));
+}
+
+function newSaveId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+// Returns true when the write landed. `opts.allowGistDisconnect` is only for disconnectGist().
+export function saveStateLocal(st, opts = {}) {
+  if (!st || typeof st !== 'object' || !Array.isArray(st.projects)) {
+    // Fail loudly: this is the exact shape of the bug that wrote "undefined" over everything.
+    throw new Error('saveStateLocal needs the state object; refusing to overwrite saved data with ' + String(st));
+  }
+
+  if (!st.gistId && !opts.allowGistDisconnect) {
+    const storedGistId = readRaw(GIST_ID_KEY);
+    if (storedGistId) st.gistId = storedGistId;
+  }
+
+  const storedRaw = readRaw(STORAGE_KEY);
+  const stored = parseSaved(storedRaw);
+  if (stored && stored.saveId && stored.saveId !== lastSaveId && stored.saveId !== st.saveId) {
+    // Someone else saved since we last looked: fold their copy in rather than roll it back.
+    const merged = mergeStates(st, stored);
+    Object.keys(merged).forEach((k) => { if (!k.startsWith('_')) st[k] = merged[k]; });
+  }
+  if (storedRaw != null && (!stored || contentSize(stored) > contentSize(st))) {
+    backupRaw(storedRaw, stored ? 'before a save with less content' : 'unreadable before save');
+  }
+
+  st.saveId = newSaveId();
+  try {
+    localStorage.setItem(STORAGE_KEY, serializeState(st));
+    lastSaveId = st.saveId;
+    if (st.gistId) localStorage.setItem(GIST_ID_KEY, st.gistId);
+    return true;
+  } catch (e) {
+    storageProblem = 'Couldn’t save to this browser’s storage (' + (e && e.name) + '). Recent changes may not survive a reload.';
+    console.error(storageProblem, e);
+    return false;
+  }
 }
 
 export const state = loadState();
+lastSaveId = state.saveId || null;
+
+// Replaces the in-memory singleton with what's in storage (keeping runtime "_" fields) and tells
+// the page to repaint. Used when another tab saved, or this page came back from the bfcache.
+const externalChangeListeners = [];
+export function onExternalStateChange(fn) { externalChangeListeners.push(fn); }
+export function reloadStateFromStorage() {
+  const fresh = loadState();
+  Object.keys(state).forEach((k) => { if (!k.startsWith('_')) delete state[k]; });
+  Object.assign(state, fresh);
+  lastSaveId = state.saveId || null;
+  externalChangeListeners.forEach((fn) => fn());
+}
+
+if (typeof window !== 'undefined' && window.addEventListener) {
+  window.addEventListener('storage', (e) => {
+    if (e.key !== STORAGE_KEY && e.key !== GIST_ID_KEY) return;
+    // Another tab removing the data outright is not a reason for this tab to forget its copy too:
+    // write ours back instead (and let saveStateLocal restore the Gist ID from state if needed).
+    if (e.key === STORAGE_KEY && e.newValue == null) { saveStateLocal(state); return; }
+    reloadStateFromStorage();
+  });
+  window.addEventListener('pageshow', (e) => { if (e.persisted) reloadStateFromStorage(); });
+}
+
+// Asks the browser not to evict this origin's storage under pressure (and, on Safari, exempts an
+// installed home-screen app from the 7-day script-storage cap). Best-effort: resolves false when
+// unsupported or declined, never throws.
+export async function requestPersistentStorage() {
+  try {
+    if (typeof navigator === 'undefined' || !navigator.storage || !navigator.storage.persist) return false;
+    if (navigator.storage.persisted && await navigator.storage.persisted()) return true;
+    return await navigator.storage.persist();
+  } catch (e) { console.warn('storage.persist() failed:', e); return false; }
+}
 
 export function uid(prefix) { return prefix + '_' + Math.random().toString(36).slice(2, 9); }
 
