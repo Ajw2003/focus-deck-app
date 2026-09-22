@@ -26,6 +26,8 @@ copy it read into the backups. Shapes older builds saved by mistake are repaired
 
 **Saving.** `saveStateLocal`:
 1. throws unless it was handed the state object (the 2026-09-22 bug wrote `"undefined"`);
+1. timestamps every record that changed since this page last loaded or saved
+   (`stampChanges`, see [gist-sync.md](./gist-sync.md#change-stamping));
 2. restores a missing `gistId` from `focusdeck-gist-id` rather than saving the gap;
 3. if storage holds a `saveId` this page didn't write, another tab or a back-forward-cache
    restore saved in between, so it merges that copy in (`mergeStates`) before writing;

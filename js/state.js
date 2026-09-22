@@ -1,5 +1,5 @@
 // focus-deck-app/js/state.js
-import { mergeStates } from './merge.js';
+import { mergeStates, stampChanges } from './merge.js';
 
 export const ENERGY = { low: { label: 'Low' }, medium: { label: 'Medium' }, high: { label: 'High' } };
 
@@ -44,6 +44,11 @@ export let storageProblem = null;
 // save, another tab/window (or this page restored from the back-forward cache) wrote in between,
 // and a blind write would roll its changes back — see saveStateLocal.
 let lastSaveId = null;
+
+// A plain copy of what this page last loaded or saved. saveStateLocal diffs against it to
+// timestamp every changed record (see stampChanges in merge.js), so each edit wins the next merge.
+let lastSaved = null;
+const snapshot = (st) => JSON.parse(serializeState(st));
 
 function readRaw(key) {
   if (typeof localStorage === 'undefined') return null; // Node tests that don't mock it
@@ -172,6 +177,8 @@ export function saveStateLocal(st, opts = {}) {
     if (storedGistId) st.gistId = storedGistId;
   }
 
+  stampChanges(st, lastSaved);
+
   const storedRaw = readRaw(STORAGE_KEY);
   const stored = parseSaved(storedRaw);
   if (stored && stored.saveId && stored.saveId !== lastSaveId && stored.saveId !== st.saveId) {
@@ -187,6 +194,7 @@ export function saveStateLocal(st, opts = {}) {
   try {
     localStorage.setItem(STORAGE_KEY, serializeState(st));
     lastSaveId = st.saveId;
+    lastSaved = snapshot(st);
     if (st.gistId) localStorage.setItem(GIST_ID_KEY, st.gistId);
     return true;
   } catch (e) {
@@ -198,6 +206,7 @@ export function saveStateLocal(st, opts = {}) {
 
 export const state = loadState();
 lastSaveId = state.saveId || null;
+lastSaved = snapshot(state);
 
 // Replaces the in-memory singleton with what's in storage (keeping runtime "_" fields) and tells
 // the page to repaint. Used when another tab saved, or this page came back from the bfcache.
@@ -208,6 +217,7 @@ export function reloadStateFromStorage() {
   Object.keys(state).forEach((k) => { if (!k.startsWith('_')) delete state[k]; });
   Object.assign(state, fresh);
   lastSaveId = state.saveId || null;
+  lastSaved = snapshot(state);
   externalChangeListeners.forEach((fn) => fn());
 }
 

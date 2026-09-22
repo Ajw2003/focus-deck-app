@@ -172,15 +172,12 @@ How it works:
    load — so editing a task on your phone shows up on your laptop the next time it syncs.
 
 **Merging, not overwriting:** if two devices both made changes while offline, Focus Deck doesn't
-just let whichever one syncs last win outright. `mergeStates()` in `js/merge.js` merges per task —
-each task carries an `updatedAt` timestamp, and the newer edit wins for that specific task, not
-for your whole state. Projects, inbox items, and categories merge by combining both devices' IDs,
-so an item added on one device while the other was offline shows up rather than getting wiped.
-The only way something is permanently removed is if a device that's aware of the deletion syncs
-again after it happened — a device that was offline when something was deleted and comes back
-online will see it reappear, then it'll be deleted again once it resyncs. That's a deliberate
-trade-off: for a personal sync tool, briefly reviving an item you meant to delete is a far better
-failure mode than one offline device silently losing data.
+just let whichever one syncs last win outright. `mergeStates()` in `js/merge.js` merges record by
+record: every task, project, category and Unsorted item carries an `updatedAt` timestamp, stamped
+automatically whenever it changes, and the newer edit wins for that specific record, not for your
+whole state. Something added on one device while the other was offline shows up rather than
+getting wiped, and a deletion is a timestamped tombstone, so deleted things stay deleted unless
+they were edited somewhere after the deletion.
 
 **This is per-person, not per-team.** The Gist holds one person's entire state — it's meant to
 connect *your own* devices, not to be shared between different people. Pointing two different

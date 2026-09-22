@@ -202,3 +202,79 @@ test('categories created from the UI keep their color and id through a reload', 
   assert.strictEqual(typeof M.removeCategory, 'function');
   assert.strictEqual(typeof M.removeProjectCategory, 'function');
 });
+
+// ---- Newest edit wins for every record, not just tasks (2026-09-23) ----
+// Before this, projects, categories, Unsorted items and repo lists had no timestamps, so the
+// device that pushed last overwrote everyone's colors, and deletions came back on the next pull.
+
+test('stampChanges timestamps edits that code paths forgot to stamp, and tombstones removals', async () => {
+  const { stampChanges } = await import('./merge.js');
+  const before = {
+    projects: [{ id: 'p1', color: 'red', tasks: [{ id: 't1', title: 'x', updatedAt: 5 }] }],
+    categories: [{ id: 'c1', color: 'red' }], projectCategories: [], inbox: [{ id: 'i1', text: 'hi' }], pinnedRepos: ['a/b'],
+  };
+  const after = JSON.parse(JSON.stringify(before));
+  after.projects[0].color = 'blue';
+  after.projects[0].tasks[0].issueNumber = 7; // linking used to leave updatedAt untouched
+  after.categories[0].color = 'green';
+  after.inbox = [];
+  after.pinnedRepos = [];
+  stampChanges(after, before, 1000);
+  assert.strictEqual(after.projects[0].updatedAt, 1000);
+  assert.strictEqual(after.projects[0].tasks[0].updatedAt, 1000);
+  assert.strictEqual(after.categories[0].updatedAt, 1000);
+  assert.strictEqual(after.deletedRecordIds.inbox.i1, 1000, 'a discarded Unsorted item leaves a tombstone');
+  assert.strictEqual(after.listStamps.pinnedRepos, 1000);
+});
+
+test('the newer color wins in both directions, and a fresh device adopts the Gist colors', async () => {
+  const { mergeStates } = await import('./merge.js');
+  const base = { projects: [], inbox: [] };
+  const older = { ...base, categories: [{ id: 'cat_bug', color: 'red', updatedAt: 10 }] };
+  const newer = { ...base, categories: [{ id: 'cat_bug', color: 'green', updatedAt: 20 }] };
+  assert.strictEqual(mergeStates(older, newer).categories[0].color, 'green');
+  assert.strictEqual(mergeStates(newer, older).categories[0].color, 'green');
+  const freshDefaults = { ...base, categories: [{ id: 'cat_bug', color: 'hsl(4 70% 55%)' }] };
+  const gistLegacy = { ...base, categories: [{ id: 'cat_bug', color: '#00ff00' }] };
+  assert.strictEqual(mergeStates(freshDefaults, gistLegacy).categories[0].color, '#00ff00');
+});
+
+test('a project edit and a task edit on different devices both survive', async () => {
+  const { mergeStates } = await import('./merge.js');
+  const a = { projects: [{ id: 'p1', color: 'blue', updatedAt: 30, tasks: [{ id: 't1', title: 'old', updatedAt: 1 }] }], inbox: [], categories: [] };
+  const b = { projects: [{ id: 'p1', color: 'red', updatedAt: 1, tasks: [{ id: 't1', title: 'new', updatedAt: 40 }] }], inbox: [], categories: [] };
+  const m = mergeStates(a, b);
+  assert.strictEqual(m.projects[0].color, 'blue');
+  assert.strictEqual(m.projects[0].tasks[0].title, 'new');
+});
+
+test('discarded Unsorted items, removed projects and unpinned repos stay gone after a sync', async () => {
+  const { mergeStates } = await import('./merge.js');
+  const staleGist = { projects: [{ id: 'p1', updatedAt: 5, tasks: [] }], inbox: [{ id: 'i1', text: 'x', updatedAt: 5 }], categories: [], pinnedRepos: ['a/b'] };
+  const here = { projects: [], inbox: [], categories: [], pinnedRepos: [], listStamps: { pinnedRepos: 50 },
+    deletedRecordIds: { projects: { p1: 50 }, inbox: { i1: 50 } } };
+  const m = mergeStates(here, staleGist);
+  assert.strictEqual(m.inbox.length, 0);
+  assert.strictEqual(m.projects.length, 0);
+  assert.deepStrictEqual(m.pinnedRepos, []);
+  const editedAfter = { ...staleGist, projects: [{ id: 'p1', updatedAt: 60, tasks: [] }] };
+  assert.strictEqual(mergeStates(here, editedAfter).projects.length, 1, 'an edit after the removal still wins');
+});
+
+test('an issue link made on one device reaches the other through the Gist', async () => {
+  store.set('focusdeck-github-token', 'test-token');
+  const server = fakeGistServer({ projects: [{ id: 'p1', name: 'P', updatedAt: 1, tasks: [{ id: 't1', title: 'T', source: 'manual', updatedAt: 1 }] }], inbox: [], categories: [] });
+  const { pullFromGist, pushToGist } = await import('./sync.js'); // bound to the shared state.js
+  const shared = await import('./state.js');
+  shared.setGistId('gistX');
+  await pullFromGist();
+  const task = shared.state.projects.find((p) => p.id === 'p1').tasks[0];
+  Object.assign(task, { source: 'github', repoFullName: 'me/app', issueNumber: 9 }); // what linking does, with no updatedAt bump
+  shared.saveStateLocal(shared.state);
+  await pushToGist();
+  const gistP1 = () => server.remote.projects.find((p) => p.id === 'p1');
+  assert.strictEqual(gistP1().tasks[0].issueNumber, 9, 'the link is in the Gist');
+  const { mergeStates } = await import('./merge.js');
+  const otherDevice = { projects: [{ id: 'p1', name: 'P', updatedAt: 1, tasks: [{ id: 't1', title: 'T', source: 'manual', updatedAt: 1 }] }], inbox: [], categories: [] };
+  assert.strictEqual(mergeStates(otherDevice, server.remote).projects.find((p) => p.id === 'p1').tasks[0].issueNumber, 9, 'and wins over the other device\'s unlinked copy');
+});

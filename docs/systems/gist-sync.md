@@ -10,16 +10,31 @@ pushing live in `js/sync.js`. Local storage and the Gist ID's own key are in
 
 ## How it works
 
-Per-task `updatedAt` (added in Task 3) decides the winner when the same task differs
-between local and remote; projects and inbox items merge by union-of-ids — a task neither
-side has decided to delete just reappears if only one side has seen it yet, rather than
-vanishing.
+Every synced record carries an `updatedAt`: tasks, projects, task categories, project
+categories and Unsorted (inbox) items. When both sides have the same record, the newer copy
+wins; on a tie (neither side edited it since stamping existed) the remote copy wins, which is
+how a fresh device adopts the colors already in the Gist instead of keeping its defaults.
+Records only one side has are kept (union of ids). A project's own fields (name, color,
+category) follow the newer project copy, while its tasks merge one by one from both copies.
+The repo lists (`excludedRepos`, `pinnedRepos`, `excludedIssues`) are stamped as whole lists
+in `listStamps`; the newer list wins, and two unstamped lists are unioned. `completedLog`
+keeps entries only for tasks that exist and are done. `focus` is per-device and never merged.
+
+### Change stamping
+
+Nothing has to remember to set `updatedAt`. `saveStateLocal` calls `stampChanges`
+(`js/merge.js`), which diffs the state against the copy this page last loaded or saved:
+every record that changed, appeared or disappeared gets the current time (or a tombstone).
+A record whose `updatedAt` already moved (a mutation set it, or a merge brought in the other
+side's copy) is left alone, so merged-in data isn't mistaken for a local edit.
 
 ### Deletion tombstones
 
 <!-- ref:bce8 -->
-A deliberate deletion is different and is tracked explicitly via `deletedTaskIds` (task id
--> deletion timestamp, see `deleteTask` in `mutations.js`). Deletion is treated as a write
+A deliberate deletion is different and is tracked explicitly: `deletedTaskIds` for tasks
+(task id -> deletion timestamp) and `deletedRecordIds.{projects,categories,projectCategories,inbox}`
+for everything else. `stampChanges` writes them for any record that disappears, whatever
+code path removed it. Deletion is treated as a write
 like any other: a tombstone beats a task copy that's no newer than it (so it stays
 deleted), but a copy edited elsewhere *after* the deletion still wins, same as any other
 newer write. Without this, deleting a task and reloading before the Gist push lands
@@ -36,6 +51,9 @@ re-exports it. Its old private copy saved locally but never pushed.
 ## Invariants
 
 - A push never writes the Gist without first merging what's in it.
+- Every synced record kind has an `updatedAt` and a tombstone map. Adding a new synced kind
+  means adding it to `RECORD_KINDS` (or `SYNCED_LISTS`) in `js/merge.js`; anything left out
+  falls back to "local copy wins" and its edits won't reach other devices.
 
 - A deletion tombstone beats a task copy that is no newer than it; a copy edited after the
   tombstone still wins (deletion is just another timestamped write, not a special case that
@@ -92,3 +110,13 @@ re-exports it. Its old private copy saved locally but never pushed.
   static-shape one: `js/persist-storage.test.mjs` calls a real mutation and inspects what
   actually lands in (mocked) localStorage, plus what `loadState()` reads back afterward --
   simulating the reload where the user actually saw their data disappear.
+
+- **2026-09-23 — Only tasks had timestamps, so most edits never synced.** Commit `2f9d1fd`
+  (titled as a label-color fix) replaced `js/mutations.js` with a different draft, and
+  `4bcf2dd` rebuilt the 12 functions it dropped by hand. Neither the merge nor those rebuilds
+  timestamped anything but tasks, and several task paths (issue link/create/unlink) didn't
+  bump `updatedAt` either. Result: category/project colors, project categories, Unsorted
+  discards, project/category removals and issue links were reverted by whichever device
+  pushed last, and a fresh device never adopted the Gist's colors. Fixed by stamping every
+  record kind automatically (`stampChanges`) and merging newest-wins across all of them.
+  Covered by `js/storage-safety.test.mjs`.
