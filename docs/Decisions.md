@@ -4,6 +4,23 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-22 — Churn guard reads every commit message in the pushed range
+
+**Context.** Merging PR #18 failed the deploy's `test` job, so GitHub Pages kept serving the old
+app, whose cache-first service worker (v11) kept running a `js/mutations.js` that writes
+`"undefined"` over saved data. `scripts/guard-file-churn.mjs` diffs the whole pushed range
+but read only the head commit's message. On a merge, that is the merge commit, and the
+`File-Rewrite-Ack:` line sits on the PR's own commit, so a correctly acknowledged rewrite was
+blocked.
+
+**Decision.** Without `--message`/`--message-file`, the guard reads every message in
+`base..head`. An unacknowledged rewrite is still blocked.
+
+**Why.** Putting the ack on the merge commit as well only works if whoever merges knows to do
+it. The ack belongs to the commit that made the change.
+
+**Status.** Standing.
+---
 ## 2026-09-22 — Make saved data and the Gist ID impossible to lose by accident
 
 **Context.** Reloading still wiped projects and the Gist ID after the `persist()` fix below.
