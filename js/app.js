@@ -32,6 +32,11 @@ export function paint() {
 }
 
 registerPaint(paint);
+// mutations.js's own persist() (used by every M.* mutation) can't import paint directly without
+// a circular import (app.js already imports mutations.js), so it looks for this hook instead.
+// Was never assigned anywhere -- every M.* mutation has been silently failing to repaint the UI
+// (add/delete/complete a task, recolor, etc. all required a manual page reload to show up).
+state._persistHook = paint;
 
 function onAppClick(e) {
   const el = e.target.closest('[data-action]');
@@ -44,7 +49,8 @@ function onAppClick(e) {
   else if (action === 'reroll') M.reroll();
   else if (action === 'clear-focus') M.clearFocus();
   else if (action === 'complete-focus') M.completeFocus(findProjectIdForTask);
-  else if (action === 'focus-task') M.setFocusTask(taskId);
+  // M.setFocusTask doesn't exist -- the correct exported function is setFocus.
+  else if (action === 'focus-task') M.setFocus(taskId);
   else if (action === 'cycle-energy') M.cycleEnergy(taskId, projectId);
   else if (action === 'delete-task') {
     const found = findTaskWithProject(taskId);
@@ -176,7 +182,10 @@ function onAppSubmit(e) {
       const name = prompt('New project category name:');
       categoryId = name ? M.addProjectCategory(name, nextHue) : '';
     }
-    M.addProject(fd.get('name'), nextHue, categoryId);
+    // addProject(name, categoryId) -- was previously passing nextHue itself (a function
+    // reference, not a color) as the 2nd arg, so categoryId silently never made it onto the
+    // project. See addProject's own comment in mutations.js.
+    M.addProject(fd.get('name'), categoryId);
     return;
   }
   const addRepoForm = e.target.closest('[data-action="add-repo"]');
