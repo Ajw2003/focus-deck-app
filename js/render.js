@@ -187,7 +187,7 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
     : '<button type="button" class="btn-text" data-action="remove-project" data-project="' + p.id + '">Remove</button>';
   return '<section class="card project-card' + (collapsed ? ' is-collapsed' : '') + '" id="proj-' + p.id + '" style="--proj-color:' + p.color + '">'
     + '<div class="project-head">'
-      + '<div class="project-title"><span class="dot"></span><h3>' + esc(p.name) + '</h3>' + ghBadge + projCatControl + '</div>'
+      + '<div class="project-title"><span class="dot" data-project-color="' + p.id + '" title="Right-click to set a custom color"></span><h3>' + esc(p.name) + '</h3>' + ghBadge + projCatControl + '</div>'
       + '<div class="project-head-right">' + (p.deadline ? deadlineChip(p.deadline) : '') + collapseBtn + rightControls + '</div>'
     + '</div>'
     + '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>'

@@ -102,11 +102,40 @@ function onAppClick(e) {
   }
 }
 
-// Right-clicking a category chip opens a native color picker for that category. The picker's
-// <input> is appended to <body>, outside #app — persist()'s full #app.innerHTML replace would
-// otherwise destroy it mid-drag and close the picker. Only 'change' (fires once, on commit)
-// persists; 'input' just live-updates the chip's own color.
+// Shared by every right-click-to-recolor entry point below. The picker's <input> is appended to
+// <body>, outside #app — persist()'s full #app.innerHTML replace would otherwise destroy it
+// mid-drag and close the picker. Only 'change' (fires once, on commit) persists; 'input' just
+// live-updates the target element's own color for immediate feedback while dragging.
+function openColorPicker(e, initialHex, onInput, onChange) {
+  const picker = document.createElement('input');
+  picker.type = 'color';
+  picker.value = initialHex;
+  picker.style.cssText = 'position:fixed; opacity:0; width:1px; height:1px; pointer-events:none; left:' + e.clientX + 'px; top:' + e.clientY + 'px;';
+  document.body.appendChild(picker);
+  const cleanup = () => picker.remove();
+  picker.addEventListener('input', () => onInput(picker.value));
+  picker.addEventListener('change', () => { onChange(picker.value); cleanup(); });
+  picker.addEventListener('blur', () => setTimeout(cleanup, 200));
+  if (picker.showPicker) picker.showPicker(); else picker.click();
+}
+
+// Right-clicking a project's own color dot opens a picker that sets (and locks) that project's
+// color directly — see setProjectColor in mutations.js. Right-clicking a category chip (task or
+// project category) recolors the category itself instead.
 function onAppContextMenu(e) {
+  const dot = e.target.closest('[data-project-color]');
+  if (dot) {
+    e.preventDefault();
+    const projectId = dot.getAttribute('data-project-color');
+    const project = state.projects.find((p) => p.id === projectId);
+    if (!project) return;
+    const card = dot.closest('.project-card');
+    openColorPicker(e, cssColorToHex(project.color),
+      (hex) => { if (card) card.style.setProperty('--proj-color', hex); },
+      (hex) => M.setProjectColor(projectId, hex));
+    return;
+  }
+
   const chip = e.target.closest('[data-cat-id]');
   if (!chip) return;
   e.preventDefault();
@@ -115,21 +144,9 @@ function onAppContextMenu(e) {
   const list = catType === 'project' ? state.projectCategories : state.categories;
   const cat = list.find((c) => c.id === catId);
   if (!cat) return;
-
-  const picker = document.createElement('input');
-  picker.type = 'color';
-  picker.value = cssColorToHex(cat.color);
-  picker.style.cssText = 'position:fixed; opacity:0; width:1px; height:1px; pointer-events:none; left:' + e.clientX + 'px; top:' + e.clientY + 'px;';
-  document.body.appendChild(picker);
-  const cleanup = () => picker.remove();
-  picker.addEventListener('input', () => chip.style.setProperty('--chip-color', picker.value));
-  picker.addEventListener('change', () => {
-    if (catType === 'project') M.setProjectCategoryColor(catId, picker.value);
-    else M.setCategoryColor(catId, picker.value);
-    cleanup();
-  });
-  picker.addEventListener('blur', () => setTimeout(cleanup, 200));
-  if (picker.showPicker) picker.showPicker(); else picker.click();
+  openColorPicker(e, cssColorToHex(cat.color),
+    (hex) => chip.style.setProperty('--chip-color', hex),
+    (hex) => { if (catType === 'project') M.setProjectCategoryColor(catId, hex); else M.setCategoryColor(catId, hex); });
 }
 
 function onAppChange(e) {

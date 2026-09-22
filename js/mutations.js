@@ -12,8 +12,14 @@ export { persist };
 // categoryId was previously discarded here (the add-project form's submit handler was calling
 // addProject(name, nextHue, categoryId) against this function's old (name, color) signature, so
 // the 3rd argument -- the category the user picked -- silently never made it onto the project).
+// A project's initial color matches its category's color, same as setProjectCategory -- creating
+// a project with a category shouldn't need a separate recolor step to line up with it.
 export function addProject(name, categoryId) {
   const project = { id: uid('p'), name, color: 'hsl(' + nextHue() + ' var(--proj-sat) var(--proj-light))', deadline: null, source: 'manual', categoryId: categoryId || null, tasks: [] };
+  if (categoryId) {
+    const cat = (state.projectCategories || []).find((c) => c.id === categoryId);
+    if (cat) project.color = cat.color;
+  }
   state.projects.push(project);
   persist();
   return project;
@@ -262,6 +268,41 @@ export function addProjectCategory(name, color) {
   state.projectCategories.push(cat);
   persist();
   return cat;
+}
+
+// Assigns (or clears, with categoryId null) a project's category. A project's color follows its
+// category's color by default — unless the project has been manually recolored (p.colorLocked),
+// in which case the override wins and the category is assigned without touching the color.
+export function setProjectCategory(projectId, categoryId) {
+  const project = state.projects.find((p) => p.id === projectId);
+  if (!project) return;
+  project.categoryId = categoryId || null;
+  if (categoryId && !project.colorLocked) {
+    const cat = (state.projectCategories || []).find((c) => c.id === categoryId);
+    if (cat) project.color = cat.color;
+  }
+  persist();
+}
+
+// Recolors a project category and live-syncs that color to every project currently assigned to
+// it, except projects with a manual color override (p.colorLocked) — see setProjectColor.
+export function setProjectCategoryColor(categoryId, color) {
+  const cat = (state.projectCategories || []).find((c) => c.id === categoryId);
+  if (!cat || !color) return;
+  cat.color = color;
+  state.projects.forEach((p) => { if (p.categoryId === categoryId && !p.colorLocked) p.color = color; });
+  persist();
+}
+
+// Right-click-on-the-project's-own-color-dot entry point: sets a project's color directly and
+// locks it, so it stops following its category's color (setProjectCategory/setProjectCategoryColor
+// both skip a locked project).
+export function setProjectColor(projectId, color) {
+  const project = state.projects.find((p) => p.id === projectId);
+  if (!project || !color) return;
+  project.color = color;
+  project.colorLocked = true;
+  persist();
 }
 
 export function excludeRepo(fullName) {
