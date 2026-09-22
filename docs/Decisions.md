@@ -4,6 +4,28 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-23 — Newest edit wins for every synced record, stamped automatically
+
+**Context.** After the storage fixes deployed, colors, project categories, Unsorted discards,
+removals and new issue links still didn't stick across close/reopen or reach other devices.
+`mergeStates` only compared timestamps for tasks; everything else was "local copy wins", so the
+device that pushed last overwrote the Gist, and a fresh device kept its default category colors
+forever. Commit `2f9d1fd` (titled as a label-color fix) had replaced `js/mutations.js` with a
+different draft, and the hand rebuild in `4bcf2dd` never stamped anything but tasks; issue
+link/create/unlink didn't stamp tasks either. A two-device browser check of 18 user actions
+failed 15 on the live code.
+
+**Decision.** Every synced record kind (tasks, projects, categories, project categories,
+Unsorted items) has `updatedAt` and a tombstone map; the repo lists are stamped as whole lists.
+`saveStateLocal` stamps changes by diffing against the last loaded/saved copy (`stampChanges`),
+so no code path has to remember. On a tie the remote copy wins. All 18 actions pass.
+
+**Why.** Considered adding `updatedAt = Date.now()` to every mutation instead. Rejected: it's
+exactly what was missed before (link/create/unlink, colors), and every future mutation would
+have to remember it too. The diff catches any path, including ones that don't exist yet.
+
+**Status.** Standing.
+---
 ## 2026-09-22 — Churn guard reads every commit message in the pushed range
 
 **Context.** Merging PR #18 failed the deploy's `test` job, so GitHub Pages kept serving the old
