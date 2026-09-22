@@ -91,8 +91,11 @@ function readMessage(opts) {
   if (opts.messageFile) {
     return execFileSync('cat', [opts.messageFile], { encoding: 'utf8' });
   }
-  // fall back to the head commit's message, for CI checking an already-made commit
-  if (!opts.staged) return run(['log', '-1', '--format=%B', opts.head]);
+  // CI checking already-made commits: read every message in base..head, not just the head's.
+  // A merged PR's diff is checked as one range, but its File-Rewrite-Ack lines live on the PR's
+  // own commits, not on the merge commit -- reading only the head blocked a correctly-acked
+  // merge and silently stopped it deploying.
+  if (!opts.staged) return run(['log', '--format=%B', opts.base + '..' + opts.head]);
   return '';
 }
 
