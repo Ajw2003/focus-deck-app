@@ -59,9 +59,42 @@
   </section>
 </div>
 <script type="module">
-  import { getToken, setToken, validateToken } from './js/github.js';
+  // Every script on this page uses the shared `state` singleton, never loadState(): loadState()
+  // returns a fresh, disconnected copy, and saving a copy taken earlier silently reverts anything
+  // saved since (this is how "Connect" used to lose the Gist ID the moment a category was edited).
+  // The Gist ID itself only changes through setGistId()/disconnectGist() — see
+  // docs/systems/local-storage.md.
+  import { getToken, setToken, validateToken, ghFetch } from './js/github.js';
+  import { state, setGistId, serializeState } from './js/state.js';
+  import { findSyncGist, pullFromGist, GIST_FILE } from './js/sync.js';
+
   const input = document.getElementById('token-input');
   const status = document.getElementById('token-status');
+  const gistStatusEl = document.getElementById('gist-status');
+  const createBtn = document.getElementById('create-gist');
+
+  function renderGistStatus(message) {
+    if (message) { gistStatusEl.textContent = message; }
+    else if (state.gistId) {
+      gistStatusEl.textContent = 'Sync Gist connected (' + state.gistId + '). This device will read/write it automatically.';
+    } else {
+      gistStatusEl.textContent = 'No sync Gist connected. If you already made one on another device, save your token above and it will be found automatically — or paste its ID below. Otherwise create one.';
+    }
+    createBtn.textContent = state.gistId ? 'Create a new Gist instead (advanced)' : 'Create sync Gist';
+  }
+  renderGistStatus();
+
+  async function connectAndPull(id, label) {
+    setGistId(id);
+    renderGistStatus('Connected to Gist ' + id + ' (' + label + '). Pulling its data…');
+    try {
+      await pullFromGist();
+      renderGistStatus('Connected to Gist ' + id + ' (' + label + ') and merged its data into this device.');
+    } catch (e) {
+      renderGistStatus('Connected to Gist ' + id + ', but pulling it failed: ' + e.message + ' — it will retry when you open the app.');
+    }
+  }
+
   if (getToken()) input.placeholder = '•••••••••••••••• (saved — paste a new one to replace)';
   document.getElementById('save-token').addEventListener('click', async () => {
     const val = input.value.trim();
@@ -74,60 +107,53 @@
       input.value = '';
     } catch (e) {
       status.textContent = 'Could not verify: ' + e.message;
+      return;
+    }
+    if (state.gistId) return;
+    try {
+      const found = await findSyncGist();
+      if (found) await connectAndPull(found, 'found your existing sync Gist');
+    } catch (e) {
+      renderGistStatus('Couldn’t look for an existing sync Gist: ' + e.message);
     }
   });
-</script>
-<script type="module">
-  // Uses the shared `state` singleton (not loadState(), which returns a fresh, disconnected
-  // object) -- see the same note on the category-color block below. A copy taken here at
-  // page-load time would go stale the moment that block (or any other) mutates the real state,
-  // and clicking "Create sync Gist" would silently revert those edits by saving the stale copy.
-  import { ghFetch } from './js/github.js';
-  import { state, saveStateLocal } from './js/state.js';
-
-  const gistStatusEl = document.getElementById('gist-status');
-  const createBtn = document.getElementById('create-gist');
-
-  function renderGistStatus() {
-    if (state.gistId) {
-      gistStatusEl.textContent = 'Sync Gist connected (' + state.gistId + '). This device will read/write it automatically.';
-      createBtn.textContent = 'Re-create (only if you lost the old one)';
-    } else {
-      gistStatusEl.textContent = 'No sync Gist yet — create one on your first device, then paste its ID (shown after creating) into Settings on your other devices instead of creating a second one.';
-    }
-  }
-  renderGistStatus();
 
   createBtn.addEventListener('click', async () => {
     createBtn.disabled = true;
     try {
+      if (state.gistId) {
+        const ok = confirm('This device is already syncing with Gist ' + state.gistId + '.\n\n'
+          + 'Creating a new Gist switches this device to it. Your other devices will keep using the old one, '
+          + 'so changes will stop reaching each other until you connect them to the new ID too. '
+          + 'The old Gist is not deleted.\n\nCreate a new Gist anyway?');
+        if (!ok) return;
+      } else {
+        const existing = await findSyncGist().catch(() => null);
+        if (existing) { await connectAndPull(existing, 'found your existing sync Gist instead of making a duplicate'); return; }
+      }
       const gist = await ghFetch('/gists', {
         method: 'POST',
         body: JSON.stringify({
           description: 'Focus Deck sync data — do not edit manually',
           public: false,
-          files: { 'focus-deck-state.json': { content: JSON.stringify(state) } },
+          files: { [GIST_FILE]: { content: serializeState(state) } },
         }),
       });
-      state.gistId = gist.id;
-      saveStateLocal(state);
-      gistStatusEl.textContent = 'Created! Gist ID: ' + gist.id + ' — on your other device, paste this ID into the field below and click "Connect".';
+      setGistId(gist.id);
+      renderGistStatus('Created! Gist ID: ' + gist.id + ' — on your other device, save the same token and it will connect automatically (or paste this ID below).');
     } catch (e) {
-      gistStatusEl.textContent = 'Failed: ' + e.message;
+      renderGistStatus('Failed: ' + e.message);
     } finally {
       createBtn.disabled = false;
     }
   });
-</script>
-<script type="module">
-  import { loadState, saveStateLocal } from './js/state.js';
-  document.getElementById('connect-gist').addEventListener('click', () => {
+
+  document.getElementById('connect-gist').addEventListener('click', async () => {
     const id = document.getElementById('gist-id-input').value.trim();
-    if (!id) return;
-    const state = loadState();
-    state.gistId = id;
-    saveStateLocal(state);
-    document.getElementById('gist-status').textContent = 'Connected to Gist ' + id + ' — reload the app to pull its data.';
+    if (!id || id === state.gistId) return;
+    if (state.gistId && !confirm('This device is syncing with Gist ' + state.gistId + '. Switch it to ' + id + '?\n\n'
+      + 'Nothing is deleted: this device\'s data is merged into the new Gist, and the old Gist stays on GitHub.')) return;
+    await connectAndPull(id, 'pasted ID');
   });
 </script>
 <script type="module">
@@ -139,7 +165,6 @@
     setCategoryColor, setProjectCategoryColor,
     addCategory, addProjectCategory, removeCategory, removeProjectCategory,
   } from './js/mutations.js';
-  import { nextHue } from './js/state.js';
 
   function renderCategoryList(container, categories) {
     container.innerHTML = categories.map((c) => (
@@ -200,14 +225,14 @@
   document.getElementById('add-proj-cat-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = e.target.elements.name;
-    addProjectCategory(input.value, nextHue);
+    addProjectCategory(input.value);
     input.value = '';
     renderCategoryList(projCatList, state.projectCategories);
   });
   document.getElementById('add-task-cat-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = e.target.elements.name;
-    addCategory(input.value, nextHue);
+    addCategory(input.value);
     input.value = '';
     renderCategoryList(taskCatList, state.categories);
   });

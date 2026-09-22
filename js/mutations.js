@@ -1,13 +1,10 @@
 // focus-deck-app/js/mutations.js
-import { state, uid, nextHue, saveStateLocal, findTaskWithProject } from './state.js';
+import { state, uid, nextHue, findTaskWithProject } from './state.js';
 import { syncIssueCompletion, pushCategoryToIssue, pushCategoryColorToLinkedIssues } from './github-sync.js';
-
-function persist() {
-  // Must pass `state` explicitly -- see doc-ref 2425 docs/systems/gist-sync.md
-  saveStateLocal(state);
-  // registered separately by sync.js to avoid a circular import; see sync.js:persist
-  if (state._persistHook) state._persistHook();
-}
+// The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
+// used to have its own copy that saved locally but never pushed, so most edits never reached the
+// Gist. See doc-ref 2425 docs/systems/gist-sync.md
+import { persist } from './sync.js';
 export { persist };
 
 // categoryId was previously discarded here (the add-project form's submit handler was calling
@@ -235,8 +232,14 @@ export function clearFocus() {
   persist();
 }
 
+// color must be a CSS color string. Callers used to pass the nextHue function itself, which
+// JSON.stringify silently drops, so the category came back colorless after every reload.
+function categoryColor(color) {
+  return typeof color === 'string' && color ? color : 'hsl(' + nextHue() + ' var(--proj-sat) var(--proj-light))';
+}
+
 export function addCategory(name, color) {
-  const cat = { id: uid('cat'), name, color: color || 'hsl(' + nextHue() + ' var(--proj-sat) var(--proj-light))' };
+  const cat = { id: uid('cat'), name, color: categoryColor(color) };
   state.categories.push(cat);
   persist();
   return cat;
@@ -257,14 +260,15 @@ export function renameCategory(id, name) {
   persist();
 }
 
-export function deleteCategory(id) {
+// Explicit, confirmed removal from Settings (the confirm names how many tasks it's on).
+export function removeCategory(id) {
   state.categories = state.categories.filter((c) => c.id !== id);
   state.projects.forEach((p) => p.tasks.forEach((t) => { if (t.categoryId === id) t.categoryId = null; }));
   persist();
 }
 
 export function addProjectCategory(name, color) {
-  const cat = { id: uid('pcat'), name, color: color || 'hsl(' + nextHue() + ' var(--proj-sat) var(--proj-light))' };
+  const cat = { id: uid('pcat'), name, color: categoryColor(color) };
   if (!state.projectCategories) state.projectCategories = [];
   state.projectCategories.push(cat);
   persist();
@@ -274,6 +278,14 @@ export function addProjectCategory(name, color) {
 // Assigns (or clears, with categoryId null) a project's category. A project's color follows its
 // category's color by default — unless the project has been manually recolored (p.colorLocked),
 // in which case the override wins and the category is assigned without touching the color.
+// Explicit, confirmed removal from Settings. Projects keep their color; they just lose the
+// category assignment.
+export function removeProjectCategory(id) {
+  state.projectCategories = (state.projectCategories || []).filter((c) => c.id !== id);
+  state.projects.forEach((p) => { if (p.categoryId === id) p.categoryId = null; });
+  persist();
+}
+
 export function setProjectCategory(projectId, categoryId) {
   const project = state.projects.find((p) => p.id === projectId);
   if (!project) return;

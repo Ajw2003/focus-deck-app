@@ -1,5 +1,5 @@
 // focus-deck-app/js/app.js
-import { state, findTaskWithProject, findProjectIdForTask, candidatesForEnergy, nextHue, cssColorToHex } from './state.js';
+import { state, findTaskWithProject, findProjectIdForTask, candidatesForEnergy, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage } from './state.js';
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
@@ -10,6 +10,7 @@ export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: f
 
 export function renderApp(st) {
   st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
+  if (storageProblem && !ui.syncError) ui.syncError = storageProblem;
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   return R.renderSyncStatus(st) + R.renderStats(st) + R.renderFocus(st, findTaskWithProject) + R.renderDone(st) + R.renderInbox(st, ui)
     + R.renderProjectFilterBar(st, ui, visibleProjects)
@@ -32,11 +33,7 @@ export function paint() {
 }
 
 registerPaint(paint);
-// mutations.js's own persist() (used by every M.* mutation) can't import paint directly without
-// a circular import (app.js already imports mutations.js), so it looks for this hook instead.
-// Was never assigned anywhere -- every M.* mutation has been silently failing to repaint the UI
-// (add/delete/complete a task, recolor, etc. all required a manual page reload to show up).
-state._persistHook = paint;
+onExternalStateChange(paint);
 
 function onAppClick(e) {
   const el = e.target.closest('[data-action]');
@@ -164,7 +161,7 @@ function onAppChange(e) {
     ui.editingProjectCategory = null;
     if (categoryId === '__new__') {
       const name = prompt('New project category name:');
-      categoryId = name ? M.addProjectCategory(name, nextHue) : '';
+      categoryId = name ? M.addProjectCategory(name).id : '';
     }
     M.setProjectCategory(projectId, categoryId || null);
   }
@@ -185,7 +182,7 @@ function onAppSubmit(e) {
     let categoryId = fd.get('category');
     if (categoryId === '__new__') {
       const name = prompt('New category name:');
-      categoryId = name ? M.addCategory(name, nextHue) : '';
+      categoryId = name ? M.addCategory(name).id : '';
     }
     M.addTask(addTaskForm.getAttribute('data-project'), fd.get('title'), fd.get('energy'), fd.get('deadline'), categoryId, fd.get('steps'));
     return;
@@ -197,7 +194,7 @@ function onAppSubmit(e) {
     let categoryId = fd.get('category');
     if (categoryId === '__new__') {
       const name = prompt('New project category name:');
-      categoryId = name ? M.addProjectCategory(name, nextHue) : '';
+      categoryId = name ? M.addProjectCategory(name).id : '';
     }
     // addProject(name, categoryId) -- was previously passing nextHue itself (a function
     // reference, not a color) as the 2nd arg, so categoryId silently never made it onto the
@@ -224,7 +221,7 @@ function onAppSubmit(e) {
     let editCategoryId = fd.get('category');
     if (editCategoryId === '__new__') {
       const name = prompt('New category name:');
-      editCategoryId = name ? M.addCategory(name, nextHue) : '';
+      editCategoryId = name ? M.addCategory(name).id : '';
     }
     M.editTask(editForm.getAttribute('data-task'), editForm.getAttribute('data-project'), {
       title: fd.get('title'), energy: fd.get('energy'), deadline: fd.get('deadline'), categoryId: editCategoryId, steps: fd.get('steps'),
@@ -241,6 +238,7 @@ function onAppKeydown(e) {
 }
 
 function init() {
+  requestPersistentStorage();
   paint();
   initSyncLifecycle();
   const app = document.getElementById('app');

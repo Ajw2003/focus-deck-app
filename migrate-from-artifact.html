@@ -6,7 +6,12 @@
 <textarea id="json-in" rows="14" style="width:100%;font-family:monospace;"></textarea>
 <br><button id="go">Import into this browser</button>
 <p id="result"></p>
-<script>
+<script type="module">
+// Merges into whatever this browser already has instead of replacing it: the existing data is
+// backed up first, and the Gist ID and any projects not in the pasted JSON are kept.
+import { state, saveStateLocal, backupRaw, STORAGE_KEY } from './js/state.js';
+import { mergeStates } from './js/merge.js';
+
 document.getElementById('go').addEventListener('click', () => {
   const raw = document.getElementById('json-in').value.trim();
   try {
@@ -15,14 +20,16 @@ document.getElementById('go').addEventListener('click', () => {
     // stamp updatedAt on every task the artifact didn't have that field on, so Task 6's
     // conflict resolution has a value to compare instead of crashing on undefined
     const now = Date.now();
-    data.projects.forEach((p) => p.tasks.forEach((t) => { if (!t.updatedAt) t.updatedAt = now; }));
-    if (!data.categories) data.categories = [];
-    if (!data.pinnedRepos) data.pinnedRepos = [];
-    if (!data.gistId) data.gistId = null;
-    localStorage.setItem('focusdeck-state-v1', JSON.stringify(data));
+    data.projects.forEach((p) => (p.tasks || []).forEach((t) => { if (!t.updatedAt) t.updatedAt = now; }));
+    const existingProjects = state.projects.length;
+    if (existingProjects && !confirm('This browser already has ' + existingProjects + ' project(s). The pasted data will be merged in — nothing existing is removed, and a backup of the current data is kept. Continue?')) return;
+    backupRaw(localStorage.getItem(STORAGE_KEY), 'before artifact import');
+    const merged = mergeStates(state, data);
+    Object.keys(merged).forEach((k) => { state[k] = merged[k]; });
+    if (!saveStateLocal(state)) throw new Error('this browser refused to save it (storage full or blocked).');
     document.getElementById('result').textContent =
       'Imported ' + data.projects.length + ' projects, ' +
-      data.projects.reduce((n, p) => n + p.tasks.length, 0) + ' tasks. Open the real app now.';
+      data.projects.reduce((n, p) => n + (p.tasks || []).length, 0) + ' tasks. Open the real app now.';
   } catch (e) {
     document.getElementById('result').textContent = 'Import failed: ' + e.message;
   }

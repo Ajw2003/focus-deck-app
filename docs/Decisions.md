@@ -4,6 +4,28 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-22 — Make saved data and the Gist ID impossible to lose by accident
+
+**Context.** Reloading still wiped projects and the Gist ID after the `persist()` fix below.
+An audit found several independent causes: installed copies kept running the pre-fix
+`js/mutations.js` because the service worker was cache-first; `loadState()` replaced unreadable
+data with defaults and the next save made that permanent; Settings' "Connect" saved a stale
+copy, so the next category edit erased the Gist ID (a stale app tab did the same); pushes
+replaced the Gist without reading it; most edits never pushed at all; categories lost their
+color or assignment on reload. Details: `docs/systems/local-storage.md#traps`.
+
+**Decision.** Service worker is network-first. `saveStateLocal` refuses non-state input, keeps
+the Gist ID in its own key that only `setGistId`/`disconnectGist` change, merges another tab's
+newer save instead of overwriting it, and backs up before any shrinking or unreadable
+overwrite. `loadState` recovers from backups instead of defaults. Pushes merge the Gist first.
+A lost Gist ID is rediscovered from the token. Covered by `js/storage-safety.test.mjs`.
+
+**Why.** Considered moving state to IndexedDB. Rejected: it gets evicted under the same rules as
+localStorage, so it wouldn't fix eviction, and it would make every save async. The Gist, plus
+rediscovery by file name, is the durable copy.
+
+**Status.** Standing.
+---
 ## 2026-09-22 — Guard against silent full-file overwrites and CSS regressions
 
 **Context.** GitHub issue #17: commit `af88e6d`, made the previous day and titled as a one-line
