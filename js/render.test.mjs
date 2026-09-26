@@ -46,7 +46,7 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
     categories: [{ id: 'c_art', name: 'art', color: '#d000ff' }, { id: 'c_chore', name: 'chore', color: '#888888' }, { id: 'c_idle', name: 'idle', color: '#123456' }],
     projects: [
       { id: 'pA', name: 'PlunderSpell', tasks: [task('a1', ['c_art'], { priority: 'urgent' }), task('a2', ['c_art']), task('a3', ['c_idle'], { status: 'done' })] },
-      { id: 'pB', name: 'Chores', tasks: [task('b1', ['c_chore', 'c_art'])] },
+      { id: 'pB', name: 'Chores', color: 'hsl(140 58% 40%)', tasks: [task('b1', ['c_chore', 'c_art'])] },
     ],
   };
   const html = renderFocus(st, () => null, { focusFilter: {} });
@@ -55,6 +55,7 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   assert.ok(html.includes('>3 open · 1 urgent · 2 projects<'), 'a card says how many are open, the most pressing priority, and across how many projects');
   assert.ok(html.includes('class="filter-pill active" data-action="set-focus-scope" data-scope="">All projects<'), '"All projects" is chosen by default');
   assert.ok(html.includes('class="focus-mode-btn active" data-action="set-focus-mode" data-mode="type"'), 'Type is the default mode');
+  assert.ok(html.includes('class="filter-pill tint-pill" data-action="set-focus-scope" data-scope="pB" style="--chip-color:hsl(140 58% 40%)">Chores<'), 'a project pill is tinted in the project\'s own colour');
   assert.ok(!html.includes('<select'), 'no dropdowns in the picker');
   const narrowed = renderFocus(st, () => null, { focusFilter: { projectId: 'pB' } });
   assert.ok(narrowed.includes('>1 open<') && !narrowed.includes('2 projects'), 'a chosen project narrows the counts');
@@ -66,7 +67,7 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   assert.deepStrictEqual(projCards, ['pA', 'pB', ''], 'project cards busiest first, then Anything');
   assert.ok(byProj.includes('>PlunderSpell<') && byProj.includes('>2 open · 1 urgent<'), 'a project card shows its open count and most pressing priority');
   assert.ok(byProj.includes('data-scope="">All labels<') && byProj.includes('data-scope="c_art"'), 'the pills are labels in Project mode');
-  assert.ok(byProj.includes('class="filter-pill label-pill" data-action="set-focus-scope" data-scope="c_art" style="--chip-color:#d000ff">art<'), 'a label pill is tinted in the label\'s own colour');
+  assert.ok(byProj.includes('class="filter-pill tint-pill" data-action="set-focus-scope" data-scope="c_art" style="--chip-color:#d000ff">art<'), 'a label pill is tinted in the label\'s own colour');
   const many = { ...st, categories: Array.from({ length: 9 }, (_, i) => ({ id: 'c' + i, name: 'a-very-long-label-name-' + i, color: '#123456' })),
     projects: [{ id: 'pA', name: 'P', tasks: Array.from({ length: 9 }, (_, i) => task('m' + i, ['c' + i])) }] };
   const manyPills = renderFocus(many, () => null, { focusFilter: { mode: 'project' } });
