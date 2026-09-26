@@ -191,6 +191,12 @@ export function unlinkTask(taskId) {
   persist();
 }
 
+// Case- and whitespace-insensitive, so "Fix login" and "fix  login " count as the same issue.
+export function sameIssueTitle(a, b) {
+  const norm = (s) => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  return norm(a) !== '' && norm(a) === norm(b);
+}
+
 // See docs/systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs176
 export async function createGithubIssueFromTask(taskId, repoInput, ui) {
   const found = findTaskWithProject(taskId);
@@ -204,6 +210,20 @@ export async function createGithubIssueFromTask(taskId, repoInput, ui) {
   ui.syncing = true;
   ui.syncError = null;
   try {
+    // Pull the repo's open issues first so an issue that already exists on GitHub gets linked,
+    // not duplicated. See docs/systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs176
+    const existing = (await listIssues(owner, name)).find((iss) => sameIssueTitle(iss.title, task.title));
+    if (existing) {
+      const linkedElsewhere = findTaskByIssue(fullName, existing.number);
+      ui.syncing = false;
+      if (linkedElsewhere && linkedElsewhere.id !== task.id) {
+        ui.syncError = fullName + '#' + existing.number + ' already exists with this title and is linked to "' + linkedElsewhere.title + '", so no new issue was created.';
+        return;
+      }
+      await linkTaskToIssue(taskId, fullName + '#' + existing.number, ui);
+      return;
+    }
+
     const cat = state.categories.find((c) => c.id === task.categoryId);
     if (cat) await ensureLabelExists(owner, name, cat.name, cssColorToHex(cat.color));
     const body = (task.steps && task.steps.length) ? task.steps.map((s) => '- [ ] ' + s).join('\n') : '';

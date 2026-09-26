@@ -71,6 +71,21 @@ category (if any) becomes a label, created on the repo first if it isn't there y
 If the task is already marked done locally, the new issue is opened and then
 immediately closed to match.
 
+Before creating anything it pulls the repo's open issues (`listIssues`) and looks for
+one whose title matches the task's (`sameIssueTitle`: ignoring case and extra
+whitespace). This stops a duplicate when the issue already exists on GitHub, whether
+it was made on the website, by Claude, or by a teammate on a shared repo. On a match:
+
+- If no other task is linked to that issue, the task is linked to it through
+  `linkTaskToIssue`. The existing issue wins, so its title, open/closed state and labels
+  replace the task's, and the task's steps are not copied into it.
+- If another task is already linked to it, nothing is created or linked, and the
+  sync-error line says which task holds it.
+
+Only exact title matches count, and only the first 100 open issues are checked (the
+limit of one `listIssues` page). A closed issue with the same title does not block a
+new one.
+
 ### Standalone-linked-tasks reconciliation pass — `syncGithub` (js/github-sync.js:348-374)
 
 Tasks manually linked (via `linkTaskToIssue`) to an issue in a repo that isn't itself
