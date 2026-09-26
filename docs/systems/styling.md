@@ -31,22 +31,26 @@ announced with `role="alert"`) or `'info'` (accent edge, `role="status"`).
 
 ### Focus picker
 
-"What's your focus right now?" (`renderFocusPicker`, js/render.js) has a **Type | Project**
-switch (`.focus-mode`) that chooses what the big cards are. In Type mode they are labels, and
-project pills narrow them. In Project mode they are projects in their own colours, and label
-pills narrow them. Tapping a card picks a random open task from it, within the chosen pill. Each
-card carries its full filter in `data-category`/`data-project`.
+"What's your focus right now?" (`renderFocusPicker`, js/render.js) shows one big card per label
+(task type) that has open tasks, busiest first. Tapping a card picks a random open task with that
+label, within the chosen project pill. **Surprise me** picks from every label. It is deliberately
+not a card: it sits below the grid in its own `.focus-surprise` row, set apart by space and a
+divider, as a `.btn.primary` accent button with the pool size beside it, because it is a
+different kind of choice. (It was a full-width "Anything" card until 2026-09-26.)
 
 The cards reuse `.energy-btn` inside `.energy-grid`, the look of the old Low/Medium/High buttons:
-surface-2 fill, the item's colour on the top edge, the name, and a detail line ("3 open · 1 urgent
-· 2 projects"). Cards and pills are sorted busiest first. Six cards show until "Show all", but
-every pill always shows, with its full name: hiding or shortening them cut labels off. `.focus-grid`
-sets two columns on a phone, and the **Anything** card (`.focus-anything`, accent edge) takes its
-own full-width row. The pills use `.filter-pills`, as in the project filter bar, plus `.tint-pill`,
-which tints each in its label's or project's own colour (matching that label's chips and that
-project's card and dot elsewhere), with a ring in that colour when chosen. The mode and both pills are kept per device
-(`focusdeck-focus-filter`). This replaced two dropdowns on 2026-09-26, which worked but broke the
-card's glanceable, tap-first style.
+surface-2 fill, the label's colour on the top edge, the name, and a detail line ("3 open · 1 urgent
+· 2 projects"). `.focus-grid` sets two columns on a phone. Six cards show until "Show all N labels".
+
+Project pills above the cards (`.filter-pills` plus `.tint-pill`, tinted in each project's colour,
+with a ring when chosen) narrow the cards and counts. They are sorted busiest first, and six show
+until the dashed **+N more** pill (`.focus-more-pill`) expands them. The chosen project always
+shows, and names are never shortened. The chosen pill is kept per device (`focusdeck-focus-filter`).
+
+History (2026-09-26): two dropdowns came first and were replaced for breaking the card's
+glanceable, tap-first style. A **Type | Project** switch followed, where Project mode made the
+cards projects and the pills labels. It was removed the same day, because the Type view did the job
+better. A saved `mode: 'project'` is ignored.
 
 Native `confirm()`/`prompt()` dialogs are questions, not notices, and stay as they are. The toast
 stays until the × dismisses it or a new message replaces it. While it shows, `.wrap:has(.toast)`
