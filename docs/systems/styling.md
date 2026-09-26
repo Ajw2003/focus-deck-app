@@ -47,6 +47,25 @@ with a ring when chosen) narrow the cards and counts. They are sorted busiest fi
 until the dashed **+N more** pill (`.focus-more-pill`) expands them. The chosen project always
 shows, and names are never shortened. The chosen pill is kept per device (`focusdeck-focus-filter`).
 
+Open tasks with no label get an **Unlabelled** card after the label cards (neutral `--ink-faint`
+edge, always shown). It picks with the stand-in id `UNLABELLED` (js/state.js). When there are any,
+a **Sort N unlabelled →** link sits beside "Show all" (`.focus-links`).
+
+### Sorting unlabelled tasks
+
+**Sort N unlabelled →** swaps the focus picker for `renderSortFlow` (js/render.js) until **Done**.
+It steps through the open unlabelled tasks (within the chosen project pill) one at a time, showing
+the task, its project and its issue number. The three kinds from #42 (**Reminder**, **Build**,
+**Fix**; `TASK_KINDS` in js/state.js) come first as `.energy-btn` cards, where `.selected` adds a
+ring. Every other label follows as a `.tint-pill`, then a field for new labels. Picks toggle, and
+**Next →** applies them through `updateTaskFields`, which pushes them to a linked issue like any
+label edit. **Skip** leaves the task as it is.
+
+A kind is an ordinary label named `reminder`, `build` or `fix`, created with its GitHub colour the
+first time it is used. An existing label with that name (any case) is reused. `sortCurrent` skips
+tasks that were labelled, finished or deleted while sorting. The queue and picks live in
+`ui.sorting`, per session and never saved.
+
 History (2026-09-26): two dropdowns came first and were replaced for breaking the card's
 glanceable, tap-first style. A **Type | Project** switch followed, where Project mode made the
 cards projects and the pills labels. It was removed the same day, because the Type view did the job

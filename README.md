@@ -38,7 +38,9 @@ that quietly drift out of sync with each other.
 **Focus picker** — a big card for each task type (labels like art, chore, bug), showing how many
 tasks are open and the most pressing priority among them. Tap a card, or **Surprise me** below them, to get one
 open task at random. Project pills above narrow it to one repo (the busiest few show, "+N more"
-reveals the rest), and the choice is remembered on each device.
+reveals the rest), and the choice is remembered on each device. Tasks with no label get an
+**Unlabelled** card, and **Sort N unlabelled** steps through them one at a time: tap Reminder,
+Build or Fix (or any other label), then Next.
 "Not this one" rerolls within the same pool.
 
 **Priority** — each task can be Urgent, High, Medium or Low. Tap a task's priority chip to change

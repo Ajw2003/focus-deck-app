@@ -285,14 +285,27 @@ export function findTaskWithProject(taskId) {
   return null;
 }
 
-// Open tasks for the focus pick, optionally limited to one label (category id) and/or one project.
+// Stands in for a label id to mean "tasks with no labels" (the focus picker's Unlabelled card).
+export const UNLABELLED = '__none__';
+
+// The three kinds from #42, offered first when sorting unlabelled tasks. Each is an ordinary label
+// (created on first use, or an existing label with the same name); color is its GitHub hex.
+export const TASK_KINDS = [
+  { key: 'reminder', label: 'Reminder', desc: 'Something to schedule or remember', color: '#1d76db' },
+  { key: 'build', label: 'Build', desc: 'Something new to make', color: '#0e8a16' },
+  { key: 'fix', label: 'Fix', desc: 'Something broken, or an existing issue', color: '#d93f0b' },
+];
+
+// Open tasks for the focus pick, optionally limited to one label (category id, or UNLABELLED)
+// and/or one project.
 export function openTasksMatching({ categoryId, projectId } = {}) {
   const ids = [];
   state.projects.forEach((p) => {
     if (projectId && p.id !== projectId) return;
     p.tasks.forEach((t) => {
       if (t.status === 'done') return;
-      if (categoryId && !(t.categoryIds || []).includes(categoryId)) return;
+      const cats = t.categoryIds || [];
+      if (categoryId === UNLABELLED ? cats.length : (categoryId && !cats.includes(categoryId))) return;
       ids.push(t.id);
     });
   });
