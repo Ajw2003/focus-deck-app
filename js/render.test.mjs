@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow } from './render.js';
+import { renderTaskRow, renderErrorToast } from './render.js';
 import assert from 'node:assert';
 
 const p = { id: 'p1', name: 'P' };
@@ -23,5 +23,11 @@ const both = row({ claudeCreated: true, claudeCompleted: true, status: 'done' })
 assert.ok(both.includes('claude-created-chip') && both.includes('claude-completed-chip'), 'both chips can show together');
 assert.ok(both.indexOf('cat-chip') < both.indexOf('claude-created-chip'), 'Claude chips come after the category chip so they never displace it');
 assert.ok(both.indexOf('claude-created-chip') < both.indexOf('claude-completed-chip'), 'created chip precedes completed chip');
+
+assert.strictEqual(renderErrorToast({ syncError: null }), '', 'no error means no toast');
+const toast = renderErrorToast({ syncError: 'Could not link <b>' });
+assert.ok(toast.includes('class="error-toast"') && toast.includes('role="alert"'), 'an error renders the pinned, announced toast');
+assert.ok(toast.includes('Could not link &lt;b&gt;'), 'the error text is escaped');
+assert.ok(toast.includes('data-action="dismiss-error"'), 'the toast can be dismissed');
 
 console.log('RENDER CHIP TESTS PASSED');

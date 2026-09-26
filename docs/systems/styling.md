@@ -16,6 +16,14 @@ on `:root`, redefined under `@media (prefers-color-scheme: dark)` and `:root[dat
 no BEM discipline, just one rule block per class, in the same order the sections of the app
 appear (topbar, focus card, chips, inbox, project cards, forms).
 
+Two elements stay put while the page scrolls: the sticky `.topbar`, and `.error-toast`, which is
+fixed to the bottom of the viewport. Every sync or GitHub error (`ui.syncError`) shows in that toast
+(`renderErrorToast`, js/render.js) rather than inline at the top of the page, because on a phone
+you are usually scrolled far down when the error happens, and an inline message up top went
+unseen. The toast stays until the × dismisses it or the next sync attempt replaces it. While it
+shows, `.wrap:has(.error-toast)` adds bottom padding so the last controls can still scroll clear
+of it.
+
 `js/render.js` and friends build HTML as plain string concatenation (see `README.md`'s render
 pattern), with class names as literal text inside the strings — e.g.
 `'<button type="button" class="energy-btn" ...'` (js/render.js:5). There is no compiler step that

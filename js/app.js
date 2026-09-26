@@ -10,14 +10,15 @@ export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: f
 
 export function renderApp(st) {
   st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
-  if (storageProblem && !ui.syncError) ui.syncError = storageProblem;
+  if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   return R.renderSyncStatus(st) + R.renderStats(st) + R.renderFocus(st, findTaskWithProject) + R.renderDone(st) + R.renderInbox(st, ui)
     + R.renderProjectFilterBar(st, ui, visibleProjects)
     + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
       + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
     + '</div>'
-    + R.renderAddProjectForm(st.projectCategories);
+    + R.renderAddProjectForm(st.projectCategories)
+    + R.renderErrorToast(ui);
 }
 
 export function paint() {
@@ -59,6 +60,11 @@ function onAppClick(e) {
   else if (action === 'remove-project') { ui.pendingRemove[projectId] = true; paint(); }
   else if (action === 'cancel-remove-project') { delete ui.pendingRemove[projectId]; paint(); }
   else if (action === 'confirm-remove-project') M.removeProject(projectId);
+  else if (action === 'dismiss-error') {
+    if (ui.syncError === storageProblem) ui.storageProblemDismissed = true;
+    ui.syncError = null;
+    paint();
+  }
   else if (action === 'toggle-inbox') { ui.inboxOpen = !ui.inboxOpen; paint(); }
   else if (action === 'toggle-done') { ui.doneOpen[projectId] = !ui.doneOpen[projectId]; paint(); }
   else if (action === 'scroll-project') {

@@ -15,8 +15,17 @@ export function renderSyncStatus(st) {
     + '<button type="button" class="link-btn small sync-btn" data-action="sync-github"' + (st._ui && st._ui.syncing ? ' disabled' : '') + '>' + btnLabel + '</button>'
     + (st.gistId ? '<button type="button" class="link-btn small" data-action="pull-now">⬇ Pull latest</button>' : '')
     + '</div>';
-  if (st._ui && st._ui.syncError) html += '<p class="sync-error">' + esc(st._ui.syncError) + '</p>';
   return html;
+}
+
+// Pinned to the bottom of the viewport (see .error-toast) so an error is seen wherever the page
+// is scrolled; it stays until dismissed or replaced by the next sync attempt.
+export function renderErrorToast(ui) {
+  if (!ui || !ui.syncError) return '';
+  return '<div class="error-toast" role="alert">'
+    + '<p class="error-toast-text">' + esc(ui.syncError) + '</p>'
+    + '<button type="button" class="error-toast-close" data-action="dismiss-error" aria-label="Dismiss error">×</button>'
+    + '</div>';
 }
 
 export function renderStats(st) {

@@ -107,7 +107,6 @@ a{color:inherit;}
 .sync-row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
 .sync-note{font-size:.76rem; color:var(--ink-faint); margin:0; font-variant-numeric:tabular-nums;}
 .sync-btn{white-space:nowrap;}
-.sync-error{font-size:.78rem; color:var(--energy-high); margin:-6px 0 12px;}
 
 .stats-row{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
 .stat-pill{
@@ -283,6 +282,25 @@ a{color:inherit;}
 }
 .add-project-form button{
   padding:11px 18px; border:none; border-radius:var(--radius); background:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;
+}
+
+.error-toast{
+  position:fixed; z-index:20;
+  left:50%; transform:translateX(-50%);
+  bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+  width:min(728px, calc(100% - 32px));
+  display:flex; align-items:flex-start; gap:10px;
+  padding:12px 8px 12px 14px;
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--energy-high); border-left-width:4px; border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+/* room to scroll the last controls clear of the toast while it is showing */
+.wrap:has(.error-toast){padding-bottom:calc(160px + env(safe-area-inset-bottom, 0px));}
+.error-toast-text{flex:1; margin:0; font-size:.86rem; line-height:1.4; overflow-wrap:anywhere;}
+.error-toast-close{
+  flex:none; min-width:32px; min-height:32px; padding:0;
+  border:none; border-radius:8px; background:none; color:var(--ink-soft); font-size:1.25rem; line-height:1; cursor:pointer;
 }
 
 /* PWA install polish — hides browser chrome-shaped gaps when running standalone */
