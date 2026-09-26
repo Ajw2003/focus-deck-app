@@ -36,7 +36,7 @@ that quietly drift out of sync with each other.
 ## Features
 
 **Focus picker** — a big card for each task type (labels like art, chore, bug), showing how many
-tasks are open and the most pressing priority among them. Tap a card, or **Anything**, to get one
+tasks are open and the most pressing priority among them. Tap a card, or **Surprise me** below them, to get one
 open task at random. Project pills above narrow it to one repo (the busiest few show, "+N more"
 reveals the rest), and the choice is remembered on each device.
 "Not this one" rerolls within the same pool.

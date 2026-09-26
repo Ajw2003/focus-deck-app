@@ -33,8 +33,10 @@ announced with `role="alert"`) or `'info'` (accent edge, `role="status"`).
 
 "What's your focus right now?" (`renderFocusPicker`, js/render.js) shows one big card per label
 (task type) that has open tasks, busiest first. Tapping a card picks a random open task with that
-label, within the chosen project pill. **Anything** (`.focus-anything`, accent edge) takes its own
-full-width row and picks from every label.
+label, within the chosen project pill. **Surprise me** picks from every label. It is deliberately
+not a card: it sits below the grid in its own `.focus-surprise` row, set apart by space and a
+divider, as a `.btn.primary` accent button with the pool size beside it, because it is a
+different kind of choice. (It was a full-width "Anything" card until 2026-09-26.)
 
 The cards reuse `.energy-btn` inside `.energy-grid`, the look of the old Low/Medium/High buttons:
 surface-2 fill, the label's colour on the top edge, the name, and a detail line ("3 open · 1 urgent

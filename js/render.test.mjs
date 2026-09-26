@@ -38,7 +38,7 @@ assert.ok(row({ priority: 'urgent' }).includes('class="chip priority-chip small"
 assert.ok(row({ priority: null }).includes('>+ Priority<'), 'an open task with no priority offers to set one');
 assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENERGY_UI_ENABLED is off');
 
-// focus picker: one card per label with open tasks, busiest first, plus "Anything"; project pills narrow it
+// focus picker: one card per label with open tasks, busiest first, then a separate "Surprise me"; project pills narrow it
 {
   const task = (id, cats, extra) => ({ id, title: id, status: 'next', categoryIds: cats, ...extra });
   const st = {
@@ -51,7 +51,10 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   };
   const html = renderFocus(st, () => null, { focusFilter: {} });
   const cards = [...html.matchAll(/data-action="pick-focus" data-category="([^"]*)"/g)].map((m) => m[1]);
-  assert.deepStrictEqual(cards, ['c_art', 'c_chore', ''], 'label cards busiest first, labels with nothing open left out, "Anything" last');
+  assert.deepStrictEqual(cards, ['c_art', 'c_chore', ''], 'label cards busiest first, labels with nothing open left out, "Surprise me" last');
+  assert.ok(/<div class="focus-surprise"><button type="button" class="btn primary" data-action="pick-focus" data-category=""[^>]*>Surprise me<\/button>/.test(html), '"Surprise me" is its own accent button, not a card');
+  assert.ok(html.indexOf('focus-grid') < html.indexOf('focus-surprise') && !html.slice(html.indexOf('focus-grid'), html.indexOf('focus-surprise')).includes('>Surprise me<'), '"Surprise me" sits outside the card grid');
+  assert.ok(!html.includes('>Anything<'), 'there is no "Anything" card any more');
   assert.ok(html.includes('>3 open · 1 urgent · 2 projects<'), 'a card says how many are open, the most pressing priority, and across how many projects');
   assert.ok(html.includes('class="filter-pill active" data-action="set-focus-scope" data-scope="">All projects<'), '"All projects" is chosen by default');
   assert.ok(html.includes('class="filter-pill tint-pill" data-action="set-focus-scope" data-scope="pB" style="--chip-color:hsl(140 58% 40%)">Chores<'), 'a project pill is tinted in the project\'s own colour');

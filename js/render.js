@@ -69,10 +69,15 @@ function renderFocusPicker(st, ui) {
     .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
   const showAllLabels = !!(ui && ui.focusShowAll);
   const shownLabels = showAllLabels ? labels : labels.slice(0, FOCUS_CARDS_SHOWN);
-  const card = (item, isAnything) => '<button type="button" class="energy-btn' + (isAnything ? ' focus-anything' : '') + '" data-action="pick-focus" data-category="' + (isAnything ? '' : item.id) + '" data-project="' + (projectId || '') + '" style="--chip-color:' + item.color + '">'
+  const card = (item) => '<button type="button" class="energy-btn" data-action="pick-focus" data-category="' + item.id + '" data-project="' + (projectId || '') + '" style="--chip-color:' + item.color + '">'
     + '<span class="energy-label">' + esc(item.name) + '</span>'
     + '<span class="energy-desc">' + focusCardDetail(item.matches, !projectId) + '</span></button>';
-  const anything = { name: 'Anything', color: 'var(--accent)', matches: openWhere(null, projectId) };
+  // "Surprise me" is a different kind of choice (no type at all), so it is its own element below
+  // the cards rather than one more card: an accent button, set apart by space and a divider.
+  const surprise = '<div class="focus-surprise">'
+    + '<button type="button" class="btn primary" data-action="pick-focus" data-category="" data-project="' + (projectId || '') + '">Surprise me</button>'
+    + '<span class="muted small">' + focusCardDetail(openWhere(null, projectId), !projectId) + '</span>'
+    + '</div>';
 
   // Project pills, tinted in each project's colour (.tint-pill), busiest first. Like the label cards,
   // only the busiest few show until "+N more"; the chosen one always shows.
@@ -94,13 +99,11 @@ function renderFocusPicker(st, ui) {
     + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
     + '<p class="muted">Pick the kind of work and I&rsquo;ll surface one task.</p>'
     + pills
-    + '<div class="energy-grid focus-grid">'
-      + shownLabels.map((x) => card(x, false)).join('')
-      + card(anything, true)
-    + '</div>'
+    + '<div class="energy-grid focus-grid">' + shownLabels.map(card).join('') + '</div>'
     + (labels.length > FOCUS_CARDS_SHOWN
       ? '<button type="button" class="link-btn" data-action="toggle-focus-all">' + (showAllLabels ? 'Show fewer' : 'Show all ' + labels.length + ' labels') + '</button>'
       : '')
+    + surprise
     + '</section>';
 }
 
