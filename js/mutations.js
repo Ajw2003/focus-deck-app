@@ -23,18 +23,15 @@ export function addProject(name, categoryId) {
   return project;
 }
 
-// energy is whatever the add-task form's select submits: a literal level, or 'auto' (see
-// energyAuto on the task-edit-form's equivalent field in render.js). steps is the raw
-// newline-separated textarea value, split into the array shape the rest of the app expects.
-// deadline/categories/steps were previously dropped entirely -- the add-task form already
-// submitted them, but this function's old (projectId, title, energy) signature had nowhere to
+// steps is the raw newline-separated textarea value, split into the array shape the rest of the
+// app expects. deadline/categories/steps were previously dropped entirely -- the add-task form
+// already submitted them, but this function's old (projectId, title) signature had nowhere to
 // put them. categoryIds is a list (one per label); priority is a PRIORITY_ORDER level or empty.
-export function addTask(projectId, title, energy, deadline, categoryIds, steps, priority) {
+export function addTask(projectId, title, deadline, categoryIds, steps, priority) {
   const project = state.projects.find((p) => p.id === projectId);
   if (!project) return;
-  const isAuto = energy === 'auto';
   const task = {
-    id: uid('t'), title, energy: (!isAuto && energy) ? energy : 'medium', energyAuto: isAuto,
+    id: uid('t'), title,
     status: 'next', deadline: deadline || null, categoryIds: categoryIds || [],
     priority: PRIORITY_ORDER.includes(priority) ? priority : null,
     source: 'manual', updatedAt: Date.now(),
@@ -61,7 +58,7 @@ export function updateTaskFields(taskId, fields) {
 }
 
 // Adapter for the task-edit-form's raw field values (steps as a newline-separated textarea
-// string, energy as a literal level or 'auto') onto updateTaskFields' already-normalized shape.
+// string) onto updateTaskFields' already-normalized shape.
 // projectId isn't needed here (findTaskWithProject locates the task on its own) but the edit
 // form's submit handler passes it, matching deleteTask's (taskId, projectId) signature.
 // Was previously called (as M.editTask) but never exported -- the task-edit form has been
@@ -69,10 +66,6 @@ export function updateTaskFields(taskId, fields) {
 export function editTask(taskId, projectId, fields) {
   const normalized = {};
   if (fields.title !== undefined) normalized.title = fields.title;
-  if (fields.energy != null) { // null when the energy field is hidden (ENERGY_UI_ENABLED)
-    if (fields.energy === 'auto') { normalized.energyAuto = true; }
-    else { normalized.energy = fields.energy; normalized.energyAuto = false; }
-  }
   if (fields.deadline !== undefined) normalized.deadline = fields.deadline || null;
   if (fields.categoryIds !== undefined) normalized.categoryIds = fields.categoryIds || [];
   if (fields.priority !== undefined) normalized.priority = PRIORITY_ORDER.includes(fields.priority) ? fields.priority : null;
@@ -139,21 +132,6 @@ export function cyclePriority(taskId) {
   updateTaskFields(taskId, { priority: PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length] });
 }
 
-// Was previously called (as M.cycleEnergy) but never exported -- the energy chip has been
-// silently broken since it was added.
-const ENERGY_CYCLE = ['low', 'medium', 'high'];
-export function cycleEnergy(taskId, projectId) {
-  const project = state.projects.find((p) => p.id === projectId);
-  if (!project) return;
-  const task = project.tasks.find((t) => t.id === taskId);
-  if (!task) return;
-  const idx = ENERGY_CYCLE.indexOf(task.energy);
-  task.energy = ENERGY_CYCLE[(idx + 1) % ENERGY_CYCLE.length];
-  task.energyAuto = false; // a manual cycle always overrides "auto"
-  task.updatedAt = Date.now();
-  persist();
-}
-
 // Removing a project removes all of its tasks too, so each one needs the same deletion tombstone
 // deleteTask writes — see the Traps note in docs/4-systems/gist-sync.md about any "remove this
 // task" path needing this or a stale Gist pull can resurrect them.
@@ -188,7 +166,7 @@ export function fileInboxItem(inboxId, projectId, categoryIds) {
   const item = state.inbox.find((i) => i.id === inboxId);
   const project = state.projects.find((p) => p.id === projectId);
   if (!item || !project) return;
-  const task = { id: uid('t'), title: item.text, energy: 'medium', status: 'next', deadline: null, categoryIds: categoryIds || [], priority: null, source: 'manual', updatedAt: Date.now() };
+  const task = { id: uid('t'), title: item.text, status: 'next', deadline: null, categoryIds: categoryIds || [], priority: null, source: 'manual', updatedAt: Date.now() };
   project.tasks.push(task);
   state.inbox = state.inbox.filter((i) => i.id !== inboxId);
   persist();
@@ -215,30 +193,6 @@ export function completeInboxItem(inboxId) {
   return item;
 }
 
-// Picks the first candidate (candidatesForEnergy sorts by soonest deadline) as a deterministic,
-// testable choice rather than a random one. pool is kept on state.focus so reroll() has
-// something to pick a different task from.
-// Was previously called (as M.setEnergyFocus) but never exported -- the entire Focus mode has
-// been silently broken since it was added.
-export function setEnergyFocus(level, candidatesForEnergy) {
-  const pool = candidatesForEnergy(level);
-  if (!pool.length) return;
-  state.focus = { taskId: pool[0], energy: level, pool, startedAt: Date.now() };
-  persist();
-}
-
-// "Surprise me instead": no energy filter, so no energy chip is shown for it (renderFocus reads
-// !energyLevel to render the "Surprise pick" chip) — just any open task across every project.
-// Was previously called (as M.surprise) but never exported.
-export function surprise() {
-  const pool = [];
-  state.projects.forEach((p) => p.tasks.forEach((t) => { if (t.status !== 'done') pool.push(t.id); }));
-  if (!pool.length) return;
-  const taskId = pool[Math.floor(Math.random() * pool.length)];
-  state.focus = { taskId, energy: undefined, pool, startedAt: Date.now() };
-  persist();
-}
-
 // "What's your focus right now?": a random open task, limited to a label and/or project when chosen
 // (empty means any). Returns false, changing nothing, when no open task matches.
 export function pickFocus(filter) {
@@ -250,8 +204,8 @@ export function pickFocus(filter) {
   return true;
 }
 
-// "Not this one": swaps to a different task from the same pool setEnergyFocus/surprise built,
-// keeping the same energy filter. Only shown in the UI when the pool has more than one candidate.
+// "Not this one": swaps to a different task from the same pool the pick built. Only shown in the
+// UI when the pool has more than one candidate.
 // Was previously called (as M.reroll) but never exported.
 export function reroll() {
   if (!state.focus || !state.focus.pool || state.focus.pool.length < 2) return;
