@@ -40,16 +40,16 @@ export function renderStats(st) {
   return '<div class="stats-row">' + pills + '</div>';
 }
 
-// The focus pick. A Type | Project switch chooses what the big cards are: labels (narrowed by project
-// pills) or projects (narrowed by label pills). One tap on a card picks a random open task from it.
-// Cards reuse the old energy buttons' look (colour on the top edge). See docs/systems/styling.md#focus-picker
+// The focus pick: one big card per label (task type), narrowed by project pills. One tap on a card
+// picks a random open task from it. Cards reuse the old energy buttons' look (colour on the top
+// edge). A Project mode (cards = projects) existed briefly and was removed on 2026-09-26.
+// See docs/systems/styling.md#focus-picker
 const FOCUS_CARDS_SHOWN = 6;
+const FOCUS_PILLS_SHOWN = 6;
 function renderFocusPicker(st, ui) {
   const f = (ui && ui.focusFilter) || {};
-  const byProject = f.mode === 'project';
-  // a remembered pill whose label or project no longer exists counts as "All", which is what shows
-  const projectId = !byProject && st.projects.some((p) => p.id === f.projectId) ? f.projectId : null;
-  const categoryId = byProject && st.categories.some((c) => c.id === f.categoryId) ? f.categoryId : null;
+  // a remembered project that no longer exists counts as "All projects", which is what shows
+  const projectId = st.projects.some((p) => p.id === f.projectId) ? f.projectId : null;
   if (!st.projects.some((p) => p.tasks.some((t) => t.status !== 'done'))) {
     return '<section class="card focus-card focus-empty">'
       + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
@@ -64,51 +64,42 @@ function renderFocusPicker(st, ui) {
     });
     return out;
   };
-  const busiestFirst = (a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name);
   const labels = st.categories.map((c) => ({ id: c.id, name: c.name, color: c.color, matches: openWhere(c.id, projectId) }))
-    .filter((x) => x.matches.length).sort(busiestFirst);
-  const projects = st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, matches: openWhere(categoryId, p.id) }))
-    .filter((x) => x.matches.length).sort(busiestFirst);
+    .filter((x) => x.matches.length)
+    .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
+  const showAllLabels = !!(ui && ui.focusShowAll);
+  const shownLabels = showAllLabels ? labels : labels.slice(0, FOCUS_CARDS_SHOWN);
+  const card = (item, isAnything) => '<button type="button" class="energy-btn' + (isAnything ? ' focus-anything' : '') + '" data-action="pick-focus" data-category="' + (isAnything ? '' : item.id) + '" data-project="' + (projectId || '') + '" style="--chip-color:' + item.color + '">'
+    + '<span class="energy-label">' + esc(item.name) + '</span>'
+    + '<span class="energy-desc">' + focusCardDetail(item.matches, !projectId) + '</span></button>';
+  const anything = { name: 'Anything', color: 'var(--accent)', matches: openWhere(null, projectId) };
 
-  const cards = byProject ? projects : labels;
-  const showAll = !!(ui && ui.focusShowAll);
-  const shownCards = showAll ? cards : cards.slice(0, FOCUS_CARDS_SHOWN);
-  const card = (item, isAnything) => {
-    const cat = byProject ? categoryId : (isAnything ? null : item.id);
-    const proj = byProject ? (isAnything ? null : item.id) : projectId;
-    return '<button type="button" class="energy-btn' + (isAnything ? ' focus-anything' : '') + '" data-action="pick-focus" data-category="' + (cat || '') + '" data-project="' + (proj || '') + '" style="--chip-color:' + item.color + '">'
-      + '<span class="energy-label">' + esc(item.name) + '</span>'
-      + '<span class="energy-desc">' + focusCardDetail(item.matches, (isAnything || !byProject) && !proj) + '</span></button>';
-  };
-  const anything = { name: 'Anything', color: 'var(--accent)', matches: openWhere(categoryId, projectId) };
-
-  // pills narrow by the other dimension: projects in Type mode, labels in Project mode
-  const chosenPill = byProject ? categoryId : projectId;
-  const pillItems = (byProject ? st.categories : st.projects)
-    .map((x) => ({ id: x.id, name: x.name, color: x.color, n: byProject ? openWhere(x.id, null).length : openWhere(null, x.id).length }))
-    .filter((x) => x.n || x.id === chosenPill)
+  // Project pills, tinted in each project's colour (.tint-pill), busiest first. Like the label cards,
+  // only the busiest few show until "+N more"; the chosen one always shows.
+  const projects = st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, n: openWhere(null, p.id).length }))
+    .filter((x) => x.n || x.id === projectId)
     .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
-  // Every pill shows, with its full name, tinted in its label's or project's own colour so it matches
-  // that label's chips and that project's card and dot elsewhere in the app (.tint-pill).
-  const pill = (id, label, color) => '<button type="button" class="filter-pill' + (color ? ' tint-pill' : '') + ((id || null) === chosenPill ? ' active' : '') + '" data-action="set-focus-scope" data-scope="' + id + '"' + (color ? ' style="--chip-color:' + color + '"' : '') + '>' + esc(label) + '</button>';
-  const pills = pillItems.length > 1
-    ? '<div class="filter-pills focus-scope">' + pill('', byProject ? 'All labels' : 'All projects') + pillItems.map((x) => pill(x.id, x.name, x.color)).join('') + '</div>'
+  const showAllProjects = !!(ui && ui.focusShowAllProjects);
+  const shownProjects = showAllProjects ? projects : projects.filter((x, i) => i < FOCUS_PILLS_SHOWN || x.id === projectId);
+  const pill = (id, label, color) => '<button type="button" class="filter-pill' + (color ? ' tint-pill' : '') + ((id || null) === projectId ? ' active' : '') + '" data-action="set-focus-scope" data-scope="' + id + '"' + (color ? ' style="--chip-color:' + color + '"' : '') + '>' + esc(label) + '</button>';
+  const hidden = projects.length - shownProjects.length;
+  const morePill = projects.length > FOCUS_PILLS_SHOWN
+    ? '<button type="button" class="filter-pill focus-more-pill" data-action="toggle-focus-projects">' + (showAllProjects ? 'Show fewer' : '+' + hidden + ' more') + '</button>'
     : '';
-  const modeBtn = (mode, label) => '<button type="button" class="focus-mode-btn' + ((mode === 'project') === byProject ? ' active' : '') + '" data-action="set-focus-mode" data-mode="' + mode + '" aria-pressed="' + ((mode === 'project') === byProject) + '">' + label + '</button>';
+  const pills = projects.length > 1
+    ? '<div class="filter-pills focus-scope">' + pill('', 'All projects') + shownProjects.map((x) => pill(x.id, x.name, x.color)).join('') + morePill + '</div>'
+    : '';
 
   return '<section class="card focus-card focus-empty">'
-    + '<div class="focus-head">'
-      + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
-      + '<div class="focus-mode" role="group" aria-label="Pick by">' + modeBtn('type', 'Type') + modeBtn('project', 'Project') + '</div>'
-    + '</div>'
-    + '<p class="muted">' + (byProject ? 'Pick a project and I&rsquo;ll surface one task from it.' : 'Pick the kind of work and I&rsquo;ll surface one task.') + '</p>'
+    + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
+    + '<p class="muted">Pick the kind of work and I&rsquo;ll surface one task.</p>'
     + pills
     + '<div class="energy-grid focus-grid">'
-      + shownCards.map((x) => card(x, false)).join('')
+      + shownLabels.map((x) => card(x, false)).join('')
       + card(anything, true)
     + '</div>'
-    + (cards.length > FOCUS_CARDS_SHOWN
-      ? '<button type="button" class="link-btn" data-action="toggle-focus-all">' + (showAll ? 'Show fewer' : 'Show all ' + cards.length + ' ' + (byProject ? 'projects' : 'labels')) + '</button>'
+    + (labels.length > FOCUS_CARDS_SHOWN
+      ? '<button type="button" class="link-btn" data-action="toggle-focus-all">' + (showAllLabels ? 'Show fewer' : 'Show all ' + labels.length + ' labels') + '</button>'
       : '')
     + '</section>';
 }

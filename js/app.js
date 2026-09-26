@@ -13,7 +13,7 @@ function loadCollapsedProjects() {
   try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || {}; }
   catch (e) { console.error('Could not read minimised projects:', e); return {}; }
 }
-// The focus pick's Type/Project mode and chosen pills, remembered per device like the minimised projects.
+// The focus pick's chosen project pill, remembered per device like the minimised projects.
 const FOCUS_FILTER_KEY = 'focusdeck-focus-filter';
 function loadFocusFilter() {
   try { return JSON.parse(localStorage.getItem(FOCUS_FILTER_KEY)) || {}; }
@@ -74,19 +74,13 @@ function onAppClick(e) {
       paint();
     }
   }
-  else if (action === 'set-focus-mode') {
-    ui.focusFilter.mode = el.getAttribute('data-mode');
-    ui.focusShowAll = false;
-    saveFocusFilter();
-    paint();
-  }
   else if (action === 'set-focus-scope') {
-    // the pills are projects in Type mode and labels in Project mode
-    ui.focusFilter[ui.focusFilter.mode === 'project' ? 'categoryId' : 'projectId'] = el.getAttribute('data-scope') || null;
+    ui.focusFilter.projectId = el.getAttribute('data-scope') || null;
     saveFocusFilter();
     paint();
   }
   else if (action === 'toggle-focus-all') { ui.focusShowAll = !ui.focusShowAll; paint(); }
+  else if (action === 'toggle-focus-projects') { ui.focusShowAllProjects = !ui.focusShowAllProjects; paint(); }
   else if (action === 'reroll') M.reroll();
   else if (action === 'clear-focus') M.clearFocus();
   else if (action === 'complete-focus') M.completeFocus(findProjectIdForTask);

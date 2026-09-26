@@ -182,11 +182,7 @@ a{color:inherit;}
 /* focus picker pills match their label's chips / project's colour: tinted in it; chosen = a ring */
 .filter-pill.tint-pill{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink));}
 .filter-pill.tint-pill.active{background:color-mix(in srgb, var(--chip-color) 32%, transparent); color:var(--ink); box-shadow:inset 0 0 0 2px var(--chip-color);}
-.focus-head{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 12px; margin-bottom:8px;}
-.focus-empty .focus-head h2.focus-q{margin-bottom:0;}
-.focus-mode{display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:2px; background:var(--surface-2); flex:none;}
-.focus-mode-btn{border:none; background:none; border-radius:999px; padding:5px 12px; font-size:.8rem; font-weight:600; color:var(--ink-soft); cursor:pointer;}
-.focus-mode-btn.active{background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.12);}
+.filter-pill.focus-more-pill{background:none; border-style:dashed; color:var(--ink-faint);}
 @media (max-width:560px){.energy-grid.focus-grid{grid-template-columns:1fr 1fr;}}
 .focus-grid .energy-label{overflow-wrap:anywhere;}
 .focus-grid .focus-anything{grid-column:1 / -1;} /* its own row: a different kind of choice */

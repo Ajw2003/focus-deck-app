@@ -54,28 +54,26 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   assert.deepStrictEqual(cards, ['c_art', 'c_chore', ''], 'label cards busiest first, labels with nothing open left out, "Anything" last');
   assert.ok(html.includes('>3 open · 1 urgent · 2 projects<'), 'a card says how many are open, the most pressing priority, and across how many projects');
   assert.ok(html.includes('class="filter-pill active" data-action="set-focus-scope" data-scope="">All projects<'), '"All projects" is chosen by default');
-  assert.ok(html.includes('class="focus-mode-btn active" data-action="set-focus-mode" data-mode="type"'), 'Type is the default mode');
   assert.ok(html.includes('class="filter-pill tint-pill" data-action="set-focus-scope" data-scope="pB" style="--chip-color:hsl(140 58% 40%)">Chores<'), 'a project pill is tinted in the project\'s own colour');
   assert.ok(!html.includes('<select'), 'no dropdowns in the picker');
   const narrowed = renderFocus(st, () => null, { focusFilter: { projectId: 'pB' } });
   assert.ok(narrowed.includes('>1 open<') && !narrowed.includes('2 projects'), 'a chosen project narrows the counts');
   assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('class="filter-pill active" data-action="set-focus-scope" data-scope="">All projects<'), 'a remembered project that no longer exists falls back to All projects');
 
-  // Project mode: the cards are projects and the pills are labels
-  const byProj = renderFocus(st, () => null, { focusFilter: { mode: 'project' } });
-  const projCards = [...byProj.matchAll(/data-action="pick-focus" data-category="([^"]*)" data-project="([^"]*)"/g)].map((m) => m[2]);
-  assert.deepStrictEqual(projCards, ['pA', 'pB', ''], 'project cards busiest first, then Anything');
-  assert.ok(byProj.includes('>PlunderSpell<') && byProj.includes('>2 open · 1 urgent<'), 'a project card shows its open count and most pressing priority');
-  assert.ok(byProj.includes('data-scope="">All labels<') && byProj.includes('data-scope="c_art"'), 'the pills are labels in Project mode');
-  assert.ok(byProj.includes('class="filter-pill tint-pill" data-action="set-focus-scope" data-scope="c_art" style="--chip-color:#d000ff">art<'), 'a label pill is tinted in the label\'s own colour');
-  const many = { ...st, categories: Array.from({ length: 9 }, (_, i) => ({ id: 'c' + i, name: 'a-very-long-label-name-' + i, color: '#123456' })),
-    projects: [{ id: 'pA', name: 'P', tasks: Array.from({ length: 9 }, (_, i) => task('m' + i, ['c' + i])) }] };
-  const manyPills = renderFocus(many, () => null, { focusFilter: { mode: 'project' } });
-  assert.strictEqual((manyPills.match(/data-action="set-focus-scope"/g) || []).length, 10, 'every label gets a pill (plus All), none hidden');
-  assert.ok(manyPills.includes('>a-very-long-label-name-8<'), 'pill names are not shortened');
-  const artOnly = renderFocus(st, () => null, { focusFilter: { mode: 'project', categoryId: 'c_chore' } });
-  const narrowedCards = [...artOnly.matchAll(/data-action="pick-focus" data-category="([^"]*)" data-project="([^"]*)"/g)].map((m) => m[1] + '/' + m[2]);
-  assert.deepStrictEqual(narrowedCards, ['c_chore/pB', 'c_chore/'], 'a label pill narrows the project cards, and every card carries that label');
+  // Project mode was removed: a remembered mode: 'project' still renders the Type view
+  const oldMode = renderFocus(st, () => null, { focusFilter: { mode: 'project' } });
+  assert.ok(!oldMode.includes('focus-mode') && oldMode.includes('data-category="c_art"') && oldMode.includes('>All projects<'), 'only the Type view renders, even for a remembered Project mode');
+  // project pills collapse to the busiest six, with a "+N more" pill that expands them
+  const manyProjects = { ...st, projects: Array.from({ length: 9 }, (_, i) => ({ id: 'p' + i, name: 'project-with-a-long-name-' + i, color: '#123456', tasks: Array.from({ length: 9 - i }, (_, j) => task('t' + i + '_' + j, ['c_art'])) })) };
+  const collapsed = renderFocus(manyProjects, () => null, { focusFilter: {} });
+  assert.strictEqual((collapsed.match(/data-action="set-focus-scope"/g) || []).length, 7, 'All projects plus the six busiest projects');
+  assert.ok(collapsed.includes('data-action="toggle-focus-projects">+3 more<'), 'a "+N more" pill counts the hidden projects');
+  assert.ok(!collapsed.includes('>project-with-a-long-name-8<'), 'the least busy project is hidden until expanded');
+  const chosenHidden = renderFocus(manyProjects, () => null, { focusFilter: { projectId: 'p8' } });
+  assert.ok(chosenHidden.includes('class="filter-pill tint-pill active" data-action="set-focus-scope" data-scope="p8"'), 'the chosen project always shows, even if it would be hidden');
+  const expanded = renderFocus(manyProjects, () => null, { focusFilter: {}, focusShowAllProjects: true });
+  assert.strictEqual((expanded.match(/data-action="set-focus-scope"/g) || []).length, 10, 'expanded: every project gets a pill, with its full name');
+  assert.ok(expanded.includes('data-action="toggle-focus-projects">Show fewer<'), 'expanded pills offer Show fewer');
 }
 
 // GitHub controls: the row shows only the issue number; unlink / link / create live in the edit form
