@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, sortCurrent } from './render.js';
+import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, sortCurrent, renderProjectSidebar } from './render.js';
 import assert from 'node:assert';
 
 const p = { id: 'p1', name: 'P' };
@@ -132,6 +132,21 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   const find = (id) => ({ task: st.projects[0].tasks.find((t) => t.id === id), project: st.projects[0] });
   const active = renderFocus(st, find, { focusFilter: {} });
   assert.ok(active.includes('<button type="button" class="chip proj-chip" data-action="scroll-project" data-project="pZ"'), 'the picked task\'s project chip is a button that jumps to the project');
+}
+
+// wide-screen project sidebar: search, category pills, sort, and a row per visible project that jumps to it
+{
+  const projects = [
+    { id: 'p1', name: 'PlunderSpell', color: 'red', tasks: [{ id: 'a', status: 'next' }, { id: 'b', status: 'done' }] },
+    { id: 'p2', name: 'Chores', color: 'green', tasks: [] },
+  ];
+  const side = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: 'plu', projectSort: 'name', projectCollapsed: {} }, [projects[0]]);
+  assert.ok(side.startsWith('<aside class="project-sidebar"'), 'the sidebar is an aside');
+  assert.ok(side.includes('class="project-search sidebar-search" data-action="set-project-query"') && side.includes('value="plu"'), 'it has its own search box, sharing the project search');
+  assert.ok(side.includes('data-action="set-project-filter"') && side.includes('data-action="set-project-sort"'), 'it has the category pills and sort');
+  assert.ok(side.includes('data-action="scroll-project" data-project="p1"') && side.includes('>PlunderSpell<') && side.includes('title="Open tasks">1<'), 'a visible project is a row with its open count that jumps to it');
+  assert.ok(!side.includes('data-project="p2"'), 'projects hidden by the search are left out');
+  assert.strictEqual(renderProjectSidebar({ projects: [], projectCategories: [] }, {}, []), '', 'no projects, no sidebar');
 }
 
 // GitHub controls: the row shows only the issue number; unlink / link / create live in the edit form

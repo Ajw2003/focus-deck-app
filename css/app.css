@@ -272,6 +272,41 @@ button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%,
 .project-card.is-collapsed .progress-track{margin-bottom:0;}
 
 .projects-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px;}
+
+/* Project sidebar and wide layout: wide screens only. The sidebar replaces the filter bar and
+   project pills there. See docs/systems/styling.md#project-sidebar */
+.project-sidebar{display:none;}
+.main-col{min-width:0;}
+@media (min-width:1100px){
+  /* use the monitor (#64): the page widens, project cards flow into as many ~420px+ columns as fit,
+     and the focus card's label cards spread across the width */
+  .wrap{max-width:1800px;}
+  #app{display:grid; grid-template-columns:270px minmax(0,1fr); gap:28px; align-items:start;}
+  .projects-grid{grid-template-columns:repeat(auto-fill, minmax(420px, 1fr)); align-items:start;}
+  .energy-grid.focus-grid{grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));}
+  .project-sidebar{
+    display:flex; flex-direction:column; gap:10px;
+    position:sticky; top:84px; max-height:calc(100vh - 100px); overflow-y:auto;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px;
+  }
+  .main-col .stats-row, .main-col .project-filter-bar{display:none;}
+}
+.sidebar-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
+.sidebar-title{font-size:1.05rem;}
+.sidebar-search{flex:none; width:100%; padding:8px 12px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font-size:.85rem;}
+.sidebar-pills{gap:5px;}
+.sidebar-pills .filter-pill{padding:4px 10px; font-size:.75rem;}
+.sidebar-tools{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px;}
+.sidebar-tools .project-sort-select{flex:1 1 auto; min-width:0;}
+.sidebar-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; border-top:1px solid var(--line); padding-top:8px;}
+.sidebar-project{
+  width:100%; display:flex; align-items:center; gap:9px; padding:7px 8px; border:none; border-radius:8px;
+  background:none; color:var(--ink); text-align:left; font-size:.86rem; font-weight:600;
+}
+.sidebar-project:hover{background:var(--surface-2);}
+.sidebar-project .dot{width:9px; height:9px; border-radius:50%; background:var(--dot); flex:none;}
+.sidebar-name{flex:1; min-width:0; overflow-wrap:break-word;}
+.sidebar-count{color:var(--ink-faint); font-size:.78rem; font-variant-numeric:tabular-nums;}
 .project-card{border-top:3px solid var(--proj-color);}
 .project-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
 .project-title{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}

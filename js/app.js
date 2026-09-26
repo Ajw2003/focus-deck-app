@@ -36,23 +36,29 @@ export function renderApp(st) {
   st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
   if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
-  return R.renderSyncStatus(st) + R.renderFocus(st, findTaskWithProject, ui) + R.renderStats(st) + R.renderDone(st) + R.renderInbox(st, ui)
-    + R.renderProjectFilterBar(st, ui, visibleProjects)
-    + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
-      + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
+  return R.renderProjectSidebar(st, ui, visibleProjects)
+    + '<div class="main-col">'
+      + R.renderSyncStatus(st) + R.renderFocus(st, findTaskWithProject, ui) + R.renderStats(st) + R.renderDone(st) + R.renderInbox(st, ui)
+      + R.renderProjectFilterBar(st, ui, visibleProjects)
+      + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
+        + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
+      + '</div>'
+      + R.renderAddProjectForm(st.projectCategories)
     + '</div>'
-    + R.renderAddProjectForm(st.projectCategories)
     + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
 }
 
 export function paint() {
   const scrollY = window.scrollY;
   const active = document.activeElement;
-  const restoreSearch = active && active.matches && active.matches('.project-search') ? { start: active.selectionStart, end: active.selectionEnd } : null;
+  // two search boxes exist (filter bar, and the wide-screen sidebar): keep focus in the one being typed in
+  const restoreSearch = active && active.matches && active.matches('.project-search')
+    ? { start: active.selectionStart, end: active.selectionEnd, selector: active.matches('.sidebar-search') ? '.sidebar-search' : '.project-search:not(.sidebar-search)' }
+    : null;
   document.getElementById('app').innerHTML = renderApp(state);
   window.scrollTo(0, scrollY);
   if (restoreSearch) {
-    const el = document.querySelector('.project-search');
+    const el = document.querySelector(restoreSearch.selector);
     if (el) { el.focus(); el.setSelectionRange(restoreSearch.start, restoreSearch.end); }
   }
 }
