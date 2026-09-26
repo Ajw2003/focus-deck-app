@@ -1106,7 +1106,7 @@ In the same session: add a project with a new category via "+ Add new…" and co
 
 - [ ] **Step 4: Push to GitHub**
 
-Using the `mcp__GitHub__push_files` (or `mcp__GitHub__create_or_update_file` for single files) MCP tools against `Ajw2003/focus-deck-app`, push every file changed across Tasks 1–6 (`js/state.js`, `js/mutations.js`, `js/render.js`, `js/app.js`, `js/github.js`, `js/github-sync.js`, `js/github-sync.test.mjs`, `js/complexity.js`, `js/complexity.test.mjs`, `js/project-filter.js`, `js/project-filter.test.mjs`, `css/app.css`, plus the `generate_icons.py` reconciliation commit and this plan file under `docs/superpowers/plans/`) to the `main` branch. Do not attempt `git push` — it is blocked for this session (see Global Constraints). Do not include anything under `.github/workflows/` in this push (nothing in this plan should have touched it — double-check before pushing).
+Using the `mcp__GitHub__push_files` (or `mcp__GitHub__create_or_update_file` for single files) MCP tools against `Ajw2003/focus-deck-app`, push every file changed across Tasks 1–6 (`js/state.js`, `js/mutations.js`, `js/render.js`, `js/app.js`, `js/github.js`, `js/github-sync.js`, `js/github-sync.test.mjs`, `js/complexity.js`, `js/complexity.test.mjs`, `js/project-filter.js`, `js/project-filter.test.mjs`, `css/app.css`, plus the `generate_icons.py` reconciliation commit and this plan file under `docs/archive/`) to the `main` branch. Do not attempt `git push` — it is blocked for this session (see Global Constraints). Do not include anything under `.github/workflows/` in this push (nothing in this plan should have touched it — double-check before pushing).
 
 - [ ] **Step 5: Verify the live deploy**
 

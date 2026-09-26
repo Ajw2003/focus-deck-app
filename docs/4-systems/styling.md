@@ -176,7 +176,7 @@ in the browser and just renders with default/no styling.
   message (`File-Rewrite-Ack: <path>`), or it's blocked. This isn't CSS-specific — it's a general
   guard (`scripts/guard-file-churn.mjs`) against any commit whose diff silently does far more than
   its stated intent, which is the actual mechanism behind the incident below. See
-  `docs/Decisions.md` for why this shape of guard was chosen.
+  `docs/6-decisions/Decisions.md` for why this shape of guard was chosen.
 
 ## Traps
 
@@ -184,7 +184,7 @@ in the browser and just renders with default/no styling.
 about a day.** Commit `af88e6d` ("fix: give the New Project category select a solid background
 (#14)") was meant to make exactly one change: add `background:var(--surface)` to
 `.add-project-form select` (the only `<select>` in the file still using
-`background:transparent`, see the trap in `docs/systems/pwa-shell.md`). Its actual diff replaced
+`background:transparent`, see the trap in `docs/4-systems/pwa-shell.md`). Its actual diff replaced
 essentially all of `css/app.css` — 129 of the file's 290 lines deleted, 55 different lines added
 — with a different, smaller draft stylesheet that used different class names than the app's real
 markup:

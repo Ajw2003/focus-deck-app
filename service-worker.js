@@ -1,4 +1,4 @@
-// Paths below must stay relative — see docs/systems/pwa-shell.md#invariants
+// Paths below must stay relative — see docs/4-systems/pwa-shell.md#invariants
 const CACHE_NAME = 'focus-deck-shell-v12';
 const SHELL_ASSETS = [
   './',
@@ -41,7 +41,7 @@ self.addEventListener('activate', (event) => {
 // GitHub Pages serves every file with max-age=600, so a plain fetch() can be answered from the
 // browser's HTTP cache with a file up to 10 minutes stale, and a mix of old and new modules. 'no-cache'
 // makes each load check with the server first (a cheap 304 when nothing changed).
-// See docs/systems/pwa-shell.md#how-it-works
+// See docs/4-systems/pwa-shell.md#how-it-works
 function fetchFresh(req) {
   if (req.mode === 'navigate') {
     // a navigate-mode Request can't be copied with new options, so fetch its URL instead
@@ -59,7 +59,7 @@ self.addEventListener('fetch', (event) => {
 
   // Network-first: a code fix must reach an installed app on its next load. Cache-first kept
   // serving an old js/mutations.js that wrote "undefined" over the saved data, long after the fix
-  // shipped. The cache is only the offline fallback. See docs/systems/pwa-shell.md.
+  // shipped. The cache is only the offline fallback. See docs/4-systems/pwa-shell.md.
   event.respondWith(
     fetchFresh(req).then((resp) => {
       if (resp.ok) {

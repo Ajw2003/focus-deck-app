@@ -2,7 +2,7 @@
 // Pure: no imports, no DOM, no network. Shared by state.js (stale-tab protection and change
 // stamping) and sync.js (Gist pull/push), which is why it isn't inside either of them.
 
-// doc-ref bce8 docs/systems/gist-sync.md
+// doc-ref bce8 docs/4-systems/gist-sync.md
 
 // The record kinds that sync. Every record carries an id and an `updatedAt`; the newest copy of
 // a record wins, and a deletion is a timestamped tombstone that beats any copy no newer than it.

@@ -95,7 +95,7 @@ export async function removeLabelFromIssue(owner, repo, number, name) {
     .catch((e) => { if (e.status !== 404) throw e; }); // already off the issue — fine
 }
 
-// doc-ref 0c0e docs/systems/github-sync.md
+// doc-ref 0c0e docs/4-systems/github-sync.md
 export async function ensureLabelExists(owner, repo, name, color) {
   const hex = color ? color.replace(/^#/, '').toLowerCase() : null;
   try {

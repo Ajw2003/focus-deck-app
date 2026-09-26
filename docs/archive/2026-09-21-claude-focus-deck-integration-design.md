@@ -38,7 +38,7 @@ special admin/org-level permissions no ordinary PAT has), so "no delete" is clos
 enforced. Closing is never treated as deleting: it's reversible, exactly like the completion
 toggle Focus Deck already has.
 
-This contract is written down as a tier-4 doc in `docs/systems/` (alongside `github-sync.md`),
+This contract is written down as a tier-4 doc in `docs/4-systems/` (alongside `github-sync.md`),
 so it governs any Claude session working in this repo — this chat, a future one, Claude Code —
 not just whichever session happens to be running right now.
 

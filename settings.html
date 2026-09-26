@@ -63,7 +63,7 @@
   // returns a fresh, disconnected copy, and saving a copy taken earlier silently reverts anything
   // saved since (this is how "Connect" used to lose the Gist ID the moment a category was edited).
   // The Gist ID itself only changes through setGistId()/disconnectGist() — see
-  // docs/systems/local-storage.md.
+  // docs/4-systems/local-storage.md.
   import { getToken, setToken, validateToken, ghFetch } from './js/github.js';
   import { state, setGistId, serializeState } from './js/state.js';
   import { findSyncGist, pullFromGist, GIST_FILE } from './js/sync.js';

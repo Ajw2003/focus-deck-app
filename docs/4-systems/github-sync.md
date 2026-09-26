@@ -77,7 +77,7 @@ keeps the task's own priority and pushes it over. `createGithubIssueFromTask` in
 priority label. Unlinked tasks keep their priority locally.
 
 This replaces energy (Low/Medium/High bandwidth) in the UI; see the 2026-09-26 entry in
-`docs/Decisions.md`.
+`docs/6-decisions/Decisions.md`.
 
 ### Completion sync — `syncIssueCompletion` (js/github-sync.js:90)
 

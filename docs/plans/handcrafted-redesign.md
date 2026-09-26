@@ -67,6 +67,14 @@ on 2026-09-26; each decision below keeps its question number from that session.
 
 - `docs/` moves to the six-tier layout as its own commit (answered yes).
 
-## Still open
+## Pull requests (Q21a)
 
-- How the work is split into pull requests.
+Four, in order, each checked on a phone before the next starts:
+
+1. The docs move to the six-tier layout.
+2. The cuts: energy system, Recently done, Claude chips, "+ Priority", the migrate page, the sync
+   row (replaced by the top-bar icon), and the project pills row and filter bar (replaced by the
+   one project list with a phone drawer).
+3. The visual system: type scale, radii, colour, headings, SVG icons, label-name formatting.
+4. The control moves: task rows open the editor, collapsed "+ Add task", Remove and Add project
+   moved.

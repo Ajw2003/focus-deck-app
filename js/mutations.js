@@ -3,7 +3,7 @@ import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_O
 import { syncIssueCompletion, pushCategoriesToIssue, pushPriorityToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
 // The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
 // used to have its own copy that saved locally but never pushed, so most edits never reached the
-// Gist. See doc-ref 2425 docs/systems/gist-sync.md
+// Gist. See doc-ref 2425 docs/4-systems/gist-sync.md
 import { persist } from './sync.js';
 export { persist };
 
@@ -155,7 +155,7 @@ export function cycleEnergy(taskId, projectId) {
 }
 
 // Removing a project removes all of its tasks too, so each one needs the same deletion tombstone
-// deleteTask writes — see the Traps note in docs/systems/gist-sync.md about any "remove this
+// deleteTask writes — see the Traps note in docs/4-systems/gist-sync.md about any "remove this
 // task" path needing this or a stale Gist pull can resurrect them.
 // Was previously called (as M.removeProject) but never exported -- the Remove button has been
 // silently broken since it was added.

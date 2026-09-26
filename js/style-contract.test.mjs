@@ -3,7 +3,7 @@
 // A regression test for GitHub issue #17: commit af88e6d replaced almost all of css/app.css with
 // a different, smaller draft stylesheet while claiming a one-line fix, and nothing caught it
 // because css/app.css had no automated test at all -- only the *shape* of the app (the .html /
-// mutations.js / render.js) was under test, never its stylesheet. See docs/systems/styling.md.
+// mutations.js / render.js) was under test, never its stylesheet. See docs/4-systems/styling.md.
 //
 // This file is deliberately dependency-free static text analysis, matching every other test in
 // this repo (node:test + node:assert, no framework, no headless browser) -- it doesn't render
@@ -24,7 +24,7 @@ const css = fs.readFileSync(path.join(root, 'css/app.css'), 'utf8');
 // Markup sources whose class="..." attributes are the app's real contract with the stylesheet.
 const MARKUP_SOURCES = ['js/render.js', 'js/app.js', 'index.html', 'settings.html'];
 
-// doc-ref f152 docs/systems/styling.md
+// doc-ref f152 docs/4-systems/styling.md
 const ALLOWED_WITHOUT_RULE = new Set([
   'cat-add-form',       // js hook only (settings.html form submit handler)
   'cat-remove-btn',     // js hook only (settings.html: e.target.matches('.cat-remove-btn'))

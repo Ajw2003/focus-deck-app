@@ -15,7 +15,7 @@ export const PRIORITY = {
   low: { label: 'Low', githubLabel: 'priority: low', color: '0e8a16' },
 };
 
-// doc-ref 7f3a docs/systems/local-storage.md
+// doc-ref 7f3a docs/4-systems/local-storage.md
 // These key names are part of the user's data: renaming one without a migration that reads the
 // old key first orphans everything stored under it.
 export const STORAGE_KEY = 'focusdeck-state-v1';

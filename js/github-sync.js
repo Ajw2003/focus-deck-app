@@ -9,12 +9,12 @@ import { parseChecklistItems, wordCount, estimateComplexity, tierFromScore } fro
 
 function normLabel(s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); }
 
-// Provenance labels — see docs/systems/claude-integration.md
+// Provenance labels — see docs/4-systems/claude-integration.md
 export const CLAUDE_CREATED_LABEL = 'Claude created this';
 export const CLAUDE_COMPLETED_LABEL = 'Claude completed this';
 
 // Labels that mean a priority. The canonical "priority: <level>" labels are what Focus Deck writes;
-// the others are common conventions it also reads. See docs/systems/github-sync.md#priority--priorityfromlabels-pushprioritytoissue-jsgithub-syncjs
+// the others are common conventions it also reads. See docs/4-systems/github-sync.md#priority--priorityfromlabels-pushprioritytoissue-jsgithub-syncjs
 const PRIORITY_ALIASES = {
   urgent: ['urgent', 'critical', 'blocker', 'p0'],
   high: ['highpriority', 'p1'],
@@ -25,7 +25,7 @@ const canonicalPriorityForms = (level) => ['priority:' + level, 'priority' + lev
 const PRIORITY_LABEL_FORMS = PRIORITY_ORDER.flatMap((level) => canonicalPriorityForms(level).concat(PRIORITY_ALIASES[level]));
 
 // Reserved so priority/status/provenance labels can't be mistaken for a category.
-// See docs/systems/github-sync.md#labels-to-categories-priority-and-flags--applylabels-jsgithub-syncjs
+// See docs/4-systems/github-sync.md#labels-to-categories-priority-and-flags--applylabels-jsgithub-syncjs
 const RESERVED_LABELS = PRIORITY_LABEL_FORMS.concat(['inprogress', 'wip', 'doing', normLabel(CLAUDE_CREATED_LABEL), normLabel(CLAUDE_COMPLETED_LABEL)]);
 
 // The issue label that carries a task's priority. A canonical "priority: x" label wins over an alias;
@@ -62,7 +62,7 @@ function categoryIdsForLabels(labels, labelColors) {
 // Mirrors an issue's labels onto its task: every category label, the priority, and the Claude flags.
 // GitHub is the source of truth here, so a label removed there is removed here.
 // Callers must set task.status BEFORE calling (claudeCompleted depends on it).
-// See docs/systems/github-sync.md#labels-to-categories-priority-and-flags--applylabels-jsgithub-syncjs
+// See docs/4-systems/github-sync.md#labels-to-categories-priority-and-flags--applylabels-jsgithub-syncjs
 export function applyLabels(task, labels, labelColors) {
   labels = labels || [];
   const norm = labels.map(normLabel);
@@ -81,7 +81,7 @@ function reportSyncError(msg) {
 }
 
 // Reopen cleanup: the completed label is "live", so once a task is no longer done, take it off the issue.
-// See docs/systems/claude-integration.md
+// See docs/4-systems/claude-integration.md
 export async function dropStaleCompletedLabel(task, labels) {
   if (task.status === 'done') return;
   if (!(labels || []).some((l) => normLabel(l) === normLabel(CLAUDE_COMPLETED_LABEL))) return;
@@ -107,7 +107,7 @@ export async function refreshClosedTaskLabels(tasks) {
 const isLinked = (task) => task.source === 'github' && task.repoFullName && task.issueNumber != null;
 
 // Adds the labels for categories the task gained and removes those it lost; others are untouched.
-// See docs/systems/github-sync.md#pushing-categories-back-to-github--pushcategoriestoissue-jsgithub-syncjs
+// See docs/4-systems/github-sync.md#pushing-categories-back-to-github--pushcategoriestoissue-jsgithub-syncjs
 export async function pushCategoriesToIssue(task, oldCategoryIds) {
   if (!isLinked(task)) return;
   const [owner, name] = task.repoFullName.split('/');
@@ -126,7 +126,7 @@ export async function pushCategoriesToIssue(task, oldCategoryIds) {
 }
 
 // Swaps the issue's priority label: removes the one it had (whatever its exact name) and adds the
-// canonical "priority: <level>" label, or none. See docs/systems/github-sync.md#priority--priorityfromlabels-pushprioritytoissue-jsgithub-syncjs
+// canonical "priority: <level>" label, or none. See docs/4-systems/github-sync.md#priority--priorityfromlabels-pushprioritytoissue-jsgithub-syncjs
 export async function pushPriorityToIssue(task) {
   if (!isLinked(task)) return;
   const [owner, name] = task.repoFullName.split('/');
@@ -145,7 +145,7 @@ export async function pushPriorityToIssue(task) {
   }
 }
 
-// doc-ref fce6 docs/systems/github-sync.md
+// doc-ref fce6 docs/4-systems/github-sync.md
 export async function pushCategoryColorToLinkedIssues(categoryId) {
   const cat = state.categories.find((c) => c.id === categoryId);
   if (!cat) return;
@@ -165,7 +165,7 @@ export async function pushCategoryColorToLinkedIssues(categoryId) {
 }
 
 // Fire-and-forget; no local rollback on failure. See
-// docs/systems/github-sync.md#completion-sync--syncissuecompletion-jsgithub-syncjs90
+// docs/4-systems/github-sync.md#completion-sync--syncissuecompletion-jsgithub-syncjs90
 export async function syncIssueCompletion(task) {
   if (task.source !== 'github' || !task.repoFullName || task.issueNumber == null) return;
   const [owner, name] = task.repoFullName.split('/');
@@ -184,7 +184,7 @@ export async function syncIssueCompletion(task) {
 // A linked task deleted in Focus Deck closes its issue as "not planned": crossed off, not done, and
 // still reopenable (GitHub's REST API can't delete issues, and deleting can't be undone). Callers
 // also add the issue to excludedIssues so a sync never re-imports it.
-// See docs/systems/github-sync.md#deleting-a-linked-task--closeissuefordeletedtask-jsgithub-syncjs
+// See docs/4-systems/github-sync.md#deleting-a-linked-task--closeissuefordeletedtask-jsgithub-syncjs
 export async function closeIssueForDeletedTask(task) {
   if (!isLinked(task)) return;
   const [owner, name] = task.repoFullName.split('/');
@@ -212,7 +212,7 @@ function findTaskByIssue(repoFullName, number) {
   return null;
 }
 
-// See docs/systems/github-sync.md#linking-a-task-to-an-issue--linktasktoissue-jsgithub-syncjs123
+// See docs/4-systems/github-sync.md#linking-a-task-to-an-issue--linktasktoissue-jsgithub-syncjs123
 export async function linkTaskToIssue(taskId, input, ui) {
   const found = findTaskWithProject(taskId);
   if (!found) return;
@@ -259,7 +259,7 @@ export async function linkTaskToIssue(taskId, input, ui) {
   }
 }
 
-// See docs/systems/github-sync.md#unlinking-a-task--unlinktask-jsgithub-syncjs161
+// See docs/4-systems/github-sync.md#unlinking-a-task--unlinktask-jsgithub-syncjs161
 export function unlinkTask(taskId) {
   const found = findTaskWithProject(taskId);
   if (!found) return;
@@ -281,7 +281,7 @@ export function sameIssueTitle(a, b) {
   return norm(a) !== '' && norm(a) === norm(b);
 }
 
-// See docs/systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs176
+// See docs/4-systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs176
 export async function createGithubIssueFromTask(taskId, repoInput, ui) {
   const found = findTaskWithProject(taskId);
   if (!found) return;
@@ -295,7 +295,7 @@ export async function createGithubIssueFromTask(taskId, repoInput, ui) {
   ui.syncError = null;
   try {
     // Pull the repo's open issues first so an issue that already exists on GitHub gets linked,
-    // not duplicated. See docs/systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs176
+    // not duplicated. See docs/4-systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs176
     const existing = (await listIssues(owner, name)).find((iss) => sameIssueTitle(iss.title, task.title));
     if (existing) {
       const linkedElsewhere = findTaskByIssue(fullName, existing.number);
@@ -388,7 +388,7 @@ export async function addRepoManually(input, ui) {
   }
 }
 
-// See docs/systems/github-sync.md#repo-sync--upsertrepoproject-jsgithub-syncjs
+// See docs/4-systems/github-sync.md#repo-sync--upsertrepoproject-jsgithub-syncjs
 export function upsertRepoProject(repo, issues, ui) {
   const open = issues.filter((iss) => !state.excludedIssues.includes(repo.full_name + '#' + iss.number));
   // only labelled issues become new tasks; an issue already linked to a task counts however it's labelled
@@ -476,7 +476,7 @@ export async function syncGithub(ui) {
       }
     }
 
-    // See docs/systems/github-sync.md#standalone-linked-tasks-reconciliation-pass--syncgithub-jsgithub-syncjs348-374
+    // See docs/4-systems/github-sync.md#standalone-linked-tasks-reconciliation-pass--syncgithub-jsgithub-syncjs348-374
     const syncedRepos = new Set(candidates.map((r) => r.full_name));
     const linked = [];
     state.projects.forEach((p) => p.tasks.forEach((t) => {
