@@ -402,17 +402,18 @@ function onAppKeydown(e) {
 
 // Below 1100px, the project list is a drawer opened from the topbar's Projects button (see
 // index.html); at >=1100px CSS shows it as the sticky sidebar regardless of this flag. Opening it
-// moves focus in; closing it returns focus to the button that opened it. See
+// moves focus to the drawer itself (not its search box, which would raise the phone keyboard over the
+// list); closing it returns focus to the button that opened it. See
 // docs/4-systems/styling.md#project-sidebar
 function setProjectsDrawerOpen(open) {
   ui.projectsDrawerOpen = open;
   paint();
   if (open) {
-    const search = document.querySelector('#projects-drawer .sidebar-search');
-    if (search) search.focus();
+    const drawer = document.getElementById('projects-drawer');
+    if (drawer) drawer.focus({ preventScroll: true });
   } else {
     const btn = document.getElementById('projects-btn');
-    if (btn) btn.focus();
+    if (btn) btn.focus({ preventScroll: true });
   }
 }
 

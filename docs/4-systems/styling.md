@@ -54,6 +54,13 @@ edge, always shown). It picks with the stand-in id `UNLABELLED` (js/state.js). T
 focus pick, though — filing those tasks (and captured thoughts) into projects and labels happens in
 the Unsorted card below, not from here.
 
+### Top bar
+
+Brand, the capture form, then `.topbar-tools`: the Projects button (phones and tablets only), the
+sync button and the ⚙️ settings link. Below 700px the capture form takes a full row of its own
+under the brand and tools (`order:1; flex-basis:100%`), so the three controls never wrap onto a
+row by themselves.
+
 ### Sync button
 
 The topbar (`index.html`, outside `#app`) carries a small icon button, right before the ⚙️
@@ -141,14 +148,16 @@ markup renders two ways, switched purely by CSS at the 1100px breakpoint (#50, #
   than the window — unchanged from before. `.wrap` widens to 1800px (the 760px base rule is the one
   the style contract checks); project cards flow into as many 420px+ columns as fit; the focus
   picker's label cards fill the row (`auto-fill`, 190px minimum).
-- **<1100px: drawer.** Hidden off-canvas (`transform:translateX(-100%)`) until opened from the
+- **<1100px: drawer.** Hidden off-canvas (`transform:translateX(-100%)`, then `visibility:hidden`
+  once it has slid away, so keyboard and screen-reader users can't land in it) until opened from the
   **Projects** button in the topbar (`#projects-btn`, hidden itself at >=1100px). Opening it
   (`toggle-projects-drawer` in js/app.js) slides it in from the left over a dim backdrop
-  (`.drawer-backdrop`) and moves focus to its search box; tapping the backdrop, pressing Escape, or
+  (`.drawer-backdrop`) and moves focus to the drawer itself — not its search box, which would raise
+  the phone keyboard over the list; tapping the backdrop, pressing Escape, or
   tapping a project row (`scroll-project`, which also closes it) closes it and returns focus to the
   Projects button (`setProjectsDrawerOpen` in js/app.js). `ui.projectsDrawerOpen` holds the open
-  state — not persisted, not saved. The `<aside>` carries `role="dialog"`, `aria-modal="true"`,
-  `aria-label="Projects"`; the button carries `aria-expanded`/`aria-controls`, kept current by
+  state — not persisted, not saved. The `<aside>` carries `aria-label="Projects"` and, only while open,
+  `role="dialog"` and `aria-modal="true"` (the wide-screen sidebar is not modal); the button carries `aria-expanded`/`aria-controls`, kept current by
   `paintHeaderControls` since the button lives outside `#app`.
 
 The sidebar/drawer markup is always in the DOM; a repaint rebuilds it, so `paint()` in js/app.js

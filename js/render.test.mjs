@@ -224,7 +224,7 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   ];
   const side = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: 'plu', projectSort: 'name', projectCollapsed: {} }, [projects[0]]);
   assert.ok(side.includes('<div class="drawer-backdrop" data-action="close-projects-drawer"></div>'), 'a backdrop (closed) sits alongside the sidebar/drawer');
-  assert.ok(side.includes('<aside class="project-sidebar" id="projects-drawer" role="dialog" aria-modal="true" aria-label="Projects">'), 'the sidebar/drawer is a dialog aside');
+  assert.ok(side.includes('<aside class="project-sidebar" id="projects-drawer" tabindex="-1" aria-label="Projects">'), 'closed (or the wide-screen sidebar), it is a plain aside, not a modal');
   assert.ok(side.includes('class="project-search sidebar-search" data-action="set-project-query"') && side.includes('value="plu"'), 'it has its own search box, sharing the project search');
   assert.ok(side.includes('data-action="set-project-filter"') && side.includes('data-action="set-project-sort"'), 'it has the category pills and sort');
   assert.ok(side.includes('data-action="scroll-project" data-project="p1"') && side.includes('>PlunderSpell<') && side.includes('title="Open tasks">1<'), 'a visible project is a row with its open count that jumps to it');
@@ -233,6 +233,7 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
 
   const open = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: '', projectSort: 'name', projectCollapsed: {}, projectsDrawerOpen: true }, projects);
   assert.ok(open.includes('class="drawer-backdrop is-open"') && open.includes('class="project-sidebar is-open" id="projects-drawer"'), 'ui.projectsDrawerOpen adds is-open to both the backdrop and the drawer');
+  assert.ok(open.includes('role="dialog" aria-modal="true"'), 'open as the drawer, it is a modal dialog');
 }
 
 // GitHub controls: the row shows only the issue number; unlink / link / create live in the edit form

@@ -396,7 +396,9 @@ export function renderProjectSidebar(st, ui, visibleProjects) {
   const rows = visibleProjects.map((p) => '<li><button type="button" class="sidebar-project" data-action="scroll-project" data-project="' + p.id + '" style="--dot:' + p.color + '">'
     + '<span class="dot"></span><span class="sidebar-name">' + esc(p.name) + '</span><span class="sidebar-count" title="Open tasks">' + open(p) + '</span></button></li>').join('');
   return '<div class="drawer-backdrop' + (isOpen ? ' is-open' : '') + '" data-action="close-projects-drawer"></div>'
-    + '<aside class="project-sidebar' + (isOpen ? ' is-open' : '') + '" id="projects-drawer" role="dialog" aria-modal="true" aria-label="Projects">'
+    // a modal dialog only while open as the phone drawer; otherwise a plain landmark, so the wide-screen
+    // sidebar doesn't tell screen readers the rest of the page is out of reach
+    + '<aside class="project-sidebar' + (isOpen ? ' is-open' : '') + '" id="projects-drawer" tabindex="-1" aria-label="Projects"' + (isOpen ? ' role="dialog" aria-modal="true"' : '') + '>'
     + '<div class="sidebar-head"><h2 class="sidebar-title">Projects</h2><span class="muted small">' + visibleProjects.length + '</span></div>'
     + '<input type="text" class="project-search sidebar-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
     + '<div class="filter-pills sidebar-pills">' + projectFilterPills(st, ui) + '</div>'
