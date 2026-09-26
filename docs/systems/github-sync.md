@@ -31,6 +31,15 @@ The provenance labels `Claude created this` and `Claude completed this` are also
 reserved, and are read into `task.claudeCreated` / `task.claudeCompleted` in the same
 pass (see [claude-integration.md](./claude-integration.md)).
 
+### Auto-sync
+
+`syncGithub` also runs by itself (`autoSyncGithub` in js/app.js) when the app opens and whenever it
+comes back to the foreground, if a token is saved. It starts only after the Gist sync for that
+moment has settled (`initSyncLifecycle(afterSync)` in js/sync.js), so the two never change the same
+state at once. Automatic runs are at least a minute apart (`AUTO_SYNC_MIN_GAP_MS`), so quick app
+switching doesn't hammer GitHub. The **Sync GitHub** button still runs one any time, and errors show
+in the toast like any sync.
+
 ### Repo sync — `upsertRepoProject` (js/github-sync.js)
 
 Turns one repo's open-issue list into its project's tasks. Only **labelled** open issues are

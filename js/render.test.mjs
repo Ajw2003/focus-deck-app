@@ -126,6 +126,14 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   assert.ok(renderFocus(st, () => null, { focusFilter: {}, sorting: { ...sorting, index: 2, sorted: 3 } }).includes('You labelled 3 tasks.'), 'the end of the queue says how many were labelled');
 }
 
+// a picked task's project chip jumps to that project
+{
+  const st = { focus: { taskId: 'x1', pool: ['x1'] }, categories: [], projects: [{ id: 'pZ', name: 'PlunderSpell', color: 'red', tasks: [{ id: 'x1', title: 'Pick me', status: 'next', categoryIds: [] }] }] };
+  const find = (id) => ({ task: st.projects[0].tasks.find((t) => t.id === id), project: st.projects[0] });
+  const active = renderFocus(st, find, { focusFilter: {} });
+  assert.ok(active.includes('<button type="button" class="chip proj-chip" data-action="scroll-project" data-project="pZ"'), 'the picked task\'s project chip is a button that jumps to the project');
+}
+
 // GitHub controls: the row shows only the issue number; unlink / link / create live in the edit form
 {
   const linkedRow = row({});
