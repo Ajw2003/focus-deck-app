@@ -247,6 +247,27 @@ assert.strictEqual(
   await tick();
   assert.deepStrictEqual(calls.map((c) => c.method + ' ' + c.url), ['DELETE /repos/o/r/issues/2/labels/Claude%20completed%20this'], 'the stale label should be removed from the reopened issue');
   assert.deepStrictEqual(upsertRepoProject({ full_name: 'x/y', name: 'y', html_url: 'u', private: false }, [], {}), [], 'early return yields an empty array');
+
+  // an issue linked to a task stays open while it's open on GitHub, even with no labels (e.g. one
+  // Focus Deck just created from an unlabelled task); a new unlabelled issue still isn't imported;
+  // a task in this project linked to another repo's issue is left alone
+  state.projects.length = 0;
+  state.completedLog.length = 0;
+  state.projects.push({ id: 'p2', name: 'r', source: 'github', repoFullName: 'o/r', tasks: [
+    { id: 't_nolabel', title: 'made here', status: 'next', source: 'github', repoFullName: 'o/r', issueNumber: 20 },
+    { id: 't_other', title: 'elsewhere', status: 'next', source: 'github', repoFullName: 'x/other', issueNumber: 99 },
+  ] });
+  const closed2 = upsertRepoProject(repo, [
+    { number: 20, title: 'made here', labels: [], body: '', state: 'open' },
+    { number: 21, title: 'stranger', labels: [], body: '', state: 'open' },
+    { number: 22, title: 'labelled', labels: ['Bug'], body: '', state: 'open' },
+  ], {});
+  const tasks2 = state.projects[0].tasks;
+  assert.deepStrictEqual(closed2, [], 'nothing should be closed: #20 is still open, #99 belongs to another repo');
+  assert.strictEqual(tasks2.find((t) => t.id === 't_nolabel').status, 'next', 'a linked issue without labels must not mark its task done');
+  assert.strictEqual(tasks2.find((t) => t.id === 't_other').status, 'next', 'a task linked to another repo must not be closed by this repo\'s sync');
+  assert.ok(!tasks2.some((t) => t.issueNumber === 21), 'a new unlabelled issue is still not imported');
+  assert.ok(tasks2.some((t) => t.issueNumber === 22), 'a new labelled issue is imported');
   state.projects.length = 0;
   state.completedLog.length = 0;
 }
