@@ -160,6 +160,7 @@ a{color:inherit;}
   border:1px solid var(--line);
 }
 .chip.proj-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color);}
+button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%, transparent);}
 .chip.energy-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color);}
 .chip.energy-chip.small{font-size:.7rem; padding:3px 8px;}
 .chip.energy-chip:disabled{opacity:.5; cursor:default;}

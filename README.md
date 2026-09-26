@@ -69,6 +69,9 @@ out of your head. File it into a project (or a new one) whenever you're ready, n
 - Completion sync runs both ways: check off a task here and its linked issue closes on GitHub;
   reopen the issue there and the task comes back here.
 
+**Auto-sync** — with a token saved, GitHub syncs by itself when the app opens and when you come
+back to it (at most once a minute); the Sync GitHub button still works any time.
+
 **Cross-device sync** — an optional private GitHub Gist acts as a small sync target so your
 state follows you between devices (see [Syncing across devices](#syncing-across-devices-github-gist)
 below).

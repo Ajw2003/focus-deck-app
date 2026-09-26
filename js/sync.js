@@ -122,19 +122,24 @@ async function initialSync() {
   if (isPushPending()) await pushToGist();
 }
 
-export function initSyncLifecycle() {
+// afterSync runs once the Gist sync for an app open, or a return to the app, has settled (whether it
+// succeeded, failed or had nothing to do). The app starts its GitHub auto-sync there, so the two
+// never change the same state at once.
+export function initSyncLifecycle(afterSync = () => {}) {
   initialSync().catch((e) => {
     console.warn('initial sync failed:', e.message);
     // With no Gist connected, the failure is the optional reconnect lookup (e.g. a token without
     // Gist access), which isn't worth an error on every app open.
     if (state.gistId) showOnPage('syncError', 'Couldn’t sync with your other devices (' + e.message + '). Use ⬇ Pull latest to try again.');
-  });
+  }).then(afterSync);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && state.gistId) {
-      pullFromGist().then(() => paintFn()).catch((e) => {
+    if (document.visibilityState !== 'visible') return;
+    const pull = state.gistId
+      ? pullFromGist().then(() => paintFn()).catch((e) => {
         console.warn('foreground pull failed:', e.message);
         showOnPage('syncError', 'Couldn’t pull the latest from your other devices (' + e.message + '). Use ⬇ Pull latest to try again.');
-      });
-    }
+      })
+      : Promise.resolve();
+    pull.then(afterSync);
   });
 }

@@ -70,6 +70,13 @@ first time it is used. An existing label with that name (any case) is reused. `s
 tasks that were labelled, finished or deleted while sorting. The queue and picks live in
 `ui.sorting`, per session and never saved.
 
+Once a task is picked, its project chip is a button (`scroll-project`, ↓) that jumps to that
+project's card, the same action as the project pills under the focus card (`.stats-row`, moved
+below it on 2026-09-26). `scrollToProject` in js/app.js first opens the project if it is minimised
+and clears the project filter or search if they hide it. It then scrolls so the card's top sits
+just below the sticky `.topbar`, measured at the time, since the header is taller on a phone;
+`scrollIntoView` put it underneath.
+
 History (2026-09-26): two dropdowns came first and were replaced for breaking the card's
 glanceable, tap-first style. A **Type | Project** switch followed, where Project mode made the
 cards projects and the pills labels. It was removed the same day, because the Type view did the job

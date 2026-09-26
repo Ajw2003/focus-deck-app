@@ -215,7 +215,7 @@ export function renderFocus(st, findTaskWithProject, ui) {
   const canReroll = st.focus.pool && st.focus.pool.length > 1;
   return '<section class="card focus-card focus-active">'
     + '<div class="focus-tags">'
-      + '<span class="chip proj-chip" style="--chip-color:' + p.color + '">' + esc(p.name) + '</span>'
+      + '<button type="button" class="chip proj-chip" data-action="scroll-project" data-project="' + p.id + '" title="Go to ' + esc(p.name) + '" style="--chip-color:' + p.color + '">' + esc(p.name) + ' ↓</button>'
       + focusReasonChip(st.focus, energyLevel)
       + deadlineHTML
     + '</div>'

@@ -4,6 +4,7 @@ import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
 import { syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask } from './github-sync.js';
+import { getToken } from './github.js';
 import { filterAndSortProjects } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
@@ -35,7 +36,7 @@ export function renderApp(st) {
   st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
   if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
-  return R.renderSyncStatus(st) + R.renderStats(st) + R.renderFocus(st, findTaskWithProject, ui) + R.renderDone(st) + R.renderInbox(st, ui)
+  return R.renderSyncStatus(st) + R.renderFocus(st, findTaskWithProject, ui) + R.renderStats(st) + R.renderDone(st) + R.renderInbox(st, ui)
     + R.renderProjectFilterBar(st, ui, visibleProjects)
     + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
       + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
@@ -146,10 +147,7 @@ function onAppClick(e) {
   }
   else if (action === 'toggle-inbox') { ui.inboxOpen = !ui.inboxOpen; paint(); }
   else if (action === 'toggle-done') { ui.doneOpen[projectId] = !ui.doneOpen[projectId]; paint(); }
-  else if (action === 'scroll-project') {
-    const target = document.getElementById('proj-' + projectId);
-    if (target) target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-  }
+  else if (action === 'scroll-project') scrollToProject(projectId);
   else if (action === 'sync-github') { syncGithub(ui).then(paint); }
   else if (action === 'pull-now') { pullFromGist().then(paint).catch((e) => { ui.syncError = e.message; paint(); }); }
   else if (action === 'edit-task') { ui.editingTask = { taskId, projectId }; paint(); }
@@ -363,10 +361,39 @@ function onAppKeydown(e) {
   }
 }
 
+// Jumps to a project's card. It is opened first if minimised, and the project filter and search are
+// cleared if they hide it, so the jump always lands on the project's task list.
+function scrollToProject(projectId) {
+  if (!state.projects.some((p) => p.id === projectId)) return;
+  let changed = false;
+  if (ui.projectCollapsed[projectId]) { ui.projectCollapsed[projectId] = false; saveCollapsedProjects(); changed = true; }
+  if (!document.getElementById('proj-' + projectId)) { ui.projectFilter = undefined; ui.projectQuery = ''; changed = true; }
+  if (changed) paint();
+  const target = document.getElementById('proj-' + projectId);
+  if (!target) return;
+  // stop just below the sticky header (its height varies with width), not underneath it
+  const header = document.querySelector('.topbar');
+  const top = target.getBoundingClientRect().top + window.scrollY - (header ? header.offsetHeight : 0) - 12;
+  window.scrollTo({ top: Math.max(0, top), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+
+// GitHub syncs by itself when the app opens and whenever it comes back to the foreground, once the
+// Gist sync for that moment has settled. At most once a minute, so quick app switching doesn't
+// hammer GitHub; the "Sync GitHub" button always works. See docs/systems/github-sync.md#auto-sync
+const AUTO_SYNC_MIN_GAP_MS = 60 * 1000;
+let lastAutoSync = 0;
+function autoSyncGithub() {
+  if (!getToken() || ui.syncing || Date.now() - lastAutoSync < AUTO_SYNC_MIN_GAP_MS) return;
+  lastAutoSync = Date.now();
+  const running = syncGithub(ui);
+  paint(); // show "Syncing…" straight away
+  running.then(paint);
+}
+
 function init() {
   requestPersistentStorage();
   paint();
-  initSyncLifecycle();
+  initSyncLifecycle(autoSyncGithub);
   const app = document.getElementById('app');
   app.addEventListener('click', onAppClick);
   app.addEventListener('change', onAppChange);
