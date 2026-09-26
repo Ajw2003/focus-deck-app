@@ -29,6 +29,23 @@ announced with `role="alert"`) or `'info'` (accent edge, `role="status"`).
 - Settings page: each button's result goes through its own `showToast`. The line under
   "Cross-device sync" keeps describing the current connection, since that is state, not a notice.
 
+### Focus picker
+
+"What's your focus right now?" (`renderFocusPicker`, js/render.js) has a **Type | Project**
+switch (`.focus-mode`) that chooses what the big cards are. In Type mode they are labels, and
+project pills narrow them. In Project mode they are projects in their own colours, and label
+pills narrow them. Tapping a card picks a random open task from it, within the chosen pill. Each
+card carries its full filter in `data-category`/`data-project`.
+
+The cards reuse `.energy-btn` inside `.energy-grid`, the look of the old Low/Medium/High buttons:
+surface-2 fill, the item's colour on the top edge, the name, and a detail line ("3 open · 1 urgent
+· 2 projects"). Cards and pills are sorted busiest first, and six of each show until "Show all"
+(the chosen pill always shows). `.focus-grid` sets two columns on a phone, and the **Anything**
+card (`.focus-anything`, accent edge) takes its own full-width row. The pills use `.filter-pills`,
+as in the project filter bar. The mode and both pills are kept per device
+(`focusdeck-focus-filter`). This replaced two dropdowns on 2026-09-26, which worked but broke the
+card's glanceable, tap-first style.
+
 Native `confirm()`/`prompt()` dialogs are questions, not notices, and stay as they are. The toast
 stays until the × dismisses it or a new message replaces it. While it shows, `.wrap:has(.toast)`
 adds bottom padding so the last controls can still scroll clear of it.

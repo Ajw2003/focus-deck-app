@@ -35,9 +35,12 @@ that quietly drift out of sync with each other.
 
 ## Features
 
-**Focus picker** — choose a label, a project, or both (each option shows how many open tasks
-match) and get one open task at random. "Not this one" rerolls within the same pool. The last
-choice is remembered on each device.
+**Focus picker** — big cards for either task types (labels like art, chore, bug) or projects,
+switched with **Type | Project**. Each shows how many tasks are open and the most pressing
+priority among them. Tap a card, or **Anything**, to get one open task at random. Pills above
+narrow it by the other one (a project in Type mode, a label in Project mode), and the choice is
+remembered on each device.
+"Not this one" rerolls within the same pool.
 
 **Priority** — each task can be Urgent, High, Medium or Low. Tap a task's priority chip to change
 it. On a linked issue it syncs both ways as a `priority: …` label, and common labels like `P1` or
