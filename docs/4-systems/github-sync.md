@@ -25,7 +25,9 @@ and devices still running one, carry over.
 
 Priority and status labels (see `priorityFromLabels`/`statusFromLabels`) are never mistaken
 for a category; these are listed in `RESERVED_LABELS`. "good first issue" and "easy" used to
-be reserved as energy hints; with the energy UI off they are ordinary labels.
+be reserved as energy hints; the energy system (and the `energyFromLabels`/`resolveIssueEnergy`
+functions and `js/complexity.js` that backed it) was deleted on 2026-09-26 — see
+`docs/6-decisions/Decisions.md` — so they're ordinary labels now, with no special reading at all.
 
 The provenance labels `Claude created this` and `Claude completed this` are also
 reserved, and are read into `task.claudeCreated` / `task.claudeCompleted` in the same
@@ -76,7 +78,8 @@ was called, and adds the canonical one. Linking a task to an issue with no prior
 keeps the task's own priority and pushes it over. `createGithubIssueFromTask` includes the
 priority label. Unlinked tasks keep their priority locally.
 
-This replaces energy (Low/Medium/High bandwidth) in the UI; see the 2026-09-26 entry in
+This replaced energy (Low/Medium/High bandwidth) in the UI on 2026-09-26; the energy system
+itself was deleted outright the same day. See the two 2026-09-26 entries in
 `docs/6-decisions/Decisions.md`.
 
 ### Completion sync — `syncIssueCompletion` (js/github-sync.js:90)

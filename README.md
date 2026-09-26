@@ -21,7 +21,7 @@ decision to almost nothing**:
   task (or nothing), and a label/project picker for getting one.
 - **Pick the kind of work, not the task.** Choose "a chore", "an art task" or "anything in this
   repo", and Focus Deck picks one at random, so the choosing itself costs nothing. (It used to pick
-  by Low / Medium / High energy; that is switched off for now, see `docs/6-decisions/Decisions.md`.)
+  by Low / Medium / High energy; that system was deleted, see `docs/6-decisions/Decisions.md`.)
 - **A capture inbox**, so a stray thought doesn't have to be filed, categorized, or prioritized
   in the moment it occurs to you — just dropped somewhere it won't be forgotten, to be sorted
   later when you have the executive function for that instead.
@@ -50,10 +50,11 @@ it. On a linked issue it syncs both ways as a `priority: …` label, and common 
 carry a color-coded category (set up and customized in Settings), so a glance at a chip tells
 you what kind of work something is without reading it.
 
-**Wide screens** — from 1100px wide, a sticky project list sits on the left, with its own
-search, category filter and sort. Tap a project to jump to it. The page grows to fill the
-monitor: project cards flow into two or three columns, and the focus cards spread across one row.
-Phones and portrait monitors keep the single column.
+**One project list** — search, category filter, sort, and a row per project that jumps to it. From
+1100px wide it's a sticky column on the left, and the page grows to fill the monitor: project
+cards flow into two or three columns, and the focus cards spread across one row. Below that it's a
+**Projects** drawer, opened from the top bar, that slides in over the page and closes on its
+backdrop, Escape, or tapping a project row.
 
 **Inbox capture** — a single always-visible input at the top of the page for getting a thought
 out of your head. The **Unsorted** card below guides it (and any task with no labels) through one
@@ -77,16 +78,12 @@ without labelling — nothing is ever stuck waiting on a decision you're not rea
   reopen the issue there and the task comes back here.
 
 **Auto-sync** — with a token saved, GitHub syncs by itself when the app opens and when you come
-back to it (at most once a minute); the Sync GitHub button still works any time.
+back to it (at most once a minute); the sync icon in the top bar still works any time, and its
+title shows when it last synced.
 
 **Cross-device sync** — an optional private GitHub Gist acts as a small sync target so your
 state follows you between devices (see [Syncing across devices](#syncing-across-devices-github-gist)
 below).
-
-**Auto complexity estimate** — a lightweight, fully local heuristic (step count, description
-length, a couple of keyword scans, and label count for GitHub-sourced tasks) sorts tasks into a
-rough low/medium/high complexity tier, purely for at-a-glance triage — no network call, no AI,
-just arithmetic.
 
 **Installable PWA** — a manifest and service worker make it installable and usable offline;
 icons are generated at deploy time rather than committed, to keep the repo small.
@@ -111,7 +108,6 @@ js/
   github.js             thin GitHub REST API client (issues, labels, gists)
   github-sync.js         issue <-> task linking, category <-> label sync, completion sync
   sync.js                cross-device sync via a GitHub Gist
-  complexity.js          the local low/medium/high complexity heuristic
   project-filter.js      project search/sort/filter logic
   *.test.mjs             plain node:test files alongside the modules they test
 css/app.css             all styling
@@ -212,7 +208,7 @@ not in a personal Gist) is the layer that's actually built for that.
 
 ## Running the tests
 
-Each module with non-trivial logic (`complexity.js`, `project-filter.js`, `sync.js`'s state
+Each module with non-trivial logic (`project-filter.js`, `sync.js`'s state
 merge, `github-sync.js`) has a plain `node:test`-based `*.test.mjs` file next to it, with no
 test framework beyond Node's own `node:test` and `node:assert` — including `css/app.css` itself,
 via `js/style-contract.test.mjs` (see [Styling](docs/4-systems/styling.md)):

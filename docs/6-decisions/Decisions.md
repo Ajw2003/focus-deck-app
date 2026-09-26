@@ -4,6 +4,35 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-26 — Delete the energy system fully
+
+**Context.** #48 (time-of-day suggestions) renewed the tension the "Priority and labels replace
+energy levels in the UI" decision below had left open: `ENERGY_UI_ENABLED = false` kept the
+energy UI switched off but not deleted, on the reasoning that the owner might want it back
+"temporarily". Half a year on, nothing had turned it back on, priority and labels had fully taken
+over the job energy used to do, and the redesign's cuts (PR 2 of `docs/plans/handcrafted-redesign.md`)
+gave a natural point to settle it either way rather than carry the dead-looking-but-not-dead code
+into the new visual system.
+
+**Decision.** Delete the energy system fully: the `ENERGY`/`ENERGY_UI_ENABLED` constants and every
+UI branch gated on them, the `energy`/`energyAuto` task fields (dropped silently on load — no
+migration, nothing to migrate to), the `--energy-*` CSS tokens (a plain `--danger` token takes
+over the one non-focus-picker use, `.btn-text.danger`/toast/delete-hover styling), the
+`set-energy`/`surprise`/`cycle-energy` actions and their mutations, and the GitHub-label-to-energy
+sync (`energyFromLabels`/`resolveIssueEnergy` in js/github-sync.js and the `js/complexity.js`
+heuristic that backed it, which had no other caller). The `.energy-btn`/`.energy-grid`/
+`.energy-label`/`.energy-desc` CSS classes stay — they're the focus picker's label cards and the
+Unsorted flow's kind cards now, not energy UI.
+
+**Why.** Keeping switched-off code "in case" only pays off if it actually gets switched back on;
+this one didn't, and every day it sat there was a day #48 and any other work touching task shape
+had to reason about `energy` fields that did nothing. Deleting outright, now, with a real feature
+(priority + labels) already covering the job, costs less than the ongoing tax of the halfway
+state.
+
+**Status.** Standing. Supersedes the "Priority and labels replace energy levels in the UI" entry
+below (see its own Status line).
+
 ## 2026-09-26 — Handcrafted redesign direction
 
 **Context.** A question-and-answer session on the app's look and feel and its accumulated
@@ -44,7 +73,9 @@ and keeping the data plus one switch makes turning it back on a one-line change.
 P0–P3 labels for priority. The owner chose `priority: <level>` labels with four levels; P0–P4
 and similar labels are still read.
 
-**Status.** Standing. Supersedes the "Energy-based, not priority-based" principle in the README.
+**Status.** Superseded by the "Delete the energy system fully" entry above (2026-09-26), which
+deleted the `energy` fields and `ENERGY_UI_ENABLED` switch this entry kept around. Also supersedes
+the "Energy-based, not priority-based" principle in the README.
 ---
 ## 2026-09-23 — Newest edit wins for every synced record, stamped automatically
 
