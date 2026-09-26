@@ -6,7 +6,19 @@ import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
 import { syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask } from './github-sync.js';
 import { filterAndSortProjects } from './project-filter.js';
 
-export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: {}, editingProjectCategory: null };
+// Which projects are minimised is a per-device layout choice, so it lives in this browser's
+// storage rather than in the synced state.
+const COLLAPSED_KEY = 'focusdeck-collapsed-projects';
+function loadCollapsedProjects() {
+  try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || {}; }
+  catch (e) { console.error('Could not read minimised projects:', e); return {}; }
+}
+function saveCollapsedProjects() {
+  try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(ui.projectCollapsed)); }
+  catch (e) { console.error('Could not save minimised projects:', e); }
+}
+
+export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), editingProjectCategory: null };
 
 export function renderApp(st) {
   st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
@@ -80,11 +92,12 @@ function onAppClick(e) {
     ui.projectFilter = cat === '' ? undefined : (cat === '__uncat__' ? null : cat);
     paint();
   }
-  else if (action === 'toggle-project-collapse') { ui.projectCollapsed[projectId] = !ui.projectCollapsed[projectId]; paint(); }
+  else if (action === 'toggle-project-collapse') { ui.projectCollapsed[projectId] = !ui.projectCollapsed[projectId]; saveCollapsedProjects(); paint(); }
   else if (action === 'toggle-collapse-all') {
     const visible = filterAndSortProjects(state.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
     const allCollapsed = visible.length > 0 && visible.every((p) => ui.projectCollapsed[p.id]);
     visible.forEach((p) => { ui.projectCollapsed[p.id] = !allCollapsed; });
+    saveCollapsedProjects();
     paint();
   }
   else if (action === 'edit-project-category') { ui.editingProjectCategory = projectId; paint(); }
