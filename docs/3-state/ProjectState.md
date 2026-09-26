@@ -1,10 +1,12 @@
 # Project State
 
-## Headline: ~83% against the roadmap
+## Headline: milestones 1-5 done, 6 started, 7-13 not started
 
 Five of six milestones are done: four shipped and covered by passing tests, and the autonomous
 check-in confirmed working by the user and then shelved. The redesign milestone is just starting
-(this docs move is its first PR).
+(this docs move is its first PR). Milestones 7-13, added on 2026-09-26 from the 19 open GitHub
+issues, are all at 0%. There is no single overall percentage: the new milestones are not sized,
+so averaging them with the finished ones would say nothing true.
 
 ## Status by milestone
 
@@ -16,6 +18,13 @@ check-in confirmed working by the user and then shelved. The redesign milestone 
 | 4 | Claude integration (on-demand) | 100% | Shipped, tested, archived plan |
 | 5 | Claude integration (autonomous check-in) | 100% | Works (user-confirmed 2026-09-26), shelved |
 | 6 | Handcrafted redesign | 0% (PR 1 in progress) | This commit is PR 1 |
+| 7 | Unsorted and focus flow polish | 0% | #70 #72 #74 #75 #76 #77 open; #72, #75, #77 may be covered by PR #78 |
+| 8 | Reordering and task status | 0% | #73 #7 #6 open |
+| 9 | Usability and accessibility audit | 0% | #27 #46 open |
+| 10 | GitHub depth and progress visuals | 0% | #36 #35 #39 open |
+| 11 | Teams and shared repos | 0% | #51 #4 open |
+| 12 | Time-of-day suggestions | 0% | #48 open; conflicts with deleting energy, undecided |
+| 13 | Pilot and public rollout | 0% | #44 open |
 
 ## What's built / not built, per milestone
 

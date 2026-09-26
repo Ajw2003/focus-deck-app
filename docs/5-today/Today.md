@@ -22,6 +22,8 @@ recorded in `docs/plans/handcrafted-redesign.md`), followed by this docs restruc
 - Wrote the previously-missing tiers from reading the code: `docs/2-roadmap/Roadmap.md`,
   `docs/3-state/ProjectState.md`, `docs/1-landing/README.md`, `docs/README.md`.
 - Added a dated entry to `docs/6-decisions/Decisions.md` for the redesign direction.
+- Added milestones 7-13 to the roadmap so every open GitHub issue (19 as of today) sits in one
+  milestone.
 
 ## What was deliberately not done
 
@@ -29,6 +31,10 @@ No app code changed beyond doc-path strings in comments and tests. PR 2 (the cut
 visual system), and PR 4 (the control moves) are next, not today — today is PR 1 only.
 
 ## What got surfaced that isn't today's job
+
+- #48 (time-of-day suggestions) pulls against the redesign's decision to delete the energy
+  system. Needs a decision before PR 2 lands.
+- #72, #75 and #77 may already be covered by PR #78; they need checking against the app.
 
 The autonomous Claude check-in's Gist read was recorded as unverified. The user confirmed it
 works (after tweaks not recorded in this repo) and shelved it; milestone 5 is now marked done and
