@@ -30,9 +30,9 @@ visual system), and PR 4 (the control moves) are next, not today — today is PR
 
 ## What got surfaced that isn't today's job
 
-The autonomous Claude check-in's Gist-read step was never verified (see
-`docs/3-state/ProjectState.md`, "the one thing that is not what it looks like"). That is a
-follow-up on milestone 5, not part of the redesign work.
+The autonomous Claude check-in's Gist read was recorded as unverified. The user confirmed it
+works (after tweaks not recorded in this repo) and shelved it; milestone 5 is now marked done and
+shelved in the roadmap and state.
 
 ## Next, in order
 

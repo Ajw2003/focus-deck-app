@@ -52,7 +52,7 @@ sticky/live provenance chips so the user can always see and undo what Claude tou
 verification recorded in `docs/archive/2026-09-21-claude-issues-provenance.md`. Checked and
 archived (see `docs/archive/README.md`).
 
-## 5. Claude integration (autonomous check-in) — ~70%, unverified
+## 5. Claude integration (autonomous check-in) — 100%, shelved
 
 One-line: a scheduled, read-only daily check-in reads the sync Gist and pushes a notification of
 overdue/stale/changed tasks.
@@ -62,11 +62,10 @@ and reports in three buckets (overdue/stale, changed, everything else open). No 
 repo — the logic lives entirely in the scheduled prompt.
 
 **Acceptance:** the trigger fires daily and either sends nothing (nothing due) or one push
-notification with a correctly-bucketed report. **Not fully checked** — the trigger
-(`trig_01DrH7KqRxHMEzANb9kgbYKe`) was created and a test fire was started, but whether the fired
-session can actually read the Gist (an earlier attempt hit a proxy restriction, see
-`docs/archive/2026-09-21-claude-daily-checkin.md`) was never confirmed. TODO: verify a real fire
-produces a correct report, or redesign the data source if the restriction is permanent.
+notification with a correctly-bucketed report. **Checked by the user, 2026-09-26:** it works,
+after tweaks to the original plan and scheduled prompt that are not recorded in this repo (the
+archived plan, `docs/archive/2026-09-21-claude-daily-checkin.md`, is the pre-tweak version).
+Shelved the same day as less useful than expected; nothing further is planned for it.
 
 ## 6. Handcrafted redesign — 0%, in progress (today's live plan)
 

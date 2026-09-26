@@ -21,8 +21,7 @@ that, see `docs/4-systems/`, `docs/2-roadmap/Roadmap.md`, and `docs/3-state/Proj
 
 - **`2026-09-21-claude-daily-checkin.md`** — plan for the autonomous daily check-in (Part 2 of
   the spec above). The trigger itself was created (`trig_01DrH7KqRxHMEzANb9kgbYKe`), but its own
-  execution notes record that a real Gist read from a fired session was never confirmed working.
-  Archived because the plan's actionable steps are done (there is nothing left to execute from
-  this file); the open verification question is carried forward in
-  `docs/3-state/ProjectState.md` ("the one thing that is not what it looks like"), not left to
-  rot in this plan.
+  execution notes record that a real Gist read from a fired session was not yet confirmed. The
+  user confirmed on 2026-09-26 that it works, after tweaks to this plan and its prompt that are
+  not reflected here, so this file is the pre-tweak version. Archived because the check-in was
+  shelved as less useful than expected.
