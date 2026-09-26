@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow, renderToast } from './render.js';
+import { renderTaskRow, renderToast, renderFocus } from './render.js';
 import assert from 'node:assert';
 
 const p = { id: 'p1', name: 'P' };
@@ -37,6 +37,28 @@ assert.ok(multi.includes('>Bug<') && multi.includes('>Art<'), 'every label on a 
 assert.ok(row({ priority: 'urgent' }).includes('class="chip priority-chip small" data-action="cycle-priority"') && row({ priority: 'urgent' }).includes('>Urgent<'), 'a task with a priority shows it as a chip');
 assert.ok(row({ priority: null }).includes('>+ Priority<'), 'an open task with no priority offers to set one');
 assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENERGY_UI_ENABLED is off');
+
+// focus picker: one card per label with open tasks, busiest first, plus "Anything"; project pills narrow it
+{
+  const task = (id, cats, extra) => ({ id, title: id, status: 'next', categoryIds: cats, ...extra });
+  const st = {
+    focus: null,
+    categories: [{ id: 'c_art', name: 'art', color: '#d000ff' }, { id: 'c_chore', name: 'chore', color: '#888888' }, { id: 'c_idle', name: 'idle', color: '#123456' }],
+    projects: [
+      { id: 'pA', name: 'PlunderSpell', tasks: [task('a1', ['c_art'], { priority: 'urgent' }), task('a2', ['c_art']), task('a3', ['c_idle'], { status: 'done' })] },
+      { id: 'pB', name: 'Chores', tasks: [task('b1', ['c_chore', 'c_art'])] },
+    ],
+  };
+  const html = renderFocus(st, () => null, { focusFilter: {} });
+  const cards = [...html.matchAll(/data-action="pick-focus" data-category="([^"]*)"/g)].map((m) => m[1]);
+  assert.deepStrictEqual(cards, ['c_art', 'c_chore', ''], 'label cards busiest first, labels with nothing open left out, "Anything" last');
+  assert.ok(html.includes('>3 open · 1 urgent · 2 projects<'), 'a card says how many are open, the most pressing priority, and across how many projects');
+  assert.ok(html.includes('class="filter-pill active" data-action="set-focus-project" data-project=""'), '"All projects" is chosen by default');
+  assert.ok(!html.includes('<select'), 'no dropdowns in the picker');
+  const narrowed = renderFocus(st, () => null, { focusFilter: { projectId: 'pB' } });
+  assert.ok(narrowed.includes('>1 open<') && !narrowed.includes('2 projects'), 'a chosen project narrows the counts');
+  assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('class="filter-pill active" data-action="set-focus-project" data-project=""'), 'a remembered project that no longer exists falls back to All projects');
+}
 
 assert.strictEqual(renderToast(null, 'error'), '', 'no message means no toast');
 const toast = renderToast('Could not link <b>', 'error');

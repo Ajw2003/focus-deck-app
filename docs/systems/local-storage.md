@@ -18,7 +18,7 @@ Six localStorage keys:
 | `focusdeck-state-backups` | up to 5 earlier raw copies, newest first | `backupRaw` |
 | `focusdeck-push-pending` | `1` while a local change hasn't reached the Gist | `js/sync.js` |
 | `focusdeck-collapsed-projects` | which projects are minimised, as `{ projectId: true }`; per device, never synced | `saveCollapsedProjects` in `js/app.js` |
-| `focusdeck-focus-filter` | the focus pick's last label and project, as `{ categoryId, projectId }`; per device, never synced | `saveFocusFilter` in `js/app.js` |
+| `focusdeck-focus-filter` | the focus pick's chosen project pill, as `{ projectId }`; per device, never synced | `saveFocusFilter` in `js/app.js` |
 
 **Loading.** `loadState` parses the main key. If the value is there but unreadable, it is copied
 into the backups (never discarded), the newest backup that has content is used instead, and

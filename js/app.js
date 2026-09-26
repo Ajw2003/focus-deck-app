@@ -13,7 +13,7 @@ function loadCollapsedProjects() {
   try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || {}; }
   catch (e) { console.error('Could not read minimised projects:', e); return {}; }
 }
-// The focus pick's last label/project choice, remembered per device like the minimised projects.
+// The focus pick's project pill, remembered per device like the minimised projects.
 const FOCUS_FILTER_KEY = 'focusdeck-focus-filter';
 function loadFocusFilter() {
   try { return JSON.parse(localStorage.getItem(FOCUS_FILTER_KEY)) || {}; }
@@ -68,14 +68,19 @@ function onAppClick(e) {
   if (action === 'set-energy') M.setEnergyFocus(el.getAttribute('data-energy'), candidatesForEnergy);
   else if (action === 'surprise') M.surprise();
   else if (action === 'pick-focus') {
-    // read the selects themselves: a remembered label or project that no longer exists shows as "Any"
-    const card = el.closest('.focus-card');
-    const value = (name) => (card.querySelector('select[name="' + name + '"]') || {}).value || null;
-    if (!M.pickFocus({ categoryId: value('categoryId'), projectId: value('projectId') })) {
+    // a remembered project that no longer exists counts as "All projects", as the pills show it
+    const projectId = state.projects.some((p) => p.id === ui.focusFilter.projectId) ? ui.focusFilter.projectId : null;
+    if (!M.pickFocus({ categoryId: el.getAttribute('data-category') || null, projectId })) {
       ui.notice = 'No open tasks match that label and project.';
       paint();
     }
   }
+  else if (action === 'set-focus-project') {
+    ui.focusFilter.projectId = projectId || null;
+    saveFocusFilter();
+    paint();
+  }
+  else if (action === 'toggle-focus-labels') { ui.focusShowAllLabels = !ui.focusShowAllLabels; paint(); }
   else if (action === 'reroll') M.reroll();
   else if (action === 'clear-focus') M.clearFocus();
   else if (action === 'complete-focus') M.completeFocus(findProjectIdForTask);
@@ -191,10 +196,6 @@ function onAppChange(e) {
   if (e.target.matches && e.target.matches('.label-picker input[name="categoryIds"]')) {
     const picker = e.target.closest('.label-picker');
     picker.querySelector('summary').textContent = R.labelPickerSummary(picker.querySelectorAll('input[name="categoryIds"]:checked').length);
-  } else if (e.target.matches && e.target.matches('[data-action="set-focus-filter"]')) {
-    ui.focusFilter[e.target.name] = e.target.value || null;
-    saveFocusFilter();
-    paint(); // the other select's counts depend on this choice
   } else if (e.target.matches && e.target.matches('[data-action="toggle-task"]')) {
     M.toggleTask(e.target.getAttribute('data-task'), e.target.getAttribute('data-project'));
   } else if (e.target.matches && e.target.matches('[data-action="set-project-sort"]')) {
