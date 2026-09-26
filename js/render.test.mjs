@@ -102,6 +102,25 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   assert.ok(flow.includes('class="filter-pill tint-pill active" data-action="sort-toggle" data-token="c_art"') && !flow.includes('data-token="c_fix" aria-pressed="false" style="--chip-color:#ff0000">Fix</button>'), 'other labels are pills, and the kind label is not repeated among them');
   assert.ok(flow.includes('data-action="sort-next"') && flow.includes('data-action="sort-skip"') && flow.includes('data-action="sort-done"'), 'Next, Skip and Done are offered');
 
+  // other labels: this project's first, then the rest, capped with "+N more"
+  const manyLabels = Array.from({ length: 12 }, (_, i) => ({ id: 'L' + i, name: 'label' + i, color: '#123456' }));
+  const busy = {
+    focus: null, categories: manyLabels,
+    projects: [
+      { id: 'pA', name: 'Here', color: 'red', tasks: [task('h1', ['L11']), task('h2', ['L11', 'L10']), task('hu', [])] },
+      { id: 'pB', name: 'Elsewhere', color: 'blue', tasks: [task('e1', ['L0']), task('e2', ['L0']), task('e3', ['L0'])] },
+    ],
+  };
+  const busyFlow = renderFocus(busy, () => null, { focusFilter: {}, sorting: { queue: ['hu'], index: 0, selected: [], newLabels: '', sorted: 0 } });
+  const pillOrder = [...busyFlow.matchAll(/class="filter-pill tint-pill[^"]*" data-action="sort-toggle" data-token="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepStrictEqual(pillOrder.slice(0, 3), ['L11', 'L10', 'L0'], 'labels this project uses come first (busiest first), then the rest by use elsewhere');
+  assert.strictEqual(pillOrder.length, 8, 'only eight label pills show at first');
+  assert.ok(busyFlow.includes('data-action="sort-more-labels">+4 more<'), 'a "+N more" pill counts the hidden labels');
+  const pickedHidden = renderFocus(busy, () => null, { focusFilter: {}, sorting: { queue: ['hu'], index: 0, selected: ['L9'], newLabels: '', sorted: 0 } });
+  assert.ok(pickedHidden.includes('data-token="L9"'), 'a picked label always shows, even if it would be hidden');
+  const allShown = renderFocus(busy, () => null, { focusFilter: {}, sorting: { queue: ['hu'], index: 0, selected: [], newLabels: '', sorted: 0, showAllLabels: true } });
+  assert.strictEqual([...allShown.matchAll(/data-action="sort-toggle" data-token="L/g)].length, 12, '"+N more" reveals every label');
+
   st.projects[0].tasks.find((t) => t.id === 'u1').categoryIds = ['c_art'];
   assert.strictEqual(sortCurrent(st, sorting).task.id, 'u2', 'a task labelled elsewhere meanwhile is skipped');
   assert.ok(renderFocus(st, () => null, { focusFilter: {}, sorting: { ...sorting, index: 2, sorted: 3 } }).includes('You labelled 3 tasks.'), 'the end of the queue says how many were labelled');
