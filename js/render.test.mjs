@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox } from './render.js';
+import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, sortCurrent } from './render.js';
 import assert from 'node:assert';
 
 const p = { id: 'p1', name: 'P' };
@@ -77,6 +77,34 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   const expanded = renderFocus(manyProjects, () => null, { focusFilter: {}, focusShowAllProjects: true });
   assert.strictEqual((expanded.match(/data-action="set-focus-scope"/g) || []).length, 10, 'expanded: every project gets a pill, with its full name');
   assert.ok(expanded.includes('data-action="toggle-focus-projects">Show fewer<'), 'expanded pills offer Show fewer');
+}
+
+// unlabelled tasks: their own card in the picker, and a one-at-a-time sort flow
+{
+  const task = (id, cats, extra) => ({ id, title: id, status: 'next', categoryIds: cats, ...extra });
+  const st = {
+    focus: null,
+    categories: [{ id: 'c_art', name: 'art', color: '#d000ff' }, { id: 'c_fix', name: 'Fix', color: '#ff0000' }],
+    projects: [{ id: 'pA', name: 'PlunderSpell', color: 'red', tasks: [task('a1', ['c_art']), task('u1', []), task('u2', [], { priority: 'urgent' }), task('u3', [], { status: 'done' })] }],
+  };
+  const picker = renderFocus(st, () => null, { focusFilter: {} });
+  assert.ok(picker.includes('data-category="__none__"') && picker.includes('>Unlabelled<') && picker.includes('>2 open · 1 urgent<'), 'an Unlabelled card counts open tasks with no label');
+  assert.ok(picker.includes('data-action="start-sort">Sort 2 unlabelled →<'), 'a link starts sorting the unlabelled tasks');
+  const noneLeft = { ...st, projects: [{ id: 'pA', name: 'P', color: 'red', tasks: [task('a1', ['c_art'])] }] };
+  assert.ok(!renderFocus(noneLeft, () => null, { focusFilter: {} }).includes('Unlabelled'), 'no Unlabelled card or link when every task has a label');
+
+  const sorting = { queue: ['u1', 'u2'], index: 0, selected: ['kind:build', 'c_art'], newLabels: '', sorted: 0 };
+  const flow = renderFocus(st, () => null, { focusFilter: {}, sorting });
+  assert.ok(flow.includes('>Sort unlabelled tasks<') && flow.includes('>1 of 2<') && flow.includes('>u1<'), 'the sort flow shows the current task and its position');
+  const kindTokens = [...flow.matchAll(/class="energy-btn[^"]*" data-action="sort-toggle" data-token="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepStrictEqual(kindTokens, ['kind:reminder', 'kind:build', 'c_fix'], 'Reminder / Build / Fix come first; an existing "Fix" label is reused instead of a new one');
+  assert.ok(flow.includes('class="energy-btn selected" data-action="sort-toggle" data-token="kind:build"'), 'a chosen kind is shown selected');
+  assert.ok(flow.includes('class="filter-pill tint-pill active" data-action="sort-toggle" data-token="c_art"') && !flow.includes('data-token="c_fix" aria-pressed="false" style="--chip-color:#ff0000">Fix</button>'), 'other labels are pills, and the kind label is not repeated among them');
+  assert.ok(flow.includes('data-action="sort-next"') && flow.includes('data-action="sort-skip"') && flow.includes('data-action="sort-done"'), 'Next, Skip and Done are offered');
+
+  st.projects[0].tasks.find((t) => t.id === 'u1').categoryIds = ['c_art'];
+  assert.strictEqual(sortCurrent(st, sorting).task.id, 'u2', 'a task labelled elsewhere meanwhile is skipped');
+  assert.ok(renderFocus(st, () => null, { focusFilter: {}, sorting: { ...sorting, index: 2, sorted: 3 } }).includes('You labelled 3 tasks.'), 'the end of the queue says how many were labelled');
 }
 
 // GitHub controls: the row shows only the issue number; unlink / link / create live in the edit form

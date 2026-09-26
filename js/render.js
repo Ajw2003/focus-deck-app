@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.js
-import { state, esc, relTime, deadlineChip, shortName, ENERGY, ENERGY_UI_ENABLED, PRIORITY, PRIORITY_ORDER } from './state.js';
+import { state, esc, relTime, deadlineChip, shortName, ENERGY, ENERGY_UI_ENABLED, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
 
 export function energyBtn(level, label, desc) {
   return '<button type="button" class="energy-btn" data-action="set-energy" data-energy="' + level + '" style="--chip-color:var(--energy-' + level + ')"><span class="energy-label">' + label + '</span><span class="energy-desc">' + desc + '</span></button>';
@@ -74,6 +74,12 @@ function renderFocusPicker(st, ui) {
     + '<span class="energy-desc">' + focusCardDetail(item.matches, !projectId) + '</span></button>';
   // "Surprise me" is a different kind of choice (no type at all), so it is its own element below
   // the cards rather than one more card: an accent button, set apart by space and a divider.
+  // Tasks with no label get their own card (neutral colour, always shown), plus a way to sort them.
+  const unlabelled = openWhere(null, projectId).filter(({ t }) => !(t.categoryIds || []).length);
+  const unlabelledCard = unlabelled.length ? card({ id: UNLABELLED, name: 'Unlabelled', color: 'var(--ink-faint)', matches: unlabelled }) : '';
+  const links = [];
+  if (labels.length > FOCUS_CARDS_SHOWN) links.push('<button type="button" class="link-btn" data-action="toggle-focus-all">' + (showAllLabels ? 'Show fewer' : 'Show all ' + labels.length + ' labels') + '</button>');
+  if (unlabelled.length) links.push('<button type="button" class="link-btn" data-action="start-sort">Sort ' + unlabelled.length + ' unlabelled →</button>');
   const surprise = '<div class="focus-surprise">'
     + '<button type="button" class="btn primary" data-action="pick-focus" data-category="" data-project="' + (projectId || '') + '">Surprise me</button>'
     + '<span class="muted small">' + focusCardDetail(openWhere(null, projectId), !projectId) + '</span>'
@@ -99,10 +105,8 @@ function renderFocusPicker(st, ui) {
     + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
     + '<p class="muted">Pick the kind of work and I&rsquo;ll surface one task.</p>'
     + pills
-    + '<div class="energy-grid focus-grid">' + shownLabels.map(card).join('') + '</div>'
-    + (labels.length > FOCUS_CARDS_SHOWN
-      ? '<button type="button" class="link-btn" data-action="toggle-focus-all">' + (showAllLabels ? 'Show fewer' : 'Show all ' + labels.length + ' labels') + '</button>'
-      : '')
+    + '<div class="energy-grid focus-grid">' + shownLabels.map(card).join('') + unlabelledCard + '</div>'
+    + (links.length ? '<div class="focus-links">' + links.join('') + '</div>' : '')
     + surprise
     + '</section>';
 }
@@ -118,7 +122,61 @@ function focusCardDetail(matches, acrossProjects) {
   return parts.join(' · ');
 }
 
+// Sorting unlabelled tasks: the first task from sorting.index on that is still open and unlabelled
+// (others may have been labelled, finished or deleted meanwhile). Returns { task, project, index } or null.
+export function sortCurrent(st, sorting) {
+  for (let i = sorting.index; i < sorting.queue.length; i++) {
+    for (const p of st.projects) {
+      const t = p.tasks.find((x) => x.id === sorting.queue[i]);
+      if (t && t.status !== 'done' && !(t.categoryIds || []).length) return { task: t, project: p, index: i };
+    }
+  }
+  return null;
+}
+
+// The sort flow replaces the focus picker while it runs: one unlabelled task at a time, the three
+// kinds from #42 as big picks, then every other label as a tinted pill, then Next / Skip / Done.
+// See docs/systems/styling.md#sorting-unlabelled-tasks
+function renderSortFlow(st, ui) {
+  const s = ui.sorting;
+  const cur = sortCurrent(st, s);
+  if (!cur) {
+    return '<section class="card focus-card focus-sort">'
+      + '<h2 class="focus-q">All sorted</h2>'
+      + '<p class="muted">' + (s.sorted ? 'You labelled ' + s.sorted + ' task' + (s.sorted === 1 ? '' : 's') + '.' : 'Nothing was left to sort.') + '</p>'
+      + '<div class="focus-actions"><button type="button" class="btn primary" data-action="sort-done">Done</button></div>'
+      + '</section>';
+  }
+  const t = cur.task, p = cur.project;
+  const kindCat = (k) => st.categories.find((c) => c.name.toLowerCase() === k.key);
+  const kindIds = new Set(TASK_KINDS.map(kindCat).filter(Boolean).map((c) => c.id));
+  const isOn = (token) => s.selected.includes(token);
+  const kinds = TASK_KINDS.map((k) => {
+    const cat = kindCat(k);
+    const token = cat ? cat.id : 'kind:' + k.key;
+    return '<button type="button" class="energy-btn' + (isOn(token) ? ' selected' : '') + '" data-action="sort-toggle" data-token="' + token + '" aria-pressed="' + isOn(token) + '" style="--chip-color:' + (cat ? cat.color : k.color) + '">'
+      + '<span class="energy-label">' + k.label + '</span><span class="energy-desc">' + k.desc + '</span></button>';
+  }).join('');
+  const others = st.categories.filter((c) => !kindIds.has(c.id)).map((c) => '<button type="button" class="filter-pill tint-pill' + (isOn(c.id) ? ' active' : '') + '" data-action="sort-toggle" data-token="' + c.id + '" aria-pressed="' + isOn(c.id) + '" style="--chip-color:' + c.color + '">' + esc(c.name) + '</button>').join('');
+  const position = s.queue.slice(0, cur.index + 1).length;
+  return '<section class="card focus-card focus-sort">'
+    + '<div class="sort-head"><h2 class="focus-q">Sort unlabelled tasks</h2><span class="muted small">' + position + ' of ' + s.queue.length + '</span></div>'
+    + '<div class="focus-tags"><span class="chip proj-chip" style="--chip-color:' + p.color + '">' + esc(p.name) + '</span>' + (t.issueNumber != null ? '<span class="chip">#' + t.issueNumber + '</span>' : '') + '</div>'
+    + '<h3 class="sort-title">' + esc(t.title) + '</h3>'
+    + '<p class="muted small sort-q">What kind of task is this?</p>'
+    + '<div class="energy-grid focus-grid sort-kinds">' + kinds + '</div>'
+    + (others ? '<p class="muted small sort-q">Other labels</p><div class="filter-pills sort-labels">' + others + '</div>' : '')
+    + '<input type="text" class="sort-new" name="sortNewLabels" value="' + esc(s.newLabels || '') + '" placeholder="New labels, comma-separated…" maxlength="120">'
+    + '<div class="focus-actions">'
+      + '<button type="button" class="btn primary" data-action="sort-next">Next →</button>'
+      + '<button type="button" class="btn ghost" data-action="sort-skip">Skip</button>'
+      + '<button type="button" class="btn ghost" data-action="sort-done">Done</button>'
+    + '</div>'
+    + '</section>';
+}
+
 export function renderFocus(st, findTaskWithProject, ui) {
+  if (!st.focus && ui && ui.sorting) return renderSortFlow(st, ui);
   if (!st.focus && !ENERGY_UI_ENABLED) return renderFocusPicker(st, ui);
   if (!st.focus) {
     return '<section class="card focus-card focus-empty">'
@@ -155,6 +213,7 @@ export function renderFocus(st, findTaskWithProject, ui) {
 
 // Says why this task is showing: the label it was picked from, a random pick, or the old energy pick.
 function focusReasonChip(focus, energyLevel) {
+  if (focus.filter && focus.filter.categoryId === UNLABELLED) return '<span class="chip">Unlabelled</span>';
   const cat = focus.filter && focus.filter.categoryId && state.categories.find((c) => c.id === focus.filter.categoryId);
   if (cat) return '<span class="chip cat-chip" style="--chip-color:' + cat.color + '">' + esc(cat.name) + '</span>';
   if (energyLevel && ENERGY_UI_ENABLED) return '<span class="chip energy-chip" style="--chip-color:var(--energy-' + energyLevel + ')">' + ENERGY[energyLevel].label + ' energy</span>';

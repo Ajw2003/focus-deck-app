@@ -1,5 +1,5 @@
 // focus-deck-app/js/app.js
-import { state, findTaskWithProject, findProjectIdForTask, candidatesForEnergy, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage } from './state.js';
+import { state, findTaskWithProject, findProjectIdForTask, candidatesForEnergy, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, openTasksMatching, UNLABELLED, TASK_KINDS } from './state.js';
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
@@ -77,6 +77,36 @@ function onAppClick(e) {
   else if (action === 'set-focus-scope') {
     ui.focusFilter.projectId = el.getAttribute('data-scope') || null;
     saveFocusFilter();
+    paint();
+  }
+  else if (action === 'start-sort') {
+    // queue every open unlabelled task, within the chosen project pill
+    const projectId = state.projects.some((p) => p.id === ui.focusFilter.projectId) ? ui.focusFilter.projectId : null;
+    ui.sorting = { queue: openTasksMatching({ categoryId: UNLABELLED, projectId }), index: 0, selected: [], newLabels: '', sorted: 0 };
+    paint();
+  }
+  else if (action === 'sort-toggle') {
+    const token = el.getAttribute('data-token');
+    const sel = ui.sorting.selected;
+    ui.sorting.selected = sel.includes(token) ? sel.filter((x) => x !== token) : sel.concat(token);
+    paint();
+  }
+  else if (action === 'sort-next' || action === 'sort-skip') {
+    const cur = R.sortCurrent(state, ui.sorting);
+    const ids = action === 'sort-next' && cur ? sortSelectionToIds() : [];
+    ui.sorting.index = cur ? cur.index + 1 : ui.sorting.queue.length;
+    ui.sorting.selected = [];
+    ui.sorting.newLabels = '';
+    if (ids.length) {
+      ui.sorting.sorted++;
+      M.updateTaskFields(cur.task.id, { categoryIds: ids }); // repaints, and pushes the labels to a linked issue
+    } else {
+      paint();
+    }
+  }
+  else if (action === 'sort-done') {
+    if (ui.sorting && ui.sorting.sorted) ui.notice = 'Labelled ' + ui.sorting.sorted + ' task' + (ui.sorting.sorted === 1 ? '' : 's') + '.';
+    ui.sorting = null;
     paint();
   }
   else if (action === 'toggle-focus-all') { ui.focusShowAll = !ui.focusShowAll; paint(); }
@@ -225,10 +255,18 @@ function onAppChange(e) {
 }
 
 function onAppInput(e) {
+  // keep typed-in new labels across the repaints that toggling a pick causes
+  if (e.target.matches && e.target.matches('.sort-new') && ui.sorting) { ui.sorting.newLabels = e.target.value; return; }
   if (e.target.matches && e.target.matches('[data-action="set-project-query"]')) {
     ui.projectQuery = e.target.value;
     paint();
   }
+}
+
+// A label's id by name, ignoring case; creates the label (with color, if given) when it doesn't exist.
+function labelIdByName(name, color) {
+  const existing = state.categories.find((c) => c.name.toLowerCase() === name.toLowerCase());
+  return existing ? existing.id : M.addCategory(name, color).id;
 }
 
 // The ticked labels plus any typed into "New labels" (comma-separated); a typed name that matches
@@ -236,10 +274,22 @@ function onAppInput(e) {
 function labelsFromForm(fd) {
   const ids = fd.getAll('categoryIds');
   String(fd.get('newLabels') || '').split(',').map((s) => s.trim()).filter(Boolean).forEach((name) => {
-    const existing = state.categories.find((c) => c.name.toLowerCase() === name.toLowerCase());
-    const id = existing ? existing.id : M.addCategory(name).id;
+    const id = labelIdByName(name);
     if (!ids.includes(id)) ids.push(id);
   });
+  return ids;
+}
+
+// The sort flow's picks as label ids: chosen labels, the #42 kinds (a kind's label is created on first
+// use), and anything typed into its "New labels" field.
+function sortSelectionToIds() {
+  const ids = [];
+  const add = (id) => { if (!ids.includes(id)) ids.push(id); };
+  ui.sorting.selected.forEach((token) => {
+    const kind = token.startsWith('kind:') && TASK_KINDS.find((k) => 'kind:' + k.key === token);
+    add(kind ? labelIdByName(kind.key, kind.color) : token);
+  });
+  String(ui.sorting.newLabels || '').split(',').map((s) => s.trim()).filter(Boolean).forEach((name) => add(labelIdByName(name)));
   return ids;
 }
 
