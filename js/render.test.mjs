@@ -53,11 +53,22 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   const cards = [...html.matchAll(/data-action="pick-focus" data-category="([^"]*)"/g)].map((m) => m[1]);
   assert.deepStrictEqual(cards, ['c_art', 'c_chore', ''], 'label cards busiest first, labels with nothing open left out, "Anything" last');
   assert.ok(html.includes('>3 open · 1 urgent · 2 projects<'), 'a card says how many are open, the most pressing priority, and across how many projects');
-  assert.ok(html.includes('class="filter-pill active" data-action="set-focus-project" data-project=""'), '"All projects" is chosen by default');
+  assert.ok(html.includes('class="filter-pill active" data-action="set-focus-scope" data-scope="">All projects<'), '"All projects" is chosen by default');
+  assert.ok(html.includes('class="focus-mode-btn active" data-action="set-focus-mode" data-mode="type"'), 'Type is the default mode');
   assert.ok(!html.includes('<select'), 'no dropdowns in the picker');
   const narrowed = renderFocus(st, () => null, { focusFilter: { projectId: 'pB' } });
   assert.ok(narrowed.includes('>1 open<') && !narrowed.includes('2 projects'), 'a chosen project narrows the counts');
-  assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('class="filter-pill active" data-action="set-focus-project" data-project=""'), 'a remembered project that no longer exists falls back to All projects');
+  assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('class="filter-pill active" data-action="set-focus-scope" data-scope="">All projects<'), 'a remembered project that no longer exists falls back to All projects');
+
+  // Project mode: the cards are projects and the pills are labels
+  const byProj = renderFocus(st, () => null, { focusFilter: { mode: 'project' } });
+  const projCards = [...byProj.matchAll(/data-action="pick-focus" data-category="([^"]*)" data-project="([^"]*)"/g)].map((m) => m[2]);
+  assert.deepStrictEqual(projCards, ['pA', 'pB', ''], 'project cards busiest first, then Anything');
+  assert.ok(byProj.includes('>PlunderSpell<') && byProj.includes('>2 open · 1 urgent<'), 'a project card shows its open count and most pressing priority');
+  assert.ok(byProj.includes('data-scope="">All labels<') && byProj.includes('data-scope="c_art"'), 'the pills are labels in Project mode');
+  const artOnly = renderFocus(st, () => null, { focusFilter: { mode: 'project', categoryId: 'c_chore' } });
+  const narrowedCards = [...artOnly.matchAll(/data-action="pick-focus" data-category="([^"]*)" data-project="([^"]*)"/g)].map((m) => m[1] + '/' + m[2]);
+  assert.deepStrictEqual(narrowedCards, ['c_chore/pB', 'c_chore/'], 'a label pill narrows the project cards, and every card carries that label');
 }
 
 assert.strictEqual(renderToast(null, 'error'), '', 'no message means no toast');
