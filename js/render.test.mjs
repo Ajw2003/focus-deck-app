@@ -66,6 +66,12 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   assert.deepStrictEqual(projCards, ['pA', 'pB', ''], 'project cards busiest first, then Anything');
   assert.ok(byProj.includes('>PlunderSpell<') && byProj.includes('>2 open · 1 urgent<'), 'a project card shows its open count and most pressing priority');
   assert.ok(byProj.includes('data-scope="">All labels<') && byProj.includes('data-scope="c_art"'), 'the pills are labels in Project mode');
+  assert.ok(byProj.includes('class="filter-pill label-pill" data-action="set-focus-scope" data-scope="c_art" style="--chip-color:#d000ff">art<'), 'a label pill is tinted in the label\'s own colour');
+  const many = { ...st, categories: Array.from({ length: 9 }, (_, i) => ({ id: 'c' + i, name: 'a-very-long-label-name-' + i, color: '#123456' })),
+    projects: [{ id: 'pA', name: 'P', tasks: Array.from({ length: 9 }, (_, i) => task('m' + i, ['c' + i])) }] };
+  const manyPills = renderFocus(many, () => null, { focusFilter: { mode: 'project' } });
+  assert.strictEqual((manyPills.match(/data-action="set-focus-scope"/g) || []).length, 10, 'every label gets a pill (plus All), none hidden');
+  assert.ok(manyPills.includes('>a-very-long-label-name-8<'), 'pill names are not shortened');
   const artOnly = renderFocus(st, () => null, { focusFilter: { mode: 'project', categoryId: 'c_chore' } });
   const narrowedCards = [...artOnly.matchAll(/data-action="pick-focus" data-category="([^"]*)" data-project="([^"]*)"/g)].map((m) => m[1] + '/' + m[2]);
   assert.deepStrictEqual(narrowedCards, ['c_chore/pB', 'c_chore/'], 'a label pill narrows the project cards, and every card carries that label');

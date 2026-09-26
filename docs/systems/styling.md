@@ -39,10 +39,12 @@ card carries its full filter in `data-category`/`data-project`.
 
 The cards reuse `.energy-btn` inside `.energy-grid`, the look of the old Low/Medium/High buttons:
 surface-2 fill, the item's colour on the top edge, the name, and a detail line ("3 open · 1 urgent
-· 2 projects"). Cards and pills are sorted busiest first, and six of each show until "Show all"
-(the chosen pill always shows). `.focus-grid` sets two columns on a phone, and the **Anything**
-card (`.focus-anything`, accent edge) takes its own full-width row. The pills use `.filter-pills`,
-as in the project filter bar. The mode and both pills are kept per device
+· 2 projects"). Cards and pills are sorted busiest first. Six cards show until "Show all", but
+every pill always shows, with its full name: hiding or shortening them cut labels off. `.focus-grid`
+sets two columns on a phone, and the **Anything** card (`.focus-anything`, accent edge) takes its
+own full-width row. The pills use `.filter-pills`, as in the project filter bar. Label pills add
+`.label-pill`, which tints them in the label's colour like its chips elsewhere, with a ring in that
+colour when chosen. The mode and both pills are kept per device
 (`focusdeck-focus-filter`). This replaced two dropdowns on 2026-09-26, which worked but broke the
 card's glanceable, tap-first style.
 
