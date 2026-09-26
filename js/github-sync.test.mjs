@@ -3,6 +3,7 @@ import {
   energyFromLabels, statusFromLabels, parseRepoInput, resolveIssueEnergy,
   applyCategoryFromLabels, CLAUDE_CREATED_LABEL, CLAUDE_COMPLETED_LABEL,
   dropStaleCompletedLabel, refreshClosedTaskLabels, syncIssueCompletion, upsertRepoProject,
+  sameIssueTitle, createGithubIssueFromTask,
 } from './github-sync.js';
 import { state } from './state.js';
 import assert from 'node:assert';
@@ -191,6 +192,63 @@ assert.strictEqual(
   assert.deepStrictEqual(upsertRepoProject({ full_name: 'x/y', name: 'y', html_url: 'u', private: false }, [], {}), [], 'early return yields an empty array');
   state.projects.length = 0;
   state.completedLog.length = 0;
+}
+
+// --- createGithubIssueFromTask: pulls the repo's open issues first and links a same-title match ---
+{
+  assert.ok(sameIssueTitle('Fix login', '  fix   LOGIN '), 'titles should match ignoring case and extra whitespace');
+  assert.ok(!sameIssueTitle('Fix login', 'Fix logout'));
+  assert.ok(!sameIssueTitle('', ''), 'two empty titles are not a match');
+
+  globalThis.localStorage = { getItem: () => 'test-token', setItem() {}, removeItem() {} };
+  const calls = [];
+  const openIssues = [
+    { number: 9, title: 'Fix login', labels: [], body: '', state: 'open', html_url: 'https://github.com/o/r/issues/9', pull_request: undefined },
+  ];
+  globalThis.fetch = async (url, opts = {}) => {
+    const path = String(url).replace('https://api.github.com', '');
+    const method = opts.method || 'GET';
+    calls.push(method + ' ' + path);
+    if (method === 'GET' && path.startsWith('/repos/o/r/issues?')) return { ok: true, status: 200, json: async () => openIssues };
+    if (method === 'GET' && path === '/repos/o/r/issues/9') return { ok: true, status: 200, json: async () => openIssues[0] };
+    if (method === 'POST' && path === '/repos/o/r/issues') return { ok: true, status: 201, json: async () => ({ number: 10, title: 'New thing', labels: [], body: '', state: 'open', html_url: 'https://github.com/o/r/issues/10' }) };
+    return { ok: true, status: 200, json: async () => ({}) };
+  };
+  const makeTask = (id, title) => ({ id, title, status: 'next', source: 'manual', categoryId: null, steps: [] });
+
+  // an open issue with the same title already exists -> link to it, never POST a new one
+  state.projects.length = 0;
+  state.projects.push({ id: 'p1', name: 'r', tasks: [makeTask('t_dup', 'fix login')] });
+  calls.length = 0;
+  let ui = {};
+  await createGithubIssueFromTask('t_dup', 'o/r', ui);
+  let t = state.projects[0].tasks[0];
+  assert.ok(!calls.some((c) => c.startsWith('POST /repos/o/r/issues')), 'no new issue should be created when a same-title issue is already open: ' + calls.join(', '));
+  assert.strictEqual(t.issueNumber, 9, 'the task should be linked to the existing issue');
+  assert.strictEqual(t.source, 'github');
+  assert.ok(!ui.syncError, 'linking to the existing issue is not an error: ' + ui.syncError);
+
+  // the matching issue is already linked to a different task -> stop with a message, create nothing
+  state.projects[0].tasks.push(makeTask('t_second', 'Fix login'));
+  calls.length = 0;
+  ui = {};
+  await createGithubIssueFromTask('t_second', 'o/r', ui);
+  t = state.projects[0].tasks[1];
+  assert.ok(!calls.some((c) => c.startsWith('POST ')), 'nothing should be created when the match is linked elsewhere');
+  assert.strictEqual(t.source, 'manual', 'the second task should stay unlinked');
+  assert.ok(/already exists/.test(ui.syncError || ''), 'the user should be told why nothing was created');
+  assert.strictEqual(ui.syncing, false);
+
+  // no same-title issue -> the check runs first, then a new issue is created as before
+  state.projects[0].tasks.push(makeTask('t_new', 'New thing'));
+  calls.length = 0;
+  ui = {};
+  await createGithubIssueFromTask('t_new', 'o/r', ui);
+  t = state.projects[0].tasks[2];
+  assert.ok(calls[0].startsWith('GET /repos/o/r/issues?'), 'the repo\'s open issues should be pulled before anything is created');
+  assert.ok(calls.includes('POST /repos/o/r/issues'), 'a new issue should be created when there is no match');
+  assert.strictEqual(t.issueNumber, 10);
+  state.projects.length = 0;
 }
 
 console.log('GITHUB SYNC HEURISTIC TESTS PASSED');
