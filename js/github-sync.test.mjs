@@ -227,6 +227,7 @@ assert.strictEqual(
   assert.strictEqual(t.issueNumber, 9, 'the task should be linked to the existing issue');
   assert.strictEqual(t.source, 'github');
   assert.ok(!ui.syncError, 'linking to the existing issue is not an error: ' + ui.syncError);
+  assert.ok(/linked to it instead/.test(ui.notice || ''), 'the user should be told the task was linked, not created');
 
   // the matching issue is already linked to a different task -> stop with a message, create nothing
   state.projects[0].tasks.push(makeTask('t_second', 'Fix login'));

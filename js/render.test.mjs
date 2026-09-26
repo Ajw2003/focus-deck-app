@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow } from './render.js';
+import { renderTaskRow, renderToast } from './render.js';
 import assert from 'node:assert';
 
 const p = { id: 'p1', name: 'P' };
@@ -23,5 +23,21 @@ const both = row({ claudeCreated: true, claudeCompleted: true, status: 'done' })
 assert.ok(both.includes('claude-created-chip') && both.includes('claude-completed-chip'), 'both chips can show together');
 assert.ok(both.indexOf('cat-chip') < both.indexOf('claude-created-chip'), 'Claude chips come after the category chip so they never displace it');
 assert.ok(both.indexOf('claude-created-chip') < both.indexOf('claude-completed-chip'), 'created chip precedes completed chip');
+
+const linked = row({});
+assert.ok(/<a class="task-title" href="https:\/\/github.com\/o\/r\/issues\/1"[^>]*target="_blank"/.test(linked), 'a linked task title is a link to its issue');
+assert.ok(!/class="task-title"[^>]*data-action="edit-task"/.test(linked), 'a linked task title must not open the edit form');
+assert.ok(/data-action="edit-task"[^>]*>Edit</.test(linked), 'a linked task gets a separate Edit button');
+const manual = row({ source: 'manual', url: undefined, repoFullName: undefined, issueNumber: undefined });
+assert.ok(/<span class="task-title" data-action="edit-task"/.test(manual), 'an unlinked task title still opens the edit form');
+assert.ok(!manual.includes('>Edit<'), 'an unlinked task needs no separate Edit button');
+
+assert.strictEqual(renderToast(null, 'error'), '', 'no message means no toast');
+const toast = renderToast('Could not link <b>', 'error');
+assert.ok(toast.includes('class="toast toast-error"') && toast.includes('role="alert"'), 'an error renders the pinned toast in its error style, announced');
+assert.ok(toast.includes('Could not link &lt;b&gt;'), 'the message text is escaped');
+assert.ok(toast.includes('data-action="dismiss-toast"'), 'the toast can be dismissed');
+const info = renderToast('Linked instead', 'info');
+assert.ok(info.includes('class="toast"') && info.includes('role="status"'), 'a notice uses the plain toast style and a polite announcement');
 
 console.log('RENDER CHIP TESTS PASSED');

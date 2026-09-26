@@ -55,6 +55,12 @@ the issue's title/state/labels in immediately, and if the task already had a loc
 category but the issue has no category-equivalent label, pushes that category onto
 the issue so both sides end up in sync rather than the pull silently winning.
 
+### Opening a linked task's issue — `renderTaskRow` (js/render.js)
+
+A linked task's title is a link that opens its issue on GitHub in a new tab. Editing that task
+moves to a separate **Edit** button beside Unlink. An unlinked task's title still opens the
+edit form, as before.
+
 ### Unlinking a task — `unlinkTask` (js/github-sync.js:161)
 
 Detaches a task from its linked issue without touching either side's content: the

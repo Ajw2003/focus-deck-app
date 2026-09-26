@@ -28,7 +28,6 @@
       <input type="password" id="token-input" placeholder="github_pat_…">
       <button type="button" id="save-token">Save</button>
     </div>
-    <p id="token-status" class="muted small" style="margin-top:10px;"></p>
   </section>
   <section class="card">
     <h2 style="margin-bottom:10px;">Cross-device sync</h2>
@@ -57,6 +56,7 @@
       <button type="submit">+ Add</button>
     </form>
   </section>
+  <div id="toast-root"></div>
 </div>
 <script type="module">
   // Every script on this page uses the shared `state` singleton, never loadState(): loadState()
@@ -67,15 +67,20 @@
   import { getToken, setToken, validateToken, ghFetch } from './js/github.js';
   import { state, setGistId, serializeState } from './js/state.js';
   import { findSyncGist, pullFromGist, GIST_FILE } from './js/sync.js';
+  import { renderToast } from './js/render.js';
 
   const input = document.getElementById('token-input');
-  const status = document.getElementById('token-status');
   const gistStatusEl = document.getElementById('gist-status');
   const createBtn = document.getElementById('create-gist');
 
-  function renderGistStatus(message) {
-    if (message) { gistStatusEl.textContent = message; }
-    else if (state.gistId) {
+  // Results of the buttons on this page show in the same pinned toast as the main app.
+  const toastRoot = document.getElementById('toast-root');
+  function showToast(message, kind) { toastRoot.innerHTML = renderToast(message, kind); }
+  toastRoot.addEventListener('click', (e) => { if (e.target.closest('[data-action="dismiss-toast"]')) toastRoot.innerHTML = ''; });
+
+  // The line under "Cross-device sync" always describes the current connection, not the last action.
+  function renderGistStatus() {
+    if (state.gistId) {
       gistStatusEl.textContent = 'Sync Gist connected (' + state.gistId + '). This device will read/write it automatically.';
     } else {
       gistStatusEl.textContent = 'No sync Gist connected. If you already made one on another device, save your token above and it will be found automatically — or paste its ID below. Otherwise create one.';
@@ -86,12 +91,13 @@
 
   async function connectAndPull(id, label) {
     setGistId(id);
-    renderGistStatus('Connected to Gist ' + id + ' (' + label + '). Pulling its data…');
+    renderGistStatus();
+    showToast('Connected to Gist ' + id + ' (' + label + '). Pulling its data…', 'info');
     try {
       await pullFromGist();
-      renderGistStatus('Connected to Gist ' + id + ' (' + label + ') and merged its data into this device.');
+      showToast('Connected to Gist ' + id + ' (' + label + ') and merged its data into this device.', 'info');
     } catch (e) {
-      renderGistStatus('Connected to Gist ' + id + ', but pulling it failed: ' + e.message + ' — it will retry when you open the app.');
+      showToast('Connected to Gist ' + id + ', but pulling it failed: ' + e.message + ' — it will retry when you open the app.', 'error');
     }
   }
 
@@ -99,14 +105,14 @@
   document.getElementById('save-token').addEventListener('click', async () => {
     const val = input.value.trim();
     if (!val) return;
-    status.textContent = 'Checking…';
+    showToast('Checking your token…', 'info');
     setToken(val);
     try {
       const login = await validateToken();
-      status.textContent = 'Connected as @' + login + '.';
+      showToast('Token saved. Connected as @' + login + '.', 'info');
       input.value = '';
     } catch (e) {
-      status.textContent = 'Could not verify: ' + e.message;
+      showToast('Could not verify that token: ' + e.message, 'error');
       return;
     }
     if (state.gistId) return;
@@ -114,7 +120,7 @@
       const found = await findSyncGist();
       if (found) await connectAndPull(found, 'found your existing sync Gist');
     } catch (e) {
-      renderGistStatus('Couldn’t look for an existing sync Gist: ' + e.message);
+      showToast('Couldn’t look for an existing sync Gist: ' + e.message, 'error');
     }
   });
 
@@ -140,9 +146,10 @@
         }),
       });
       setGistId(gist.id);
-      renderGistStatus('Created! Gist ID: ' + gist.id + ' — on your other device, save the same token and it will connect automatically (or paste this ID below).');
+      renderGistStatus();
+      showToast('Created! Gist ID: ' + gist.id + ' — on your other device, save the same token and it will connect automatically (or paste this ID below).', 'info');
     } catch (e) {
-      renderGistStatus('Failed: ' + e.message);
+      showToast('Couldn’t create the sync Gist: ' + e.message, 'error');
     } finally {
       createBtn.disabled = false;
     }

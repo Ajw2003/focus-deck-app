@@ -6,18 +6,31 @@ import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
 import { syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask } from './github-sync.js';
 import { filterAndSortProjects } from './project-filter.js';
 
-export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: {}, editingProjectCategory: null };
+// Which projects are minimised is a per-device layout choice, so it lives in this browser's
+// storage rather than in the synced state.
+const COLLAPSED_KEY = 'focusdeck-collapsed-projects';
+function loadCollapsedProjects() {
+  try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || {}; }
+  catch (e) { console.error('Could not read minimised projects:', e); return {}; }
+}
+function saveCollapsedProjects() {
+  try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(ui.projectCollapsed)); }
+  catch (e) { console.error('Could not save minimised projects:', e); }
+}
+
+export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), editingProjectCategory: null };
 
 export function renderApp(st) {
   st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
-  if (storageProblem && !ui.syncError) ui.syncError = storageProblem;
+  if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   return R.renderSyncStatus(st) + R.renderStats(st) + R.renderFocus(st, findTaskWithProject) + R.renderDone(st) + R.renderInbox(st, ui)
     + R.renderProjectFilterBar(st, ui, visibleProjects)
     + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
       + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
     + '</div>'
-    + R.renderAddProjectForm(st.projectCategories);
+    + R.renderAddProjectForm(st.projectCategories)
+    + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
 }
 
 export function paint() {
@@ -59,6 +72,12 @@ function onAppClick(e) {
   else if (action === 'remove-project') { ui.pendingRemove[projectId] = true; paint(); }
   else if (action === 'cancel-remove-project') { delete ui.pendingRemove[projectId]; paint(); }
   else if (action === 'confirm-remove-project') M.removeProject(projectId);
+  else if (action === 'dismiss-toast') {
+    if (ui.syncError === storageProblem) ui.storageProblemDismissed = true;
+    ui.syncError = null;
+    ui.notice = null;
+    paint();
+  }
   else if (action === 'toggle-inbox') { ui.inboxOpen = !ui.inboxOpen; paint(); }
   else if (action === 'toggle-done') { ui.doneOpen[projectId] = !ui.doneOpen[projectId]; paint(); }
   else if (action === 'scroll-project') {
@@ -74,11 +93,12 @@ function onAppClick(e) {
     ui.projectFilter = cat === '' ? undefined : (cat === '__uncat__' ? null : cat);
     paint();
   }
-  else if (action === 'toggle-project-collapse') { ui.projectCollapsed[projectId] = !ui.projectCollapsed[projectId]; paint(); }
+  else if (action === 'toggle-project-collapse') { ui.projectCollapsed[projectId] = !ui.projectCollapsed[projectId]; saveCollapsedProjects(); paint(); }
   else if (action === 'toggle-collapse-all') {
     const visible = filterAndSortProjects(state.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
     const allCollapsed = visible.length > 0 && visible.every((p) => ui.projectCollapsed[p.id]);
     visible.forEach((p) => { ui.projectCollapsed[p.id] = !allCollapsed; });
+    saveCollapsedProjects();
     paint();
   }
   else if (action === 'edit-project-category') { ui.editingProjectCategory = projectId; paint(); }

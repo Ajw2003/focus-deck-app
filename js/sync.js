@@ -62,6 +62,7 @@ export async function pushToGist() {
   try { remote = await readGistState(gist); } catch (e) {
     // The Gist keeps every revision, so writing over an unreadable file loses nothing on GitHub.
     console.warn('Sync Gist content unreadable, overwriting with local copy (previous revision stays in Gist history):', e.message);
+    showOnPage('notice', 'Your sync Gist couldn’t be read, so it was replaced with this device’s data. The previous version is still in the Gist’s history on GitHub.');
   }
   if (remote) { applyMerged(mergeStates(state, remote)); saveStateLocal(state); }
   await ghFetch('/gists/' + state.gistId, {
@@ -80,6 +81,14 @@ export async function findSyncGist() {
   return matches.length ? matches[0].id : null;
 }
 
+// Background sync runs with no button pressed, so its problems are put in the page's toast
+// (state._ui is set by the main page's renderApp; pages without it, like settings, skip this).
+function showOnPage(field, message) {
+  if (!state._ui) return;
+  state._ui[field] = message;
+  paintFn();
+}
+
 let pushTimer = null;
 export function persist() {
   // save first: saveStateLocal may fold in another tab's newer copy, and the repaint should show it
@@ -88,7 +97,12 @@ export function persist() {
   if (!state.gistId) return;
   setPushPending(true);
   clearTimeout(pushTimer);
-  pushTimer = setTimeout(() => { pushToGist().catch((e) => console.warn('sync push failed:', e.message)); }, 3000);
+  pushTimer = setTimeout(() => {
+    pushToGist().catch((e) => {
+      console.warn('sync push failed:', e.message);
+      showOnPage('syncError', 'Couldn’t send your changes to your other devices (' + e.message + '). They’re saved on this device and will be sent next time the app opens or you make a change.');
+    });
+  }, 3000);
 }
 
 // A Gist ID can go missing (browser storage evicted, older app versions that wiped it) while the
@@ -108,10 +122,18 @@ async function initialSync() {
 }
 
 export function initSyncLifecycle() {
-  initialSync().catch((e) => console.warn('initial sync failed:', e.message));
+  initialSync().catch((e) => {
+    console.warn('initial sync failed:', e.message);
+    // With no Gist connected, the failure is the optional reconnect lookup (e.g. a token without
+    // Gist access), which isn't worth an error on every app open.
+    if (state.gistId) showOnPage('syncError', 'Couldn’t sync with your other devices (' + e.message + '). Use ⬇ Pull latest to try again.');
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && state.gistId) {
-      pullFromGist().then(() => paintFn()).catch((e) => console.warn('foreground pull failed:', e.message));
+      pullFromGist().then(() => paintFn()).catch((e) => {
+        console.warn('foreground pull failed:', e.message);
+        showOnPage('syncError', 'Couldn’t pull the latest from your other devices (' + e.message + '). Use ⬇ Pull latest to try again.');
+      });
     }
   });
 }

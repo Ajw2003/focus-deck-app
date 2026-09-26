@@ -16,6 +16,23 @@ on `:root`, redefined under `@media (prefers-color-scheme: dark)` and `:root[dat
 no BEM discipline, just one rule block per class, in the same order the sections of the app
 appear (topbar, focus card, chips, inbox, project cards, forms).
 
+Two elements stay put while the page scrolls: the sticky `.topbar`, and `.toast`, which is fixed
+to the bottom of the viewport. The toast is the one place errors and notices appear, on both
+pages, because on a phone you are usually scrolled far from wherever an inline message would sit.
+`renderToast(text, kind)` (js/render.js) builds it; `kind` is `'error'` (red edge, `.toast-error`,
+announced with `role="alert"`) or `'info'` (accent edge, `role="status"`).
+
+- Main page: it shows `ui.syncError`, or `ui.notice` when there is no error. Background Gist sync
+  failures reach it through `showOnPage` in js/sync.js, which used to log them to the console only.
+  A failed startup sync is shown only when a Gist is connected, so a token without Gist access
+  doesn't raise an error on every open.
+- Settings page: each button's result goes through its own `showToast`. The line under
+  "Cross-device sync" keeps describing the current connection, since that is state, not a notice.
+
+Native `confirm()`/`prompt()` dialogs are questions, not notices, and stay as they are. The toast
+stays until the × dismisses it or a new message replaces it. While it shows, `.wrap:has(.toast)`
+adds bottom padding so the last controls can still scroll clear of it.
+
 `js/render.js` and friends build HTML as plain string concatenation (see `README.md`'s render
 pattern), with class names as literal text inside the strings — e.g.
 `'<button type="button" class="energy-btn" ...'` (js/render.js:5). There is no compiler step that

@@ -15,8 +15,19 @@ export function renderSyncStatus(st) {
     + '<button type="button" class="link-btn small sync-btn" data-action="sync-github"' + (st._ui && st._ui.syncing ? ' disabled' : '') + '>' + btnLabel + '</button>'
     + (st.gistId ? '<button type="button" class="link-btn small" data-action="pull-now">⬇ Pull latest</button>' : '')
     + '</div>';
-  if (st._ui && st._ui.syncError) html += '<p class="sync-error">' + esc(st._ui.syncError) + '</p>';
   return html;
+}
+
+// The one place errors and notices appear, on every page: pinned to the bottom of the viewport
+// (see .toast) so it's seen wherever the page is scrolled. kind is 'error' or 'info'.
+// See docs/systems/styling.md#how-it-works
+export function renderToast(text, kind) {
+  if (!text) return '';
+  const isError = kind === 'error';
+  return '<div class="toast' + (isError ? ' toast-error' : '') + '" role="' + (isError ? 'alert' : 'status') + '">'
+    + '<p class="toast-text">' + esc(text) + '</p>'
+    + '<button type="button" class="toast-close" data-action="dismiss-toast" aria-label="Dismiss">×</button>'
+    + '</div>';
 }
 
 export function renderStats(st) {
@@ -115,6 +126,8 @@ export function renderTaskEditForm(t, p, categories) {
 export function renderTaskRow(t, p, categories, ui) {
   if (ui.editingTask && ui.editingTask.taskId === t.id) return renderTaskEditForm(t, p, categories);
   const isDone = t.status === 'done';
+  // A task linked to an issue opens that issue from its title (see docs/systems/github-sync.md).
+  const isLinked = t.source === 'github' && !!t.url;
   const ghBadge = t.source === 'github'
     ? '<a class="chip gh-chip small" href="' + esc(t.url || '#') + '" target="_blank" rel="noopener">#' + (t.issueNumber != null ? t.issueNumber : '') + '</a>'
       + '<button type="button" class="link-btn small" data-action="unlink-github-issue" data-task="' + t.id + '" data-project="' + p.id + '" title="Unlink from this GitHub issue">Unlink</button>'
@@ -126,8 +139,12 @@ export function renderTaskRow(t, p, categories, ui) {
     + (t.claudeCompleted && isDone ? '<span class="chip claude-chip claude-completed-chip small" title="Claude closed this issue">Claude completed</span>' : '');
   return '<div class="task-row' + (isDone ? ' is-done' : '') + '" data-task="' + t.id + '" data-project="' + p.id + '">'
     + '<input type="checkbox" data-action="toggle-task" data-task="' + t.id + '" data-project="' + p.id + '"' + (isDone ? ' checked' : '') + '>'
-    + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + '</span>'
-    + ghBadge + catChip + claudeChips
+    + (isLinked
+      ? '<a class="task-title" href="' + esc(t.url) + '" target="_blank" rel="noopener" title="Open the GitHub issue">' + esc(t.title) + '</a>'
+      : '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + '</span>')
+    + ghBadge
+    + (isLinked ? '<button type="button" class="link-btn small" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" title="Edit this task">Edit</button>' : '')
+    + catChip + claudeChips
     + (t.deadline ? deadlineChip(t.deadline) : '')
     + '<button type="button" class="chip energy-chip small" data-action="cycle-energy" data-task="' + t.id + '" data-project="' + p.id + '" style="--chip-color:var(--energy-' + t.energy + ')"' + (isDone ? ' disabled' : '') + '>' + ENERGY[t.energy].label + '</button>'
     + (!isDone ? '<button type="button" class="link-btn small" data-action="focus-task" data-task="' + t.id + '" data-project="' + p.id + '">Focus →</button>' : '')
