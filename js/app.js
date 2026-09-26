@@ -1,8 +1,8 @@
 // focus-deck-app/js/app.js
-import { state, findTaskWithProject, findProjectIdForTask, candidatesForEnergy, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, TASK_KINDS } from './state.js';
+import { state, findTaskWithProject, findProjectIdForTask, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, TASK_KINDS } from './state.js';
 import * as M from './mutations.js';
 import * as R from './render.js';
-import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
+import { registerPaint, initSyncLifecycle } from './sync.js';
 import { syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask } from './github-sync.js';
 import { getToken } from './github.js';
 import { filterAndSortProjects } from './project-filter.js';
@@ -37,10 +37,10 @@ function freshUnsortedScratch(skipped) {
   return { skipped: skipped || [], projectId: null, selected: [], newLabels: '', showAllLabels: false, showAllProjects: false, currentKey: null };
 }
 
-export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), focusFilter: loadFocusFilter(), editingProjectCategory: null, unsorted: freshUnsortedScratch() };
+export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), focusFilter: loadFocusFilter(), editingProjectCategory: null, unsorted: freshUnsortedScratch(), projectsDrawerOpen: false };
 
 export function renderApp(st) {
-  st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
+  st._ui = ui; // the sync button reads sync UI state off the state object it's already passed
   if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
   // a new current Unsorted item (someone filed/skipped/completed the last one, or the queue itself
   // changed under us -- a new capture, a task labelled elsewhere) starts with clean scratch
@@ -50,8 +50,7 @@ export function renderApp(st) {
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   return R.renderProjectSidebar(st, ui, visibleProjects)
     + '<div class="main-col">'
-      + R.renderSyncStatus(st) + R.renderFocus(st, findTaskWithProject, ui) + R.renderStats(st) + R.renderDone(st) + R.renderInbox(st, ui)
-      + R.renderProjectFilterBar(st, ui, visibleProjects)
+      + R.renderFocus(st, findTaskWithProject, ui) + R.renderInbox(st, ui)
       + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
         + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
       + '</div>'
@@ -60,17 +59,27 @@ export function renderApp(st) {
     + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
 }
 
+// The topbar's sync button and Projects toggle live outside #app (see index.html), so paint()
+// updates them directly instead of through the innerHTML replace below.
+function paintHeaderControls() {
+  const syncSlot = document.getElementById('topbar-sync');
+  if (syncSlot) syncSlot.innerHTML = R.renderSyncButton(state);
+  const projectsBtn = document.getElementById('projects-btn');
+  if (projectsBtn) projectsBtn.setAttribute('aria-expanded', String(!!ui.projectsDrawerOpen));
+}
+
 export function paint() {
   const scrollY = window.scrollY;
   const active = document.activeElement;
-  // two search boxes exist (filter bar, and the wide-screen sidebar): keep focus in the one being typed in
+  // the one project search box (the sidebar/drawer's)
   const restoreSearch = active && active.matches && active.matches('.project-search')
-    ? { start: active.selectionStart, end: active.selectionEnd, selector: active.matches('.sidebar-search') ? '.sidebar-search' : '.project-search:not(.sidebar-search)' }
+    ? { start: active.selectionStart, end: active.selectionEnd }
     : null;
   document.getElementById('app').innerHTML = renderApp(state);
+  paintHeaderControls();
   window.scrollTo(0, scrollY);
   if (restoreSearch) {
-    const el = document.querySelector(restoreSearch.selector);
+    const el = document.querySelector('.project-search');
     if (el) { el.focus(); el.setSelectionRange(restoreSearch.start, restoreSearch.end); }
   }
 }
@@ -96,9 +105,7 @@ function onAppClick(e) {
   const action = el.getAttribute('data-action');
   const taskId = el.getAttribute('data-task');
   const projectId = el.getAttribute('data-project');
-  if (action === 'set-energy') M.setEnergyFocus(el.getAttribute('data-energy'), candidatesForEnergy);
-  else if (action === 'surprise') M.surprise();
-  else if (action === 'pick-focus') {
+  if (action === 'pick-focus') {
     // each card carries its full filter: its own label or project plus the pill chosen above it
     if (!M.pickFocus({ categoryId: el.getAttribute('data-category') || null, projectId: projectId || null })) {
       ui.notice = 'No open tasks match that label and project.';
@@ -165,7 +172,6 @@ function onAppClick(e) {
   else if (action === 'complete-focus') M.completeFocus(findProjectIdForTask);
   // M.setFocusTask doesn't exist -- the correct exported function is setFocus.
   else if (action === 'focus-task') M.setFocus(taskId);
-  else if (action === 'cycle-energy') M.cycleEnergy(taskId, projectId);
   else if (action === 'cycle-priority') M.cyclePriority(taskId);
   else if (action === 'delete-task') {
     if (confirmDeleteTask(taskId, projectId)) M.deleteTask(taskId, projectId);
@@ -182,8 +188,9 @@ function onAppClick(e) {
   else if (action === 'toggle-inbox') { ui.inboxOpen = !ui.inboxOpen; paint(); }
   else if (action === 'toggle-done') { ui.doneOpen[projectId] = !ui.doneOpen[projectId]; paint(); }
   else if (action === 'scroll-project') scrollToProject(projectId);
-  else if (action === 'sync-github') { syncGithub(ui).then(paint); }
-  else if (action === 'pull-now') { pullFromGist().then(paint).catch((e) => { ui.syncError = e.message; paint(); }); }
+  else if (action === 'sync-github') manualSyncGithub();
+  else if (action === 'toggle-projects-drawer') { setProjectsDrawerOpen(!ui.projectsDrawerOpen); }
+  else if (action === 'close-projects-drawer') { setProjectsDrawerOpen(false); }
   else if (action === 'edit-task') { ui.editingTask = { taskId, projectId }; paint(); }
   else if (action === 'cancel-task-edit') { ui.editingTask = null; paint(); }
   else if (action === 'set-project-filter') {
@@ -344,7 +351,7 @@ function onAppSubmit(e) {
     e.preventDefault();
     const fd = new FormData(addTaskForm);
     const projectId = addTaskForm.getAttribute('data-project');
-    const task = M.addTask(projectId, fd.get('title'), fd.get('energy'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'));
+    const task = M.addTask(projectId, fd.get('title'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'));
     createIssueIfGithubProject(task, projectId);
     return;
   }
@@ -380,7 +387,7 @@ function onAppSubmit(e) {
     // this task in that repaint.
     ui.editingTask = null;
     M.editTask(editForm.getAttribute('data-task'), editForm.getAttribute('data-project'), {
-      title: fd.get('title'), energy: fd.get('energy'), deadline: fd.get('deadline'), categoryIds: labelsFromForm(fd), steps: fd.get('steps'), priority: fd.get('priority'),
+      title: fd.get('title'), deadline: fd.get('deadline'), categoryIds: labelsFromForm(fd), steps: fd.get('steps'), priority: fd.get('priority'),
     });
     return;
   }
@@ -393,10 +400,27 @@ function onAppKeydown(e) {
   }
 }
 
+// Below 1100px, the project list is a drawer opened from the topbar's Projects button (see
+// index.html); at >=1100px CSS shows it as the sticky sidebar regardless of this flag. Opening it
+// moves focus in; closing it returns focus to the button that opened it. See
+// docs/4-systems/styling.md#project-sidebar
+function setProjectsDrawerOpen(open) {
+  ui.projectsDrawerOpen = open;
+  paint();
+  if (open) {
+    const search = document.querySelector('#projects-drawer .sidebar-search');
+    if (search) search.focus();
+  } else {
+    const btn = document.getElementById('projects-btn');
+    if (btn) btn.focus();
+  }
+}
+
 // Jumps to a project's card. It is opened first if minimised, and the project filter and search are
 // cleared if they hide it, so the jump always lands on the project's task list.
 function scrollToProject(projectId) {
   if (!state.projects.some((p) => p.id === projectId)) return;
+  if (ui.projectsDrawerOpen) { setProjectsDrawerOpen(false); }
   let changed = false;
   if (ui.projectCollapsed[projectId]) { ui.projectCollapsed[projectId] = false; saveCollapsedProjects(); changed = true; }
   if (!document.getElementById('proj-' + projectId)) { ui.projectFilter = undefined; ui.projectQuery = ''; changed = true; }
@@ -422,6 +446,18 @@ function autoSyncGithub() {
   running.then(paint);
 }
 
+// The topbar sync button: with no token, it's a shortcut to Settings rather than a no-op; a
+// manual sync that succeeds says so (auto-sync stays quiet — the button's title is enough there).
+function manualSyncGithub() {
+  if (!getToken()) { ui.notice = 'Connect GitHub in Settings to sync.'; paint(); return; }
+  const running = syncGithub(ui);
+  paint(); // show the spinning icon straight away
+  running.then(() => {
+    if (!ui.syncError) ui.notice = 'Synced with GitHub.';
+    paint();
+  });
+}
+
 function init() {
   requestPersistentStorage();
   paint();
@@ -433,6 +469,13 @@ function init() {
   app.addEventListener('submit', onAppSubmit);
   app.addEventListener('keydown', onAppKeydown);
   app.addEventListener('contextmenu', onAppContextMenu);
+  // the sync button and Projects toggle live in the topbar, outside #app -- same handler, since it
+  // only acts on data-action values it recognizes
+  const topbar = document.querySelector('.topbar');
+  if (topbar) topbar.addEventListener('click', onAppClick);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && ui.projectsDrawerOpen) setProjectsDrawerOpen(false);
+  });
   const captureForm = document.getElementById('capture-form');
   captureForm.addEventListener('submit', (e) => {
     e.preventDefault();

@@ -10,9 +10,7 @@
   --accent:#3D5A80;
   --accent-ink:#FFFFFF;
   --capture:#B8701F;
-  --energy-low:#4F7A63;
-  --energy-medium:#B8701F;
-  --energy-high:#A83E3E;
+  --danger:#A83E3E;
   --prio-urgent:#B42318;
   --prio-high:#C4540F;
   --prio-medium:#9A7200;
@@ -36,9 +34,7 @@
     --accent:#8FADD6;
     --accent-ink:#10161A;
     --capture:#E3A65E;
-    --energy-low:#8FB79E;
-    --energy-medium:#E3A65E;
-    --energy-high:#DD8686;
+    --danger:#DD8686;
     --prio-urgent:#F08A80;
     --prio-high:#F0A060;
     --prio-medium:#E6C35C;
@@ -59,9 +55,7 @@
   --accent:#8FADD6;
   --accent-ink:#10161A;
   --capture:#E3A65E;
-  --energy-low:#8FB79E;
-  --energy-medium:#E3A65E;
-  --energy-high:#DD8686;
+  --danger:#DD8686;
   --prio-urgent:#F08A80;
   --prio-high:#F0A060;
   --prio-medium:#E6C35C;
@@ -116,19 +110,22 @@ a{color:inherit;}
   background:var(--capture); color:#fff; font-weight:600; white-space:nowrap;
 }
 
-.sync-row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
-.sync-note{font-size:.76rem; color:var(--ink-faint); margin:0; font-variant-numeric:tabular-nums;}
-.sync-btn{white-space:nowrap;}
-
-.stats-row{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
-.stat-pill{
-  display:flex; align-items:center; gap:7px;
-  border:1px solid var(--line); background:var(--surface); border-radius:999px;
-  padding:6px 12px 6px 8px; font-size:.82rem;
+/* The topbar sync icon and Projects drawer toggle (index.html, outside #app). See
+   docs/4-systems/styling.md#sync-button */
+.icon-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:32px; height:32px; padding:0; border:none; background:none; border-radius:50%;
+  color:var(--ink-soft);
 }
-.stat-pill .dot{width:9px; height:9px; border-radius:50%; background:var(--dot); display:inline-block;}
-.stat-name{font-weight:600;}
-.stat-val{color:var(--ink-soft);}
+.icon-btn:hover{color:var(--ink); background:var(--surface-2);}
+.icon-btn:disabled{cursor:default; opacity:.6;}
+.icon-btn.is-syncing svg{animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){
+  .icon-btn.is-syncing svg{animation:none;}
+}
+.projects-toggle{white-space:nowrap;}
+@media (min-width:1100px){.projects-toggle{display:none;}}
 
 .card{
   background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
@@ -161,9 +158,6 @@ a{color:inherit;}
 }
 .chip.proj-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color);}
 button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%, transparent);}
-.chip.energy-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color);}
-.chip.energy-chip.small{font-size:.7rem; padding:3px 8px;}
-.chip.energy-chip:disabled{opacity:.5; cursor:default;}
 .chip.deadline-chip{font-variant-numeric:tabular-nums;}
 .chip.gh-chip{border-color:transparent; background:var(--surface-2); color:var(--ink-soft); text-decoration:none;}
 .chip.gh-chip.small{font-size:.7rem; padding:3px 8px;}
@@ -173,9 +167,6 @@ button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%,
 .chip.priority-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color); font-weight:700; cursor:pointer;}
 .chip.priority-chip.small{font-size:.7rem; padding:3px 8px;}
 .chip.priority-chip:disabled{opacity:.5; cursor:default;}
-.chip.priority-chip.chip-placeholder{background:none; color:var(--ink-faint); border:1px dashed var(--line); font-weight:600;}
-.chip.claude-chip{border-color:transparent; background:color-mix(in srgb, var(--accent) 14%, transparent); color:var(--accent);}
-.chip.claude-chip.small{font-size:.7rem; padding:3px 8px;}
 .focus-title{font-size:1.7rem; line-height:1.25; margin-bottom:16px;}
 .focus-actions{display:flex; flex-wrap:wrap; gap:10px;}
 /* focus picker: project pills, then label cards that reuse .energy-btn; two across on a phone */
@@ -201,20 +192,8 @@ button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%,
 .btn.ghost:hover{background:var(--surface-2);}
 .btn-text{background:none; border:none; padding:3px 7px; font-size:.78rem; font-weight:600; color:var(--ink-faint); border-radius:6px;}
 .btn-text:hover{background:var(--surface-2); color:var(--ink-soft);}
-.btn-text.danger{color:var(--energy-high);}
+.btn-text.danger{color:var(--danger);}
 .remove-confirm{display:flex; align-items:center; gap:4px; font-size:.78rem; color:var(--ink-soft); flex-wrap:wrap;}
-
-.done-strip{margin-bottom:16px;}
-.section-label{font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-family:'IBM Plex Sans',sans-serif; margin-bottom:8px;}
-.done-list{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;}
-.done-chip{
-  flex:0 0 auto; display:flex; align-items:center; gap:6px;
-  background:var(--surface); border:1px solid var(--line); border-radius:999px;
-  padding:6px 12px; font-size:.78rem;
-}
-.done-chip .dot{width:8px; height:8px; border-radius:50%; background:var(--dot); flex:none;}
-.done-title{max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.done-time{color:var(--ink-faint); font-variant-numeric:tabular-nums;}
 
 .inbox-card{padding:14px 20px;}
 .section-toggle{
@@ -226,12 +205,11 @@ button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%,
 .section-toggle .chev{margin-left:auto; color:var(--ink-faint);}
 .unsorted-body{margin-top:12px;}
 .unsorted-delete{margin-left:auto;} /* sits at the far right of the head row, away from the flow buttons */
-.unsorted-delete:hover{color:var(--energy-high);}
+.unsorted-delete:hover{color:var(--danger);}
 .task-edit-github{flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; font-size:.8rem; color:var(--ink-faint);}
 .task-edit-form .task-edit-github button[type="button"]{background:none; color:var(--accent); padding:2px 0; font-size:.8rem;}
 .mini-x{border:none; background:var(--surface-2); color:var(--ink-soft); width:22px; height:22px; border-radius:50%; line-height:1;}
 
-.project-filter-bar{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:14px;}
 .filter-pills{display:flex; flex-wrap:wrap; gap:6px;}
 .filter-pill{
   border:1px solid var(--line); background:var(--surface); border-radius:999px;
@@ -265,9 +243,28 @@ button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%,
 
 .projects-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px;}
 
-/* Project sidebar and wide layout: wide screens only. The sidebar replaces the filter bar and
-   project pills there. See docs/4-systems/styling.md#project-sidebar */
-.project-sidebar{display:none;}
+/* The one project list: a fixed drawer below 1100px (opened from the topbar's Projects button),
+   a sticky left column at and above it. See docs/4-systems/styling.md#project-sidebar */
+.project-sidebar{
+  position:fixed; top:0; left:0; z-index:30;
+  width:min(320px, 85vw); height:100%; overflow-y:auto;
+  display:flex; flex-direction:column; gap:10px;
+  background:var(--surface); border-right:1px solid var(--line);
+  padding:16px; padding-top:calc(16px + env(safe-area-inset-top, 0px)); padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+  transform:translateX(-100%);
+  transition:transform .2s ease;
+}
+.project-sidebar.is-open{transform:translateX(0);}
+.drawer-backdrop{
+  position:fixed; inset:0; z-index:29;
+  background:rgba(0,0,0,.4); opacity:0; pointer-events:none;
+  transition:opacity .2s ease;
+}
+.drawer-backdrop.is-open{opacity:1; pointer-events:auto;}
+@media (prefers-reduced-motion: reduce){
+  .project-sidebar{transition:none;}
+  .drawer-backdrop{transition:none;}
+}
 .main-col{min-width:0;}
 @media (min-width:1100px){
   /* use the monitor (#64): the page widens, project cards flow into as many ~420px+ columns as fit,
@@ -276,12 +273,13 @@ button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%,
   #app{display:grid; grid-template-columns:270px minmax(0,1fr); gap:28px; align-items:start;}
   .projects-grid{grid-template-columns:repeat(auto-fill, minmax(420px, 1fr)); align-items:start;}
   .energy-grid.focus-grid{grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));}
+  .drawer-backdrop{display:none;}
   .project-sidebar{
-    display:flex; flex-direction:column; gap:10px;
-    position:sticky; top:84px; max-height:calc(100vh - 100px); overflow-y:auto;
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px;
+    position:sticky; top:84px; left:auto; z-index:auto;
+    width:auto; height:auto; max-height:calc(100vh - 100px); overflow-y:auto;
+    transform:none; transition:none;
+    border-right:none; border:1px solid var(--line); border-radius:var(--radius); padding:16px;
   }
-  .main-col .stats-row, .main-col .project-filter-bar{display:none;}
 }
 .sidebar-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
 .sidebar-title{font-size:1.05rem;}
@@ -373,7 +371,7 @@ a.task-title:hover{text-decoration:underline;}
   border:1px solid var(--accent); border-left-width:4px; border-radius:var(--radius);
   box-shadow:var(--shadow);
 }
-.toast-error{border-color:var(--energy-high);}
+.toast-error{border-color:var(--danger);}
 /* room to scroll the last controls clear of the toast while it is showing */
 .wrap:has(.toast){padding-bottom:calc(160px + env(safe-area-inset-bottom, 0px));}
 .toast-text{flex:1; margin:0; font-size:.86rem; line-height:1.4; overflow-wrap:anywhere;}

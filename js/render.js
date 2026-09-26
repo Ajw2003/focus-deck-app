@@ -1,21 +1,24 @@
 // focus-deck-app/js/render.js
-import { state, esc, relTime, deadlineChip, ENERGY, ENERGY_UI_ENABLED, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
+import { state, esc, relTime, deadlineChip, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
 
-export function energyBtn(level, label, desc) {
-  return '<button type="button" class="energy-btn" data-action="set-energy" data-energy="' + level + '" style="--chip-color:var(--energy-' + level + ')"><span class="energy-label">' + label + '</span><span class="energy-desc">' + desc + '</span></button>';
+// The top-bar sync icon: two curved arrows in a circle, hand-drawn (see docs/4-systems/styling.md#sync-button).
+// Its title/aria-label carry the same text so a screen reader gets exactly what a sighted hover gets.
+export function syncButtonTitle(st) {
+  return (st.githubSync && st.githubSync.lastSyncedAt)
+    ? 'Sync with GitHub · synced ' + relTime(st.githubSync.lastSyncedAt)
+    : 'Sync with GitHub';
 }
 
-export function renderSyncStatus(st) {
-  const note = (st.githubSync && st.githubSync.lastSyncedAt)
-    ? 'Synced ' + relTime(st.githubSync.lastSyncedAt) + (st.githubSync.user ? (' · @' + esc(st.githubSync.user)) : '')
-    : (st.gistId ? 'Pull in labeled issues from your GitHub repos' : 'Connect GitHub in Settings to sync across devices');
-  const btnLabel = st._ui && st._ui.syncing ? 'Syncing…' : '🔄 Sync GitHub';
-  let html = '<div class="sync-row">'
-    + '<p class="sync-note">' + note + '</p>'
-    + '<button type="button" class="link-btn small sync-btn" data-action="sync-github"' + (st._ui && st._ui.syncing ? ' disabled' : '') + '>' + btnLabel + '</button>'
-    + (st.gistId ? '<button type="button" class="link-btn small" data-action="pull-now">⬇ Pull latest</button>' : '')
-    + '</div>';
-  return html;
+export function renderSyncButton(st) {
+  const syncing = !!(st._ui && st._ui.syncing);
+  const title = syncButtonTitle(st);
+  return '<button type="button" class="icon-btn sync-btn' + (syncing ? ' is-syncing' : '') + '" data-action="sync-github" title="' + esc(title) + '" aria-label="' + esc(title) + '"' + (syncing ? ' disabled' : '') + '>'
+    + '<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M15.5 6.5A6 6 0 0 0 5 8.5M4.5 13.5A6 6 0 0 0 15 11.5"/>'
+    + '<path d="M15.5 3v3.5H12"/>'
+    + '<path d="M4.5 17v-3.5H8"/>'
+    + '</svg>'
+    + '</button>';
 }
 
 // The one place errors and notices appear, on every page: pinned to the bottom of the viewport
@@ -28,16 +31,6 @@ export function renderToast(text, kind) {
     + '<p class="toast-text">' + esc(text) + '</p>'
     + '<button type="button" class="toast-close" data-action="dismiss-toast" aria-label="Dismiss">×</button>'
     + '</div>';
-}
-
-export function renderStats(st) {
-  const pills = st.projects.map((p) => {
-    const doing = p.tasks.filter((t) => t.status === 'doing').length;
-    const open = p.tasks.filter((t) => t.status !== 'done').length;
-    const label = doing > 0 ? (doing + ' in progress') : (open > 0 ? (open + ' waiting') : 'all clear');
-    return '<button type="button" class="stat-pill" data-action="scroll-project" data-project="' + p.id + '" style="--dot:' + p.color + '"><span class="dot"></span><span class="stat-name">' + esc(p.name) + '</span><span class="stat-val">' + label + '</span></button>';
-  }).join('');
-  return '<div class="stats-row">' + pills + '</div>';
 }
 
 // The focus pick: one big card per label (task type), narrowed by project pills. One tap on a card
@@ -122,29 +115,16 @@ function focusCardDetail(matches, acrossProjects) {
 }
 
 export function renderFocus(st, findTaskWithProject, ui) {
-  if (!st.focus && !ENERGY_UI_ENABLED) return renderFocusPicker(st, ui);
-  if (!st.focus) {
-    return '<section class="card focus-card focus-empty">'
-      + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
-      + '<p class="muted">Pick your bandwidth and I&rsquo;ll surface one task to work on.</p>'
-      + '<div class="energy-grid">'
-        + energyBtn('low', 'Low', 'Quick, low-stakes wins')
-        + energyBtn('medium', 'Medium', 'Steady, doable progress')
-        + energyBtn('high', 'High', 'Deep focus / creative work')
-      + '</div>'
-      + '<button type="button" class="link-btn" data-action="surprise">Surprise me instead</button>'
-      + '</section>';
-  }
+  if (!st.focus) return renderFocusPicker(st, ui);
   const found = findTaskWithProject(st.focus.taskId);
   if (!found) { state.focus = null; return renderFocus(st, findTaskWithProject, ui); }
   const t = found.task, p = found.project;
-  const energyLevel = st.focus.energy;
   const deadlineHTML = t.deadline ? deadlineChip(t.deadline) : '';
   const canReroll = st.focus.pool && st.focus.pool.length > 1;
   return '<section class="card focus-card focus-active">'
     + '<div class="focus-tags">'
       + '<button type="button" class="chip proj-chip" data-action="scroll-project" data-project="' + p.id + '" title="Go to ' + esc(p.name) + '" style="--chip-color:' + p.color + '">' + esc(p.name) + ' ↓</button>'
-      + focusReasonChip(st.focus, energyLevel)
+      + focusReasonChip(st.focus)
       + deadlineHTML
     + '</div>'
     + '<h2 class="focus-title">' + esc(t.title) + '</h2>'
@@ -156,21 +136,12 @@ export function renderFocus(st, findTaskWithProject, ui) {
     + '</section>';
 }
 
-// Says why this task is showing: the label it was picked from, a random pick, or the old energy pick.
-function focusReasonChip(focus, energyLevel) {
+// Says why this task is showing: the label it was picked from, or a random pick.
+function focusReasonChip(focus) {
   if (focus.filter && focus.filter.categoryId === UNLABELLED) return '<span class="chip">Unlabelled</span>';
   const cat = focus.filter && focus.filter.categoryId && state.categories.find((c) => c.id === focus.filter.categoryId);
   if (cat) return '<span class="chip cat-chip" style="--chip-color:' + cat.color + '">' + esc(cat.name) + '</span>';
-  if (energyLevel && ENERGY_UI_ENABLED) return '<span class="chip energy-chip" style="--chip-color:var(--energy-' + energyLevel + ')">' + ENERGY[energyLevel].label + ' energy</span>';
   return focus.pool ? '<span class="chip">Random pick</span>' : '';
-}
-
-export function renderDone(st) {
-  if (!st.completedLog.length) return '';
-  const chips = st.completedLog.slice(0, 8).map((entry) => {
-    return '<div class="done-chip" style="--dot:' + entry.color + '"><span class="dot"></span><span class="done-title">' + esc(entry.title) + '</span><span class="done-time">' + relTime(entry.completedAt) + '</span></div>';
-  }).join('');
-  return '<section class="done-strip"><h3 class="section-label">Recently done</h3><div class="done-list">' + chips + '</div></section>';
 }
 
 // The Unsorted queue: captured thoughts (oldest first), then every open task with no labels, in
@@ -344,14 +315,9 @@ function renderTaskGithubLine(t, p) {
 }
 
 export function renderTaskEditForm(t, p, categories) {
-  const energyValue = t.energyAuto ? 'auto' : t.energy;
   return '<form class="task-edit-form" data-action="save-task-edit" data-task="' + t.id + '" data-project="' + p.id + '">'
     + '<input type="text" name="title" value="' + esc(t.title) + '" maxlength="280" required autofocus>'
     + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2">' + esc((t.steps || []).join('\n')) + '</textarea>'
-    + (ENERGY_UI_ENABLED ? '<select name="energy">'
-      + '<option value="auto"' + (energyValue === 'auto' ? ' selected' : '') + '>Auto</option>'
-      + ['low', 'medium', 'high'].map((lvl) => '<option value="' + lvl + '"' + (energyValue === lvl ? ' selected' : '') + '>' + ENERGY[lvl].label + '</option>').join('')
-    + '</select>' : '')
     + renderPrioritySelect(t.priority)
     + '<input type="date" name="deadline" value="' + (t.deadline || '') + '">'
     + renderLabelPicker(categories, t.categoryIds)
@@ -375,9 +341,7 @@ export function renderTaskRow(t, p, categories, ui) {
     .map((cat) => '<span class="chip cat-chip small" data-cat-id="' + cat.id + '" data-cat-type="task" title="Right-click to change color" style="--chip-color:' + cat.color + '">' + esc(cat.name) + '</span>').join('');
   const priorityChip = t.priority && PRIORITY[t.priority]
     ? '<button type="button" class="chip priority-chip small" data-action="cycle-priority" data-task="' + t.id + '" title="Priority — tap to change" style="--chip-color:var(--prio-' + t.priority + ')"' + (isDone ? ' disabled' : '') + '>' + PRIORITY[t.priority].label + '</button>'
-    : (isDone ? '' : '<button type="button" class="chip priority-chip small chip-placeholder" data-action="cycle-priority" data-task="' + t.id + '" title="Set a priority">+ Priority</button>');
-  const claudeChips = (t.claudeCreated ? '<span class="chip claude-chip claude-created-chip small" title="Claude opened this issue">Claude created</span>' : '')
-    + (t.claudeCompleted && isDone ? '<span class="chip claude-chip claude-completed-chip small" title="Claude closed this issue">Claude completed</span>' : '');
+    : '';
   return '<div class="task-row' + (isDone ? ' is-done' : '') + '" data-task="' + t.id + '" data-project="' + p.id + '">'
     + '<input type="checkbox" data-action="toggle-task" data-task="' + t.id + '" data-project="' + p.id + '"' + (isDone ? ' checked' : '') + '>'
     + (isLinked
@@ -385,9 +349,8 @@ export function renderTaskRow(t, p, categories, ui) {
       : '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + '</span>')
     + ghBadge
     + (isLinked ? '<button type="button" class="link-btn small" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" title="Edit this task">Edit</button>' : '')
-    + priorityChip + catChips + claudeChips
+    + priorityChip + catChips
     + (t.deadline ? deadlineChip(t.deadline) : '')
-    + (ENERGY_UI_ENABLED ? '<button type="button" class="chip energy-chip small" data-action="cycle-energy" data-task="' + t.id + '" data-project="' + p.id + '" style="--chip-color:var(--energy-' + t.energy + ')"' + (isDone ? ' disabled' : '') + '>' + ENERGY[t.energy].label + '</button>' : '')
     + (!isDone ? '<button type="button" class="link-btn small" data-action="focus-task" data-task="' + t.id + '" data-project="' + p.id + '">Focus →</button>' : '')
     + '<button type="button" class="mini-x" data-action="delete-task" data-task="' + t.id + '" data-project="' + p.id + '" aria-label="Delete task">×</button>'
     + '</div>';
@@ -422,25 +385,18 @@ function collapseAllButton(ui, visibleProjects) {
   return collapseAllBtn;
 }
 
-export function renderProjectFilterBar(st, ui, visibleProjects) {
-  if (!st.projects.length) return '';
-  return '<div class="project-filter-bar">'
-    + '<div class="filter-pills">' + projectFilterPills(st, ui) + '</div>'
-    + '<input type="text" class="project-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
-    + projectSortSelect(ui)
-    + collapseAllButton(ui, visibleProjects)
-    + '</div>';
-}
-
-// Wide screens only (CSS shows it from 1100px): a sticky column listing every project that matches the
-// search and category, each jumping to its card. It replaces the filter bar and the project pills there.
+// The single project list: search, category pills, sort, Collapse all, and a row per project that
+// jumps to its card. CSS shows it as a sticky left column at >=1100px; below that it's the drawer
+// opened from the topbar's Projects button (see app.js's toggle-projects-drawer/scroll-project).
 // See docs/4-systems/styling.md#project-sidebar
 export function renderProjectSidebar(st, ui, visibleProjects) {
   if (!st.projects.length) return '';
+  const isOpen = !!ui.projectsDrawerOpen;
   const open = (p) => p.tasks.filter((t) => t.status !== 'done').length;
   const rows = visibleProjects.map((p) => '<li><button type="button" class="sidebar-project" data-action="scroll-project" data-project="' + p.id + '" style="--dot:' + p.color + '">'
     + '<span class="dot"></span><span class="sidebar-name">' + esc(p.name) + '</span><span class="sidebar-count" title="Open tasks">' + open(p) + '</span></button></li>').join('');
-  return '<aside class="project-sidebar" aria-label="Projects">'
+  return '<div class="drawer-backdrop' + (isOpen ? ' is-open' : '') + '" data-action="close-projects-drawer"></div>'
+    + '<aside class="project-sidebar' + (isOpen ? ' is-open' : '') + '" id="projects-drawer" role="dialog" aria-modal="true" aria-label="Projects">'
     + '<div class="sidebar-head"><h2 class="sidebar-title">Projects</h2><span class="muted small">' + visibleProjects.length + '</span></div>'
     + '<input type="text" class="project-search sidebar-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
     + '<div class="filter-pills sidebar-pills">' + projectFilterPills(st, ui) + '</div>'
@@ -489,12 +445,6 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
       + '<form class="add-task-form" data-action="add-task" data-project="' + p.id + '">'
         + '<input type="text" name="title" placeholder="Add a task…" maxlength="280" required>'
         + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
-        + (ENERGY_UI_ENABLED ? '<select name="energy">'
-          + '<option value="auto" selected>Auto</option>'
-          + '<option value="low">Low</option>'
-          + '<option value="medium">Medium</option>'
-          + '<option value="high">High</option>'
-        + '</select>' : '')
         + renderPrioritySelect(null)
         + '<input type="date" name="deadline">'
         + renderLabelPicker(categories, [])
