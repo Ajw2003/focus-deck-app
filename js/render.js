@@ -85,14 +85,14 @@ function renderFocusPicker(st, ui) {
   // pills narrow by the other dimension: projects in Type mode, labels in Project mode
   const chosenPill = byProject ? categoryId : projectId;
   const pillItems = (byProject ? st.categories : st.projects)
-    .map((x) => ({ id: x.id, name: x.name, n: byProject ? openWhere(x.id, null).length : openWhere(null, x.id).length }))
+    .map((x) => ({ id: x.id, name: x.name, color: x.color, n: byProject ? openWhere(x.id, null).length : openWhere(null, x.id).length }))
     .filter((x) => x.n || x.id === chosenPill)
     .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
-  // like the cards, only the busiest pills show until "Show all"; the chosen one always shows
-  const shownPills = showAll ? pillItems : pillItems.filter((x, i) => i < FOCUS_CARDS_SHOWN || x.id === chosenPill);
-  const pill = (id, label, title) => '<button type="button" class="filter-pill' + ((id || null) === chosenPill ? ' active' : '') + '" data-action="set-focus-scope" data-scope="' + id + '"' + (title ? ' title="' + esc(title) + '"' : '') + '>' + esc(label) + '</button>';
+  // Every pill shows, with its full name. Label pills are tinted in the label's own colour, like its
+  // chips elsewhere in the app (.label-pill).
+  const pill = (id, label, color) => '<button type="button" class="filter-pill' + (color ? ' label-pill' : '') + ((id || null) === chosenPill ? ' active' : '') + '" data-action="set-focus-scope" data-scope="' + id + '"' + (color ? ' style="--chip-color:' + color + '"' : '') + '>' + esc(label) + '</button>';
   const pills = pillItems.length > 1
-    ? '<div class="filter-pills focus-scope">' + pill('', byProject ? 'All labels' : 'All projects') + shownPills.map((x) => pill(x.id, shortName(x.name), x.name)).join('') + '</div>'
+    ? '<div class="filter-pills focus-scope">' + pill('', byProject ? 'All labels' : 'All projects') + pillItems.map((x) => pill(x.id, x.name, byProject ? x.color : null)).join('') + '</div>'
     : '';
   const modeBtn = (mode, label) => '<button type="button" class="focus-mode-btn' + ((mode === 'project') === byProject ? ' active' : '') + '" data-action="set-focus-mode" data-mode="' + mode + '" aria-pressed="' + ((mode === 'project') === byProject) + '">' + label + '</button>';
 
@@ -107,8 +107,8 @@ function renderFocusPicker(st, ui) {
       + shownCards.map((x) => card(x, false)).join('')
       + card(anything, true)
     + '</div>'
-    + (cards.length > FOCUS_CARDS_SHOWN || pillItems.length > FOCUS_CARDS_SHOWN
-      ? '<button type="button" class="link-btn" data-action="toggle-focus-all">' + (showAll ? 'Show fewer' : 'Show all') + '</button>'
+    + (cards.length > FOCUS_CARDS_SHOWN
+      ? '<button type="button" class="link-btn" data-action="toggle-focus-all">' + (showAll ? 'Show fewer' : 'Show all ' + cards.length + ' ' + (byProject ? 'projects' : 'labels')) + '</button>'
       : '')
     + '</section>';
 }
