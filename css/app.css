@@ -179,9 +179,9 @@ a{color:inherit;}
 .focus-actions{display:flex; flex-wrap:wrap; gap:10px;}
 /* focus picker: project pills, then label cards that reuse .energy-btn; two across on a phone */
 .focus-scope{margin:-4px 0 14px;}
-/* label pills in the focus picker match the label's chips: tinted in its colour; chosen = a ring */
-.filter-pill.label-pill{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink));}
-.filter-pill.label-pill.active{background:color-mix(in srgb, var(--chip-color) 32%, transparent); color:var(--ink); box-shadow:inset 0 0 0 2px var(--chip-color);}
+/* focus picker pills match their label's chips / project's colour: tinted in it; chosen = a ring */
+.filter-pill.tint-pill{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink));}
+.filter-pill.tint-pill.active{background:color-mix(in srgb, var(--chip-color) 32%, transparent); color:var(--ink); box-shadow:inset 0 0 0 2px var(--chip-color);}
 .focus-head{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 12px; margin-bottom:8px;}
 .focus-empty .focus-head h2.focus-q{margin-bottom:0;}
 .focus-mode{display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:2px; background:var(--surface-2); flex:none;}
