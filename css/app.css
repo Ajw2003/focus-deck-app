@@ -223,6 +223,9 @@ a{color:inherit;}
 .inbox-text{flex:1 1 200px; font-size:.92rem;}
 .inbox-time{display:block; color:var(--ink-faint); font-size:.75rem; margin-top:2px;}
 .inbox-actions{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+.inbox-row .label-picker{flex:1 1 100%; margin-top:-4px;}
+.task-edit-github{flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; font-size:.8rem; color:var(--ink-faint);}
+.task-edit-form .task-edit-github button[type="button"]{background:none; color:var(--accent); padding:2px 0; font-size:.8rem;}
 .mini-chip{
   font-size:.72rem; font-weight:600; padding:4px 9px; border-radius:999px;
   border:1px solid transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color);

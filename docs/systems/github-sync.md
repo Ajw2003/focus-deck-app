@@ -83,6 +83,17 @@ the issue's title/state/labels in immediately, and if the task already had a loc
 category but the issue has no category-equivalent label, pushes that category onto
 the issue so both sides end up in sync rather than the pull silently winning.
 
+### Where the GitHub controls live
+
+The task row shows only a linked task's **#N** chip, which opens the issue. Everything else is in
+the edit form's GitHub line (`renderTaskGithubLine`, js/render.js): **Unlink** for a linked task
+(keeps the task here, stops syncing it; deleting it instead closes the issue, see below), and
+**+ Create issue** / **Link to an existing issue** for an unlinked one. They moved off the row on
+2026-09-26: with issues created automatically they were rarely needed, and they crowded every row.
+
+Unsorted items can be given labels (the same label picker as the task forms) before a project chip
+is tapped to file them. Filing into a GitHub project creates the issue with those labels.
+
 ### Opening a linked task's issue — `renderTaskRow` (js/render.js)
 
 A linked task's title is a link that opens its issue on GitHub in a new tab. Editing that task
@@ -117,9 +128,10 @@ category (if any) becomes a label, created on the repo first if it isn't there y
 If the task is already marked done locally, the new issue is opened and then
 immediately closed to match.
 
-It runs from the task's **+ Issue** button, and automatically for every task added to a
-GitHub project (a project with `repoFullName`, from the add-task handler in js/app.js, #9).
-If it fails there, the task stays local, the error shows in the toast, and **+ Issue** retries.
+It runs from **+ Create issue** in the task's edit form, and automatically for every task added
+to, or filed from Unsorted into, a GitHub project (a project with `repoFullName`;
+`createIssueIfGithubProject` in js/app.js, #9). If it fails there, the task stays local, the error
+shows in the toast, and **+ Create issue** retries.
 
 Before creating anything it pulls the repo's open issues (`listIssues`) and looks for
 one whose title matches the task's (`sameIssueTitle`: ignoring case and extra

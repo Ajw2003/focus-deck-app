@@ -183,13 +183,16 @@ export function addCapture(text) {
 
 // Was previously called (as M.fileInboxItem) but never exported -- filing an inbox item into a
 // project has been silently broken since it was added.
-export function fileInboxItem(inboxId, projectId) {
+// categoryIds: the labels ticked on the Unsorted item. Returns the new task.
+export function fileInboxItem(inboxId, projectId, categoryIds) {
   const item = state.inbox.find((i) => i.id === inboxId);
   const project = state.projects.find((p) => p.id === projectId);
   if (!item || !project) return;
-  project.tasks.push({ id: uid('t'), title: item.text, energy: 'medium', status: 'next', deadline: null, categoryIds: [], priority: null, source: 'manual', updatedAt: Date.now() });
+  const task = { id: uid('t'), title: item.text, energy: 'medium', status: 'next', deadline: null, categoryIds: categoryIds || [], priority: null, source: 'manual', updatedAt: Date.now() };
+  project.tasks.push(task);
   state.inbox = state.inbox.filter((i) => i.id !== inboxId);
   persist();
+  return task;
 }
 
 // Was previously called (as M.discardInbox) but never exported -- discarding an inbox item has
