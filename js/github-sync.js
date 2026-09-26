@@ -221,6 +221,7 @@ export async function createGithubIssueFromTask(taskId, repoInput, ui) {
         return;
       }
       await linkTaskToIssue(taskId, fullName + '#' + existing.number, ui);
+      if (!ui.syncError) ui.notice = fullName + '#' + existing.number + ' already exists with this title, so the task was linked to it instead of creating a duplicate.';
       return;
     }
 

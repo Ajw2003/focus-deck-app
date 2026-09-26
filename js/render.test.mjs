@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow, renderErrorToast } from './render.js';
+import { renderTaskRow, renderToast } from './render.js';
 import assert from 'node:assert';
 
 const p = { id: 'p1', name: 'P' };
@@ -32,10 +32,12 @@ const manual = row({ source: 'manual', url: undefined, repoFullName: undefined, 
 assert.ok(/<span class="task-title" data-action="edit-task"/.test(manual), 'an unlinked task title still opens the edit form');
 assert.ok(!manual.includes('>Edit<'), 'an unlinked task needs no separate Edit button');
 
-assert.strictEqual(renderErrorToast({ syncError: null }), '', 'no error means no toast');
-const toast = renderErrorToast({ syncError: 'Could not link <b>' });
-assert.ok(toast.includes('class="error-toast"') && toast.includes('role="alert"'), 'an error renders the pinned, announced toast');
-assert.ok(toast.includes('Could not link &lt;b&gt;'), 'the error text is escaped');
-assert.ok(toast.includes('data-action="dismiss-error"'), 'the toast can be dismissed');
+assert.strictEqual(renderToast(null, 'error'), '', 'no message means no toast');
+const toast = renderToast('Could not link <b>', 'error');
+assert.ok(toast.includes('class="toast toast-error"') && toast.includes('role="alert"'), 'an error renders the pinned toast in its error style, announced');
+assert.ok(toast.includes('Could not link &lt;b&gt;'), 'the message text is escaped');
+assert.ok(toast.includes('data-action="dismiss-toast"'), 'the toast can be dismissed');
+const info = renderToast('Linked instead', 'info');
+assert.ok(info.includes('class="toast"') && info.includes('role="status"'), 'a notice uses the plain toast style and a polite announcement');
 
 console.log('RENDER CHIP TESTS PASSED');

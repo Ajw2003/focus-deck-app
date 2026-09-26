@@ -9,7 +9,7 @@ the local backups. Lives in `js/state.js` (`loadState`, `saveStateLocal`, `setGi
 ## How it works
 
 <!-- ref:7f3a -->
-Four localStorage keys:
+Five localStorage keys:
 
 | Key | Holds | Written by |
 |---|---|---|
@@ -17,6 +17,7 @@ Four localStorage keys:
 | `focusdeck-gist-id` | the sync Gist ID, on its own | `setGistId` / `disconnectGist` only |
 | `focusdeck-state-backups` | up to 5 earlier raw copies, newest first | `backupRaw` |
 | `focusdeck-push-pending` | `1` while a local change hasn't reached the Gist | `js/sync.js` |
+| `focusdeck-collapsed-projects` | which projects are minimised, as `{ projectId: true }`; per device, never synced | `saveCollapsedProjects` in `js/app.js` |
 
 **Loading.** `loadState` parses the main key. If the value is there but unreadable, it is copied
 into the backups (never discarded), the newest backup that has content is used instead, and

@@ -286,7 +286,7 @@ a.task-title:hover{text-decoration:underline;}
   padding:11px 18px; border:none; border-radius:var(--radius); background:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;
 }
 
-.error-toast{
+.toast{
   position:fixed; z-index:20;
   left:50%; transform:translateX(-50%);
   bottom:calc(16px + env(safe-area-inset-bottom, 0px));
@@ -294,13 +294,14 @@ a.task-title:hover{text-decoration:underline;}
   display:flex; align-items:flex-start; gap:10px;
   padding:12px 8px 12px 14px;
   background:var(--surface); color:var(--ink);
-  border:1px solid var(--energy-high); border-left-width:4px; border-radius:var(--radius);
+  border:1px solid var(--accent); border-left-width:4px; border-radius:var(--radius);
   box-shadow:var(--shadow);
 }
+.toast-error{border-color:var(--energy-high);}
 /* room to scroll the last controls clear of the toast while it is showing */
-.wrap:has(.error-toast){padding-bottom:calc(160px + env(safe-area-inset-bottom, 0px));}
-.error-toast-text{flex:1; margin:0; font-size:.86rem; line-height:1.4; overflow-wrap:anywhere;}
-.error-toast-close{
+.wrap:has(.toast){padding-bottom:calc(160px + env(safe-area-inset-bottom, 0px));}
+.toast-text{flex:1; margin:0; font-size:.86rem; line-height:1.4; overflow-wrap:anywhere;}
+.toast-close{
   flex:none; min-width:32px; min-height:32px; padding:0;
   border:none; border-radius:8px; background:none; color:var(--ink-soft); font-size:1.25rem; line-height:1; cursor:pointer;
 }

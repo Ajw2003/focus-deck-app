@@ -18,7 +18,7 @@ function saveCollapsedProjects() {
   catch (e) { console.error('Could not save minimised projects:', e); }
 }
 
-export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), editingProjectCategory: null };
+export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), editingProjectCategory: null };
 
 export function renderApp(st) {
   st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
@@ -30,7 +30,7 @@ export function renderApp(st) {
       + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
     + '</div>'
     + R.renderAddProjectForm(st.projectCategories)
-    + R.renderErrorToast(ui);
+    + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
 }
 
 export function paint() {
@@ -72,9 +72,10 @@ function onAppClick(e) {
   else if (action === 'remove-project') { ui.pendingRemove[projectId] = true; paint(); }
   else if (action === 'cancel-remove-project') { delete ui.pendingRemove[projectId]; paint(); }
   else if (action === 'confirm-remove-project') M.removeProject(projectId);
-  else if (action === 'dismiss-error') {
+  else if (action === 'dismiss-toast') {
     if (ui.syncError === storageProblem) ui.storageProblemDismissed = true;
     ui.syncError = null;
+    ui.notice = null;
     paint();
   }
   else if (action === 'toggle-inbox') { ui.inboxOpen = !ui.inboxOpen; paint(); }

@@ -18,13 +18,15 @@ export function renderSyncStatus(st) {
   return html;
 }
 
-// Pinned to the bottom of the viewport (see .error-toast) so an error is seen wherever the page
-// is scrolled; it stays until dismissed or replaced by the next sync attempt.
-export function renderErrorToast(ui) {
-  if (!ui || !ui.syncError) return '';
-  return '<div class="error-toast" role="alert">'
-    + '<p class="error-toast-text">' + esc(ui.syncError) + '</p>'
-    + '<button type="button" class="error-toast-close" data-action="dismiss-error" aria-label="Dismiss error">×</button>'
+// The one place errors and notices appear, on every page: pinned to the bottom of the viewport
+// (see .toast) so it's seen wherever the page is scrolled. kind is 'error' or 'info'.
+// See docs/systems/styling.md#how-it-works
+export function renderToast(text, kind) {
+  if (!text) return '';
+  const isError = kind === 'error';
+  return '<div class="toast' + (isError ? ' toast-error' : '') + '" role="' + (isError ? 'alert' : 'status') + '">'
+    + '<p class="toast-text">' + esc(text) + '</p>'
+    + '<button type="button" class="toast-close" data-action="dismiss-toast" aria-label="Dismiss">×</button>'
     + '</div>';
 }
 
