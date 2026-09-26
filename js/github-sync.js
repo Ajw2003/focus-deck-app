@@ -1,5 +1,5 @@
 // focus-deck-app/js/github-sync.js
-import { state, uid, nextHue, findTaskWithProject, cssColorToHex } from './state.js';
+import { state, uid, nextHue, findTaskWithProject, cssColorToHex, PRIORITY, PRIORITY_ORDER } from './state.js';
 import {
   validateToken, listRepos, listIssues, getIssue, createIssue, ghFetch,
   setIssueState, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists,
@@ -13,28 +13,66 @@ function normLabel(s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); 
 export const CLAUDE_CREATED_LABEL = 'Claude created this';
 export const CLAUDE_COMPLETED_LABEL = 'Claude completed this';
 
-// Reserved so priority/status/provenance labels can't be mistaken for a category.
-// See docs/systems/github-sync.md#category-resolution-from-labels--applycategoryfromlabels-jsgithub-syncjs22
-const RESERVED_LABELS = ['highpriority', 'critical', 'urgent', 'blocker', 'p0', 'p1', 'lowpriority', 'goodfirstissue', 'easy', 'p3', 'p4', 'inprogress', 'wip', 'doing', normLabel(CLAUDE_CREATED_LABEL), normLabel(CLAUDE_COMPLETED_LABEL)];
+// Labels that mean a priority. The canonical "priority: <level>" labels are what Focus Deck writes;
+// the others are common conventions it also reads. See docs/systems/github-sync.md#priority--priorityfromlabels-pushprioritytoissue-jsgithub-syncjs
+const PRIORITY_ALIASES = {
+  urgent: ['urgent', 'critical', 'blocker', 'p0'],
+  high: ['highpriority', 'p1'],
+  medium: ['mediumpriority', 'p2'],
+  low: ['lowpriority', 'p3', 'p4'],
+};
+const canonicalPriorityForms = (level) => ['priority:' + level, 'priority' + level, 'priority/' + level];
+const PRIORITY_LABEL_FORMS = PRIORITY_ORDER.flatMap((level) => canonicalPriorityForms(level).concat(PRIORITY_ALIASES[level]));
 
+// Reserved so priority/status/provenance labels can't be mistaken for a category.
+// See docs/systems/github-sync.md#labels-to-categories-priority-and-flags--applylabels-jsgithub-syncjs
+const RESERVED_LABELS = PRIORITY_LABEL_FORMS.concat(['inprogress', 'wip', 'doing', normLabel(CLAUDE_CREATED_LABEL), normLabel(CLAUDE_COMPLETED_LABEL)]);
+
+// The issue label that carries a task's priority. A canonical "priority: x" label wins over an alias;
+// among several, the most urgent wins. Returns { priority, label } or null.
+export function priorityFromLabels(labels) {
+  const found = [];
+  (labels || []).forEach((label) => {
+    const n = normLabel(label);
+    PRIORITY_ORDER.forEach((level, rank) => {
+      if (canonicalPriorityForms(level).includes(n)) found.push({ priority: level, label, rank, canonical: 0 });
+      else if (PRIORITY_ALIASES[level].includes(n)) found.push({ priority: level, label, rank, canonical: 1 });
+    });
+  });
+  found.sort((a, b) => a.canonical - b.canonical || a.rank - b.rank);
+  return found.length ? { priority: found[0].priority, label: found[0].label } : null;
+}
+
+// Finds or creates the category for each non-reserved label. A new one takes the label's GitHub colour.
+function categoryIdsForLabels(labels, labelColors) {
+  const ids = [];
+  (labels || []).forEach((label) => {
+    if (RESERVED_LABELS.includes(normLabel(label))) return;
+    let cat = state.categories.find((c) => normLabel(c.name) === normLabel(label));
+    if (!cat) {
+      const hex = labelColors && labelColors[label];
+      cat = { id: uid('cat'), name: label, color: hex ? '#' + hex : 'hsl(' + nextHue() + ' var(--proj-sat) var(--proj-light))' };
+      state.categories.push(cat);
+    }
+    if (!ids.includes(cat.id)) ids.push(cat.id);
+  });
+  return ids;
+}
+
+// Mirrors an issue's labels onto its task: every category label, the priority, and the Claude flags.
+// GitHub is the source of truth here, so a label removed there is removed here.
 // Callers must set task.status BEFORE calling (claudeCompleted depends on it).
-// See docs/systems/github-sync.md#category-resolution-from-labels--applycategoryfromlabels-jsgithub-syncjs22
-export function applyCategoryFromLabels(task, labels) {
+// See docs/systems/github-sync.md#labels-to-categories-priority-and-flags--applylabels-jsgithub-syncjs
+export function applyLabels(task, labels, labelColors) {
   labels = labels || [];
   const norm = labels.map(normLabel);
   if (norm.includes(normLabel(CLAUDE_CREATED_LABEL))) task.claudeCreated = true; // sticky: never cleared here
   if (norm.includes(normLabel(CLAUDE_COMPLETED_LABEL)) && task.status === 'done') task.claudeCompleted = true;
   else delete task.claudeCompleted; // live: absent label or reopened task
-  if (!labels.length) return;
-  let match = state.categories.find((c) => labels.some((l) => normLabel(l) === normLabel(c.name)));
-  if (!match) {
-    const candidate = labels.find((l) => !RESERVED_LABELS.includes(normLabel(l)));
-    if (candidate) {
-      match = { id: uid('cat'), name: candidate, color: 'hsl(' + nextHue() + ' var(--proj-sat) var(--proj-light))' };
-      state.categories.push(match);
-    }
-  }
-  if (match) task.categoryId = match.id;
+  task.categoryIds = categoryIdsForLabels(labels, labelColors);
+  const prio = priorityFromLabels(labels);
+  task.priority = prio ? prio.priority : null;
+  task.priorityLabel = prio ? prio.label : null;
 }
 
 function reportSyncError(msg) {
@@ -61,27 +99,49 @@ export async function refreshClosedTaskLabels(tasks) {
     try {
       const [owner, name] = t.repoFullName.split('/');
       const iss = await getIssue(owner, name, t.issueNumber);
-      if (iss.state === 'closed') applyCategoryFromLabels(t, iss.labels);
+      if (iss.state === 'closed') applyLabels(t, iss.labels, iss.labelColors);
     } catch (e) { /* best-effort: the chip just won't show */ }
   }
 }
 
-// See docs/systems/github-sync.md#pushing-a-category-back-to-github--pushcategorytoissue-jsgithub-syncjs70
-export async function pushCategoryToIssue(task, oldCategoryId) {
-  if (task.source !== 'github' || !task.repoFullName || task.issueNumber == null) return;
+const isLinked = (task) => task.source === 'github' && task.repoFullName && task.issueNumber != null;
+
+// Adds the labels for categories the task gained and removes those it lost; others are untouched.
+// See docs/systems/github-sync.md#pushing-categories-back-to-github--pushcategoriestoissue-jsgithub-syncjs
+export async function pushCategoriesToIssue(task, oldCategoryIds) {
+  if (!isLinked(task)) return;
   const [owner, name] = task.repoFullName.split('/');
-  const oldCat = state.categories.find((c) => c.id === oldCategoryId);
-  const newCat = state.categories.find((c) => c.id === task.categoryId);
+  const now = task.categoryIds || [];
+  const before = oldCategoryIds || [];
+  const byId = (id) => state.categories.find((c) => c.id === id);
+  const added = now.filter((id) => !before.includes(id)).map(byId).filter(Boolean);
+  const removed = before.filter((id) => !now.includes(id)).map(byId).filter(Boolean);
   try {
-    if (newCat) {
-      await ensureLabelExists(owner, name, newCat.name, cssColorToHex(newCat.color));
-      await addLabelsToIssue(owner, name, task.issueNumber, [newCat.name]);
-    }
-    if (oldCat && (!newCat || oldCat.id !== newCat.id)) {
-      await removeLabelFromIssue(owner, name, task.issueNumber, oldCat.name);
-    }
+    for (const cat of added) await ensureLabelExists(owner, name, cat.name, cssColorToHex(cat.color));
+    if (added.length) await addLabelsToIssue(owner, name, task.issueNumber, added.map((c) => c.name));
+    for (const cat of removed) await removeLabelFromIssue(owner, name, task.issueNumber, cat.name);
   } catch (e) {
     reportSyncError('Couldn’t update the linked issue’s labels: ' + e.message);
+  }
+}
+
+// Swaps the issue's priority label: removes the one it had (whatever its exact name) and adds the
+// canonical "priority: <level>" label, or none. See docs/systems/github-sync.md#priority--priorityfromlabels-pushprioritytoissue-jsgithub-syncjs
+export async function pushPriorityToIssue(task) {
+  if (!isLinked(task)) return;
+  const [owner, name] = task.repoFullName.split('/');
+  const want = task.priority ? PRIORITY[task.priority] : null;
+  const had = task.priorityLabel || null;
+  try {
+    if (want && had !== want.githubLabel) {
+      await ensureLabelExists(owner, name, want.githubLabel, want.color);
+      await addLabelsToIssue(owner, name, task.issueNumber, [want.githubLabel]);
+    }
+    if (had && (!want || had !== want.githubLabel)) await removeLabelFromIssue(owner, name, task.issueNumber, had);
+    task.priorityLabel = want ? want.githubLabel : null;
+    persist();
+  } catch (e) {
+    reportSyncError('Couldn’t update the linked issue’s priority: ' + e.message);
   }
 }
 
@@ -92,7 +152,7 @@ export async function pushCategoryColorToLinkedIssues(categoryId) {
   const hex = cssColorToHex(cat.color);
   const repos = new Set();
   state.projects.forEach((p) => p.tasks.forEach((t) => {
-    if (t.source === 'github' && t.categoryId === categoryId && t.repoFullName) repos.add(t.repoFullName);
+    if (t.source === 'github' && (t.categoryIds || []).includes(categoryId) && t.repoFullName) repos.add(t.repoFullName);
   }));
   for (const repoFullName of repos) {
     const [owner, name] = repoFullName.split('/');
@@ -153,22 +213,31 @@ export async function linkTaskToIssue(taskId, input, ui) {
   ui.syncError = null;
   try {
     const iss = await getIssue(ref.owner, ref.name, ref.number);
-    const categoryIdBefore = task.categoryId;
+    const categoryIdsBefore = (task.categoryIds || []).slice();
+    const priorityBefore = task.priority || null;
     task.source = 'github';
     task.repoFullName = repoFullName;
     task.issueNumber = iss.number;
     task.url = iss.html_url;
     task.title = iss.title;
     task.status = iss.state === 'closed' ? 'done' : statusFromLabels(iss.labels);
-    applyCategoryFromLabels(task, iss.labels);
+    applyLabels(task, iss.labels, iss.labelColors);
     dropStaleCompletedLabel(task, iss.labels); // fire-and-forget
     const exIdx = state.excludedIssues.indexOf(repoFullName + '#' + iss.number);
     if (exIdx !== -1) state.excludedIssues.splice(exIdx, 1);
     ui.syncing = false;
     persist();
-    if (categoryIdBefore && task.categoryId === categoryIdBefore) {
-      // issue had no matching label; task already had a category, so push it over (see doc link above)
-      pushCategoryToIssue(task, null);
+    if (!task.categoryIds.length && categoryIdsBefore.length) {
+      // the issue had no category labels but the task did, so keep them and push them over (see doc link above)
+      task.categoryIds = categoryIdsBefore;
+      persist();
+      pushCategoriesToIssue(task, []);
+    }
+    if (!task.priority && priorityBefore) {
+      // same for priority: the issue had none, so the task's own priority goes over to it
+      task.priority = priorityBefore;
+      persist();
+      pushPriorityToIssue(task);
     }
   } catch (e) {
     ui.syncing = false;
@@ -188,6 +257,7 @@ export function unlinkTask(taskId) {
   delete task.repoFullName;
   delete task.issueNumber;
   delete task.url;
+  delete task.priorityLabel;
   persist();
 }
 
@@ -225,10 +295,13 @@ export async function createGithubIssueFromTask(taskId, repoInput, ui) {
       return;
     }
 
-    const cat = state.categories.find((c) => c.id === task.categoryId);
-    if (cat) await ensureLabelExists(owner, name, cat.name, cssColorToHex(cat.color));
+    const cats = (task.categoryIds || []).map((id) => state.categories.find((c) => c.id === id)).filter(Boolean);
+    for (const cat of cats) await ensureLabelExists(owner, name, cat.name, cssColorToHex(cat.color));
+    const prio = task.priority ? PRIORITY[task.priority] : null;
+    if (prio) await ensureLabelExists(owner, name, prio.githubLabel, prio.color);
     const body = (task.steps && task.steps.length) ? task.steps.map((s) => '- [ ] ' + s).join('\n') : '';
-    const iss = await createIssue(owner, name, task.title, body, cat ? [cat.name] : []);
+    const iss = await createIssue(owner, name, task.title, body, cats.map((c) => c.name).concat(prio ? [prio.githubLabel] : []));
+    task.priorityLabel = prio ? prio.githubLabel : null;
     task.source = 'github';
     task.repoFullName = fullName;
     task.issueNumber = iss.number;
@@ -335,11 +408,11 @@ export function upsertRepoProject(repo, issues, ui) {
       // it was marked done locally by an earlier sync (issue closed) but the issue is back in
       // the open+labeled set now, so it was reopened on GitHub — reflect that here too
       if (existing.status === 'done') existing.status = statusFromLabels(iss.labels);
-      applyCategoryFromLabels(existing, iss.labels);
+      applyLabels(existing, iss.labels, iss.labelColors);
       dropStaleCompletedLabel(existing, iss.labels);
     } else {
-      const task = { id: uid('t'), title: iss.title, energy: resolveIssueEnergy(iss), status: statusFromLabels(iss.labels), deadline: null, categoryId: null, source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
-      applyCategoryFromLabels(task, iss.labels);
+      const task = { id: uid('t'), title: iss.title, energy: resolveIssueEnergy(iss), status: statusFromLabels(iss.labels), deadline: null, categoryIds: [], source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
+      applyLabels(task, iss.labels, iss.labelColors);
       project.tasks.push(task);
     }
   });
@@ -406,7 +479,7 @@ export async function syncGithub(ui) {
           t.status = statusFromLabels(iss.labels);
           state.completedLog = state.completedLog.filter((e) => e.taskId !== t.id);
         }
-        applyCategoryFromLabels(t, iss.labels);
+        applyLabels(t, iss.labels, iss.labelColors);
         dropStaleCompletedLabel(t, iss.labels);
       } catch (e) {
         skipped.push(t.repoFullName + '#' + t.issueNumber);

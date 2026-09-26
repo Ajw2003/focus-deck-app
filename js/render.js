@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.js
-import { state, esc, relTime, deadlineChip, shortName, ENERGY } from './state.js';
+import { state, esc, relTime, deadlineChip, shortName, ENERGY, ENERGY_UI_ENABLED, PRIORITY, PRIORITY_ORDER } from './state.js';
 
 export function energyBtn(level, label, desc) {
   return '<button type="button" class="energy-btn" data-action="set-energy" data-energy="' + level + '" style="--chip-color:var(--energy-' + level + ')"><span class="energy-label">' + label + '</span><span class="energy-desc">' + desc + '</span></button>';
@@ -40,7 +40,40 @@ export function renderStats(st) {
   return '<div class="stats-row">' + pills + '</div>';
 }
 
-export function renderFocus(st, findTaskWithProject) {
+// The focus pick's two filters. Each option's count applies the other filter, and an option with no
+// matching open task is left out unless it's the one currently chosen.
+function renderFocusPicker(st, ui) {
+  const f = (ui && ui.focusFilter) || {};
+  const openIn = (filter) => countOpen(st, filter);
+  const labelOptions = st.categories
+    .map((c) => ({ c, n: openIn({ categoryId: c.id, projectId: f.projectId }) }))
+    .filter(({ c, n }) => n > 0 || c.id === f.categoryId)
+    .map(({ c, n }) => '<option value="' + c.id + '"' + (c.id === f.categoryId ? ' selected' : '') + '>' + esc(c.name) + ' (' + n + ')</option>').join('');
+  const projectOptions = st.projects
+    .map((p) => ({ p, n: openIn({ categoryId: f.categoryId, projectId: p.id }) }))
+    .filter(({ p, n }) => n > 0 || p.id === f.projectId)
+    .map(({ p, n }) => '<option value="' + p.id + '"' + (p.id === f.projectId ? ' selected' : '') + '>' + esc(p.name) + ' (' + n + ')</option>').join('');
+  return '<section class="card focus-card focus-empty">'
+    + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
+    + '<p class="muted">Pick a label, a project, or both, and I&rsquo;ll surface one random task.</p>'
+    + '<div class="focus-filters">'
+      + '<select data-action="set-focus-filter" name="categoryId" aria-label="Label"><option value="">Any label</option>' + labelOptions + '</select>'
+      + '<select data-action="set-focus-filter" name="projectId" aria-label="Project"><option value="">Any project</option>' + projectOptions + '</select>'
+    + '</div>'
+    + '<button type="button" class="btn primary" data-action="pick-focus">Pick a task</button>'
+    + '</section>';
+}
+function countOpen(st, { categoryId, projectId }) {
+  let n = 0;
+  st.projects.forEach((p) => {
+    if (projectId && p.id !== projectId) return;
+    p.tasks.forEach((t) => { if (t.status !== 'done' && (!categoryId || (t.categoryIds || []).includes(categoryId))) n++; });
+  });
+  return n;
+}
+
+export function renderFocus(st, findTaskWithProject, ui) {
+  if (!st.focus && !ENERGY_UI_ENABLED) return renderFocusPicker(st, ui);
   if (!st.focus) {
     return '<section class="card focus-card focus-empty">'
       + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
@@ -54,7 +87,7 @@ export function renderFocus(st, findTaskWithProject) {
       + '</section>';
   }
   const found = findTaskWithProject(st.focus.taskId);
-  if (!found) { state.focus = null; return renderFocus(st, findTaskWithProject); }
+  if (!found) { state.focus = null; return renderFocus(st, findTaskWithProject, ui); }
   const t = found.task, p = found.project;
   const energyLevel = st.focus.energy;
   const deadlineHTML = t.deadline ? deadlineChip(t.deadline) : '';
@@ -62,7 +95,7 @@ export function renderFocus(st, findTaskWithProject) {
   return '<section class="card focus-card focus-active">'
     + '<div class="focus-tags">'
       + '<span class="chip proj-chip" style="--chip-color:' + p.color + '">' + esc(p.name) + '</span>'
-      + (energyLevel ? '<span class="chip energy-chip" style="--chip-color:var(--energy-' + energyLevel + ')">' + ENERGY[energyLevel].label + ' energy</span>' : '<span class="chip">Surprise pick</span>')
+      + focusReasonChip(st.focus, energyLevel)
       + deadlineHTML
     + '</div>'
     + '<h2 class="focus-title">' + esc(t.title) + '</h2>'
@@ -72,6 +105,14 @@ export function renderFocus(st, findTaskWithProject) {
       + '<button type="button" class="btn ghost" data-action="clear-focus">Clear</button>'
     + '</div>'
     + '</section>';
+}
+
+// Says why this task is showing: the label it was picked from, a random pick, or the old energy pick.
+function focusReasonChip(focus, energyLevel) {
+  const cat = focus.filter && focus.filter.categoryId && state.categories.find((c) => c.id === focus.filter.categoryId);
+  if (cat) return '<span class="chip cat-chip" style="--chip-color:' + cat.color + '">' + esc(cat.name) + '</span>';
+  if (energyLevel && ENERGY_UI_ENABLED) return '<span class="chip energy-chip" style="--chip-color:var(--energy-' + energyLevel + ')">' + ENERGY[energyLevel].label + ' energy</span>';
+  return focus.pool ? '<span class="chip">Random pick</span>' : '';
 }
 
 export function renderDone(st) {
@@ -106,18 +147,39 @@ export function renderInbox(st, ui) {
     + '</section>';
 }
 
+// A task can carry several labels (categories), so both task forms pick them with checkboxes in a
+// collapsible list, plus a field for new ones. The summary's count is kept current by app.js.
+export function renderLabelPicker(categories, selectedIds) {
+  const selected = selectedIds || [];
+  const options = categories.map((c) => '<label class="label-option" style="--chip-color:' + c.color + '">'
+    + '<input type="checkbox" name="categoryIds" value="' + c.id + '"' + (selected.includes(c.id) ? ' checked' : '') + '>'
+    + '<span>' + esc(c.name) + '</span></label>').join('');
+  return '<details class="label-picker">'
+    + '<summary>' + labelPickerSummary(selected.length) + '</summary>'
+    + '<div class="label-options">' + options + '</div>'
+    + '<input type="text" name="newLabels" placeholder="New labels, comma-separated…" maxlength="120">'
+    + '</details>';
+}
+export function labelPickerSummary(count) { return count ? 'Labels (' + count + ')' : 'Labels'; }
+
+export function renderPrioritySelect(selected) {
+  return '<select name="priority" aria-label="Priority"><option value="">No priority</option>'
+    + PRIORITY_ORDER.map((lvl) => '<option value="' + lvl + '"' + (selected === lvl ? ' selected' : '') + '>' + PRIORITY[lvl].label + ' priority</option>').join('')
+    + '</select>';
+}
+
 export function renderTaskEditForm(t, p, categories) {
-  const catOptions = categories.map((c) => '<option value="' + c.id + '"' + (t.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
   const energyValue = t.energyAuto ? 'auto' : t.energy;
   return '<form class="task-edit-form" data-action="save-task-edit" data-task="' + t.id + '" data-project="' + p.id + '">'
     + '<input type="text" name="title" value="' + esc(t.title) + '" maxlength="280" required autofocus>'
     + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2">' + esc((t.steps || []).join('\n')) + '</textarea>'
-    + '<select name="energy">'
+    + (ENERGY_UI_ENABLED ? '<select name="energy">'
       + '<option value="auto"' + (energyValue === 'auto' ? ' selected' : '') + '>Auto</option>'
       + ['low', 'medium', 'high'].map((lvl) => '<option value="' + lvl + '"' + (energyValue === lvl ? ' selected' : '') + '>' + ENERGY[lvl].label + '</option>').join('')
-    + '</select>'
-    + '<select name="category"><option value="">No category</option>' + catOptions + '<option value="__new__">+ Add new…</option></select>'
+    + '</select>' : '')
+    + renderPrioritySelect(t.priority)
     + '<input type="date" name="deadline" value="' + (t.deadline || '') + '">'
+    + renderLabelPicker(categories, t.categoryIds)
     + '<button type="submit">Save</button>'
     + '<button type="button" data-action="cancel-task-edit">Cancel</button>'
     + '</form>';
@@ -133,8 +195,11 @@ export function renderTaskRow(t, p, categories, ui) {
       + '<button type="button" class="link-btn small" data-action="unlink-github-issue" data-task="' + t.id + '" data-project="' + p.id + '" title="Unlink from this GitHub issue">Unlink</button>'
     : '<button type="button" class="link-btn small" data-action="link-github-issue" data-task="' + t.id + '" data-project="' + p.id + '" title="Link this task to a GitHub issue">🔗 Link</button>'
       + '<button type="button" class="link-btn small" data-action="create-github-issue" data-task="' + t.id + '" data-project="' + p.id + '" title="Create a new GitHub issue from this task">+ Issue</button>';
-  const cat = categories.find((c) => c.id === t.categoryId);
-  const catChip = cat ? '<span class="chip cat-chip small" data-cat-id="' + cat.id + '" data-cat-type="task" title="Right-click to change color" style="--chip-color:' + cat.color + '">' + esc(cat.name) + '</span>' : '';
+  const catChips = (t.categoryIds || []).map((id) => categories.find((c) => c.id === id)).filter(Boolean)
+    .map((cat) => '<span class="chip cat-chip small" data-cat-id="' + cat.id + '" data-cat-type="task" title="Right-click to change color" style="--chip-color:' + cat.color + '">' + esc(cat.name) + '</span>').join('');
+  const priorityChip = t.priority && PRIORITY[t.priority]
+    ? '<button type="button" class="chip priority-chip small" data-action="cycle-priority" data-task="' + t.id + '" title="Priority — tap to change" style="--chip-color:var(--prio-' + t.priority + ')"' + (isDone ? ' disabled' : '') + '>' + PRIORITY[t.priority].label + '</button>'
+    : (isDone ? '' : '<button type="button" class="chip priority-chip small chip-placeholder" data-action="cycle-priority" data-task="' + t.id + '" title="Set a priority">+ Priority</button>');
   const claudeChips = (t.claudeCreated ? '<span class="chip claude-chip claude-created-chip small" title="Claude opened this issue">Claude created</span>' : '')
     + (t.claudeCompleted && isDone ? '<span class="chip claude-chip claude-completed-chip small" title="Claude closed this issue">Claude completed</span>' : '');
   return '<div class="task-row' + (isDone ? ' is-done' : '') + '" data-task="' + t.id + '" data-project="' + p.id + '">'
@@ -144,9 +209,9 @@ export function renderTaskRow(t, p, categories, ui) {
       : '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + '</span>')
     + ghBadge
     + (isLinked ? '<button type="button" class="link-btn small" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" title="Edit this task">Edit</button>' : '')
-    + catChip + claudeChips
+    + priorityChip + catChips + claudeChips
     + (t.deadline ? deadlineChip(t.deadline) : '')
-    + '<button type="button" class="chip energy-chip small" data-action="cycle-energy" data-task="' + t.id + '" data-project="' + p.id + '" style="--chip-color:var(--energy-' + t.energy + ')"' + (isDone ? ' disabled' : '') + '>' + ENERGY[t.energy].label + '</button>'
+    + (ENERGY_UI_ENABLED ? '<button type="button" class="chip energy-chip small" data-action="cycle-energy" data-task="' + t.id + '" data-project="' + p.id + '" style="--chip-color:var(--energy-' + t.energy + ')"' + (isDone ? ' disabled' : '') + '>' + ENERGY[t.energy].label + '</button>' : '')
     + (!isDone ? '<button type="button" class="link-btn small" data-action="focus-task" data-task="' + t.id + '" data-project="' + p.id + '">Focus →</button>' : '')
     + '<button type="button" class="mini-x" data-action="delete-task" data-task="' + t.id + '" data-project="' + p.id + '" aria-label="Delete task">×</button>'
     + '</div>';
@@ -219,18 +284,15 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
       + '<form class="add-task-form" data-action="add-task" data-project="' + p.id + '">'
         + '<input type="text" name="title" placeholder="Add a task…" maxlength="280" required>'
         + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
-        + '<select name="energy">'
+        + (ENERGY_UI_ENABLED ? '<select name="energy">'
           + '<option value="auto" selected>Auto</option>'
           + '<option value="low">Low</option>'
           + '<option value="medium">Medium</option>'
           + '<option value="high">High</option>'
-        + '</select>'
-        + '<select name="category">'
-          + '<option value="">No category</option>'
-          + categories.map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('')
-          + '<option value="__new__">+ Add new…</option>'
-        + '</select>'
+        + '</select>' : '')
+        + renderPrioritySelect(null)
         + '<input type="date" name="deadline">'
+        + renderLabelPicker(categories, [])
         + '<button type="submit" aria-label="Add task">+</button>'
       + '</form>'
     ))

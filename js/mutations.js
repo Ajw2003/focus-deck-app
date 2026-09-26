@@ -1,6 +1,6 @@
 // focus-deck-app/js/mutations.js
-import { state, uid, nextHue, findTaskWithProject } from './state.js';
-import { syncIssueCompletion, pushCategoryToIssue, pushCategoryColorToLinkedIssues } from './github-sync.js';
+import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER } from './state.js';
+import { syncIssueCompletion, pushCategoriesToIssue, pushPriorityToIssue, pushCategoryColorToLinkedIssues } from './github-sync.js';
 // The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
 // used to have its own copy that saved locally but never pushed, so most edits never reached the
 // Gist. See doc-ref 2425 docs/systems/gist-sync.md
@@ -26,16 +26,17 @@ export function addProject(name, categoryId) {
 // energy is whatever the add-task form's select submits: a literal level, or 'auto' (see
 // energyAuto on the task-edit-form's equivalent field in render.js). steps is the raw
 // newline-separated textarea value, split into the array shape the rest of the app expects.
-// deadline/categoryId/steps were previously dropped entirely -- the add-task form already
+// deadline/categories/steps were previously dropped entirely -- the add-task form already
 // submitted them, but this function's old (projectId, title, energy) signature had nowhere to
-// put them.
-export function addTask(projectId, title, energy, deadline, categoryId, steps) {
+// put them. categoryIds is a list (one per label); priority is a PRIORITY_ORDER level or empty.
+export function addTask(projectId, title, energy, deadline, categoryIds, steps, priority) {
   const project = state.projects.find((p) => p.id === projectId);
   if (!project) return;
   const isAuto = energy === 'auto';
   const task = {
     id: uid('t'), title, energy: (!isAuto && energy) ? energy : 'medium', energyAuto: isAuto,
-    status: 'next', deadline: deadline || null, categoryId: categoryId || null,
+    status: 'next', deadline: deadline || null, categoryIds: categoryIds || [],
+    priority: PRIORITY_ORDER.includes(priority) ? priority : null,
     source: 'manual', updatedAt: Date.now(),
   };
   if (steps) task.steps = String(steps).split('\n').map((s) => s.trim()).filter(Boolean);
@@ -48,13 +49,15 @@ export function updateTaskFields(taskId, fields) {
   const found = findTaskWithProject(taskId);
   if (!found) return;
   const { task } = found;
-  const oldCategoryId = task.categoryId;
+  const oldCategoryIds = (task.categoryIds || []).slice();
+  const oldPriority = task.priority || null;
   Object.assign(task, fields);
   task.updatedAt = Date.now();
   persist();
-  if ('categoryId' in fields && fields.categoryId !== oldCategoryId) {
-    pushCategoryToIssue(task, oldCategoryId);
+  if ('categoryIds' in fields && JSON.stringify(task.categoryIds) !== JSON.stringify(oldCategoryIds)) {
+    pushCategoriesToIssue(task, oldCategoryIds);
   }
+  if ('priority' in fields && (task.priority || null) !== oldPriority) pushPriorityToIssue(task);
 }
 
 // Adapter for the task-edit-form's raw field values (steps as a newline-separated textarea
@@ -66,12 +69,13 @@ export function updateTaskFields(taskId, fields) {
 export function editTask(taskId, projectId, fields) {
   const normalized = {};
   if (fields.title !== undefined) normalized.title = fields.title;
-  if (fields.energy !== undefined) {
+  if (fields.energy != null) { // null when the energy field is hidden (ENERGY_UI_ENABLED)
     if (fields.energy === 'auto') { normalized.energyAuto = true; }
     else { normalized.energy = fields.energy; normalized.energyAuto = false; }
   }
   if (fields.deadline !== undefined) normalized.deadline = fields.deadline || null;
-  if (fields.categoryId !== undefined) normalized.categoryId = fields.categoryId || null;
+  if (fields.categoryIds !== undefined) normalized.categoryIds = fields.categoryIds || [];
+  if (fields.priority !== undefined) normalized.priority = PRIORITY_ORDER.includes(fields.priority) ? fields.priority : null;
   if (fields.steps !== undefined) {
     normalized.steps = String(fields.steps || '').split('\n').map((s) => s.trim()).filter(Boolean);
   }
@@ -116,6 +120,15 @@ export function toggleTask(taskId, projectId) {
   const found = findTaskWithProject(taskId);
   if (!found) return;
   setTaskStatus(taskId, found.task.status === 'done' ? 'next' : 'done');
+}
+
+// The priority chip on a task row: none -> low -> medium -> high -> urgent -> none.
+const PRIORITY_CYCLE = [null, 'low', 'medium', 'high', 'urgent'];
+export function cyclePriority(taskId) {
+  const found = findTaskWithProject(taskId);
+  if (!found) return;
+  const idx = PRIORITY_CYCLE.indexOf(found.task.priority || null);
+  updateTaskFields(taskId, { priority: PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length] });
 }
 
 // Was previously called (as M.cycleEnergy) but never exported -- the energy chip has been
@@ -166,7 +179,7 @@ export function fileInboxItem(inboxId, projectId) {
   const item = state.inbox.find((i) => i.id === inboxId);
   const project = state.projects.find((p) => p.id === projectId);
   if (!item || !project) return;
-  project.tasks.push({ id: uid('t'), title: item.text, energy: 'medium', status: 'next', deadline: null, categoryId: null, source: 'manual', updatedAt: Date.now() });
+  project.tasks.push({ id: uid('t'), title: item.text, energy: 'medium', status: 'next', deadline: null, categoryIds: [], priority: null, source: 'manual', updatedAt: Date.now() });
   state.inbox = state.inbox.filter((i) => i.id !== inboxId);
   persist();
 }
@@ -202,12 +215,27 @@ export function surprise() {
   persist();
 }
 
+// "What's your focus right now?": a random open task, limited to a label and/or project when chosen
+// (empty means any). Returns false, changing nothing, when no open task matches.
+export function pickFocus(filter) {
+  const f = { categoryId: (filter && filter.categoryId) || null, projectId: (filter && filter.projectId) || null };
+  const pool = openTasksMatching(f);
+  if (!pool.length) return false;
+  state.focus = { taskId: pool[Math.floor(Math.random() * pool.length)], pool, filter: f, startedAt: Date.now() };
+  persist();
+  return true;
+}
+
 // "Not this one": swaps to a different task from the same pool setEnergyFocus/surprise built,
 // keeping the same energy filter. Only shown in the UI when the pool has more than one candidate.
 // Was previously called (as M.reroll) but never exported.
 export function reroll() {
   if (!state.focus || !state.focus.pool || state.focus.pool.length < 2) return;
-  const others = state.focus.pool.filter((id) => id !== state.focus.taskId);
+  const others = state.focus.pool.filter((id) => {
+    const found = id !== state.focus.taskId && findTaskWithProject(id);
+    return found && found.task.status !== 'done'; // skip tasks finished since the pick
+  });
+  if (!others.length) return;
   state.focus.taskId = others[Math.floor(Math.random() * others.length)];
   persist();
 }
@@ -263,7 +291,7 @@ export function renameCategory(id, name) {
 // Explicit, confirmed removal from Settings (the confirm names how many tasks it's on).
 export function removeCategory(id) {
   state.categories = state.categories.filter((c) => c.id !== id);
-  state.projects.forEach((p) => p.tasks.forEach((t) => { if (t.categoryId === id) t.categoryId = null; }));
+  state.projects.forEach((p) => p.tasks.forEach((t) => { t.categoryIds = (t.categoryIds || []).filter((c) => c !== id); }));
   persist();
 }
 

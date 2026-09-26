@@ -9,17 +9,23 @@ tasks to specific issues.
 
 ## How it works
 
-### Category resolution from labels — `applyCategoryFromLabels` (js/github-sync.js:22)
+### Labels to categories, priority and flags — `applyLabels` (js/github-sync.js)
 
-Resolves a task's category from an issue's labels: a label matching an existing
-category name wins; otherwise the first label that isn't a priority/status label
-becomes a brand-new category (auto-created here). If neither applies, the task's
-current category is left alone — most issues won't carry a category-shaped label at
-all, and that shouldn't clear one already set.
+A task carries every label on its issue: `task.categoryIds` is a list with one category
+per label, in the issue's order. Each label that isn't reserved maps to the category with
+the same name (ignoring case, spaces, hyphens and underscores), or becomes a new category.
+A new one takes the label's own GitHub colour (`labelColors`, kept by `mapIssue` in
+js/github.js), so "lighting" arrives yellow. On every sync GitHub is the source of truth:
+a label removed on the issue is removed from the task, and the priority is re-read.
 
-Priority/status labels (see `energyFromLabels`/`statusFromLabels`) are never mistaken
-for a category — this keeps "urgent" or "wip" from becoming a bogus auto-created
-category. These are listed in `RESERVED_LABELS`.
+Until 2026-09-26 a task held a single `categoryId`, set from the first matching label, and
+every other label was dropped. `normalizeTaskCategories` (js/state.js) folds an old
+`categoryId` into the list on load and after every Gist merge, so saves from older versions,
+and devices still running one, carry over.
+
+Priority and status labels (see `priorityFromLabels`/`statusFromLabels`) are never mistaken
+for a category; these are listed in `RESERVED_LABELS`. "good first issue" and "easy" used to
+be reserved as energy hints; with the energy UI off they are ordinary labels.
 
 The provenance labels `Claude created this` and `Claude completed this` are also
 reserved, and are read into `task.claudeCreated` / `task.claudeCompleted` in the same
@@ -35,12 +41,26 @@ It runs in the repo-wide pass, the standalone-linked pass, and `linkTaskToIssue`
 open-issue list, so its labels would never be read; each task `upsertRepoProject` newly
 marked done gets its issue fetched once and its labels applied if it is closed.
 
-### Pushing a category back to GitHub — `pushCategoryToIssue` (js/github-sync.js:70)
+### Pushing categories back to GitHub — `pushCategoriesToIssue` (js/github-sync.js)
 
-Pushes a task's local category onto its linked issue as a label: adds the new
-category's label (creating it on the repo first if needed) and removes the old one,
-if any — every other label on the issue (priority, status, anything unrelated) is
-left untouched.
+When a linked task's labels are edited, adds the labels for the categories it gained
+(creating each on the repo first if needed) and removes the ones it lost. Every other
+label on the issue (priority, status, anything unrelated) is left untouched.
+
+### Priority — `priorityFromLabels`, `pushPriorityToIssue` (js/github-sync.js)
+
+`task.priority` is `urgent`, `high`, `medium`, `low` or null (`PRIORITY` in js/state.js).
+On GitHub it is a label: Focus Deck writes `priority: urgent`, `priority: high`,
+`priority: medium` and `priority: low`, and also reads common aliases (`P0`–`P4`,
+`critical`, `blocker`, `urgent`, `high priority`, `low priority`). A canonical label wins
+over an alias; among several, the most urgent wins. `task.priorityLabel` remembers the
+exact label name it came from, so changing the priority removes that label, whatever it
+was called, and adds the canonical one. Linking a task to an issue with no priority label
+keeps the task's own priority and pushes it over. `createGithubIssueFromTask` includes the
+priority label. Unlinked tasks keep their priority locally.
+
+This replaces energy (Low/Medium/High bandwidth) in the UI; see the 2026-09-26 entry in
+`docs/Decisions.md`.
 
 ### Completion sync — `syncIssueCompletion` (js/github-sync.js:90)
 
@@ -115,20 +135,20 @@ Omitting it keeps the old gray-default create-only behavior.
 `pushCategoryColorToLinkedIssues` is fire-and-forget, called after a category is
 recolored (see `setCategoryColor` in `mutations.js`). It pushes the new color to
 that category's label in every repo a github-sourced task is currently using it in
-— recoloring doesn't change any task's `categoryId`, so nothing else would ever
+— recoloring doesn't change any task's `categoryIds`, so nothing else would ever
 tell those repos' labels to catch up.
 
 ## Invariants
 
-- A GitHub label's color always follows Focus Deck's category color; GitHub-side
-  manual recoloring is never pulled back into Focus Deck — sync is one-directional,
-  Focus Deck to GitHub.
-- `RESERVED_LABELS` (priority/status labels) are never treated as category
-  candidates in `applyCategoryFromLabels`.
-- `applyCategoryFromLabels` must be called *after* `task.status` is set, because
-  `claudeCompleted` depends on it.
-- `pushCategoryToIssue` only ever adds the new category label and removes the old
-  one; it never touches other labels on the issue.
+- A category first seen as a GitHub label takes that label's colour. From then on the
+  colour only flows Focus Deck to GitHub: recolouring a label on GitHub is never pulled
+  back.
+- `RESERVED_LABELS` (priority/status/provenance labels) never become categories in
+  `applyLabels`.
+- `applyLabels` must be called *after* `task.status` is set, because `claudeCompleted`
+  depends on it.
+- `pushCategoriesToIssue` only adds the labels a task gained and removes the ones it lost;
+  `pushPriorityToIssue` only swaps the priority label. Neither touches other labels.
 - `syncIssueCompletion` never rolls back local state on failure — GitHub failing to
   follow is surfaced as an error, not undone locally.
 - `unlinkTask` never mutates the GitHub issue; it only changes local task fields and
@@ -145,7 +165,7 @@ tell those repos' labels to catch up.
   be linked to an issue in a repo that isn't pinned, isn't in the open-issue
   candidate set, or has since been excluded; it only gets reconciled by the
   standalone pass.
-- `applyCategoryFromLabels` can silently create new categories as a side effect of
+- `applyLabels` can silently create new categories as a side effect of
   syncing labels — this is intentional, not a bug, but it means syncing can grow
   `state.categories` without any explicit user action.
 - `createGithubIssueFromTask` persists the newly-linked task *before* the done-task

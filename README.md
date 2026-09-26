@@ -2,8 +2,8 @@
 
 Focus Deck is a small, installable web app for people who have too many tasks and not enough
 executive function to pick one. Instead of showing you a giant list and hoping you'll choose
-wisely, it asks "how much energy do you have right now?" and hands you exactly one task that
-fits — with the rest deliberately out of sight.
+wisely, it asks "what's your focus right now?" and hands you exactly one task, picked at random
+from a label and/or project you choose — with the rest deliberately out of sight.
 
 It's a personal ADHD-management tool first and a GitHub productivity tool second: it works fine
 with nothing but tasks you type in by hand, and it gets more useful if you also link it to a
@@ -18,10 +18,10 @@ it is to start any single item. Focus Deck is built around the opposite bet — 
 decision to almost nothing**:
 
 - **One task at a time.** The main screen doesn't show your backlog. It shows a single focused
-  task (or nothing), and a "Surprise me" / energy-level picker for getting one.
-- **Energy-based, not priority-based.** You say Low / Medium / High energy, and Focus Deck picks
-  from tasks tagged at that level — because "what's most important" and "what I can actually do
-  right now" are frequently different questions, and only one of them is useful at 11pm.
+  task (or nothing), and a label/project picker for getting one.
+- **Pick the kind of work, not the task.** Choose "a chore", "an art task" or "anything in this
+  repo", and Focus Deck picks one at random, so the choosing itself costs nothing. (It used to pick
+  by Low / Medium / High energy; that is switched off for now, see `docs/Decisions.md`.)
 - **A capture inbox**, so a stray thought doesn't have to be filed, categorized, or prioritized
   in the moment it occurs to you — just dropped somewhere it won't be forgotten, to be sorted
   later when you have the executive function for that instead.
@@ -35,9 +35,13 @@ that quietly drift out of sync with each other.
 
 ## Features
 
-**Focus picker** — pick an energy level (or hit "Surprise me") and get one task pulled from
-whatever's in progress or next at that level, soonest deadline first. "Not this one" rerolls
-within the same pool without changing your energy level.
+**Focus picker** — choose a label, a project, or both (each option shows how many open tasks
+match) and get one open task at random. "Not this one" rerolls within the same pool. The last
+choice is remembered on each device.
+
+**Priority** — each task can be Urgent, High, Medium or Low. Tap a task's priority chip to change
+it. On a linked issue it syncs both ways as a `priority: …` label, and common labels like `P1` or
+`critical` are read as priority too.
 
 **Projects, categories, and colors** — tasks live inside projects; both projects and tasks can
 carry a color-coded category (set up and customized in Settings), so a glance at a chip tells
@@ -48,11 +52,12 @@ out of your head. File it into a project (or a new one) whenever you're ready, n
 
 **GitHub issue sync**, once a token is added in Settings:
 - Pull issues from a repo in as tasks, and push local category changes back to GitHub as
-  labels (and vice versa) — a label on the issue and a category on the task are kept in sync
-  in both directions, auto-creating a local category the first time a new label shows up.
+  labels (and vice versa) — every label on the issue shows on the task, and adding or removing
+  one on either side follows on the other. A label seen for the first time becomes a category in
+  its GitHub colour.
 - Link or unlink any individual task to any individual issue, even outside your normally-synced
   repos, and turn any existing manually-created task into a brand-new GitHub issue with one
-  click — its steps become a checklist in the issue body, its category becomes a label.
+  click — its steps become a checklist in the issue body, its labels and priority go with it.
 - Completion sync runs both ways: check off a task here and its linked issue closes on GitHub;
   reopen the issue there and the task comes back here.
 
