@@ -59,9 +59,10 @@ out of your head. File it into a project (or a new one) whenever you're ready, n
   one on either side follows on the other. A label seen for the first time becomes a category in
   its GitHub colour.
 - Link or unlink any individual task to any individual issue, even outside your normally-synced
-  repos. A task added to a GitHub project becomes an issue automatically, and any other task can
-  become one with **+ Issue** — its steps become a checklist in the issue body, its labels and
-  priority go with it, and an open issue with the same title is linked instead of duplicated.
+  repos. A task added to (or filed from Unsorted into) a GitHub project becomes an issue
+  automatically, and any other task can become one from its edit form — its steps become a
+  checklist in the issue body, its labels and priority go with it, and an open issue with the same
+  title is linked instead of duplicated. Linking and unlinking live in the edit form too.
 - Deleting a linked task closes its issue as "not planned" (it can be reopened on GitHub) and
   keeps it from coming back on the next sync.
 - Completion sync runs both ways: check off a task here and its linked issue closes on GitHub;

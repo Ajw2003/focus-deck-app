@@ -186,10 +186,12 @@ export function renderInbox(st, ui) {
         const chips = st.projects.map((p) => {
           return '<button type="button" class="mini-chip" data-action="file-inbox" data-inbox="' + item.id + '" data-project="' + p.id + '" style="--chip-color:' + p.color + '">' + esc(shortName(p.name)) + '</button>';
         }).join('');
-        return '<div class="inbox-row">'
+        // a form so the ticked labels can be read with FormData when a project chip is tapped
+        return '<form class="inbox-row" data-inbox="' + item.id + '">'
           + '<div class="inbox-text">' + esc(item.text) + '<span class="inbox-time">' + relTime(item.createdAt) + '</span></div>'
+          + renderLabelPicker(st.categories, []) // labels first: tapping a project chip files the item
           + '<div class="inbox-actions">' + chips + '<button type="button" class="mini-x" data-action="discard-inbox" data-inbox="' + item.id + '" aria-label="Discard">×</button></div>'
-          + '</div>';
+          + '</form>';
       }).join('');
     }
   }
@@ -220,6 +222,19 @@ export function renderPrioritySelect(selected) {
     + '</select>';
 }
 
+// The edit form's GitHub line: a linked task can be unlinked (kept here, dropped from GitHub sync);
+// an unlinked one can get a new issue or be linked to an existing one.
+function renderTaskGithubLine(t, p) {
+  const btn = (action, label, title) => '<button type="button" class="link-btn small" data-action="' + action + '" data-task="' + t.id + '" data-project="' + p.id + '" title="' + title + '">' + label + '</button>';
+  if (t.source === 'github') {
+    return '<div class="task-edit-github"><span>Linked to ' + esc(t.repoFullName || '') + '#' + t.issueNumber + '</span>'
+      + btn('unlink-github-issue', 'Unlink', 'Keep this task here but stop syncing it with the issue') + '</div>';
+  }
+  return '<div class="task-edit-github"><span>Not on GitHub</span>'
+    + btn('create-github-issue', '+ Create issue', 'Create a new GitHub issue from this task')
+    + btn('link-github-issue', '🔗 Link to an existing issue', 'Link this task to an issue that already exists') + '</div>';
+}
+
 export function renderTaskEditForm(t, p, categories) {
   const energyValue = t.energyAuto ? 'auto' : t.energy;
   return '<form class="task-edit-form" data-action="save-task-edit" data-task="' + t.id + '" data-project="' + p.id + '">'
@@ -232,6 +247,7 @@ export function renderTaskEditForm(t, p, categories) {
     + renderPrioritySelect(t.priority)
     + '<input type="date" name="deadline" value="' + (t.deadline || '') + '">'
     + renderLabelPicker(categories, t.categoryIds)
+    + renderTaskGithubLine(t, p)
     + '<button type="submit">Save</button>'
     + '<button type="button" data-action="cancel-task-edit">Cancel</button>'
     + '</form>';
@@ -242,11 +258,11 @@ export function renderTaskRow(t, p, categories, ui) {
   const isDone = t.status === 'done';
   // A task linked to an issue opens that issue from its title (see docs/systems/github-sync.md).
   const isLinked = t.source === 'github' && !!t.url;
+  // Linking controls (Unlink, Link, + Issue) live in the edit form; the row only shows the issue
+  // number. See docs/systems/github-sync.md#where-the-github-controls-live
   const ghBadge = t.source === 'github'
     ? '<a class="chip gh-chip small" href="' + esc(t.url || '#') + '" target="_blank" rel="noopener">#' + (t.issueNumber != null ? t.issueNumber : '') + '</a>'
-      + '<button type="button" class="link-btn small" data-action="unlink-github-issue" data-task="' + t.id + '" data-project="' + p.id + '" title="Unlink from this GitHub issue">Unlink</button>'
-    : '<button type="button" class="link-btn small" data-action="link-github-issue" data-task="' + t.id + '" data-project="' + p.id + '" title="Link this task to a GitHub issue">🔗 Link</button>'
-      + '<button type="button" class="link-btn small" data-action="create-github-issue" data-task="' + t.id + '" data-project="' + p.id + '" title="Create a new GitHub issue from this task">+ Issue</button>';
+    : '';
   const catChips = (t.categoryIds || []).map((id) => categories.find((c) => c.id === id)).filter(Boolean)
     .map((cat) => '<span class="chip cat-chip small" data-cat-id="' + cat.id + '" data-cat-type="task" title="Right-click to change color" style="--chip-color:' + cat.color + '">' + esc(cat.name) + '</span>').join('');
   const priorityChip = t.priority && PRIORITY[t.priority]

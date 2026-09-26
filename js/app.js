@@ -103,7 +103,11 @@ function onAppClick(e) {
       : '';
     if (confirm('Delete "' + title + '"? This can\'t be undone.' + issueNote)) M.deleteTask(taskId, projectId);
   }
-  else if (action === 'file-inbox') M.fileInboxItem(el.getAttribute('data-inbox'), projectId);
+  else if (action === 'file-inbox') {
+    const row = el.closest('.inbox-row');
+    const task = M.fileInboxItem(el.getAttribute('data-inbox'), projectId, row ? labelsFromForm(new FormData(row)) : []);
+    createIssueIfGithubProject(task, projectId);
+  }
   else if (action === 'discard-inbox') M.discardInbox(el.getAttribute('data-inbox'));
   else if (action === 'remove-project') { ui.pendingRemove[projectId] = true; paint(); }
   else if (action === 'cancel-remove-project') { delete ui.pendingRemove[projectId]; paint(); }
@@ -245,20 +249,27 @@ function labelsFromForm(fd) {
   return ids;
 }
 
+// A task added to (or filed into) a GitHub project becomes an issue straight away, through the same
+// path as "+ Create issue" (duplicate check included). If that fails the task stays local and the
+// edit form's "+ Create issue" retries.
+// See docs/systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs176
+function createIssueIfGithubProject(task, projectId) {
+  const project = state.projects.find((p) => p.id === projectId);
+  if (task && project && project.source === 'github' && project.repoFullName) {
+    createGithubIssueFromTask(task.id, project.repoFullName, ui).then(paint);
+  }
+}
+
 function onAppSubmit(e) {
+  // Enter in an Unsorted item's "New labels" field must not reload the page; filing is by project chip
+  if (e.target.matches && e.target.matches('.inbox-row')) { e.preventDefault(); return; }
   const addTaskForm = e.target.closest('[data-action="add-task"]');
   if (addTaskForm) {
     e.preventDefault();
     const fd = new FormData(addTaskForm);
     const projectId = addTaskForm.getAttribute('data-project');
     const task = M.addTask(projectId, fd.get('title'), fd.get('energy'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'));
-    // A task added to a GitHub project becomes an issue straight away, through the same path as
-    // "+ Issue" (duplicate check included). If that fails the task stays local and "+ Issue" retries.
-    // See docs/systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs176
-    const project = state.projects.find((p) => p.id === projectId);
-    if (task && project && project.source === 'github' && project.repoFullName) {
-      createGithubIssueFromTask(task.id, project.repoFullName, ui).then(paint);
-    }
+    createIssueIfGithubProject(task, projectId);
     return;
   }
   const addProjectForm = e.target.closest('[data-action="add-project"]');

@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow, renderToast, renderFocus } from './render.js';
+import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox } from './render.js';
 import assert from 'node:assert';
 
 const p = { id: 'p1', name: 'P' };
@@ -76,6 +76,20 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   const artOnly = renderFocus(st, () => null, { focusFilter: { mode: 'project', categoryId: 'c_chore' } });
   const narrowedCards = [...artOnly.matchAll(/data-action="pick-focus" data-category="([^"]*)" data-project="([^"]*)"/g)].map((m) => m[1] + '/' + m[2]);
   assert.deepStrictEqual(narrowedCards, ['c_chore/pB', 'c_chore/'], 'a label pill narrows the project cards, and every card carries that label');
+}
+
+// GitHub controls: the row shows only the issue number; unlink / link / create live in the edit form
+{
+  const linkedRow = row({});
+  assert.ok(linkedRow.includes('class="chip gh-chip small"') && !linkedRow.includes('unlink-github-issue'), 'a linked row shows #N but no Unlink');
+  const plainRow = row({ source: 'manual', url: undefined, repoFullName: undefined, issueNumber: undefined });
+  assert.ok(!plainRow.includes('link-github-issue') && !plainRow.includes('create-github-issue'), 'an unlinked row has no Link or + Issue');
+  const linkedForm = renderTaskEditForm({ ...base }, p, cats);
+  assert.ok(linkedForm.includes('Linked to o/r#1') && linkedForm.includes('data-action="unlink-github-issue"'), 'the edit form of a linked task offers Unlink');
+  const plainForm = renderTaskEditForm({ ...base, source: 'manual', url: undefined, repoFullName: undefined, issueNumber: undefined }, p, cats);
+  assert.ok(plainForm.includes('data-action="create-github-issue"') && plainForm.includes('data-action="link-github-issue"'), 'the edit form of an unlinked task offers create and link');
+  const inbox = renderInbox({ inbox: [{ id: 'i1', text: 'idea', createdAt: Date.now() }], projects: [{ id: 'p1', name: 'P', color: 'red' }], categories: cats }, { inboxOpen: true });
+  assert.ok(inbox.includes('<form class="inbox-row" data-inbox="i1">') && inbox.includes('class="label-picker"') && inbox.includes('data-action="file-inbox"'), 'an Unsorted item can take labels before it is filed to a project');
 }
 
 assert.strictEqual(renderToast(null, 'error'), '', 'no message means no toast');
