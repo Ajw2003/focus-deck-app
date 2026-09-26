@@ -99,7 +99,7 @@ export function renderTaskEditForm(t, p, categories) {
   const catOptions = categories.map((c) => '<option value="' + c.id + '"' + (t.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
   const energyValue = t.energyAuto ? 'auto' : t.energy;
   return '<form class="task-edit-form" data-action="save-task-edit" data-task="' + t.id + '" data-project="' + p.id + '">'
-    + '<input type="text" name="title" value="' + esc(t.title) + '" maxlength="140" required autofocus>'
+    + '<input type="text" name="title" value="' + esc(t.title) + '" maxlength="280" required autofocus>'
     + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2">' + esc((t.steps || []).join('\n')) + '</textarea>'
     + '<select name="energy">'
       + '<option value="auto"' + (energyValue === 'auto' ? ' selected' : '') + '>Auto</option>'
@@ -200,7 +200,7 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
           + (doneOpen ? '<div class="task-group done-group">' + done.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
         ) : '')
       + '<form class="add-task-form" data-action="add-task" data-project="' + p.id + '">'
-        + '<input type="text" name="title" placeholder="Add a task…" maxlength="140" required>'
+        + '<input type="text" name="title" placeholder="Add a task…" maxlength="280" required>'
         + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
         + '<select name="energy">'
           + '<option value="auto" selected>Auto</option>'
