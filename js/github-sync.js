@@ -374,8 +374,11 @@ export async function addRepoManually(input, ui) {
   }
 }
 
+// See docs/systems/github-sync.md#repo-sync--upsertrepoproject-jsgithub-syncjs
 export function upsertRepoProject(repo, issues, ui) {
-  const labeled = issues.filter((iss) => iss.labels && iss.labels.length > 0 && !state.excludedIssues.includes(repo.full_name + '#' + iss.number));
+  const open = issues.filter((iss) => !state.excludedIssues.includes(repo.full_name + '#' + iss.number));
+  // only labelled issues become new tasks; an issue already linked to a task counts however it's labelled
+  const labeled = open.filter((iss) => iss.labels && iss.labels.length > 0);
   let project = state.projects.find((p) => p.source === 'github' && p.repoFullName === repo.full_name);
   if (!project && labeled.length === 0 && !state.pinnedRepos.includes(repo.full_name)) return [];
 
@@ -388,10 +391,11 @@ export function upsertRepoProject(repo, issues, ui) {
   }
   project.lastSyncedAt = Date.now();
 
-  const openNumbers = new Set(labeled.map((iss) => iss.number));
+  const openNumbers = new Set(open.map((iss) => iss.number));
+  const isThisRepos = (t) => t.source === 'github' && t.repoFullName === repo.full_name;
   const newlyClosed = [];
   project.tasks.forEach((t) => {
-    if (t.source === 'github' && t.status !== 'done' && !openNumbers.has(t.issueNumber)) {
+    if (isThisRepos(t) && t.status !== 'done' && !openNumbers.has(t.issueNumber)) {
       t.status = 'done';
       t.updatedAt = Date.now();
       newlyClosed.push(t);
@@ -399,18 +403,18 @@ export function upsertRepoProject(repo, issues, ui) {
     }
   });
 
-  labeled.forEach((iss) => {
-    const existing = project.tasks.find((t) => t.source === 'github' && t.issueNumber === iss.number);
+  open.forEach((iss) => {
+    const existing = project.tasks.find((t) => isThisRepos(t) && t.issueNumber === iss.number);
     if (existing) {
       existing.title = iss.title;
       existing.url = repo.html_url + '/issues/' + iss.number;
       existing.repoFullName = repo.full_name;
       // it was marked done locally by an earlier sync (issue closed) but the issue is back in
-      // the open+labeled set now, so it was reopened on GitHub — reflect that here too
+      // the open set now, so it was reopened on GitHub — reflect that here too
       if (existing.status === 'done') existing.status = statusFromLabels(iss.labels);
       applyLabels(existing, iss.labels, iss.labelColors);
       dropStaleCompletedLabel(existing, iss.labels);
-    } else {
+    } else if (iss.labels && iss.labels.length > 0) {
       const task = { id: uid('t'), title: iss.title, energy: resolveIssueEnergy(iss), status: statusFromLabels(iss.labels), deadline: null, categoryIds: [], source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
       applyLabels(task, iss.labels, iss.labelColors);
       project.tasks.push(task);

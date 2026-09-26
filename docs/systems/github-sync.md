@@ -31,6 +31,14 @@ The provenance labels `Claude created this` and `Claude completed this` are also
 reserved, and are read into `task.claudeCreated` / `task.claudeCompleted` in the same
 pass (see [claude-integration.md](./claude-integration.md)).
 
+### Repo sync — `upsertRepoProject` (js/github-sync.js)
+
+Turns one repo's open-issue list into its project's tasks. Only **labelled** open issues are
+imported as new tasks, so a repo's unlabelled noise stays out. But any open issue already linked
+to a task counts as open, labelled or not. A linked task is marked done only when its issue has
+left the open list (closed on GitHub). Only tasks linked to *this* repo are checked, so a task in
+the project that is linked to another repo's issue is left for the standalone pass below.
+
 ### Reopen cleanup and closed-issue label refresh — `dropStaleCompletedLabel`, `refreshClosedTaskLabels`
 
 `claudeCompleted` only means something while a task is done, so when a task is no longer
@@ -97,6 +105,10 @@ category (if any) becomes a label, created on the repo first if it isn't there y
 If the task is already marked done locally, the new issue is opened and then
 immediately closed to match.
 
+It runs from the task's **+ Issue** button, and automatically for every task added to a
+GitHub project (a project with `repoFullName`, from the add-task handler in js/app.js, #9).
+If it fails there, the task stays local, the error shows in the toast, and **+ Issue** retries.
+
 Before creating anything it pulls the repo's open issues (`listIssues`) and looks for
 one whose title matches the task's (`sameIssueTitle`: ignoring case and extra
 whitespace). This stops a duplicate when the issue already exists on GitHub, whether
@@ -160,6 +172,13 @@ tell those repos' labels to catch up.
   (`task.source === 'github'`) — unlink it first.
 
 ## Traps
+
+- **2026-09-26 — a linked issue without labels closed its task on the next sync.** `upsertRepoProject`
+  built its "still open" set from labelled issues only, so a task whose issue had no labels (for
+  example one made with **+ Issue** from an unlabelled task) was marked done while the issue stayed
+  open. It also compared issue numbers without the repo, so a task linked to another repo's issue
+  could be closed by this repo's list. Fixed when automatic issue creation (#9) would have hit it
+  on every unlabelled task; regression tests are in `js/github-sync.test.mjs`.
 
 - Don't assume `syncGithub()`'s main repo loop covers every linked task — a task can
   be linked to an issue in a repo that isn't pinned, isn't in the open-issue
