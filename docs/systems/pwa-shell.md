@@ -15,6 +15,15 @@ and falls back to the cache only when offline. Cross-origin requests (including 
 Fonts CDN) are never intercepted. `index.html` registers it with `updateViaCache: 'none'` so the
 browser checks for a new `service-worker.js` on every load.
 
+Network-first has to bypass the browser's own HTTP cache too. GitHub Pages serves every file with
+`Cache-Control: max-age=600`, so a plain `fetch(req)` inside the worker could be answered from
+that cache with a file up to 10 minutes old. Right after a deploy, an installed app loaded a fresh
+`index.html` with a stale `js/render.js`: a mix of versions that looked like the new features
+weren't working. `fetchFresh` therefore fetches with `cache: 'no-cache'`, which asks the server
+every time (a cheap 304 when nothing changed), and `install` pre-caches with `cache: 'reload'`. A
+navigate-mode request can't be copied with new options, so navigations are fetched by URL, and any
+redirect is passed back as a redirect.
+
 It used to be cache-first. Because `service-worker.js` itself didn't change when
 `js/mutations.js` was fixed, installed copies kept serving the old file, which wrote
 `"undefined"` over the saved data, indefinitely. Don't go back to cache-first for app code.
