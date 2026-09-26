@@ -18,7 +18,9 @@ Records only one side has are kept (union of ids). A project's own fields (name,
 category) follow the newer project copy, while its tasks merge one by one from both copies.
 The repo lists (`excludedRepos`, `pinnedRepos`, `excludedIssues`) are stamped as whole lists
 in `listStamps`; the newer list wins, and two unstamped lists are unioned. `completedLog`
-keeps entries only for tasks that exist and are done. `focus` is per-device and never merged.
+keeps entries only for tasks that exist and are done — except an entry with no `taskId` (a
+completed Unsorted thought, `M.completeInboxItem`, which never became a task) is kept outright,
+identified by carrying an `inboxId` instead. `focus` is per-device and never merged.
 
 ### Change stamping
 

@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.js
-import { state, esc, relTime, deadlineChip, shortName, ENERGY, ENERGY_UI_ENABLED, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
+import { state, esc, relTime, deadlineChip, ENERGY, ENERGY_UI_ENABLED, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
 
 export function energyBtn(level, label, desc) {
   return '<button type="button" class="energy-btn" data-action="set-energy" data-energy="' + level + '" style="--chip-color:var(--energy-' + level + ')"><span class="energy-label">' + label + '</span><span class="energy-desc">' + desc + '</span></button>';
@@ -79,7 +79,6 @@ function renderFocusPicker(st, ui) {
   const unlabelledCard = unlabelled.length ? card({ id: UNLABELLED, name: 'Unlabelled', color: 'var(--ink-faint)', matches: unlabelled }) : '';
   const links = [];
   if (labels.length > FOCUS_CARDS_SHOWN) links.push('<button type="button" class="link-btn" data-action="toggle-focus-all">' + (showAllLabels ? 'Show fewer' : 'Show all ' + labels.length + ' labels') + '</button>');
-  if (unlabelled.length) links.push('<button type="button" class="link-btn" data-action="start-sort">Sort ' + unlabelled.length + ' unlabelled →</button>');
   const surprise = '<div class="focus-surprise">'
     + '<button type="button" class="btn primary" data-action="pick-focus" data-category="" data-project="' + (projectId || '') + '">Surprise me</button>'
     + '<span class="muted small">' + focusCardDetail(openWhere(null, projectId), !projectId) + '</span>'
@@ -122,78 +121,7 @@ function focusCardDetail(matches, acrossProjects) {
   return parts.join(' · ');
 }
 
-// Sorting unlabelled tasks: the first task from sorting.index on that is still open and unlabelled
-// (others may have been labelled, finished or deleted meanwhile). Returns { task, project, index } or null.
-export function sortCurrent(st, sorting) {
-  for (let i = sorting.index; i < sorting.queue.length; i++) {
-    for (const p of st.projects) {
-      const t = p.tasks.find((x) => x.id === sorting.queue[i]);
-      if (t && t.status !== 'done' && !(t.categoryIds || []).length) return { task: t, project: p, index: i };
-    }
-  }
-  return null;
-}
-
-// The sort flow replaces the focus picker while it runs: one unlabelled task at a time, the three
-// kinds from #42 as big picks, then every other label as a tinted pill, then Next / Skip / Done.
-// See docs/systems/styling.md#sorting-unlabelled-tasks
-const SORT_LABELS_SHOWN = 8;
-function renderSortFlow(st, ui) {
-  const s = ui.sorting;
-  const cur = sortCurrent(st, s);
-  if (!cur) {
-    return '<section class="card focus-card focus-sort">'
-      + '<h2 class="focus-q">All sorted</h2>'
-      + '<p class="muted">' + (s.sorted ? 'You labelled ' + s.sorted + ' task' + (s.sorted === 1 ? '' : 's') + '.' : 'Nothing was left to sort.') + '</p>'
-      + '<div class="focus-actions"><button type="button" class="btn primary" data-action="sort-done">Done</button></div>'
-      + '</section>';
-  }
-  const t = cur.task, p = cur.project;
-  const kindCat = (k) => st.categories.find((c) => c.name.toLowerCase() === k.key);
-  const kindIds = new Set(TASK_KINDS.map(kindCat).filter(Boolean).map((c) => c.id));
-  const isOn = (token) => s.selected.includes(token);
-  const kinds = TASK_KINDS.map((k) => {
-    const cat = kindCat(k);
-    const token = cat ? cat.id : 'kind:' + k.key;
-    return '<button type="button" class="energy-btn' + (isOn(token) ? ' selected' : '') + '" data-action="sort-toggle" data-token="' + token + '" aria-pressed="' + isOn(token) + '" style="--chip-color:' + (cat ? cat.color : k.color) + '">'
-      + '<span class="energy-label">' + k.label + '</span><span class="energy-desc">' + k.desc + '</span></button>';
-  }).join('');
-  // Other labels, like the focus picker's pills: the ones this task's project uses come first, busiest
-  // first, then the rest by use across all projects. Only the first few (plus any already picked) show
-  // until "+N more", so another repo's labels stay out of the way.
-  const useIn = (tasks) => {
-    const n = {};
-    tasks.forEach((x) => (x.categoryIds || []).forEach((id) => { n[id] = (n[id] || 0) + 1; }));
-    return n;
-  };
-  const here = useIn(p.tasks);
-  const everywhere = useIn(st.projects.flatMap((proj) => proj.tasks));
-  const ranked = st.categories.filter((c) => !kindIds.has(c.id))
-    .sort((a, b) => (here[b.id] || 0) - (here[a.id] || 0) || (everywhere[b.id] || 0) - (everywhere[a.id] || 0) || a.name.localeCompare(b.name));
-  const shownOthers = s.showAllLabels ? ranked : ranked.filter((c, i) => i < SORT_LABELS_SHOWN || isOn(c.id));
-  const morePill = ranked.length > SORT_LABELS_SHOWN
-    ? '<button type="button" class="filter-pill focus-more-pill" data-action="sort-more-labels">' + (s.showAllLabels ? 'Show fewer' : '+' + (ranked.length - shownOthers.length) + ' more') + '</button>'
-    : '';
-  const others = shownOthers.map((c) => '<button type="button" class="filter-pill tint-pill' + (isOn(c.id) ? ' active' : '') + '" data-action="sort-toggle" data-token="' + c.id + '" aria-pressed="' + isOn(c.id) + '" style="--chip-color:' + c.color + '">' + esc(c.name) + '</button>').join('') + morePill;
-  const position = s.queue.slice(0, cur.index + 1).length;
-  return '<section class="card focus-card focus-sort">'
-    + '<div class="sort-head"><h2 class="focus-q">Sort unlabelled tasks</h2><span class="muted small">' + position + ' of ' + s.queue.length + '</span></div>'
-    + '<div class="focus-tags"><span class="chip proj-chip" style="--chip-color:' + p.color + '">' + esc(p.name) + '</span>' + (t.issueNumber != null ? '<span class="chip">#' + t.issueNumber + '</span>' : '') + '</div>'
-    + '<h3 class="sort-title">' + esc(t.title) + '</h3>'
-    + '<p class="muted small sort-q">What kind of task is this?</p>'
-    + '<div class="energy-grid focus-grid sort-kinds">' + kinds + '</div>'
-    + (others ? '<p class="muted small sort-q">Other labels</p><div class="filter-pills sort-labels">' + others + '</div>' : '')
-    + '<input type="text" class="sort-new" name="sortNewLabels" value="' + esc(s.newLabels || '') + '" placeholder="New labels, comma-separated…" maxlength="120">'
-    + '<div class="focus-actions">'
-      + '<button type="button" class="btn primary" data-action="sort-next">Next →</button>'
-      + '<button type="button" class="btn ghost" data-action="sort-skip">Skip</button>'
-      + '<button type="button" class="btn ghost" data-action="sort-done">Done</button>'
-    + '</div>'
-    + '</section>';
-}
-
 export function renderFocus(st, findTaskWithProject, ui) {
-  if (!st.focus && ui && ui.sorting) return renderSortFlow(st, ui);
   if (!st.focus && !ENERGY_UI_ENABLED) return renderFocusPicker(st, ui);
   if (!st.focus) {
     return '<section class="card focus-card focus-empty">'
@@ -245,29 +173,139 @@ export function renderDone(st) {
   return '<section class="done-strip"><h3 class="section-label">Recently done</h3><div class="done-list">' + chips + '</div></section>';
 }
 
+// The Unsorted queue: captured thoughts (oldest first), then every open task with no labels, in
+// project order then task order. Computed live off state every render, so a new capture or a task
+// labelled elsewhere (or from another device) simply drops out or in on the next paint — nothing
+// here is stored except which keys this session has skipped (ui.unsorted.skipped).
+// See docs/systems/styling.md#unsorted
+export function unsortedQueue(st) {
+  const out = [];
+  st.inbox.forEach((item) => out.push({ key: 'i:' + item.id, kind: 'thought', item }));
+  st.projects.forEach((p) => {
+    p.tasks.forEach((t) => {
+      if (t.status !== 'done' && !(t.categoryIds || []).length) out.push({ key: 't:' + t.id, kind: 'task', task: t, project: p });
+    });
+  });
+  return out;
+}
+
+// The first queue item this session hasn't skipped, or null when everything left is skipped (or
+// the queue is empty).
+export function unsortedCurrent(st, u) {
+  const queue = unsortedQueue(st);
+  return queue.find((x) => !u.skipped.includes(x.key)) || null;
+}
+
+// Kind cards + ranked "other labels" pills, shared by a task's label step and a thought's (once its
+// project is chosen). Ranking mirrors the old sort flow's: the given project's labels first
+// (busiest first), then the rest by use across every project.
+const UNSORTED_LABELS_SHOWN = 8;
+function unsortedKindsAndLabels(st, project, u) {
+  const kindCat = (k) => st.categories.find((c) => c.name.toLowerCase() === k.key);
+  const kindIds = new Set(TASK_KINDS.map(kindCat).filter(Boolean).map((c) => c.id));
+  const isOn = (token) => u.selected.includes(token);
+  const kinds = TASK_KINDS.map((k) => {
+    const cat = kindCat(k);
+    const token = cat ? cat.id : 'kind:' + k.key;
+    return '<button type="button" class="energy-btn' + (isOn(token) ? ' selected' : '') + '" data-action="sort-toggle" data-token="' + token + '" aria-pressed="' + isOn(token) + '" style="--chip-color:' + (cat ? cat.color : k.color) + '">'
+      + '<span class="energy-label">' + k.label + '</span><span class="energy-desc">' + k.desc + '</span></button>';
+  }).join('');
+  const useIn = (tasks) => {
+    const n = {};
+    tasks.forEach((x) => (x.categoryIds || []).forEach((id) => { n[id] = (n[id] || 0) + 1; }));
+    return n;
+  };
+  const here = useIn(project ? project.tasks : []);
+  const everywhere = useIn(st.projects.flatMap((proj) => proj.tasks));
+  const ranked = st.categories.filter((c) => !kindIds.has(c.id))
+    .sort((a, b) => (here[b.id] || 0) - (here[a.id] || 0) || (everywhere[b.id] || 0) - (everywhere[a.id] || 0) || a.name.localeCompare(b.name));
+  const shownOthers = u.showAllLabels ? ranked : ranked.filter((c, i) => i < UNSORTED_LABELS_SHOWN || isOn(c.id));
+  const morePill = ranked.length > UNSORTED_LABELS_SHOWN
+    ? '<button type="button" class="filter-pill focus-more-pill" data-action="sort-more-labels">' + (u.showAllLabels ? 'Show fewer' : '+' + (ranked.length - shownOthers.length) + ' more') + '</button>'
+    : '';
+  const others = shownOthers.map((c) => '<button type="button" class="filter-pill tint-pill' + (isOn(c.id) ? ' active' : '') + '" data-action="sort-toggle" data-token="' + c.id + '" aria-pressed="' + isOn(c.id) + '" style="--chip-color:' + c.color + '">' + esc(c.name) + '</button>').join('') + morePill;
+  return '<p class="muted small sort-q">What kind of task is this?</p>'
+    + '<div class="energy-grid focus-grid sort-kinds">' + kinds + '</div>'
+    + (others ? '<p class="muted small sort-q">Other labels</p><div class="filter-pills sort-labels">' + others + '</div>' : '')
+    + '<input type="text" class="sort-new" name="sortNewLabels" value="' + esc(u.newLabels || '') + '" placeholder="New labels, comma-separated…" maxlength="120">';
+}
+
+// A captured thought's project step: pills tinted in each project's colour, busiest (most open
+// tasks) first, full names never shortened.
+const UNSORTED_PROJECTS_SHOWN = 8;
+function unsortedProjectPills(st, u) {
+  const openCount = (p) => p.tasks.filter((t) => t.status !== 'done').length;
+  const projects = st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, n: openCount(p) }))
+    .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+  const showAll = !!u.showAllProjects;
+  const shown = showAll ? projects : projects.slice(0, UNSORTED_PROJECTS_SHOWN);
+  const pill = (p) => '<button type="button" class="filter-pill tint-pill" data-action="unsorted-project" data-project="' + p.id + '" style="--chip-color:' + p.color + '">' + esc(p.name) + '</button>';
+  const morePill = projects.length > UNSORTED_PROJECTS_SHOWN
+    ? '<button type="button" class="filter-pill focus-more-pill" data-action="unsorted-more-projects">' + (showAll ? 'Show fewer' : '+' + (projects.length - shown.length) + ' more') + '</button>'
+    : '';
+  return '<div class="filter-pills sort-labels">' + shown.map(pill).join('') + morePill + '</div>';
+}
+
+// The Unsorted card: one queue item at a time, guiding it to a project (thoughts only), then
+// labels, then filed/saved — or completed, skipped or deleted outright. See
+// docs/systems/styling.md#unsorted
 export function renderInbox(st, ui) {
-  const count = st.inbox.length;
-  let items = '';
+  const u = ui.unsorted;
+  const queue = unsortedQueue(st);
+  const count = queue.length;
+  let body = '';
   if (ui.inboxOpen) {
     if (count === 0) {
-      items = '<p class="muted small">Nothing waiting — capture a thought above and it lands here until you file it.</p>';
+      body = '<p class="muted small">Nothing to sort — capture a thought above and it lands here.</p>';
     } else {
-      items = st.inbox.map((item) => {
-        const chips = st.projects.map((p) => {
-          return '<button type="button" class="mini-chip" data-action="file-inbox" data-inbox="' + item.id + '" data-project="' + p.id + '" style="--chip-color:' + p.color + '">' + esc(shortName(p.name)) + '</button>';
-        }).join('');
-        // a form so the ticked labels can be read with FormData when a project chip is tapped
-        return '<form class="inbox-row" data-inbox="' + item.id + '">'
-          + '<div class="inbox-text">' + esc(item.text) + '<span class="inbox-time">' + relTime(item.createdAt) + '</span></div>'
-          + renderLabelPicker(st.categories, []) // labels first: tapping a project chip files the item
-          + '<div class="inbox-actions">' + chips + '<button type="button" class="mini-x" data-action="discard-inbox" data-inbox="' + item.id + '" aria-label="Discard">×</button></div>'
-          + '</form>';
-      }).join('');
+      const remaining = queue.filter((x) => !u.skipped.includes(x.key));
+      if (!remaining.length) {
+        body = '<p class="muted small">' + u.skipped.length + ' skipped for now.</p>'
+          + '<button type="button" class="link-btn" data-action="unsorted-restart">Go through them again</button>';
+      } else {
+        const cur = remaining[0];
+        const position = '<span class="muted small">1 of ' + remaining.length + '</span>';
+        if (cur.kind === 'thought') {
+          const item = cur.item;
+          const project = u.projectId ? st.projects.find((p) => p.id === u.projectId) : null;
+          const head = '<div class="sort-head">' + position
+            + '<span class="chip">Thought · ' + relTime(item.createdAt) + '</span>'
+            + (project ? '<button type="button" class="chip proj-chip" data-action="unsorted-change-project" style="--chip-color:' + project.color + '">' + esc(project.name) + ' · change</button>' : '')
+            + '<button type="button" class="btn-text unsorted-delete" data-action="unsorted-delete" data-inbox="' + item.id + '">Delete</button>'
+            + '</div>';
+          const title = '<h3 class="sort-title">' + esc(item.text) + '</h3>';
+          const stepHtml = !project
+            ? '<p class="muted small sort-q">Which project?</p>'
+              + (st.projects.length ? unsortedProjectPills(st, u) : '<p class="muted small">Add a project below to file this thought into.</p>')
+            : unsortedKindsAndLabels(st, project, u);
+          const actions = '<div class="focus-actions">'
+            + (project ? '<button type="button" class="btn primary" data-action="unsorted-file" data-inbox="' + item.id + '">File →</button>' : '')
+            + '<button type="button" class="btn ghost" data-action="unsorted-complete" data-inbox="' + item.id + '">Done ✓</button>'
+            + '<button type="button" class="btn ghost" data-action="unsorted-skip">Skip</button>'
+            + '</div>';
+          body = head + title + stepHtml + actions;
+        } else {
+          const t = cur.task, p = cur.project;
+          const head = '<div class="sort-head">' + position
+            + '<span class="chip proj-chip" style="--chip-color:' + p.color + '">' + esc(p.name) + '</span>'
+            + (t.issueNumber != null ? '<span class="chip">#' + t.issueNumber + '</span>' : '')
+            + '<button type="button" class="btn-text unsorted-delete" data-action="unsorted-delete" data-task="' + t.id + '" data-project="' + p.id + '">Delete</button>'
+            + '</div>';
+          const title = '<h3 class="sort-title">' + esc(t.title) + '</h3>';
+          const stepHtml = unsortedKindsAndLabels(st, p, u);
+          const actions = '<div class="focus-actions">'
+            + '<button type="button" class="btn primary" data-action="unsorted-save" data-task="' + t.id + '" data-project="' + p.id + '">Save →</button>'
+            + '<button type="button" class="btn ghost" data-action="unsorted-complete" data-task="' + t.id + '" data-project="' + p.id + '">Done ✓</button>'
+            + '<button type="button" class="btn ghost" data-action="unsorted-skip">Skip</button>'
+            + '</div>';
+          body = head + title + stepHtml + actions;
+        }
+      }
     }
   }
   return '<section class="card inbox-card">'
     + '<button type="button" class="section-toggle" data-action="toggle-inbox">📥 Unsorted <span class="count">' + count + '</span><span class="chev">' + (ui.inboxOpen ? '−' : '+') + '</span></button>'
-    + (ui.inboxOpen ? '<div class="inbox-list">' + items + '</div>' : '')
+    + (ui.inboxOpen ? '<div class="unsorted-body">' + body + '</div>' : '')
     + '</section>';
 }
 
