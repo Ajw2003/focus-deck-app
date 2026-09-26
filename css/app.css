@@ -252,6 +252,8 @@ a{color:inherit;}
 .task-row.is-done .task-title{color:var(--ink-faint); text-decoration:line-through;}
 .task-title[role="button"]{cursor:pointer;}
 .task-title[role="button"]:hover{text-decoration:underline; text-decoration-style:dotted;}
+a.task-title{color:inherit; text-decoration:none;}
+a.task-title:hover{text-decoration:underline;}
 .task-edit-form{display:flex; flex-wrap:wrap; gap:6px; padding:7px 0; border-top:1px solid var(--line); width:100%;}
 .task-edit-form input[type="text"]{flex:1 1 160px; min-width:0; padding:6px 9px; border:1px solid var(--accent); border-radius:6px; background:var(--surface); color:var(--ink);}
 .task-edit-form select,.task-edit-form input[type="date"]{padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); font-size:.82rem;}

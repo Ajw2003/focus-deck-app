@@ -24,6 +24,14 @@ assert.ok(both.includes('claude-created-chip') && both.includes('claude-complete
 assert.ok(both.indexOf('cat-chip') < both.indexOf('claude-created-chip'), 'Claude chips come after the category chip so they never displace it');
 assert.ok(both.indexOf('claude-created-chip') < both.indexOf('claude-completed-chip'), 'created chip precedes completed chip');
 
+const linked = row({});
+assert.ok(/<a class="task-title" href="https:\/\/github.com\/o\/r\/issues\/1"[^>]*target="_blank"/.test(linked), 'a linked task title is a link to its issue');
+assert.ok(!/class="task-title"[^>]*data-action="edit-task"/.test(linked), 'a linked task title must not open the edit form');
+assert.ok(/data-action="edit-task"[^>]*>Edit</.test(linked), 'a linked task gets a separate Edit button');
+const manual = row({ source: 'manual', url: undefined, repoFullName: undefined, issueNumber: undefined });
+assert.ok(/<span class="task-title" data-action="edit-task"/.test(manual), 'an unlinked task title still opens the edit form');
+assert.ok(!manual.includes('>Edit<'), 'an unlinked task needs no separate Edit button');
+
 assert.strictEqual(renderErrorToast({ syncError: null }), '', 'no error means no toast');
 const toast = renderErrorToast({ syncError: 'Could not link <b>' });
 assert.ok(toast.includes('class="error-toast"') && toast.includes('role="alert"'), 'an error renders the pinned, announced toast');
