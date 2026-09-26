@@ -57,7 +57,11 @@ a **Sort N unlabelled →** link sits beside "Show all" (`.focus-links`).
 It steps through the open unlabelled tasks (within the chosen project pill) one at a time, showing
 the task, its project and its issue number. The three kinds from #42 (**Reminder**, **Build**,
 **Fix**; `TASK_KINDS` in js/state.js) come first as `.energy-btn` cards, where `.selected` adds a
-ring. Every other label follows as a `.tint-pill`, then a field for new labels. Picks toggle, and
+ring. The other labels follow as `.tint-pill`s, then a field for new labels. Like the picker's
+pills, they are ranked for the task at hand: labels this task's project uses come first (busiest
+first), then the rest by use across all projects. Only eight show, plus any already picked, until
+a dashed **+N more** pill (`sort-more-labels`) reveals the rest, so another repo's labels stay out
+of the way. It collapses again on the next task. Picks toggle, and
 **Next →** applies them through `updateTaskFields`, which pushes them to a linked issue like any
 label edit. **Skip** leaves the task as it is.
 

@@ -97,6 +97,7 @@ function onAppClick(e) {
     ui.sorting.index = cur ? cur.index + 1 : ui.sorting.queue.length;
     ui.sorting.selected = [];
     ui.sorting.newLabels = '';
+    ui.sorting.showAllLabels = false; // each task starts with its project's labels only
     if (ids.length) {
       ui.sorting.sorted++;
       M.updateTaskFields(cur.task.id, { categoryIds: ids }); // repaints, and pushes the labels to a linked issue
@@ -104,6 +105,7 @@ function onAppClick(e) {
       paint();
     }
   }
+  else if (action === 'sort-more-labels') { ui.sorting.showAllLabels = !ui.sorting.showAllLabels; paint(); }
   else if (action === 'sort-done') {
     if (ui.sorting && ui.sorting.sorted) ui.notice = 'Labelled ' + ui.sorting.sorted + ' task' + (ui.sorting.sorted === 1 ? '' : 's') + '.';
     ui.sorting = null;

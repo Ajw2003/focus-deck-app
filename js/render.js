@@ -137,6 +137,7 @@ export function sortCurrent(st, sorting) {
 // The sort flow replaces the focus picker while it runs: one unlabelled task at a time, the three
 // kinds from #42 as big picks, then every other label as a tinted pill, then Next / Skip / Done.
 // See docs/systems/styling.md#sorting-unlabelled-tasks
+const SORT_LABELS_SHOWN = 8;
 function renderSortFlow(st, ui) {
   const s = ui.sorting;
   const cur = sortCurrent(st, s);
@@ -157,7 +158,23 @@ function renderSortFlow(st, ui) {
     return '<button type="button" class="energy-btn' + (isOn(token) ? ' selected' : '') + '" data-action="sort-toggle" data-token="' + token + '" aria-pressed="' + isOn(token) + '" style="--chip-color:' + (cat ? cat.color : k.color) + '">'
       + '<span class="energy-label">' + k.label + '</span><span class="energy-desc">' + k.desc + '</span></button>';
   }).join('');
-  const others = st.categories.filter((c) => !kindIds.has(c.id)).map((c) => '<button type="button" class="filter-pill tint-pill' + (isOn(c.id) ? ' active' : '') + '" data-action="sort-toggle" data-token="' + c.id + '" aria-pressed="' + isOn(c.id) + '" style="--chip-color:' + c.color + '">' + esc(c.name) + '</button>').join('');
+  // Other labels, like the focus picker's pills: the ones this task's project uses come first, busiest
+  // first, then the rest by use across all projects. Only the first few (plus any already picked) show
+  // until "+N more", so another repo's labels stay out of the way.
+  const useIn = (tasks) => {
+    const n = {};
+    tasks.forEach((x) => (x.categoryIds || []).forEach((id) => { n[id] = (n[id] || 0) + 1; }));
+    return n;
+  };
+  const here = useIn(p.tasks);
+  const everywhere = useIn(st.projects.flatMap((proj) => proj.tasks));
+  const ranked = st.categories.filter((c) => !kindIds.has(c.id))
+    .sort((a, b) => (here[b.id] || 0) - (here[a.id] || 0) || (everywhere[b.id] || 0) - (everywhere[a.id] || 0) || a.name.localeCompare(b.name));
+  const shownOthers = s.showAllLabels ? ranked : ranked.filter((c, i) => i < SORT_LABELS_SHOWN || isOn(c.id));
+  const morePill = ranked.length > SORT_LABELS_SHOWN
+    ? '<button type="button" class="filter-pill focus-more-pill" data-action="sort-more-labels">' + (s.showAllLabels ? 'Show fewer' : '+' + (ranked.length - shownOthers.length) + ' more') + '</button>'
+    : '';
+  const others = shownOthers.map((c) => '<button type="button" class="filter-pill tint-pill' + (isOn(c.id) ? ' active' : '') + '" data-action="sort-toggle" data-token="' + c.id + '" aria-pressed="' + isOn(c.id) + '" style="--chip-color:' + c.color + '">' + esc(c.name) + '</button>').join('') + morePill;
   const position = s.queue.slice(0, cur.index + 1).length;
   return '<section class="card focus-card focus-sort">'
     + '<div class="sort-head"><h2 class="focus-q">Sort unlabelled tasks</h2><span class="muted small">' + position + ' of ' + s.queue.length + '</span></div>'
