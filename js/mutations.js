@@ -1,6 +1,6 @@
 // focus-deck-app/js/mutations.js
 import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER } from './state.js';
-import { syncIssueCompletion, pushCategoriesToIssue, pushPriorityToIssue, pushCategoryColorToLinkedIssues } from './github-sync.js';
+import { syncIssueCompletion, pushCategoriesToIssue, pushPriorityToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
 // The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
 // used to have its own copy that saved locally but never pushed, so most edits never reached the
 // Gist. See doc-ref 2425 docs/systems/gist-sync.md
@@ -102,12 +102,20 @@ export function setTaskStatus(taskId, status) {
 export function deleteTask(taskId, projectId) {
   const project = state.projects.find((p) => p.id === projectId);
   if (!project) return;
+  const task = project.tasks.find((t) => t.id === taskId);
+  const isLinked = task && task.source === 'github' && task.repoFullName && task.issueNumber != null;
+  if (isLinked) {
+    // keep the issue out of future syncs, even if closing it below fails
+    const key = task.repoFullName + '#' + task.issueNumber;
+    if (!state.excludedIssues.includes(key)) state.excludedIssues.push(key);
+  }
   project.tasks = project.tasks.filter((t) => t.id !== taskId);
   if (!state.deletedTaskIds) state.deletedTaskIds = {};
   state.deletedTaskIds[taskId] = Date.now(); // tombstone — see mergeStates in sync.js
   if (state.focus && state.focus.taskId === taskId) state.focus = null;
   state.completedLog = state.completedLog.filter((e) => e.taskId !== taskId);
   persist();
+  if (isLinked) closeIssueForDeletedTask(task); // fire-and-forget; a failure shows in the toast
 }
 
 // The task row's checkbox: flips between 'next' and 'done'. Anything mid-flight ('doing') also

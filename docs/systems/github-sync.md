@@ -96,6 +96,18 @@ task stays exactly as it is locally (now a manual task), the issue is untouched 
 GitHub, and the issue is remembered as excluded so the next repo-wide sync doesn't
 recreate a duplicate task for it.
 
+### Deleting a linked task — `closeIssueForDeletedTask` (js/github-sync.js)
+
+Deleting a task that is linked to an issue (`deleteTask` in js/mutations.js) closes the issue with
+GitHub's `not_planned` reason, so it reads as crossed off rather than done and can still be
+reopened. GitHub's REST API can't delete an issue, and permanent deletion (GraphQL, repo admin
+only) can't be undone, so Focus Deck doesn't do it. The issue is also added to
+`state.excludedIssues` before the close is attempted, so a sync never re-imports it even if the
+close fails (offline) or the issue is reopened; that list syncs across devices. Linking the issue
+to a task by hand removes it from the list again, as it does after **Unlink**. The delete
+confirmation names the issue that will be closed. Before 2026-09-26, deleting a linked task left
+the issue open, and the next sync re-imported it as a new task.
+
 ### Creating an issue from a task — `createGithubIssueFromTask` (js/github-sync.js:176)
 
 Creates a brand-new GitHub issue from a task that doesn't have one yet, and links the
@@ -165,6 +177,8 @@ tell those repos' labels to catch up.
   follow is surfaced as an error, not undone locally.
 - `unlinkTask` never mutates the GitHub issue; it only changes local task fields and
   records the issue in `state.excludedIssues`.
+- Deleting a linked task closes its issue as `not_planned` and never deletes it; the issue goes
+  into `state.excludedIssues` first, so it can't be re-imported.
 - Every task linked to an issue outside the currently-synced repo candidate set must
   still get its status/category reconciled each `syncGithub()` run (see the
   standalone-linked-tasks pass above).

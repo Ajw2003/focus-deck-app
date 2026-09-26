@@ -181,6 +181,20 @@ export async function syncIssueCompletion(task) {
   }
 }
 
+// A linked task deleted in Focus Deck closes its issue as "not planned": crossed off, not done, and
+// still reopenable (GitHub's REST API can't delete issues, and deleting can't be undone). Callers
+// also add the issue to excludedIssues so a sync never re-imports it.
+// See docs/systems/github-sync.md#deleting-a-linked-task--closeissuefordeletedtask-jsgithub-syncjs
+export async function closeIssueForDeletedTask(task) {
+  if (!isLinked(task)) return;
+  const [owner, name] = task.repoFullName.split('/');
+  try {
+    await setIssueState(owner, name, task.issueNumber, 'closed', 'not_planned');
+  } catch (e) {
+    reportSyncError('Deleted here, but couldn’t close ' + task.repoFullName + '#' + task.issueNumber + ' on GitHub: ' + e.message);
+  }
+}
+
 export function parseIssueRefInput(input) {
   input = (input || '').trim();
   let m = input.match(/github\.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/);

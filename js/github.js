@@ -75,10 +75,11 @@ export async function createIssue(owner, repo, title, body, labels) {
 }
 
 // Requires a token with "Issues: Read and write" — used for the task/issue linking feature.
-export async function setIssueState(owner, repo, number, issueState) {
+// stateReason (optional) is GitHub's close reason: 'completed' or 'not_planned'.
+export async function setIssueState(owner, repo, number, issueState, stateReason) {
   return ghFetch('/repos/' + owner + '/' + repo + '/issues/' + number, {
     method: 'PATCH',
-    body: JSON.stringify({ state: issueState }),
+    body: JSON.stringify(stateReason ? { state: issueState, state_reason: stateReason } : { state: issueState }),
   });
 }
 
