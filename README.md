@@ -51,6 +51,11 @@ it. On a linked issue it syncs both ways as a `priority: …` label, and common 
 carry a color-coded category (set up and customized in Settings), so a glance at a chip tells
 you what kind of work something is without reading it.
 
+**Wide screens** — from 1100px wide, a sticky project list sits on the left, with its own
+search, category filter and sort. Tap a project to jump to it. The page grows to fill the
+monitor: project cards flow into two or three columns, and the focus cards spread across one row.
+Phones and portrait monitors keep the single column.
+
 **Inbox capture** — a single always-visible input at the top of the page for getting a thought
 out of your head. File it into a project (or a new one) whenever you're ready, not before.
 

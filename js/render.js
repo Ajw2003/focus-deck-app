@@ -355,8 +355,9 @@ export function renderTaskRow(t, p, categories, ui) {
     + '</div>';
 }
 
-export function renderProjectFilterBar(st, ui, visibleProjects) {
-  if (!st.projects.length) return '';
+// The project controls (category pills, sort, collapse all) are shared by the filter bar above the
+// project cards and the wide-screen sidebar.
+function projectFilterPills(st, ui) {
   const usedCategoryIds = new Set(st.projects.map((p) => p.categoryId).filter(Boolean));
   const hasUncategorized = st.projects.some((p) => !p.categoryId);
   const pills = [{ key: '', label: 'All' }]
@@ -367,19 +368,47 @@ export function renderProjectFilterBar(st, ui, visibleProjects) {
     const active = pill.key === activeKey;
     return '<button type="button" class="filter-pill' + (active ? ' active' : '') + '" data-action="set-project-filter" data-category="' + pill.key + '">' + esc(pill.label) + '</button>';
   }).join('');
+  return pillsHTML;
+}
+function projectSortSelect(ui) {
   const sortOptions = [
     ['name', 'Name (A–Z)'], ['open-tasks', 'Most open tasks'], ['deadline', 'Closest deadline'], ['recent-sync', 'Recently synced'],
   ].map(([value, label]) => '<option value="' + value + '"' + (ui.projectSort === value ? ' selected' : '') + '>' + esc(label) + '</option>').join('');
+  return '<select class="project-sort-select" data-action="set-project-sort" aria-label="Sort projects">' + sortOptions + '</select>';
+}
+function collapseAllButton(ui, visibleProjects) {
   const allCollapsed = !!(visibleProjects && visibleProjects.length && visibleProjects.every((p) => ui.projectCollapsed[p.id]));
   const collapseAllBtn = visibleProjects && visibleProjects.length
     ? '<button type="button" class="btn-text small" data-action="toggle-collapse-all">' + (allCollapsed ? 'Expand all' : 'Collapse all') + '</button>'
     : '';
+  return collapseAllBtn;
+}
+
+export function renderProjectFilterBar(st, ui, visibleProjects) {
+  if (!st.projects.length) return '';
   return '<div class="project-filter-bar">'
-    + '<div class="filter-pills">' + pillsHTML + '</div>'
+    + '<div class="filter-pills">' + projectFilterPills(st, ui) + '</div>'
     + '<input type="text" class="project-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
-    + '<select class="project-sort-select" data-action="set-project-sort">' + sortOptions + '</select>'
-    + collapseAllBtn
+    + projectSortSelect(ui)
+    + collapseAllButton(ui, visibleProjects)
     + '</div>';
+}
+
+// Wide screens only (CSS shows it from 1100px): a sticky column listing every project that matches the
+// search and category, each jumping to its card. It replaces the filter bar and the project pills there.
+// See docs/systems/styling.md#project-sidebar
+export function renderProjectSidebar(st, ui, visibleProjects) {
+  if (!st.projects.length) return '';
+  const open = (p) => p.tasks.filter((t) => t.status !== 'done').length;
+  const rows = visibleProjects.map((p) => '<li><button type="button" class="sidebar-project" data-action="scroll-project" data-project="' + p.id + '" style="--dot:' + p.color + '">'
+    + '<span class="dot"></span><span class="sidebar-name">' + esc(p.name) + '</span><span class="sidebar-count" title="Open tasks">' + open(p) + '</span></button></li>').join('');
+  return '<aside class="project-sidebar" aria-label="Projects">'
+    + '<div class="sidebar-head"><h2 class="sidebar-title">Projects</h2><span class="muted small">' + visibleProjects.length + '</span></div>'
+    + '<input type="text" class="project-search sidebar-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
+    + '<div class="filter-pills sidebar-pills">' + projectFilterPills(st, ui) + '</div>'
+    + '<div class="sidebar-tools">' + projectSortSelect(ui) + collapseAllButton(ui, visibleProjects) + '</div>'
+    + '<ul class="sidebar-list">' + (rows || '<li class="muted small">No projects match.</li>') + '</ul>'
+    + '</aside>';
 }
 
 export function renderProjectCard(p, ui, categories, projectCategories) {

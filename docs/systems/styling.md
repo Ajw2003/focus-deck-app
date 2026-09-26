@@ -82,6 +82,31 @@ glanceable, tap-first style. A **Type | Project** switch followed, where Project
 cards projects and the pills labels. It was removed the same day, because the Type view did the job
 better. A saved `mode: 'project'` is ignored.
 
+### Project sidebar
+
+From 1100px wide the page switches to a two-column layout (#50, #64). Below that, on phones and
+portrait monitors, nothing changes.
+
+- **Sidebar.** `renderProjectSidebar` (js/render.js) is a sticky left column, 270px wide, that
+  scrolls on its own when it's taller than the window. It holds:
+  - its own search box (`.sidebar-search`)
+  - the category pills, sort menu and Collapse all, built by the same helpers as the filter bar
+  - one row per visible project (dot, full name, open task count)
+
+  Tapping a row runs the same `scroll-project` action as the focus card's project chip.
+- **What it replaces.** Inside `.main-col` the sidebar takes over from the filter bar and the
+  project pills (`.stats-row`), which CSS hides at this width. Both are still rendered, so the page
+  works unchanged below 1100px.
+- **Using the width (#64).**
+  - `.wrap` widens from 760px to 1800px. The 760px base rule is the one the style contract checks.
+  - Project cards flow into as many columns of at least 420px as fit: two on a laptop, three on a
+    1920px monitor.
+  - The focus picker's label cards fill the row (`auto-fill`, 190px minimum).
+
+The sidebar is always in the DOM and is hidden with `display:none` until the breakpoint. A
+repaint rebuilds both search boxes, so `paint()` in js/app.js records which one had focus and
+puts the cursor back in that one.
+
 Native `confirm()`/`prompt()` dialogs are questions, not notices, and stay as they are. The toast
 stays until the × dismisses it or a new message replaces it. While it shows, `.wrap:has(.toast)`
 adds bottom padding so the last controls can still scroll clear of it.
