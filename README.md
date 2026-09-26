@@ -39,9 +39,8 @@ that quietly drift out of sync with each other.
 tasks are open and the most pressing priority among them. Tap a card, or **Surprise me** below them, to get one
 open task at random. Project pills above narrow it to one repo (the busiest few show, "+N more"
 reveals the rest), and the choice is remembered on each device. Tasks with no label get an
-**Unlabelled** card, and **Sort N unlabelled** steps through them one at a time: tap Reminder,
-Build or Fix (or any other label), then Next.
-"Not this one" rerolls within the same pool.
+**Unlabelled** card, for picking one to focus on; sorting them into labels happens in the Unsorted
+card below (see Inbox capture). "Not this one" rerolls within the same pool.
 
 **Priority** — each task can be Urgent, High, Medium or Low. Tap a task's priority chip to change
 it. On a linked issue it syncs both ways as a `priority: …` label, and common labels like `P1` or
@@ -57,7 +56,10 @@ monitor: project cards flow into two or three columns, and the focus cards sprea
 Phones and portrait monitors keep the single column.
 
 **Inbox capture** — a single always-visible input at the top of the page for getting a thought
-out of your head. File it into a project (or a new one) whenever you're ready, not before.
+out of your head. The **Unsorted** card below guides it (and any task with no labels) through one
+at a time: a captured thought picks a project, then both pick labels the same way, ranked for that
+project; **File →** / **Save →** commits it, or **Done ✓**, **Skip** or **Delete** handle it
+without labelling — nothing is ever stuck waiting on a decision you're not ready to make.
 
 **GitHub issue sync**, once a token is added in Settings:
 - Pull issues from a repo in as tasks, and push local category changes back to GitHub as

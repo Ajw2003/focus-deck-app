@@ -1,5 +1,5 @@
 // focus-deck-app/js/app.js
-import { state, findTaskWithProject, findProjectIdForTask, candidatesForEnergy, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, openTasksMatching, UNLABELLED, TASK_KINDS } from './state.js';
+import { state, findTaskWithProject, findProjectIdForTask, candidatesForEnergy, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, TASK_KINDS } from './state.js';
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle, pullFromGist } from './sync.js';
@@ -30,11 +30,23 @@ function saveCollapsedProjects() {
   catch (e) { console.error('Could not save minimised projects:', e); }
 }
 
-export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), focusFilter: loadFocusFilter(), editingProjectCategory: null };
+// Per-item scratch for the Unsorted flow (chosen project, ticked labels, typed new labels, "show
+// all" toggles) plus this session's skip list and which queue item it belongs to. Reset whenever
+// the current item changes -- see renderApp below.
+function freshUnsortedScratch(skipped) {
+  return { skipped: skipped || [], projectId: null, selected: [], newLabels: '', showAllLabels: false, showAllProjects: false, currentKey: null };
+}
+
+export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), focusFilter: loadFocusFilter(), editingProjectCategory: null, unsorted: freshUnsortedScratch() };
 
 export function renderApp(st) {
   st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
   if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
+  // a new current Unsorted item (someone filed/skipped/completed the last one, or the queue itself
+  // changed under us -- a new capture, a task labelled elsewhere) starts with clean scratch
+  const currentUnsorted = R.unsortedCurrent(st, ui.unsorted);
+  const currentKey = currentUnsorted ? currentUnsorted.key : null;
+  if (currentKey !== ui.unsorted.currentKey) ui.unsorted = Object.assign(freshUnsortedScratch(ui.unsorted.skipped), { currentKey });
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   return R.renderProjectSidebar(st, ui, visibleProjects)
     + '<div class="main-col">'
@@ -66,6 +78,18 @@ export function paint() {
 registerPaint(paint);
 onExternalStateChange(paint);
 
+// Shared by the project card's delete-task button and the Unsorted card's Delete: same confirm
+// text, same "can't be undone" warning about a linked issue.
+function confirmDeleteTask(taskId, projectId) {
+  const found = findTaskWithProject(taskId);
+  const t = found && found.task;
+  const title = t ? t.title : 'this task';
+  const issueNote = t && t.source === 'github' && t.issueNumber != null
+    ? ' Its GitHub issue #' + t.issueNumber + ' will be closed as "not planned" (you can reopen it on GitHub).'
+    : '';
+  return confirm('Delete "' + title + '"? This can\'t be undone.' + issueNote);
+}
+
 function onAppClick(e) {
   const el = e.target.closest('[data-action]');
   if (!el) return;
@@ -86,37 +110,53 @@ function onAppClick(e) {
     saveFocusFilter();
     paint();
   }
-  else if (action === 'start-sort') {
-    // queue every open unlabelled task, within the chosen project pill
-    const projectId = state.projects.some((p) => p.id === ui.focusFilter.projectId) ? ui.focusFilter.projectId : null;
-    ui.sorting = { queue: openTasksMatching({ categoryId: UNLABELLED, projectId }), index: 0, selected: [], newLabels: '', sorted: 0 };
-    paint();
-  }
   else if (action === 'sort-toggle') {
     const token = el.getAttribute('data-token');
-    const sel = ui.sorting.selected;
-    ui.sorting.selected = sel.includes(token) ? sel.filter((x) => x !== token) : sel.concat(token);
+    const sel = ui.unsorted.selected;
+    ui.unsorted.selected = sel.includes(token) ? sel.filter((x) => x !== token) : sel.concat(token);
     paint();
   }
-  else if (action === 'sort-next' || action === 'sort-skip') {
-    const cur = R.sortCurrent(state, ui.sorting);
-    const ids = action === 'sort-next' && cur ? sortSelectionToIds() : [];
-    ui.sorting.index = cur ? cur.index + 1 : ui.sorting.queue.length;
-    ui.sorting.selected = [];
-    ui.sorting.newLabels = '';
-    ui.sorting.showAllLabels = false; // each task starts with its project's labels only
-    if (ids.length) {
-      ui.sorting.sorted++;
-      M.updateTaskFields(cur.task.id, { categoryIds: ids }); // repaints, and pushes the labels to a linked issue
-    } else {
+  else if (action === 'sort-more-labels') { ui.unsorted.showAllLabels = !ui.unsorted.showAllLabels; paint(); }
+  else if (action === 'unsorted-more-projects') { ui.unsorted.showAllProjects = !ui.unsorted.showAllProjects; paint(); }
+  else if (action === 'unsorted-project') { ui.unsorted.projectId = el.getAttribute('data-project'); paint(); }
+  else if (action === 'unsorted-change-project') { ui.unsorted.projectId = null; paint(); }
+  else if (action === 'unsorted-file') {
+    // read the project first: filing repaints, and the repaint resets ui.unsorted for the next item
+    const targetId = ui.unsorted.projectId;
+    const ids = unsortedSelectionToIds();
+    const task = M.fileInboxItem(el.getAttribute('data-inbox'), targetId, ids);
+    createIssueIfGithubProject(task, targetId);
+    const project = state.projects.find((p) => p.id === targetId);
+    ui.notice = 'Filed to ' + (project ? project.name : 'project') + '.';
+    paint();
+  }
+  else if (action === 'unsorted-save') {
+    const ids = unsortedSelectionToIds();
+    if (ids.length) M.updateTaskFields(taskId, { categoryIds: ids });
+    else { ui.unsorted.skipped = ui.unsorted.skipped.concat('t:' + taskId); paint(); }
+  }
+  else if (action === 'unsorted-skip') {
+    const cur = R.unsortedCurrent(state, ui.unsorted);
+    if (cur) ui.unsorted.skipped = ui.unsorted.skipped.concat(cur.key);
+    paint();
+  }
+  else if (action === 'unsorted-restart') { ui.unsorted.skipped = []; paint(); }
+  else if (action === 'unsorted-complete') {
+    const inboxId = el.getAttribute('data-inbox');
+    if (inboxId) M.completeInboxItem(inboxId);
+    else M.setTaskStatus(taskId, 'done');
+  }
+  else if (action === 'unsorted-delete') {
+    const inboxId = el.getAttribute('data-inbox');
+    if (inboxId) {
+      const item = state.inbox.find((i) => i.id === inboxId);
+      const text = item ? item.text : 'this note';
+      M.discardInbox(inboxId);
+      ui.notice = 'Deleted "' + text + '".';
       paint();
+    } else if (confirmDeleteTask(taskId, projectId)) {
+      M.deleteTask(taskId, projectId);
     }
-  }
-  else if (action === 'sort-more-labels') { ui.sorting.showAllLabels = !ui.sorting.showAllLabels; paint(); }
-  else if (action === 'sort-done') {
-    if (ui.sorting && ui.sorting.sorted) ui.notice = 'Labelled ' + ui.sorting.sorted + ' task' + (ui.sorting.sorted === 1 ? '' : 's') + '.';
-    ui.sorting = null;
-    paint();
   }
   else if (action === 'toggle-focus-all') { ui.focusShowAll = !ui.focusShowAll; paint(); }
   else if (action === 'toggle-focus-projects') { ui.focusShowAllProjects = !ui.focusShowAllProjects; paint(); }
@@ -128,20 +168,8 @@ function onAppClick(e) {
   else if (action === 'cycle-energy') M.cycleEnergy(taskId, projectId);
   else if (action === 'cycle-priority') M.cyclePriority(taskId);
   else if (action === 'delete-task') {
-    const found = findTaskWithProject(taskId);
-    const t = found && found.task;
-    const title = t ? t.title : 'this task';
-    const issueNote = t && t.source === 'github' && t.issueNumber != null
-      ? ' Its GitHub issue #' + t.issueNumber + ' will be closed as "not planned" (you can reopen it on GitHub).'
-      : '';
-    if (confirm('Delete "' + title + '"? This can\'t be undone.' + issueNote)) M.deleteTask(taskId, projectId);
+    if (confirmDeleteTask(taskId, projectId)) M.deleteTask(taskId, projectId);
   }
-  else if (action === 'file-inbox') {
-    const row = el.closest('.inbox-row');
-    const task = M.fileInboxItem(el.getAttribute('data-inbox'), projectId, row ? labelsFromForm(new FormData(row)) : []);
-    createIssueIfGithubProject(task, projectId);
-  }
-  else if (action === 'discard-inbox') M.discardInbox(el.getAttribute('data-inbox'));
   else if (action === 'remove-project') { ui.pendingRemove[projectId] = true; paint(); }
   else if (action === 'cancel-remove-project') { delete ui.pendingRemove[projectId]; paint(); }
   else if (action === 'confirm-remove-project') M.removeProject(projectId);
@@ -262,7 +290,7 @@ function onAppChange(e) {
 
 function onAppInput(e) {
   // keep typed-in new labels across the repaints that toggling a pick causes
-  if (e.target.matches && e.target.matches('.sort-new') && ui.sorting) { ui.sorting.newLabels = e.target.value; return; }
+  if (e.target.matches && e.target.matches('.sort-new')) { ui.unsorted.newLabels = e.target.value; return; }
   if (e.target.matches && e.target.matches('[data-action="set-project-query"]')) {
     ui.projectQuery = e.target.value;
     paint();
@@ -286,16 +314,16 @@ function labelsFromForm(fd) {
   return ids;
 }
 
-// The sort flow's picks as label ids: chosen labels, the #42 kinds (a kind's label is created on first
-// use), and anything typed into its "New labels" field.
-function sortSelectionToIds() {
+// The Unsorted flow's picks as label ids: chosen labels, the #42 kinds (a kind's label is created
+// on first use), and anything typed into its "New labels" field.
+function unsortedSelectionToIds() {
   const ids = [];
   const add = (id) => { if (!ids.includes(id)) ids.push(id); };
-  ui.sorting.selected.forEach((token) => {
+  ui.unsorted.selected.forEach((token) => {
     const kind = token.startsWith('kind:') && TASK_KINDS.find((k) => 'kind:' + k.key === token);
     add(kind ? labelIdByName(kind.key, kind.color) : token);
   });
-  String(ui.sorting.newLabels || '').split(',').map((s) => s.trim()).filter(Boolean).forEach((name) => add(labelIdByName(name)));
+  String(ui.unsorted.newLabels || '').split(',').map((s) => s.trim()).filter(Boolean).forEach((name) => add(labelIdByName(name)));
   return ids;
 }
 
@@ -311,8 +339,6 @@ function createIssueIfGithubProject(task, projectId) {
 }
 
 function onAppSubmit(e) {
-  // Enter in an Unsorted item's "New labels" field must not reload the page; filing is by project chip
-  if (e.target.matches && e.target.matches('.inbox-row')) { e.preventDefault(); return; }
   const addTaskForm = e.target.closest('[data-action="add-task"]');
   if (addTaskForm) {
     e.preventDefault();

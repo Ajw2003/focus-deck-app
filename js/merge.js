@@ -90,14 +90,17 @@ export function mergeStates(local, remote) {
   });
   merged.listStamps = listStamps;
 
-  // Done-list entries follow their task: kept only while that task exists and is done.
+  // Done-list entries follow their task: kept only while that task exists and is done. An entry
+  // with no taskId is a completed inbox thought (M.completeInboxItem) rather than a task — it never
+  // has a task to survive alongside, so it's kept outright instead of being filtered against
+  // doneTaskIds, or every such entry would be silently dropped on the next Gist merge.
   const doneTaskIds = new Set();
   merged.projects.forEach((p) => p.tasks.forEach((t) => { if (t.status === 'done') doneTaskIds.add(t.id); }));
   const logById = new Map();
   [...(l.completedLog || []), ...(r.completedLog || [])].forEach((e) => { if (e && !logById.has(e.id)) logById.set(e.id, e); });
   const seenTasks = new Set();
   merged.completedLog = [...logById.values()]
-    .filter((e) => doneTaskIds.has(e.taskId) && !seenTasks.has(e.taskId) && seenTasks.add(e.taskId))
+    .filter((e) => (e.taskId == null && e.inboxId) || (doneTaskIds.has(e.taskId) && !seenTasks.has(e.taskId) && seenTasks.add(e.taskId)))
     .sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))
     .slice(0, 12);
 

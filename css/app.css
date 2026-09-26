@@ -188,10 +188,9 @@ button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%,
 .focus-grid .energy-label{overflow-wrap:anywhere;}
 .focus-links{display:flex; flex-wrap:wrap; gap:4px 18px;}
 .energy-btn.selected{background:color-mix(in srgb, var(--chip-color) 16%, var(--surface-2)); box-shadow:inset 0 0 0 2px var(--chip-color);}
-.sort-head{display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:4px 12px; margin-bottom:10px;}
-.focus-sort .sort-head h2.focus-q{margin-bottom:0;}
+.sort-head{display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-start; gap:4px 10px; margin-bottom:10px;}
 .sort-title{font-size:1.25rem; line-height:1.3; margin:4px 0 14px;}
-.focus-sort .sort-q{margin:0 0 8px;}
+.sort-q{margin:0 0 8px;}
 .sort-kinds{margin-bottom:14px;}
 .sort-labels{margin-bottom:12px;}
 .sort-new{width:100%; padding:9px 12px; margin-bottom:14px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink);}
@@ -225,18 +224,11 @@ button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%,
 .section-toggle.small{width:auto; font-size:.82rem; color:var(--ink-soft); margin:6px 0;}
 .section-toggle .count{color:var(--ink-faint); font-weight:500;}
 .section-toggle .chev{margin-left:auto; color:var(--ink-faint);}
-.inbox-list{margin-top:8px; display:flex; flex-direction:column; gap:10px;}
-.inbox-row{display:flex; flex-wrap:wrap; align-items:center; gap:8px; justify-content:space-between; border-top:1px solid var(--line); padding-top:10px;}
-.inbox-text{flex:1 1 200px; font-size:.92rem;}
-.inbox-time{display:block; color:var(--ink-faint); font-size:.75rem; margin-top:2px;}
-.inbox-actions{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
-.inbox-row .label-picker{flex:1 1 100%; margin-top:-4px;}
+.unsorted-body{margin-top:12px;}
+.unsorted-delete{margin-left:auto;} /* sits at the far right of the head row, away from the flow buttons */
+.unsorted-delete:hover{color:var(--energy-high);}
 .task-edit-github{flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; font-size:.8rem; color:var(--ink-faint);}
 .task-edit-form .task-edit-github button[type="button"]{background:none; color:var(--accent); padding:2px 0; font-size:.8rem;}
-.mini-chip{
-  font-size:.72rem; font-weight:600; padding:4px 9px; border-radius:999px;
-  border:1px solid transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color);
-}
 .mini-x{border:none; background:var(--surface-2); color:var(--ink-soft); width:22px; height:22px; border-radius:50%; line-height:1;}
 
 .project-filter-bar{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:14px;}

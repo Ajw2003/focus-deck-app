@@ -48,39 +48,67 @@ until the dashed **+N more** pill (`.focus-more-pill`) expands them. The chosen 
 shows, and names are never shortened. The chosen pill is kept per device (`focusdeck-focus-filter`).
 
 Open tasks with no label get an **Unlabelled** card after the label cards (neutral `--ink-faint`
-edge, always shown). It picks with the stand-in id `UNLABELLED` (js/state.js). When there are any,
-a **Sort N unlabelled →** link sits beside "Show all" (`.focus-links`).
+edge, always shown). It picks with the stand-in id `UNLABELLED` (js/state.js). This card is only a
+focus pick, though — filing those tasks (and captured thoughts) into projects and labels happens in
+the Unsorted card below, not from here.
 
-### Sorting unlabelled tasks
+### Unsorted
 
-**Sort N unlabelled →** swaps the focus picker for `renderSortFlow` (js/render.js) until **Done**.
-It steps through the open unlabelled tasks (within the chosen project pill) one at a time, showing
-the task, its project and its issue number. The three kinds from #42 (**Reminder**, **Build**,
-**Fix**; `TASK_KINDS` in js/state.js) come first as `.energy-btn` cards, where `.selected` adds a
-ring. The other labels follow as `.tint-pill`s, then a field for new labels. Like the picker's
-pills, they are ranked for the task at hand: labels this task's project uses come first (busiest
-first), then the rest by use across all projects. Only eight show, plus any already picked, until
-a dashed **+N more** pill (`sort-more-labels`) reveals the rest, so another repo's labels stay out
-of the way. It collapses again on the next task. Picks toggle, and
-**Next →** applies them through `updateTaskFields`, which pushes them to a linked issue like any
-label edit. **Skip** leaves the task as it is.
+One card, one item at a time, guiding a captured thought or an unlabelled task all the way to
+filed/labelled — or completed, skipped, or deleted — without ever leaving the flow. `renderInbox`
+(js/render.js) builds it; it sits where the old inbox list used to, under "Recently done".
 
-A kind is an ordinary label named `reminder`, `build` or `fix`, created with its GitHub colour the
-first time it is used. An existing label with that name (any case) is reused. `sortCurrent` skips
-tasks that were labelled, finished or deleted while sorting. The queue and picks live in
-`ui.sorting`, per session and never saved.
+**The queue.** `unsortedQueue(st)` is computed fresh on every render, never stored: every captured
+thought (`state.inbox`, oldest first), then every open task across every project with no labels, in
+project order then task order. A task that gets labelled elsewhere, or a new capture, simply drops
+out of or into the queue on the next paint. `unsortedCurrent(st, ui.unsorted)` returns the first
+item this session hasn't skipped, or `null`. Items are keyed `i:<inboxId>` or `t:<taskId>`.
 
-Once a task is picked, its project chip is a button (`scroll-project`, ↓) that jumps to that
-project's card, the same action as the project pills under the focus card (`.stats-row`, moved
-below it on 2026-09-26). `scrollToProject` in js/app.js first opens the project if it is minimised
-and clears the project filter or search if they hide it. It then scrolls so the card's top sits
-just below the sticky `.topbar`, measured at the time, since the header is taller on a phone;
-`scrollIntoView` put it underneath.
+**The steps.**
+- A task already in a project shows its project and issue-number chips and goes straight to the
+  label step — it's not being sorted into anything, just labelled.
+- A captured thought asks **Which project?** first: full-name pills (`.tint-pill`), busiest
+  (most open tasks) first, eight shown with a **+N more** pill (`unsorted-more-projects`). Tapping
+  one (`unsorted-project`) advances to the label step, ranked by *that* project. A
+  **`<project> · change`** button (`unsorted-change-project`) in the head row goes back.
+- The label step is the old sort flow's, unchanged: the three kinds from #42 (**Reminder**,
+  **Build**, **Fix**; `TASK_KINDS` in js/state.js) as `.energy-btn` cards, then every other label as
+  a `.tint-pill`, ranked for the project at hand (its own labels first, busiest first, then the rest
+  by use elsewhere; eight show, plus any picked, until **+N more**), then a field for new labels. A
+  kind is an ordinary label named `reminder`, `build` or `fix`, created with its GitHub colour the
+  first time it's used; an existing label with that name (any case) is reused.
 
-History (2026-09-26): two dropdowns came first and were replaced for breaking the card's
+**The actions.** A task's primary button is **Save →** (`unsorted-save`, via
+`updateTaskFields`, which pushes to a linked issue like any label edit); a thought's is
+**File →** (`unsorted-file`, once a project is chosen, via `fileInboxItem` — the same "becomes an
+issue automatically in a GitHub project" path as before). **Done ✓** (`unsorted-complete`) closes a
+task (`setTaskStatus(id, 'done')`, same as the checkbox) or completes a thought without ever making
+it a task (`completeInboxItem` — logged to Recently done and, per merge.js, kept through a Gist
+merge even though it has no task). **Skip** (`unsorted-skip`) adds the item's key to this session's
+skip list (`ui.unsorted.skipped`, never saved) and moves on; once everything left is skipped, a
+**Go through them again** link (`unsorted-restart`) clears the list. **Delete**
+(`unsorted-delete`, a quiet `.btn-text` at the right of the head row, apart from the flow
+buttons so it isn't tapped by mistake, red on hover) removes a task with the same confirm as
+the project card's × (`confirmDeleteTask` in js/app.js, shared by both), or discards a thought with
+no confirm, showing a "Deleted "…"" toast instead.
+
+Each item's scratch state (chosen project, ticked labels, typed new labels, "show all" toggles)
+resets whenever the current item changes — `renderApp` (js/app.js) compares `unsortedCurrent(...)`'s
+key against `ui.unsorted.currentKey` and starts fresh when they differ.
+
+Once a task is picked (from the focus card, not here), its project chip is a button
+(`scroll-project`, ↓) that jumps to that project's card, the same action as the project pills under
+the focus card (`.stats-row`, moved below it on 2026-09-26). `scrollToProject` in js/app.js first
+opens the project if it is minimised and clears the project filter or search if they hide it. It
+then scrolls so the card's top sits just below the sticky `.topbar`, measured at the time, since the
+header is taller on a phone; `scrollIntoView` put it underneath.
+
+History (2026-09-26): two dropdowns came first and were replaced for breaking the focus card's
 glanceable, tap-first style. A **Type | Project** switch followed, where Project mode made the
 cards projects and the pills labels. It was removed the same day, because the Type view did the job
-better. A saved `mode: 'project'` is ignored.
+better. A saved `mode: 'project'` is ignored. (2026-09-26) The old Unsorted list (a row per thought
+with a project chip per project) and the separate Sort unlabelled takeover of the focus card were
+merged into this one flow.
 
 ### Project sidebar
 

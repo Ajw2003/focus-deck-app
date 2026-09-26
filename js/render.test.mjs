@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, sortCurrent, renderProjectSidebar } from './render.js';
+import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar } from './render.js';
 import assert from 'node:assert';
 
 const p = { id: 'p1', name: 'P' };
@@ -79,7 +79,7 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   assert.ok(expanded.includes('data-action="toggle-focus-projects">Show fewer<'), 'expanded pills offer Show fewer');
 }
 
-// unlabelled tasks: their own card in the picker, and a one-at-a-time sort flow
+// unlabelled tasks: the focus picker keeps its Unlabelled card but no longer links to a sort flow
 {
   const task = (id, cats, extra) => ({ id, title: id, status: 'next', categoryIds: cats, ...extra });
   const st = {
@@ -89,41 +89,120 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   };
   const picker = renderFocus(st, () => null, { focusFilter: {} });
   assert.ok(picker.includes('data-category="__none__"') && picker.includes('>Unlabelled<') && picker.includes('>2 open · 1 urgent<'), 'an Unlabelled card counts open tasks with no label');
-  assert.ok(picker.includes('data-action="start-sort">Sort 2 unlabelled →<'), 'a link starts sorting the unlabelled tasks');
+  assert.ok(!picker.includes('start-sort'), 'the old "Sort N unlabelled" link is gone -- the Unsorted card below handles it now');
   const noneLeft = { ...st, projects: [{ id: 'pA', name: 'P', color: 'red', tasks: [task('a1', ['c_art'])] }] };
-  assert.ok(!renderFocus(noneLeft, () => null, { focusFilter: {} }).includes('Unlabelled'), 'no Unlabelled card or link when every task has a label');
+  assert.ok(!renderFocus(noneLeft, () => null, { focusFilter: {} }).includes('Unlabelled'), 'no Unlabelled card when every task has a label');
+}
 
-  const sorting = { queue: ['u1', 'u2'], index: 0, selected: ['kind:build', 'c_art'], newLabels: '', sorted: 0 };
-  const flow = renderFocus(st, () => null, { focusFilter: {}, sorting });
-  assert.ok(flow.includes('>Sort unlabelled tasks<') && flow.includes('>1 of 2<') && flow.includes('>u1<'), 'the sort flow shows the current task and its position');
-  const kindTokens = [...flow.matchAll(/class="energy-btn[^"]*" data-action="sort-toggle" data-token="([^"]+)"/g)].map((m) => m[1]);
+// unsortedQueue: captured thoughts (oldest first), then every open unlabelled task, project order
+// then task order; done or labelled tasks are excluded
+{
+  const task = (id, cats, extra) => ({ id, title: id, status: 'next', categoryIds: cats, ...extra });
+  const st = {
+    inbox: [{ id: 'th1', text: 'older thought', createdAt: 1 }, { id: 'th2', text: 'newer thought', createdAt: 2 }],
+    categories: [],
+    projects: [
+      { id: 'pA', name: 'A', color: 'red', tasks: [task('a1', ['c_art']), task('u1', [])] },
+      { id: 'pB', name: 'B', color: 'blue', tasks: [task('u2', [], { priority: 'urgent' }), task('u3', [], { status: 'done' })] },
+    ],
+  };
+  const queue = unsortedQueue(st);
+  assert.deepStrictEqual(queue.map((x) => x.key), ['i:th1', 'i:th2', 't:u1', 't:u2'], 'thoughts (oldest first) come before unlabelled open tasks (project order, then task order)');
+  assert.strictEqual(unsortedCurrent(st, { skipped: [] }).key, 'i:th1', 'the current item is the first non-skipped one');
+  assert.strictEqual(unsortedCurrent(st, { skipped: ['i:th1', 'i:th2'] }).key, 't:u1', 'skipped items are passed over');
+  assert.strictEqual(unsortedCurrent(st, { skipped: ['i:th1', 'i:th2', 't:u1', 't:u2'] }), null, 'null once everything is skipped');
+}
+
+const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLabels: '', showAllLabels: false, showAllProjects: false, currentKey: null });
+
+// renderInbox: a captured thought, project step
+{
+  const st = {
+    inbox: [{ id: 'th1', text: 'call the plumber', createdAt: Date.now() - 3 * 60000 }],
+    categories: [{ id: 'c_fix', name: 'Fix', color: '#ff0000' }],
+    projects: [
+      { id: 'pBusy', name: 'Busy Project', color: 'red', tasks: [{ id: 'b1', status: 'next', categoryIds: ['c_fix'] }, { id: 'b2', status: 'next', categoryIds: ['c_fix'] }] },
+      { id: 'pQuiet', name: 'Quiet Project', color: 'blue', tasks: [] },
+    ],
+  };
+  const html = renderInbox(st, { inboxOpen: true, unsorted: freshUnsorted() });
+  assert.ok(html.includes('📥 Unsorted') && html.includes('class="count">1<'), 'the header keeps its toggle and shows the queue count');
+  assert.ok(html.includes('Which project?'), 'a captured thought asks which project first');
+  const pillIds = [...html.matchAll(/data-action="unsorted-project" data-project="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepStrictEqual(pillIds, ['pBusy', 'pQuiet'], 'project pills are ranked busiest (most open tasks) first, full names shown');
+  assert.ok(html.includes('>Busy Project<') && html.includes('>Quiet Project<'), 'names are never shortened');
+  assert.ok(html.includes('data-action="unsorted-complete"') && html.includes('data-action="unsorted-skip"') && html.includes('data-action="unsorted-delete"'), 'Done, Skip and Delete are offered');
+  assert.ok(!html.includes('unsorted-file'), 'no File button until a project is chosen');
+
+  const manyProjects = { ...st, projects: Array.from({ length: 10 }, (_, i) => ({ id: 'p' + i, name: 'Project ' + i, color: 'red', tasks: [] })) };
+  const withMany = renderInbox(manyProjects, { inboxOpen: true, unsorted: freshUnsorted() });
+  assert.ok(withMany.includes('data-action="unsorted-more-projects">+2 more<'), 'a "+N more" pill appears after the first 8 projects');
+}
+
+// renderInbox: a captured thought, label step once a project is chosen
+{
+  const st = {
+    inbox: [{ id: 'th1', text: 'call the plumber', createdAt: Date.now() }],
+    categories: [{ id: 'c_fix', name: 'Fix', color: '#ff0000' }],
+    projects: [{ id: 'pA', name: 'PlunderSpell', color: 'red', tasks: [] }],
+  };
+  const u = Object.assign(freshUnsorted(), { projectId: 'pA' });
+  const html = renderInbox(st, { inboxOpen: true, unsorted: u });
+  assert.ok(html.includes('What kind of task is this?'), 'choosing a project advances to the label step');
+  const kindTokens = [...html.matchAll(/class="energy-btn[^"]*" data-action="sort-toggle" data-token="([^"]+)"/g)].map((m) => m[1]);
   assert.deepStrictEqual(kindTokens, ['kind:reminder', 'kind:build', 'c_fix'], 'Reminder / Build / Fix come first; an existing "Fix" label is reused instead of a new one');
-  assert.ok(flow.includes('class="energy-btn selected" data-action="sort-toggle" data-token="kind:build"'), 'a chosen kind is shown selected');
-  assert.ok(flow.includes('class="filter-pill tint-pill active" data-action="sort-toggle" data-token="c_art"') && !flow.includes('data-token="c_fix" aria-pressed="false" style="--chip-color:#ff0000">Fix</button>'), 'other labels are pills, and the kind label is not repeated among them');
-  assert.ok(flow.includes('data-action="sort-next"') && flow.includes('data-action="sort-skip"') && flow.includes('data-action="sort-done"'), 'Next, Skip and Done are offered');
+  assert.ok(html.includes('data-action="unsorted-file" data-inbox="th1">File →<'), 'File files the thought into the chosen project');
+  assert.ok(html.includes('data-action="unsorted-change-project"') && html.includes('PlunderSpell · change'), 'the chosen project shows as a change-project button');
+}
 
-  // other labels: this project's first, then the rest, capped with "+N more"
+// renderInbox: a task already in a project goes straight to the label step, no project choice
+{
+  const st = {
+    inbox: [],
+    categories: [],
+    projects: [{ id: 'pA', name: 'PlunderSpell', color: 'red', tasks: [{ id: 't1', title: 'Fix the thing', status: 'next', categoryIds: [], issueNumber: 42 }] }],
+  };
+  const html = renderInbox(st, { inboxOpen: true, unsorted: freshUnsorted() });
+  assert.ok(html.includes('class="chip proj-chip" style="--chip-color:red">PlunderSpell<') && html.includes('>#42<'), 'a task shows its project and issue number as chips');
+  assert.ok(html.includes('What kind of task is this?'), 'a task skips the project step entirely');
+  assert.ok(html.includes('data-action="unsorted-save" data-task="t1" data-project="pA">Save →<'), 'Save files the picks onto the task');
+  assert.ok(!html.includes('Which project?'), 'no project step for a task that already has one');
+}
+
+// renderInbox: skip list and the empty-queue / all-skipped states
+{
+  const st = { inbox: [{ id: 'th1', text: 'one', createdAt: 1 }, { id: 'th2', text: 'two', createdAt: 2 }], categories: [], projects: [] };
+  const skippedFirst = Object.assign(freshUnsorted(), { skipped: ['i:th1'] });
+  const html = renderInbox(st, { inboxOpen: true, unsorted: skippedFirst });
+  assert.ok(html.includes('>two<'), 'skipping the current item moves to the next');
+  const allSkipped = Object.assign(freshUnsorted(), { skipped: ['i:th1', 'i:th2'] });
+  const allSkippedHtml = renderInbox(st, { inboxOpen: true, unsorted: allSkipped });
+  assert.ok(allSkippedHtml.includes('2 skipped for now.') && allSkippedHtml.includes('data-action="unsorted-restart">Go through them again<'), 'once everything is skipped, a restart link clears the skip list');
+  const empty = renderInbox({ inbox: [], categories: [], projects: [] }, { inboxOpen: true, unsorted: freshUnsorted() });
+  assert.ok(empty.includes('Nothing to sort'), 'an empty queue says so');
+}
+
+// label ranking on the Unsorted card: this task's project first (busiest), then the rest, capped
+// with "+N more" -- ported from the old sort flow's equivalent test
+{
   const manyLabels = Array.from({ length: 12 }, (_, i) => ({ id: 'L' + i, name: 'label' + i, color: '#123456' }));
+  const task = (id, cats) => ({ id, title: id, status: 'next', categoryIds: cats });
   const busy = {
-    focus: null, categories: manyLabels,
+    inbox: [], categories: manyLabels,
     projects: [
       { id: 'pA', name: 'Here', color: 'red', tasks: [task('h1', ['L11']), task('h2', ['L11', 'L10']), task('hu', [])] },
       { id: 'pB', name: 'Elsewhere', color: 'blue', tasks: [task('e1', ['L0']), task('e2', ['L0']), task('e3', ['L0'])] },
     ],
   };
-  const busyFlow = renderFocus(busy, () => null, { focusFilter: {}, sorting: { queue: ['hu'], index: 0, selected: [], newLabels: '', sorted: 0 } });
+  const busyFlow = renderInbox(busy, { inboxOpen: true, unsorted: freshUnsorted() });
   const pillOrder = [...busyFlow.matchAll(/class="filter-pill tint-pill[^"]*" data-action="sort-toggle" data-token="([^"]+)"/g)].map((m) => m[1]);
   assert.deepStrictEqual(pillOrder.slice(0, 3), ['L11', 'L10', 'L0'], 'labels this project uses come first (busiest first), then the rest by use elsewhere');
   assert.strictEqual(pillOrder.length, 8, 'only eight label pills show at first');
   assert.ok(busyFlow.includes('data-action="sort-more-labels">+4 more<'), 'a "+N more" pill counts the hidden labels');
-  const pickedHidden = renderFocus(busy, () => null, { focusFilter: {}, sorting: { queue: ['hu'], index: 0, selected: ['L9'], newLabels: '', sorted: 0 } });
+  const pickedHidden = renderInbox(busy, { inboxOpen: true, unsorted: Object.assign(freshUnsorted(), { selected: ['L9'] }) });
   assert.ok(pickedHidden.includes('data-token="L9"'), 'a picked label always shows, even if it would be hidden');
-  const allShown = renderFocus(busy, () => null, { focusFilter: {}, sorting: { queue: ['hu'], index: 0, selected: [], newLabels: '', sorted: 0, showAllLabels: true } });
+  const allShown = renderInbox(busy, { inboxOpen: true, unsorted: Object.assign(freshUnsorted(), { showAllLabels: true }) });
   assert.strictEqual([...allShown.matchAll(/data-action="sort-toggle" data-token="L/g)].length, 12, '"+N more" reveals every label');
-
-  st.projects[0].tasks.find((t) => t.id === 'u1').categoryIds = ['c_art'];
-  assert.strictEqual(sortCurrent(st, sorting).task.id, 'u2', 'a task labelled elsewhere meanwhile is skipped');
-  assert.ok(renderFocus(st, () => null, { focusFilter: {}, sorting: { ...sorting, index: 2, sorted: 3 } }).includes('You labelled 3 tasks.'), 'the end of the queue says how many were labelled');
 }
 
 // a picked task's project chip jumps to that project
@@ -159,8 +238,8 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENE
   assert.ok(linkedForm.includes('Linked to o/r#1') && linkedForm.includes('data-action="unlink-github-issue"'), 'the edit form of a linked task offers Unlink');
   const plainForm = renderTaskEditForm({ ...base, source: 'manual', url: undefined, repoFullName: undefined, issueNumber: undefined }, p, cats);
   assert.ok(plainForm.includes('data-action="create-github-issue"') && plainForm.includes('data-action="link-github-issue"'), 'the edit form of an unlinked task offers create and link');
-  const inbox = renderInbox({ inbox: [{ id: 'i1', text: 'idea', createdAt: Date.now() }], projects: [{ id: 'p1', name: 'P', color: 'red' }], categories: cats }, { inboxOpen: true });
-  assert.ok(inbox.includes('<form class="inbox-row" data-inbox="i1">') && inbox.includes('class="label-picker"') && inbox.includes('data-action="file-inbox"'), 'an Unsorted item can take labels before it is filed to a project');
+  const inbox = renderInbox({ inbox: [{ id: 'i1', text: 'idea', createdAt: Date.now() }], projects: [{ id: 'p1', name: 'P', color: 'red', tasks: [] }], categories: cats }, { inboxOpen: true, unsorted: freshUnsorted() });
+  assert.ok(inbox.includes('Which project?') && inbox.includes('data-action="unsorted-project" data-project="p1"'), 'a captured thought is guided to a project before it can be filed');
 }
 
 assert.strictEqual(renderToast(null, 'error'), '', 'no message means no toast');

@@ -202,6 +202,19 @@ export function discardInbox(inboxId) {
   persist();
 }
 
+// "Done" on a captured thought, straight from the Unsorted flow: it's finished without ever
+// becoming a task, so it logs to Recently done the same way a task completion does, but with no
+// taskId/projectId (see merge.js's completedLog filter, which keeps these by inboxId instead).
+export function completeInboxItem(inboxId) {
+  const item = state.inbox.find((i) => i.id === inboxId);
+  if (!item) return;
+  state.inbox = state.inbox.filter((i) => i.id !== inboxId);
+  state.completedLog.unshift({ id: uid('log'), taskId: null, inboxId, title: item.text, projectId: null, color: 'var(--ink-faint)', completedAt: Date.now() });
+  state.completedLog = state.completedLog.slice(0, 12);
+  persist();
+  return item;
+}
+
 // Picks the first candidate (candidatesForEnergy sorts by soonest deadline) as a deterministic,
 // testable choice rather than a random one. pool is kept on state.focus so reroll() has
 // something to pick a different task from.

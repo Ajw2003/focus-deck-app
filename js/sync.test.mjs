@@ -80,4 +80,12 @@ const remoteMissingPCatField = { projects: [], inbox: [], categories: [], github
 const mergedMissingPCatField = mergeStates(localWithPCat, remoteMissingPCatField);
 assert.strictEqual(mergedMissingPCatField.projectCategories.length, 1, 'a remote with no projectCategories field should not error and should keep local project categories');
 
+// completedLog: a completed Unsorted thought (M.completeInboxItem) has no taskId, so it must not be
+// filtered out by the doneTaskIds check that keeps ordinary task completions -- it has no task to
+// check against and would otherwise be silently dropped on the next Gist merge.
+const localWithCompletedThought = { projects: [], inbox: [], categories: [], completedLog: [{ id: 'log1', taskId: null, inboxId: 'i1', title: 'call the plumber', projectId: null, color: 'var(--ink-faint)', completedAt: 100 }], githubSync: { lastSyncedAt: 0 } };
+const mergedCompletedThought = mergeStates(localWithCompletedThought, { projects: [], inbox: [], categories: [], githubSync: { lastSyncedAt: 0 } });
+assert.strictEqual(mergedCompletedThought.completedLog.length, 1, 'a completed Unsorted thought survives the merge even though it has no task');
+assert.strictEqual(mergedCompletedThought.completedLog[0].inboxId, 'i1');
+
 console.log('MERGE TESTS PASSED');
