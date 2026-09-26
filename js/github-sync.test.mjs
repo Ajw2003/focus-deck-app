@@ -3,10 +3,11 @@ import {
   energyFromLabels, statusFromLabels, parseRepoInput, resolveIssueEnergy,
   applyLabels, CLAUDE_CREATED_LABEL, CLAUDE_COMPLETED_LABEL,
   dropStaleCompletedLabel, refreshClosedTaskLabels, syncIssueCompletion, upsertRepoProject,
-  priorityFromLabels, pushCategoriesToIssue, pushPriorityToIssue,
+  priorityFromLabels, pushCategoriesToIssue, pushPriorityToIssue, closeIssueForDeletedTask,
   sameIssueTitle, createGithubIssueFromTask,
 } from './github-sync.js';
 import { state } from './state.js';
+import { deleteTask } from './mutations.js';
 import assert from 'node:assert';
 
 // HIGH-priority label variant
@@ -247,6 +248,27 @@ assert.strictEqual(
   await tick();
   assert.deepStrictEqual(calls.map((c) => c.method + ' ' + c.url), ['DELETE /repos/o/r/issues/2/labels/Claude%20completed%20this'], 'the stale label should be removed from the reopened issue');
   assert.deepStrictEqual(upsertRepoProject({ full_name: 'x/y', name: 'y', html_url: 'u', private: false }, [], {}), [], 'early return yields an empty array');
+
+  // deleting a linked task closes its issue as "not planned" and keeps it out of future syncs
+  state.projects.length = 0;
+  state.excludedIssues.length = 0;
+  state.projects.push({ id: 'p3', name: 'r', source: 'github', repoFullName: 'o/r', tasks: [
+    { id: 't_del', title: 'drop me', status: 'next', source: 'github', repoFullName: 'o/r', issueNumber: 30 },
+    { id: 't_local', title: 'local only', status: 'next', source: 'manual' },
+  ] });
+  calls.length = 0;
+  deleteTask('t_del', 'p3');
+  await tick();
+  const closeCall = calls.find((c) => c.method === 'PATCH' && c.url === '/repos/o/r/issues/30');
+  assert.ok(closeCall && JSON.parse(closeCall.body).state === 'closed' && JSON.parse(closeCall.body).state_reason === 'not_planned', 'deleting a linked task closes its issue as not planned: ' + JSON.stringify(calls));
+  assert.ok(state.excludedIssues.includes('o/r#30'), 'the deleted task\'s issue is excluded from future syncs');
+  upsertRepoProject(repo, [{ number: 30, title: 'drop me', labels: ['Bug'], body: '', state: 'open' }], {});
+  assert.ok(!state.projects[0].tasks.some((t) => t.issueNumber === 30), 'a sync must not bring a deleted linked task back, even if the issue is still open');
+  calls.length = 0;
+  deleteTask('t_local', 'p3');
+  await tick();
+  assert.strictEqual(calls.length, 0, 'deleting an unlinked task makes no GitHub call');
+  state.excludedIssues.length = 0;
 
   // an issue linked to a task stays open while it's open on GitHub, even with no labels (e.g. one
   // Focus Deck just created from an unlabelled task); a new unlabelled issue still isn't imported;

@@ -96,8 +96,12 @@ function onAppClick(e) {
   else if (action === 'cycle-priority') M.cyclePriority(taskId);
   else if (action === 'delete-task') {
     const found = findTaskWithProject(taskId);
-    const title = found ? found.task.title : 'this task';
-    if (confirm('Delete "' + title + '"? This can\'t be undone.')) M.deleteTask(taskId, projectId);
+    const t = found && found.task;
+    const title = t ? t.title : 'this task';
+    const issueNote = t && t.source === 'github' && t.issueNumber != null
+      ? ' Its GitHub issue #' + t.issueNumber + ' will be closed as "not planned" (you can reopen it on GitHub).'
+      : '';
+    if (confirm('Delete "' + title + '"? This can\'t be undone.' + issueNote)) M.deleteTask(taskId, projectId);
   }
   else if (action === 'file-inbox') M.fileInboxItem(el.getAttribute('data-inbox'), projectId);
   else if (action === 'discard-inbox') M.discardInbox(el.getAttribute('data-inbox'));

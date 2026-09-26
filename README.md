@@ -62,6 +62,8 @@ out of your head. File it into a project (or a new one) whenever you're ready, n
   repos. A task added to a GitHub project becomes an issue automatically, and any other task can
   become one with **+ Issue** — its steps become a checklist in the issue body, its labels and
   priority go with it, and an open issue with the same title is linked instead of duplicated.
+- Deleting a linked task closes its issue as "not planned" (it can be reopened on GitHub) and
+  keeps it from coming back on the next sync.
 - Completion sync runs both ways: check off a task here and its linked issue closes on GitHub;
   reopen the issue there and the task comes back here.
 
