@@ -2,6 +2,18 @@
 import { mergeStates, stampChanges } from './merge.js';
 
 export const ENERGY = { low: { label: 'Low' }, medium: { label: 'Medium' }, high: { label: 'High' } };
+// The energy (bandwidth) level is switched off in the UI for now, replaced by priority. Task data
+// keeps its energy fields, so turning this back on restores the old chips, form fields and picker.
+export const ENERGY_UI_ENABLED = false;
+
+// Priority, most urgent first. githubLabel is the label Focus Deck writes; color is its GitHub hex.
+export const PRIORITY_ORDER = ['urgent', 'high', 'medium', 'low'];
+export const PRIORITY = {
+  urgent: { label: 'Urgent', githubLabel: 'priority: urgent', color: 'b60205' },
+  high: { label: 'High', githubLabel: 'priority: high', color: 'd93f0b' },
+  medium: { label: 'Medium', githubLabel: 'priority: medium', color: 'fbca04' },
+  low: { label: 'Low', githubLabel: 'priority: low', color: '0e8a16' },
+};
 
 // doc-ref 7f3a docs/systems/local-storage.md
 // These key names are part of the user's data: renaming one without a migration that reads the
@@ -124,10 +136,21 @@ function repairLoaded(st) {
     if (holder && holder.categoryId && typeof holder.categoryId === 'object') holder.categoryId = holder.categoryId.id || null;
   };
   st.projects.forEach((p) => { fixRef(p); (p.tasks || []).forEach(fixRef); });
+  normalizeTaskCategories(st);
   [st.categories, st.projectCategories].forEach((list, listIdx) => (list || []).forEach((c, i) => {
     if (typeof c.color !== 'string' || !c.color) c.color = 'hsl(' + Math.round(((i + listIdx * 7) * 137.508) % 360) + ' var(--proj-sat) var(--proj-light))';
   }));
   return st;
+}
+
+// A task carries a list of category ids, one per GitHub label. Saves from before that (and from a
+// device still running an older version) have a single categoryId: fold it into the list.
+export function normalizeTaskCategories(st) {
+  (st.projects || []).forEach((p) => (p.tasks || []).forEach((t) => {
+    if (!Array.isArray(t.categoryIds)) t.categoryIds = [];
+    if (t.categoryId && !t.categoryIds.includes(t.categoryId)) t.categoryIds.push(t.categoryId);
+    delete t.categoryId;
+  }));
 }
 
 // Never returns defaults over data it couldn't read without first copying that data aside and
@@ -260,6 +283,20 @@ export function findTaskWithProject(taskId) {
     if (t) return { task: t, project: p };
   }
   return null;
+}
+
+// Open tasks for the focus pick, optionally limited to one label (category id) and/or one project.
+export function openTasksMatching({ categoryId, projectId } = {}) {
+  const ids = [];
+  state.projects.forEach((p) => {
+    if (projectId && p.id !== projectId) return;
+    p.tasks.forEach((t) => {
+      if (t.status === 'done') return;
+      if (categoryId && !(t.categoryIds || []).includes(categoryId)) return;
+      ids.push(t.id);
+    });
+  });
+  return ids;
 }
 
 export function candidatesForEnergy(level) {

@@ -192,7 +192,8 @@ test('categories created from the UI keep their color and id through a reload', 
   }));
   const tab = await openTab();
   assert.strictEqual(tab.state.projects[0].categoryId, 'pcat_x');
-  assert.strictEqual(tab.state.projects[0].tasks[0].categoryId, 'cat_y');
+  assert.deepStrictEqual(tab.state.projects[0].tasks[0].categoryIds, ['cat_y'], 'a saved single categoryId becomes the task\'s label list');
+  assert.ok(!('categoryId' in tab.state.projects[0].tasks[0]), 'the old single field is dropped once folded in');
   assert.match(tab.state.categories[0].color, /^hsl\(/);
   assert.match(tab.state.projectCategories[0].color, /^hsl\(/);
 

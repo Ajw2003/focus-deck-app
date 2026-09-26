@@ -1,5 +1,5 @@
 // focus-deck-app/js/sync.js
-import { state, saveStateLocal, serializeState, setGistId } from './state.js';
+import { state, saveStateLocal, serializeState, setGistId, normalizeTaskCategories } from './state.js';
 import { ghFetch, getToken } from './github.js';
 import { mergeStates } from './merge.js';
 
@@ -43,6 +43,7 @@ async function readGistState(gist) {
 
 function applyMerged(merged) {
   Object.keys(merged).forEach((k) => { if (!k.startsWith('_')) state[k] = merged[k]; });
+  normalizeTaskCategories(state); // the Gist may hold tasks from a device on an older version
 }
 
 export async function pullFromGist() {

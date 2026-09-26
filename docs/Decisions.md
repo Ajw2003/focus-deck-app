@@ -4,6 +4,26 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-26 — Priority and labels replace energy levels in the UI
+
+**Context.** Tasks could hold one category, and the focus picker chose by Low / Medium / High
+energy (README: "Energy-based, not priority-based"). In use, the energy tiers weren't useful
+(issue #47), issues with several labels showed only one of them (e.g. PlunderSpell's "art",
+"design" and "lighting" showed as just "art"), and there was no priority visible on GitHub.
+
+**Decision.** The owner asked to switch the energy UI off for now and replace it with:
+several labels per task (`task.categoryIds`, GitHub is the source of truth on sync); a
+four-level priority (`urgent`/`high`/`medium`/`low`) that syncs as `priority: …` labels; and a
+focus pick that chooses at random within a label and/or project (#43, #47). Energy is hidden
+behind `ENERGY_UI_ENABLED` in `js/state.js`, and tasks keep their `energy` fields.
+
+**Why.** Considered deleting the energy code outright. Rejected: the owner said "temporarily",
+and keeping the data plus one switch makes turning it back on a one-line change. Considered
+P0–P3 labels for priority. The owner chose `priority: <level>` labels with four levels; P0–P4
+and similar labels are still read.
+
+**Status.** Standing. Supersedes the "Energy-based, not priority-based" principle in the README.
+---
 ## 2026-09-23 — Newest edit wins for every synced record, stamped automatically
 
 **Context.** After the storage fixes deployed, colors, project categories, Unsorted discards,

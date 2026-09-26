@@ -53,6 +53,8 @@ function mapIssue(i) {
     number: i.number,
     title: i.title,
     labels: i.labels.map((l) => (typeof l === 'string' ? l : l.name)),
+    // name -> GitHub's hex colour (no #), so a label first seen on GitHub keeps its colour here
+    labelColors: Object.fromEntries(i.labels.filter((l) => typeof l !== 'string' && l.color).map((l) => [l.name, l.color])),
     body: i.body || '',
     state: i.state,
     html_url: i.html_url,

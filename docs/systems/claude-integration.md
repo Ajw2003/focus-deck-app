@@ -27,7 +27,7 @@ its instructions say.
 
 ## How it works
 
-`applyCategoryFromLabels` reads the two labels into task flags, matching names the same
+`applyLabels` reads the two labels into task flags, matching names the same
 lenient way as other reserved labels (case, spaces, hyphens and underscores ignored).
 `claudeCreated` is sticky: sync sets it when the created label is seen and never clears it.
 `claudeCompleted` is live: it is true only while the completed label is present on the
@@ -44,7 +44,7 @@ issue that still carries the label on a task that is no longer done, and
 Closed issues drop out of the open-issue list, so their labels would never be read.
 `refreshClosedTaskLabels` fixes this: `upsertRepoProject` returns the tasks it newly marked
 done, and after the repo loop (in `syncGithub` and `addRepoManually`) each one's issue is
-fetched once and, if it is closed, run through `applyCategoryFromLabels`. Fetch failures
+fetched once and, if it is closed, run through `applyLabels`. Fetch failures
 are swallowed; the chip just doesn't show.
 
 `renderTaskRow` shows the flags as `.chip` variants after the category chip: "Claude
@@ -66,7 +66,7 @@ To revert Claude's work the user uses the existing controls: the completion chec
 
 ## Traps
 
-- Callers of `applyCategoryFromLabels` must set `task.status` first, because
+- Callers of `applyLabels` must set `task.status` first, because
   `claudeCompleted` depends on it.
 - A reopen made directly on GitHub is only noticed on the next Sync; until then the issue
   still carries the stale label, though the chip is already hidden for any non-done task.

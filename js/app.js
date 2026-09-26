@@ -13,18 +13,29 @@ function loadCollapsedProjects() {
   try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || {}; }
   catch (e) { console.error('Could not read minimised projects:', e); return {}; }
 }
+// The focus pick's last label/project choice, remembered per device like the minimised projects.
+const FOCUS_FILTER_KEY = 'focusdeck-focus-filter';
+function loadFocusFilter() {
+  try { return JSON.parse(localStorage.getItem(FOCUS_FILTER_KEY)) || {}; }
+  catch (e) { console.error('Could not read the focus pick filter:', e); return {}; }
+}
+function saveFocusFilter() {
+  try { localStorage.setItem(FOCUS_FILTER_KEY, JSON.stringify(ui.focusFilter)); }
+  catch (e) { console.error('Could not save the focus pick filter:', e); }
+}
+
 function saveCollapsedProjects() {
   try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(ui.projectCollapsed)); }
   catch (e) { console.error('Could not save minimised projects:', e); }
 }
 
-export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), editingProjectCategory: null };
+export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), focusFilter: loadFocusFilter(), editingProjectCategory: null };
 
 export function renderApp(st) {
   st._ui = ui; // renderSyncStatus reads sync UI state off the state object it's already passed
   if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
-  return R.renderSyncStatus(st) + R.renderStats(st) + R.renderFocus(st, findTaskWithProject) + R.renderDone(st) + R.renderInbox(st, ui)
+  return R.renderSyncStatus(st) + R.renderStats(st) + R.renderFocus(st, findTaskWithProject, ui) + R.renderDone(st) + R.renderInbox(st, ui)
     + R.renderProjectFilterBar(st, ui, visibleProjects)
     + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
       + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
@@ -56,12 +67,22 @@ function onAppClick(e) {
   const projectId = el.getAttribute('data-project');
   if (action === 'set-energy') M.setEnergyFocus(el.getAttribute('data-energy'), candidatesForEnergy);
   else if (action === 'surprise') M.surprise();
+  else if (action === 'pick-focus') {
+    // read the selects themselves: a remembered label or project that no longer exists shows as "Any"
+    const card = el.closest('.focus-card');
+    const value = (name) => (card.querySelector('select[name="' + name + '"]') || {}).value || null;
+    if (!M.pickFocus({ categoryId: value('categoryId'), projectId: value('projectId') })) {
+      ui.notice = 'No open tasks match that label and project.';
+      paint();
+    }
+  }
   else if (action === 'reroll') M.reroll();
   else if (action === 'clear-focus') M.clearFocus();
   else if (action === 'complete-focus') M.completeFocus(findProjectIdForTask);
   // M.setFocusTask doesn't exist -- the correct exported function is setFocus.
   else if (action === 'focus-task') M.setFocus(taskId);
   else if (action === 'cycle-energy') M.cycleEnergy(taskId, projectId);
+  else if (action === 'cycle-priority') M.cyclePriority(taskId);
   else if (action === 'delete-task') {
     const found = findTaskWithProject(taskId);
     const title = found ? found.task.title : 'this task';
@@ -167,7 +188,14 @@ function onAppContextMenu(e) {
 }
 
 function onAppChange(e) {
-  if (e.target.matches && e.target.matches('[data-action="toggle-task"]')) {
+  if (e.target.matches && e.target.matches('.label-picker input[name="categoryIds"]')) {
+    const picker = e.target.closest('.label-picker');
+    picker.querySelector('summary').textContent = R.labelPickerSummary(picker.querySelectorAll('input[name="categoryIds"]:checked').length);
+  } else if (e.target.matches && e.target.matches('[data-action="set-focus-filter"]')) {
+    ui.focusFilter[e.target.name] = e.target.value || null;
+    saveFocusFilter();
+    paint(); // the other select's counts depend on this choice
+  } else if (e.target.matches && e.target.matches('[data-action="toggle-task"]')) {
     M.toggleTask(e.target.getAttribute('data-task'), e.target.getAttribute('data-project'));
   } else if (e.target.matches && e.target.matches('[data-action="set-project-sort"]')) {
     ui.projectSort = e.target.value;
@@ -194,17 +222,24 @@ function onAppInput(e) {
   }
 }
 
+// The ticked labels plus any typed into "New labels" (comma-separated); a typed name that matches
+// an existing label, ignoring case, reuses it instead of making a duplicate.
+function labelsFromForm(fd) {
+  const ids = fd.getAll('categoryIds');
+  String(fd.get('newLabels') || '').split(',').map((s) => s.trim()).filter(Boolean).forEach((name) => {
+    const existing = state.categories.find((c) => c.name.toLowerCase() === name.toLowerCase());
+    const id = existing ? existing.id : M.addCategory(name).id;
+    if (!ids.includes(id)) ids.push(id);
+  });
+  return ids;
+}
+
 function onAppSubmit(e) {
   const addTaskForm = e.target.closest('[data-action="add-task"]');
   if (addTaskForm) {
     e.preventDefault();
     const fd = new FormData(addTaskForm);
-    let categoryId = fd.get('category');
-    if (categoryId === '__new__') {
-      const name = prompt('New category name:');
-      categoryId = name ? M.addCategory(name).id : '';
-    }
-    M.addTask(addTaskForm.getAttribute('data-project'), fd.get('title'), fd.get('energy'), fd.get('deadline'), categoryId, fd.get('steps'));
+    M.addTask(addTaskForm.getAttribute('data-project'), fd.get('title'), fd.get('energy'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'));
     return;
   }
   const addProjectForm = e.target.closest('[data-action="add-project"]');
@@ -238,13 +273,8 @@ function onAppSubmit(e) {
     // synchronously, so clearing it after the call would still show the edit form for
     // this task in that repaint.
     ui.editingTask = null;
-    let editCategoryId = fd.get('category');
-    if (editCategoryId === '__new__') {
-      const name = prompt('New category name:');
-      editCategoryId = name ? M.addCategory(name).id : '';
-    }
     M.editTask(editForm.getAttribute('data-task'), editForm.getAttribute('data-project'), {
-      title: fd.get('title'), energy: fd.get('energy'), deadline: fd.get('deadline'), categoryId: editCategoryId, steps: fd.get('steps'),
+      title: fd.get('title'), energy: fd.get('energy'), deadline: fd.get('deadline'), categoryIds: labelsFromForm(fd), steps: fd.get('steps'), priority: fd.get('priority'),
     });
     return;
   }

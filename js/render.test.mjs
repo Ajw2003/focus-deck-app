@@ -5,7 +5,7 @@ import assert from 'node:assert';
 const p = { id: 'p1', name: 'P' };
 const cats = [{ id: 'cat_bug', name: 'Bug', color: 'hsl(4 70% 55%)' }];
 const ui = { editingTask: null };
-const base = { id: 't1', title: 'T', energy: 'low', status: 'next', source: 'github', repoFullName: 'o/r', issueNumber: 1, url: 'https://github.com/o/r/issues/1', categoryId: 'cat_bug' };
+const base = { id: 't1', title: 'T', energy: 'low', status: 'next', source: 'github', repoFullName: 'o/r', issueNumber: 1, url: 'https://github.com/o/r/issues/1', categoryIds: ['cat_bug'] };
 const row = (over) => renderTaskRow({ ...base, ...over }, p, cats, ui);
 
 assert.ok(!row({}).includes('claude-chip'), 'a plain task shows no Claude chips');
@@ -31,6 +31,12 @@ assert.ok(/data-action="edit-task"[^>]*>Edit</.test(linked), 'a linked task gets
 const manual = row({ source: 'manual', url: undefined, repoFullName: undefined, issueNumber: undefined });
 assert.ok(/<span class="task-title" data-action="edit-task"/.test(manual), 'an unlinked task title still opens the edit form');
 assert.ok(!manual.includes('>Edit<'), 'an unlinked task needs no separate Edit button');
+
+const multi = renderTaskRow({ ...base, categoryIds: ['cat_bug', 'cat_art'] }, p, cats.concat([{ id: 'cat_art', name: 'Art', color: '#fbca04' }]), ui);
+assert.ok(multi.includes('>Bug<') && multi.includes('>Art<'), 'every label on a task gets its own chip');
+assert.ok(row({ priority: 'urgent' }).includes('class="chip priority-chip small" data-action="cycle-priority"') && row({ priority: 'urgent' }).includes('>Urgent<'), 'a task with a priority shows it as a chip');
+assert.ok(row({ priority: null }).includes('>+ Priority<'), 'an open task with no priority offers to set one');
+assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENERGY_UI_ENABLED is off');
 
 assert.strictEqual(renderToast(null, 'error'), '', 'no message means no toast');
 const toast = renderToast('Could not link <b>', 'error');

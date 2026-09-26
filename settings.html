@@ -190,7 +190,7 @@
   function usageCount(type, id) {
     if (type === 'project') return state.projects.filter((p) => p.categoryId === id).length;
     let count = 0;
-    state.projects.forEach((p) => p.tasks.forEach((t) => { if (t.categoryId === id) count++; }));
+    state.projects.forEach((p) => p.tasks.forEach((t) => { if ((t.categoryIds || []).includes(id)) count++; }));
     return count;
   }
 
