@@ -4,6 +4,28 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-26 — Handcrafted redesign direction
+
+**Context.** A question-and-answer session on the app's look and feel and its accumulated
+duplicate controls, recorded in full in `docs/plans/handcrafted-redesign.md`.
+
+**Decision.** Redesign direction: focus-first (the focus card leads, everything else is a
+quieter reference area), phone and desktop weighted equally, and a "handcrafted" look defined as
+warm editorial with a touch of notebook — Fraunces headings, one raised card (the focus card),
+everything else flat with thin rules. Cuts: the energy system UI (already off via
+`ENERGY_UI_ENABLED`), the "+ Priority" placeholder chip, the Recently done strip, the "Claude
+created"/"Claude completed" chips, `migrate-from-artifact.html`, the sync row (replaced by a
+top-bar icon), and the project-pills row plus filter bar (replaced by one project list with a
+phone drawer). The work lands as four ordered PRs: (1) this docs restructure, (2) the cuts, (3)
+the visual system, (4) the control moves (task rows open the editor, collapsed "+ Add task",
+Remove/Add project relocated).
+
+**Why.** Full reasoning per question is in `docs/plans/handcrafted-redesign.md`; recorded here so
+the decision has a dated entry independent of the plan file, which will move to `docs/archive/`
+once all four PRs land.
+
+**Status.** Standing.
+
 ## 2026-09-26 — Priority and labels replace energy levels in the UI
 
 **Context.** Tasks could hold one category, and the focus picker chose by Low / Medium / High
@@ -71,7 +93,7 @@ An audit found several independent causes: installed copies kept running the pre
 data with defaults and the next save made that permanent; Settings' "Connect" saved a stale
 copy, so the next category edit erased the Gist ID (a stale app tab did the same); pushes
 replaced the Gist without reading it; most edits never pushed at all; categories lost their
-color or assignment on reload. Details: `docs/systems/local-storage.md#traps`.
+color or assignment on reload. Details: `docs/4-systems/local-storage.md#traps`.
 
 **Decision.** Service worker is network-first. `saveStateLocal` refuses non-state input, keeps
 the Gist ID in its own key that only `setGistId`/`disconnectGist` change, merges another tab's
@@ -95,7 +117,7 @@ max-width layout, card borders — silently stopped applying. The app kept worki
 (data still saved and synced correctly), so nothing about the failure mode raised an error or
 warning; it shipped to production and stayed live for about a day until the person using the app
 noticed it "wasn't pretty anymore" and asked why. Full root-cause writeup:
-`docs/systems/styling.md#traps`.
+`docs/4-systems/styling.md#traps`.
 
 Two structural gaps let this happen and stay unnoticed: (1) `css/app.css` had zero test coverage
 of any kind, even though every JS module with real logic did; (2) even the tests that existed for
@@ -116,7 +138,7 @@ identically.
 2. `js/style-contract.test.mjs` — a plain `node:test` file (no new dependency, matching every
    other test in the repo) with two checks: every class name used in `js/render.js`/`js/app.js`/
    `index.html`/`settings.html` must have a matching `css/app.css` rule (or be explicitly
-   allowlisted as a JS-only hook — see `docs/systems/styling.md#invariants`); and a hand-picked
+   allowlisted as a JS-only hook — see `docs/4-systems/styling.md#invariants`); and a hand-picked
    set of the most visually load-bearing rules must keep specific properties, not just keep
    existing, since a selector surviving with its properties gutted (`.card` losing its `border`
    while the rule itself stayed) is exactly what happened and a plain existence check would have
@@ -153,7 +175,7 @@ deleted all of my credentials from my local copy and the web version got cleared
 gist Id that is simply gone now"). The user attributed what they *saw* to Chrome's "Desktop
 site" mode, but that only explains a rendering/viewport issue and cannot explain actual data
 loss, since toggling a browser display mode does not touch localStorage. Auditing every
-`saveStateLocal()` call site in the app (`docs/systems/gist-sync.md`) turned up a real, severe,
+`saveStateLocal()` call site in the app (`docs/4-systems/gist-sync.md`) turned up a real, severe,
 currently-live bug that fit the reported symptoms exactly: `js/mutations.js`'s `persist()`
 called `saveStateLocal()` with no arguments, so `state.js`'s `saveStateLocal(state)` received
 `undefined` for its `state` parameter instead of picking up the module's `state` singleton.
@@ -170,7 +192,7 @@ localStorage with the same `String()`-coercion `setItem()` behavior as the real 
 than a text-pattern check, calling a real mutation and inspecting both what lands in
 localStorage and what `loadState()` reads back afterward — reproducing the reload where the
 user actually saw their data disappear. Recorded the invariant ("every `saveStateLocal()` call
-site must pass `state` explicitly") and this incident in `docs/systems/gist-sync.md`
+site must pass `state` explicitly") and this incident in `docs/4-systems/gist-sync.md`
 (see `#invariants` and `#traps`, doc-ref `2425`).
 
 **Why.** A static/text-pattern check (like `style-contract.test.mjs`'s class-name matching)

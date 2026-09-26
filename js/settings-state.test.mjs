@@ -9,7 +9,7 @@
 // moment anything else on the page (e.g. the category-color editor further down the same page)
 // mutates the shared `state` singleton and persists — and clicking "Create sync Gist" would then
 // silently overwrite localStorage with the stale snapshot, reverting those edits. See
-// docs/systems/gist-sync.md and the "Uses the shared `state` singleton" comment already on the
+// docs/4-systems/gist-sync.md and the "Uses the shared `state` singleton" comment already on the
 // category-color script block in settings.html, which documents this exact trap.
 //
 // Static text analysis only, matching every other test in this repo (node:test + node:assert, no

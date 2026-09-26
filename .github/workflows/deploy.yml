@@ -23,7 +23,7 @@ jobs:
       - name: Run unit + style-contract tests
         run: node --test js/*.test.mjs
       - name: Guard against silent large-scale file overwrites
-        # See docs/systems/styling.md#traps (GitHub issue #17) and docs/Decisions.md for why this
+        # See docs/4-systems/styling.md#traps (GitHub issue #17) and docs/6-decisions/Decisions.md for why this
         # exists. On push, diff every commit the push actually introduces against its parent; on a
         # PR, diff the PR's whole range against its base. A brand-new branch/PR base with no prior
         # history (event.before all-zero) has nothing to diff against and is skipped.

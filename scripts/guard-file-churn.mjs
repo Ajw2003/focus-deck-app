@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Guards against the exact failure mode that produced GitHub issue #17: a commit whose message
 // describes a small, targeted change but whose diff actually replaces most of an existing file's
-// content. See docs/systems/styling.md#traps for the incident this exists to catch, and
-// docs/Decisions.md for why a line/ratio heuristic was chosen over something smarter.
+// content. See docs/4-systems/styling.md#traps for the incident this exists to catch, and
+// docs/6-decisions/Decisions.md for why a line/ratio heuristic was chosen over something smarter.
 //
 // Used two ways:
 //   - as a git commit-msg hook (.githooks/commit-msg), checking the commit about to be made

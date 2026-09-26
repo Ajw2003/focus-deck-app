@@ -1,7 +1,7 @@
 #!/bin/sh
 # Blocks a commit whose diff silently replaces most of an existing file's content, unless the
 # message explicitly acknowledges it. See scripts/guard-file-churn.mjs and
-# docs/systems/styling.md#traps for why this exists.
+# docs/4-systems/styling.md#traps for why this exists.
 #
 # Enabled per-clone (git hooks aren't committed/activated automatically) with:
 #   git config core.hooksPath .githooks

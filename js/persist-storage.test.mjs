@@ -6,7 +6,7 @@
 // attributed the symptoms they *saw* to Chrome's "Desktop site" mode, but that only explains a
 // rendering/viewport issue -- it can't explain actual data loss, since toggling a browser display
 // mode does not touch localStorage. Auditing every saveStateLocal() call site in the app (see
-// docs/systems/gist-sync.md) turned up a real, severe, currently-live bug that fits the reported
+// docs/4-systems/gist-sync.md) turned up a real, severe, currently-live bug that fits the reported
 // symptoms exactly:
 //
 //   js/mutations.js's persist() calls saveStateLocal() with NO arguments. Every other call site

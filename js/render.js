@@ -20,7 +20,7 @@ export function renderSyncStatus(st) {
 
 // The one place errors and notices appear, on every page: pinned to the bottom of the viewport
 // (see .toast) so it's seen wherever the page is scrolled. kind is 'error' or 'info'.
-// See docs/systems/styling.md#how-it-works
+// See docs/4-systems/styling.md#how-it-works
 export function renderToast(text, kind) {
   if (!text) return '';
   const isError = kind === 'error';
@@ -43,7 +43,7 @@ export function renderStats(st) {
 // The focus pick: one big card per label (task type), narrowed by project pills. One tap on a card
 // picks a random open task from it. Cards reuse the old energy buttons' look (colour on the top
 // edge). A Project mode (cards = projects) existed briefly and was removed on 2026-09-26.
-// See docs/systems/styling.md#focus-picker
+// See docs/4-systems/styling.md#focus-picker
 const FOCUS_CARDS_SHOWN = 6;
 const FOCUS_PILLS_SHOWN = 6;
 function renderFocusPicker(st, ui) {
@@ -177,7 +177,7 @@ export function renderDone(st) {
 // project order then task order. Computed live off state every render, so a new capture or a task
 // labelled elsewhere (or from another device) simply drops out or in on the next paint — nothing
 // here is stored except which keys this session has skipped (ui.unsorted.skipped).
-// See docs/systems/styling.md#unsorted
+// See docs/4-systems/styling.md#unsorted
 export function unsortedQueue(st) {
   const out = [];
   st.inbox.forEach((item) => out.push({ key: 'i:' + item.id, kind: 'thought', item }));
@@ -248,7 +248,7 @@ function unsortedProjectPills(st, u) {
 
 // The Unsorted card: one queue item at a time, guiding it to a project (thoughts only), then
 // labels, then filed/saved — or completed, skipped or deleted outright. See
-// docs/systems/styling.md#unsorted
+// docs/4-systems/styling.md#unsorted
 export function renderInbox(st, ui) {
   const u = ui.unsorted;
   const queue = unsortedQueue(st);
@@ -364,10 +364,10 @@ export function renderTaskEditForm(t, p, categories) {
 export function renderTaskRow(t, p, categories, ui) {
   if (ui.editingTask && ui.editingTask.taskId === t.id) return renderTaskEditForm(t, p, categories);
   const isDone = t.status === 'done';
-  // A task linked to an issue opens that issue from its title (see docs/systems/github-sync.md).
+  // A task linked to an issue opens that issue from its title (see docs/4-systems/github-sync.md).
   const isLinked = t.source === 'github' && !!t.url;
   // Linking controls (Unlink, Link, + Issue) live in the edit form; the row only shows the issue
-  // number. See docs/systems/github-sync.md#where-the-github-controls-live
+  // number. See docs/4-systems/github-sync.md#where-the-github-controls-live
   const ghBadge = t.source === 'github'
     ? '<a class="chip gh-chip small" href="' + esc(t.url || '#') + '" target="_blank" rel="noopener">#' + (t.issueNumber != null ? t.issueNumber : '') + '</a>'
     : '';
@@ -434,7 +434,7 @@ export function renderProjectFilterBar(st, ui, visibleProjects) {
 
 // Wide screens only (CSS shows it from 1100px): a sticky column listing every project that matches the
 // search and category, each jumping to its card. It replaces the filter bar and the project pills there.
-// See docs/systems/styling.md#project-sidebar
+// See docs/4-systems/styling.md#project-sidebar
 export function renderProjectSidebar(st, ui, visibleProjects) {
   if (!st.projects.length) return '';
   const open = (p) => p.tasks.filter((t) => t.status !== 'done').length;

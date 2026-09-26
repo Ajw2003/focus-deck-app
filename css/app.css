@@ -266,7 +266,7 @@ button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%,
 .projects-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px;}
 
 /* Project sidebar and wide layout: wide screens only. The sidebar replaces the filter bar and
-   project pills there. See docs/systems/styling.md#project-sidebar */
+   project pills there. See docs/4-systems/styling.md#project-sidebar */
 .project-sidebar{display:none;}
 .main-col{min-width:0;}
 @media (min-width:1100px){
@@ -355,7 +355,7 @@ a.task-title:hover{text-decoration:underline;}
   flex:1; min-width:0; padding:11px 14px; border:1.5px dashed var(--line); border-radius:var(--radius); background:transparent; color:var(--ink);
 }
 .add-project-form select{
-  /* doc-ref 63c4 docs/systems/pwa-shell.md */
+  /* doc-ref 63c4 docs/4-systems/pwa-shell.md */
   padding:11px 10px; border:1.5px dashed var(--line); border-radius:var(--radius); background:var(--surface); color:var(--ink); font-size:.9rem;
 }
 .add-project-form button{

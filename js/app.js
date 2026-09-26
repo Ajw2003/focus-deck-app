@@ -330,7 +330,7 @@ function unsortedSelectionToIds() {
 // A task added to (or filed into) a GitHub project becomes an issue straight away, through the same
 // path as "+ Create issue" (duplicate check included). If that fails the task stays local and the
 // edit form's "+ Create issue" retries.
-// See docs/systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs176
+// See docs/4-systems/github-sync.md#creating-an-issue-from-a-task--creategithubissuefromtask-jsgithub-syncjs176
 function createIssueIfGithubProject(task, projectId) {
   const project = state.projects.find((p) => p.id === projectId);
   if (task && project && project.source === 'github' && project.repoFullName) {
@@ -411,7 +411,7 @@ function scrollToProject(projectId) {
 
 // GitHub syncs by itself when the app opens and whenever it comes back to the foreground, once the
 // Gist sync for that moment has settled. At most once a minute, so quick app switching doesn't
-// hammer GitHub; the "Sync GitHub" button always works. See docs/systems/github-sync.md#auto-sync
+// hammer GitHub; the "Sync GitHub" button always works. See docs/4-systems/github-sync.md#auto-sync
 const AUTO_SYNC_MIN_GAP_MS = 60 * 1000;
 let lastAutoSync = 0;
 function autoSyncGithub() {

@@ -1,7 +1,7 @@
 // focus-deck-app/js/storage-safety.test.mjs — run with: node --test js/storage-safety.test.mjs
 //
 // Each test reproduces one way Focus Deck used to lose projects or the Gist ID on reload.
-// Background: docs/systems/local-storage.md#traps. The tests drive the real modules against a
+// Background: docs/4-systems/local-storage.md#traps. The tests drive the real modules against a
 // mocked localStorage (with the browser's String() coercion) and a fake Gist API.
 import test from 'node:test';
 import assert from 'node:assert';

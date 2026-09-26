@@ -8,7 +8,7 @@
 
 **Tech Stack:** Vanilla ES modules, no build step, plain `node` assert test files (`node js/<name>.test.mjs`), static PWA served from the repo root.
 
-**Spec:** `docs/superpowers/specs/2026-09-21-claude-focus-deck-integration-design.md` (Part 1 only; Part 2 is `docs/superpowers/plans/2026-09-21-claude-daily-checkin.md`).
+**Spec:** `docs/archive/2026-09-21-claude-focus-deck-integration-design.md` (Part 1 only; Part 2 is `docs/archive/2026-09-21-claude-daily-checkin.md`).
 
 ## Global Constraints
 
@@ -18,7 +18,7 @@
 - Reserved labels, exact spelling: `Claude created this` and `Claude completed this`. `Claude created this` is sticky; `Claude completed this` is live (cleared when the issue reopens, by anyone, from anywhere).
 - Both labels must be reserved so they are never chosen as a task's category (`RESERVED_LABELS`).
 - Chips reuse the existing `.chip` styling; no separate badge system.
-- No long explanatory comment blocks in source: keep comments to a line plus a `docs/systems/...` pointer; long-form goes in the docs (delegate the move to `house-rules:archivist` if a long block is ever written).
+- No long explanatory comment blocks in source: keep comments to a line plus a `docs/4-systems/...` pointer; long-form goes in the docs (delegate the move to `house-rules:archivist` if a long block is ever written).
 - Every changed file under `js/`, `css/` requires bumping `CACHE_NAME` in `service-worker.js` once (Task 3) because the shell is cache-first.
 - Run all four existing test files before calling any task done: `for f in js/*.test.mjs; do node "$f"; done` (each prints its own `... PASSED` line).
 
@@ -30,8 +30,8 @@
 - Create `js/render.test.mjs` — chip rendering tests.
 - Modify `css/app.css` — `.chip.claude-chip` styles.
 - Modify `service-worker.js` — `CACHE_NAME` v6 → v7.
-- Create `docs/systems/claude-integration.md` — the tier-4 contract.
-- Modify `docs/systems/README.md`, `docs/systems/github-sync.md` — index + provenance section.
+- Create `docs/4-systems/claude-integration.md` — the tier-4 contract.
+- Modify `docs/4-systems/README.md`, `docs/4-systems/github-sync.md` — index + provenance section.
 
 ---
 
@@ -129,16 +129,16 @@ In `js/github-sync.js`, replace lines 10-29 (from `function normLabel` through t
 ```js
 function normLabel(s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); }
 
-// Provenance labels — see docs/systems/claude-integration.md
+// Provenance labels — see docs/4-systems/claude-integration.md
 export const CLAUDE_CREATED_LABEL = 'Claude created this';
 export const CLAUDE_COMPLETED_LABEL = 'Claude completed this';
 
 // Reserved so priority/status/provenance labels can't be mistaken for a category.
-// See docs/systems/github-sync.md#category-resolution-from-labels--applycategoryfromlabels-jsgithub-syncjs20
+// See docs/4-systems/github-sync.md#category-resolution-from-labels--applycategoryfromlabels-jsgithub-syncjs20
 const RESERVED_LABELS = ['highpriority', 'critical', 'urgent', 'blocker', 'p0', 'p1', 'lowpriority', 'goodfirstissue', 'easy', 'p3', 'p4', 'inprogress', 'wip', 'doing', normLabel(CLAUDE_CREATED_LABEL), normLabel(CLAUDE_COMPLETED_LABEL)];
 
 // Callers must set task.status BEFORE calling (claudeCompleted depends on it).
-// See docs/systems/github-sync.md#category-resolution-from-labels--applycategoryfromlabels-jsgithub-syncjs20
+// See docs/4-systems/github-sync.md#category-resolution-from-labels--applycategoryfromlabels-jsgithub-syncjs20
 export function applyCategoryFromLabels(task, labels) {
   labels = labels || [];
   const norm = labels.map(normLabel);
@@ -306,7 +306,7 @@ In `js/github-sync.js`:
 
 ```js
 // Reopen cleanup: the completed label is "live", so once a task is no longer done, take it off the issue.
-// See docs/systems/claude-integration.md
+// See docs/4-systems/claude-integration.md
 export async function dropStaleCompletedLabel(task, labels) {
   if (task.status === 'done') return;
   if (!(labels || []).some((l) => normLabel(l) === normLabel(CLAUDE_COMPLETED_LABEL))) return;
@@ -466,20 +466,20 @@ git commit -m "feat: show Claude created/completed chips on task rows"
 ### Task 4: Write the contract and update the systems docs
 
 **Files:**
-- Create: `docs/systems/claude-integration.md`
-- Modify: `docs/systems/README.md`
-- Modify: `docs/systems/github-sync.md`
+- Create: `docs/4-systems/claude-integration.md`
+- Modify: `docs/4-systems/README.md`
+- Modify: `docs/4-systems/github-sync.md`
 
-**Interfaces:** none (docs only). Follow the tier-4 shape used by `docs/systems/github-sync.md`: What it owns / How it works / Invariants / Traps.
+**Interfaces:** none (docs only). Follow the tier-4 shape used by `docs/4-systems/github-sync.md`: What it owns / How it works / Invariants / Traps.
 
-- [x] **Step 1: Create `docs/systems/claude-integration.md`** with these sections (write full prose; content below is the required substance):
+- [x] **Step 1: Create `docs/4-systems/claude-integration.md`** with these sections (write full prose; content below is the required substance):
   - **What it owns:** the contract governing any Claude session (chat, scheduled, Claude Code) that acts on Focus Deck tasks through GitHub Issues, and the two provenance labels.
   - **The contract (non-negotiable):** Claude's only operations against GitHub Issues are **create, comment, close, reopen**. Never delete an issue, a label, a comment, or anything else. Closing is reversible and is not deleting. Every issue Claude creates carries ≥1 label (unlabeled issues are invisible to `upsertRepoProject`). Claude applies `Claude created this` once when it opens an issue; applies `Claude completed this` when it closes one (whether or not it created it); Claude never removes either label itself (Focus Deck removes `Claude completed this` on reopen).
   - **How it works:** label → task-flag mapping (`claudeCreated` sticky, `claudeCompleted` live = label present AND task done); reopen cleanup paths (`syncIssueCompletion`, `dropStaleCompletedLabel` in the repo pass, standalone-link pass and `linkTaskToIssue`); `refreshClosedTaskLabels` because closed issues leave the open list; chips in `renderTaskRow` (completed chip additionally gated on `status === 'done'`); how the user reverts Claude's work (existing delete/unlink buttons; the completion checkbox).
   - **Invariants:** the two labels are in `RESERVED_LABELS`; `claudeCreated` is never cleared by sync; `claudeCompleted` is never true for a non-done task; the app removes the completed label only from the individual issue, never deletes the label from the repo.
   - **Traps:** callers of `applyCategoryFromLabels` must set `task.status` first; label setting by Claude needs `ensureLabelExists`-equivalent (create the repo label if missing — creating labels is allowed, deleting is not); a reopen made directly on GitHub is only noticed on the next Sync; Part 2 (daily read-only check-in) is a separate read-only mechanism and adds no write ability.
 
-- [x] **Step 2: Update the index** — append to `docs/systems/README.md`:
+- [x] **Step 2: Update the index** — append to `docs/4-systems/README.md`:
 
 ```markdown
 - [claude-integration.md](./claude-integration.md) — the contract for Claude acting on Focus Deck via
@@ -487,16 +487,16 @@ git commit -m "feat: show Claude created/completed chips on task rows"
   (`js/github-sync.js`, `js/render.js`).
 ```
 
-- [x] **Step 3: Update `docs/systems/github-sync.md`** — in "Category resolution from labels", add a paragraph: provenance labels `Claude created this` / `Claude completed this` are also reserved and are read into `task.claudeCreated` / `task.claudeCompleted` in the same pass (see `claude-integration.md`). Add to Invariants: "`applyCategoryFromLabels` must be called *after* `task.status` is set." Add a "Reopen cleanup and closed-issue label refresh" subsection describing `dropStaleCompletedLabel` and `refreshClosedTaskLabels`.
+- [x] **Step 3: Update `docs/4-systems/github-sync.md`** — in "Category resolution from labels", add a paragraph: provenance labels `Claude created this` / `Claude completed this` are also reserved and are read into `task.claudeCreated` / `task.claudeCompleted` in the same pass (see `claude-integration.md`). Add to Invariants: "`applyCategoryFromLabels` must be called *after* `task.status` is set." Add a "Reopen cleanup and closed-issue label refresh" subsection describing `dropStaleCompletedLabel` and `refreshClosedTaskLabels`.
 
-- [x] **Step 4: Check doc pointers** — invoke the `house-rules:docref` skill in check mode; the `github-sync.js` edits shifted line numbers that existing `docs/systems/github-sync.md#...js/github-sync.js<line>` anchors encode. Repair with the skill's repair mode if it reports drift.
+- [x] **Step 4: Check doc pointers** — invoke the `house-rules:docref` skill in check mode; the `github-sync.js` edits shifted line numbers that existing `docs/4-systems/github-sync.md#...js/github-sync.js<line>` anchors encode. Repair with the skill's repair mode if it reports drift.
 
 - [x] **Step 5: Run all tests, then commit**
 
 Run: `cd /home/claude/focus-deck-app && for f in js/*.test.mjs; do node "$f"; done`
 
 ```bash
-git add docs/systems js/github-sync.js
+git add docs/4-systems js/github-sync.js
 git commit -m "docs: tier-4 Claude<->Focus Deck contract; document provenance labels and reopen cleanup"
 ```
 
@@ -537,5 +537,5 @@ git commit -m "docs: tier-4 Claude<->Focus Deck contract; document provenance la
 ## Execution notes (2026-09-21, unattended run)
 
 - All five tasks executed via subagents and verified independently (all five `js/*.test.mjs` files pass; Task 5 screenshots reviewed at 1280px and 390px, no overlap, completed chip disappears immediately on uncheck, no console errors).
-- Task 4 deviation: `house-rules:docref check` tracks no pointers in this repo, so the stale `docs/systems/github-sync.md#...js/github-sync.js<line>` anchors were renumbered by hand (doc headings and source comments). Also linked the new doc from the root `README.md`.
+- Task 4 deviation: `house-rules:docref check` tracks no pointers in this repo, so the stale `docs/4-systems/github-sync.md#...js/github-sync.js<line>` anchors were renumbered by hand (doc headings and source comments). Also linked the new doc from the root `README.md`.
 - Part 2 is blocked on the sync Gist ID — see `2026-09-21-claude-daily-checkin.md`.

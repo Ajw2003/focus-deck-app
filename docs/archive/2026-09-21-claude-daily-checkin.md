@@ -8,7 +8,7 @@
 
 **Tech Stack:** `mcp__claude-code-remote__create_trigger` / `fire_trigger` / `list_triggers`, `PushNotification`, `curl`.
 
-**Spec:** `docs/superpowers/specs/2026-09-21-claude-focus-deck-integration-design.md` (Part 2).
+**Spec:** `docs/archive/2026-09-21-claude-focus-deck-integration-design.md` (Part 2).
 
 ## Global Constraints
 
