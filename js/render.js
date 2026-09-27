@@ -320,6 +320,21 @@ function renderTaskGithubLine(t, p) {
     + btn('link-github-issue', 'Link to an existing issue', 'Link this task to an issue that already exists') + '</div>';
 }
 
+// The edit form's own quiet action row (Q14a, Q12f): Focus on this (closes the form), Open issue
+// for a linked task (a real link, new tab), and Delete (shares confirmDeleteTask with app.js).
+// Everything that used to live on the row itself now lives here instead.
+function renderTaskEditActions(t, p) {
+  const isLinked = t.source === 'github' && !!t.url;
+  const focusBtn = t.status !== 'done'
+    ? '<button type="button" class="link-btn small" data-action="focus-task" data-task="' + t.id + '" data-project="' + p.id + '">Focus on this</button>'
+    : '';
+  const openIssue = isLinked
+    ? '<a class="link-btn small" href="' + esc(t.url) + '" target="_blank" rel="noopener">Open issue ↗ ' + esc(t.repoFullName || '') + '#' + t.issueNumber + '</a>'
+    : '';
+  return '<div class="task-edit-actions">' + focusBtn + openIssue
+    + '<button type="button" class="btn-text danger" data-action="delete-task" data-task="' + t.id + '" data-project="' + p.id + '">Delete</button></div>';
+}
+
 export function renderTaskEditForm(t, p, categories) {
   return '<form class="task-edit-form" data-action="save-task-edit" data-task="' + t.id + '" data-project="' + p.id + '">'
     + '<input type="text" name="title" value="' + esc(t.title) + '" maxlength="280" required autofocus>'
@@ -328,6 +343,7 @@ export function renderTaskEditForm(t, p, categories) {
     + '<input type="date" name="deadline" value="' + (t.deadline || '') + '">'
     + renderLabelPicker(categories, t.categoryIds)
     + renderTaskGithubLine(t, p)
+    + renderTaskEditActions(t, p)
     + '<button type="submit">Save</button>'
     + '<button type="button" data-action="cancel-task-edit">Cancel</button>'
     + '</form>';
@@ -336,13 +352,9 @@ export function renderTaskEditForm(t, p, categories) {
 export function renderTaskRow(t, p, categories, ui) {
   if (ui.editingTask && ui.editingTask.taskId === t.id) return renderTaskEditForm(t, p, categories);
   const isDone = t.status === 'done';
-  // A task linked to an issue opens that issue from its title (see docs/4-systems/github-sync.md).
-  const isLinked = t.source === 'github' && !!t.url;
-  // Linking controls (Unlink, Link, + Issue) live in the edit form; the row only shows the issue
-  // number. See docs/4-systems/github-sync.md#where-the-github-controls-live
-  const ghBadge = t.source === 'github'
-    ? '<a class="chip gh-chip small" href="' + esc(t.url || '#') + '" target="_blank" rel="noopener">#' + (t.issueNumber != null ? t.issueNumber : '') + '</a>'
-    : '';
+  // Tapping the title always opens the editor now, linked or not (Q14a) -- the row itself carries
+  // no GitHub badge, Edit link, Focus → or delete button any more; those moved into the editor's
+  // own action row. See docs/4-systems/github-sync.md#where-the-github-controls-live
   const catChips = (t.categoryIds || []).map((id) => categories.find((c) => c.id === id)).filter(Boolean)
     .map((cat) => '<span class="chip cat-chip small" data-cat-id="' + cat.id + '" data-cat-type="task" title="Right-click to change color" style="--chip-color:' + mutedChip(cat.color) + '">' + esc(formatLabelName(cat.name)) + '</span>').join('');
   const priorityChip = t.priority && PRIORITY[t.priority]
@@ -350,15 +362,9 @@ export function renderTaskRow(t, p, categories, ui) {
     : '';
   return '<div class="task-row' + (isDone ? ' is-done' : '') + '" data-task="' + t.id + '" data-project="' + p.id + '">'
     + '<input type="checkbox" data-action="toggle-task" data-task="' + t.id + '" data-project="' + p.id + '"' + (isDone ? ' checked' : '') + '>'
-    + (isLinked
-      ? '<a class="task-title" href="' + esc(t.url) + '" target="_blank" rel="noopener" title="Open the GitHub issue">' + esc(t.title) + '</a>'
-      : '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + '</span>')
-    + ghBadge
-    + (isLinked ? '<button type="button" class="link-btn small" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" title="Edit this task">Edit</button>' : '')
+    + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + '</span>'
     + priorityChip + catChips
     + (t.deadline ? deadlineChip(t.deadline) : '')
-    + (!isDone ? '<button type="button" class="link-btn small" data-action="focus-task" data-task="' + t.id + '" data-project="' + p.id + '">Focus →</button>' : '')
-    + '<button type="button" class="mini-x" data-action="delete-task" data-task="' + t.id + '" data-project="' + p.id + '" aria-label="Delete task">×</button>'
     + '</div>';
 }
 
@@ -399,8 +405,11 @@ export function renderProjectSidebar(st, ui, visibleProjects) {
   if (!st.projects.length) return '';
   const isOpen = !!ui.projectsDrawerOpen;
   const open = (p) => p.tasks.filter((t) => t.status !== 'done').length;
-  const rows = visibleProjects.map((p) => '<li><button type="button" class="sidebar-project" data-action="scroll-project" data-project="' + p.id + '" style="--dot:' + p.color + '">'
-    + '<span class="dot"></span><span class="sidebar-name">' + esc(p.name) + '</span><span class="sidebar-count" title="Open tasks">' + open(p) + '</span></button></li>').join('');
+  const rows = visibleProjects.map((p) => {
+    const isSelected = ui.selectedProjectId === p.id;
+    return '<li><button type="button" class="sidebar-project' + (isSelected ? ' is-selected' : '') + '" data-action="scroll-project" data-project="' + p.id + '" style="--dot:' + p.color + '"' + (isSelected ? ' aria-current="true"' : '') + '>'
+      + '<span class="dot"></span><span class="sidebar-name">' + esc(p.name) + '</span><span class="sidebar-count" title="Open tasks">' + open(p) + '</span></button></li>';
+  }).join('');
   return '<div class="drawer-backdrop' + (isOpen ? ' is-open' : '') + '" data-action="close-projects-drawer"></div>'
     // a modal dialog only while open as the phone drawer; otherwise a plain landmark, so the wide-screen
     // sidebar doesn't tell screen readers the rest of the page is out of reach
@@ -410,7 +419,25 @@ export function renderProjectSidebar(st, ui, visibleProjects) {
     + '<div class="filter-pills sidebar-pills">' + projectFilterPills(st, ui) + '</div>'
     + '<div class="sidebar-tools">' + projectSortSelect(ui) + collapseAllButton(ui, visibleProjects) + '</div>'
     + '<ul class="sidebar-list">' + (rows || '<li class="muted small">No projects match.</li>') + '</ul>'
+    + renderAddProjectField()
     + '</aside>';
+}
+
+// The project header's Edit panel (Q15a): the category picker (moved off the header itself) and
+// Remove project (moved off the header's own button), both under one "Edit" link. Replaces the
+// old header "+ Category" placeholder and "Remove" button.
+function renderProjectEditPanel(p, ui, projectCategories) {
+  const total = p.tasks.length;
+  const pendingRemove = !!ui.pendingRemove[p.id];
+  const projCatOptions = projectCategories.map((c) => '<option value="' + c.id + '"' + (p.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
+  const catSelect = '<label class="project-edit-cat">Category '
+    + '<select data-action="set-project-category" data-project="' + p.id + '"><option value="">No category</option>' + projCatOptions + '<option value="__new__">+ Add new…</option></select>'
+    + '</label>';
+  const removeControl = pendingRemove
+    ? '<span class="remove-confirm">Remove' + (total ? (' &amp; ' + total + ' task' + (total === 1 ? '' : 's')) : '') + '? <button type="button" class="btn-text danger" data-action="confirm-remove-project" data-project="' + p.id + '">Yes</button><button type="button" class="btn-text" data-action="cancel-remove-project" data-project="' + p.id + '">No</button></span>'
+    : '<button type="button" class="btn-text danger" data-action="remove-project" data-project="' + p.id + '">Remove project</button>';
+  return '<div class="project-edit-panel">' + catSelect + removeControl
+    + '<button type="button" class="btn-text" data-action="close-project-edit" data-project="' + p.id + '">Done</button></div>';
 }
 
 export function renderProjectCard(p, ui, categories, projectCategories) {
@@ -420,27 +447,40 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
   const total = p.tasks.length;
   const pct = total ? Math.round((done.length / total) * 100) : 0;
   const doneOpen = !!ui.doneOpen[p.id];
-  const pendingRemove = !!ui.pendingRemove[p.id];
-  const collapsed = !!ui.projectCollapsed[p.id];
+  const collapsedFlag = !!ui.projectCollapsed[p.id];
+  // The selected card on wide screens always shows expanded, whatever its own collapsed flag says
+  // (that flag is never touched here -- see docs/4-systems/styling.md). CSS ignores `collapsed`
+  // for `.is-selected` at >=1100px; below that breakpoint `isSelected` has no visual effect at all.
+  const isSelected = ui.selectedProjectId === p.id;
+  const collapsed = collapsedFlag && !isSelected;
   const ghBadge = p.source === 'github' ? '<a class="chip gh-chip small" href="' + esc(p.htmlUrl || '#') + '" target="_blank" rel="noopener">' + (p.private ? 'Private · ' : '') + 'GitHub ↗</a>' : '';
   const projCat = projectCategories.find((c) => c.id === p.categoryId);
-  const editingCat = ui.editingProjectCategory === p.id;
-  const projCatOptions = projectCategories.map((c) => '<option value="' + c.id + '"' + (p.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
-  const projCatControl = editingCat
-    ? '<span class="project-cat-edit"><select data-action="set-project-category" data-project="' + p.id + '"><option value="">No category</option>' + projCatOptions + '<option value="__new__">+ Add new…</option></select>'
-      + '<button type="button" class="mini-x" data-action="cancel-edit-project-category" data-project="' + p.id + '" aria-label="Cancel category edit">×</button></span>'
-    : (projCat
-        ? '<button type="button" class="chip cat-chip small chip-btn" data-action="edit-project-category" data-project="' + p.id + '" data-cat-id="' + projCat.id + '" data-cat-type="project" title="Left-click to reassign, right-click to change color" style="--chip-color:' + projCat.color + '">' + esc(projCat.name) + '</button>'
-        : '<button type="button" class="chip cat-chip small chip-btn chip-placeholder" data-action="edit-project-category" data-project="' + p.id + '">+ Category</button>');
+  const projCatChip = projCat ? '<span class="chip cat-chip small" data-cat-id="' + projCat.id + '" data-cat-type="project" title="Right-click to change color" style="--chip-color:' + projCat.color + '">' + esc(projCat.name) + '</span>' : '';
+  const editingPanel = !!ui.editingProject[p.id];
   const collapseBtn = '<button type="button" class="btn-text collapse-toggle" data-action="toggle-project-collapse" data-project="' + p.id + '" aria-label="' + (collapsed ? 'Expand project' : 'Minimize project') + '">' + (collapsed ? '▸' : '▾') + '</button>';
-  const rightControls = pendingRemove
-    ? '<span class="remove-confirm">Remove' + (total ? (' &amp; ' + total + ' task' + (total === 1 ? '' : 's')) : '') + '? <button type="button" class="btn-text danger" data-action="confirm-remove-project" data-project="' + p.id + '">Yes</button><button type="button" class="btn-text" data-action="cancel-remove-project" data-project="' + p.id + '">No</button></span>'
-    : '<button type="button" class="btn-text" data-action="remove-project" data-project="' + p.id + '">Remove</button>';
-  return '<section class="card project-card' + (collapsed ? ' is-collapsed' : '') + '" id="proj-' + p.id + '" style="--proj-color:' + p.color + '">'
+  const editLink = '<button type="button" class="link-btn small" data-action="' + (editingPanel ? 'close-project-edit' : 'open-project-edit') + '" data-project="' + p.id + '">Edit</button>';
+  const addingTask = !!ui.addingTask[p.id];
+  const addTaskBlock = addingTask
+    ? '<form class="add-task-form" data-action="add-task" data-project="' + p.id + '">'
+        + '<input type="text" name="title" placeholder="Add a task…" maxlength="280" required autofocus>'
+        + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
+        + renderPrioritySelect(null)
+        + '<input type="date" name="deadline">'
+        + renderLabelPicker(categories, [])
+        + '<button type="submit" aria-label="Add task">+</button>'
+        + '<button type="button" data-action="cancel-add-task" data-project="' + p.id + '">Cancel</button>'
+      + '</form>'
+    : '<button type="button" class="link-btn add-task-toggle" data-action="open-add-task" data-project="' + p.id + '">+ Add task</button>';
+  return '<section class="card project-card' + (collapsed ? ' is-collapsed' : '') + (isSelected ? ' is-selected' : '') + '" id="proj-' + p.id + '" style="--proj-color:' + p.color + '">'
+    // Line 1: dot, name (wraps, never truncated), collapse toggle + Edit -- always on this line,
+    // whatever the name's length (#83). Line 2 (badges) always renders, even empty, so a card's
+    // progress bar always sits at the same offset from its top as its neighbours'.
     + '<div class="project-head">'
-      + '<div class="project-title"><span class="dot" data-project-color="' + p.id + '" title="Right-click to set a custom color"></span><h3>' + esc(p.name) + '</h3>' + ghBadge + projCatControl + '</div>'
-      + '<div class="project-head-right">' + (p.deadline ? deadlineChip(p.deadline) : '') + collapseBtn + rightControls + '</div>'
+      + '<div class="project-title"><span class="dot" data-project-color="' + p.id + '" title="Right-click to set a custom color"></span><h3>' + esc(p.name) + '</h3></div>'
+      + '<div class="project-head-right">' + (p.deadline ? deadlineChip(p.deadline) : '') + collapseBtn + editLink + '</div>'
     + '</div>'
+    + '<div class="project-badges">' + ghBadge + projCatChip + '</div>'
+    + (editingPanel ? renderProjectEditPanel(p, ui, projectCategories) : '')
     + '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>'
     + (collapsed ? '' : (
       (doing.length ? '<div class="task-group"><h4 class="group-label">In progress</h4>' + doing.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
@@ -450,27 +490,17 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
           '<button type="button" class="section-toggle small" data-action="toggle-done" data-project="' + p.id + '">' + (doneOpen ? '−' : '+') + ' ' + done.length + ' done</button>'
           + (doneOpen ? '<div class="task-group done-group">' + done.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
         ) : '')
-      + '<form class="add-task-form" data-action="add-task" data-project="' + p.id + '">'
-        + '<input type="text" name="title" placeholder="Add a task…" maxlength="280" required>'
-        + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
-        + renderPrioritySelect(null)
-        + '<input type="date" name="deadline">'
-        + renderLabelPicker(categories, [])
-        + '<button type="submit" aria-label="Add task">+</button>'
-      + '</form>'
+      + addTaskBlock
     ))
     + '</section>';
 }
 
-export function renderAddProjectForm(projectCategories) {
-  const catOptions = projectCategories.map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('');
-  return '<form class="add-project-form" data-action="add-project">'
-    + '<input type="text" name="name" placeholder="New project name…" maxlength="60" required>'
-    + '<select name="category"><option value="">No category</option>' + catOptions + '<option value="__new__">+ Add new…</option></select>'
-    + '<button type="submit">+ Add project</button>'
-    + '</form>'
-    + '<form class="add-project-form" data-action="add-repo" style="margin-top:8px;">'
-    + '<input type="text" name="repo" placeholder="owner/repo or a GitHub URL…" maxlength="200" required>'
-    + '<button type="submit">+ Track repo</button>'
+// The one field at the bottom of the project list (Q15a, Q12d): a project name, or an owner/repo /
+// GitHub URL, detected with the same parseRepoInput used everywhere else a repo is entered. See
+// docs/4-systems/styling.md.
+export function renderAddProjectField() {
+  return '<form class="add-project-form" data-action="add-project-field">'
+    + '<input type="text" name="value" placeholder="New project, or owner/repo…" maxlength="200" required>'
+    + '<button type="submit">+ Add</button>'
     + '</form>';
 }
