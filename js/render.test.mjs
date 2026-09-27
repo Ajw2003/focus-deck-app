@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderProjectCard, renderAddProjectField, renderSyncButton, syncButtonTitle } from './render.js';
 import assert from 'node:assert';
 
 // the top-bar sync button: title/aria-label branch on whether it's ever synced, and it spins +
@@ -27,10 +27,12 @@ const row = (over) => renderTaskRow({ ...base, ...over }, p, cats, ui);
 
 assert.ok(!row({ claudeCreated: true, claudeCompleted: true, status: 'done' }).includes('claude'), 'a task never shows a Claude chip -- the "Claude created"/"Claude completed" chips were removed');
 
+// Q14a/Q12f: tapping the title always opens the editor now, linked or not -- the row itself has no
+// #N badge, Edit link, Focus → or delete button any more (those moved into the editor).
 const linked = row({});
-assert.ok(/<a class="task-title" href="https:\/\/github.com\/o\/r\/issues\/1"[^>]*target="_blank"/.test(linked), 'a linked task title is a link to its issue');
-assert.ok(!/class="task-title"[^>]*data-action="edit-task"/.test(linked), 'a linked task title must not open the edit form');
-assert.ok(/data-action="edit-task"[^>]*>Edit</.test(linked), 'a linked task gets a separate Edit button');
+assert.ok(/<span class="task-title" data-action="edit-task" data-task="t1" data-project="p1" role="button" tabindex="0">T<\/span>/.test(linked), 'a linked task title opens the editor, same as an unlinked one');
+assert.ok(!linked.includes('<a class="task-title"'), 'a linked task title is no longer a link to its issue');
+assert.ok(!linked.includes('gh-chip') && !linked.includes('>Edit<') && !linked.includes('focus-task') && !linked.includes('mini-x'), 'no #N badge, Edit link, Focus →, or delete button on the row');
 const manual = row({ source: 'manual', url: undefined, repoFullName: undefined, issueNumber: undefined });
 assert.ok(/<span class="task-title" data-action="edit-task"/.test(manual), 'an unlinked task title still opens the edit form');
 assert.ok(!manual.includes('>Edit<'), 'an unlinked task needs no separate Edit button');
@@ -236,18 +238,76 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   assert.ok(open.includes('role="dialog" aria-modal="true"'), 'open as the drawer, it is a modal dialog');
 }
 
-// GitHub controls: the row shows only the issue number; unlink / link / create live in the edit form
+// GitHub controls: the row shows nothing at all; unlink / link / create / Open issue / Focus /
+// Delete all live in the edit form now (Q14a, Q12f).
 {
   const linkedRow = row({});
-  assert.ok(linkedRow.includes('class="chip gh-chip small"') && !linkedRow.includes('unlink-github-issue'), 'a linked row shows #N but no Unlink');
+  assert.ok(!linkedRow.includes('gh-chip') && !linkedRow.includes('unlink-github-issue'), 'a linked row shows no #N badge and no Unlink');
   const plainRow = row({ source: 'manual', url: undefined, repoFullName: undefined, issueNumber: undefined });
   assert.ok(!plainRow.includes('link-github-issue') && !plainRow.includes('create-github-issue'), 'an unlinked row has no Link or + Issue');
   const linkedForm = renderTaskEditForm({ ...base }, p, cats);
   assert.ok(linkedForm.includes('Linked to o/r#1') && linkedForm.includes('data-action="unlink-github-issue"'), 'the edit form of a linked task offers Unlink');
+  assert.ok(linkedForm.includes('data-action="focus-task" data-task="t1" data-project="p1">Focus on this<'), 'the edit form offers Focus on this');
+  assert.ok(/<a class="link-btn small" href="https:\/\/github.com\/o\/r\/issues\/1" target="_blank" rel="noopener">Open issue ↗ o\/r#1<\/a>/.test(linkedForm), 'a linked task\'s edit form offers Open issue ↗, showing owner/repo#N, as a real link');
+  assert.ok(linkedForm.includes('class="btn-text danger" data-action="delete-task" data-task="t1" data-project="p1">Delete<'), 'the edit form offers Delete');
   const plainForm = renderTaskEditForm({ ...base, source: 'manual', url: undefined, repoFullName: undefined, issueNumber: undefined }, p, cats);
   assert.ok(plainForm.includes('data-action="create-github-issue"') && plainForm.includes('data-action="link-github-issue"'), 'the edit form of an unlinked task offers create and link');
+  assert.ok(!plainForm.includes('Open issue'), 'an unlinked task\'s edit form has no Open issue link');
+  assert.ok(plainForm.includes('data-action="delete-task"'), 'an unlinked task still offers Delete');
+  const doneForm = renderTaskEditForm({ ...base, status: 'done' }, p, cats);
+  assert.ok(!doneForm.includes('>Focus on this<'), 'a done task has nothing to focus on');
   const inbox = renderInbox({ inbox: [{ id: 'i1', text: 'idea', createdAt: Date.now() }], projects: [{ id: 'p1', name: 'P', color: 'red', tasks: [] }], categories: cats }, { inboxOpen: true, unsorted: freshUnsorted() });
   assert.ok(inbox.includes('Which project?') && inbox.includes('data-action="unsorted-project" data-project="p1"'), 'a captured thought is guided to a project before it can be filed');
+}
+
+// Project header (Q15a, #83): controls stay on the first line whatever the name's length; the
+// badges line always renders, even empty, so every card's progress bar sits at the same offset.
+{
+  const cardUi = () => ({ doneOpen: {}, pendingRemove: {}, projectCollapsed: {}, editingProject: {}, addingTask: {}, selectedProjectId: null, editingTask: null });
+  const short = { id: 'p1', name: 'Short', color: 'red', tasks: [] };
+  const long = { id: 'p2', name: 'A very very long project name that used to wrap the header controls onto a second line', color: 'red', source: 'github', htmlUrl: 'https://github.com/o/r', private: true, categoryId: 'c1', tasks: [] };
+  const projectCategories = [{ id: 'c1', name: 'Games', color: '#123456' }];
+  const shortHtml = renderProjectCard(short, cardUi(), [], []);
+  const longHtml = renderProjectCard(long, cardUi(), [], projectCategories);
+  const headOf = (html) => html.slice(html.indexOf('<div class="project-head">'), html.indexOf('<div class="project-badges">'));
+  assert.ok(headOf(shortHtml).includes('collapse-toggle') && headOf(shortHtml).includes('>Edit<'), 'the collapse toggle and Edit link are on line 1 for a short name');
+  assert.ok(headOf(longHtml).includes('collapse-toggle') && headOf(longHtml).includes('>Edit<'), 'and still on line 1 for a long name plus badges (#83)');
+  assert.ok(!shortHtml.includes('>Remove<') && !longHtml.includes('data-action="remove-project"' + '>'), 'no Remove button in the header any more');
+  assert.ok(longHtml.includes('project-badges') && longHtml.includes('Private · GitHub ↗') && longHtml.includes('>Games<'), 'the badges line carries the GitHub badge and the category chip, display only');
+  assert.ok(shortHtml.includes('<div class="project-badges"></div>'), 'a project with no badges still renders an empty badges line, so every card\'s progress bar lines up');
+  assert.ok(!shortHtml.includes('+ Category'), 'the old "+ Category" header placeholder is gone');
+
+  // Edit panel: opened via the header's Edit link, holds the category picker and Remove
+  const editing = renderProjectCard(long, { ...cardUi(), editingProject: { p2: true } }, [], projectCategories);
+  assert.ok(editing.includes('project-edit-panel') && editing.includes('data-action="set-project-category" data-project="p2"'), 'the Edit panel holds the category select');
+  assert.ok(editing.includes('data-action="remove-project" data-project="p2">Remove project<'), 'the Edit panel holds Remove project');
+  assert.ok(editing.includes('data-action="close-project-edit" data-project="p2">Done<'), 'Done closes the panel');
+  const confirming = renderProjectCard(long, { ...cardUi(), editingProject: { p2: true }, pendingRemove: { p2: true } }, [], projectCategories);
+  assert.ok(confirming.includes('Yes') && confirming.includes('No'), 'Remove project still uses the two-step Yes/No confirm');
+
+  // "+ Add task" collapses by default and opens the full form when tapped
+  assert.ok(shortHtml.includes('data-action="open-add-task" data-project="p1">+ Add task<') && !shortHtml.includes('add-task-form'), 'collapsed: a single "+ Add task" line, no open form');
+  const opened = renderProjectCard(short, { ...cardUi(), addingTask: { p1: true } }, [], []);
+  assert.ok(opened.includes('<form class="add-task-form"') && opened.includes('name="title"') && opened.includes('autofocus'), 'open: the full add-task form, title focused');
+  assert.ok(opened.includes('data-action="cancel-add-task" data-project="p1"'), 'the open form can be cancelled');
+
+  // The selected card ignores its own collapsed flag on wide screens (CSS handles the breakpoint;
+  // this only asserts the class and the un-collapsed markup are both present)
+  const collapsedSelected = renderProjectCard(short, { ...cardUi(), projectCollapsed: { p1: true }, selectedProjectId: 'p1' }, [], []);
+  assert.ok(collapsedSelected.includes('is-selected') && !collapsedSelected.includes('is-collapsed'), 'a selected project always renders expanded, whatever its collapsed flag says');
+  const collapsedUnselected = renderProjectCard(short, { ...cardUi(), projectCollapsed: { p1: true } }, [], []);
+  assert.ok(collapsedUnselected.includes('is-collapsed') && !collapsedUnselected.includes('is-selected'), 'an unselected collapsed project still renders collapsed');
+}
+
+// Sidebar: selection highlight + the one add field at the bottom
+{
+  const projects = [{ id: 'p1', name: 'Alpha', color: 'red', tasks: [] }, { id: 'p2', name: 'Beta', color: 'blue', tasks: [] }];
+  const sideUi = { projectQuery: '', projectSort: 'name', projectCollapsed: {}, selectedProjectId: 'p2' };
+  const html = renderProjectSidebar({ projects, projectCategories: [] }, sideUi, projects);
+  assert.ok(html.includes('data-action="scroll-project" data-project="p2"') && /class="sidebar-project is-selected"[^>]*data-project="p2"[^>]*aria-current="true"/.test(html), 'the selected row is highlighted with aria-current');
+  assert.ok(!/data-project="p1"[^>]*aria-current/.test(html), 'the unselected row carries no aria-current');
+  assert.ok(html.includes('<form class="add-project-form" data-action="add-project-field">') && html.includes('placeholder="New project or owner/repo"'), 'the sidebar ends with the one add field');
+  assert.strictEqual(renderAddProjectField(), '<form class="add-project-form" data-action="add-project-field"><input type="text" name="value" placeholder="New project or owner/repo" maxlength="200" required><button type="submit">+ Add</button></form>', 'the add field itself');
 }
 
 assert.strictEqual(renderToast(null, 'error'), '', 'no message means no toast');

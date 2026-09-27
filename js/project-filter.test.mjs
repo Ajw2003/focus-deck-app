@@ -1,5 +1,5 @@
 // focus-deck-app/js/project-filter.test.mjs — run with: node js/project-filter.test.mjs
-import { filterAndSortProjects, sortProjects } from './project-filter.js';
+import { filterAndSortProjects, sortProjects, resolveSelectedProject } from './project-filter.js';
 import assert from 'node:assert';
 
 function proj(overrides) {
@@ -45,5 +45,19 @@ const withSync = [
   proj({ id: 'p3', name: 'Manual' }),
 ];
 assert.deepStrictEqual(sortProjects(withSync, 'recent-sync').map((p) => p.id), ['p2', 'p1', 'p3'], 'recent-sync sort should rank most-recently-synced GitHub projects first, manual projects last by name');
+
+// resolveSelectedProject: stored id wins if it still exists; otherwise the busiest project; ties
+// fall back to the order the caller already sorted them in; no projects means null
+{
+  const list = [
+    proj({ id: 'p1', name: 'Alpha', tasks: [{ status: 'next' }] }),
+    proj({ id: 'p2', name: 'Beta', tasks: [{ status: 'next' }, { status: 'next' }] }),
+    proj({ id: 'p3', name: 'Gamma', tasks: [{ status: 'next' }, { status: 'next' }] }),
+  ];
+  assert.strictEqual(resolveSelectedProject(list, 'p1'), 'p1', 'the stored id wins when that project still exists');
+  assert.strictEqual(resolveSelectedProject(list, 'gone'), 'p2', 'a stored id that no longer exists falls back to the busiest project');
+  assert.strictEqual(resolveSelectedProject(list, null), 'p2', 'no stored id (first time) also falls back to the busiest project');
+  assert.strictEqual(resolveSelectedProject([], 'p1'), null, 'no projects at all means no selection');
+}
 
 console.log('PROJECT FILTER/SORT TESTS PASSED');

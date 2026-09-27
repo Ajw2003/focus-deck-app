@@ -22,6 +22,10 @@ assert.strictEqual(parseRepoInput('https://github.com/owner/repo'), 'owner/repo'
 assert.strictEqual(parseRepoInput('https://github.com/owner/repo/'), 'owner/repo', 'URL with a trailing slash should parse to owner/repo');
 assert.strictEqual(parseRepoInput('https://github.com/owner/repo.git'), 'owner/repo', 'URL with a .git suffix should parse to owner/repo');
 assert.strictEqual(parseRepoInput('not a valid repo input'), null, 'invalid input should return null');
+// the one add field at the bottom of the project list (Q15a, Q12d) reuses this exact function to
+// tell a project name from a repo: parseRepoInput(val) truthy -> track-repo path, else add-project
+assert.strictEqual(parseRepoInput('Garden'), null, '"Garden" (a plain name) is not a repo -- the add field treats it as a new project');
+assert.strictEqual(parseRepoInput('someone/somerepo'), 'someone/somerepo', '"someone/somerepo" is a repo -- the add field takes the track-repo path');
 
 // --- provenance labels ---
 {

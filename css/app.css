@@ -318,7 +318,13 @@ button.chip.proj-chip:hover{background:var(--line);}
      and the focus card's label cards spread across the width */
   .wrap{max-width:1800px;}
   #app{display:grid; grid-template-columns:270px minmax(0,1fr); gap:28px; align-items:start;}
-  .projects-grid{grid-template-columns:repeat(auto-fill, minmax(420px, 1fr)); align-items:start;}
+  /* One project at a time (Q22b, Q23a, #82): every card is still rendered (phones need them all),
+     but only the selected one shows here -- a single column, not the old auto-fill grid. */
+  .projects-grid{grid-template-columns:1fr; align-items:start;}
+  .project-card{display:none;}
+  .project-card.is-selected{display:block;}
+  /* "Collapse all" is meaningless when only one project shows at a time */
+  [data-action="toggle-collapse-all"]{display:none;}
   .energy-grid.focus-grid{grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));}
   .drawer-backdrop{display:none;}
   .project-sidebar{
@@ -327,6 +333,7 @@ button.chip.proj-chip:hover{background:var(--line);}
     transform:none; transition:none; visibility:visible;
     background:none; border-right:1px solid var(--line); border:none; border-radius:0; padding:0 20px 16px 0;
   }
+  .sidebar-project.is-selected{background:var(--surface-2); font-weight:700;}
 }
 .sidebar-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
 .sidebar-title{font-size:var(--text-h); font-style:italic;}
@@ -347,11 +354,24 @@ button.chip.proj-chip:hover{background:var(--line);}
 /* A project's own colour is identity only (Q4b): its dot, and this 3px top edge — the flat card's
    separating rule, in its colour. */
 .project-card{border-top:3px solid var(--proj-color);}
-.project-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
-.project-title{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+/* Line 1 never wraps its controls onto a second line (#83): the name is the only thing allowed to
+   grow, the collapse toggle + Edit link stay put on the right. Line 2 (badges) always renders, even
+   empty, so every card's progress bar sits the same distance from its top. */
+.project-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:nowrap;}
+.project-title{display:flex; align-items:center; gap:8px; min-width:0; flex:1 1 auto;}
 .project-title .dot{width:10px; height:10px; border-radius:50%; background:var(--proj-color); display:inline-block; flex:none;}
-.project-title h3{font-size:var(--text-h);}
-.project-head-right{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.project-title h3{font-size:var(--text-h); overflow-wrap:break-word; min-width:0;}
+.project-head-right{display:flex; align-items:center; gap:8px; flex:none; white-space:nowrap;}
+.project-badges{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:1.4em; margin:6px 0 10px;}
+.project-edit-panel{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 0; margin-bottom:10px; border-top:1px dashed var(--line); border-bottom:1px dashed var(--line); font-size:var(--text-sm);}
+.project-edit-cat{display:flex; align-items:center; gap:6px; color:var(--ink-soft); font-weight:600;}
+.project-edit-cat select{padding:5px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);}
+.add-task-toggle{margin-top:12px; color:var(--accent); font-weight:600;}
+.task-edit-actions{flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:4px 14px; font-size:var(--text-sm);}
+.task-edit-actions .link-btn{background:none; color:var(--accent); padding:2px 0; font-size:var(--text-sm);}
+.task-edit-actions a.link-btn{text-decoration:none;}
+.task-edit-actions a.link-btn:hover{text-decoration:underline;}
+.task-edit-actions .btn-text{margin-left:auto;}
 .progress-track{height:5px; border-radius:var(--r-pill); background:var(--surface-2); overflow:hidden; margin-bottom:14px;}
 /* Progress fill is neutral, not the project's colour — the project's colour is identity only (its
    dot and card edge), not a status indicator (Q4b). */
@@ -359,12 +379,15 @@ button.chip.proj-chip:hover{background:var(--line);}
 .task-group{margin-bottom:10px;}
 .group-label{margin-bottom:6px;}
 .task-row{
-  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  display:flex; align-items:flex-start; gap:8px;
   padding:7px 0; border-top:1px solid var(--line);
 }
+/* title + chips: the title's basis is its own width, so a long title claims the whole line and the
+   chips wrap below it rather than squeezing it into a narrow column */
+.task-main{flex:1; min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px;}
 .task-group .task-row:first-of-type{border-top:none;}
-.task-row input[type="checkbox"]{width:17px; height:17px; accent-color:var(--accent); flex:none;}
-.task-title{flex:1 1 140px;}
+.task-row input[type="checkbox"]{width:17px; height:17px; margin-top:3px; accent-color:var(--accent); flex:none;}
+.task-title{flex:1 1 auto; min-width:0;}
 .task-row.is-done .task-title{color:var(--ink-faint); text-decoration:line-through;}
 .task-title[role="button"]{cursor:pointer;}
 .task-title[role="button"]:hover{text-decoration:underline; text-decoration-style:dotted;}
@@ -400,6 +423,9 @@ a.task-title:hover{text-decoration:underline;}
   padding:7px 13px; border:none; border-radius:var(--r-control); background:var(--accent); color:var(--accent-ink); font-weight:700;
 }
 .add-project-form{display:flex; gap:8px;}
+/* in the narrow project list the add field takes its own row, so its placeholder isn't cut off */
+.project-sidebar .add-project-form{flex-wrap:wrap;}
+.project-sidebar .add-project-form input[type="text"]{flex-basis:100%;}
 .add-project-form input[type="text"], .add-project-form input[type="password"]{
   flex:1; min-width:0; padding:11px 14px; border:1.5px dashed var(--line); border-radius:var(--r-control); background:transparent; color:var(--ink);
 }

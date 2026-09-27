@@ -143,26 +143,62 @@ merged into this one flow.
 ### Project sidebar / Projects drawer
 
 `renderProjectSidebar` (js/render.js) is the single project list — search, category pills, sort,
-Collapse all, one row per visible project (dot, full name, open task count) — and it's the only
-project list in the app; the old project-pills row (`.stats-row`) and filter bar
-(`.project-filter-bar`) above the project cards were both deleted on 2026-09-26 (#9a). The same
-markup renders two ways, switched purely by CSS at the 1100px breakpoint (#50, #64):
+Collapse all, one row per visible project (dot, full name, open task count), and one add field at
+the bottom — and it's the only project list in the app; the old project-pills row (`.stats-row`)
+and filter bar (`.project-filter-bar`) above the project cards were both deleted on 2026-09-26
+(#9a). The same markup renders two ways, switched purely by CSS at the 1100px breakpoint (#50,
+#64):
 
-- **>=1100px: sidebar.** A sticky left column, 270px wide, that scrolls on its own when it's taller
-  than the window — unchanged from before. `.wrap` widens to 1800px (the 760px base rule is the one
-  the style contract checks); project cards flow into as many 420px+ columns as fit; the focus
-  picker's label cards fill the row (`auto-fill`, 190px minimum).
-- **<1100px: drawer.** Hidden off-canvas (`transform:translateX(-100%)`, then `visibility:hidden`
-  once it has slid away, so keyboard and screen-reader users can't land in it) until opened from the
-  **Projects** button in the topbar (`#projects-btn`, hidden itself at >=1100px). Opening it
-  (`toggle-projects-drawer` in js/app.js) slides it in from the left over a dim backdrop
-  (`.drawer-backdrop`) and moves focus to the drawer itself — not its search box, which would raise
-  the phone keyboard over the list; tapping the backdrop, pressing Escape, or
-  tapping a project row (`scroll-project`, which also closes it) closes it and returns focus to the
-  Projects button (`setProjectsDrawerOpen` in js/app.js). `ui.projectsDrawerOpen` holds the open
-  state — not persisted, not saved. The `<aside>` carries `aria-label="Projects"` and, only while open,
-  `role="dialog"` and `aria-modal="true"` (the wide-screen sidebar is not modal); the button carries `aria-expanded`/`aria-controls`, kept current by
-  `paintHeaderControls` since the button lives outside `#app`.
+- **>=1100px: sidebar, one project card at a time (Q22b, Q23a, #82, PR 4 2026-09-27).** A sticky
+  left column, 270px wide, that scrolls on its own when it's taller than the window. `.wrap` widens
+  to 1800px (the 760px base rule is the one the style contract checks). The main column no longer
+  shows a grid of every project's card — it shows the focus card, Unsorted, then **only the
+  selected project's card**, full width. Every card is still rendered (phones need them all); CSS
+  just hides every `.project-card` except `.is-selected` at this width, and `.projects-grid` is a
+  single column instead of the old `auto-fill` grid. `[data-action="toggle-collapse-all"]`
+  ("Collapse all") is hidden here too — meaningless when only one project shows. The focus picker's
+  label cards still fill the row (`auto-fill`, 190px minimum) — that didn't change.
+
+  Selection lives in `ui.selectedProjectId`, resolved every paint by `resolveSelectedProject`
+  (js/project-filter.js, pure and tested): the id persisted per device
+  (`focusdeck-selected-project`, read/write wrapped in try/catch exactly like
+  `focusdeck-focus-filter`) if that project still exists, else the project with the most open
+  tasks (ties keep the caller's current sort order, since `Array.sort` is stable), else `null` when
+  there are no projects. It's resolved against *every* project, not the search/category-filtered
+  list, so the open project stays open even if a filter would hide its sidebar row.
+
+  A sidebar row (`scroll-project`), the focus card's project chip, and any other `scroll-project`
+  source all branch on `matchMedia('(min-width:1100px)')` (`scrollToProject`/`isWideScreen` in
+  js/app.js): at >=1100px they select that project (and scroll the main column so its card's top
+  sits below the sticky topbar) instead of scrolling to it in a shared grid. The selected row gets
+  `.is-selected` and `aria-current="true"`. The selected card always shows expanded up here —
+  render.js leaves its own `is-collapsed` flag untouched and simply doesn't apply it to the
+  selected card at this width — so a card someone minimised on their phone doesn't reopen collapsed
+  the first time they look at it on a desktop.
+
+- **<1100px: drawer, every project stacks.** Nothing changed here: hidden off-canvas
+  (`transform:translateX(-100%)`, then `visibility:hidden` once it has slid away, so keyboard and
+  screen-reader users can't land in it) until opened from the **Projects** button in the topbar
+  (`#projects-btn`, hidden itself at >=1100px). Opening it (`toggle-projects-drawer` in js/app.js)
+  slides it in from the left over a dim backdrop (`.drawer-backdrop`) and moves focus to the drawer
+  itself — not its search box, which would raise the phone keyboard over the list; tapping the
+  backdrop, pressing Escape, or tapping a project row (`scroll-project`, which also closes it and
+  scrolls to the card, same as before PR 4) closes it and returns focus to the Projects button
+  (`setProjectsDrawerOpen` in js/app.js). `ui.projectsDrawerOpen` holds the open state — not
+  persisted, not saved. The `<aside>` carries `aria-label="Projects"` and, only while open,
+  `role="dialog"` and `aria-modal="true"` (the wide-screen sidebar is not modal); the button carries
+  `aria-expanded`/`aria-controls`, kept current by `paintHeaderControls` since the button lives
+  outside `#app`.
+
+**Add a project or a repo (Q15a, Q12d, PR 4 2026-09-27).** One field, `renderAddProjectField`,
+sits at the bottom of the sidebar/drawer list — "New project or owner/repo" — replacing the two
+forms (`renderAddProjectForm`) that used to sit at the bottom of the page. `add-project-field` in
+js/app.js decides which path with `parseRepoInput` (js/github-sync.js, already used everywhere else
+a repo is typed in): if it parses (`owner/repo`, or a `github.com` URL), the value takes the old
+track-repo path (`addRepoManually`); otherwise it's a plain project name with no category —
+category is set afterward through the project's own Edit panel (see below), since the field has
+nowhere to put one. After adding, the new project is selected on wide screens or, on a phone, the
+drawer closes and the page scrolls to it — the same split `scrollToProject` already made.
 
 The sidebar/drawer markup is always in the DOM; a repaint rebuilds it, so `paint()` in js/app.js
 records whether the one project search box (`.project-search`) had focus and puts the cursor back
@@ -177,6 +213,27 @@ pattern), with class names as literal text inside the strings — e.g.
 `'<button type="button" class="energy-btn" ...'` (js/render.js:5). There is no compiler step that
 would catch a typo or a deleted rule; a class with no matching CSS rule fails completely silently
 in the browser and just renders with default/no styling.
+
+### Task rows and the editor (Q14a, Q12f, PR 4 2026-09-27)
+
+A row (`renderTaskRow`, js/render.js) shows only the checkbox, the title, label chips, the deadline
+chip, and the priority chip when one is set (it still cycles on tap). The title and chips sit in
+one wrapping group (`.task-main`) beside the checkbox, with the title's width set by its own text:
+a short title keeps its chips on its line, a long one takes the full width and its chips drop
+underneath, instead of the chips squeezing it into a narrow column. No `#N` GitHub badge, no
+"Edit" link, no "Focus →", no × delete button — all four moved into the editor. Tapping the title
+always opens `renderTaskEditForm`, linked or not: a linked task's title used to be an `<a>` straight
+to its issue, so opening its issue took one tap and editing it took a second (a separate "Edit"
+link); now the title is the same `role="button"` span every task's title is, Enter or Space opens
+it (`onAppKeydown` in js/app.js), and reaching the issue takes one deliberate tap inside the editor
+instead.
+
+The editor's own quiet action row (`renderTaskEditActions`) sits after the GitHub line
+(`renderTaskGithubLine`, unchanged — Unlink / + Create issue / Link to an existing issue) and before
+Save/Cancel: **Focus on this** (the old row's "Focus →", now `focus-task`; picking it also closes
+the form), **Open issue ↗ owner/repo#N** for a linked task only (a real `<a target="_blank"
+rel="noopener">`, not another `data-action`), and **Delete** (`.btn-text danger`, the same
+`confirmDeleteTask` confirm the row's × used to trigger, closing the form on confirm).
 
 ## Visual system
 
@@ -248,6 +305,37 @@ touching the stored name or anything sent to GitHub — with a fixed list of acr
 already mixed-case (`GitHub`) is left as written. Used everywhere a label's name is displayed:
 focus picker cards, row `.cat-chip`s, the label picker, Unsorted's label pills/kind cards, and
 settings' task-category list. Project category names are not labels and are shown as typed.
+
+### Project header and the Edit panel (Q15a, #83, PR 4 2026-09-27)
+
+`renderProjectCard`'s header is two lines that always render in the same shape, whatever the
+project's name or badges: **line 1** is the colour dot, the name (`overflow-wrap:break-word` — it
+wraps rather than truncates if it must), then the right-aligned collapse toggle and an **Edit**
+link, laid out with `flex-wrap:nowrap` so the controls can never be pushed onto a second line by a
+long name (#83, the bug where a long name plus badges wrapped the header and left that card's
+progress bar sitting lower than its neighbours'). **Line 2** (`.project-badges`) is the GitHub
+"Private · GitHub ↗" link and the project category chip — display only here, `min-height` set so
+the line takes up the same vertical space even with nothing in it, which is what actually keeps
+every card's progress bar at the same offset from its top, not just line 1's layout.
+
+Tapping Edit opens `renderProjectEditPanel` under the header: the category `<select>` (the same
+`set-project-category` mechanics, including "+ Add new…", that used to live on the header's own
+chip/placeholder) and **Remove project** (the same two-step Yes/No confirm, `remove-project` →
+`confirm-remove-project`/`cancel-remove-project`, that used to be the header's own button). "Done"
+(`close-project-edit`) closes the panel. The header's old "Remove" button and "+ Category"
+placeholder are gone. Right-click-to-recolour still works on the dot and on the category chip
+wherever it's shown (`data-project-color`/`data-cat-id`, read by `onAppContextMenu` in js/app.js —
+neither depends on where the chip sits in the markup).
+
+### Collapsed "+ Add task" (Q3b, PR 4 2026-09-27)
+
+A project card ends with a single `.link-btn`-style "+ Add task" line (`open-add-task`) instead of
+the form always sitting open. Tapping it opens the full form in place (title `autofocus`,
+`ui.addingTask[projectId] = true`, not persisted — only one project's form is ever open, since
+nothing clears another project's flag but nothing needs to: each card reads only its own). Adding a
+task re-renders a fresh, empty, still-open form (autofocus re-fires on the new element), so adding
+several in a row is one tap plus Enter each time. Cancel (`cancel-add-task`) or Escape while focus
+is inside the form (`onAppKeydown`) collapses it back to the link.
 
 ## Invariants
 

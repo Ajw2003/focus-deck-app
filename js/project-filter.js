@@ -36,3 +36,14 @@ export function filterAndSortProjects(projects, { categoryId, query, sortBy } = 
   if (query) list = list.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
   return sortProjects(list, sortBy);
 }
+
+// Wide screens show one project at a time (Q22b, Q23a, #82): the one last opened on this device,
+// or, the first time (or if it's gone), the project with the most open tasks — ties broken by the
+// current sort order, which the caller has already applied to `projects`. Pure so it's directly
+// testable; app.js supplies the persisted id and the sorted project list.
+export function resolveSelectedProject(projects, storedId) {
+  if (!projects.length) return null;
+  if (storedId && projects.some((p) => p.id === storedId)) return storedId;
+  const busiest = sortProjects(projects, 'open-tasks')[0];
+  return busiest.id;
+}

@@ -5,7 +5,8 @@ import * as R from './render.js';
 import { registerPaint, initSyncLifecycle } from './sync.js';
 import { syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask } from './github-sync.js';
 import { getToken } from './github.js';
-import { filterAndSortProjects } from './project-filter.js';
+import { filterAndSortProjects, resolveSelectedProject } from './project-filter.js';
+import { parseRepoInput } from './github-sync.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
 // storage rather than in the synced state.
@@ -30,6 +31,25 @@ function saveCollapsedProjects() {
   catch (e) { console.error('Could not save minimised projects:', e); }
 }
 
+// Which project is open at a time on wide screens (Q22b, Q23a, #82) is a per-device layout
+// choice, like the collapsed projects above -- not synced state.
+const SELECTED_PROJECT_KEY = 'focusdeck-selected-project';
+function loadSelectedProjectId() {
+  try { return localStorage.getItem(SELECTED_PROJECT_KEY) || null; }
+  catch (e) { console.error('Could not read the selected project:', e); return null; }
+}
+function saveSelectedProjectId(id) {
+  try { localStorage.setItem(SELECTED_PROJECT_KEY, id || ''); }
+  catch (e) { console.error('Could not save the selected project:', e); }
+}
+
+// >=1100px shows one project card at a time (the plan's "wide screens" breakpoint, matched to the
+// CSS media query at the same width) -- everywhere a project-jump used to just scroll now selects
+// there instead.
+function isWideScreen() {
+  return typeof matchMedia === 'function' && matchMedia('(min-width:1100px)').matches;
+}
+
 // Per-item scratch for the Unsorted flow (chosen project, ticked labels, typed new labels, "show
 // all" toggles) plus this session's skip list and which queue item it belongs to. Reset whenever
 // the current item changes -- see renderApp below.
@@ -37,7 +57,7 @@ function freshUnsortedScratch(skipped) {
   return { skipped: skipped || [], projectId: null, selected: [], newLabels: '', showAllLabels: false, showAllProjects: false, currentKey: null };
 }
 
-export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), focusFilter: loadFocusFilter(), editingProjectCategory: null, unsorted: freshUnsortedScratch(), projectsDrawerOpen: false };
+export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(), projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId() };
 
 export function renderApp(st) {
   st._ui = ui; // the sync button reads sync UI state off the state object it's already passed
@@ -48,13 +68,15 @@ export function renderApp(st) {
   const currentKey = currentUnsorted ? currentUnsorted.key : null;
   if (currentKey !== ui.unsorted.currentKey) ui.unsorted = Object.assign(freshUnsortedScratch(ui.unsorted.skipped), { currentKey });
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
+  // Resolved against every project, not just the filtered/searched list (Q22b/Q23a) -- the open
+  // project stays open on wide screens even if a search or category filter hides it from the list.
+  ui.selectedProjectId = resolveSelectedProject(st.projects, ui.selectedProjectId);
   return R.renderProjectSidebar(st, ui, visibleProjects)
     + '<div class="main-col">'
       + R.renderFocus(st, findTaskWithProject, ui) + R.renderInbox(st, ui)
       + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
         + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
       + '</div>'
-      + R.renderAddProjectForm(st.projectCategories)
     + '</div>'
     + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
 }
@@ -171,14 +193,19 @@ function onAppClick(e) {
   else if (action === 'clear-focus') M.clearFocus();
   else if (action === 'complete-focus') M.completeFocus(findProjectIdForTask);
   // M.setFocusTask doesn't exist -- the correct exported function is setFocus.
-  else if (action === 'focus-task') M.setFocus(taskId);
+  // "Focus on this" lives in the edit form now (Q14a, Q12f) -- picking a task closes the form.
+  else if (action === 'focus-task') { ui.editingTask = null; M.setFocus(taskId); }
   else if (action === 'cycle-priority') M.cyclePriority(taskId);
   else if (action === 'delete-task') {
-    if (confirmDeleteTask(taskId, projectId)) M.deleteTask(taskId, projectId);
+    if (confirmDeleteTask(taskId, projectId)) { ui.editingTask = null; M.deleteTask(taskId, projectId); }
   }
   else if (action === 'remove-project') { ui.pendingRemove[projectId] = true; paint(); }
   else if (action === 'cancel-remove-project') { delete ui.pendingRemove[projectId]; paint(); }
-  else if (action === 'confirm-remove-project') M.removeProject(projectId);
+  else if (action === 'confirm-remove-project') { delete ui.editingProject[projectId]; M.removeProject(projectId); }
+  else if (action === 'open-project-edit') { ui.editingProject[projectId] = true; paint(); }
+  else if (action === 'close-project-edit') { delete ui.editingProject[projectId]; delete ui.pendingRemove[projectId]; paint(); }
+  else if (action === 'open-add-task') { ui.addingTask[projectId] = true; paint(); }
+  else if (action === 'cancel-add-task') { delete ui.addingTask[projectId]; paint(); }
   else if (action === 'dismiss-toast') {
     if (ui.syncError === storageProblem) ui.storageProblemDismissed = true;
     ui.syncError = null;
@@ -206,8 +233,6 @@ function onAppClick(e) {
     saveCollapsedProjects();
     paint();
   }
-  else if (action === 'edit-project-category') { ui.editingProjectCategory = projectId; paint(); }
-  else if (action === 'cancel-edit-project-category') { ui.editingProjectCategory = null; paint(); }
   else if (action === 'link-github-issue') {
     const input = prompt('Link to which GitHub issue? Paste "owner/repo#123" or the issue URL:');
     if (input) linkTaskToIssue(taskId, input, ui).then(paint);
@@ -283,10 +308,6 @@ function onAppChange(e) {
   } else if (e.target.matches && e.target.matches('[data-action="set-project-category"]')) {
     const projectId = e.target.getAttribute('data-project');
     let categoryId = e.target.value;
-    // ui.editingProjectCategory is cleared *before* the mutation: M.setProjectCategory ->
-    // persist() repaints synchronously, so clearing it after the call would still show the
-    // select for this project in that repaint.
-    ui.editingProjectCategory = null;
     if (categoryId === '__new__') {
       const name = prompt('New project category name:');
       categoryId = name ? M.addProjectCategory(name).id : '';
@@ -345,6 +366,18 @@ function createIssueIfGithubProject(task, projectId) {
   }
 }
 
+// After adding a project from the one add field (Q15a, Q12d): select it on wide screens, or close
+// the drawer and scroll to it on phones -- the same split as scrollToProject.
+function afterProjectAdded(projectId) {
+  if (isWideScreen()) {
+    ui.selectedProjectId = projectId;
+    saveSelectedProjectId(projectId);
+    paint();
+  } else {
+    scrollToProject(projectId);
+  }
+}
+
 function onAppSubmit(e) {
   const addTaskForm = e.target.closest('[data-action="add-task"]');
   if (addTaskForm) {
@@ -355,27 +388,25 @@ function onAppSubmit(e) {
     createIssueIfGithubProject(task, projectId);
     return;
   }
-  const addProjectForm = e.target.closest('[data-action="add-project"]');
-  if (addProjectForm) {
+  const addProjectField = e.target.closest('[data-action="add-project-field"]');
+  if (addProjectField) {
     e.preventDefault();
-    const fd = new FormData(addProjectForm);
-    let categoryId = fd.get('category');
-    if (categoryId === '__new__') {
-      const name = prompt('New project category name:');
-      categoryId = name ? M.addProjectCategory(name).id : '';
+    const val = String(new FormData(addProjectField).get('value') || '').trim();
+    if (!val) return;
+    addProjectField.reset();
+    // "owner/repo" or a github.com URL takes the track-repo path (Q15a, Q12d); anything else is a
+    // plain project name with no category -- category is set later through a project's own Edit
+    // panel. Detection reuses parseRepoInput, the same regex every other repo-input field uses.
+    const repoFullName = parseRepoInput(val);
+    if (repoFullName) {
+      addRepoManually(val, ui).then(() => {
+        paint();
+        const project = state.projects.find((p) => p.source === 'github' && p.repoFullName === repoFullName);
+        if (project) afterProjectAdded(project.id);
+      });
+    } else {
+      afterProjectAdded(M.addProject(val, null).id);
     }
-    // addProject(name, categoryId) -- was previously passing nextHue itself (a function
-    // reference, not a color) as the 2nd arg, so categoryId silently never made it onto the
-    // project. See addProject's own comment in mutations.js.
-    M.addProject(fd.get('name'), categoryId);
-    return;
-  }
-  const addRepoForm = e.target.closest('[data-action="add-repo"]');
-  if (addRepoForm) {
-    e.preventDefault();
-    const val = new FormData(addRepoForm).get('repo');
-    addRepoManually(val, ui).then(paint);
-    addRepoForm.reset();
     return;
   }
   const editForm = e.target.closest('[data-action="save-task-edit"]');
@@ -394,9 +425,15 @@ function onAppSubmit(e) {
 }
 
 function onAppKeydown(e) {
-  if (e.key === 'Enter' && e.target.matches('[data-action="edit-task"]')) {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-action="edit-task"]')) {
+    e.preventDefault(); // stop Space from scrolling the page
     ui.editingTask = { taskId: e.target.getAttribute('data-task'), projectId: e.target.getAttribute('data-project') };
     paint();
+  }
+  // Escape collapses a project's open "+ Add task" form while focus is inside it (Q3b).
+  if (e.key === 'Escape') {
+    const form = e.target.closest && e.target.closest('.add-task-form');
+    if (form) { delete ui.addingTask[form.getAttribute('data-project')]; paint(); }
   }
 }
 
@@ -417,10 +454,22 @@ function setProjectsDrawerOpen(open) {
   }
 }
 
-// Jumps to a project's card. It is opened first if minimised, and the project filter and search are
-// cleared if they hide it, so the jump always lands on the project's task list.
+// Jumps to a project's card below 1100px (opened first if minimised, project filter/search cleared
+// if they hide it); at >=1100px it selects that project instead (Q22b) -- the sidebar row, the
+// focus card's project chip, and any other scroll-project source all branch the same way.
 function scrollToProject(projectId) {
   if (!state.projects.some((p) => p.id === projectId)) return;
+  if (isWideScreen()) {
+    ui.selectedProjectId = projectId;
+    saveSelectedProjectId(projectId);
+    paint();
+    const target = document.getElementById('proj-' + projectId);
+    if (!target) return;
+    const header = document.querySelector('.topbar');
+    const top = target.getBoundingClientRect().top + window.scrollY - (header ? header.offsetHeight : 0) - 12;
+    window.scrollTo({ top: Math.max(0, top), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    return;
+  }
   if (ui.projectsDrawerOpen) { setProjectsDrawerOpen(false); }
   let changed = false;
   if (ui.projectCollapsed[projectId]) { ui.projectCollapsed[projectId] = false; saveCollapsedProjects(); changed = true; }
