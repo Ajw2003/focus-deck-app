@@ -95,3 +95,91 @@ duplicated here.
 
 1. Merge PR 4 (`claude/laughing-einstein-wtt7t6`) once reviewed.
 2. Milestone 7 onward, per `docs/2-roadmap/Roadmap.md`.
+
+# Today (continued) — PR 5, 2026-09-27
+
+## What today was
+
+PR 5 of the handcrafted redesign: flip PR 4's breakpoint per the same day's reversal of Q22b
+(Decisions, "Wide screens get 2x2 tiles; one project at a time moves to phones"). >=1100px now
+shows every visible project as its own tile, two columns, equal height; <1100px now shows only the
+selected project, the same layout PR 4 had built for wide screens.
+
+## What was done
+
+- `js/render.js`: `renderProjectCard` — the collapse toggle/"Collapse all" are hidden at both
+  widths now, so a saved collapsed flag is ignored for rendering unconditionally (not just for the
+  selected card); wrapped the task groups, the "+N done" toggle, the done group and "+ Add task" in
+  a new `.project-body` scroll region (`tabindex="0" role="region" aria-label="<name> tasks"`),
+  keyboard-reachable and independently scrollable inside a fixed-height tile. `renderProjectSidebar`
+  takes a new `isWide` argument: a wide-screen row carries no `.is-selected`/`aria-current` (there
+  is no "current" project once every one shows as a tile), only a narrow-screen one does.
+- `js/app.js`: `isWideScreen()`'s breakpoint is now a named constant (`WIDE_BREAKPOINT_PX`, still
+  1100, still coupled to `css/app.css`'s media query only by both spelling it the same way).
+  `scrollToProject` and `afterProjectAdded` are inverted from PR 4: at >=1100px they just scroll to
+  the project's tile (already rendered, no selection to set); below it they select
+  (`ui.selectedProjectId`, `focusdeck-selected-project`) and then scroll, same as PR 4's wide-screen
+  branch did. Added `updateTopbarHeightVar()` (called on init and window resize) to set
+  `--topbar-h`, the real measured topbar height the tile-height CSS calc reads back — chosen over a
+  guessed constant since the topbar's height varies with width and content, the same reasoning
+  `scrollToProject`'s own offset already used. Added `scrollOpenedFormIntoView(selector)`, called
+  after opening a task's editor or a project's "+ Add task" form, so it scrolls into view *within*
+  its tile (`scrollIntoView({block:'nearest'})`) rather than just onto the page.
+- `css/app.css`: the >=1100px media query now sets `.projects-grid` to two columns with
+  `grid-auto-rows:max(320px, calc((100dvh - var(--topbar-h, 64px) - 16px) / 2))` (so every row, not
+  just the first, gets the same tile height) and makes `.project-card` a `min-height:0` flex column
+  whose `.project-body` scrolls; a new <1100px query holds the one-project-at-a-time hiding rule
+  and the sidebar's selected-row highlight that PR 4 had at >=1100px. `.project-card`'s
+  `margin-bottom` is zeroed at >=1100px — `.card`'s own margin was stacking on top of the grid gap
+  between rows, doubling it, until this fix (found via the Chromium row-height check below). The
+  collapse toggle and "Collapse all" get an unconditional `display:none` (no width scoping — see
+  the Decisions entry: they're gone at both widths now).
+- Updated `js/render.test.mjs`: the collapsed-flag test now expects it ignored for every project,
+  not just the selected one; added a `.project-body` markup check and a wide-screen sidebar test
+  asserting no `.is-selected`/`aria-current`.
+- Updated `docs/4-systems/styling.md` (project sidebar/drawer section, rewritten for tiles vs.
+  one-at-a-time; the collapse-toggle invariant), `docs/3-state/ProjectState.md`,
+  `docs/2-roadmap/Roadmap.md` (milestone 6 to ~95%, PR 5 pending merge), and
+  `docs/6-decisions/Decisions.md` (one entry for the sidebar-highlight/`isWide`-argument call and
+  the tile-height source, since the plan left both open).
+
+## Verified in real Chromium (Playwright, headless off, the seeded 11-project state)
+
+1440x900 and 1920x1080: two columns confirmed via `grid-template-columns`; all 11 tiles the exact
+same height (409px / 499px); after scrolling to the first tile, tiles 1-4 land fully inside the
+viewport; row 2's top is row 1's top + tile height + the 16px grid gap, within 1px, after the
+margin-collapse fix above; the 55-task tile's `.project-body` has `scrollHeight` (2336px) far past
+its `clientHeight` (293px), scrolls independently (`window.scrollY` unchanged while its inner
+`scrollTop` moves), and a sidebar click lands the clicked tile's top 12px below the topbar with no
+`.is-selected` class and no `aria-current`; the 113-character project name's Edit link still shares
+line 1 with the name (#83); opening a task's editor and "+ Add task" both land inside the tile's
+own scroll region; no collapse toggle or Collapse all anywhere; no JS errors beyond the expected
+Google Fonts failure. One caveat, not a regression: the progress-bar offset is uniform (~85px)
+across every tile except the 113-char-name one (~127px), because that name wraps to several lines
+within a ~530-620px-wide tile column and grows line 1 itself — pre-existing #83/PR 3/4 behaviour
+(the badges line's fixed `min-height` only equalizes line 2, not a wrapped line 1), not something
+PR 5 introduced or was asked to fix.
+
+390x844 and 820x1180: exactly one project card visible at both; the busiest project (55 tasks) by
+default with no stored key; a drawer row tap selects another (`aria-current`, the card switches,
+the drawer closes), survives a reload, and lands the card below the topbar — though for a short
+project on a short page the browser's own max-scroll clamp can leave it well below rather than
+flush against the topbar (there's nowhere further to scroll; not a defect, just page-length
+physics); the focus card's project chip and adding a project via the drawer field both select their
+project; no collapse toggle or Collapse all at either width.
+
+Screenshots in `docs/generated/pr5/`: `desktop-1440-tiles`, `desktop-1920-tiles`,
+`desktop-1440-tile-scrolled`, `desktop-1440-editor-in-tile`, `phone-one-project`,
+`phone-drawer-selected`, `tablet-820-one-project`. Google Fonts is blocked in this sandbox, so
+every screenshot shows the system-serif/sans fallback, not Fraunces/IBM Plex Sans.
+
+## What was deliberately not done
+
+Dragging projects into order (Q27a, PR 6) — explicitly the next PR in the plan, not this one.
+
+## Next, in order
+
+1. Push this branch and open PR 5 for review (the task said not to open the PR itself; that's
+   left to whoever picks this up next).
+2. PR 6: dragging projects into order (Q27a, the project half of #73).
+3. Milestone 7 onward, per `docs/2-roadmap/Roadmap.md`.

@@ -3,8 +3,8 @@
 ## Headline: milestones 1-5 done, 6 started, 7-13 not started
 
 Five of six milestones are done: four shipped and covered by passing tests, and the autonomous
-check-in confirmed working by the user and then shelved. The redesign milestone has all four of
-its PRs built on this branch, PR 4 pending merge. Milestones 7-13, added on 2026-09-26 from the 19
+check-in confirmed working by the user and then shelved. The redesign milestone has five of its
+six PRs built on this branch, pending merge. Milestones 7-13, added on 2026-09-26 from the 19
 open GitHub issues, are all at 0%. There is no single overall percentage: the new milestones are
 not sized, so averaging them with the finished ones would say nothing true.
 
@@ -17,7 +17,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 3 | Cross-device sync (Gist) | 100% | Shipped, tested |
 | 4 | Claude integration (on-demand) | 100% | Shipped, tested, archived plan |
 | 5 | Claude integration (autonomous check-in) | 100% | Works (user-confirmed 2026-09-26), shelved |
-| 6 | Handcrafted redesign | ~90% (PRs 1-4 merged) | PR 5: 2x2 tiles on wide screens, one project at a time on phones |
+| 6 | Handcrafted redesign | ~95% (PRs 1-5 built, PR 5 pending merge) | PR 6: drag projects into order |
 | 7 | Unsorted and focus flow polish | 0% | #70 #72 #74 #75 #76 #77 open; #72, #75, #77 may be covered by PR #78 |
 | 8 | Reordering and task status | 0% | #73 #7 #6 open |
 | 9 | Usability and accessibility audit | 0% | #27 #46 open |
@@ -72,11 +72,16 @@ project card ends with a collapsed "+ Add task" line; a project header's Edit li
 with the category picker and Remove project, replacing the header's own Remove button and
 "+ Category" placeholder, and the header's controls no longer wrap onto a second line regardless of
 name length (#83); the two add-project/add-repo forms are replaced by one field at the bottom of
-the project list; and >=1100px shows only the selected project's card, full width, via
-`resolveSelectedProject` (js/project-filter.js) and a persisted per-device selection (#82). See
-`docs/4-systems/styling.md`'s "Visual system" section and `docs/6-decisions/Decisions.md`
-(2026-09-27) for the calls made along the way. Not built: nothing outstanding in the plan; PR 4 is
-built on this branch and pending merge.
+the project list. And PR 5 (2x2 tiles / one project at a time, flipping PR 4's breakpoint per
+Q26a/Q28): >=1100px now shows every visible project as its own tile, two columns, every tile the
+same height (half the space below the sticky topbar, a JS-measured `--topbar-h` custom property),
+scrolling inside itself when its tasks overflow (`.project-body`); <1100px shows only the selected
+project's card, full width, the same way PR 4 did for wide screens, via `resolveSelectedProject`
+(js/project-filter.js) and a persisted per-device selection (#82). The per-project collapse toggle
+and Collapse all are hidden at both widths now (a fixed-height tile and a lone phone card gain
+nothing from collapsing). See `docs/4-systems/styling.md`'s "Visual system" section and
+`docs/6-decisions/Decisions.md` (2026-09-27) for the calls made along the way. Not built: dragging
+projects into order (PR 6, Q27a, the project half of #73).
 
 ## The one thing that is not what it looks like
 

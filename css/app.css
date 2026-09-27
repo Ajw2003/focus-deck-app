@@ -342,6 +342,8 @@ button.chip.proj-chip:hover{background:var(--line);}
     /* the fixed tile height means a card can't grow with its own content -- min-height:0 lets the
        flex child (.project-body) shrink below its content size so it, not the tile, scrolls */
     min-height:0;
+    /* .card's own margin-bottom would otherwise stack on top of the grid gap between rows (#82) */
+    margin-bottom:0;
   }
   /* the scrollable part of a tile: header, badges, edit panel and progress bar stay put above it */
   .project-body{flex:1 1 auto; min-height:0; overflow-y:auto;}

@@ -72,24 +72,27 @@ after tweaks to the original plan and scheduled prompt that are not recorded in 
 archived plan, `docs/archive/2026-09-21-claude-daily-checkin.md`, is the pre-tweak version).
 Shelved the same day as less useful than expected; nothing further is planned for it.
 
-## 6. Handcrafted redesign — ~90%, PRs 1-4 merged, PR 5 next
+## 6. Handcrafted redesign — ~95%, PRs 1-5 built (PR 5 pending merge), PR 6 next
 
 One-line: a focus-first, warm-editorial visual and structural redesign of the existing screens,
 landed as ordered PRs: (1) the docs move, (2) feature/control cuts, (3) the visual system,
 (4) control moves, (5) 2x2 tiles on wide screens and one project at a time on phones.
 
 **Contains:** the decisions and PR breakdown in `docs/plans/handcrafted-redesign.md`
-("Pull requests (Q21a)"). PRs 1-4 are merged (#79, #80, #81, #84). PR 5 replaces PR 4's
-one-project-at-a-time wide-screen layout with 2x2 tiles and moves one-at-a-time to phones
-(Decisions, 2026-09-27). PR 6, dragging projects into order, belongs to milestone 8.
+("Pull requests (Q21a)"). PRs 1-4 are merged (#79, #80, #81, #84). PR 5 is built on this branch,
+pending merge: it replaces PR 4's one-project-at-a-time wide-screen layout with 2x2 tiles (every
+visible project its own tile, two columns, equal height, scrolling inside itself) and moves
+one-at-a-time to phones instead (Decisions, 2026-09-27). PR 6, dragging projects into order,
+belongs to milestone 8.
 
 **Acceptance:** PRs 1-5 merged, `node --test js/*.test.mjs` and
 `node scripts/guard-file-churn.mjs` still pass after each, and the plan's own acceptance notes
 (inside `docs/plans/handcrafted-redesign.md`) are satisfied.
 
 **Open issues:** #82 (wonky layout when several projects are open on wide screens) and #83
-(project headers that don't line up) were fixed by PR 4; PR 5 must keep both fixed. #27 and #46 (usability
-audits) are milestone 9.
+(project headers that don't line up) were fixed by PR 4 and PR 5 keeps both fixed (equal tile
+heights rule out #82's gaps; the header's line-1/line-2 split from #83 is untouched). #27 and #46
+(usability audits) are milestone 9.
 
 ## 7. Unsorted and focus flow polish — 0%
 
