@@ -72,20 +72,20 @@ after tweaks to the original plan and scheduled prompt that are not recorded in 
 archived plan, `docs/archive/2026-09-21-claude-daily-checkin.md`, is the pre-tweak version).
 Shelved the same day as less useful than expected; nothing further is planned for it.
 
-## 6. Handcrafted redesign — ~95%, PRs 1-5 built (PR 5 pending merge), PR 6 next
+## 6. Handcrafted redesign — ~95%, PRs 1-5 merged, PR 6 next
 
 One-line: a focus-first, warm-editorial visual and structural redesign of the existing screens,
 landed as ordered PRs: (1) the docs move, (2) feature/control cuts, (3) the visual system,
 (4) control moves, (5) 2x2 tiles on wide screens and one project at a time on phones.
 
 **Contains:** the decisions and PR breakdown in `docs/plans/handcrafted-redesign.md`
-("Pull requests (Q21a)"). PRs 1-4 are merged (#79, #80, #81, #84). PR 5 is built on this branch,
-pending merge: it replaces PR 4's one-project-at-a-time wide-screen layout with 2x2 tiles (every
+("Pull requests (Q21a)"). PRs 1-5 are merged (#79, #80, #81, #84, #85). PR 5 replaced PR 4's one-project-at-a-time wide-screen layout with 2x2 tiles (every
 visible project its own tile, two columns, equal height, scrolling inside itself) and moves
-one-at-a-time to phones instead (Decisions, 2026-09-27). PR 6, dragging projects into order,
-belongs to milestone 8.
+one-at-a-time to phones instead (Decisions, 2026-09-27). PR 6 brings minimising back and makes
+"All" (tiles) or "One" (one project at a time) a per-device switch. PR 7, dragging projects into
+order, belongs to milestone 8.
 
-**Acceptance:** PRs 1-5 merged, `node --test js/*.test.mjs` and
+**Acceptance:** PRs 1-6 merged, `node --test js/*.test.mjs` and
 `node scripts/guard-file-churn.mjs` still pass after each, and the plan's own acceptance notes
 (inside `docs/plans/handcrafted-redesign.md`) are satisfied.
 
@@ -120,8 +120,8 @@ may already be fully or partly covered by it; check each against the app and clo
 One-line: arrange projects and tasks by hand, and make a task's status follow its GitHub issue.
 
 **Contains:**
-- #73 — drag to reorder projects and tasks (the project half is PR 6 of the redesign, next after
-  the 2x2 tiles; the task half stays here)
+- #73 — drag to reorder projects and tasks (the project half is PR 7 of the redesign, after the
+  "All" / "One" switch; the task half stays here)
 - #7 — drag a task from one project into another
 - #6 — rework how Waiting becomes In progress, linked to GitHub issue labels
 
