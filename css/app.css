@@ -118,11 +118,11 @@ a{color:inherit;}
 .capture-form{display:flex; gap:8px; flex:1 1 260px; min-width:0;}
 #capture-input{
   flex:1; min-width:0; padding:9px 12px;
-  border:1px solid var(--line); border-radius:var(--r-pill); background:var(--surface); color:var(--ink);
+  border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);
 }
 #capture-input::placeholder{color:var(--ink-faint);}
 .capture-form button{
-  padding:9px 16px; border:none; border-radius:var(--r-pill);
+  padding:9px 16px; border:none; border-radius:var(--r-control);
   background:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;
 }
 
@@ -219,7 +219,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 .sort-new{width:100%; padding:9px 12px; margin-bottom:14px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
 .focus-surprise{display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; margin-top:18px; padding-top:16px; border-top:1px solid var(--line);}
 .focus-empty .focus-surprise .muted{margin:0;} /* beats .focus-empty .muted's paragraph spacing */
-.btn{border-radius:var(--r-pill); padding:10px 18px; font-weight:600; border:1px solid var(--line); background:var(--surface-2);}
+.btn{border-radius:var(--r-control); padding:10px 18px; font-weight:600; border:1px solid var(--line); background:var(--surface-2);}
 .btn.primary{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
 .btn.ghost:hover{background:var(--surface-2);}
 .btn-text{background:none; border:none; padding:3px 7px; font-size:var(--text-sm); font-weight:600; color:var(--ink-faint); border-radius:6px;}
@@ -276,7 +276,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 .chip.cat-chip.chip-placeholder{background:var(--surface-2); color:var(--ink-faint); border:1px dashed var(--line); font-weight:600;}
 .project-cat-edit{display:inline-flex; align-items:center; gap:4px;}
 .project-cat-edit select{
-  padding:4px 9px; border:1px solid var(--line); border-radius:var(--r-pill); background:var(--surface); color:var(--ink); font-size:var(--text-sm);
+  padding:4px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);
 }
 .collapse-toggle{font-size:var(--text-sm); line-height:1; padding:4px 8px;}
 .project-card.is-collapsed{padding-bottom:16px;}
@@ -425,7 +425,7 @@ a.task-title:hover{text-decoration:underline;}
 .toast-text{flex:1; margin:0; font-size:var(--text-sm); line-height:1.4; overflow-wrap:anywhere;}
 .toast-close{
   flex:none; min-width:32px; min-height:32px; padding:0;
-  border:none; border-radius:var(--r-control); background:none; color:var(--ink-soft); font-size:1.25rem; line-height:1; cursor:pointer;
+  border:none; border-radius:var(--r-control); background:none; color:var(--ink-soft); font-size:var(--text-h); line-height:1; cursor:pointer;
 }
 
 /* PWA install polish — hides browser chrome-shaped gaps when running standalone */
