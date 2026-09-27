@@ -4,6 +4,29 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-27 — Wide screens get 2x2 tiles; one project at a time moves to phones
+
+**Context.** PR 4 (#84) made wide screens show one project at a time (Q22b), opening on the
+last-viewed or busiest project (Q23a), to fix #82's gaps between grid rows. Using it on a desktop
+the same day, the user wanted to see several projects at once and to drag them into order (#73),
+which one-at-a-time rules out.
+
+**Decision.** From 1100px, projects sit in two columns of equal tiles, each half the screen tall,
+scrolling inside when their tasks don't fit (Q26a). Below 1100px, the one-project-at-a-time layout
+with the Q23a starting project applies instead (Q28): the user judged it fits a phone better than
+a desktop. Dragging projects into order follows as its own PR (Q27a).
+
+**Why.** Equal tiles keep #82 fixed (no tile can be taller than its neighbour) while showing four
+projects, and give a drag a steady grid to drop into. The rejected options: two columns at natural
+height packed down each column (no gaps, but a 55-task project becomes very tall and the order
+reads down columns), and two columns in rows (brings #82's gaps back). One-at-a-time survives
+where screen space is scarce. Interpretations: tablets between 700px and 1100px count as phones
+here (the app's one layout breakpoint is 1100px); on wide screens the per-project collapse toggle
+and Collapse all are hidden, since a tile's height is fixed and collapsing one would break the grid.
+
+**Status.** Standing. Replaces the wide-screen half of Q22b in `docs/plans/handcrafted-redesign.md`
+(built in PR 4, #84).
+
 ## 2026-09-27 — PR 4 interpretations (control moves, one project at a time)
 
 **Context.** PR 4 of `docs/plans/handcrafted-redesign.md` specified most of "the control moves"

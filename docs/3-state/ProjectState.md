@@ -17,7 +17,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 3 | Cross-device sync (Gist) | 100% | Shipped, tested |
 | 4 | Claude integration (on-demand) | 100% | Shipped, tested, archived plan |
 | 5 | Claude integration (autonomous check-in) | 100% | Works (user-confirmed 2026-09-26), shelved |
-| 6 | Handcrafted redesign | ~100% (PRs 1-4 built, PR 4 pending merge) | #82 and #83 fixed by PR 4 |
+| 6 | Handcrafted redesign | ~90% (PRs 1-4 merged) | PR 5: 2x2 tiles on wide screens, one project at a time on phones |
 | 7 | Unsorted and focus flow polish | 0% | #70 #72 #74 #75 #76 #77 open; #72, #75, #77 may be covered by PR #78 |
 | 8 | Reordering and task status | 0% | #73 #7 #6 open |
 | 9 | Usability and accessibility audit | 0% | #27 #46 open |
