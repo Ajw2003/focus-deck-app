@@ -1,11 +1,6 @@
 // focus-deck-app/js/state.js
 import { mergeStates, stampChanges } from './merge.js';
 
-export const ENERGY = { low: { label: 'Low' }, medium: { label: 'Medium' }, high: { label: 'High' } };
-// The energy (bandwidth) level is switched off in the UI for now, replaced by priority. Task data
-// keeps its energy fields, so turning this back on restores the old chips, form fields and picker.
-export const ENERGY_UI_ENABLED = false;
-
 // Priority, most urgent first. githubLabel is the label Focus Deck writes; color is its GitHub hex.
 export const PRIORITY_ORDER = ['urgent', 'high', 'medium', 'low'];
 export const PRIORITY = {
@@ -137,6 +132,7 @@ function repairLoaded(st) {
   };
   st.projects.forEach((p) => { fixRef(p); (p.tasks || []).forEach(fixRef); });
   normalizeTaskCategories(st);
+  dropEnergyFields(st);
   [st.categories, st.projectCategories].forEach((list, listIdx) => (list || []).forEach((c, i) => {
     if (typeof c.color !== 'string' || !c.color) c.color = 'hsl(' + Math.round(((i + listIdx * 7) * 137.508) % 360) + ' var(--proj-sat) var(--proj-light))';
   }));
@@ -151,6 +147,13 @@ export function normalizeTaskCategories(st) {
     if (t.categoryId && !t.categoryIds.includes(t.categoryId)) t.categoryIds.push(t.categoryId);
     delete t.categoryId;
   }));
+}
+
+// The energy system was deleted on 2026-09-26 (see docs/6-decisions/Decisions.md); a save from
+// before that (or a device still running an older version) may still carry these fields on a
+// task. They're simply dropped on load rather than migrated into anything.
+function dropEnergyFields(st) {
+  (st.projects || []).forEach((p) => (p.tasks || []).forEach((t) => { delete t.energy; delete t.energyAuto; }));
 }
 
 // Never returns defaults over data it couldn't read without first copying that data aside and
@@ -310,27 +313,6 @@ export function openTasksMatching({ categoryId, projectId } = {}) {
     });
   });
   return ids;
-}
-
-export function candidatesForEnergy(level) {
-  const doing = [], next = [];
-  state.projects.forEach((p) => p.tasks.forEach((t) => {
-    if (t.status === 'done' || t.energy !== level) return;
-    (t.status === 'doing' ? doing : next).push(t);
-  }));
-  let list = doing.concat(next);
-  if (list.length === 0) {
-    state.projects.forEach((p) => p.tasks.forEach((t) => {
-      if (t.status !== 'done') (t.status === 'doing' ? doing : next).push(t);
-    }));
-    list = doing.concat(next);
-  }
-  list.sort((a, b) => {
-    const ad = a.deadline ? new Date(a.deadline).getTime() : Infinity;
-    const bd = b.deadline ? new Date(b.deadline).getTime() : Infinity;
-    return ad - bd;
-  });
-  return list.map((t) => t.id);
 }
 
 export function relTime(ts) {

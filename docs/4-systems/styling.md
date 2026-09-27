@@ -25,7 +25,9 @@ announced with `role="alert"`) or `'info'` (accent edge, `role="status"`).
 - Main page: it shows `ui.syncError`, or `ui.notice` when there is no error. Background Gist sync
   failures reach it through `showOnPage` in js/sync.js, which used to log them to the console only.
   A failed startup sync is shown only when a Gist is connected, so a token without Gist access
-  doesn't raise an error on every open.
+  doesn't raise an error on every open. A manual GitHub sync (see "Sync button" below) that
+  succeeds shows an info toast; a tap with no token saved shows one telling you to connect it in
+  Settings, instead of syncing.
 - Settings page: each button's result goes through its own `showToast`. The line under
   "Cross-device sync" keeps describing the current connection, since that is state, not a notice.
 
@@ -52,11 +54,34 @@ edge, always shown). It picks with the stand-in id `UNLABELLED` (js/state.js). T
 focus pick, though — filing those tasks (and captured thoughts) into projects and labels happens in
 the Unsorted card below, not from here.
 
+### Top bar
+
+Brand, the capture form, then `.topbar-tools`: the Projects button (phones and tablets only), the
+sync button and the ⚙️ settings link. Below 700px the capture form takes a full row of its own
+under the brand and tools (`order:1; flex-basis:100%`), so the three controls never wrap onto a
+row by themselves.
+
+### Sync button
+
+The topbar (`index.html`, outside `#app`) carries a small icon button, right before the ⚙️
+settings link: two hand-drawn curved arrows in a circle (`renderSyncButton`, js/render.js), colour
+`--ink-soft`, `--ink` on hover. Its `title`/`aria-label` read `syncButtonTitle(st)` — "Sync with
+GitHub" or "Sync with GitHub · synced Nm ago" — kept current on every paint via
+`paintHeaderControls` in js/app.js, since the button lives outside the `#app` innerHTML replace.
+While `ui.syncing` it gets `.is-syncing` (the icon spins, `animation:none` under
+`prefers-reduced-motion`) and `disabled`. Tapping it with no GitHub token saved shows the "Connect
+GitHub in Settings to sync." toast instead of syncing; a manual sync that finishes without error
+shows "Synced with GitHub." (auto-sync on open stays quiet). It replaced the old sync row
+(`.sync-row`: a status line plus "🔄 Sync GitHub" and "⬇ Pull latest" buttons) on 2026-09-26 — see
+`docs/6-decisions/Decisions.md`.
+
 ### Unsorted
 
 One card, one item at a time, guiding a captured thought or an unlabelled task all the way to
 filed/labelled — or completed, skipped, or deleted — without ever leaving the flow. `renderInbox`
-(js/render.js) builds it; it sits where the old inbox list used to, under "Recently done".
+(js/render.js) builds it, right under the focus card. (Until 2026-09-26 it sat under a "Recently
+done" strip, which was removed; `state.completedLog` still exists and is still written to, only
+its own display was deleted.)
 
 **The queue.** `unsortedQueue(st)` is computed fresh on every render, never stored: every captured
 thought (`state.inbox`, oldest first), then every open task across every project with no labels, in
@@ -83,8 +108,9 @@ item this session hasn't skipped, or `null`. Items are keyed `i:<inboxId>` or `t
 **File →** (`unsorted-file`, once a project is chosen, via `fileInboxItem` — the same "becomes an
 issue automatically in a GitHub project" path as before). **Done ✓** (`unsorted-complete`) closes a
 task (`setTaskStatus(id, 'done')`, same as the checkbox) or completes a thought without ever making
-it a task (`completeInboxItem` — logged to Recently done and, per merge.js, kept through a Gist
-merge even though it has no task). **Skip** (`unsorted-skip`) adds the item's key to this session's
+it a task (`completeInboxItem` — logged to `state.completedLog` and, per merge.js, kept through a
+Gist merge even though it has no task; that log has no on-page display since the "Recently done"
+strip was removed on 2026-09-26). **Skip** (`unsorted-skip`) adds the item's key to this session's
 skip list (`ui.unsorted.skipped`, never saved) and moves on; once everything left is skipped, a
 **Go through them again** link (`unsorted-restart`) clears the list. **Delete**
 (`unsorted-delete`, a quiet `.btn-text` at the right of the head row, apart from the flow
@@ -97,11 +123,11 @@ resets whenever the current item changes — `renderApp` (js/app.js) compares `u
 key against `ui.unsorted.currentKey` and starts fresh when they differ.
 
 Once a task is picked (from the focus card, not here), its project chip is a button
-(`scroll-project`, ↓) that jumps to that project's card, the same action as the project pills under
-the focus card (`.stats-row`, moved below it on 2026-09-26). `scrollToProject` in js/app.js first
-opens the project if it is minimised and clears the project filter or search if they hide it. It
-then scrolls so the card's top sits just below the sticky `.topbar`, measured at the time, since the
-header is taller on a phone; `scrollIntoView` put it underneath.
+(`scroll-project`, ↓) that jumps to that project's card, the same action as a row in the project
+sidebar/drawer (see below). `scrollToProject` in js/app.js closes the Projects drawer first if it's
+open, then opens the project if it is minimised and clears the project filter or search if they
+hide it. It then scrolls so the card's top sits just below the sticky `.topbar`, measured at the
+time, since the header is taller on a phone; `scrollIntoView` put it underneath.
 
 History (2026-09-26): two dropdowns came first and were replaced for breaking the focus card's
 glanceable, tap-first style. A **Type | Project** switch followed, where Project mode made the
@@ -110,30 +136,33 @@ better. A saved `mode: 'project'` is ignored. (2026-09-26) The old Unsorted list
 with a project chip per project) and the separate Sort unlabelled takeover of the focus card were
 merged into this one flow.
 
-### Project sidebar
+### Project sidebar / Projects drawer
 
-From 1100px wide the page switches to a two-column layout (#50, #64). Below that, on phones and
-portrait monitors, nothing changes.
+`renderProjectSidebar` (js/render.js) is the single project list — search, category pills, sort,
+Collapse all, one row per visible project (dot, full name, open task count) — and it's the only
+project list in the app; the old project-pills row (`.stats-row`) and filter bar
+(`.project-filter-bar`) above the project cards were both deleted on 2026-09-26 (#9a). The same
+markup renders two ways, switched purely by CSS at the 1100px breakpoint (#50, #64):
 
-- **Sidebar.** `renderProjectSidebar` (js/render.js) is a sticky left column, 270px wide, that
-  scrolls on its own when it's taller than the window. It holds:
-  - its own search box (`.sidebar-search`)
-  - the category pills, sort menu and Collapse all, built by the same helpers as the filter bar
-  - one row per visible project (dot, full name, open task count)
+- **>=1100px: sidebar.** A sticky left column, 270px wide, that scrolls on its own when it's taller
+  than the window — unchanged from before. `.wrap` widens to 1800px (the 760px base rule is the one
+  the style contract checks); project cards flow into as many 420px+ columns as fit; the focus
+  picker's label cards fill the row (`auto-fill`, 190px minimum).
+- **<1100px: drawer.** Hidden off-canvas (`transform:translateX(-100%)`, then `visibility:hidden`
+  once it has slid away, so keyboard and screen-reader users can't land in it) until opened from the
+  **Projects** button in the topbar (`#projects-btn`, hidden itself at >=1100px). Opening it
+  (`toggle-projects-drawer` in js/app.js) slides it in from the left over a dim backdrop
+  (`.drawer-backdrop`) and moves focus to the drawer itself — not its search box, which would raise
+  the phone keyboard over the list; tapping the backdrop, pressing Escape, or
+  tapping a project row (`scroll-project`, which also closes it) closes it and returns focus to the
+  Projects button (`setProjectsDrawerOpen` in js/app.js). `ui.projectsDrawerOpen` holds the open
+  state — not persisted, not saved. The `<aside>` carries `aria-label="Projects"` and, only while open,
+  `role="dialog"` and `aria-modal="true"` (the wide-screen sidebar is not modal); the button carries `aria-expanded`/`aria-controls`, kept current by
+  `paintHeaderControls` since the button lives outside `#app`.
 
-  Tapping a row runs the same `scroll-project` action as the focus card's project chip.
-- **What it replaces.** Inside `.main-col` the sidebar takes over from the filter bar and the
-  project pills (`.stats-row`), which CSS hides at this width. Both are still rendered, so the page
-  works unchanged below 1100px.
-- **Using the width (#64).**
-  - `.wrap` widens from 760px to 1800px. The 760px base rule is the one the style contract checks.
-  - Project cards flow into as many columns of at least 420px as fit: two on a laptop, three on a
-    1920px monitor.
-  - The focus picker's label cards fill the row (`auto-fill`, 190px minimum).
-
-The sidebar is always in the DOM and is hidden with `display:none` until the breakpoint. A
-repaint rebuilds both search boxes, so `paint()` in js/app.js records which one had focus and
-puts the cursor back in that one.
+The sidebar/drawer markup is always in the DOM; a repaint rebuilds it, so `paint()` in js/app.js
+records whether the one project search box (`.project-search`) had focus and puts the cursor back
+in it afterward.
 
 Native `confirm()`/`prompt()` dialogs are questions, not notices, and stay as they are. The toast
 stays until the × dismisses it or a new message replaces it. While it shows, `.wrap:has(.toast)`
@@ -158,19 +187,19 @@ in the browser and just renders with default/no styling.
   `cat-remove-btn`); or a modifier class that only ever appears stacked onto another class that
   carries the actual rule — e.g. `class="card focus-card focus-active"`, where `.card` supplies
   the border/shadow/padding and `focus-active` is a pure state marker `js/app.js` reads back, never
-  a CSS target (`focus-card`, `focus-active`, `claude-created-chip`, `claude-completed-chip`, the
-  latter two stacking onto `.claude-chip` the same way). Keep this list short and comment every
-  entry — each one is a class the contract test can no longer protect, and the test itself asserts
-  the list never grows an entry for a class that isn't actually used anywhere, so it can't
-  silently accumulate dead exceptions either.
+  a CSS target (`focus-card`, `focus-active`). Keep this list short and comment every entry — each
+  one is a class the contract test can no longer protect, and the test itself asserts the list
+  never grows an entry for a class that isn't actually used anywhere, so it can't silently
+  accumulate dead exceptions either.
 
 - A hand-picked set of the most visually load-bearing rules must keep specific properties, not
   just keep existing — a selector surviving with gutted properties is exactly how the issue #17
   regression shipped (see Traps below). Enforced by the second half of
   `js/style-contract.test.mjs`: headings stay on the `'Fraunces'` display font, `.wrap` stays at
   `max-width:760px`, `.energy-btn` keeps its `border-top:3px solid var(--chip-color)` (the thing
-  that makes Low/Medium/High visibly color-coded), `.card` keeps an actual `border`, `.stat-pill`
-  keeps `border-radius:999px`.
+  that makes the focus picker's label cards visibly color-coded — it's kept for those cards and the
+  Unsorted kind cards even though the energy system itself was deleted), `.card` keeps an actual
+  `border`, `.filter-pill` keeps `border-radius:999px`.
 
 - A commit that deletes 40% or more of an existing file's lines must say so explicitly in its
   message (`File-Rewrite-Ack: <path>`), or it's blocked. This isn't CSS-specific — it's a general

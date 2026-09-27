@@ -49,3 +49,28 @@ shelved in the roadmap and state.
    formatting).
 3. PR 4 — the control moves (task rows open the editor, collapsed "+ Add task", Remove/Add
    project relocated).
+
+## PR 2 — the cuts (later on 2026-09-26)
+
+The user decided to delete the energy system fully rather than leave it switched off (see
+`docs/6-decisions/Decisions.md`), which settled the #48 open question above. Built:
+
+- Energy deleted outright: `ENERGY`/`ENERGY_UI_ENABLED`, the `energy`/`energyAuto` task fields
+  (dropped on load, no migration), the `--energy-*` CSS tokens (replaced by `--danger` for the one
+  non-focus-picker use), the `set-energy`/`surprise`/`cycle-energy` actions and mutations, and the
+  GitHub label-to-energy sync (`energyFromLabels`/`resolveIssueEnergy`, and `js/complexity.js`
+  with it — nothing else called it). The `.energy-btn`/`.energy-grid`/`.energy-label`/
+  `.energy-desc` CSS classes stay: they style the focus picker's label cards and the Unsorted
+  flow's kind cards now.
+- Removed: the Recently done strip (`completedLog` itself is untouched), the "Claude created"/
+  "Claude completed" row chips (the underlying flags and label sync are untouched), the
+  "+ Priority" placeholder chip, and `migrate-from-artifact.html` (and its service-worker cache
+  entry).
+- The sync row (status line + "Sync GitHub"/"⬇ Pull latest" buttons) replaced by a top-bar sync
+  icon that shows when it last synced, spins while syncing, and toasts on a manual sync's result.
+- The project-pills row and filter bar folded into the one project list (search, category pills,
+  sort, Collapse all), which is the wide-screen sidebar unchanged and a phone/narrow-screen
+  drawer opened from a topbar "Projects" button.
+
+See `docs/6-decisions/Decisions.md`, `docs/4-systems/styling.md`, and
+`docs/4-systems/github-sync.md` for the details.

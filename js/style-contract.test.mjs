@@ -28,8 +28,6 @@ const MARKUP_SOURCES = ['js/render.js', 'js/app.js', 'index.html', 'settings.htm
 const ALLOWED_WITHOUT_RULE = new Set([
   'cat-add-form',       // js hook only (settings.html form submit handler)
   'cat-remove-btn',     // js hook only (settings.html: e.target.matches('.cat-remove-btn'))
-  'claude-created-chip',   // modifier stacked on .claude-chip, which carries the styling
-  'claude-completed-chip', // modifier stacked on .claude-chip, which carries the styling
   'focus-card',   // modifier stacked on .card, which carries the styling
   'focus-active', // pure state marker read by app.js, never styled directly
 ]);
@@ -97,7 +95,7 @@ const invariants = [
   ['.wrap', 'max-width:760px', 'the page must stay constrained to .wrap\'s 760px max width'],
   ['.energy-btn', 'border-top:3px solid var\\(--chip-color\\)', 'focus-picker buttons must show their energy-level color as a top border'],
   ['.card', 'border:1px solid var\\(--line\\)', 'cards must keep a visible border, not just background+shadow'],
-  ['.stat-pill', 'border-radius:999px', 'project progress pills must render as pills, not bare text'],
+  ['.filter-pill', 'border-radius:999px', 'project/category filter pills must render as pills, not bare text'],
 ];
 
 for (const [selector, expectedSubstring, why] of invariants) {

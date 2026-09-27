@@ -47,10 +47,11 @@ done, and after the repo loop (in `syncGithub` and `addRepoManually`) each one's
 fetched once and, if it is closed, run through `applyLabels`. Fetch failures
 are swallowed; the chip just doesn't show.
 
-`renderTaskRow` shows the flags as `.chip` variants after the category chip: "Claude
-created" when `claudeCreated`, and "Claude completed" when `claudeCompleted` and the task's
-status is `done`. Gating on status means unchecking hides the chip immediately, before any
-network round trip.
+Until 2026-09-26, `renderTaskRow` showed the flags as "Claude created"/"Claude completed"
+`.chip` variants after the category chip (gated so unchecking a task hid the completed chip
+immediately, before any network round trip). Those chips were removed from the row that day (see
+`docs/6-decisions/Decisions.md`) — `task.claudeCreated`/`task.claudeCompleted` are still read from
+labels exactly as before, they're just not shown anywhere on the page any more.
 
 To revert Claude's work the user uses the existing controls: the completion checkbox
 (reopens the issue), Unlink, and the task delete button. No new mechanism exists.

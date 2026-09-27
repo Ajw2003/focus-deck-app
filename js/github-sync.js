@@ -5,7 +5,6 @@ import {
   setIssueState, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists,
 } from './github.js';
 import { persist } from './sync.js';
-import { parseChecklistItems, wordCount, estimateComplexity, tierFromScore } from './complexity.js';
 
 function normLabel(s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); }
 
@@ -329,29 +328,6 @@ export async function createGithubIssueFromTask(taskId, repoInput, ui) {
   }
 }
 
-export function energyFromLabels(labels) {
-  const norm = (labels || []).map(normLabel);
-  const HIGH = ['highpriority', 'critical', 'urgent', 'blocker', 'p0', 'p1'];
-  const LOW = ['lowpriority', 'goodfirstissue', 'easy', 'documentation', 'docs', 'chore', 'typo', 'p3', 'p4'];
-  if (norm.some((l) => HIGH.includes(l))) return 'high';
-  if (norm.some((l) => LOW.includes(l))) return 'low';
-  return 'medium';
-}
-
-export function resolveIssueEnergy(iss) {
-  const labelEnergy = energyFromLabels(iss.labels);
-  if (labelEnergy !== 'medium') return labelEnergy; // an explicit priority label always wins
-  const body = iss.body || '';
-  const text = [iss.title, body].filter(Boolean).join(' ');
-  const score = estimateComplexity({
-    stepCount: parseChecklistItems(body).length,
-    text,
-    wordCount: wordCount(body),
-    labelCount: (iss.labels || []).length,
-  });
-  return tierFromScore(score);
-}
-
 export function statusFromLabels(labels) {
   const norm = (labels || []).map(normLabel);
   return norm.some((l) => ['inprogress', 'wip', 'doing'].includes(l)) ? 'doing' : 'next';
@@ -429,7 +405,7 @@ export function upsertRepoProject(repo, issues, ui) {
       applyLabels(existing, iss.labels, iss.labelColors);
       dropStaleCompletedLabel(existing, iss.labels);
     } else if (iss.labels && iss.labels.length > 0) {
-      const task = { id: uid('t'), title: iss.title, energy: resolveIssueEnergy(iss), status: statusFromLabels(iss.labels), deadline: null, categoryIds: [], source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
+      const task = { id: uid('t'), title: iss.title, status: statusFromLabels(iss.labels), deadline: null, categoryIds: [], source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
       applyLabels(task, iss.labels, iss.labelColors);
       project.tasks.push(task);
     }

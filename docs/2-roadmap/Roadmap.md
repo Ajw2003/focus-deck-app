@@ -169,9 +169,9 @@ day.
 
 **Acceptance:** #48 closed.
 
-**Note:** this pulls against the redesign's decision to delete the energy system (PR 2, decision
-Q8a in `docs/plans/handcrafted-redesign.md`). If #48 goes ahead, it builds on labels and time,
-not on the deleted energy levels. Undecided as of 2026-09-26.
+**Note:** the user decided on 2026-09-26 to delete the energy system fully (PR 2 of the redesign;
+see `docs/6-decisions/Decisions.md`). If #48 goes ahead, it builds on labels and time of day, not
+on the deleted energy levels.
 
 ## 13. Pilot and public rollout — 0%
 

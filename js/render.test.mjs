@@ -1,28 +1,31 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar } from './render.js';
+import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderSyncButton, syncButtonTitle } from './render.js';
 import assert from 'node:assert';
+
+// the top-bar sync button: title/aria-label branch on whether it's ever synced, and it spins +
+// disables while a sync is in flight
+{
+  const never = { githubSync: {} };
+  assert.strictEqual(syncButtonTitle(never), 'Sync with GitHub', 'never synced -- no "synced Nm ago" suffix');
+  const synced = { githubSync: { lastSyncedAt: Date.now() - 4 * 60000 } };
+  assert.strictEqual(syncButtonTitle(synced), 'Sync with GitHub · synced 4m ago', 'synced -- relative time in the title');
+
+  const idleHtml = renderSyncButton(never);
+  assert.ok(idleHtml.includes('title="Sync with GitHub"') && idleHtml.includes('aria-label="Sync with GitHub"'), 'title and aria-label match when idle');
+  assert.ok(!idleHtml.includes('disabled') && !idleHtml.includes('is-syncing'), 'not disabled or spinning when idle');
+
+  const syncingHtml = renderSyncButton({ ...synced, _ui: { syncing: true } });
+  assert.ok(syncingHtml.includes('is-syncing') && syncingHtml.includes('disabled'), 'spins and disables while syncing');
+  assert.ok(syncingHtml.includes('title="Sync with GitHub · synced 4m ago"'), 'title stays current even while syncing');
+}
 
 const p = { id: 'p1', name: 'P' };
 const cats = [{ id: 'cat_bug', name: 'Bug', color: 'hsl(4 70% 55%)' }];
 const ui = { editingTask: null };
-const base = { id: 't1', title: 'T', energy: 'low', status: 'next', source: 'github', repoFullName: 'o/r', issueNumber: 1, url: 'https://github.com/o/r/issues/1', categoryIds: ['cat_bug'] };
+const base = { id: 't1', title: 'T', status: 'next', source: 'github', repoFullName: 'o/r', issueNumber: 1, url: 'https://github.com/o/r/issues/1', categoryIds: ['cat_bug'] };
 const row = (over) => renderTaskRow({ ...base, ...over }, p, cats, ui);
 
-assert.ok(!row({}).includes('claude-chip'), 'a plain task shows no Claude chips');
-
-const created = row({ claudeCreated: true });
-assert.ok(created.includes('claude-created-chip') && created.includes('>Claude created<'), 'claudeCreated renders the created chip');
-assert.ok(!created.includes('claude-completed-chip'), 'created alone does not render the completed chip');
-
-const completed = row({ claudeCompleted: true, status: 'done' });
-assert.ok(completed.includes('claude-completed-chip') && completed.includes('>Claude completed<'), 'claudeCompleted on a done task renders the completed chip');
-
-assert.ok(!row({ claudeCompleted: true, status: 'next' }).includes('claude-completed-chip'), 'a reopened task must not show the completed chip even if the flag is stale');
-
-const both = row({ claudeCreated: true, claudeCompleted: true, status: 'done' });
-assert.ok(both.includes('claude-created-chip') && both.includes('claude-completed-chip'), 'both chips can show together');
-assert.ok(both.indexOf('cat-chip') < both.indexOf('claude-created-chip'), 'Claude chips come after the category chip so they never displace it');
-assert.ok(both.indexOf('claude-created-chip') < both.indexOf('claude-completed-chip'), 'created chip precedes completed chip');
+assert.ok(!row({ claudeCreated: true, claudeCompleted: true, status: 'done' }).includes('claude'), 'a task never shows a Claude chip -- the "Claude created"/"Claude completed" chips were removed');
 
 const linked = row({});
 assert.ok(/<a class="task-title" href="https:\/\/github.com\/o\/r\/issues\/1"[^>]*target="_blank"/.test(linked), 'a linked task title is a link to its issue');
@@ -35,8 +38,8 @@ assert.ok(!manual.includes('>Edit<'), 'an unlinked task needs no separate Edit b
 const multi = renderTaskRow({ ...base, categoryIds: ['cat_bug', 'cat_art'] }, p, cats.concat([{ id: 'cat_art', name: 'Art', color: '#fbca04' }]), ui);
 assert.ok(multi.includes('>Bug<') && multi.includes('>Art<'), 'every label on a task gets its own chip');
 assert.ok(row({ priority: 'urgent' }).includes('class="chip priority-chip small" data-action="cycle-priority"') && row({ priority: 'urgent' }).includes('>Urgent<'), 'a task with a priority shows it as a chip');
-assert.ok(row({ priority: null }).includes('>+ Priority<'), 'an open task with no priority offers to set one');
-assert.ok(!row({}).includes('energy-chip'), 'the energy chip is hidden while ENERGY_UI_ENABLED is off');
+assert.ok(!row({ priority: null }).includes('priority-chip'), 'an open task with no priority shows no placeholder chip -- priority is set from the edit form');
+assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with the energy system');
 
 // focus picker: one card per label with open tasks, busiest first, then a separate "Surprise me"; project pills narrow it
 {
@@ -220,12 +223,17 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
     { id: 'p2', name: 'Chores', color: 'green', tasks: [] },
   ];
   const side = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: 'plu', projectSort: 'name', projectCollapsed: {} }, [projects[0]]);
-  assert.ok(side.startsWith('<aside class="project-sidebar"'), 'the sidebar is an aside');
+  assert.ok(side.includes('<div class="drawer-backdrop" data-action="close-projects-drawer"></div>'), 'a backdrop (closed) sits alongside the sidebar/drawer');
+  assert.ok(side.includes('<aside class="project-sidebar" id="projects-drawer" tabindex="-1" aria-label="Projects">'), 'closed (or the wide-screen sidebar), it is a plain aside, not a modal');
   assert.ok(side.includes('class="project-search sidebar-search" data-action="set-project-query"') && side.includes('value="plu"'), 'it has its own search box, sharing the project search');
   assert.ok(side.includes('data-action="set-project-filter"') && side.includes('data-action="set-project-sort"'), 'it has the category pills and sort');
   assert.ok(side.includes('data-action="scroll-project" data-project="p1"') && side.includes('>PlunderSpell<') && side.includes('title="Open tasks">1<'), 'a visible project is a row with its open count that jumps to it');
   assert.ok(!side.includes('data-project="p2"'), 'projects hidden by the search are left out');
   assert.strictEqual(renderProjectSidebar({ projects: [], projectCategories: [] }, {}, []), '', 'no projects, no sidebar');
+
+  const open = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: '', projectSort: 'name', projectCollapsed: {}, projectsDrawerOpen: true }, projects);
+  assert.ok(open.includes('class="drawer-backdrop is-open"') && open.includes('class="project-sidebar is-open" id="projects-drawer"'), 'ui.projectsDrawerOpen adds is-open to both the backdrop and the drawer');
+  assert.ok(open.includes('role="dialog" aria-modal="true"'), 'open as the drawer, it is a modal dialog');
 }
 
 // GitHub controls: the row shows only the issue number; unlink / link / create live in the edit form
