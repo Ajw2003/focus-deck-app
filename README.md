@@ -50,12 +50,15 @@ it. On a linked issue it syncs both ways as a `priority: …` label, and common 
 carry a color-coded category (set up and customized in Settings), so a glance at a chip tells
 you what kind of work something is without reading it.
 
-**One project list** — search, category filter, sort, and a row per project that jumps to it. From
-1100px wide it's a sticky column on the left, and every visible project shows as its own tile in a
-two-column grid, all the same height, scrolling inside itself when its tasks don't fit; clicking a
-row scrolls to that tile. Below that width the list is a **Projects** drawer, opened from the top
-bar, and only one project shows in the page at a time — tapping a row there selects it, closes the
-drawer, and scrolls to it.
+**One project list** — search, category filter, sort, Collapse all, and a row per project that
+jumps to it. From 1100px wide it's a sticky column on the left; below that width it's a **Projects**
+drawer opened from the top bar. An **All** / **One** switch at the top of the list, remembered per
+device, picks how the main column shows projects: **All** is every visible project — from 1100px as
+tiles in a two-column grid, all the same height, scrolling inside itself when its tasks don't fit;
+below that width, stacked at natural height — with a minimise button (▾/▸) per project and
+"Collapse all" to gather several at once; minimised tiles gather in their own group below the full
+ones. **One** shows a single project at a time, on any width, opening on the last one viewed or the
+busiest; tapping a row selects it (closing the drawer on a phone) and scrolls to it.
 
 **Inbox capture** — a single always-visible input at the top of the page for getting a thought
 out of your head. The **Unsorted** card below guides it (and any task with no labels) through one

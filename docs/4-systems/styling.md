@@ -142,95 +142,132 @@ merged into this one flow.
 
 ### Project sidebar / Projects drawer
 
-`renderProjectSidebar` (js/render.js) is the single project list — search, category pills, sort,
-Collapse all, one row per visible project (dot, full name, open task count), and one add field at
-the bottom — and it's the only project list in the app; the old project-pills row (`.stats-row`)
-and filter bar (`.project-filter-bar`) above the project cards were both deleted on 2026-09-26
-(#9a). The same markup renders two ways, switched purely by CSS at the 1100px breakpoint (#50,
-#64):
+`renderProjectSidebar` (js/render.js) is the single project list — the "All"/"One" switch, search,
+category pills, sort, Collapse all, one row per visible project (dot, full name, open task count),
+and one add field at the bottom — and it's the only project list in the app; the old project-pills
+row (`.stats-row`) and filter bar (`.project-filter-bar`) above the project cards were both deleted
+on 2026-09-26 (#9a). The same markup renders as a sticky left column at >=1100px or the phone/tablet
+drawer, switched purely by CSS at the 1100px breakpoint (#50, #64); what shows inside the main
+column depends on `ui.projectView`, not the breakpoint (PR 6, 2026-09-27, see
+docs/6-decisions/Decisions.md, "Minimising comes back...").
 
-- **>=1100px: 2x2 tiles (Q26a, #82, PR 5 2026-09-27).** A sticky left column, 270px wide, that
-  scrolls on its own when it's taller than the window. `.wrap` widens to 1800px (the 760px base
-  rule is the one the style contract checks). The main column shows the focus card, Unsorted, then
-  **every visible project as its own tile**, two columns (`.projects-grid`), every tile exactly the
-  same height regardless of how many tasks it holds. `.projects-grid`'s `grid-auto-rows` is
-  `max(320px, calc((100dvh - var(--topbar-h, 64px) - 16px) / 2))` — half the space below the
-  sticky topbar, with a 320px floor for a narrow-ish wide screen — applied to every row, not just
-  the first, so a project continuing below the fold stays level with its row-mate too. `--topbar-h`
-  is a real measured height, not a guess: `updateTopbarHeightVar()` (js/app.js), called on load and
-  window resize, sets it from `.topbar`'s `offsetHeight`, the same measurement `scrollToProject`'s
-  own scroll offset already relied on, since the topbar's height varies with width and content.
-  (`.project-card`'s own `margin-bottom` is zeroed at this width — `.card`'s base rule sets one, and
-  left alone it stacks on top of the grid's own row gap, doubling the visual gap between rows.)
+**The "All"/"One" switch (PR 6).** `renderViewSwitch` (js/render.js) draws a two-option segmented
+control — `role="group" aria-label="Project view"`, two `.filter-pill` buttons "All"/"One" with
+`aria-pressed`, the chosen one getting the ordinary `.filter-pill.active` accent treatment — right
+under the "Projects" title row, so it reads as the list's own setting rather than a filter. Tapping
+one sets `ui.projectView` (`set-project-view` in js/app.js), saves it to
+`focusdeck-project-view` (try/catch, like every other per-device key) and repaints; on a phone the
+drawer stays open afterward, so the person sees the view change take effect behind it rather than
+losing it back into a closed drawer. Before anything is stored, `resolveProjectView(stored, isWide)`
+(js/project-filter.js, pure, tested) picks the default from the width at load — "All" from 1100px,
+"One" below — the same defaults PR 4/PR 5 hard-wired to the breakpoint; once a device has a stored
+choice, that choice holds at every width from then on. `ui.projectView` is resolved once, at `ui`'s
+creation, not every paint — unlike `ui.selectedProjectId`, which really does need re-resolving each
+time against the live project list.
 
-  Inside a tile, the header, badges line, Edit panel and progress bar stay put at the top; the task
-  groups, the "+N done" toggle, the done group, "Nothing open…" and "+ Add task" all sit in
-  `.project-body` (`js/render.js`), a `flex:1; min-height:0; overflow-y:auto` region at this width
-  — a `.project-card` can't grow to fit its own content any more, so this is what scrolls instead,
-  independently of the page and of every other tile. Everything else in the tile has
-  `flex-shrink:0`: without it a long list (55 tasks) squashed the badges line and the progress bar,
-  putting that tile's bar 4px off its neighbours' (#83 again). A 1px rule at the bottom of
-  `.project-body` marks where the tile ends, so a row cut off by the tile's edge reads as
-  scrollable rather than broken. It's `tabindex="0" role="region" aria-label="
-  <project name> tasks"`, so it's keyboard-reachable and named for a screen reader even though it
-  has no visible heading of its own. Opening a row's editor or a project's "+ Add task" line calls
-  `scrollOpenedFormIntoView` (js/app.js) after the repaint, which does
+Minimising is back for this PR: the per-project minimise button (`toggle-project-collapse`, ▾/▸,
+`aria-label` "Minimise project"/"Expand project", `aria-expanded`) and `[data-action="toggle-collapse-all"]`
+("Collapse all"/"Expand all") show in the "All" view, at every width, using the same saved
+per-device flags PR 4 introduced and PR 5 left in storage unused (`ui.projectCollapsed`,
+`focusdeck-collapsed-projects`) — nothing about that storage changed. Both are left out of the
+markup entirely (not just hidden by CSS) in the "One" view, since minimising the one card on screen
+does nothing useful; `renderProjectCard` also stops applying the saved flag there, and never writes
+it, so the shown card always renders expanded whatever the flag says.
+
+- **"All" view, >=1100px: 2x2 tiles (Q26a, #82), minimised projects gathered below.** A sticky left
+  column, 270px wide, that scrolls on its own when it's taller than the window. `.wrap` widens to
+  1800px (the 760px base rule is the one the style contract checks). The main column shows the focus
+  card, Unsorted, then the non-minimised visible projects as tiles, two columns
+  (`.projects-grid`), every tile exactly the same height regardless of how many tasks it holds.
+  `.view-all .projects-grid`'s `grid-auto-rows` is `max(320px, calc((100dvh - var(--topbar-h, 64px) -
+  16px) / 2))` — half the space below the sticky topbar, with a 320px floor for a narrow-ish wide
+  screen — applied to every row, not just the first, so a project continuing below the fold stays
+  level with its row-mate too. `--topbar-h` is a real measured height, not a guess:
+  `updateTopbarHeightVar()` (js/app.js), called on load and window resize, sets it from
+  `.topbar`'s `offsetHeight`, the same measurement `scrollToProject`'s own scroll offset already
+  relied on, since the topbar's height varies with width and content. (`.project-card`'s own
+  `margin-bottom` is zeroed at this width — `.card`'s base rule sets one, and left alone it stacks
+  on top of the grid's own row gap, doubling the visual gap between rows.)
+
+  Minimised projects are left out of that grid by `renderProjectsMain` (js/render.js, pure, tested)
+  and gather below it instead, in a `.minimised-projects` group under a quiet Fraunces-italic "Minimised"
+  label (a bare `<h4>`, already styled like `.group-label`'s "In progress"/"Up next" — no extra CSS
+  needed), as their own `.minimised-grid`, two to a row, in the same sort order. A minimised project
+  is a header-only card: `renderProjectCard` omits `.project-body` outright when `ui.projectCollapsed`
+  is set, so line 1 (name, controls), line 2 (badges) and the progress bar are all that renders — a
+  minimised tile left in the main tile grid would sit beside a full-height one and reopen #82's gap,
+  which is why it's a separate group rather than a dense-packed grid cell. Expanding a minimised
+  project (or minimising a full one) moves it between the two groups at its sort position on the next
+  repaint.
+
+  Inside a full (non-minimised) tile, the header, badges line, Edit panel and progress bar stay put
+  at the top; the task groups, the "+N done" toggle, the done group, "Nothing open…" and "+ Add task"
+  all sit in `.project-body` (js/render.js), a `flex:1; min-height:0; overflow-y:auto` region at this
+  width (`.view-all .project-card:not(.is-collapsed) .project-body`) — a `.project-card` can't grow
+  to fit its own content any more, so this is what scrolls instead, independently of the page and of
+  every other tile. Everything else in the tile has `flex-shrink:0`: without it a long list (55
+  tasks) squashed the badges line and the progress bar, putting that tile's bar 4px off its
+  neighbours' (#83 again). A 1px rule at the bottom of `.project-body` marks where the tile ends, so
+  a row cut off by the tile's edge reads as scrollable rather than broken. It's `tabindex="0"
+  role="region" aria-label="<project name> tasks"`, so it's keyboard-reachable and named for a screen
+  reader even though it has no visible heading of its own. Opening a row's editor or a project's
+  "+ Add task" line calls `scrollOpenedFormIntoView` (js/app.js) after the repaint, which does
   `.scrollIntoView({block:'nearest'})` on the new form — inside the tile's own scroll, not the
-  page's, since `block:'nearest'` only moves the nearest scrolling ancestor that needs to.
-
-  The per-project collapse toggle and `[data-action="toggle-collapse-all"]` ("Collapse all") are
-  hidden — `display:none`, unconditionally, not scoped to this width — since a fixed-height tile
-  gains nothing from collapsing one project's tasks; `renderProjectCard` also stops applying a
-  saved collapsed flag to the markup at all any more (not just for one selected card, as PR 4 had
-  it), so a flag saved before this PR can't hide a tile's content with no way back. The focus
+  page's, since `block:'nearest'` only moves the nearest scrolling ancestor that needs to. The focus
   picker's label cards still fill the row (`auto-fill`, 190px minimum) — that didn't change.
 
   A sidebar row (`scroll-project`), the focus card's project chip, and any other `scroll-project`
-  source all branch on `matchMedia('(min-width:1100px)')` (`scrollToProject`/`isWideScreen` in
-  js/app.js, sharing one `WIDE_BREAKPOINT_PX` constant with the query's number): at this width they
-  just scroll the main column so the clicked project's tile top sits below the sticky topbar — the
-  tile is already rendered, there's nothing to select. `ui.selectedProjectId` still gets resolved
-  every paint (it's needed below 1100px), but at this width `renderProjectSidebar`'s `isWide`
-  argument makes it a no-op for the row markup: no `.is-selected`, no `aria-current` — there's no
-  "current" project once every one shows as a tile.
+  source (`scrollToProject`/`afterProjectAdded` in js/app.js) branch on `ui.projectView`, not the
+  width: in "All" they expand the clicked project first if it's minimised (there'd be nothing to
+  scroll to see otherwise, restoring the same expand-then-scroll `scrollToProject` did before PR 5),
+  then scroll the main column so the project's card/tile top sits below the sticky topbar. There's
+  no selection state at all in "All" — `renderProjectSidebar` only ever adds `.is-selected`/`aria-current`
+  to a row when `ui.projectView === 'one'` — since there's no "current" project once every one shows
+  as its own tile or stacked card.
 
-- **<1100px: one project at a time (Q28, Q23a, #82, PR 4 2026-09-27, moved here PR 5).** The main
-  column no longer shows every project's tile — it shows the focus card, Unsorted, then **only the
-  selected project's card**, full width. Every card is still rendered into the same
-  `.projects-grid` the tiles above use; CSS just hides every `.project-card` except `.is-selected`
-  at this width, and `.projects-grid` is a single column. `[data-action="toggle-collapse-all"]` is
-  hidden here too (both by the unconditional rule above and because collapsing the one card shown
-  does nothing useful).
+- **"All" view, <1100px: every project stacked at its natural height.** The main column shows the
+  focus card, Unsorted, then every visible project's card, one column, at whatever height its own
+  content needs — the fixed-height tile machinery above is scoped to `.view-all` inside the
+  `min-width:1100px` media query, so none of it applies here. A minimised project just shows
+  header-only right where it sits in the stack (the same `renderProjectCard` collapsed rendering the
+  wide tile group uses) — there's no separate group to gather it into on a single column.
+
+- **"One" view, any width (Q28, Q23a, #82): only the selected project's card, full width.** Every
+  card is still rendered into the same `.projects-grid` the "All" tiles/stack use; CSS just hides
+  every `.project-card` except `.is-selected` (`.view-one .project-card{display:none;}
+  .view-one .project-card.is-selected{display:block;}`, unscoped by width — PR 6 made "One" available
+  from 1100px too, where PR 4/PR 5 only offered it below it). `[data-action="toggle-collapse-all"]`
+  and the per-project minimise button are left out of the markup entirely here (`collapseAllButton`,
+  `renderProjectCard`, both js/render.js) — collapsing the one card shown does nothing useful.
 
   Selection lives in `ui.selectedProjectId`, resolved every paint by `resolveSelectedProject`
   (js/project-filter.js, pure and tested): the id persisted per device
   (`focusdeck-selected-project`, read/write wrapped in try/catch exactly like
-  `focusdeck-focus-filter`) if that project still exists, else the project with the most open
-  tasks (ties keep the caller's current sort order, since `Array.sort` is stable), else `null` when
-  there are no projects. It's resolved against *every* project, not the search/category-filtered
-  list, so the open project stays open even if a filter would hide its sidebar row.
+  `focusdeck-focus-filter`) if that project still exists, else the project with the most open tasks
+  (ties keep the caller's current sort order, since `Array.sort` is stable), else `null` when there
+  are no projects. It's resolved against *every* project, not the search/category-filtered list, so
+  the open project stays open even if a filter would hide its sidebar row.
 
-  Below 1100px, `scrollToProject`/`afterProjectAdded` select the clicked/added project
-  (`ui.selectedProjectId`, saved to `focusdeck-selected-project`) and then scroll the main column so
-  its card's top sits below the sticky topbar — the same thing PR 4 did at >=1100px, just at the
-  other width now. The selected row gets `.is-selected` and `aria-current="true"` (`renderProjectSidebar`'s
-  `isWide` argument is what keeps this from also happening at >=1100px). The selected card always
-  shows expanded here, for the same reason as the tiles above: `renderProjectCard` ignores every
-  project's collapsed flag now, not just the selected one's.
+  `scrollToProject`/`afterProjectAdded` select the clicked/added project (`ui.selectedProjectId`,
+  saved to `focusdeck-selected-project`) and then scroll the main column so its card's top sits below
+  the sticky topbar, on a phone closing the drawer first. The selected row gets `.is-selected` and
+  `aria-current="true"` in the sidebar/drawer. The selected card always shows expanded, for the same
+  reason minimising is left out of its markup: `renderProjectCard` ignores the project's collapsed
+  flag whenever `ui.projectView === 'one'`, and never writes it there.
 
-- **The drawer itself: nothing changed here.** Below 1100px it's still hidden off-canvas
-  (`transform:translateX(-100%)`, then `visibility:hidden` once it has slid away, so keyboard and
-  screen-reader users can't land in it) until opened from the **Projects** button in the topbar
-  (`#projects-btn`, hidden itself at >=1100px). Opening it (`toggle-projects-drawer` in js/app.js)
-  slides it in from the left over a dim backdrop (`.drawer-backdrop`) and moves focus to the drawer
-  itself — not its search box, which would raise the phone keyboard over the list; tapping the
-  backdrop, pressing Escape, or tapping a project row (`scroll-project`, which also closes it and
-  scrolls to the card, same as before PR 4) closes it and returns focus to the Projects button
-  (`setProjectsDrawerOpen` in js/app.js). `ui.projectsDrawerOpen` holds the open state — not
-  persisted, not saved. The `<aside>` carries `aria-label="Projects"` and, only while open,
-  `role="dialog"` and `aria-modal="true"` (the wide-screen sidebar is not modal); the button carries
-  `aria-expanded`/`aria-controls`, kept current by `paintHeaderControls` since the button lives
-  outside `#app`.
+**The drawer itself: nothing changed here.** Below 1100px it's still hidden off-canvas
+(`transform:translateX(-100%)`, then `visibility:hidden` once it has slid away, so keyboard and
+screen-reader users can't land in a closed drawer) until opened from the **Projects** button in the
+topbar (`#projects-btn`, hidden itself at >=1100px). Opening it (`toggle-projects-drawer` in
+js/app.js) slides it in from the left over a dim backdrop (`.drawer-backdrop`) and moves focus to
+the drawer itself — not its search box, which would raise the phone keyboard over the list; tapping
+the backdrop, pressing Escape, or tapping a project row (`scroll-project`, which also closes it and
+scrolls to the card) closes it and returns focus to the Projects button (`setProjectsDrawerOpen` in
+js/app.js) — tapping the view switch itself is the one exception, which leaves the drawer open (see
+above). `ui.projectsDrawerOpen` holds the open state — not persisted, not saved. The `<aside>`
+carries `aria-label="Projects"` and, only while open, `role="dialog"` and `aria-modal="true"` (the
+wide-screen sidebar is not modal); the button carries `aria-expanded`/`aria-controls`, kept current
+by `paintHeaderControls` since the button lives outside `#app`.
 
 **Add a project or a repo (Q15a, Q12d, PR 4 2026-09-27).** One field, `renderAddProjectField`,
 sits at the bottom of the sidebar/drawer list — "New project or owner/repo" — replacing the two
@@ -239,8 +276,9 @@ js/app.js decides which path with `parseRepoInput` (js/github-sync.js, already u
 a repo is typed in): if it parses (`owner/repo`, or a `github.com` URL), the value takes the old
 track-repo path (`addRepoManually`); otherwise it's a plain project name with no category —
 category is set afterward through the project's own Edit panel (see below), since the field has
-nowhere to put one. After adding, the new project is selected on wide screens or, on a phone, the
-drawer closes and the page scrolls to it — the same split `scrollToProject` already made.
+nowhere to put one. After adding, `afterProjectAdded` selects the new project in the "One" view or,
+in "All", just scrolls to its new card/tile once it's rendered — the same `ui.projectView` split
+`scrollToProject` uses (PR 6).
 
 The sidebar/drawer markup is always in the DOM; a repaint rebuilds it, so `paint()` in js/app.js
 records whether the one project search box (`.project-search`) had focus and puts the cursor back
@@ -411,6 +449,12 @@ is inside the form (`onAppKeydown`) collapses it back to the link.
   guard (`scripts/guard-file-churn.mjs`) against any commit whose diff silently does far more than
   its stated intent, which is the actual mechanism behind the incident below. See
   `docs/6-decisions/Decisions.md` for why this shape of guard was chosen.
+
+- A minimised project (`ui.projectCollapsed`) never sits in the same `.projects-grid` as the
+  non-minimised tiles in the "All" view at >=1100px — it renders into the separate
+  `.minimised-grid` group instead (`renderProjectsMain`, js/render.js). Mixing the two back into one
+  grid reopens #82's gap: a header-only card next to a full-height one leaves the grid's row height
+  wrong for one of them. (PR 6, 2026-09-27.)
 
 ## Traps
 

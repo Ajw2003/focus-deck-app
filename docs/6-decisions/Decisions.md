@@ -4,6 +4,27 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-27 — PR 6 interpretations (All/One switch, minimising back)
+
+**Context.** The task for PR 6 ("Minimising comes back; 'All' or 'One' becomes a per-device
+switch") left one call explicitly open: "on phones, keep the drawer open after switching (so the
+user sees the change behind it) — your call if closing reads better." Everything else it asked for
+(the switch's wording, placement, and pill styling; the resolver function's shape; where minimised
+tiles gather) was specified closely enough that building it isn't a separate decision.
+
+**Decision.** The Projects drawer stays open after tapping "All" or "One" in it
+(`set-project-view` in js/app.js does not call `setProjectsDrawerOpen(false)`).
+
+**Why.** Closing the drawer on every other row tap makes sense there because the point of tapping
+a project row is to go look at it, off in the main column, where the drawer would only be in the
+way. Tapping the view switch is different: its whole effect plays out in the list the switch itself
+sits in (fewer/more cards, tiles turning into a stack or back), so closing it would hide the very
+change being confirmed and cost an extra tap to reopen and see it. It also matches how every other
+setting in the same header behaves — search, category pills and sort all repaint in place without
+closing the drawer.
+
+**Status.** Standing.
+
 ## 2026-09-27 — Minimising comes back; "All" or "One" becomes a per-device switch
 
 **Context.** After PR 5 (#85) the user found multi-project work "a nightmare" without minimising:

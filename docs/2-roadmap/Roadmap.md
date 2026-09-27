@@ -72,27 +72,31 @@ after tweaks to the original plan and scheduled prompt that are not recorded in 
 archived plan, `docs/archive/2026-09-21-claude-daily-checkin.md`, is the pre-tweak version).
 Shelved the same day as less useful than expected; nothing further is planned for it.
 
-## 6. Handcrafted redesign — ~95%, PRs 1-5 merged, PR 6 next
+## 6. Handcrafted redesign — ~98%, PRs 1-6 merged, PR 7 next
 
 One-line: a focus-first, warm-editorial visual and structural redesign of the existing screens,
 landed as ordered PRs: (1) the docs move, (2) feature/control cuts, (3) the visual system,
-(4) control moves, (5) 2x2 tiles on wide screens and one project at a time on phones.
+(4) control moves, (5) 2x2 tiles on wide screens and one project at a time on phones,
+(6) minimising comes back and "All"/"One" becomes a per-device switch.
 
 **Contains:** the decisions and PR breakdown in `docs/plans/handcrafted-redesign.md`
-("Pull requests (Q21a)"). PRs 1-5 are merged (#79, #80, #81, #84, #85). PR 5 replaced PR 4's one-project-at-a-time wide-screen layout with 2x2 tiles (every
+("Pull requests (Q21a)"). PRs 1-6 are merged (#79, #80, #81, #84, #85, and PR 6). PR 5 replaced PR 4's one-project-at-a-time wide-screen layout with 2x2 tiles (every
 visible project its own tile, two columns, equal height, scrolling inside itself) and moves
-one-at-a-time to phones instead (Decisions, 2026-09-27). PR 6 brings minimising back and makes
-"All" (tiles) or "One" (one project at a time) a per-device switch. PR 7, dragging projects into
-order, belongs to milestone 8.
+one-at-a-time to phones instead (Decisions, 2026-09-27). PR 6 brought minimising back (the
+per-project toggle and Collapse all, hidden by PR 5) and replaced the width-based tiles/one-at-a-time
+split with a per-device "All"/"One" switch in the sidebar/drawer header: "All" is tiles from
+1100px (minimised projects gathering below the grid) or a stacked column below it; "One" is
+one-project-at-a-time, now at any width. PR 7, dragging projects into order, belongs to milestone 8.
 
-**Acceptance:** PRs 1-6 merged, `node --test js/*.test.mjs` and
+**Acceptance:** PRs 1-7 merged, `node --test js/*.test.mjs` and
 `node scripts/guard-file-churn.mjs` still pass after each, and the plan's own acceptance notes
 (inside `docs/plans/handcrafted-redesign.md`) are satisfied.
 
 **Open issues:** #82 (wonky layout when several projects are open on wide screens) and #83
 (project headers that don't line up) were fixed by PR 4 and PR 5 keeps both fixed (equal tile
-heights rule out #82's gaps; the header's line-1/line-2 split from #83 is untouched). #27 and #46
-(usability audits) are milestone 9.
+heights rule out #82's gaps; the header's line-1/line-2 split from #83 is untouched); PR 6 keeps
+minimised tiles out of the tile grid for the same reason. #27 and #46 (usability audits) are
+milestone 9.
 
 ## 7. Unsorted and focus flow polish — 0%
 
