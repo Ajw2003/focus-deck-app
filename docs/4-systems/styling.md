@@ -167,7 +167,11 @@ and filter bar (`.project-filter-bar`) above the project cards were both deleted
   groups, the "+N done" toggle, the done group, "Nothing open…" and "+ Add task" all sit in
   `.project-body` (`js/render.js`), a `flex:1; min-height:0; overflow-y:auto` region at this width
   — a `.project-card` can't grow to fit its own content any more, so this is what scrolls instead,
-  independently of the page and of every other tile. It's `tabindex="0" role="region" aria-label="
+  independently of the page and of every other tile. Everything else in the tile has
+  `flex-shrink:0`: without it a long list (55 tasks) squashed the badges line and the progress bar,
+  putting that tile's bar 4px off its neighbours' (#83 again). A 1px rule at the bottom of
+  `.project-body` marks where the tile ends, so a row cut off by the tile's edge reads as
+  scrollable rather than broken. It's `tabindex="0" role="region" aria-label="
   <project name> tasks"`, so it's keyboard-reachable and named for a screen reader even though it
   has no visible heading of its own. Opening a row's editor or a project's "+ Add task" line calls
   `scrollOpenedFormIntoView` (js/app.js) after the repaint, which does

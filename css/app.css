@@ -346,7 +346,11 @@ button.chip.proj-chip:hover{background:var(--line);}
     margin-bottom:0;
   }
   /* the scrollable part of a tile: header, badges, edit panel and progress bar stay put above it */
-  .project-body{flex:1 1 auto; min-height:0; overflow-y:auto;}
+  /* a rule marks where the tile ends, so rows cut off by a long list read as scrollable, not broken */
+  .project-body{flex:1 1 auto; min-height:0; overflow-y:auto; border-bottom:1px solid var(--line);}
+  /* only the task list gives way in a full tile: without this a 55-task list squashed the badges
+     line and the progress bar, moving that tile's bar 4px off its neighbours' (#83) */
+  .project-card > :not(.project-body){flex-shrink:0;}
   .energy-grid.focus-grid{grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));}
   .drawer-backdrop{display:none;}
   .project-sidebar{
@@ -385,8 +389,9 @@ button.chip.proj-chip:hover{background:var(--line);}
    grow, the collapse toggle + Edit link stay put on the right. Line 2 (badges) always renders, even
    empty, so every card's progress bar sits the same distance from its top. */
 .project-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:nowrap;}
-.project-title{display:flex; align-items:center; gap:8px; min-width:0; flex:1 1 auto;}
-.project-title .dot{width:10px; height:10px; border-radius:50%; background:var(--proj-color); display:inline-block; flex:none;}
+.project-title{display:flex; align-items:flex-start; gap:8px; min-width:0; flex:1 1 auto;}
+/* beside the name's first line, not halfway down a name that wraps */
+.project-title .dot{width:10px; height:10px; margin-top:.45em; border-radius:50%; background:var(--proj-color); display:inline-block; flex:none;}
 .project-title h3{font-size:var(--text-h); overflow-wrap:break-word; min-width:0;}
 .project-head-right{display:flex; align-items:center; gap:8px; flex:none; white-space:nowrap;}
 .project-badges{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:1.4em; margin:6px 0 10px;}
