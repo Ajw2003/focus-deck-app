@@ -5,8 +5,8 @@
 <link rel="stylesheet" href="css/app.css">
 </head><body>
 <div class="wrap">
-  <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.3 3.4a8.6 8.6 0 1 1-.4 17.2 8.6 8.6 0 0 1 .4-17.2Z"/><path d="M15.3 8.5 12.6 12.1l-4 3.3 2.7-3.6 4-3.3Z"/></svg></span><h1>Settings</h1></div><a href="index.html" class="link-btn">← Back</a></header>
-  <section class="card">
+  <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.3 3.4a8.6 8.6 0 1 1-.4 17.2 8.6 8.6 0 0 1 .4-17.2Z"/><g transform="rotate(25 12 12)"><path d="M12 5.2 14.3 12H9.7Z" fill="currentColor"/><path d="M9.7 12 12 18.8 14.3 12"/></g></svg></span><h1>Settings</h1></div><a href="index.html" class="link-btn">← Back</a></header>
+  <section class="card settings-section">
     <h2 style="margin-bottom:10px;">GitHub token</h2>
     <p class="muted small" style="margin-bottom:10px;">
       Focus Deck uses this token to link tasks to issues, create new issues from tasks, close/reopen a linked
@@ -29,7 +29,7 @@
       <button type="button" id="save-token">Save</button>
     </div>
   </section>
-  <section class="card">
+  <section class="card settings-section">
     <h2 style="margin-bottom:10px;">Cross-device sync</h2>
     <p id="gist-status" class="muted small" style="margin-bottom:14px;"></p>
     <button type="button" id="create-gist" class="btn primary">Create sync Gist</button>
@@ -38,7 +38,7 @@
       <button type="button" id="connect-gist">Connect</button>
     </div>
   </section>
-  <section class="card">
+  <section class="card settings-section">
     <h2 style="margin-bottom:10px;">Category colors</h2>
     <p class="muted small" style="margin-bottom:6px;">
       Pick a color for each category. It updates everywhere that category's chip appears, and syncs to your other devices like any other change.

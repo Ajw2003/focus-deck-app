@@ -34,5 +34,5 @@ export const ICON_PROJECTS =
 export const ICON_COMPASS =
   '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
   + '<path d="M12.3 3.4a8.6 8.6 0 1 1-.4 17.2 8.6 8.6 0 0 1 .4-17.2Z"/>'
-  + '<path d="M15.3 8.5 12.6 12.1l-4 3.3 2.7-3.6 4-3.3Z"/>'
+  + '<g transform="rotate(25 12 12)"><path d="M12 5.2 14.3 12H9.7Z" fill="currentColor"/><path d="M9.7 12 12 18.8 14.3 12"/></g>'
   + '</svg>';

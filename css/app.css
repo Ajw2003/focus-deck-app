@@ -148,7 +148,7 @@ a{color:inherit;}
 @media (min-width:1100px){.projects-toggle{display:none;}}
 
 /* One raised card (Q5): the focus card is the only surface with a background, radius and shadow.
-   .inbox-card and .project-card below override this back to flat, each with its own thin top rule. */
+   .inbox-card, .project-card and settings.html's .settings-section below override this back to flat, each with its own thin top rule. */
 .card{
   background:var(--surface); border:1px solid var(--line); border-radius:var(--r-card);
   box-shadow:var(--shadow); padding:20px; margin-bottom:16px;
@@ -230,11 +230,14 @@ button.chip.proj-chip:hover{background:var(--line);}
 /* Flat sections (Q5): the Unsorted card and every project card lose the raised-card look and get a
    thin top rule instead — a project's is its 3px colour edge (identity, Q4), which doubles as that
    rule. */
-.inbox-card, .project-card{
+.inbox-card, .project-card, .settings-section{
   background:none; box-shadow:none; border-radius:0; border-left:none; border-right:none;
   border-bottom:none; padding:20px 0;
 }
 .inbox-card{border-top:1px solid var(--line); padding:14px 0;}
+.settings-section{border-top:1px solid var(--line);}
+/* the topbar's own bottom rule already separates the first section */
+.settings-section:first-of-type{border-top:none; padding-top:0;}
 .section-toggle{
   width:100%; text-align:left; background:none; border:none; padding:6px 0;
   display:flex; align-items:center; gap:8px;
@@ -397,7 +400,7 @@ a.task-title:hover{text-decoration:underline;}
   padding:7px 13px; border:none; border-radius:var(--r-control); background:var(--accent); color:var(--accent-ink); font-weight:700;
 }
 .add-project-form{display:flex; gap:8px;}
-.add-project-form input[type="text"]{
+.add-project-form input[type="text"], .add-project-form input[type="password"]{
   flex:1; min-width:0; padding:11px 14px; border:1.5px dashed var(--line); border-radius:var(--r-control); background:transparent; color:var(--ink);
 }
 .add-project-form select{

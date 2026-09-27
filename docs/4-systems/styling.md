@@ -206,8 +206,8 @@ token, on purpose — `js/style-contract.test.mjs` asserts that literal string, 
 stays enforced even if `--r-pill` itself were ever redefined.
 
 **One raised card.** `.card`'s base rule (background, `--r-card`, `--shadow`, padding) is what
-`.focus-card` uses, and is the only raised surface in the app. `.inbox-card` and `.project-card`
-override it back to flat — no background fill, no shadow, no side/bottom border, `border-radius:0`
+`.focus-card` uses, and is the only raised surface in the app. `.inbox-card`, `.project-card`
+and settings.html's `.settings-section` override it back to flat — no background fill, no shadow, no side/bottom border, `border-radius:0`
 — separated from whatever's above by a 1px `--line` top rule, except a project card's is its
 existing 3px project-colour top edge, which doubles as that rule. The wide-screen sidebar
 (>=1100px) is flat too, with a rule on its right edge instead of a box; the phone/tablet drawer
