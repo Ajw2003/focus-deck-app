@@ -47,3 +47,12 @@ export function resolveSelectedProject(projects, storedId) {
   const busiest = sortProjects(projects, 'open-tasks')[0];
   return busiest.id;
 }
+
+// "All" or "One" is a per-device layout choice (PR 6, 2026-09-27), remembered once picked. Before
+// anything is stored, the default follows the width at load -- "All" from 1100px, "One" below
+// (docs/6-decisions/Decisions.md, "Minimising comes back..."). A stored value, once there, wins at
+// every width from then on. Pure so it's directly testable, like resolveSelectedProject above.
+export function resolveProjectView(stored, isWide) {
+  if (stored === 'all' || stored === 'one') return stored;
+  return isWide ? 'all' : 'one';
+}

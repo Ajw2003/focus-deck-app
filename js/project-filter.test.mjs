@@ -1,5 +1,5 @@
 // focus-deck-app/js/project-filter.test.mjs — run with: node js/project-filter.test.mjs
-import { filterAndSortProjects, sortProjects, resolveSelectedProject } from './project-filter.js';
+import { filterAndSortProjects, sortProjects, resolveSelectedProject, resolveProjectView } from './project-filter.js';
 import assert from 'node:assert';
 
 function proj(overrides) {
@@ -58,6 +58,20 @@ assert.deepStrictEqual(sortProjects(withSync, 'recent-sync').map((p) => p.id), [
   assert.strictEqual(resolveSelectedProject(list, 'gone'), 'p2', 'a stored id that no longer exists falls back to the busiest project');
   assert.strictEqual(resolveSelectedProject(list, null), 'p2', 'no stored id (first time) also falls back to the busiest project');
   assert.strictEqual(resolveSelectedProject([], 'p1'), null, 'no projects at all means no selection');
+}
+
+// resolveProjectView (PR 6): a valid stored value wins at any width; with nothing (or junk) stored,
+// the default follows the width -- "all" from 1100px, "one" below.
+{
+  assert.strictEqual(resolveProjectView('all', true), 'all', 'a stored "all" wins on a wide screen');
+  assert.strictEqual(resolveProjectView('all', false), 'all', 'a stored "all" wins on a narrow screen too');
+  assert.strictEqual(resolveProjectView('one', true), 'one', 'a stored "one" wins on a wide screen');
+  assert.strictEqual(resolveProjectView('one', false), 'one', 'a stored "one" wins on a narrow screen too');
+  assert.strictEqual(resolveProjectView(null, true), 'all', 'nothing stored, wide: defaults to "all"');
+  assert.strictEqual(resolveProjectView(null, false), 'one', 'nothing stored, narrow: defaults to "one"');
+  assert.strictEqual(resolveProjectView('', true), 'all', 'an empty string is treated as nothing stored');
+  assert.strictEqual(resolveProjectView('bogus', true), 'all', 'junk stored, wide: falls back to the width default');
+  assert.strictEqual(resolveProjectView('bogus', false), 'one', 'junk stored, narrow: falls back to the width default');
 }
 
 console.log('PROJECT FILTER/SORT TESTS PASSED');

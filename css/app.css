@@ -281,12 +281,15 @@ button.chip.proj-chip:hover{background:var(--line);}
 .project-cat-edit select{
   padding:4px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);
 }
-/* The per-project collapse toggle and "Collapse all" are hidden at both widths now (Q26a, Q28): a
-   wide tile has a fixed height, and a phone shows only one project at a time, so collapsing it does
-   nothing useful (see docs/6-decisions/Decisions.md, 2026-09-27). */
-.collapse-toggle, [data-action="toggle-collapse-all"]{display:none;}
+/* Minimising is back (PR 6, 2026-09-27): js/render.js leaves the toggle and "Collapse all" out of
+   the markup itself in the "One" view, so there's nothing here to hide by width or view. */
 .project-card.is-collapsed{padding-bottom:16px;}
 .project-card.is-collapsed .progress-track{margin-bottom:0;}
+/* The "All"/"One" switch: two pills right under the sidebar/drawer title. */
+.view-switch{display:flex; gap:6px;}
+/* Minimised projects gather below the full-size tiles as their own quiet group (#82: a minimised
+   tile left in the tile grid would sit beside a full-height one and reopen the gap). */
+.minimised-projects{margin-top:24px;}
 
 .projects-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px;}
 
@@ -316,28 +319,29 @@ button.chip.proj-chip:hover{background:var(--line);}
   .drawer-backdrop{transition:none;}
 }
 .main-col{min-width:0;}
-/* <1100px only: one project at a time (Q28) -- every card is still rendered into the same
-   projects-grid the >=1100px tiles use, but only the selected one shows here; the rest are hidden
-   outright rather than left tall and empty. See docs/6-decisions/Decisions.md, 2026-09-27. */
-@media (max-width:1099px){
-  .project-card{display:none;}
-  .project-card.is-selected{display:block;}
-}
+/* "One" view, any width (PR 6, 2026-09-27): every card is still rendered into the same
+   projects-grid the "All" tiles use, but only the selected one shows here; the rest are hidden
+   outright rather than left tall and empty. See docs/6-decisions/Decisions.md. */
+.view-one .project-card{display:none;}
+.view-one .project-card.is-selected{display:block;}
 @media (min-width:1100px){
   /* use the monitor (#64): the page widens, and the focus card's label cards spread across it */
   .wrap{max-width:1800px;}
   #app{display:grid; grid-template-columns:270px minmax(0,1fr); gap:28px; align-items:start;}
-  /* 2x2 tiles (Q26a, #82): every visible project is its own tile, two columns, every tile the same
-     height -- half the space below the sticky topbar (--topbar-h, set from js/app.js's
-     updateTopbarHeightVar, since the topbar's real height varies with width and content), with a
-     floor so a narrow-ish wide screen still gets a usable tile. grid-auto-rows applies that same
-     height to every row, not just the first, so further projects continuing below stay level too. */
-  .projects-grid{
+  /* "All" view, 2x2 tiles (Q26a, #82): every non-minimised project is its own tile, two columns,
+     every tile the same height -- half the space below the sticky topbar (--topbar-h, set from
+     js/app.js's updateTopbarHeightVar, since the topbar's real height varies with width and
+     content), with a floor so a narrow-ish wide screen still gets a usable tile. grid-auto-rows
+     applies that same height to every row, not just the first, so further projects continuing below
+     stay level too. Minimised projects are left out of this grid by js/render.js and gather in
+     .minimised-grid below instead, at their own natural height, two to a row. */
+  .view-all .projects-grid{
     grid-template-columns:1fr 1fr;
     grid-auto-rows:max(320px, calc((100dvh - var(--topbar-h, 64px) - 16px) / 2));
     align-items:stretch;
   }
-  .project-card{
+  .view-all .minimised-grid{grid-auto-rows:auto;}
+  .view-all .project-card{
     display:flex; flex-direction:column; overflow:hidden;
     /* the fixed tile height means a card can't grow with its own content -- min-height:0 lets the
        flex child (.project-body) shrink below its content size so it, not the tile, scrolls */
@@ -345,12 +349,14 @@ button.chip.proj-chip:hover{background:var(--line);}
     /* .card's own margin-bottom would otherwise stack on top of the grid gap between rows (#82) */
     margin-bottom:0;
   }
-  /* the scrollable part of a tile: header, badges, edit panel and progress bar stay put above it */
+  /* the scrollable part of a full tile: header, badges, edit panel and progress bar stay put above
+     it. A minimised tile has no body at all (js/render.js), so this never applies to one; the "One"
+     view's single card isn't a fixed-height tile either, so it keeps its natural page scroll. */
   /* a rule marks where the tile ends, so rows cut off by a long list read as scrollable, not broken */
-  .project-body{flex:1 1 auto; min-height:0; overflow-y:auto; border-bottom:1px solid var(--line);}
+  .view-all .project-card:not(.is-collapsed) .project-body{flex:1 1 auto; min-height:0; overflow-y:auto; border-bottom:1px solid var(--line);}
   /* only the task list gives way in a full tile: without this a 55-task list squashed the badges
      line and the progress bar, moving that tile's bar 4px off its neighbours' (#83) */
-  .project-card > :not(.project-body){flex-shrink:0;}
+  .view-all .project-card:not(.is-collapsed) > :not(.project-body){flex-shrink:0;}
   .energy-grid.focus-grid{grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));}
   .drawer-backdrop{display:none;}
   .project-sidebar{
@@ -360,12 +366,9 @@ button.chip.proj-chip:hover{background:var(--line);}
     background:none; border-right:1px solid var(--line); border:none; border-radius:0; padding:0 20px 16px 0;
   }
 }
-/* Below 1100px, a drawer row highlights the one selected project (Q28); at and above it there is no
-   "current" project to highlight (Q26a) -- js/render.js already leaves off .is-selected/aria-current
-   there, this just keeps the highlight itself scoped to match. */
-@media (max-width:1099px){
-  .sidebar-project.is-selected{background:var(--surface-2); font-weight:700;}
-}
+/* js/render.js only ever adds .is-selected/aria-current to a row in the "One" view, so this needs
+   no extra scoping by view -- it just paints the highlight when that class is there. */
+.sidebar-project.is-selected{background:var(--surface-2); font-weight:700;}
 .sidebar-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
 .sidebar-title{font-size:var(--text-h); font-style:italic;}
 .sidebar-search{flex:none; width:100%; padding:8px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
@@ -394,6 +397,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 .project-title .dot{width:10px; height:10px; margin-top:.45em; border-radius:50%; background:var(--proj-color); display:inline-block; flex:none;}
 .project-title h3{font-size:var(--text-h); overflow-wrap:break-word; min-width:0;}
 .project-head-right{display:flex; align-items:center; gap:8px; flex:none; white-space:nowrap;}
+.collapse-toggle{font-size:var(--text-h); line-height:1; padding:0 2px;}
 .project-badges{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:1.4em; margin:6px 0 10px;}
 .project-edit-panel{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 0; margin-bottom:10px; border-top:1px dashed var(--line); border-bottom:1px dashed var(--line); font-size:var(--text-sm);}
 .project-edit-cat{display:flex; align-items:center; gap:6px; color:var(--ink-soft); font-weight:600;}
