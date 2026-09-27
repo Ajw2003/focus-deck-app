@@ -4,6 +4,34 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-27 — Visual system interpretations
+
+**Context.** PR 3 of `docs/plans/handcrafted-redesign.md` specified the visual system precisely
+in most places, but left a few calls to the implementer's judgement, most centrally "project
+colour is identity only."
+
+**Decisions.**
+- **Project pills are neutral, with a colour dot.** "Identity only" reads as: a project's colour
+  may mark *which* project something is (the sidebar/drawer dot, a project card's top edge), but
+  must not tint a control's fill or text the way a label's colour does. So the focus picker's
+  project-scope pills, Unsorted's "Which project?" pills, and `.proj-chip` are plain,
+  undifferentiated `.filter-pill`/`.chip` with a small `.proj-dot` in the project's colour before
+  the name, and the *chosen* one gets the ordinary accent `.filter-pill.active` treatment — the
+  same visual language any other chosen pill gets — rather than its own project-coloured active
+  state.
+- **Progress fill is `--ink-soft`.** With project colour reserved for identity, the per-project
+  progress bar (`.progress-fill`, previously `--proj-color`) needed a neutral colour instead of
+  disappearing or turning into another accent use. `--ink-soft` was chosen over `--accent` so the
+  bar doesn't compete visually with the one accent colour now reserved for actionable buttons.
+- **Label colour muting ratio.** `mutedChip()` (js/render.js) uses
+  `color-mix(in oklab, <color> 65% var(--ink-soft))` — 65% of the raw GitHub hue mixed with
+  `--ink-soft` — tuned against the plan's named colours (`#a2eeef`, `#fbca04`, `#7057ff`) so each
+  reads as a calmer version of itself rather than desaturating past recognition, in both themes.
+
+**Why.** Each of these turns "identity only"/"calmer" into a checkable rule instead of a matter of
+taste applied inconsistently file to file, and keeps every colour use in the redesign traceable to
+one of exactly two roles: accent (action) or identity (a dot).
+
 ## 2026-09-26 — Delete the energy system fully
 
 **Context.** #48 (time-of-day suggestions) renewed the tension the "Priority and labels replace

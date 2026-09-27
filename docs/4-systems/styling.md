@@ -44,8 +44,10 @@ The cards reuse `.energy-btn` inside `.energy-grid`, the look of the old Low/Med
 surface-2 fill, the label's colour on the top edge, the name, and a detail line ("3 open · 1 urgent
 · 2 projects"). `.focus-grid` sets two columns on a phone. Six cards show until "Show all N labels".
 
-Project pills above the cards (`.filter-pills` plus `.tint-pill`, tinted in each project's colour,
-with a ring when chosen) narrow the cards and counts. They are sorted busiest first, and six show
+Project pills above the cards (`.filter-pills`, plain `.filter-pill`s with a small colour dot for
+identity — project colour is not used to tint them, see "Visual system" below — and the same
+`.filter-pill.active` accent fill as any other chosen pill) narrow the cards and counts. They are
+sorted busiest first, and six show
 until the dashed **+N more** pill (`.focus-more-pill`) expands them. The chosen project always
 shows, and names are never shortened. The chosen pill is kept per device (`focusdeck-focus-filter`).
 
@@ -56,15 +58,16 @@ the Unsorted card below, not from here.
 
 ### Top bar
 
-Brand, the capture form, then `.topbar-tools`: the Projects button (phones and tablets only), the
-sync button and the ⚙️ settings link. Below 700px the capture form takes a full row of its own
+Brand, the capture form, then `.topbar-tools`: the Projects icon button (phones and tablets only),
+the sync button and the settings icon button (`.icon-btn`, `aria-label="Settings"`, gear SVG from
+`js/icons.js`'s `ICON_SETTINGS`). Below 700px the capture form takes a full row of its own
 under the brand and tools (`order:1; flex-basis:100%`), so the three controls never wrap onto a
 row by themselves.
 
 ### Sync button
 
-The topbar (`index.html`, outside `#app`) carries a small icon button, right before the ⚙️
-settings link: two hand-drawn curved arrows in a circle (`renderSyncButton`, js/render.js), colour
+The topbar (`index.html`, outside `#app`) carries a small icon button, right before the settings
+icon button: two hand-drawn curved arrows in a circle (`renderSyncButton`, js/render.js), colour
 `--ink-soft`, `--ink` on hover. Its `title`/`aria-label` read `syncButtonTitle(st)` — "Sync with
 GitHub" or "Sync with GitHub · synced Nm ago" — kept current on every paint via
 `paintHeaderControls` in js/app.js, since the button lives outside the `#app` innerHTML replace.
@@ -92,7 +95,8 @@ item this session hasn't skipped, or `null`. Items are keyed `i:<inboxId>` or `t
 **The steps.**
 - A task already in a project shows its project and issue-number chips and goes straight to the
   label step — it's not being sorted into anything, just labelled.
-- A captured thought asks **Which project?** first: full-name pills (`.tint-pill`), busiest
+- A captured thought asks **Which project?** first: full-name pills (plain `.filter-pill` with a
+  colour dot, same neutral-pill-plus-dot treatment as the focus picker's project pills), busiest
   (most open tasks) first, eight shown with a **+N more** pill (`unsorted-more-projects`). Tapping
   one (`unsorted-project`) advances to the label step, ranked by *that* project. A
   **`<project> · change`** button (`unsorted-change-project`) in the head row goes back.
@@ -173,6 +177,77 @@ pattern), with class names as literal text inside the strings — e.g.
 `'<button type="button" class="energy-btn" ...'` (js/render.js:5). There is no compiler step that
 would catch a typo or a deleted rule; a class with no matching CSS rule fails completely silently
 in the browser and just renders with default/no styling.
+
+## Visual system
+
+PR 3 (2026-09-27) is a purely visual pass — "warm editorial with a touch of notebook" — over the
+same markup and behaviour: no feature or interaction changed (task-row controls, the add-task
+form, Remove/Add project placement are all untouched; that's PR 4's job). See
+`docs/plans/handcrafted-redesign.md` ("Direction", "Visual system") for the brief this
+implements, and `docs/6-decisions/Decisions.md` (2026-09-27) for the calls made where it was
+ambiguous.
+
+**Five type sizes**, tokens on `:root` (css/app.css:20-24), and nowhere else — every `font-size`
+in `css/app.css`, and every inline one that used to live in `settings.html`, is one of these:
+`--text-sm:.8rem` (meta, chips, pills, counts, small buttons), `--text-body:.95rem` (body text,
+rows, inputs, buttons, `.group-label`'s "In progress"/"Up next"), `--text-h:1.15rem` (section
+headings, project names, the brand `h1`, the Unsorted item title), `--text-q:1.5rem` (the focus
+question), `--text-title:2.1rem` (the picked focus task's title). Headings (`h1`-`h4`,
+`.section-toggle`, `.sidebar-title`, `.focus-title`/`.focus-q`) are Fraunces; everything else is
+IBM Plex Sans (css/app.css:79, 85).
+
+**Three corner radii**, also tokens (css/app.css:26-28): `--r-pill:999px` for anything chip- or
+pill-shaped (`.filter-pill`, `.chip`, `.label-option`, sidebar pills, priority chips); `--r-control:10px`
+for controls — `.btn`, the capture input/button, other text inputs, `<select>`s, `<textarea>`s,
+`.toast`, `.sidebar-project` rows, `.energy-btn` cards; `--r-card:18px`, used by exactly one thing,
+`.focus-card`. Circles (`.proj-dot`, `.icon-btn`, `.mini-x`) stay `border-radius:50%`, outside the
+token system. `.filter-pill`'s own rule keeps the literal `border-radius:999px` rather than the
+token, on purpose — `js/style-contract.test.mjs` asserts that literal string, so the pill shape
+stays enforced even if `--r-pill` itself were ever redefined.
+
+**One raised card.** `.card`'s base rule (background, `--r-card`, `--shadow`, padding) is what
+`.focus-card` uses, and is the only raised surface in the app. `.inbox-card` and `.project-card`
+override it back to flat — no background fill, no shadow, no side/bottom border, `border-radius:0`
+— separated from whatever's above by a 1px `--line` top rule, except a project card's is its
+existing 3px project-colour top edge, which doubles as that rule. The wide-screen sidebar
+(>=1100px) is flat too, with a rule on its right edge instead of a box; the phone/tablet drawer
+stays a solid sliding panel, since it's a distinct surface over a backdrop, not a section of the
+page.
+
+**Icons, not emoji.** `js/icons.js` is the one source of truth for the app's hand-drawn-style
+inline line icons (`stroke="currentColor"`, `fill="none"`, ~1.75 stroke, round caps/joins,
+viewBox 24 except the pre-existing sync icon's viewBox 20) — `js/icons.test.mjs` checks every
+export is a well-formed, themeable, non-emoji SVG string. `js/render.js` imports from it
+(currently `ICON_SYNC`, for the sync button); `index.html`/`settings.html` have no render step for
+their static header markup, so they inline the same paths by hand for the brand mark (compass),
+the settings link and the Projects drawer button — all `.icon-btn`s with an `aria-label`. The
+favicon `data:` URI is the same compass path in the accent colour, not a rendered glyph. No emoji
+remains anywhere in the UI (checked by grepping U+1F300-1FAFF, U+2600-27BF minus the kept
+typographic marks `✓ ↓ × − + ▸ ▾`, and U+FE0F, over every `.html` and `js/*.js`/`*.mjs` file); the
+PNG app icons under `icons/` (built by `generate_icons.py`) were not regenerated, since they're a
+separate asset pipeline this pass didn't touch.
+
+**Colour.** One accent (`--accent`/`--accent-ink`) for every action button — the capture Add
+button and each project's add-task button, which both used to carry their own colour
+(`--capture`, `--proj-color`), now match `.btn.primary`. A label's own colour (from GitHub) only
+ever paints through `mutedChip()` (js/render.js) — `color-mix(in oklab, <color> 65%, --ink-soft)`
+— everywhere a label colour is shown (`.energy-btn` top edges, `.cat-chip`, `.tint-pill`s,
+`.label-option`, Unsorted kind cards, settings' category chips) so a raw GitHub hue (`#a2eeef`,
+`#fbca04`, `#7057ff`, ...) reads as a calmer version of itself in both themes rather than at full
+saturation; `--prio-*` priority colours are untouched. A **project's** colour is identity only —
+the sidebar/drawer dot and a project card's 3px top edge — never a fill: `.progress-fill` is
+neutral `--ink-soft`, and every project pill/chip (`.proj-chip`, the focus picker's project pills,
+Unsorted's "Which project?" pills) is a plain, neutral pill with a small `.proj-dot` in the
+project's colour before the name; the chosen one gets the ordinary `.filter-pill.active` accent
+treatment, same as any other chosen pill, not its own colour.
+
+**Label names.** `formatLabelName(name)` (js/state.js, tested by
+`js/format-label-name.test.mjs`) title-cases a label's raw GitHub name for display only — never
+touching the stored name or anything sent to GitHub — with a fixed list of acronyms kept upper
+(or mixed-)case: UI, UX, API, CI, CD, PR, QA, SEO, CSS, HTML, JS, TS, PWA, iOS, QoL; a word that's
+already mixed-case (`GitHub`) is left as written. Used everywhere a label's name is displayed:
+focus picker cards, row `.cat-chip`s, the label picker, Unsorted's label pills/kind cards, and
+settings' task-category list. Project category names are not labels and are shown as typed.
 
 ## Invariants
 
