@@ -149,10 +149,15 @@ row (`.stats-row`) and filter bar (`.project-filter-bar`) above the project card
 on 2026-09-26 (#9a). The same markup renders as a sticky left column at >=1100px or the phone/tablet
 drawer, switched purely by CSS at the 1100px breakpoint (#50, #64); what shows inside the main
 column depends on `ui.projectView`, not the breakpoint (PR 6, 2026-09-27, see
-docs/6-decisions/Decisions.md, "Minimising comes back...").
+docs/6-decisions/Decisions.md, "Minimising comes back..."). The sticky column's top and maximum height are
+worked out from the measured topbar (`--topbar-h`), so it always fits between the topbar and the
+page's bottom padding; a longer list scrolls inside it. (At a fixed `100vh - 100px` it overran by
+about 50px, and at the page's end the sticky box was pushed up under the topbar, hiding the
+"Projects" title and cutting off "+ Add".)
 
 **The "All"/"One" switch (PR 6).** `renderViewSwitch` (js/render.js) draws a two-option segmented
-control — `role="group" aria-label="Project view"`, two `.filter-pill` buttons "All"/"One" with
+control — `role="group" aria-label="Project view"`, two `.filter-pill` buttons labelled "All projects" / "One project" (not bare "All" / "One": the
+category pills just below start with their own "All", and two "All" pills stacked read as one control) with
 `aria-pressed`, the chosen one getting the ordinary `.filter-pill.active` accent treatment — right
 under the "Projects" title row, so it reads as the list's own setting rather than a filter. Tapping
 one sets `ui.projectView` (`set-project-view` in js/app.js), saves it to

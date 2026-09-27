@@ -410,7 +410,7 @@ function collapseAllButton(ui, visibleProjects) {
 function renderViewSwitch(ui) {
   const view = ui.projectView === 'one' ? 'one' : 'all';
   const option = (value, label) => '<button type="button" class="filter-pill' + (view === value ? ' active' : '') + '" data-action="set-project-view" data-view="' + value + '" aria-pressed="' + (view === value) + '">' + label + '</button>';
-  return '<div class="view-switch" role="group" aria-label="Project view">' + option('all', 'All') + option('one', 'One') + '</div>';
+  return '<div class="view-switch" role="group" aria-label="Project view">' + option('all', 'All projects') + option('one', 'One project') + '</div>';
 }
 
 // The single project list: search, category pills, sort, Collapse all, and a row per project that

@@ -360,8 +360,11 @@ button.chip.proj-chip:hover{background:var(--line);}
   .energy-grid.focus-grid{grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));}
   .drawer-backdrop{display:none;}
   .project-sidebar{
-    position:sticky; top:84px; left:auto; z-index:auto;
-    width:auto; height:auto; max-height:calc(100vh - 100px); overflow-y:auto;
+    /* sized from the measured topbar (--topbar-h, js/app.js) so it fits between the topbar and the
+       page's bottom padding: at 100vh - 100px it overran by ~50px, and at the page's end the sticky
+       box was pushed up under the topbar, hiding "Projects" and cutting off "+ Add" */
+    position:sticky; top:calc(var(--topbar-h, 67px) + 17px); left:auto; z-index:auto;
+    width:auto; height:auto; max-height:calc(100vh - var(--topbar-h, 67px) - 100px); overflow-y:auto;
     transform:none; transition:none; visibility:visible;
     background:none; border-right:1px solid var(--line); border:none; border-radius:0; padding:0 20px 16px 0;
   }
