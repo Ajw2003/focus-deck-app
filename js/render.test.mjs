@@ -306,8 +306,8 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   const html = renderProjectSidebar({ projects, projectCategories: [] }, sideUi, projects);
   assert.ok(html.includes('data-action="scroll-project" data-project="p2"') && /class="sidebar-project is-selected"[^>]*data-project="p2"[^>]*aria-current="true"/.test(html), 'the selected row is highlighted with aria-current');
   assert.ok(!/data-project="p1"[^>]*aria-current/.test(html), 'the unselected row carries no aria-current');
-  assert.ok(html.includes('<form class="add-project-form" data-action="add-project-field">') && html.includes('placeholder="New project, or owner/repo…"'), 'the sidebar ends with the one add field');
-  assert.strictEqual(renderAddProjectField(), '<form class="add-project-form" data-action="add-project-field"><input type="text" name="value" placeholder="New project, or owner/repo…" maxlength="200" required><button type="submit">+ Add</button></form>', 'the add field itself');
+  assert.ok(html.includes('<form class="add-project-form" data-action="add-project-field">') && html.includes('placeholder="New project or owner/repo"'), 'the sidebar ends with the one add field');
+  assert.strictEqual(renderAddProjectField(), '<form class="add-project-form" data-action="add-project-field"><input type="text" name="value" placeholder="New project or owner/repo" maxlength="200" required><button type="submit">+ Add</button></form>', 'the add field itself');
 }
 
 assert.strictEqual(renderToast(null, 'error'), '', 'no message means no toast');

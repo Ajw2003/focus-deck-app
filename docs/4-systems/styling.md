@@ -191,7 +191,7 @@ and filter bar (`.project-filter-bar`) above the project cards were both deleted
   outside `#app`.
 
 **Add a project or a repo (Q15a, Q12d, PR 4 2026-09-27).** One field, `renderAddProjectField`,
-sits at the bottom of the sidebar/drawer list — "New project, or owner/repo…" — replacing the two
+sits at the bottom of the sidebar/drawer list — "New project or owner/repo" — replacing the two
 forms (`renderAddProjectForm`) that used to sit at the bottom of the page. `add-project-field` in
 js/app.js decides which path with `parseRepoInput` (js/github-sync.js, already used everywhere else
 a repo is typed in): if it parses (`owner/repo`, or a `github.com` URL), the value takes the old
@@ -217,7 +217,10 @@ in the browser and just renders with default/no styling.
 ### Task rows and the editor (Q14a, Q12f, PR 4 2026-09-27)
 
 A row (`renderTaskRow`, js/render.js) shows only the checkbox, the title, label chips, the deadline
-chip, and the priority chip when one is set (it still cycles on tap). No `#N` GitHub badge, no
+chip, and the priority chip when one is set (it still cycles on tap). The title and chips sit in
+one wrapping group (`.task-main`) beside the checkbox, with the title's width set by its own text:
+a short title keeps its chips on its line, a long one takes the full width and its chips drop
+underneath, instead of the chips squeezing it into a narrow column. No `#N` GitHub badge, no
 "Edit" link, no "Focus →", no × delete button — all four moved into the editor. Tapping the title
 always opens `renderTaskEditForm`, linked or not: a linked task's title used to be an `<a>` straight
 to its issue, so opening its issue took one tap and editing it took a second (a separate "Edit"

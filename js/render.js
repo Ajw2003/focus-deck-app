@@ -362,9 +362,13 @@ export function renderTaskRow(t, p, categories, ui) {
     : '';
   return '<div class="task-row' + (isDone ? ' is-done' : '') + '" data-task="' + t.id + '" data-project="' + p.id + '">'
     + '<input type="checkbox" data-action="toggle-task" data-task="' + t.id + '" data-project="' + p.id + '"' + (isDone ? ' checked' : '') + '>'
+    // title and chips wrap as one group beside the checkbox: a short title keeps its chips on its
+    // line, a long one takes the full width and its chips drop underneath instead of squeezing it
+    + '<div class="task-main">'
     + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + '</span>'
     + priorityChip + catChips
     + (t.deadline ? deadlineChip(t.deadline) : '')
+    + '</div>'
     + '</div>';
 }
 
@@ -500,7 +504,7 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
 // docs/4-systems/styling.md.
 export function renderAddProjectField() {
   return '<form class="add-project-form" data-action="add-project-field">'
-    + '<input type="text" name="value" placeholder="New project, or owner/repo…" maxlength="200" required>'
+    + '<input type="text" name="value" placeholder="New project or owner/repo" maxlength="200" required>'
     + '<button type="submit">+ Add</button>'
     + '</form>';
 }
