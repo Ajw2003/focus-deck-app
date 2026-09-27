@@ -129,7 +129,7 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
     ],
   };
   const html = renderInbox(st, { inboxOpen: true, unsorted: freshUnsorted() });
-  assert.ok(html.includes('📥 Unsorted') && html.includes('class="count">1<'), 'the header keeps its toggle and shows the queue count');
+  assert.ok(html.includes('>Unsorted <') && html.includes('class="count">1<'), 'the header keeps its toggle and shows the queue count');
   assert.ok(html.includes('Which project?'), 'a captured thought asks which project first');
   const pillIds = [...html.matchAll(/data-action="unsorted-project" data-project="([^"]+)"/g)].map((m) => m[1]);
   assert.deepStrictEqual(pillIds, ['pBusy', 'pQuiet'], 'project pills are ranked busiest (most open tasks) first, full names shown');

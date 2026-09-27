@@ -281,7 +281,7 @@ export function renderInbox(st, ui) {
     }
   }
   return '<section class="card inbox-card">'
-    + '<button type="button" class="section-toggle" data-action="toggle-inbox">📥 Unsorted <span class="count">' + count + '</span><span class="chev">' + (ui.inboxOpen ? '−' : '+') + '</span></button>'
+    + '<button type="button" class="section-toggle" data-action="toggle-inbox">Unsorted <span class="count">' + count + '</span><span class="chev">' + (ui.inboxOpen ? '−' : '+') + '</span></button>'
     + (ui.inboxOpen ? '<div class="unsorted-body">' + body + '</div>' : '')
     + '</section>';
 }

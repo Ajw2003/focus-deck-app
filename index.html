@@ -7,23 +7,23 @@
   <meta name="theme-color" content="#3D5A80">
   <title>Focus Deck</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="css/app.css">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><text x='50%' y='50%' font-size='120' dominant-baseline='middle' text-anchor='middle'>🧭</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233D5A80' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12.3 3.4a8.6 8.6 0 1 1-.4 17.2 8.6 8.6 0 0 1 .4-17.2Z'/><path d='M15.3 8.5 12.6 12.1l-4 3.3 2.7-3.6 4-3.3Z'/></svg>">
 </head>
 <body>
   <div class="wrap">
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">🧭</span><h1>Focus Deck</h1></div>
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.3 3.4a8.6 8.6 0 1 1-.4 17.2 8.6 8.6 0 0 1 .4-17.2Z"/><path d="M15.3 8.5 12.6 12.1l-4 3.3 2.7-3.6 4-3.3Z"/></svg></span><h1>Focus Deck</h1></div>
       <form id="capture-form" class="capture-form" autocomplete="off">
         <input id="capture-input" type="text" placeholder="Capture a stray thought…" maxlength="400">
         <button type="submit">Add</button>
       </form>
       <div class="topbar-tools">
-        <button type="button" id="projects-btn" class="link-btn small projects-toggle" data-action="toggle-projects-drawer" aria-haspopup="dialog" aria-controls="projects-drawer" aria-expanded="false">Projects</button>
+        <button type="button" id="projects-btn" class="icon-btn projects-toggle" data-action="toggle-projects-drawer" aria-haspopup="dialog" aria-controls="projects-drawer" aria-expanded="false" aria-label="Projects"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.6h13.6"/><path d="M4 12.2h16.4"/><path d="M4 17.6h10.2"/></svg></button>
         <span id="topbar-sync"></span>
-        <a href="settings.html" class="link-btn small" aria-label="Settings">⚙️</a>
+        <a href="settings.html" class="icon-btn" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h9.4"/><circle cx="16.3" cy="6.4" r="1.8"/><path d="M20 12.3H10.7"/><circle cx="7.6" cy="12.4" r="1.8"/><path d="M4 18.2h9.5"/><circle cx="16.6" cy="18.1" r="1.8"/></svg></a>
       </div>
     </header>
     <div id="app"></div>
