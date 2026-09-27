@@ -60,7 +60,7 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
   assert.ok(!html.includes('>Anything<'), 'there is no "Anything" card any more');
   assert.ok(html.includes('>3 open · 1 urgent · 2 projects<'), 'a card says how many are open, the most pressing priority, and across how many projects');
   assert.ok(html.includes('class="filter-pill active" data-action="set-focus-scope" data-scope="">All projects<'), '"All projects" is chosen by default');
-  assert.ok(html.includes('class="filter-pill tint-pill" data-action="set-focus-scope" data-scope="pB" style="--chip-color:hsl(140 58% 40%)">Chores<'), 'a project pill is tinted in the project\'s own colour');
+  assert.ok(html.includes('class="filter-pill" data-action="set-focus-scope" data-scope="pB"><span class="proj-dot" style="--dot:hsl(140 58% 40%)"></span>Chores<'), 'a project pill is neutral, with a colour dot for the project\'s identity');
   assert.ok(!html.includes('<select'), 'no dropdowns in the picker');
   const narrowed = renderFocus(st, () => null, { focusFilter: { projectId: 'pB' } });
   assert.ok(narrowed.includes('>1 open<') && !narrowed.includes('2 projects'), 'a chosen project narrows the counts');
@@ -76,7 +76,7 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
   assert.ok(collapsed.includes('data-action="toggle-focus-projects">+3 more<'), 'a "+N more" pill counts the hidden projects');
   assert.ok(!collapsed.includes('>project-with-a-long-name-8<'), 'the least busy project is hidden until expanded');
   const chosenHidden = renderFocus(manyProjects, () => null, { focusFilter: { projectId: 'p8' } });
-  assert.ok(chosenHidden.includes('class="filter-pill tint-pill active" data-action="set-focus-scope" data-scope="p8"'), 'the chosen project always shows, even if it would be hidden');
+  assert.ok(chosenHidden.includes('class="filter-pill active" data-action="set-focus-scope" data-scope="p8"'), 'the chosen project always shows, even if it would be hidden');
   const expanded = renderFocus(manyProjects, () => null, { focusFilter: {}, focusShowAllProjects: true });
   assert.strictEqual((expanded.match(/data-action="set-focus-scope"/g) || []).length, 10, 'expanded: every project gets a pill, with its full name');
   assert.ok(expanded.includes('data-action="toggle-focus-projects">Show fewer<'), 'expanded pills offer Show fewer');
@@ -166,7 +166,7 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
     projects: [{ id: 'pA', name: 'PlunderSpell', color: 'red', tasks: [{ id: 't1', title: 'Fix the thing', status: 'next', categoryIds: [], issueNumber: 42 }] }],
   };
   const html = renderInbox(st, { inboxOpen: true, unsorted: freshUnsorted() });
-  assert.ok(html.includes('class="chip proj-chip" style="--chip-color:red">PlunderSpell<') && html.includes('>#42<'), 'a task shows its project and issue number as chips');
+  assert.ok(html.includes('class="chip proj-chip"><span class="proj-dot" style="--dot:red"></span>PlunderSpell<') && html.includes('>#42<'), 'a task shows its project and issue number as chips');
   assert.ok(html.includes('What kind of task is this?'), 'a task skips the project step entirely');
   assert.ok(html.includes('data-action="unsorted-save" data-task="t1" data-project="pA">Save →<'), 'Save files the picks onto the task');
   assert.ok(!html.includes('Which project?'), 'no project step for a task that already has one');

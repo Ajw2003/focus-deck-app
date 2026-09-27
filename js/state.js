@@ -336,6 +336,26 @@ export function deadlineChip(iso) {
 
 export function shortName(name) { return name.length > 14 ? name.slice(0, 13) + '…' : name; }
 
+// Display-only formatting for a label (task category) name (Q7b): title-cased, with a small set of
+// known acronyms capitalized. Never changes the stored name or anything sent to GitHub — call this
+// only where a label's name is rendered. Project category names are not labels; leave those alone.
+const LABEL_ACRONYMS = {
+  ui: 'UI', ux: 'UX', api: 'API', ci: 'CI', cd: 'CD', pr: 'PR', qa: 'QA', seo: 'SEO',
+  css: 'CSS', html: 'HTML', js: 'JS', ts: 'TS', pwa: 'PWA', ios: 'iOS', qol: 'QoL',
+};
+export function formatLabelName(name) {
+  if (!name) return name;
+  return String(name).split(/([ _-]+)/).map((part) => {
+    if (/^[ _-]+$/.test(part)) return part === '_' || part === '-' ? ' ' : part;
+    if (!part) return part;
+    const known = LABEL_ACRONYMS[part.toLowerCase()];
+    if (known) return known;
+    // already-mixed-case words (e.g. "GitHub") are kept exactly as written
+    if (/[a-z]/.test(part) && /[A-Z]/.test(part)) return part;
+    return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+  }).join('');
+}
+
 export function nextHue() { return Math.round((state.projects.length * 137.508) % 360); }
 
 // Resolves any category color string (literal hsl(), or one referencing var(--proj-sat)/

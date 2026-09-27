@@ -9,7 +9,6 @@
   --line:#DCE3DE;
   --accent:#3D5A80;
   --accent-ink:#FFFFFF;
-  --capture:#B8701F;
   --danger:#A83E3E;
   --prio-urgent:#B42318;
   --prio-high:#C4540F;
@@ -17,7 +16,16 @@
   --prio-low:#4F7A63;
   --proj-sat:58%;
   --proj-light:40%;
-  --radius:14px;
+  /* Type scale (Q17a): exactly five sizes. See docs/4-systems/styling.md#visual-system */
+  --text-sm:.8rem;
+  --text-body:.95rem;
+  --text-h:1.15rem;
+  --text-q:1.5rem;
+  --text-title:2.1rem;
+  /* Corners (Q17a): exactly three radii. Circles (dots, icon buttons) stay 50% — a shape, not a step. */
+  --r-pill:999px;
+  --r-control:10px;
+  --r-card:18px;
   --shadow:0 1px 2px rgba(28,36,34,.06), 0 6px 20px rgba(28,36,34,.07);
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -33,7 +41,6 @@
     --line:#2B3336;
     --accent:#8FADD6;
     --accent-ink:#10161A;
-    --capture:#E3A65E;
     --danger:#DD8686;
     --prio-urgent:#F08A80;
     --prio-high:#F0A060;
@@ -54,7 +61,6 @@
   --line:#2B3336;
   --accent:#8FADD6;
   --accent-ink:#10161A;
-  --capture:#E3A65E;
   --danger:#DD8686;
   --prio-urgent:#F08A80;
   --prio-high:#F0A060;
@@ -71,11 +77,18 @@ body{
   background:var(--bg);
   color:var(--ink);
   font-family:'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size:var(--text-body);
   -webkit-font-smoothing:antialiased;
 }
 img{max-width:100%;}
 [hidden]{display:none!important;}
-h1,h2,h3,h4{font-family:'Fraunces', Georgia, serif; margin:0; text-wrap:balance;}
+h1,h2,h3,h4{font-family:'Fraunces', Georgia, serif; margin:0; text-wrap:balance; font-weight:600;}
+/* Section headings (Q18a): Fraunces italic, sentence case, no letter-spacing or uppercase. h2 is the
+   default "section heading" size/style; .focus-q/.focus-title (the two big Fraunces moments) and
+   h3 (project names, upright) override it below. */
+h2{font-size:var(--text-h); font-style:italic;}
+h3{font-size:var(--text-h); font-style:normal;}
+h4{font-size:var(--text-sm); font-style:italic; font-weight:600; color:var(--ink-soft);}
 p{margin:0;}
 button,input,select{font:inherit; color:inherit;}
 button{cursor:pointer;}
@@ -97,21 +110,24 @@ a{color:inherit;}
   margin-bottom:18px;
 }
 .brand{display:flex; align-items:center; gap:8px;}
-.brand-mark{font-size:1.5rem; line-height:1;}
-.brand h1{font-size:1.25rem; font-weight:600; letter-spacing:-.01em;}
+/* The brand mark is a hand-drawn SVG compass (js/icons.js ICON_COMPASS, inlined statically here and
+   in settings.html — see docs/4-systems/styling.md#icons), in the accent colour. */
+.brand-mark{display:inline-flex; color:var(--accent);}
+.brand-mark svg{width:22px; height:22px;}
+.brand h1{font-size:var(--text-h); font-style:normal; font-weight:600; letter-spacing:-.01em;}
 .capture-form{display:flex; gap:8px; flex:1 1 260px; min-width:0;}
 #capture-input{
   flex:1; min-width:0; padding:9px 12px;
-  border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink);
+  border:1px solid var(--line); border-radius:var(--r-pill); background:var(--surface); color:var(--ink);
 }
 #capture-input::placeholder{color:var(--ink-faint);}
 .capture-form button{
-  padding:9px 16px; border:none; border-radius:999px;
-  background:var(--capture); color:#fff; font-weight:600; white-space:nowrap;
+  padding:9px 16px; border:none; border-radius:var(--r-pill);
+  background:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;
 }
 
-/* The topbar sync icon and Projects drawer toggle (index.html, outside #app). See
-   docs/4-systems/styling.md#sync-button */
+/* The topbar sync icon, settings icon and Projects drawer toggle (index.html, outside #app). See
+   docs/4-systems/styling.md#sync-button and #icons */
 .icon-btn{
   display:inline-flex; align-items:center; justify-content:center;
   width:32px; height:32px; padding:0; border:none; background:none; border-radius:50%;
@@ -131,51 +147,63 @@ a{color:inherit;}
 .projects-toggle{white-space:nowrap;}
 @media (min-width:1100px){.projects-toggle{display:none;}}
 
+/* One raised card (Q5): the focus card is the only surface with a background, radius and shadow.
+   .inbox-card and .project-card below override this back to flat, each with its own thin top rule. */
 .card{
-  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r-card);
   box-shadow:var(--shadow); padding:20px; margin-bottom:16px;
 }
+@media (min-width:700px){
+  .card{padding:28px;}
+}
 
-.focus-empty h2.focus-q{font-size:1.3rem; margin-bottom:6px;}
+.focus-empty .focus-q{font-size:var(--text-q); font-style:normal; margin-bottom:6px;}
 .muted{color:var(--ink-soft);}
-.muted.small{font-size:.85rem;}
+.muted.small{font-size:var(--text-sm);}
 .focus-empty .muted{margin-bottom:16px; display:block;}
 .energy-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px;}
 @media (max-width:560px){.energy-grid{grid-template-columns:1fr;}}
 .energy-btn{
-  border:1px solid var(--line); background:var(--surface-2); border-radius:12px;
+  border:1px solid var(--line); background:var(--surface-2); border-radius:var(--r-control);
   padding:14px 12px; text-align:left; display:flex; flex-direction:column; gap:4px;
   border-top:3px solid var(--chip-color);
 }
 .energy-btn:hover{background:var(--surface);}
-.energy-label{font-weight:600; font-size:1.02rem;}
-.energy-desc{font-size:.8rem; color:var(--ink-soft);}
-.link-btn{background:none; border:none; color:var(--accent); font-weight:600; padding:4px 0; font-size:.9rem;}
-.link-btn.small{font-size:.78rem; padding:2px 0;}
+.energy-label{font-weight:600;}
+.energy-desc{font-size:var(--text-sm); color:var(--ink-soft);}
+.link-btn{background:none; border:none; color:var(--accent); font-weight:600; padding:4px 0;}
+.link-btn.small{font-size:var(--text-sm); padding:2px 0;}
 .link-btn:hover{text-decoration:underline;}
 
-.focus-tags{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
+.focus-tags{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:10px;}
 .chip{
-  display:inline-flex; align-items:center; font-size:.75rem; font-weight:600;
-  padding:4px 10px; border-radius:999px; background:var(--surface-2); color:var(--ink-soft);
+  display:inline-flex; align-items:center; font-size:var(--text-sm); font-weight:600;
+  padding:4px 10px; border-radius:var(--r-pill); background:var(--surface-2); color:var(--ink-soft);
   border:1px solid var(--line);
 }
-.chip.proj-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color);}
-button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%, transparent);}
+/* A project's own chip/pill is neutral (Q4b — its colour is identity only: its dot and its card
+   edge), carrying a small colour dot (.proj-dot) rather than a colour tint. */
+.chip.proj-chip{background:var(--surface-2); color:var(--ink);}
+button.chip.proj-chip:hover{background:var(--line);}
+.proj-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--dot); margin-right:6px; flex:none;}
 .chip.deadline-chip{font-variant-numeric:tabular-nums;}
 .chip.gh-chip{border-color:transparent; background:var(--surface-2); color:var(--ink-soft); text-decoration:none;}
-.chip.gh-chip.small{font-size:.7rem; padding:3px 8px;}
+.chip.gh-chip.small{font-size:var(--text-sm); padding:3px 8px;}
 .chip.gh-chip:hover{color:var(--accent);}
-/* text is pulled toward the ink colour so a light GitHub label colour (e.g. yellow) stays readable */
+/* Label colours keep their GitHub hue but muted toward the app's palette (Q4b) — the raw colour
+   value handed to --chip-color is already mixed toward --ink-soft in js/render.js's mutedChip(),
+   so this rule just reads it back; text is pulled further toward ink so a light colour (e.g.
+   yellow) stays readable. */
 .chip.cat-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink)); font-weight:700;}
 .chip.priority-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color); font-weight:700; cursor:pointer;}
-.chip.priority-chip.small{font-size:.7rem; padding:3px 8px;}
+.chip.priority-chip.small{font-size:var(--text-sm); padding:3px 8px;}
 .chip.priority-chip:disabled{opacity:.5; cursor:default;}
-.focus-title{font-size:1.7rem; line-height:1.25; margin-bottom:16px;}
+.focus-title{font-size:var(--text-title); font-style:normal; line-height:1.15; margin-bottom:16px;}
 .focus-actions{display:flex; flex-wrap:wrap; gap:10px;}
 /* focus picker: project pills, then label cards that reuse .energy-btn; two across on a phone */
 .focus-scope{margin:-4px 0 14px;}
-/* focus picker pills match their label's chips / project's colour: tinted in it; chosen = a ring */
+/* focus picker pills for labels match their chip's colour: tinted in it; chosen = a ring. Project
+   pills (no --chip-color set) stay a plain .filter-pill with a .proj-dot instead. */
 .filter-pill.tint-pill{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink));}
 .filter-pill.tint-pill.active{background:color-mix(in srgb, var(--chip-color) 32%, transparent); color:var(--ink); box-shadow:inset 0 0 0 2px var(--chip-color);}
 .filter-pill.focus-more-pill{background:none; border-style:dashed; color:var(--ink-faint);}
@@ -184,71 +212,80 @@ button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%,
 .focus-links{display:flex; flex-wrap:wrap; gap:4px 18px;}
 .energy-btn.selected{background:color-mix(in srgb, var(--chip-color) 16%, var(--surface-2)); box-shadow:inset 0 0 0 2px var(--chip-color);}
 .sort-head{display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-start; gap:4px 10px; margin-bottom:10px;}
-.sort-title{font-size:1.25rem; line-height:1.3; margin:4px 0 14px;}
+.sort-title{font-size:var(--text-h); font-style:normal; margin:4px 0 14px;}
 .sort-q{margin:0 0 8px;}
 .sort-kinds{margin-bottom:14px;}
 .sort-labels{margin-bottom:12px;}
-.sort-new{width:100%; padding:9px 12px; margin-bottom:14px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink);}
+.sort-new{width:100%; padding:9px 12px; margin-bottom:14px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
 .focus-surprise{display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; margin-top:18px; padding-top:16px; border-top:1px solid var(--line);}
 .focus-empty .focus-surprise .muted{margin:0;} /* beats .focus-empty .muted's paragraph spacing */
-.btn{border-radius:999px; padding:10px 18px; font-weight:600; border:1px solid var(--line); background:var(--surface-2);}
+.btn{border-radius:var(--r-pill); padding:10px 18px; font-weight:600; border:1px solid var(--line); background:var(--surface-2);}
 .btn.primary{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
 .btn.ghost:hover{background:var(--surface-2);}
-.btn-text{background:none; border:none; padding:3px 7px; font-size:.78rem; font-weight:600; color:var(--ink-faint); border-radius:6px;}
+.btn-text{background:none; border:none; padding:3px 7px; font-size:var(--text-sm); font-weight:600; color:var(--ink-faint); border-radius:6px;}
 .btn-text:hover{background:var(--surface-2); color:var(--ink-soft);}
 .btn-text.danger{color:var(--danger);}
-.remove-confirm{display:flex; align-items:center; gap:4px; font-size:.78rem; color:var(--ink-soft); flex-wrap:wrap;}
+.remove-confirm{display:flex; align-items:center; gap:4px; font-size:var(--text-sm); color:var(--ink-soft); flex-wrap:wrap;}
 
-.inbox-card{padding:14px 20px;}
+/* Flat sections (Q5): the Unsorted card and every project card lose the raised-card look and get a
+   thin top rule instead — a project's is its 3px colour edge (identity, Q4), which doubles as that
+   rule. */
+.inbox-card, .project-card{
+  background:none; box-shadow:none; border-radius:0; border-left:none; border-right:none;
+  border-bottom:none; padding:20px 0;
+}
+.inbox-card{border-top:1px solid var(--line); padding:14px 0;}
 .section-toggle{
   width:100%; text-align:left; background:none; border:none; padding:6px 0;
-  display:flex; align-items:center; gap:8px; font-weight:600;
+  display:flex; align-items:center; gap:8px;
+  font-family:'Fraunces', Georgia, serif; font-style:italic; font-weight:600; font-size:var(--text-h);
 }
-.section-toggle.small{width:auto; font-size:.82rem; color:var(--ink-soft); margin:6px 0;}
-.section-toggle .count{color:var(--ink-faint); font-weight:500;}
+.section-toggle.small{width:auto; font-family:inherit; font-style:normal; font-size:var(--text-sm); color:var(--ink-soft); margin:6px 0; font-weight:600;}
+.section-toggle .count{color:var(--ink-faint); font-weight:500; font-size:var(--text-sm);}
 .section-toggle .chev{margin-left:auto; color:var(--ink-faint);}
 .unsorted-body{margin-top:12px;}
 .unsorted-delete{margin-left:auto;} /* sits at the far right of the head row, away from the flow buttons */
 .unsorted-delete:hover{color:var(--danger);}
-.task-edit-github{flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; font-size:.8rem; color:var(--ink-faint);}
-.task-edit-form .task-edit-github button[type="button"]{background:none; color:var(--accent); padding:2px 0; font-size:.8rem;}
+.task-edit-github{flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; font-size:var(--text-sm); color:var(--ink-faint);}
+.task-edit-form .task-edit-github button[type="button"]{background:none; color:var(--accent); padding:2px 0; font-size:var(--text-sm);}
 .mini-x{border:none; background:var(--surface-2); color:var(--ink-soft); width:22px; height:22px; border-radius:50%; line-height:1;}
 
 .filter-pills{display:flex; flex-wrap:wrap; gap:6px;}
 .filter-pill{
   border:1px solid var(--line); background:var(--surface); border-radius:999px;
-  padding:6px 13px; font-size:.8rem; font-weight:600; color:var(--ink-soft);
+  padding:6px 13px; font-size:var(--text-sm); font-weight:600; color:var(--ink-soft);
 }
 .filter-pill.active{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
 .project-search{
-  flex:1 1 160px; min-width:0; padding:7px 12px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font-size:.85rem;
+  flex:1 1 160px; min-width:0; padding:7px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);
 }
 .project-sort-select{
-  padding:7px 10px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font-size:.82rem;
+  padding:7px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);
 }
 
-.cat-color-group-label{font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-family:'IBM Plex Sans',sans-serif; margin:16px 0 8px;}
+/* Category-colour group labels: a section heading, not an uppercase micro-label (Q18a). */
+.cat-color-group-label{font-size:var(--text-sm); font-family:'Fraunces', Georgia, serif; font-style:italic; font-weight:600; color:var(--ink-soft); margin:16px 0 8px;}
 .cat-color-group-label:first-child{margin-top:0;}
 .cat-color-list{display:flex; flex-direction:column; gap:8px;}
 .cat-color-row{display:flex; align-items:center; justify-content:space-between; gap:12px; border-top:1px solid var(--line); padding-top:8px;}
 .cat-color-row:first-child{border-top:none; padding-top:0;}
-.cat-color-input{width:40px; height:32px; padding:2px; border:1px solid var(--line); border-radius:6px; background:none; cursor:pointer;}
+.cat-color-input{width:40px; height:32px; padding:2px; border:1px solid var(--line); border-radius:var(--r-control); background:none; cursor:pointer;}
 .cat-color-row-actions{display:flex; align-items:center; gap:6px;}
 .chip.chip-btn{cursor:pointer;}
 .chip.chip-btn:hover{filter:brightness(1.08);}
 .chip.cat-chip.chip-placeholder{background:var(--surface-2); color:var(--ink-faint); border:1px dashed var(--line); font-weight:600;}
 .project-cat-edit{display:inline-flex; align-items:center; gap:4px;}
 .project-cat-edit select{
-  padding:4px 9px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font-size:.75rem;
+  padding:4px 9px; border:1px solid var(--line); border-radius:var(--r-pill); background:var(--surface); color:var(--ink); font-size:var(--text-sm);
 }
-.collapse-toggle{font-size:.85rem; line-height:1; padding:4px 8px;}
+.collapse-toggle{font-size:var(--text-sm); line-height:1; padding:4px 8px;}
 .project-card.is-collapsed{padding-bottom:16px;}
 .project-card.is-collapsed .progress-track{margin-bottom:0;}
 
 .projects-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px;}
 
 /* The one project list: a fixed drawer below 1100px (opened from the topbar's Projects button),
-   a sticky left column at and above it. See docs/4-systems/styling.md#project-sidebar */
+   a flat sticky left column at and above it. See docs/4-systems/styling.md#project-sidebar */
 .project-sidebar{
   position:fixed; top:0; left:0; z-index:30;
   width:min(320px, 85vw); height:100%; overflow-y:auto;
@@ -285,86 +322,90 @@ button.chip.proj-chip:hover{background:color-mix(in srgb, var(--chip-color) 28%,
     position:sticky; top:84px; left:auto; z-index:auto;
     width:auto; height:auto; max-height:calc(100vh - 100px); overflow-y:auto;
     transform:none; transition:none; visibility:visible;
-    border-right:none; border:1px solid var(--line); border-radius:var(--radius); padding:16px;
+    background:none; border-right:1px solid var(--line); border:none; border-radius:0; padding:0 20px 16px 0;
   }
 }
 .sidebar-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
-.sidebar-title{font-size:1.05rem;}
-.sidebar-search{flex:none; width:100%; padding:8px 12px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font-size:.85rem;}
+.sidebar-title{font-size:var(--text-h); font-style:italic;}
+.sidebar-search{flex:none; width:100%; padding:8px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
 .sidebar-pills{gap:5px;}
-.sidebar-pills .filter-pill{padding:4px 10px; font-size:.75rem;}
+.sidebar-pills .filter-pill{padding:4px 10px; font-size:var(--text-sm);}
 .sidebar-tools{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px;}
 .sidebar-tools .project-sort-select{flex:1 1 auto; min-width:0;}
 .sidebar-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; border-top:1px solid var(--line); padding-top:8px;}
 .sidebar-project{
-  width:100%; display:flex; align-items:center; gap:9px; padding:7px 8px; border:none; border-radius:8px;
-  background:none; color:var(--ink); text-align:left; font-size:.86rem; font-weight:600;
+  width:100%; display:flex; align-items:center; gap:9px; padding:7px 8px; border:none; border-radius:var(--r-control);
+  background:none; color:var(--ink); text-align:left; font-weight:600;
 }
 .sidebar-project:hover{background:var(--surface-2);}
 .sidebar-project .dot{width:9px; height:9px; border-radius:50%; background:var(--dot); flex:none;}
 .sidebar-name{flex:1; min-width:0; overflow-wrap:break-word;}
-.sidebar-count{color:var(--ink-faint); font-size:.78rem; font-variant-numeric:tabular-nums;}
+.sidebar-count{color:var(--ink-faint); font-size:var(--text-sm); font-variant-numeric:tabular-nums;}
+/* A project's own colour is identity only (Q4b): its dot, and this 3px top edge — the flat card's
+   separating rule, in its colour. */
 .project-card{border-top:3px solid var(--proj-color);}
 .project-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
 .project-title{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
 .project-title .dot{width:10px; height:10px; border-radius:50%; background:var(--proj-color); display:inline-block; flex:none;}
-.project-title h3{font-size:1.1rem;}
+.project-title h3{font-size:var(--text-h);}
 .project-head-right{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
-.progress-track{height:5px; border-radius:999px; background:var(--surface-2); overflow:hidden; margin-bottom:14px;}
-.progress-fill{height:100%; background:var(--proj-color);}
+.progress-track{height:5px; border-radius:var(--r-pill); background:var(--surface-2); overflow:hidden; margin-bottom:14px;}
+/* Progress fill is neutral, not the project's colour — the project's colour is identity only (its
+   dot and card edge), not a status indicator (Q4b). */
+.progress-fill{height:100%; background:var(--ink-soft);}
 .task-group{margin-bottom:10px;}
-.group-label{font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:6px;}
+.group-label{margin-bottom:6px;}
 .task-row{
   display:flex; align-items:center; gap:8px; flex-wrap:wrap;
   padding:7px 0; border-top:1px solid var(--line);
 }
 .task-group .task-row:first-of-type{border-top:none;}
 .task-row input[type="checkbox"]{width:17px; height:17px; accent-color:var(--accent); flex:none;}
-.task-title{flex:1 1 140px; font-size:.92rem;}
+.task-title{flex:1 1 140px;}
 .task-row.is-done .task-title{color:var(--ink-faint); text-decoration:line-through;}
 .task-title[role="button"]{cursor:pointer;}
 .task-title[role="button"]:hover{text-decoration:underline; text-decoration-style:dotted;}
 a.task-title{color:inherit; text-decoration:none;}
 a.task-title:hover{text-decoration:underline;}
 .task-edit-form{display:flex; flex-wrap:wrap; gap:6px; padding:7px 0; border-top:1px solid var(--line); width:100%;}
-.task-edit-form input[type="text"]{flex:1 1 160px; min-width:0; padding:6px 9px; border:1px solid var(--accent); border-radius:6px; background:var(--surface); color:var(--ink);}
-.task-edit-form select,.task-edit-form input[type="date"]{padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); font-size:.82rem;}
-.task-edit-form button{padding:6px 12px; border:none; border-radius:6px; font-weight:600; font-size:.82rem;}
+.task-edit-form input[type="text"]{flex:1 1 160px; min-width:0; padding:6px 9px; border:1px solid var(--accent); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
+.task-edit-form select,.task-edit-form input[type="date"]{padding:6px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
+.task-edit-form button{padding:6px 12px; border:none; border-radius:var(--r-control); font-weight:600;}
 .task-edit-form button[type="submit"]{background:var(--accent); color:var(--accent-ink);}
 .task-edit-form button[type="button"]{background:var(--surface-2); color:var(--ink-soft);}
 .task-edit-form textarea,.add-task-form textarea{
-  flex:1 1 160px; min-width:0; padding:6px 9px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); font:inherit; font-size:.82rem; resize:vertical;
+  flex:1 1 160px; min-width:0; padding:6px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit; resize:vertical;
 }
 .done-group{margin-top:4px;}
-.label-picker{flex:1 1 100%; font-size:.82rem;}
+.label-picker{flex:1 1 100%; font-size:var(--text-sm);}
 .label-picker summary{cursor:pointer; color:var(--ink-soft); font-weight:600; padding:4px 0;}
 .label-options{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0;}
 .label-option{
-  display:inline-flex; align-items:center; gap:5px; padding:3px 9px 3px 6px; border-radius:999px; cursor:pointer;
+  display:inline-flex; align-items:center; gap:5px; padding:3px 9px 3px 6px; border-radius:var(--r-pill); cursor:pointer;
   background:color-mix(in srgb, var(--chip-color) 12%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink)); font-weight:600;
 }
 .label-option input{accent-color:var(--chip-color); margin:0;}
-.label-picker input[type="text"]{width:100%; padding:6px 9px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); font-size:.82rem;}
+.label-picker input[type="text"]{width:100%; padding:6px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);}
 .add-task-form{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; border-top:1px dashed var(--line); padding-top:12px;}
 .add-task-form input[type="text"]{
-  flex:1 1 140px; min-width:0; padding:7px 10px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink);
+  flex:1 1 140px; min-width:0; padding:7px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);
 }
 .add-task-form select,.add-task-form input[type="date"]{
-  padding:7px 8px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); font-size:.85rem;
+  padding:7px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);
 }
 .add-task-form button{
-  padding:7px 13px; border:none; border-radius:8px; background:var(--proj-color); color:#fff; font-weight:700;
+  padding:7px 13px; border:none; border-radius:var(--r-control); background:var(--accent); color:var(--accent-ink); font-weight:700;
 }
 .add-project-form{display:flex; gap:8px;}
 .add-project-form input[type="text"]{
-  flex:1; min-width:0; padding:11px 14px; border:1.5px dashed var(--line); border-radius:var(--radius); background:transparent; color:var(--ink);
+  flex:1; min-width:0; padding:11px 14px; border:1.5px dashed var(--line); border-radius:var(--r-control); background:transparent; color:var(--ink);
 }
 .add-project-form select{
   /* doc-ref 63c4 docs/4-systems/pwa-shell.md */
-  padding:11px 10px; border:1.5px dashed var(--line); border-radius:var(--radius); background:var(--surface); color:var(--ink); font-size:.9rem;
+  padding:11px 10px; border:1.5px dashed var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);
 }
 .add-project-form button{
-  padding:11px 18px; border:none; border-radius:var(--radius); background:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;
+  padding:11px 18px; border:none; border-radius:var(--r-control); background:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;
 }
 
 .toast{
@@ -375,16 +416,16 @@ a.task-title:hover{text-decoration:underline;}
   display:flex; align-items:flex-start; gap:10px;
   padding:12px 8px 12px 14px;
   background:var(--surface); color:var(--ink);
-  border:1px solid var(--accent); border-left-width:4px; border-radius:var(--radius);
+  border:1px solid var(--accent); border-left-width:4px; border-radius:var(--r-control);
   box-shadow:var(--shadow);
 }
 .toast-error{border-color:var(--danger);}
 /* room to scroll the last controls clear of the toast while it is showing */
 .wrap:has(.toast){padding-bottom:calc(160px + env(safe-area-inset-bottom, 0px));}
-.toast-text{flex:1; margin:0; font-size:.86rem; line-height:1.4; overflow-wrap:anywhere;}
+.toast-text{flex:1; margin:0; font-size:var(--text-sm); line-height:1.4; overflow-wrap:anywhere;}
 .toast-close{
   flex:none; min-width:32px; min-height:32px; padding:0;
-  border:none; border-radius:8px; background:none; color:var(--ink-soft); font-size:1.25rem; line-height:1; cursor:pointer;
+  border:none; border-radius:var(--r-control); background:none; color:var(--ink-soft); font-size:1.25rem; line-height:1; cursor:pointer;
 }
 
 /* PWA install polish — hides browser chrome-shaped gaps when running standalone */
