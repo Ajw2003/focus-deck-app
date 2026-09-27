@@ -405,12 +405,14 @@ function collapseAllButton(ui, visibleProjects) {
 // jumps to its card. CSS shows it as a sticky left column at >=1100px; below that it's the drawer
 // opened from the topbar's Projects button (see app.js's toggle-projects-drawer/scroll-project).
 // See docs/4-systems/styling.md#project-sidebar
-export function renderProjectSidebar(st, ui, visibleProjects) {
+export function renderProjectSidebar(st, ui, visibleProjects, isWide) {
   if (!st.projects.length) return '';
   const isOpen = !!ui.projectsDrawerOpen;
   const open = (p) => p.tasks.filter((t) => t.status !== 'done').length;
   const rows = visibleProjects.map((p) => {
-    const isSelected = ui.selectedProjectId === p.id;
+    // Selection only means anything below 1100px (Q28): a wide-screen row just scrolls to the
+    // project's tile among the 2x2 grid, with no "current" project and no aria-current there (Q26a).
+    const isSelected = !isWide && ui.selectedProjectId === p.id;
     return '<li><button type="button" class="sidebar-project' + (isSelected ? ' is-selected' : '') + '" data-action="scroll-project" data-project="' + p.id + '" style="--dot:' + p.color + '"' + (isSelected ? ' aria-current="true"' : '') + '>'
       + '<span class="dot"></span><span class="sidebar-name">' + esc(p.name) + '</span><span class="sidebar-count" title="Open tasks">' + open(p) + '</span></button></li>';
   }).join('');
@@ -451,12 +453,14 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
   const total = p.tasks.length;
   const pct = total ? Math.round((done.length / total) * 100) : 0;
   const doneOpen = !!ui.doneOpen[p.id];
-  const collapsedFlag = !!ui.projectCollapsed[p.id];
-  // The selected card on wide screens always shows expanded, whatever its own collapsed flag says
-  // (that flag is never touched here -- see docs/4-systems/styling.md). CSS ignores `collapsed`
-  // for `.is-selected` at >=1100px; below that breakpoint `isSelected` has no visual effect at all.
+  // The per-project collapse toggle and "Collapse all" are hidden at both widths now (Q26a, Q28):
+  // a wide tile has a fixed height, and a phone shows only one project at a time, so collapsing it
+  // does nothing useful. A flag saved before this PR is ignored for rendering here and never
+  // written -- see docs/4-systems/styling.md.
+  const collapsed = false;
+  // Below 1100px only the selected card shows at all (CSS hides the rest); at and above it every
+  // visible project is its own tile and this class has no visual effect (Q26a, Q28).
   const isSelected = ui.selectedProjectId === p.id;
-  const collapsed = collapsedFlag && !isSelected;
   const ghBadge = p.source === 'github' ? '<a class="chip gh-chip small" href="' + esc(p.htmlUrl || '#') + '" target="_blank" rel="noopener">' + (p.private ? 'Private · ' : '') + 'GitHub ↗</a>' : '';
   const projCat = projectCategories.find((c) => c.id === p.categoryId);
   const projCatChip = projCat ? '<span class="chip cat-chip small" data-cat-id="' + projCat.id + '" data-cat-type="project" title="Right-click to change color" style="--chip-color:' + projCat.color + '">' + esc(projCat.name) + '</span>' : '';
@@ -486,8 +490,13 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
     + '<div class="project-badges">' + ghBadge + projCatChip + '</div>'
     + (editingPanel ? renderProjectEditPanel(p, ui, projectCategories) : '')
     + '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>'
+    // The task groups, done group and "+ Add task" scroll inside a fixed-height tile at >=1100px
+    // (Q26a, #82) instead of the whole tile growing; below that width this is just a plain block in
+    // the page's own scroll. tabindex/role/aria-label keep the scroll region reachable by keyboard
+    // and named for a screen reader. See docs/4-systems/styling.md.
     + (collapsed ? '' : (
-      (doing.length ? '<div class="task-group"><h4 class="group-label">In progress</h4>' + doing.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
+      '<div class="project-body" tabindex="0" role="region" aria-label="' + esc(p.name) + ' tasks">'
+      + (doing.length ? '<div class="task-group"><h4 class="group-label">In progress</h4>' + doing.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
       + (next.length ? '<div class="task-group"><h4 class="group-label">Up next</h4>' + next.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
       + (!doing.length && !next.length ? '<p class="muted small">Nothing open — add a task below.</p>' : '')
       + (done.length ? (
@@ -495,6 +504,7 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
           + (doneOpen ? '<div class="task-group done-group">' + done.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
         ) : '')
       + addTaskBlock
+      + '</div>'
     ))
     + '</section>';
 }
