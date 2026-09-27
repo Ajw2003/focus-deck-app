@@ -50,13 +50,18 @@ on 2026-09-26; each decision below keeps its question number from that session.
 - **Projects: add and remove (Q15a, Q12d).** Remove moves into a project's header menu (an Edit
   link). Add project sits at the bottom of the project list, as one field that takes a project
   name or an `owner/repo` / GitHub URL.
-- **Wide screens: one project at a time (Q22b, 2026-09-27, #82).** From 1100px, the sidebar is the
-  overview; clicking a project opens it full width under the focus card and Unsorted, with no
-  other project cards beside it. This replaces the grid of project cards, whose rows grew as tall
-  as their tallest card and left gaps under short ones (#82), and whose narrow columns squeezed
-  task titles. Below 1100px nothing changes: every project stacks in one column.
-- **Which project opens first (Q23a).** The one last opened on this device; the first time, the
-  project with the most open tasks.
+- **Wide screens: 2x2 tiles (Q26a, 2026-09-27, #82).** From 1100px, projects sit in two columns of
+  equal tiles, each half the screen tall, so four show at once; a tile with more tasks than fit
+  scrolls inside itself, and further projects continue below in rows of two. Equal heights mean
+  no gaps under short projects (#82). Clicking a project in the sidebar scrolls to its tile.
+  (Until 2026-09-27 this said one project at a time on wide screens (Q22b, built in PR 4). The
+  user reversed it the same day to see several projects at once and to drag them into order; see
+  the Decisions entry "Wide screens get 2x2 tiles; one project at a time moves to phones".)
+- **Phones: one project at a time (Q28, 2026-09-27).** Below 1100px the main column shows the
+  focus card, Unsorted, then one project; the drawer's project list picks which. It opens on the
+  one last opened on this device, or the first time the project with the most open tasks (Q23a).
+- **Dragging projects into order (Q27a, #73).** Its own PR straight after the 2x2 tiles: a saved,
+  synced project order and a "Custom" sort option.
 - **Project headers never shift the card (#83).** A header whose name and badges don't fit wrapped
   its controls onto a second line, pushing the progress bar lower than its neighbours'. The
   header keeps its controls on the first line whatever the name's length.
@@ -89,3 +94,5 @@ Four, in order, each checked on a phone before the next starts:
 4. The control moves: task rows open the editor, collapsed "+ Add task", Remove and Add project
    moved, plus one project at a time on wide screens and steady project headers (#82, #83;
    Q25a, 2026-09-27).
+5. Wide screens get 2x2 tiles; one project at a time moves to phones (Q26a, Q28, 2026-09-27).
+6. Drag projects into order (Q27a, the project half of #73).

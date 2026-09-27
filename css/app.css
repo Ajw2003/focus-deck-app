@@ -281,7 +281,10 @@ button.chip.proj-chip:hover{background:var(--line);}
 .project-cat-edit select{
   padding:4px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);
 }
-.collapse-toggle{font-size:var(--text-sm); line-height:1; padding:4px 8px;}
+/* The per-project collapse toggle and "Collapse all" are hidden at both widths now (Q26a, Q28): a
+   wide tile has a fixed height, and a phone shows only one project at a time, so collapsing it does
+   nothing useful (see docs/6-decisions/Decisions.md, 2026-09-27). */
+.collapse-toggle, [data-action="toggle-collapse-all"]{display:none;}
 .project-card.is-collapsed{padding-bottom:16px;}
 .project-card.is-collapsed .progress-track{margin-bottom:0;}
 
@@ -313,18 +316,41 @@ button.chip.proj-chip:hover{background:var(--line);}
   .drawer-backdrop{transition:none;}
 }
 .main-col{min-width:0;}
-@media (min-width:1100px){
-  /* use the monitor (#64): the page widens, project cards flow into as many ~420px+ columns as fit,
-     and the focus card's label cards spread across the width */
-  .wrap{max-width:1800px;}
-  #app{display:grid; grid-template-columns:270px minmax(0,1fr); gap:28px; align-items:start;}
-  /* One project at a time (Q22b, Q23a, #82): every card is still rendered (phones need them all),
-     but only the selected one shows here -- a single column, not the old auto-fill grid. */
-  .projects-grid{grid-template-columns:1fr; align-items:start;}
+/* <1100px only: one project at a time (Q28) -- every card is still rendered into the same
+   projects-grid the >=1100px tiles use, but only the selected one shows here; the rest are hidden
+   outright rather than left tall and empty. See docs/6-decisions/Decisions.md, 2026-09-27. */
+@media (max-width:1099px){
   .project-card{display:none;}
   .project-card.is-selected{display:block;}
-  /* "Collapse all" is meaningless when only one project shows at a time */
-  [data-action="toggle-collapse-all"]{display:none;}
+}
+@media (min-width:1100px){
+  /* use the monitor (#64): the page widens, and the focus card's label cards spread across it */
+  .wrap{max-width:1800px;}
+  #app{display:grid; grid-template-columns:270px minmax(0,1fr); gap:28px; align-items:start;}
+  /* 2x2 tiles (Q26a, #82): every visible project is its own tile, two columns, every tile the same
+     height -- half the space below the sticky topbar (--topbar-h, set from js/app.js's
+     updateTopbarHeightVar, since the topbar's real height varies with width and content), with a
+     floor so a narrow-ish wide screen still gets a usable tile. grid-auto-rows applies that same
+     height to every row, not just the first, so further projects continuing below stay level too. */
+  .projects-grid{
+    grid-template-columns:1fr 1fr;
+    grid-auto-rows:max(320px, calc((100dvh - var(--topbar-h, 64px) - 16px) / 2));
+    align-items:stretch;
+  }
+  .project-card{
+    display:flex; flex-direction:column; overflow:hidden;
+    /* the fixed tile height means a card can't grow with its own content -- min-height:0 lets the
+       flex child (.project-body) shrink below its content size so it, not the tile, scrolls */
+    min-height:0;
+    /* .card's own margin-bottom would otherwise stack on top of the grid gap between rows (#82) */
+    margin-bottom:0;
+  }
+  /* the scrollable part of a tile: header, badges, edit panel and progress bar stay put above it */
+  /* a rule marks where the tile ends, so rows cut off by a long list read as scrollable, not broken */
+  .project-body{flex:1 1 auto; min-height:0; overflow-y:auto; border-bottom:1px solid var(--line);}
+  /* only the task list gives way in a full tile: without this a 55-task list squashed the badges
+     line and the progress bar, moving that tile's bar 4px off its neighbours' (#83) */
+  .project-card > :not(.project-body){flex-shrink:0;}
   .energy-grid.focus-grid{grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));}
   .drawer-backdrop{display:none;}
   .project-sidebar{
@@ -333,6 +359,11 @@ button.chip.proj-chip:hover{background:var(--line);}
     transform:none; transition:none; visibility:visible;
     background:none; border-right:1px solid var(--line); border:none; border-radius:0; padding:0 20px 16px 0;
   }
+}
+/* Below 1100px, a drawer row highlights the one selected project (Q28); at and above it there is no
+   "current" project to highlight (Q26a) -- js/render.js already leaves off .is-selected/aria-current
+   there, this just keeps the highlight itself scoped to match. */
+@media (max-width:1099px){
   .sidebar-project.is-selected{background:var(--surface-2); font-weight:700;}
 }
 .sidebar-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
@@ -358,8 +389,9 @@ button.chip.proj-chip:hover{background:var(--line);}
    grow, the collapse toggle + Edit link stay put on the right. Line 2 (badges) always renders, even
    empty, so every card's progress bar sits the same distance from its top. */
 .project-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:nowrap;}
-.project-title{display:flex; align-items:center; gap:8px; min-width:0; flex:1 1 auto;}
-.project-title .dot{width:10px; height:10px; border-radius:50%; background:var(--proj-color); display:inline-block; flex:none;}
+.project-title{display:flex; align-items:flex-start; gap:8px; min-width:0; flex:1 1 auto;}
+/* beside the name's first line, not halfway down a name that wraps */
+.project-title .dot{width:10px; height:10px; margin-top:.45em; border-radius:50%; background:var(--proj-color); display:inline-block; flex:none;}
 .project-title h3{font-size:var(--text-h); overflow-wrap:break-word; min-width:0;}
 .project-head-right{display:flex; align-items:center; gap:8px; flex:none; white-space:nowrap;}
 .project-badges{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:1.4em; margin:6px 0 10px;}

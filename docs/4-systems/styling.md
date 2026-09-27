@@ -149,15 +149,58 @@ and filter bar (`.project-filter-bar`) above the project cards were both deleted
 (#9a). The same markup renders two ways, switched purely by CSS at the 1100px breakpoint (#50,
 #64):
 
-- **>=1100px: sidebar, one project card at a time (Q22b, Q23a, #82, PR 4 2026-09-27).** A sticky
-  left column, 270px wide, that scrolls on its own when it's taller than the window. `.wrap` widens
-  to 1800px (the 760px base rule is the one the style contract checks). The main column no longer
-  shows a grid of every project's card — it shows the focus card, Unsorted, then **only the
-  selected project's card**, full width. Every card is still rendered (phones need them all); CSS
-  just hides every `.project-card` except `.is-selected` at this width, and `.projects-grid` is a
-  single column instead of the old `auto-fill` grid. `[data-action="toggle-collapse-all"]`
-  ("Collapse all") is hidden here too — meaningless when only one project shows. The focus picker's
-  label cards still fill the row (`auto-fill`, 190px minimum) — that didn't change.
+- **>=1100px: 2x2 tiles (Q26a, #82, PR 5 2026-09-27).** A sticky left column, 270px wide, that
+  scrolls on its own when it's taller than the window. `.wrap` widens to 1800px (the 760px base
+  rule is the one the style contract checks). The main column shows the focus card, Unsorted, then
+  **every visible project as its own tile**, two columns (`.projects-grid`), every tile exactly the
+  same height regardless of how many tasks it holds. `.projects-grid`'s `grid-auto-rows` is
+  `max(320px, calc((100dvh - var(--topbar-h, 64px) - 16px) / 2))` — half the space below the
+  sticky topbar, with a 320px floor for a narrow-ish wide screen — applied to every row, not just
+  the first, so a project continuing below the fold stays level with its row-mate too. `--topbar-h`
+  is a real measured height, not a guess: `updateTopbarHeightVar()` (js/app.js), called on load and
+  window resize, sets it from `.topbar`'s `offsetHeight`, the same measurement `scrollToProject`'s
+  own scroll offset already relied on, since the topbar's height varies with width and content.
+  (`.project-card`'s own `margin-bottom` is zeroed at this width — `.card`'s base rule sets one, and
+  left alone it stacks on top of the grid's own row gap, doubling the visual gap between rows.)
+
+  Inside a tile, the header, badges line, Edit panel and progress bar stay put at the top; the task
+  groups, the "+N done" toggle, the done group, "Nothing open…" and "+ Add task" all sit in
+  `.project-body` (`js/render.js`), a `flex:1; min-height:0; overflow-y:auto` region at this width
+  — a `.project-card` can't grow to fit its own content any more, so this is what scrolls instead,
+  independently of the page and of every other tile. Everything else in the tile has
+  `flex-shrink:0`: without it a long list (55 tasks) squashed the badges line and the progress bar,
+  putting that tile's bar 4px off its neighbours' (#83 again). A 1px rule at the bottom of
+  `.project-body` marks where the tile ends, so a row cut off by the tile's edge reads as
+  scrollable rather than broken. It's `tabindex="0" role="region" aria-label="
+  <project name> tasks"`, so it's keyboard-reachable and named for a screen reader even though it
+  has no visible heading of its own. Opening a row's editor or a project's "+ Add task" line calls
+  `scrollOpenedFormIntoView` (js/app.js) after the repaint, which does
+  `.scrollIntoView({block:'nearest'})` on the new form — inside the tile's own scroll, not the
+  page's, since `block:'nearest'` only moves the nearest scrolling ancestor that needs to.
+
+  The per-project collapse toggle and `[data-action="toggle-collapse-all"]` ("Collapse all") are
+  hidden — `display:none`, unconditionally, not scoped to this width — since a fixed-height tile
+  gains nothing from collapsing one project's tasks; `renderProjectCard` also stops applying a
+  saved collapsed flag to the markup at all any more (not just for one selected card, as PR 4 had
+  it), so a flag saved before this PR can't hide a tile's content with no way back. The focus
+  picker's label cards still fill the row (`auto-fill`, 190px minimum) — that didn't change.
+
+  A sidebar row (`scroll-project`), the focus card's project chip, and any other `scroll-project`
+  source all branch on `matchMedia('(min-width:1100px)')` (`scrollToProject`/`isWideScreen` in
+  js/app.js, sharing one `WIDE_BREAKPOINT_PX` constant with the query's number): at this width they
+  just scroll the main column so the clicked project's tile top sits below the sticky topbar — the
+  tile is already rendered, there's nothing to select. `ui.selectedProjectId` still gets resolved
+  every paint (it's needed below 1100px), but at this width `renderProjectSidebar`'s `isWide`
+  argument makes it a no-op for the row markup: no `.is-selected`, no `aria-current` — there's no
+  "current" project once every one shows as a tile.
+
+- **<1100px: one project at a time (Q28, Q23a, #82, PR 4 2026-09-27, moved here PR 5).** The main
+  column no longer shows every project's tile — it shows the focus card, Unsorted, then **only the
+  selected project's card**, full width. Every card is still rendered into the same
+  `.projects-grid` the tiles above use; CSS just hides every `.project-card` except `.is-selected`
+  at this width, and `.projects-grid` is a single column. `[data-action="toggle-collapse-all"]` is
+  hidden here too (both by the unconditional rule above and because collapsing the one card shown
+  does nothing useful).
 
   Selection lives in `ui.selectedProjectId`, resolved every paint by `resolveSelectedProject`
   (js/project-filter.js, pure and tested): the id persisted per device
@@ -167,16 +210,15 @@ and filter bar (`.project-filter-bar`) above the project cards were both deleted
   there are no projects. It's resolved against *every* project, not the search/category-filtered
   list, so the open project stays open even if a filter would hide its sidebar row.
 
-  A sidebar row (`scroll-project`), the focus card's project chip, and any other `scroll-project`
-  source all branch on `matchMedia('(min-width:1100px)')` (`scrollToProject`/`isWideScreen` in
-  js/app.js): at >=1100px they select that project (and scroll the main column so its card's top
-  sits below the sticky topbar) instead of scrolling to it in a shared grid. The selected row gets
-  `.is-selected` and `aria-current="true"`. The selected card always shows expanded up here —
-  render.js leaves its own `is-collapsed` flag untouched and simply doesn't apply it to the
-  selected card at this width — so a card someone minimised on their phone doesn't reopen collapsed
-  the first time they look at it on a desktop.
+  Below 1100px, `scrollToProject`/`afterProjectAdded` select the clicked/added project
+  (`ui.selectedProjectId`, saved to `focusdeck-selected-project`) and then scroll the main column so
+  its card's top sits below the sticky topbar — the same thing PR 4 did at >=1100px, just at the
+  other width now. The selected row gets `.is-selected` and `aria-current="true"` (`renderProjectSidebar`'s
+  `isWide` argument is what keeps this from also happening at >=1100px). The selected card always
+  shows expanded here, for the same reason as the tiles above: `renderProjectCard` ignores every
+  project's collapsed flag now, not just the selected one's.
 
-- **<1100px: drawer, every project stacks.** Nothing changed here: hidden off-canvas
+- **The drawer itself: nothing changed here.** Below 1100px it's still hidden off-canvas
   (`transform:translateX(-100%)`, then `visibility:hidden` once it has slid away, so keyboard and
   screen-reader users can't land in it) until opened from the **Projects** button in the topbar
   (`#projects-btn`, hidden itself at >=1100px). Opening it (`toggle-projects-drawer` in js/app.js)

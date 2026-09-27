@@ -43,11 +43,12 @@ function saveSelectedProjectId(id) {
   catch (e) { console.error('Could not save the selected project:', e); }
 }
 
-// >=1100px shows one project card at a time (the plan's "wide screens" breakpoint, matched to the
-// CSS media query at the same width) -- everywhere a project-jump used to just scroll now selects
-// there instead.
+// The app's one layout breakpoint (Q26a, Q28): >=1100px shows every visible project as its own
+// 2x2 tile; below it, one project at a time. This constant mirrors the `@media (min-width:1100px)`
+// queries in css/app.css -- the two are coupled only by both spelling 1100 the same way.
+const WIDE_BREAKPOINT_PX = 1100;
 function isWideScreen() {
-  return typeof matchMedia === 'function' && matchMedia('(min-width:1100px)').matches;
+  return typeof matchMedia === 'function' && matchMedia('(min-width:' + WIDE_BREAKPOINT_PX + 'px)').matches;
 }
 
 // Per-item scratch for the Unsorted flow (chosen project, ticked labels, typed new labels, "show
@@ -71,7 +72,7 @@ export function renderApp(st) {
   // Resolved against every project, not just the filtered/searched list (Q22b/Q23a) -- the open
   // project stays open on wide screens even if a search or category filter hides it from the list.
   ui.selectedProjectId = resolveSelectedProject(st.projects, ui.selectedProjectId);
-  return R.renderProjectSidebar(st, ui, visibleProjects)
+  return R.renderProjectSidebar(st, ui, visibleProjects, isWideScreen())
     + '<div class="main-col">'
       + R.renderFocus(st, findTaskWithProject, ui) + R.renderInbox(st, ui)
       + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
@@ -204,7 +205,7 @@ function onAppClick(e) {
   else if (action === 'confirm-remove-project') { delete ui.editingProject[projectId]; M.removeProject(projectId); }
   else if (action === 'open-project-edit') { ui.editingProject[projectId] = true; paint(); }
   else if (action === 'close-project-edit') { delete ui.editingProject[projectId]; delete ui.pendingRemove[projectId]; paint(); }
-  else if (action === 'open-add-task') { ui.addingTask[projectId] = true; paint(); }
+  else if (action === 'open-add-task') { ui.addingTask[projectId] = true; paint(); scrollOpenedFormIntoView('.add-task-form'); }
   else if (action === 'cancel-add-task') { delete ui.addingTask[projectId]; paint(); }
   else if (action === 'dismiss-toast') {
     if (ui.syncError === storageProblem) ui.storageProblemDismissed = true;
@@ -218,7 +219,7 @@ function onAppClick(e) {
   else if (action === 'sync-github') manualSyncGithub();
   else if (action === 'toggle-projects-drawer') { setProjectsDrawerOpen(!ui.projectsDrawerOpen); }
   else if (action === 'close-projects-drawer') { setProjectsDrawerOpen(false); }
-  else if (action === 'edit-task') { ui.editingTask = { taskId, projectId }; paint(); }
+  else if (action === 'edit-task') { ui.editingTask = { taskId, projectId }; paint(); scrollOpenedFormIntoView('.task-edit-form'); }
   else if (action === 'cancel-task-edit') { ui.editingTask = null; paint(); }
   else if (action === 'set-project-filter') {
     const cat = el.getAttribute('data-category');
@@ -366,16 +367,15 @@ function createIssueIfGithubProject(task, projectId) {
   }
 }
 
-// After adding a project from the one add field (Q15a, Q12d): select it on wide screens, or close
-// the drawer and scroll to it on phones -- the same split as scrollToProject.
+// After adding a project from the one add field (Q15a, Q12d): select it below 1100px (Q28), or on
+// wide screens just scroll to its new tile once it's rendered (Q26a, no selection there) -- the
+// same split as scrollToProject.
 function afterProjectAdded(projectId) {
-  if (isWideScreen()) {
+  if (!isWideScreen()) {
     ui.selectedProjectId = projectId;
     saveSelectedProjectId(projectId);
-    paint();
-  } else {
-    scrollToProject(projectId);
   }
+  scrollProjectAfterPaint(projectId);
 }
 
 function onAppSubmit(e) {
@@ -429,6 +429,7 @@ function onAppKeydown(e) {
     e.preventDefault(); // stop Space from scrolling the page
     ui.editingTask = { taskId: e.target.getAttribute('data-task'), projectId: e.target.getAttribute('data-project') };
     paint();
+    scrollOpenedFormIntoView('.task-edit-form');
   }
   // Escape collapses a project's open "+ Add task" form while focus is inside it (Q3b).
   if (e.key === 'Escape') {
@@ -454,33 +455,46 @@ function setProjectsDrawerOpen(open) {
   }
 }
 
-// Jumps to a project's card below 1100px (opened first if minimised, project filter/search cleared
-// if they hide it); at >=1100px it selects that project instead (Q22b) -- the sidebar row, the
-// focus card's project chip, and any other scroll-project source all branch the same way.
-function scrollToProject(projectId) {
-  if (!state.projects.some((p) => p.id === projectId)) return;
-  if (isWideScreen()) {
-    ui.selectedProjectId = projectId;
-    saveSelectedProjectId(projectId);
-    paint();
-    const target = document.getElementById('proj-' + projectId);
-    if (!target) return;
-    const header = document.querySelector('.topbar');
-    const top = target.getBoundingClientRect().top + window.scrollY - (header ? header.offsetHeight : 0) - 12;
-    window.scrollTo({ top: Math.max(0, top), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-    return;
-  }
-  if (ui.projectsDrawerOpen) { setProjectsDrawerOpen(false); }
-  let changed = false;
-  if (ui.projectCollapsed[projectId]) { ui.projectCollapsed[projectId] = false; saveCollapsedProjects(); changed = true; }
-  if (!document.getElementById('proj-' + projectId)) { ui.projectFilter = undefined; ui.projectQuery = ''; changed = true; }
-  if (changed) paint();
-  const target = document.getElementById('proj-' + projectId);
-  if (!target) return;
-  // stop just below the sticky header (its height varies with width), not underneath it
+// Scrolls so a project's card top sits just below the sticky topbar (its height varies with
+// width), not underneath it.
+function scrollProjectIntoView(target) {
   const header = document.querySelector('.topbar');
   const top = target.getBoundingClientRect().top + window.scrollY - (header ? header.offsetHeight : 0) - 12;
   window.scrollTo({ top: Math.max(0, top), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+
+// Repaints, then scrolls to a project's card once it's in the DOM -- used after a selection change
+// or a newly added project, where the target might not exist yet.
+function scrollProjectAfterPaint(projectId) {
+  paint();
+  const target = document.getElementById('proj-' + projectId);
+  if (target) scrollProjectIntoView(target);
+}
+
+// Opening a row's editor or a project's "+ Add task" form should bring it into view within its own
+// tile at >=1100px, not just onto the page (Q26a, #82) -- `block:'nearest'` does that and is a no-op
+// below 1100px, where the tile isn't its own scroll container. Runs after the paint that put the
+// form in the DOM.
+function scrollOpenedFormIntoView(selector) {
+  const el = document.querySelector(selector);
+  if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+}
+
+// Jumps to a project's card: at >=1100px every visible project already renders as its own tile
+// (Q26a, #82), so this just scrolls -- no selection state, no aria-current there. Below 1100px, one
+// project shows at a time (Q28): this selects it (closing the drawer first) and scrolls to it. The
+// sidebar row, the focus card's project chip, and any other scroll-project source all branch here.
+function scrollToProject(projectId) {
+  if (!state.projects.some((p) => p.id === projectId)) return;
+  if (isWideScreen()) {
+    const target = document.getElementById('proj-' + projectId);
+    if (target) scrollProjectIntoView(target);
+    return;
+  }
+  if (ui.projectsDrawerOpen) setProjectsDrawerOpen(false);
+  ui.selectedProjectId = projectId;
+  saveSelectedProjectId(projectId);
+  scrollProjectAfterPaint(projectId);
 }
 
 // GitHub syncs by itself when the app opens and whenever it comes back to the foreground, once the
@@ -508,9 +522,20 @@ function manualSyncGithub() {
   });
 }
 
+// The 2x2 tiles' shared height (Q26a, #82) is half the space below the sticky topbar, computed
+// from its real measured height (like scrollProjectIntoView's offset) rather than a guessed
+// constant, since the topbar's height varies with width and content. css/app.css reads it back as
+// --topbar-h in the >=1100px tile-height calc(); a sensible minimum lives in the CSS itself.
+function updateTopbarHeightVar() {
+  const header = document.querySelector('.topbar');
+  if (header) document.documentElement.style.setProperty('--topbar-h', header.offsetHeight + 'px');
+}
+
 function init() {
   requestPersistentStorage();
   paint();
+  updateTopbarHeightVar();
+  window.addEventListener('resize', updateTopbarHeightVar);
   initSyncLifecycle(autoSyncGithub);
   const app = document.getElementById('app');
   app.addEventListener('click', onAppClick);

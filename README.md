@@ -51,10 +51,11 @@ carry a color-coded category (set up and customized in Settings), so a glance at
 you what kind of work something is without reading it.
 
 **One project list** — search, category filter, sort, and a row per project that jumps to it. From
-1100px wide it's a sticky column on the left, and the page grows to fill the monitor: project
-cards flow into two or three columns, and the focus cards spread across one row. Below that it's a
-**Projects** drawer, opened from the top bar, that slides in over the page and closes on its
-backdrop, Escape, or tapping a project row.
+1100px wide it's a sticky column on the left, and every visible project shows as its own tile in a
+two-column grid, all the same height, scrolling inside itself when its tasks don't fit; clicking a
+row scrolls to that tile. Below that width the list is a **Projects** drawer, opened from the top
+bar, and only one project shows in the page at a time — tapping a row there selects it, closes the
+drawer, and scrolls to it.
 
 **Inbox capture** — a single always-visible input at the top of the page for getting a thought
 out of your head. The **Unsorted** card below guides it (and any task with no labels) through one

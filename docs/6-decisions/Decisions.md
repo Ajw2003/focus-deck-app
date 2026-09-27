@@ -4,6 +4,71 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-27 — PR 5 interpretations (2x2 tiles / one project at a time)
+
+**Context.** The plan (`docs/plans/handcrafted-redesign.md`, "Wide screens: 2x2 tiles") specified
+the tile height as "half of the space below the sticky topbar, e.g.
+`calc((100dvh - <topbar height> - <gaps>) / 2)`, with a sensible minimum (~320px); measure the
+topbar the same way `scrollToProject` does, or expose it as a CSS custom property set from JS on
+resize, your call" and left a few other implementation calls open.
+
+**Decisions.**
+- **The topbar height is a JS-measured CSS custom property (`--topbar-h`), not a guessed
+  constant.** `updateTopbarHeightVar()` sets it from `.topbar.offsetHeight` on load and on window
+  resize; `css/app.css`'s tile-height `calc()` reads it back with a `64px` fallback. The plan
+  offered either this or reusing `scrollToProject`'s inline measurement; a CSS variable was chosen
+  because the tile height is a layout property every tile needs continuously, not a one-off scroll
+  offset computed at click time — recomputing it via JS on every render would mean threading it
+  through render.js's string-building for no benefit CSS doesn't already give for free.
+- **The minimum tile height is exactly the plan's suggested 320px**, via `max(320px, calc(...))` —
+  the plan called it "a sensible minimum (~320px)" without pinning a number; 320px was kept as
+  literally suggested rather than picking a different one.
+- **The wide-screen sidebar row carries no `.is-selected`/`aria-current`, which needed a new
+  `isWide` argument on `renderProjectSidebar`.** The plan says explicitly "no selection state, no
+  `aria-current` there" for >=1100px, but `js/render.js`'s functions are otherwise pure and don't
+  know the viewport width (the CSS breakpoint alone decided visibility before this PR). Rather than
+  leave a `.is-selected`/`aria-current` in the DOM at every width and rely on CSS to just not paint
+  it differently (which would satisfy "no selection state" visually but not literally "no
+  `aria-current`"), `renderProjectSidebar` takes an `isWide` boolean (from `isWideScreen()` in
+  js/app.js) and only ever adds the class/attribute when it's false. This is the one place PR 5
+  breaks from "the same markup renders both ways, switched purely by CSS" (see
+  `docs/4-systems/styling.md`'s "How it works") — everywhere else (`.project-card.is-selected`
+  itself, the tile/one-at-a-time hiding) still is.
+- **The per-project collapse toggle and "Collapse all" are hidden unconditionally**, not scoped to
+  either breakpoint with a media query, since the plan hides them at both of the app's only two
+  widths — see the entry below.
+- **A project's saved collapsed flag is ignored for every card now, not just the selected/tiled
+  one.** With the toggle hidden everywhere, a flag saved before this PR (from a phone, under PR 3/4)
+  could otherwise hide a tile's content with no UI left to undo it; `renderProjectCard` now always
+  renders expanded, and nothing writes the flag any more (the storage and the now-unreachable
+  `toggle-project-collapse` action are left in place, unused, rather than removed, since the plan
+  asks only that it be hidden, not deleted).
+
+**Status.** Standing.
+
+## 2026-09-27 — Wide screens get 2x2 tiles; one project at a time moves to phones
+
+**Context.** PR 4 (#84) made wide screens show one project at a time (Q22b), opening on the
+last-viewed or busiest project (Q23a), to fix #82's gaps between grid rows. Using it on a desktop
+the same day, the user wanted to see several projects at once and to drag them into order (#73),
+which one-at-a-time rules out.
+
+**Decision.** From 1100px, projects sit in two columns of equal tiles, each half the screen tall,
+scrolling inside when their tasks don't fit (Q26a). Below 1100px, the one-project-at-a-time layout
+with the Q23a starting project applies instead (Q28): the user judged it fits a phone better than
+a desktop. Dragging projects into order follows as its own PR (Q27a).
+
+**Why.** Equal tiles keep #82 fixed (no tile can be taller than its neighbour) while showing four
+projects, and give a drag a steady grid to drop into. The rejected options: two columns at natural
+height packed down each column (no gaps, but a 55-task project becomes very tall and the order
+reads down columns), and two columns in rows (brings #82's gaps back). One-at-a-time survives
+where screen space is scarce. Interpretations: tablets between 700px and 1100px count as phones
+here (the app's one layout breakpoint is 1100px); on wide screens the per-project collapse toggle
+and Collapse all are hidden, since a tile's height is fixed and collapsing one would break the grid.
+
+**Status.** Standing. Replaces the wide-screen half of Q22b in `docs/plans/handcrafted-redesign.md`
+(built in PR 4, #84).
+
 ## 2026-09-27 — PR 4 interpretations (control moves, one project at a time)
 
 **Context.** PR 4 of `docs/plans/handcrafted-redesign.md` specified most of "the control moves"
