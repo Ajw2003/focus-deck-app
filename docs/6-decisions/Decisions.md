@@ -4,6 +4,44 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-27 — PR 4 interpretations (control moves, one project at a time)
+
+**Context.** PR 4 of `docs/plans/handcrafted-redesign.md` specified most of "the control moves"
+precisely, but left a handful of implementation calls open.
+
+**Decisions.**
+- **The add field's repo-vs-name detection reuses `parseRepoInput` (js/github-sync.js)
+  unchanged**, rather than writing a new regex: it's already exactly "owner/repo, or a
+  github.com URL" (used by `addRepoManually` and `createGithubIssueFromTask`), so a second
+  implementation of the same rule would just be a second place for the two to drift apart.
+  `parseRepoInput(value)` truthy takes the track-repo path; falsy takes the add-project path with
+  no category.
+- **The project add-task form stays open after a submit, cleared and refocused**, rather than
+  collapsing back to the "+ Add task" link. The plan asked for "fast entry"; collapsing after
+  every single task would undo that for anyone adding several at once. `ui.addingTask[projectId]`
+  is left `true` across the mutation, and the freshly rendered (empty) form's own `autofocus`
+  attribute re-fires the same way `ui.editingTask`'s form already relies on across repaints.
+- **The selected card on wide screens ignores its own `projectCollapsed` flag, but never writes
+  to it.** Render-time only: `renderProjectCard` computes `collapsed = collapsedFlag &&
+  !isSelected`, so a project minimised on a phone still opens expanded the first time it's
+  selected on a wide screen, without silently un-minimising it for the next time it's viewed on a
+  phone.
+- **`resolveSelectedProject` resolves against every project, not the filtered/searched sidebar
+  list.** The plan says search/category filtering "only filters the list; the open project stays
+  open even if filtered out" — resolving against the full `st.projects` (not
+  `filterAndSortProjects`'s output) is what makes that true, since a filtered-out id would
+  otherwise look like it "doesn't exist" and fall back to the busiest project instead.
+- **Tie-breaking in `resolveSelectedProject`'s "most open tasks" fallback** uses the stable sort
+  already in `sortProjects('open-tasks')` against whatever order the caller passed in — the plan's
+  "ties → first by current sort" is exactly what falls out of that without extra code, so no
+  separate tie-break was written.
+
+**Why.** Each of these fills a gap the plan left open rather than overriding anything it
+specified; where the plan already gave an answer (e.g. the row's exact control set, the editor's
+action row, the header's two-line shape), that answer was implemented as written.
+
+**Status.** Standing.
+
 ## 2026-09-27 — Visual system interpretations
 
 **Context.** PR 3 of `docs/plans/handcrafted-redesign.md` specified the visual system precisely

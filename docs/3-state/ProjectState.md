@@ -3,10 +3,10 @@
 ## Headline: milestones 1-5 done, 6 started, 7-13 not started
 
 Five of six milestones are done: four shipped and covered by passing tests, and the autonomous
-check-in confirmed working by the user and then shelved. The redesign milestone has two of its
-four PRs built (docs, then the cuts). Milestones 7-13, added on 2026-09-26 from the 19 open GitHub
-issues, are all at 0%. There is no single overall percentage: the new milestones are not sized,
-so averaging them with the finished ones would say nothing true.
+check-in confirmed working by the user and then shelved. The redesign milestone has all four of
+its PRs built on this branch, PR 4 pending merge. Milestones 7-13, added on 2026-09-26 from the 19
+open GitHub issues, are all at 0%. There is no single overall percentage: the new milestones are
+not sized, so averaging them with the finished ones would say nothing true.
 
 ## Status by milestone
 
@@ -17,7 +17,7 @@ so averaging them with the finished ones would say nothing true.
 | 3 | Cross-device sync (Gist) | 100% | Shipped, tested |
 | 4 | Claude integration (on-demand) | 100% | Shipped, tested, archived plan |
 | 5 | Claude integration (autonomous check-in) | 100% | Works (user-confirmed 2026-09-26), shelved |
-| 6 | Handcrafted redesign | ~75% (PRs 1-3 merged) | PR 4 (control moves, wide-screen layout, #82, #83) next |
+| 6 | Handcrafted redesign | ~100% (PRs 1-4 built, PR 4 pending merge) | #82 and #83 fixed by PR 4 |
 | 7 | Unsorted and focus flow polish | 0% | #70 #72 #74 #75 #76 #77 open; #72, #75, #77 may be covered by PR #78 |
 | 8 | Reordering and task status | 0% | #73 #7 #6 open |
 | 9 | Usability and accessibility audit | 0% | #27 #46 open |
@@ -65,10 +65,18 @@ everything else flat, Fraunces-italic section headings replacing uppercase micro
 emoji in the UI replaced by hand-drawn SVG line icons (`js/icons.js`), one accent colour for every
 action button, GitHub label colours muted through `mutedChip()`, project colour reduced to
 identity only (a dot, never a fill), and display-only label-name formatting
-(`formatLabelName`, js/state.js). See `docs/4-systems/styling.md`'s "Visual system" section and
-`docs/6-decisions/Decisions.md` (2026-09-27) for the calls made along the way. Not built: PR 4
-(control moves, plus one project at a time on wide screens and steady project headers for #82 and
-#83, decided 2026-09-27) — none of its changes exist yet in `js/` or `css/app.css`.
+(`formatLabelName`, js/state.js). And PR 4 (control moves, plus one project at a time on wide
+screens): task rows show only checkbox/title/labels/deadline/priority, tapping the title always
+opens the editor (linked tasks too), which gains Focus on this / Open issue ↗ / Delete; each
+project card ends with a collapsed "+ Add task" line; a project header's Edit link opens a panel
+with the category picker and Remove project, replacing the header's own Remove button and
+"+ Category" placeholder, and the header's controls no longer wrap onto a second line regardless of
+name length (#83); the two add-project/add-repo forms are replaced by one field at the bottom of
+the project list; and >=1100px shows only the selected project's card, full width, via
+`resolveSelectedProject` (js/project-filter.js) and a persisted per-device selection (#82). See
+`docs/4-systems/styling.md`'s "Visual system" section and `docs/6-decisions/Decisions.md`
+(2026-09-27) for the calls made along the way. Not built: nothing outstanding in the plan; PR 4 is
+built on this branch and pending merge.
 
 ## The one thing that is not what it looks like
 

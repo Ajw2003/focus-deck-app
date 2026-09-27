@@ -46,3 +46,52 @@ relocated) is not started; PR 3 changes nothing about controls or interaction, o
 
 1. PR 4 — the control moves (task rows open the editor, collapsed "+ Add task", Remove/Add
    project relocated), per `docs/plans/handcrafted-redesign.md`.
+
+---
+
+# Today (continued) — PR 4, 2026-09-27
+
+## What today was
+
+PR 4 of the handcrafted redesign: the control moves, plus one project at a time on wide screens
+(#82, #83).
+
+## What was done
+
+- Task rows (`renderTaskRow`, js/render.js): stripped to checkbox/title/labels/deadline/priority.
+  A linked task's title is no longer an `<a>` to its issue — every title now opens the editor, the
+  same `role="button"` span/role, Enter/Space included.
+- Editor (`renderTaskEditForm`): added `renderTaskEditActions` — Focus on this (closes the form),
+  Open issue ↗ `owner/repo#N` for linked tasks (a real link), Delete (`confirmDeleteTask`, shared
+  with the old row's ×).
+- Collapsed "+ Add task": each project card ends with a `.link-btn` line
+  (`open-add-task`/`cancel-add-task`, `ui.addingTask`, not persisted) instead of an always-open
+  form; adding a task re-renders a fresh, still-open, empty form.
+- Project header: restructured into two always-present lines (name+controls, then badges) so a
+  long name can never push the controls to a second line (#83); added `renderProjectEditPanel`
+  (category select + Remove project, both moved off the header) behind a new Edit link.
+- Add project/repo: replaced the two bottom-of-page forms with one field,
+  `renderAddProjectField`, at the bottom of the project list; `add-project-field` in js/app.js
+  picks the track-repo vs. add-project path with the existing `parseRepoInput`.
+- One project at a time on wide screens (#82): `resolveSelectedProject` (js/project-filter.js,
+  pure, tested) plus `ui.selectedProjectId` persisted per device
+  (`focusdeck-selected-project`); CSS at >=1100px shows only `.is-selected` and drops the grid to
+  one column; `scrollToProject` and the new `afterProjectAdded` branch on
+  `matchMedia('(min-width:1100px)')` to select instead of scroll.
+- Updated `js/render.test.mjs`, `js/project-filter.test.mjs`, `js/github-sync.test.mjs` for all of
+  the above; added CSS for the new classes and ran `js/style-contract.test.mjs` clean.
+- Updated `docs/4-systems/styling.md` (task rows/editor, project header/Edit panel, collapsed
+  add-task, the sidebar/add-field/one-project-at-a-time sections), `docs/4-systems/github-sync.md`
+  ("where the GitHub controls live"), `docs/3-state/ProjectState.md` and
+  `docs/2-roadmap/Roadmap.md` (milestone 6 to ~100%, pending merge).
+
+## What was deliberately not done
+
+Verification against a real Chromium build (screenshots, the numeric #83 measurements, the
+add-field's live repo-tracking behaviour) is reported separately in the PR's own report, not
+duplicated here.
+
+## Next, in order
+
+1. Merge PR 4 (`claude/laughing-einstein-wtt7t6`) once reviewed.
+2. Milestone 7 onward, per `docs/2-roadmap/Roadmap.md`.

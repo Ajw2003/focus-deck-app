@@ -97,20 +97,26 @@ the issue so both sides end up in sync rather than the pull silently winning.
 
 ### Where the GitHub controls live
 
-The task row shows only a linked task's **#N** chip, which opens the issue. Everything else is in
-the edit form's GitHub line (`renderTaskGithubLine`, js/render.js): **Unlink** for a linked task
-(keeps the task here, stops syncing it; deleting it instead closes the issue, see below), and
-**+ Create issue** / **Link to an existing issue** for an unlinked one. They moved off the row on
-2026-09-26: with issues created automatically they were rarely needed, and they crowded every row.
+As of PR 4 (2026-09-27), the task row shows nothing GitHub-related at all — no `#N` chip, no Unlink,
+no Create/Link. Every GitHub control lives in the edit form, which tapping the title always opens
+now (linked or not, see docs/4-systems/styling.md#task-rows-and-the-editor): the GitHub line
+(`renderTaskGithubLine`, js/render.js) still holds **Unlink** for a linked task (keeps the task
+here, stops syncing it; deleting it instead closes the issue, see below) and **+ Create issue** /
+**Link to an existing issue** for an unlinked one; the editor's own action row
+(`renderTaskEditActions`) adds **Open issue ↗ owner/repo#N** (a real link, new tab) for a linked
+task only. Before PR 4, a linked task's title was itself the link to its issue, and Unlink/Create/Link
+had already moved off the row into the form on 2026-09-26 — with issues created automatically they
+were rarely needed, and they crowded every row.
 
 Unsorted items can be given labels (the same label picker as the task forms) before a project chip
 is tapped to file them. Filing into a GitHub project creates the issue with those labels.
 
-### Opening a linked task's issue — `renderTaskRow` (js/render.js)
+### Opening a linked task's issue
 
-A linked task's title is a link that opens its issue on GitHub in a new tab. Editing that task
-moves to a separate **Edit** button beside Unlink. An unlinked task's title still opens the
-edit form, as before.
+A linked task's title opens the editor, the same as any other task's (PR 4, 2026-09-27) — it is no
+longer itself a link to the issue. Its issue opens from **Open issue ↗** inside the editor instead.
+Before PR 4, a linked task's title was an `<a>` to the issue and a separate **Edit** button on the
+row opened the editor.
 
 ### Unlinking a task — `unlinkTask` (js/github-sync.js:161)
 
