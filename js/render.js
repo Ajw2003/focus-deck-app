@@ -1,5 +1,15 @@
 // focus-deck-app/js/render.js
-import { state, esc, relTime, deadlineChip, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
+import { state, esc, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
+import { ICON_SYNC } from './icons.js';
+
+// A label (task category) colour, muted toward the app's palette rather than shown at its raw
+// GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
+// paints something except the project-identity uses of --proj-color, which stay full strength.
+function mutedChip(color) { return 'color-mix(in oklab, ' + color + ' 65%, var(--ink-soft))'; }
+
+// A project pill/chip, neutral (Q4b — a project's colour is identity only: its dot and its card
+// edge), carrying a small colour dot before the name instead of a tint.
+function projectDot(color) { return '<span class="proj-dot" style="--dot:' + color + '"></span>'; }
 
 // The top-bar sync icon: two curved arrows in a circle, hand-drawn (see docs/4-systems/styling.md#sync-button).
 // Its title/aria-label carry the same text so a screen reader gets exactly what a sighted hover gets.
@@ -13,11 +23,7 @@ export function renderSyncButton(st) {
   const syncing = !!(st._ui && st._ui.syncing);
   const title = syncButtonTitle(st);
   return '<button type="button" class="icon-btn sync-btn' + (syncing ? ' is-syncing' : '') + '" data-action="sync-github" title="' + esc(title) + '" aria-label="' + esc(title) + '"' + (syncing ? ' disabled' : '') + '>'
-    + '<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-    + '<path d="M15.5 6.5A6 6 0 0 0 5 8.5M4.5 13.5A6 6 0 0 0 15 11.5"/>'
-    + '<path d="M15.5 3v3.5H12"/>'
-    + '<path d="M4.5 17v-3.5H8"/>'
-    + '</svg>'
+    + ICON_SYNC
     + '</button>';
 }
 
@@ -62,8 +68,8 @@ function renderFocusPicker(st, ui) {
     .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
   const showAllLabels = !!(ui && ui.focusShowAll);
   const shownLabels = showAllLabels ? labels : labels.slice(0, FOCUS_CARDS_SHOWN);
-  const card = (item) => '<button type="button" class="energy-btn" data-action="pick-focus" data-category="' + item.id + '" data-project="' + (projectId || '') + '" style="--chip-color:' + item.color + '">'
-    + '<span class="energy-label">' + esc(item.name) + '</span>'
+  const card = (item) => '<button type="button" class="energy-btn" data-action="pick-focus" data-category="' + item.id + '" data-project="' + (projectId || '') + '" style="--chip-color:' + mutedChip(item.color) + '">'
+    + '<span class="energy-label">' + esc(formatLabelName(item.name)) + '</span>'
     + '<span class="energy-desc">' + focusCardDetail(item.matches, !projectId) + '</span></button>';
   // "Surprise me" is a different kind of choice (no type at all), so it is its own element below
   // the cards rather than one more card: an accent button, set apart by space and a divider.
@@ -84,7 +90,7 @@ function renderFocusPicker(st, ui) {
     .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
   const showAllProjects = !!(ui && ui.focusShowAllProjects);
   const shownProjects = showAllProjects ? projects : projects.filter((x, i) => i < FOCUS_PILLS_SHOWN || x.id === projectId);
-  const pill = (id, label, color) => '<button type="button" class="filter-pill' + (color ? ' tint-pill' : '') + ((id || null) === projectId ? ' active' : '') + '" data-action="set-focus-scope" data-scope="' + id + '"' + (color ? ' style="--chip-color:' + color + '"' : '') + '>' + esc(label) + '</button>';
+  const pill = (id, label, color) => '<button type="button" class="filter-pill' + ((id || null) === projectId ? ' active' : '') + '" data-action="set-focus-scope" data-scope="' + id + '">' + (color ? projectDot(color) : '') + esc(label) + '</button>';
   const hidden = projects.length - shownProjects.length;
   const morePill = projects.length > FOCUS_PILLS_SHOWN
     ? '<button type="button" class="filter-pill focus-more-pill" data-action="toggle-focus-projects">' + (showAllProjects ? 'Show fewer' : '+' + hidden + ' more') + '</button>'
@@ -123,7 +129,7 @@ export function renderFocus(st, findTaskWithProject, ui) {
   const canReroll = st.focus.pool && st.focus.pool.length > 1;
   return '<section class="card focus-card focus-active">'
     + '<div class="focus-tags">'
-      + '<button type="button" class="chip proj-chip" data-action="scroll-project" data-project="' + p.id + '" title="Go to ' + esc(p.name) + '" style="--chip-color:' + p.color + '">' + esc(p.name) + ' ↓</button>'
+      + '<button type="button" class="chip proj-chip" data-action="scroll-project" data-project="' + p.id + '" title="Go to ' + esc(p.name) + '">' + projectDot(p.color) + esc(p.name) + ' ↓</button>'
       + focusReasonChip(st.focus)
       + deadlineHTML
     + '</div>'
@@ -140,7 +146,7 @@ export function renderFocus(st, findTaskWithProject, ui) {
 function focusReasonChip(focus) {
   if (focus.filter && focus.filter.categoryId === UNLABELLED) return '<span class="chip">Unlabelled</span>';
   const cat = focus.filter && focus.filter.categoryId && state.categories.find((c) => c.id === focus.filter.categoryId);
-  if (cat) return '<span class="chip cat-chip" style="--chip-color:' + cat.color + '">' + esc(cat.name) + '</span>';
+  if (cat) return '<span class="chip cat-chip" style="--chip-color:' + mutedChip(cat.color) + '">' + esc(formatLabelName(cat.name)) + '</span>';
   return focus.pool ? '<span class="chip">Random pick</span>' : '';
 }
 
@@ -178,7 +184,7 @@ function unsortedKindsAndLabels(st, project, u) {
   const kinds = TASK_KINDS.map((k) => {
     const cat = kindCat(k);
     const token = cat ? cat.id : 'kind:' + k.key;
-    return '<button type="button" class="energy-btn' + (isOn(token) ? ' selected' : '') + '" data-action="sort-toggle" data-token="' + token + '" aria-pressed="' + isOn(token) + '" style="--chip-color:' + (cat ? cat.color : k.color) + '">'
+    return '<button type="button" class="energy-btn' + (isOn(token) ? ' selected' : '') + '" data-action="sort-toggle" data-token="' + token + '" aria-pressed="' + isOn(token) + '" style="--chip-color:' + mutedChip(cat ? cat.color : k.color) + '">'
       + '<span class="energy-label">' + k.label + '</span><span class="energy-desc">' + k.desc + '</span></button>';
   }).join('');
   const useIn = (tasks) => {
@@ -194,7 +200,7 @@ function unsortedKindsAndLabels(st, project, u) {
   const morePill = ranked.length > UNSORTED_LABELS_SHOWN
     ? '<button type="button" class="filter-pill focus-more-pill" data-action="sort-more-labels">' + (u.showAllLabels ? 'Show fewer' : '+' + (ranked.length - shownOthers.length) + ' more') + '</button>'
     : '';
-  const others = shownOthers.map((c) => '<button type="button" class="filter-pill tint-pill' + (isOn(c.id) ? ' active' : '') + '" data-action="sort-toggle" data-token="' + c.id + '" aria-pressed="' + isOn(c.id) + '" style="--chip-color:' + c.color + '">' + esc(c.name) + '</button>').join('') + morePill;
+  const others = shownOthers.map((c) => '<button type="button" class="filter-pill tint-pill' + (isOn(c.id) ? ' active' : '') + '" data-action="sort-toggle" data-token="' + c.id + '" aria-pressed="' + isOn(c.id) + '" style="--chip-color:' + mutedChip(c.color) + '">' + esc(formatLabelName(c.name)) + '</button>').join('') + morePill;
   return '<p class="muted small sort-q">What kind of task is this?</p>'
     + '<div class="energy-grid focus-grid sort-kinds">' + kinds + '</div>'
     + (others ? '<p class="muted small sort-q">Other labels</p><div class="filter-pills sort-labels">' + others + '</div>' : '')
@@ -210,7 +216,7 @@ function unsortedProjectPills(st, u) {
     .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
   const showAll = !!u.showAllProjects;
   const shown = showAll ? projects : projects.slice(0, UNSORTED_PROJECTS_SHOWN);
-  const pill = (p) => '<button type="button" class="filter-pill tint-pill" data-action="unsorted-project" data-project="' + p.id + '" style="--chip-color:' + p.color + '">' + esc(p.name) + '</button>';
+  const pill = (p) => '<button type="button" class="filter-pill" data-action="unsorted-project" data-project="' + p.id + '">' + projectDot(p.color) + esc(p.name) + '</button>';
   const morePill = projects.length > UNSORTED_PROJECTS_SHOWN
     ? '<button type="button" class="filter-pill focus-more-pill" data-action="unsorted-more-projects">' + (showAll ? 'Show fewer' : '+' + (projects.length - shown.length) + ' more') + '</button>'
     : '';
@@ -241,7 +247,7 @@ export function renderInbox(st, ui) {
           const project = u.projectId ? st.projects.find((p) => p.id === u.projectId) : null;
           const head = '<div class="sort-head">' + position
             + '<span class="chip">Thought · ' + relTime(item.createdAt) + '</span>'
-            + (project ? '<button type="button" class="chip proj-chip" data-action="unsorted-change-project" style="--chip-color:' + project.color + '">' + esc(project.name) + ' · change</button>' : '')
+            + (project ? '<button type="button" class="chip proj-chip" data-action="unsorted-change-project">' + projectDot(project.color) + esc(project.name) + ' · change</button>' : '')
             + '<button type="button" class="btn-text unsorted-delete" data-action="unsorted-delete" data-inbox="' + item.id + '">Delete</button>'
             + '</div>';
           const title = '<h3 class="sort-title">' + esc(item.text) + '</h3>';
@@ -258,7 +264,7 @@ export function renderInbox(st, ui) {
         } else {
           const t = cur.task, p = cur.project;
           const head = '<div class="sort-head">' + position
-            + '<span class="chip proj-chip" style="--chip-color:' + p.color + '">' + esc(p.name) + '</span>'
+            + '<span class="chip proj-chip">' + projectDot(p.color) + esc(p.name) + '</span>'
             + (t.issueNumber != null ? '<span class="chip">#' + t.issueNumber + '</span>' : '')
             + '<button type="button" class="btn-text unsorted-delete" data-action="unsorted-delete" data-task="' + t.id + '" data-project="' + p.id + '">Delete</button>'
             + '</div>';
@@ -275,7 +281,7 @@ export function renderInbox(st, ui) {
     }
   }
   return '<section class="card inbox-card">'
-    + '<button type="button" class="section-toggle" data-action="toggle-inbox">📥 Unsorted <span class="count">' + count + '</span><span class="chev">' + (ui.inboxOpen ? '−' : '+') + '</span></button>'
+    + '<button type="button" class="section-toggle" data-action="toggle-inbox">Unsorted <span class="count">' + count + '</span><span class="chev">' + (ui.inboxOpen ? '−' : '+') + '</span></button>'
     + (ui.inboxOpen ? '<div class="unsorted-body">' + body + '</div>' : '')
     + '</section>';
 }
@@ -284,9 +290,9 @@ export function renderInbox(st, ui) {
 // collapsible list, plus a field for new ones. The summary's count is kept current by app.js.
 export function renderLabelPicker(categories, selectedIds) {
   const selected = selectedIds || [];
-  const options = categories.map((c) => '<label class="label-option" style="--chip-color:' + c.color + '">'
+  const options = categories.map((c) => '<label class="label-option" style="--chip-color:' + mutedChip(c.color) + '">'
     + '<input type="checkbox" name="categoryIds" value="' + c.id + '"' + (selected.includes(c.id) ? ' checked' : '') + '>'
-    + '<span>' + esc(c.name) + '</span></label>').join('');
+    + '<span>' + esc(formatLabelName(c.name)) + '</span></label>').join('');
   return '<details class="label-picker">'
     + '<summary>' + labelPickerSummary(selected.length) + '</summary>'
     + '<div class="label-options">' + options + '</div>'
@@ -311,7 +317,7 @@ function renderTaskGithubLine(t, p) {
   }
   return '<div class="task-edit-github"><span>Not on GitHub</span>'
     + btn('create-github-issue', '+ Create issue', 'Create a new GitHub issue from this task')
-    + btn('link-github-issue', '🔗 Link to an existing issue', 'Link this task to an issue that already exists') + '</div>';
+    + btn('link-github-issue', 'Link to an existing issue', 'Link this task to an issue that already exists') + '</div>';
 }
 
 export function renderTaskEditForm(t, p, categories) {
@@ -338,7 +344,7 @@ export function renderTaskRow(t, p, categories, ui) {
     ? '<a class="chip gh-chip small" href="' + esc(t.url || '#') + '" target="_blank" rel="noopener">#' + (t.issueNumber != null ? t.issueNumber : '') + '</a>'
     : '';
   const catChips = (t.categoryIds || []).map((id) => categories.find((c) => c.id === id)).filter(Boolean)
-    .map((cat) => '<span class="chip cat-chip small" data-cat-id="' + cat.id + '" data-cat-type="task" title="Right-click to change color" style="--chip-color:' + cat.color + '">' + esc(cat.name) + '</span>').join('');
+    .map((cat) => '<span class="chip cat-chip small" data-cat-id="' + cat.id + '" data-cat-type="task" title="Right-click to change color" style="--chip-color:' + mutedChip(cat.color) + '">' + esc(formatLabelName(cat.name)) + '</span>').join('');
   const priorityChip = t.priority && PRIORITY[t.priority]
     ? '<button type="button" class="chip priority-chip small" data-action="cycle-priority" data-task="' + t.id + '" title="Priority — tap to change" style="--chip-color:var(--prio-' + t.priority + ')"' + (isDone ? ' disabled' : '') + '>' + PRIORITY[t.priority].label + '</button>'
     : '';
@@ -416,7 +422,7 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
   const doneOpen = !!ui.doneOpen[p.id];
   const pendingRemove = !!ui.pendingRemove[p.id];
   const collapsed = !!ui.projectCollapsed[p.id];
-  const ghBadge = p.source === 'github' ? '<a class="chip gh-chip small" href="' + esc(p.htmlUrl || '#') + '" target="_blank" rel="noopener">' + (p.private ? '🔒 ' : '') + 'GitHub ↗</a>' : '';
+  const ghBadge = p.source === 'github' ? '<a class="chip gh-chip small" href="' + esc(p.htmlUrl || '#') + '" target="_blank" rel="noopener">' + (p.private ? 'Private · ' : '') + 'GitHub ↗</a>' : '';
   const projCat = projectCategories.find((c) => c.id === p.categoryId);
   const editingCat = ui.editingProjectCategory === p.id;
   const projCatOptions = projectCategories.map((c) => '<option value="' + c.id + '"' + (p.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');

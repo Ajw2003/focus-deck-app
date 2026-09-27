@@ -164,7 +164,7 @@ there.)
 ## Setting up GitHub sync (optional)
 
 Everything above works with zero setup, entirely offline, storing data in your browser's
-`localStorage`. To link tasks to GitHub issues, open **Settings** (the ⚙️ in the top bar) and
+`localStorage`. To link tasks to GitHub issues, open **Settings** (the gear icon in the top bar) and
 follow the walkthrough there to generate a fine-grained GitHub personal access token — it needs
 "Issues: Read and write" on whichever repos you want to link, and optionally "Gists: Read and
 write" if you also want cross-device sync. The token is stored only in your browser and is only

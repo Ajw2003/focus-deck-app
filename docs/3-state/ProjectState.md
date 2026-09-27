@@ -55,12 +55,19 @@ confirmed on 2026-09-26 that it works, after tweaks to the plan and prompt that 
 in this repo, and shelved it as less useful than expected. No code in this repo implements or
 tests this milestone; it lives entirely in the trigger's stored prompt.
 
-**6. Handcrafted redesign** — Built: the docs restructure (PR 1) and "the cuts" (PR 2): the energy
+**6. Handcrafted redesign** — Built: the docs restructure (PR 1), "the cuts" (PR 2): the energy
 system deleted outright (data, UI and GitHub sync alike), the Recently done strip, the Claude
 chips, the "+ Priority" placeholder chip, and `migrate-from-artifact.html` all removed; the sync
 row replaced by a top-bar sync icon; the project-pills row and filter bar folded into one project
-list that's a sidebar at >=1100px and a drawer below it. Not built: PR 3 (visual system), PR 4
-(control moves) — none of their changes exist yet in `js/` or `css/app.css`.
+list that's a sidebar at >=1100px and a drawer below it. And PR 3 (visual system): the five-size
+type scale and three-radius token system (`css/app.css`), one raised card (`.focus-card`) with
+everything else flat, Fraunces-italic section headings replacing uppercase micro-labels, every
+emoji in the UI replaced by hand-drawn SVG line icons (`js/icons.js`), one accent colour for every
+action button, GitHub label colours muted through `mutedChip()`, project colour reduced to
+identity only (a dot, never a fill), and display-only label-name formatting
+(`formatLabelName`, js/state.js). See `docs/4-systems/styling.md`'s "Visual system" section and
+`docs/6-decisions/Decisions.md` (2026-09-27) for the calls made along the way. Not built: PR 4
+(control moves) — none of its changes exist yet in `js/` or `css/app.css`.
 
 ## The one thing that is not what it looks like
 

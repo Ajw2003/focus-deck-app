@@ -1,12 +1,12 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Focus Deck — Settings</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="css/app.css">
 </head><body>
 <div class="wrap">
-  <header class="topbar"><div class="brand"><span class="brand-mark">🧭</span><h1>Settings</h1></div><a href="index.html" class="link-btn">← Back</a></header>
-  <section class="card">
+  <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.3 3.4a8.6 8.6 0 1 1-.4 17.2 8.6 8.6 0 0 1 .4-17.2Z"/><g transform="rotate(25 12 12)"><path d="M12 5.2 14.3 12H9.7Z" fill="currentColor"/><path d="M9.7 12 12 18.8 14.3 12"/></g></svg></span><h1>Settings</h1></div><a href="index.html" class="link-btn">← Back</a></header>
+  <section class="card settings-section">
     <h2 style="margin-bottom:10px;">GitHub token</h2>
     <p class="muted small" style="margin-bottom:10px;">
       Focus Deck uses this token to link tasks to issues, create new issues from tasks, close/reopen a linked
@@ -29,7 +29,7 @@
       <button type="button" id="save-token">Save</button>
     </div>
   </section>
-  <section class="card">
+  <section class="card settings-section">
     <h2 style="margin-bottom:10px;">Cross-device sync</h2>
     <p id="gist-status" class="muted small" style="margin-bottom:14px;"></p>
     <button type="button" id="create-gist" class="btn primary">Create sync Gist</button>
@@ -38,7 +38,7 @@
       <button type="button" id="connect-gist">Connect</button>
     </div>
   </section>
-  <section class="card">
+  <section class="card settings-section">
     <h2 style="margin-bottom:10px;">Category colors</h2>
     <p class="muted small" style="margin-bottom:6px;">
       Pick a color for each category. It updates everywhere that category's chip appears, and syncs to your other devices like any other change.
