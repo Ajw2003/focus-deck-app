@@ -291,12 +291,13 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   assert.ok(opened.includes('<form class="add-task-form"') && opened.includes('name="title"') && opened.includes('autofocus'), 'open: the full add-task form, title focused');
   assert.ok(opened.includes('data-action="cancel-add-task" data-project="p1"'), 'the open form can be cancelled');
 
-  // The selected card ignores its own collapsed flag on wide screens (CSS handles the breakpoint;
-  // this only asserts the class and the un-collapsed markup are both present)
+  // The collapse toggle and Collapse all are hidden at both widths now (Q26a, Q28), so a saved
+  // collapsed flag is ignored for rendering here -- selected or not, whatever the flag says.
   const collapsedSelected = renderProjectCard(short, { ...cardUi(), projectCollapsed: { p1: true }, selectedProjectId: 'p1' }, [], []);
   assert.ok(collapsedSelected.includes('is-selected') && !collapsedSelected.includes('is-collapsed'), 'a selected project always renders expanded, whatever its collapsed flag says');
   const collapsedUnselected = renderProjectCard(short, { ...cardUi(), projectCollapsed: { p1: true } }, [], []);
-  assert.ok(collapsedUnselected.includes('is-collapsed') && !collapsedUnselected.includes('is-selected'), 'an unselected collapsed project still renders collapsed');
+  assert.ok(!collapsedUnselected.includes('is-collapsed') && !collapsedUnselected.includes('is-selected'), 'an unselected project also renders expanded now -- the collapsed flag is ignored, not just for the selected card');
+  assert.ok(shortHtml.includes('class="project-body" tabindex="0" role="region" aria-label="Short tasks"'), 'the task groups and add-task line sit in a keyboard-reachable scroll region');
 }
 
 // Sidebar: selection highlight + the one add field at the bottom
@@ -308,6 +309,12 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   assert.ok(!/data-project="p1"[^>]*aria-current/.test(html), 'the unselected row carries no aria-current');
   assert.ok(html.includes('<form class="add-project-form" data-action="add-project-field">') && html.includes('placeholder="New project or owner/repo"'), 'the sidebar ends with the one add field');
   assert.strictEqual(renderAddProjectField(), '<form class="add-project-form" data-action="add-project-field"><input type="text" name="value" placeholder="New project or owner/repo" maxlength="200" required><button type="submit">+ Add</button></form>', 'the add field itself');
+
+  // >=1100px (2x2 tiles, Q26a): every project is its own tile, so no row is "current" -- no
+  // is-selected class, no aria-current, even though ui.selectedProjectId is still set (it's read
+  // below 1100px only).
+  const wide = renderProjectSidebar({ projects, projectCategories: [] }, sideUi, projects, true);
+  assert.ok(!wide.includes('is-selected') && !wide.includes('aria-current'), 'a wide-screen sidebar row carries no selection state');
 }
 
 assert.strictEqual(renderToast(null, 'error'), '', 'no message means no toast');
