@@ -4,6 +4,55 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-27 — PR 6 interpretations (All/One switch, minimising back)
+
+**Context.** The task for PR 6 ("Minimising comes back; 'All' or 'One' becomes a per-device
+switch") left one call explicitly open: "on phones, keep the drawer open after switching (so the
+user sees the change behind it) — your call if closing reads better." Everything else it asked for
+(the switch's wording, placement, and pill styling; the resolver function's shape; where minimised
+tiles gather) was specified closely enough that building it isn't a separate decision.
+
+**Decision.** The Projects drawer stays open after tapping "All" or "One" in it
+(`set-project-view` in js/app.js does not call `setProjectsDrawerOpen(false)`).
+
+**Why.** Closing the drawer on every other row tap makes sense there because the point of tapping
+a project row is to go look at it, off in the main column, where the drawer would only be in the
+way. Tapping the view switch is different: its whole effect plays out in the list the switch itself
+sits in (fewer/more cards, tiles turning into a stack or back), so closing it would hide the very
+change being confirmed and cost an extra tap to reopen and see it. It also matches how every other
+setting in the same header behaves — search, category pills and sort all repaint in place without
+closing the drawer.
+
+**Status.** Standing.
+
+## 2026-09-27 — Minimising comes back; "All" or "One" becomes a per-device switch
+
+**Context.** After PR 5 (#85) the user found multi-project work "a nightmare" without minimising:
+PR 5 had hidden the per-project minimise button and Collapse all at both widths (an
+interpretation, not the user's call). The user also wanted the tile view and the
+one-project-at-a-time view as a choice on every device, not fixed by screen width.
+
+**Decision.**
+- Minimising is back: the per-project button and Collapse all / Expand all, using the saved
+  per-device flags PR 5 kept (nothing was lost). They show in the "All" view; in the "One" view
+  they stay hidden, since minimising the only project on screen does nothing useful.
+- In the wide-screen tile view, minimised projects gather below the full-size tiles as a compact
+  group of header-only cards, two to a row, in the same sort order. A minimised tile left in its
+  grid cell would sit beside a full-height one and bring back #82's gap.
+- A two-option switch, "All" / "One", in the project list's header (the sidebar on wide screens,
+  the drawer on phones), remembered per device. "All" on wide screens is the 2x2 tiles; "All"
+  below 1100px is every project stacked at its natural height (tiles are too small on a phone).
+  "One" is the one-project-at-a-time view with the Q23a starting project, on any width. Defaults
+  keep today's behaviour: "All" from 1100px, "One" below.
+
+**Why.** Both requests are the user's own, made after using the builds. Grouping minimised tiles
+was chosen over leaving them in place (gaps, #82) and over a dense-packed grid (keeps no gaps but
+shuffles the order, which would fight the drag-to-reorder PR next).
+
+**Status.** Standing. Supersedes, in part, "Wide screens get 2x2 tiles; one project at a time moves
+to phones" (the layout is now a switch, not a width rule; minimising is no longer hidden) and the
+collapse items of "PR 5 interpretations".
+
 ## 2026-09-27 — PR 5 interpretations (2x2 tiles / one project at a time)
 
 **Context.** The plan (`docs/plans/handcrafted-redesign.md`, "Wide screens: 2x2 tiles") specified
@@ -44,7 +93,7 @@ resize, your call" and left a few other implementation calls open.
   `toggle-project-collapse` action are left in place, unused, rather than removed, since the plan
   asks only that it be hidden, not deleted).
 
-**Status.** Standing.
+**Status.** Superseded in part by [2026-09-27 — Minimising comes back; "All" or "One" becomes a per-device switch](#2026-09-27--minimising-comes-back-all-or-one-becomes-a-per-device-switch) on 2026-09-27.
 
 ## 2026-09-27 — Wide screens get 2x2 tiles; one project at a time moves to phones
 
@@ -66,8 +115,8 @@ where screen space is scarce. Interpretations: tablets between 700px and 1100px 
 here (the app's one layout breakpoint is 1100px); on wide screens the per-project collapse toggle
 and Collapse all are hidden, since a tile's height is fixed and collapsing one would break the grid.
 
-**Status.** Standing. Replaces the wide-screen half of Q22b in `docs/plans/handcrafted-redesign.md`
-(built in PR 4, #84).
+**Status.** Superseded in part by [2026-09-27 — Minimising comes back; "All" or "One" becomes a per-device switch](#2026-09-27--minimising-comes-back-all-or-one-becomes-a-per-device-switch) on 2026-09-27. Replaced the wide-screen half of Q22b in
+`docs/plans/handcrafted-redesign.md` (built in PR 4, #84).
 
 ## 2026-09-27 — PR 4 interpretations (control moves, one project at a time)
 

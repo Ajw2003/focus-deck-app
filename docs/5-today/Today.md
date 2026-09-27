@@ -183,3 +183,100 @@ Dragging projects into order (Q27a, PR 6) — explicitly the next PR in the plan
    left to whoever picks this up next).
 2. PR 6: dragging projects into order (Q27a, the project half of #73).
 3. Milestone 7 onward, per `docs/2-roadmap/Roadmap.md`.
+
+# Today (continued) — PR 6, 2026-09-27
+
+## What today was
+
+PR 6 of the handcrafted redesign: minimising comes back, and "All" or "One" becomes a per-device
+switch (see `docs/6-decisions/Decisions.md`, "Minimising comes back...").
+
+## What was done
+
+- A two-option segmented control ("All"/"One", `renderViewSwitch`, js/render.js) sits right under
+  the "Projects" title row in the sidebar/drawer, styled as pills, `role="group"` with
+  `aria-pressed` on the chosen option. `ui.projectView` is persisted per device
+  (`focusdeck-project-view`) and resolved once at load by `resolveProjectView(stored, isWide)`
+  (js/project-filter.js, pure, tested) -- a stored value wins at every width from then on; before
+  that, "All" from 1100px and "One" below, matching the old width-only behaviour.
+- The per-project minimise button and "Collapse all"/"Expand all" are back, showing in "All" at
+  every width and left out of the markup entirely in "One" (`renderProjectCard`,
+  `collapseAllButton`, js/render.js) -- the saved `ui.projectCollapsed` flags PR 5 left unused are
+  now read (and written) again, unchanged storage.
+- In the wide "All" tile grid, minimised projects are pulled out of `.projects-grid` and gathered
+  below it in their own `.minimised-grid`, two to a row, under a "Minimised" label, in the same
+  sort order (`renderProjectsMain`, js/render.js, new and directly tested) -- keeps #82's
+  equal-height tile grid intact. Below 1100px in "All", minimised projects just show header-only
+  in their normal stacked position; no separate group.
+- `scrollToProject`/`afterProjectAdded` (js/app.js) now branch on `ui.projectView` instead of
+  `isWideScreen()`: "One" selects and scrolls (closing the drawer first); "All" expands the target
+  if it was minimised (restoring what `scrollToProject` did before PR 5 hid minimising) and
+  scrolls. `isWideScreen()` now only decides the "All" layout's shape (tiles vs. stacked) and the
+  view's width default.
+- CSS: the `@media (max-width:1099px)`/`(min-width:1100px)` one-at-a-time/tile rules moved under
+  `.view-one`/`.view-all` (set on `.main-col`); the unconditional `.collapse-toggle,
+  [data-action="toggle-collapse-all"]{display:none;}` rule is gone (js/render.js decides visibility
+  now, not CSS); a small `.collapse-toggle` rule and `.minimised-projects`/`.view-switch` rules were
+  added.
+- `js/render.test.mjs`: rewrote the stale "collapse toggle hidden everywhere" assertions to match
+  minimising being back, added tests for the view switch's markup and the new
+  `renderProjectsMain` (all/one, wide/narrow, the minimised group and its sort order).
+  `js/project-filter.test.mjs`: added `resolveProjectView` tests (stored all/one wins at both
+  widths; nothing/junk stored falls back to the width default). No `style-contract.test.mjs`
+  changes were needed once `.collapse-toggle` got its own small CSS rule (removing the old
+  `display:none` rule would otherwise have left it unstyled).
+- Docs: rewrote `docs/4-systems/styling.md`'s "Project sidebar / Projects drawer" section around
+  the switch and minimised group; one Decisions.md entry for the one interpretation call the task
+  left open (the drawer stays open after switching, since the switch's own effect plays out in the
+  list it sits in); ProjectState/Roadmap/README updated to say PR 6 is built.
+
+## Verified in real Chromium (Playwright, headless off, the seeded 11-project state)
+
+1440x900, no stored view: "All" chosen (`localStorage` empty, active pill "all"); 2 columns, all 11
+tiles exactly 409px. Minimising 3 tiles (the busiest/55-task one plus two others) pulled them out of
+the tile grid into a 2-column `.minimised-grid` (heights 148/148/106px -- the 113-char-name one is
+taller since its name wraps); the remaining 8 tiles stayed 409px each with row 2's top matching
+`row1.top + tileHeight + 16px gap` within 1px. "Collapse all" minimised all 11 (0 still uncollapsed
+after; 11 total), "Expand all" restored all 11 (0 collapsed after). Re-minimising the same 3 and
+reloading kept the same 3 in the minimised group (`focusdeck-collapsed-projects` round-tripped).
+Clicking a minimised project's sidebar row expanded it (`is-collapsed` gone) and scrolled it to 79px
+below the topbar.
+
+1440x900, switching to "One": exactly one project card visible (the busiest, 55 tasks, with no
+stored selection); no `.collapse-toggle` and no `[data-action="toggle-collapse-all"]` anywhere in
+the DOM. A sidebar row click selected another project (`aria-current="true"`, the visible card
+switched to it) and a reload kept both the "one" view and that selection. Switching back to "All"
+restored the 2-column tile grid; the minimised group was gone because switching to "One" and back
+doesn't touch `ui.projectCollapsed` -- the 3 minimised from the block above were a fresh browser
+context by then, so there was nothing to restore in this run (each Playwright context starts with
+empty storage; the persistence itself was already confirmed above).
+
+390x844, no stored view: "One" chosen (checked the drawer's active pill after opening it, since the
+switch itself lives in the drawer at this width); one project card visible. A drawer row tap
+selected another project, closed the drawer, and showed that project's card. Switching to "All" in
+the drawer left the drawer open (the decision above) and switched the main column to every project
+stacked (11 of 11 visible, 11 minimise buttons). Tapping the first minimise button collapsed that
+card (`is-collapsed`); "Collapse all" (reopening the drawer to reach it) collapsed all 11. Reloading
+kept "All" as the active pill.
+
+Every tile/card's progress-bar offset from its own top was a uniform 85px, except the 112-character
+project name (offset 127px) -- its name wraps to multiple lines and grows line 1 itself, the same
+pre-existing #83 behaviour PR 5's report already noted (the badges line's fixed `min-height` only
+equalizes line 2, not a wrapped line 1); not something this PR introduced or was asked to fix. No
+JS errors beyond the expected Google Fonts failure in this sandbox.
+
+Screenshots in `docs/generated/pr6/`: `desktop-all-with-minimised`, `desktop-one`,
+`desktop-sidebar-switch`, `phone-one`, `phone-all-with-minimised`, `phone-drawer-switch`. Google
+Fonts is blocked in this sandbox, so every screenshot shows the system-serif/sans fallback, not
+Fraunces/IBM Plex Sans.
+
+## What was deliberately not done
+
+Dragging projects into order (Q27a, PR 7) -- explicitly the next PR in the plan, not this one.
+
+## Next, in order
+
+1. Push this branch (the task said not to open the PR itself; that's left to whoever picks this up
+   next).
+2. PR 7: dragging projects into order (Q27a, the project half of #73).
+3. Milestone 7 onward, per `docs/2-roadmap/Roadmap.md`.

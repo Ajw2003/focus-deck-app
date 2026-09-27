@@ -394,6 +394,9 @@ function projectSortSelect(ui) {
   return '<select class="project-sort-select" data-action="set-project-sort" aria-label="Sort projects">' + sortOptions + '</select>';
 }
 function collapseAllButton(ui, visibleProjects) {
+  // Minimising does nothing useful in the "One" view (there's only ever one card on screen), so
+  // "Collapse all" is left out there rather than shown disabled. See docs/4-systems/styling.md.
+  if (ui.projectView === 'one') return '';
   const allCollapsed = !!(visibleProjects && visibleProjects.length && visibleProjects.every((p) => ui.projectCollapsed[p.id]));
   const collapseAllBtn = visibleProjects && visibleProjects.length
     ? '<button type="button" class="btn-text small" data-action="toggle-collapse-all">' + (allCollapsed ? 'Expand all' : 'Collapse all') + '</button>'
@@ -401,18 +404,28 @@ function collapseAllButton(ui, visibleProjects) {
   return collapseAllBtn;
 }
 
+// The "All" / "One" switch (PR 6, 2026-09-27): a two-option segmented control, styled as pills like
+// every other choice in the sidebar. Sits right under the "Projects" title row so it reads as the
+// list's own setting, not a filter. See docs/6-decisions/Decisions.md.
+function renderViewSwitch(ui) {
+  const view = ui.projectView === 'one' ? 'one' : 'all';
+  const option = (value, label) => '<button type="button" class="filter-pill' + (view === value ? ' active' : '') + '" data-action="set-project-view" data-view="' + value + '" aria-pressed="' + (view === value) + '">' + label + '</button>';
+  return '<div class="view-switch" role="group" aria-label="Project view">' + option('all', 'All projects') + option('one', 'One project') + '</div>';
+}
+
 // The single project list: search, category pills, sort, Collapse all, and a row per project that
 // jumps to its card. CSS shows it as a sticky left column at >=1100px; below that it's the drawer
 // opened from the topbar's Projects button (see app.js's toggle-projects-drawer/scroll-project).
 // See docs/4-systems/styling.md#project-sidebar
-export function renderProjectSidebar(st, ui, visibleProjects, isWide) {
+export function renderProjectSidebar(st, ui, visibleProjects) {
   if (!st.projects.length) return '';
   const isOpen = !!ui.projectsDrawerOpen;
+  const isOneView = ui.projectView === 'one';
   const open = (p) => p.tasks.filter((t) => t.status !== 'done').length;
   const rows = visibleProjects.map((p) => {
-    // Selection only means anything below 1100px (Q28): a wide-screen row just scrolls to the
-    // project's tile among the 2x2 grid, with no "current" project and no aria-current there (Q26a).
-    const isSelected = !isWide && ui.selectedProjectId === p.id;
+    // Selection only means anything in the "One" view (PR 6): an "All" row just scrolls to the
+    // project's card/tile, with no "current" project and no aria-current there.
+    const isSelected = isOneView && ui.selectedProjectId === p.id;
     return '<li><button type="button" class="sidebar-project' + (isSelected ? ' is-selected' : '') + '" data-action="scroll-project" data-project="' + p.id + '" style="--dot:' + p.color + '"' + (isSelected ? ' aria-current="true"' : '') + '>'
       + '<span class="dot"></span><span class="sidebar-name">' + esc(p.name) + '</span><span class="sidebar-count" title="Open tasks">' + open(p) + '</span></button></li>';
   }).join('');
@@ -421,6 +434,7 @@ export function renderProjectSidebar(st, ui, visibleProjects, isWide) {
     // sidebar doesn't tell screen readers the rest of the page is out of reach
     + '<aside class="project-sidebar' + (isOpen ? ' is-open' : '') + '" id="projects-drawer" tabindex="-1" aria-label="Projects"' + (isOpen ? ' role="dialog" aria-modal="true"' : '') + '>'
     + '<div class="sidebar-head"><h2 class="sidebar-title">Projects</h2><span class="muted small">' + visibleProjects.length + '</span></div>'
+    + renderViewSwitch(ui)
     + '<input type="text" class="project-search sidebar-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
     + '<div class="filter-pills sidebar-pills">' + projectFilterPills(st, ui) + '</div>'
     + '<div class="sidebar-tools">' + projectSortSelect(ui) + collapseAllButton(ui, visibleProjects) + '</div>'
@@ -453,19 +467,22 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
   const total = p.tasks.length;
   const pct = total ? Math.round((done.length / total) * 100) : 0;
   const doneOpen = !!ui.doneOpen[p.id];
-  // The per-project collapse toggle and "Collapse all" are hidden at both widths now (Q26a, Q28):
-  // a wide tile has a fixed height, and a phone shows only one project at a time, so collapsing it
-  // does nothing useful. A flag saved before this PR is ignored for rendering here and never
-  // written -- see docs/4-systems/styling.md.
-  const collapsed = false;
-  // Below 1100px only the selected card shows at all (CSS hides the rest); at and above it every
-  // visible project is its own tile and this class has no visual effect (Q26a, Q28).
-  const isSelected = ui.selectedProjectId === p.id;
+  const isOneView = ui.projectView === 'one';
+  // Minimising is back (PR 6, 2026-09-27): the saved per-project flag applies in the "All" view, at
+  // every width. In the "One" view the flag is ignored at render (never written) -- the one card on
+  // screen always shows expanded, since minimising it would do nothing useful. See
+  // docs/4-systems/styling.md.
+  const collapsed = !isOneView && !!ui.projectCollapsed[p.id];
+  // Selection only means anything in the "One" view: below 1100px CSS hides every card but the
+  // selected one; from 1100px this class still marks which card is "current" for that view.
+  const isSelected = isOneView && ui.selectedProjectId === p.id;
   const ghBadge = p.source === 'github' ? '<a class="chip gh-chip small" href="' + esc(p.htmlUrl || '#') + '" target="_blank" rel="noopener">' + (p.private ? 'Private · ' : '') + 'GitHub ↗</a>' : '';
   const projCat = projectCategories.find((c) => c.id === p.categoryId);
   const projCatChip = projCat ? '<span class="chip cat-chip small" data-cat-id="' + projCat.id + '" data-cat-type="project" title="Right-click to change color" style="--chip-color:' + projCat.color + '">' + esc(projCat.name) + '</span>' : '';
   const editingPanel = !!ui.editingProject[p.id];
-  const collapseBtn = '<button type="button" class="btn-text collapse-toggle" data-action="toggle-project-collapse" data-project="' + p.id + '" aria-label="' + (collapsed ? 'Expand project' : 'Minimize project') + '">' + (collapsed ? '▸' : '▾') + '</button>';
+  // The minimise button is hidden in the "One" view along with "Collapse all" (collapseAllButton,
+  // above) -- there's only ever one card on screen there.
+  const collapseBtn = isOneView ? '' : '<button type="button" class="btn-text collapse-toggle" data-action="toggle-project-collapse" data-project="' + p.id + '" aria-label="' + (collapsed ? 'Expand project' : 'Minimise project') + '" aria-expanded="' + (!collapsed) + '">' + (collapsed ? '▸' : '▾') + '</button>';
   const editLink = '<button type="button" class="link-btn small" data-action="' + (editingPanel ? 'close-project-edit' : 'open-project-edit') + '" data-project="' + p.id + '">Edit</button>';
   const addingTask = !!ui.addingTask[p.id];
   const addTaskBlock = addingTask
@@ -507,6 +524,26 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
       + '</div>'
     ))
     + '</section>';
+}
+
+// The main column's projects area: what renders depends on ui.projectView and, in "All", the
+// caller's isWide. Pure and directly testable. See docs/4-systems/styling.md#project-sidebar.
+export function renderProjectsMain(st, ui, visibleProjects, isWide) {
+  const noMatch = st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '';
+  const card = (p) => renderProjectCard(p, ui, st.categories, st.projectCategories);
+  if (ui.projectView === 'one') {
+    const selected = visibleProjects.find((p) => p.id === ui.selectedProjectId);
+    return '<div class="projects-grid">' + (selected ? card(selected) : noMatch) + '</div>';
+  }
+  if (isWide) {
+    const full = visibleProjects.filter((p) => !ui.projectCollapsed[p.id]);
+    const minimised = visibleProjects.filter((p) => ui.projectCollapsed[p.id]);
+    return '<div class="projects-grid">' + full.map(card).join('') + noMatch + '</div>'
+      + (minimised.length
+        ? '<div class="minimised-projects"><h4>Minimised</h4><div class="projects-grid minimised-grid">' + minimised.map(card).join('') + '</div></div>'
+        : '');
+  }
+  return '<div class="projects-grid">' + visibleProjects.map(card).join('') + noMatch + '</div>';
 }
 
 // The one field at the bottom of the project list (Q15a, Q12d): a project name, or an owner/repo /

@@ -5,7 +5,7 @@ import * as R from './render.js';
 import { registerPaint, initSyncLifecycle } from './sync.js';
 import { syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask } from './github-sync.js';
 import { getToken } from './github.js';
-import { filterAndSortProjects, resolveSelectedProject } from './project-filter.js';
+import { filterAndSortProjects, resolveSelectedProject, resolveProjectView } from './project-filter.js';
 import { parseRepoInput } from './github-sync.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
@@ -43,12 +43,26 @@ function saveSelectedProjectId(id) {
   catch (e) { console.error('Could not save the selected project:', e); }
 }
 
-// The app's one layout breakpoint (Q26a, Q28): >=1100px shows every visible project as its own
-// 2x2 tile; below it, one project at a time. This constant mirrors the `@media (min-width:1100px)`
-// queries in css/app.css -- the two are coupled only by both spelling 1100 the same way.
+// The app's one layout breakpoint: from 1100px the "All" view is 2x2 tiles, below it every project
+// stacks at its natural height. This constant mirrors the `@media (min-width:1100px)` queries in
+// css/app.css -- the two are coupled only by both spelling 1100 the same way.
 const WIDE_BREAKPOINT_PX = 1100;
 function isWideScreen() {
   return typeof matchMedia === 'function' && matchMedia('(min-width:' + WIDE_BREAKPOINT_PX + 'px)').matches;
+}
+
+// "All" or "One" (PR 6, 2026-09-27) is a per-device layout choice, like the collapsed projects and
+// selected project above -- not synced state. Resolved once at load against the width at the time
+// (resolveProjectView, js/project-filter.js); once the user picks, it holds on this device at every
+// width from then on. See docs/6-decisions/Decisions.md.
+const PROJECT_VIEW_KEY = 'focusdeck-project-view';
+function loadProjectView() {
+  try { return localStorage.getItem(PROJECT_VIEW_KEY); }
+  catch (e) { console.error('Could not read the project view:', e); return null; }
+}
+function saveProjectView(view) {
+  try { localStorage.setItem(PROJECT_VIEW_KEY, view); }
+  catch (e) { console.error('Could not save the project view:', e); }
 }
 
 // Per-item scratch for the Unsorted flow (chosen project, ticked labels, typed new labels, "show
@@ -58,7 +72,7 @@ function freshUnsortedScratch(skipped) {
   return { skipped: skipped || [], projectId: null, selected: [], newLabels: '', showAllLabels: false, showAllProjects: false, currentKey: null };
 }
 
-export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(), projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId() };
+export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(), projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: resolveProjectView(loadProjectView(), isWideScreen()) };
 
 export function renderApp(st) {
   st._ui = ui; // the sync button reads sync UI state off the state object it's already passed
@@ -69,15 +83,13 @@ export function renderApp(st) {
   const currentKey = currentUnsorted ? currentUnsorted.key : null;
   if (currentKey !== ui.unsorted.currentKey) ui.unsorted = Object.assign(freshUnsortedScratch(ui.unsorted.skipped), { currentKey });
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
-  // Resolved against every project, not just the filtered/searched list (Q22b/Q23a) -- the open
-  // project stays open on wide screens even if a search or category filter hides it from the list.
+  // Resolved against every project, not just the filtered/searched list -- the selected project
+  // stays selected in the "One" view even if a search or category filter hides it from the list.
   ui.selectedProjectId = resolveSelectedProject(st.projects, ui.selectedProjectId);
-  return R.renderProjectSidebar(st, ui, visibleProjects, isWideScreen())
-    + '<div class="main-col">'
+  return R.renderProjectSidebar(st, ui, visibleProjects)
+    + '<div class="main-col view-' + ui.projectView + '">'
       + R.renderFocus(st, findTaskWithProject, ui) + R.renderInbox(st, ui)
-      + '<div class="projects-grid">' + visibleProjects.map((p) => R.renderProjectCard(p, ui, st.categories, st.projectCategories)).join('')
-        + (st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '')
-      + '</div>'
+      + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen())
     + '</div>'
     + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
 }
@@ -227,6 +239,13 @@ function onAppClick(e) {
     paint();
   }
   else if (action === 'toggle-project-collapse') { ui.projectCollapsed[projectId] = !ui.projectCollapsed[projectId]; saveCollapsedProjects(); paint(); }
+  else if (action === 'set-project-view') {
+    const view = el.getAttribute('data-view');
+    if (view === 'all' || view === 'one') { ui.projectView = view; saveProjectView(view); }
+    // Left open on phones (the switch lives in the drawer there) so the person sees the view
+    // change take effect behind it, rather than closing over the very thing they just changed.
+    paint();
+  }
   else if (action === 'toggle-collapse-all') {
     const visible = filterAndSortProjects(state.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
     const allCollapsed = visible.length > 0 && visible.every((p) => ui.projectCollapsed[p.id]);
@@ -367,11 +386,10 @@ function createIssueIfGithubProject(task, projectId) {
   }
 }
 
-// After adding a project from the one add field (Q15a, Q12d): select it below 1100px (Q28), or on
-// wide screens just scroll to its new tile once it's rendered (Q26a, no selection there) -- the
-// same split as scrollToProject.
+// After adding a project from the one add field (Q15a, Q12d): select it in the "One" view, or in
+// "All" just scroll to its new card/tile once it's rendered -- the same split as scrollToProject.
 function afterProjectAdded(projectId) {
-  if (!isWideScreen()) {
+  if (ui.projectView === 'one') {
     ui.selectedProjectId = projectId;
     saveSelectedProjectId(projectId);
   }
@@ -480,20 +498,21 @@ function scrollOpenedFormIntoView(selector) {
   if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
 }
 
-// Jumps to a project's card: at >=1100px every visible project already renders as its own tile
-// (Q26a, #82), so this just scrolls -- no selection state, no aria-current there. Below 1100px, one
-// project shows at a time (Q28): this selects it (closing the drawer first) and scrolls to it. The
-// sidebar row, the focus card's project chip, and any other scroll-project source all branch here.
+// Jumps to a project's card: in the "One" view this selects it (closing the drawer first) and
+// scrolls to it, on any width. In "All" every visible project already renders as its own card/tile
+// -- no selection state, no aria-current there -- so this just expands it first if it's minimised
+// (there'd be nothing to scroll to see otherwise) and scrolls. The sidebar row, the focus card's
+// project chip, and any other scroll-project source all branch here.
 function scrollToProject(projectId) {
   if (!state.projects.some((p) => p.id === projectId)) return;
-  if (isWideScreen()) {
-    const target = document.getElementById('proj-' + projectId);
-    if (target) scrollProjectIntoView(target);
-    return;
-  }
   if (ui.projectsDrawerOpen) setProjectsDrawerOpen(false);
-  ui.selectedProjectId = projectId;
-  saveSelectedProjectId(projectId);
+  if (ui.projectView === 'one') {
+    ui.selectedProjectId = projectId;
+    saveSelectedProjectId(projectId);
+  } else if (ui.projectCollapsed[projectId]) {
+    ui.projectCollapsed[projectId] = false;
+    saveCollapsedProjects();
+  }
   scrollProjectAfterPaint(projectId);
 }
 

@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderProjectCard, renderAddProjectField, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderAddProjectField, renderSyncButton, syncButtonTitle } from './render.js';
 import assert from 'node:assert';
 
 // the top-bar sync button: title/aria-label branch on whether it's ever synced, and it spins +
@@ -224,7 +224,7 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
     { id: 'p1', name: 'PlunderSpell', color: 'red', tasks: [{ id: 'a', status: 'next' }, { id: 'b', status: 'done' }] },
     { id: 'p2', name: 'Chores', color: 'green', tasks: [] },
   ];
-  const side = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: 'plu', projectSort: 'name', projectCollapsed: {} }, [projects[0]]);
+  const side = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: 'plu', projectSort: 'name', projectCollapsed: {}, projectView: 'all' }, [projects[0]]);
   assert.ok(side.includes('<div class="drawer-backdrop" data-action="close-projects-drawer"></div>'), 'a backdrop (closed) sits alongside the sidebar/drawer');
   assert.ok(side.includes('<aside class="project-sidebar" id="projects-drawer" tabindex="-1" aria-label="Projects">'), 'closed (or the wide-screen sidebar), it is a plain aside, not a modal');
   assert.ok(side.includes('class="project-search sidebar-search" data-action="set-project-query"') && side.includes('value="plu"'), 'it has its own search box, sharing the project search');
@@ -233,9 +233,18 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   assert.ok(!side.includes('data-project="p2"'), 'projects hidden by the search are left out');
   assert.strictEqual(renderProjectSidebar({ projects: [], projectCategories: [] }, {}, []), '', 'no projects, no sidebar');
 
-  const open = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: '', projectSort: 'name', projectCollapsed: {}, projectsDrawerOpen: true }, projects);
+  const open = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: '', projectSort: 'name', projectCollapsed: {}, projectView: 'all', projectsDrawerOpen: true }, projects);
   assert.ok(open.includes('class="drawer-backdrop is-open"') && open.includes('class="project-sidebar is-open" id="projects-drawer"'), 'ui.projectsDrawerOpen adds is-open to both the backdrop and the drawer');
   assert.ok(open.includes('role="dialog" aria-modal="true"'), 'open as the drawer, it is a modal dialog');
+
+  // The "All"/"One" switch (PR 6): a two-option segmented control right under the title row.
+  assert.ok(side.includes('role="group" aria-label="Project view"'), 'the switch is a labelled group');
+  assert.ok(side.includes('data-action="set-project-view" data-view="all"') && side.includes('data-action="set-project-view" data-view="one"'), 'it has an All button and a One button');
+  assert.ok(/class="filter-pill active" data-action="set-project-view" data-view="all" aria-pressed="true"/.test(side), 'the current view ("all" here) is pressed and gets the active pill treatment');
+  assert.ok(/class="filter-pill" data-action="set-project-view" data-view="one" aria-pressed="false"/.test(side), 'the other option is not pressed');
+  const oneSide = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: '', projectSort: 'name', projectCollapsed: {}, projectView: 'one' }, projects);
+  assert.ok(/class="filter-pill active" data-action="set-project-view" data-view="one" aria-pressed="true"/.test(oneSide), 'switching to "one" moves the active state to that button');
+  assert.ok(!oneSide.includes('data-action="toggle-collapse-all"'), '"Collapse all" is left out of the sidebar in the "One" view');
 }
 
 // GitHub controls: the row shows nothing at all; unlink / link / create / Open issue / Focus /
@@ -263,7 +272,7 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
 // Project header (Q15a, #83): controls stay on the first line whatever the name's length; the
 // badges line always renders, even empty, so every card's progress bar sits at the same offset.
 {
-  const cardUi = () => ({ doneOpen: {}, pendingRemove: {}, projectCollapsed: {}, editingProject: {}, addingTask: {}, selectedProjectId: null, editingTask: null });
+  const cardUi = () => ({ doneOpen: {}, pendingRemove: {}, projectCollapsed: {}, editingProject: {}, addingTask: {}, selectedProjectId: null, editingTask: null, projectView: 'all' });
   const short = { id: 'p1', name: 'Short', color: 'red', tasks: [] };
   const long = { id: 'p2', name: 'A very very long project name that used to wrap the header controls onto a second line', color: 'red', source: 'github', htmlUrl: 'https://github.com/o/r', private: true, categoryId: 'c1', tasks: [] };
   const projectCategories = [{ id: 'c1', name: 'Games', color: '#123456' }];
@@ -291,30 +300,69 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   assert.ok(opened.includes('<form class="add-task-form"') && opened.includes('name="title"') && opened.includes('autofocus'), 'open: the full add-task form, title focused');
   assert.ok(opened.includes('data-action="cancel-add-task" data-project="p1"'), 'the open form can be cancelled');
 
-  // The collapse toggle and Collapse all are hidden at both widths now (Q26a, Q28), so a saved
-  // collapsed flag is ignored for rendering here -- selected or not, whatever the flag says.
-  const collapsedSelected = renderProjectCard(short, { ...cardUi(), projectCollapsed: { p1: true }, selectedProjectId: 'p1' }, [], []);
-  assert.ok(collapsedSelected.includes('is-selected') && !collapsedSelected.includes('is-collapsed'), 'a selected project always renders expanded, whatever its collapsed flag says');
-  const collapsedUnselected = renderProjectCard(short, { ...cardUi(), projectCollapsed: { p1: true } }, [], []);
-  assert.ok(!collapsedUnselected.includes('is-collapsed') && !collapsedUnselected.includes('is-selected'), 'an unselected project also renders expanded now -- the collapsed flag is ignored, not just for the selected card');
+  // Minimising is back (PR 6, 2026-09-27): in the "All" view a saved collapsed flag renders
+  // header-only, with the ▸ toggle and aria-expanded="false"; expanded is ▾ and aria-expanded="true".
+  const minimised = renderProjectCard(short, { ...cardUi(), projectCollapsed: { p1: true } }, [], []);
+  assert.ok(minimised.includes('project-card is-collapsed'), 'a minimised project in "All" gets .is-collapsed');
+  assert.ok(minimised.includes('>▸</button>') && minimised.includes('aria-label="Expand project"') && minimised.includes('aria-expanded="false"'), 'the collapsed toggle shows ▸, "Expand project", aria-expanded="false"');
+  assert.ok(!minimised.includes('project-body'), 'a minimised card renders header + badges + progress bar only, no body');
+  const expanded = renderProjectCard(short, { ...cardUi(), projectCollapsed: { p1: false } }, [], []);
+  assert.ok(expanded.includes('>▾</button>') && expanded.includes('aria-label="Minimise project"') && expanded.includes('aria-expanded="true"'), 'expanded shows ▾, "Minimise project", aria-expanded="true"');
   assert.ok(shortHtml.includes('class="project-body" tabindex="0" role="region" aria-label="Short tasks"'), 'the task groups and add-task line sit in a keyboard-reachable scroll region');
+
+  // The "One" view: the shown card always renders expanded, whatever its saved flag says, and with
+  // no minimise button at all (there's only ever one card on screen, and nothing writes the flag here).
+  const oneUi = { ...cardUi(), projectView: 'one', projectCollapsed: { p1: true }, selectedProjectId: 'p1' };
+  const oneCard = renderProjectCard(short, oneUi, [], []);
+  assert.ok(oneCard.includes('is-selected') && !oneCard.includes('is-collapsed'), 'the selected project in "One" always renders expanded, whatever its collapsed flag says');
+  assert.ok(!oneCard.includes('collapse-toggle'), 'the "One" view has no minimise button at all');
 }
 
 // Sidebar: selection highlight + the one add field at the bottom
 {
   const projects = [{ id: 'p1', name: 'Alpha', color: 'red', tasks: [] }, { id: 'p2', name: 'Beta', color: 'blue', tasks: [] }];
-  const sideUi = { projectQuery: '', projectSort: 'name', projectCollapsed: {}, selectedProjectId: 'p2' };
+  const sideUi = { projectQuery: '', projectSort: 'name', projectCollapsed: {}, selectedProjectId: 'p2', projectView: 'one' };
   const html = renderProjectSidebar({ projects, projectCategories: [] }, sideUi, projects);
   assert.ok(html.includes('data-action="scroll-project" data-project="p2"') && /class="sidebar-project is-selected"[^>]*data-project="p2"[^>]*aria-current="true"/.test(html), 'the selected row is highlighted with aria-current');
   assert.ok(!/data-project="p1"[^>]*aria-current/.test(html), 'the unselected row carries no aria-current');
   assert.ok(html.includes('<form class="add-project-form" data-action="add-project-field">') && html.includes('placeholder="New project or owner/repo"'), 'the sidebar ends with the one add field');
   assert.strictEqual(renderAddProjectField(), '<form class="add-project-form" data-action="add-project-field"><input type="text" name="value" placeholder="New project or owner/repo" maxlength="200" required><button type="submit">+ Add</button></form>', 'the add field itself');
 
-  // >=1100px (2x2 tiles, Q26a): every project is its own tile, so no row is "current" -- no
-  // is-selected class, no aria-current, even though ui.selectedProjectId is still set (it's read
-  // below 1100px only).
-  const wide = renderProjectSidebar({ projects, projectCategories: [] }, sideUi, projects, true);
-  assert.ok(!wide.includes('is-selected') && !wide.includes('aria-current'), 'a wide-screen sidebar row carries no selection state');
+  // The "All" view: every project is its own card/tile, so no row is "current" -- no is-selected
+  // class, no aria-current, even though ui.selectedProjectId is still set (it's read in "One" only).
+  const allView = renderProjectSidebar({ projects, projectCategories: [] }, { ...sideUi, projectView: 'all' }, projects);
+  assert.ok(!allView.includes('is-selected') && !allView.includes('aria-current'), 'an "All" view sidebar row carries no selection state');
+}
+
+// renderProjectsMain: what shows in the main column depends on ui.projectView and, in "All", isWide.
+{
+  const projects = [
+    { id: 'p1', name: 'Alpha', color: 'red', tasks: [{ id: 'a', status: 'next' }] },
+    { id: 'p2', name: 'Beta', color: 'blue', tasks: [] },
+    { id: 'p3', name: 'Gamma', color: 'green', tasks: [] },
+  ];
+  const st = { projects, categories: [], projectCategories: [] };
+
+  // "One": only the selected project's card, at any width.
+  const oneMain = renderProjectsMain(st, { projectView: 'one', selectedProjectId: 'p2', projectCollapsed: {}, doneOpen: {}, pendingRemove: {}, editingProject: {}, addingTask: {} }, projects, true);
+  assert.ok(oneMain.includes('id="proj-p2"') && !oneMain.includes('id="proj-p1"') && !oneMain.includes('id="proj-p3"'), '"One" renders only the selected project\'s card');
+
+  // "All", wide: minimised projects (p1, p3) gather below the tile grid, in sort order, under a
+  // "Minimised" label; the rest (p2) stay in the tile grid.
+  const allWideUi = { projectView: 'all', selectedProjectId: null, projectCollapsed: { p1: true, p3: true }, doneOpen: {}, pendingRemove: {}, editingProject: {}, addingTask: {} };
+  const allWide = renderProjectsMain(st, allWideUi, projects, true);
+  const gridPart = allWide.slice(0, allWide.indexOf('minimised-projects'));
+  const groupPart = allWide.slice(allWide.indexOf('minimised-projects'));
+  assert.ok(gridPart.includes('id="proj-p2"') && !gridPart.includes('id="proj-p1"') && !gridPart.includes('id="proj-p3"'), 'only the non-minimised project sits in the tile grid');
+  assert.ok(groupPart.includes('<h4>Minimised</h4>') && groupPart.includes('minimised-grid'), 'the minimised group has its label and its own grid');
+  assert.ok(groupPart.indexOf('id="proj-p1"') < groupPart.indexOf('id="proj-p3"'), 'minimised projects keep the same sort order (p1 before p3, alphabetical)');
+  assert.ok(!groupPart.includes('id="proj-p2"'), 'the non-minimised project is not in the minimised group');
+
+  // "All", <1100px: everything stacks in one column, minimised projects showing header-only in
+  // place -- no separate group.
+  const allNarrow = renderProjectsMain(st, allWideUi, projects, false);
+  assert.ok(!allNarrow.includes('minimised-projects'), 'below 1100px there is no separate minimised group');
+  assert.ok(allNarrow.includes('id="proj-p1"') && allNarrow.includes('id="proj-p2"') && allNarrow.includes('id="proj-p3"'), 'every project still renders, stacked');
 }
 
 assert.strictEqual(renderToast(null, 'error'), '', 'no message means no toast');

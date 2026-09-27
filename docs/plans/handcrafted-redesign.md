@@ -60,8 +60,16 @@ on 2026-09-26; each decision below keeps its question number from that session.
 - **Phones: one project at a time (Q28, 2026-09-27).** Below 1100px the main column shows the
   focus card, Unsorted, then one project; the drawer's project list picks which. It opens on the
   one last opened on this device, or the first time the project with the most open tasks (Q23a).
-- **Dragging projects into order (Q27a, #73).** Its own PR straight after the 2x2 tiles: a saved,
-  synced project order and a "Custom" sort option.
+- **"All" or "One", per device (2026-09-27).** A switch in the project list's header picks between
+  every project ("All": 2x2 tiles from 1100px, stacked at natural height below) and one project at
+  a time ("One"), on any width. Defaults: "All" from 1100px, "One" below. (The two bullets above
+  describe the defaults.)
+- **Minimising (2026-09-27).** The per-project minimise button and Collapse all / Expand all show
+  in the "All" view. In the tile view minimised projects gather below the full-size tiles as
+  header-only cards, two to a row. (PR 5 hid minimising; the user asked for it back after using
+  it. See the Decisions entry "Minimising comes back; "All" or "One" becomes a per-device switch".)
+- **Dragging projects into order (Q27a, #73).** Its own PR after the switch: a saved, synced
+  project order and a "Custom" sort option.
 - **Project headers never shift the card (#83).** A header whose name and badges don't fit wrapped
   its controls onto a second line, pushing the progress bar lower than its neighbours'. The
   header keeps its controls on the first line whatever the name's length.
@@ -95,4 +103,5 @@ Four, in order, each checked on a phone before the next starts:
    moved, plus one project at a time on wide screens and steady project headers (#82, #83;
    Q25a, 2026-09-27).
 5. Wide screens get 2x2 tiles; one project at a time moves to phones (Q26a, Q28, 2026-09-27).
-6. Drag projects into order (Q27a, the project half of #73).
+6. Minimising back, and the "All" / "One" switch on every device (2026-09-27).
+7. Drag projects into order (Q27a, the project half of #73).
