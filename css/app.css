@@ -88,7 +88,7 @@ h1,h2,h3,h4{font-family:'Fraunces', Georgia, serif; margin:0; text-wrap:balance;
    h3 (project names, upright) override it below. */
 h2{font-size:var(--text-h); font-style:italic;}
 h3{font-size:var(--text-h); font-style:normal;}
-h4{font-size:var(--text-sm); font-style:italic; font-weight:600; color:var(--ink-soft);}
+h4{font-size:var(--text-body); font-style:italic; font-weight:600; color:var(--ink-soft);}
 p{margin:0;}
 button,input,select{font:inherit; color:inherit;}
 button{cursor:pointer;}
