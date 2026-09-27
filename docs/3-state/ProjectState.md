@@ -17,7 +17,7 @@ so averaging them with the finished ones would say nothing true.
 | 3 | Cross-device sync (Gist) | 100% | Shipped, tested |
 | 4 | Claude integration (on-demand) | 100% | Shipped, tested, archived plan |
 | 5 | Claude integration (autonomous check-in) | 100% | Works (user-confirmed 2026-09-26), shelved |
-| 6 | Handcrafted redesign | ~15% (PR 2 of 4 built) | PR 1 (docs) and PR 2 (the cuts) are built |
+| 6 | Handcrafted redesign | ~75% (PRs 1-3 merged) | PR 4 (control moves, wide-screen layout, #82, #83) next |
 | 7 | Unsorted and focus flow polish | 0% | #70 #72 #74 #75 #76 #77 open; #72, #75, #77 may be covered by PR #78 |
 | 8 | Reordering and task status | 0% | #73 #7 #6 open |
 | 9 | Usability and accessibility audit | 0% | #27 #46 open |
@@ -67,7 +67,8 @@ action button, GitHub label colours muted through `mutedChip()`, project colour 
 identity only (a dot, never a fill), and display-only label-name formatting
 (`formatLabelName`, js/state.js). See `docs/4-systems/styling.md`'s "Visual system" section and
 `docs/6-decisions/Decisions.md` (2026-09-27) for the calls made along the way. Not built: PR 4
-(control moves) — none of its changes exist yet in `js/` or `css/app.css`.
+(control moves, plus one project at a time on wide screens and steady project headers for #82 and
+#83, decided 2026-09-27) — none of its changes exist yet in `js/` or `css/app.css`.
 
 ## The one thing that is not what it looks like
 

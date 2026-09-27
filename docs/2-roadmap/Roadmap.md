@@ -72,21 +72,23 @@ after tweaks to the original plan and scheduled prompt that are not recorded in 
 archived plan, `docs/archive/2026-09-21-claude-daily-checkin.md`, is the pre-tweak version).
 Shelved the same day as less useful than expected; nothing further is planned for it.
 
-## 6. Handcrafted redesign — 0%, in progress (today's live plan)
+## 6. Handcrafted redesign — ~75%, PRs 1-3 merged, PR 4 next
 
 One-line: a focus-first, warm-editorial visual and structural redesign of the existing screens,
 landed as four ordered PRs: (1) this docs move, (2) feature/control cuts, (3) the visual system,
 (4) control moves.
 
 **Contains:** the decisions and PR breakdown in `docs/plans/handcrafted-redesign.md`
-("Pull requests (Q21a)"); PR 1 (this docs restructure) is in progress now, PRs 2-4 have not
-landed in `js/` or `css/app.css` yet.
+("Pull requests (Q21a)"). PRs 1-3 are merged (#79, #80, #81); PR 4, the control moves and the
+wide-screen project layout, is next.
 
 **Acceptance:** all four PRs merged, `node --test js/*.test.mjs` and
 `node scripts/guard-file-churn.mjs` still pass after each, and the plan's own acceptance notes
-(inside `docs/plans/handcrafted-redesign.md`) are satisfied. TODO — not started as of today.
+(inside `docs/plans/handcrafted-redesign.md`) are satisfied.
 
-**Open issues:** none belong here directly. #27 and #46 (usability audits) are milestone 9.
+**Open issues:** #82 (wonky layout when several projects are open on wide screens) and #83
+(project headers that don't line up) are fixed by PR 4. #27 and #46 (usability audits) are
+milestone 9.
 
 ## 7. Unsorted and focus flow polish — 0%
 
