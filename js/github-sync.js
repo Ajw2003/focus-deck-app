@@ -407,6 +407,20 @@ export async function linkProjectToRepoOnGithub(projectId, repo, ui) {
   }
 }
 
+// The Edit panel's "Link to GitHub repo" paste field: parses the input, fetches the repo, then
+// links it the same way picking one from the list does (linkProjectToRepoOnGithub, above).
+export async function linkProjectToRepoByInput(projectId, input, ui) {
+  const fullName = parseRepoInput(input);
+  if (!fullName) return { error: 'Enter it as "owner/repo" or a full github.com URL.' };
+  try {
+    const [owner, name] = fullName.split('/');
+    const repo = await ghFetch('/repos/' + owner + '/' + name);
+    return await linkProjectToRepoOnGithub(projectId, repo, ui);
+  } catch (e) {
+    return { error: 'Could not link that repo: ' + e.message };
+  }
+}
+
 export async function addRepoManually(input, ui) {
   const fullName = parseRepoInput(input);
   if (!fullName) { ui.syncError = 'Enter it as "owner/repo" or a full github.com URL.'; return; }

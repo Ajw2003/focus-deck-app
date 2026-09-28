@@ -3,10 +3,13 @@ import { state, findTaskWithProject, findProjectIdForTask, cssColorToHex, storag
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle } from './sync.js';
-import { syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask } from './github-sync.js';
+import {
+  syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask,
+  parseRepoInput, listYourRepos, untrackedRepos, isValidRepoName, REPO_NAME_RULE,
+  createRepoAndTrack, linkProjectToRepoOnGithub, linkProjectToRepoByInput,
+} from './github-sync.js';
 import { getToken } from './github.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView } from './project-filter.js';
-import { parseRepoInput } from './github-sync.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
 // storage rather than in the synced state.
@@ -72,7 +75,17 @@ function freshUnsortedScratch(skipped) {
   return { skipped: skipped || [], projectId: null, selected: [], newLabels: '', showAllLabels: false, showAllProjects: false, currentKey: null };
 }
 
-export const ui = { inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null, projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(), focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(), projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: resolveProjectView(loadProjectView(), isWideScreen()) };
+export const ui = {
+  inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
+  projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(),
+  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(),
+  projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: resolveProjectView(loadProjectView(), isWideScreen()),
+  // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
+  // (Q30c) -- neither persisted, both reset to closed on load.
+  newPanelOpen: false, newPanelTab: 'project', newPanelRepos: null, newPanelRepoFilter: '',
+  newPanelCreateOpen: false, newPanelCreating: false, newPanelCreateError: null, newPanelPasteError: null,
+  linkPanel: null,
+};
 
 export function renderApp(st) {
   st._ui = ui; // the sync button reads sync UI state off the state object it's already passed
@@ -86,10 +99,11 @@ export function renderApp(st) {
   // Resolved against every project, not just the filtered/searched list -- the selected project
   // stays selected in the "One" view even if a search or category filter hides it from the list.
   ui.selectedProjectId = resolveSelectedProject(st.projects, ui.selectedProjectId);
-  return R.renderProjectSidebar(st, ui, visibleProjects)
+  const hasToken = !!getToken();
+  return R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
     + '<div class="main-col view-' + ui.projectView + '">'
       + R.renderFocus(st, findTaskWithProject, ui) + R.renderInbox(st, ui)
-      + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen())
+      + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken)
     + '</div>'
     + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
 }
@@ -216,7 +230,54 @@ function onAppClick(e) {
   else if (action === 'cancel-remove-project') { delete ui.pendingRemove[projectId]; paint(); }
   else if (action === 'confirm-remove-project') { delete ui.editingProject[projectId]; M.removeProject(projectId); }
   else if (action === 'open-project-edit') { ui.editingProject[projectId] = true; paint(); }
-  else if (action === 'close-project-edit') { delete ui.editingProject[projectId]; delete ui.pendingRemove[projectId]; paint(); }
+  else if (action === 'close-project-edit') { delete ui.editingProject[projectId]; delete ui.pendingRemove[projectId]; ui.linkPanel = null; paint(); }
+  else if (action === 'toggle-new-panel') {
+    if (ui.newPanelOpen) {
+      closeNewPanel();
+      paint();
+      document.getElementById('new-panel-toggle') && document.getElementById('new-panel-toggle').focus();
+    } else {
+      ui.newPanelOpen = true;
+      if (ui.newPanelTab === 'repo') fetchNewPanelRepos();
+      paint();
+      focusNewPanelFirstField();
+    }
+  }
+  else if (action === 'set-new-panel-tab') {
+    ui.newPanelTab = el.getAttribute('data-tab') === 'repo' ? 'repo' : 'project';
+    if (ui.newPanelTab === 'repo' && !ui.newPanelRepos) fetchNewPanelRepos();
+    paint();
+    focusNewPanelFirstField();
+  }
+  else if (action === 'retry-new-panel-repos') fetchNewPanelRepos();
+  else if (action === 'track-repo') {
+    const fullName = el.getAttribute('data-repo');
+    addRepoManually(fullName, ui).then(() => {
+      const project = state.projects.find((p) => p.source === 'github' && p.repoFullName === fullName);
+      closeNewPanel();
+      if (project) afterProjectAdded(project.id); else paint();
+    });
+  }
+  else if (action === 'toggle-link-panel') {
+    if (ui.linkPanel && ui.linkPanel.projectId === projectId && ui.linkPanel.open) { ui.linkPanel = null; paint(); return; }
+    ui.linkPanel = { projectId, open: true, repos: null, error: null };
+    fetchLinkPanelRepos(projectId);
+    paint();
+  }
+  else if (action === 'retry-link-panel-repos') fetchLinkPanelRepos(ui.linkPanel && ui.linkPanel.projectId);
+  else if (action === 'link-repo') {
+    const fullName = el.getAttribute('data-repo');
+    const forProjectId = ui.linkPanel && ui.linkPanel.projectId;
+    const repos = (ui.linkPanel && ui.linkPanel.repos && ui.linkPanel.repos.list) || [];
+    const repo = repos.find((r) => r.full_name === fullName);
+    if (!forProjectId || !repo) return;
+    linkProjectToRepoOnGithub(forProjectId, repo, ui).then((result) => {
+      if (result.error) { ui.linkPanel.error = result.error; paint(); return; }
+      ui.linkPanel = null;
+      delete ui.editingProject[forProjectId];
+      paint();
+    });
+  }
   else if (action === 'open-add-task') { ui.addingTask[projectId] = true; paint(); scrollOpenedFormIntoView('.add-task-form'); }
   else if (action === 'cancel-add-task') { delete ui.addingTask[projectId]; paint(); }
   else if (action === 'dismiss-toast') {
@@ -343,6 +404,12 @@ function onAppInput(e) {
     ui.projectQuery = e.target.value;
     paint();
   }
+  if (e.target.matches && e.target.matches('.repo-filter')) {
+    ui.newPanelRepoFilter = e.target.value;
+    paint();
+    const field = document.querySelector('.repo-filter');
+    if (field) { field.focus(); field.setSelectionRange(field.value.length, field.value.length); }
+  }
 }
 
 // A label's id by name, ignoring case; creates the label (with color, if given) when it doesn't exist.
@@ -386,7 +453,7 @@ function createIssueIfGithubProject(task, projectId) {
   }
 }
 
-// After adding a project from the one add field (Q15a, Q12d): select it in the "One" view, or in
+// After adding a project from the "+ New" panel (Q29a, Q12d): select it in the "One" view, or in
 // "All" just scroll to its new card/tile once it's rendered -- the same split as scrollToProject.
 function afterProjectAdded(projectId) {
   if (ui.projectView === 'one') {
@@ -394,6 +461,52 @@ function afterProjectAdded(projectId) {
     saveSelectedProjectId(projectId);
   }
   scrollProjectAfterPaint(projectId);
+}
+
+// The "+ New" panel's "Your repos" tab (Q29a): fetched once when the tab first opens, cached in
+// ui.newPanelRepos until closed. Errors show inline with a Retry (retry-new-panel-repos).
+function fetchNewPanelRepos() {
+  ui.newPanelRepos = { loading: true };
+  paint();
+  listYourRepos().then((repos) => {
+    ui.newPanelRepos = { list: untrackedRepos(repos, state.projects, state.excludedRepos) };
+    paint();
+  }).catch((e) => {
+    ui.newPanelRepos = { error: e.message };
+    paint();
+  });
+}
+
+// The Edit panel's inline "Link to GitHub repo" chooser (Q30c) -- same idea, its own cache slot.
+function fetchLinkPanelRepos(projectId) {
+  listYourRepos().then((repos) => {
+    if (!ui.linkPanel || ui.linkPanel.projectId !== projectId) return; // panel closed/changed meanwhile
+    ui.linkPanel.repos = { list: untrackedRepos(repos, state.projects, state.excludedRepos) };
+    paint();
+  }).catch((e) => {
+    if (!ui.linkPanel || ui.linkPanel.projectId !== projectId) return;
+    ui.linkPanel.repos = { error: e.message };
+    paint();
+  });
+}
+
+function closeNewPanel() {
+  ui.newPanelOpen = false;
+  ui.newPanelTab = 'project';
+  ui.newPanelRepos = null;
+  ui.newPanelRepoFilter = '';
+  ui.newPanelCreateOpen = false;
+  ui.newPanelCreateError = null;
+  ui.newPanelPasteError = null;
+}
+
+// Escape inside the panel closes it and returns focus to "+ New" (Q29a).
+function focusNewPanelFirstField() {
+  requestAnimationFrame(() => {
+    const panel = document.getElementById('new-panel');
+    const field = panel && panel.querySelector('input, textarea, select');
+    if (field) field.focus();
+  });
 }
 
 function onAppSubmit(e) {
@@ -406,25 +519,76 @@ function onAppSubmit(e) {
     createIssueIfGithubProject(task, projectId);
     return;
   }
-  const addProjectField = e.target.closest('[data-action="add-project-field"]');
-  if (addProjectField) {
+  // The "+ New" panel's "New project" tab (Q29a): a plain name, no category -- set afterward
+  // through the project's own Edit panel.
+  const addNewProject = e.target.closest('[data-action="add-new-project"]');
+  if (addNewProject) {
     e.preventDefault();
-    const val = String(new FormData(addProjectField).get('value') || '').trim();
-    if (!val) return;
-    addProjectField.reset();
-    // "owner/repo" or a github.com URL takes the track-repo path (Q15a, Q12d); anything else is a
-    // plain project name with no category -- category is set later through a project's own Edit
-    // panel. Detection reuses parseRepoInput, the same regex every other repo-input field uses.
+    const name = String(new FormData(addNewProject).get('name') || '').trim();
+    if (!name) return;
+    const project = M.addProject(name, null);
+    closeNewPanel();
+    afterProjectAdded(project.id);
+    return;
+  }
+  // The "+ New" panel's "GitHub repo" tab, Paste field: same track-repo path as picking one from
+  // Your repos (addRepoManually) -- parseRepoInput's error shows inline instead of in the toast.
+  const pasteRepo = e.target.closest('[data-action="paste-repo"]');
+  if (pasteRepo) {
+    e.preventDefault();
+    const val = String(new FormData(pasteRepo).get('value') || '').trim();
+    if (!parseRepoInput(val)) { ui.newPanelPasteError = 'Enter it as "owner/repo" or a full github.com URL.'; paint(); return; }
+    ui.newPanelPasteError = null;
     const repoFullName = parseRepoInput(val);
-    if (repoFullName) {
-      addRepoManually(val, ui).then(() => {
-        paint();
-        const project = state.projects.find((p) => p.source === 'github' && p.repoFullName === repoFullName);
-        if (project) afterProjectAdded(project.id);
-      });
-    } else {
-      afterProjectAdded(M.addProject(val, null).id);
-    }
+    addRepoManually(val, ui).then(() => {
+      if (ui.syncError) { ui.newPanelPasteError = ui.syncError; ui.syncError = null; paint(); return; }
+      const project = state.projects.find((p) => p.source === 'github' && p.repoFullName === repoFullName);
+      closeNewPanel();
+      if (project) afterProjectAdded(project.id); else paint();
+    });
+    return;
+  }
+  // The "+ New" panel's "Create a new repo on GitHub" disclosure (Q31a, #39).
+  const createRepoForm = e.target.closest('[data-action="create-repo"]');
+  if (createRepoForm) {
+    e.preventDefault();
+    const fd = new FormData(createRepoForm);
+    const name = String(fd.get('name') || '').trim();
+    if (!isValidRepoName(name)) { ui.newPanelCreateError = 'Repo name: ' + REPO_NAME_RULE + '.'; ui.newPanelCreateOpen = true; paint(); return; }
+    ui.newPanelCreateOpen = true;
+    ui.newPanelCreateError = null;
+    ui.newPanelCreating = true;
+    paint();
+    createRepoAndTrack(name, !!fd.get('private'), String(fd.get('description') || '').trim(), ui).then((repo) => {
+      ui.newPanelCreating = false;
+      if (ui.syncError) { ui.newPanelCreateError = ui.syncError; ui.syncError = null; paint(); return; }
+      const project = state.projects.find((p) => p.source === 'github' && p.repoFullName === repo.full_name);
+      closeNewPanel();
+      if (project) afterProjectAdded(project.id); else paint();
+    }).catch((e) => {
+      ui.newPanelCreating = false;
+      if (e.status === 403 || e.status === 404) {
+        ui.newPanelCreateError = 'GitHub refused: your token needs Administration: Read and write to create repos. See Settings.' + (e.githubMessage ? ' (' + e.githubMessage + ')' : '');
+      } else {
+        ui.newPanelCreateError = e.message;
+      }
+      paint();
+    });
+    return;
+  }
+  // The Edit panel's "Link to GitHub repo" chooser (Q30c), Paste field.
+  const pasteLinkRepo = e.target.closest('[data-action="paste-link-repo"]');
+  if (pasteLinkRepo) {
+    e.preventDefault();
+    const val = String(new FormData(pasteLinkRepo).get('value') || '').trim();
+    const forProjectId = ui.linkPanel && ui.linkPanel.projectId;
+    if (!forProjectId) return;
+    linkProjectToRepoByInput(forProjectId, val, ui).then((result) => {
+      if (result.error) { ui.linkPanel.error = result.error; paint(); return; }
+      ui.linkPanel = null;
+      delete ui.editingProject[forProjectId];
+      paint();
+    });
     return;
   }
   const editForm = e.target.closest('[data-action="save-task-edit"]');
@@ -453,6 +617,18 @@ function onAppKeydown(e) {
   if (e.key === 'Escape') {
     const form = e.target.closest && e.target.closest('.add-task-form');
     if (form) { delete ui.addingTask[form.getAttribute('data-project')]; paint(); }
+  }
+  // Escape inside the "+ New" panel closes it and returns focus to "+ New" (Q29a).
+  if (e.key === 'Escape' && e.target.closest && e.target.closest('#new-panel')) {
+    closeNewPanel();
+    paint();
+    const btn = document.getElementById('new-panel-toggle');
+    if (btn) btn.focus();
+  }
+  // Escape inside the Edit panel's inline repo chooser closes just that.
+  if (e.key === 'Escape' && e.target.closest && e.target.closest('.link-repo-panel')) {
+    ui.linkPanel = null;
+    paint();
   }
 }
 
