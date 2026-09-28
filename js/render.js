@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.js
-import { state, esc, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
+import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
 import { ICON_SYNC, ICON_GRIP } from './icons.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
@@ -292,7 +292,9 @@ export function renderLabelPicker(categories, selectedIds) {
   const selected = selectedIds || [];
   const options = categories.map((c) => '<label class="label-option" style="--chip-color:' + mutedChip(c.color) + '">'
     + '<input type="checkbox" name="categoryIds" value="' + c.id + '"' + (selected.includes(c.id) ? ' checked' : '') + '>'
-    + '<span>' + esc(formatLabelName(c.name)) + '</span></label>').join('');
+    + '<span>' + esc(formatLabelName(c.name)) + '</span>'
+    + '<input type="color" class="cat-color-input label-swatch" data-color-for="label" data-id="' + c.id + '" value="' + cssColorToHex(c.color) + '" aria-label="Colour for ' + esc(formatLabelName(c.name)) + '">'
+    + '</label>').join('');
   return '<details class="label-picker">'
     + '<summary>' + labelPickerSummary(selected.length) + '</summary>'
     + '<div class="label-options">' + options + '</div>'
@@ -547,6 +549,12 @@ function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
   const catSelect = '<label class="project-edit-cat">Category '
     + '<select data-action="set-project-category" data-project="' + p.id + '"><option value="">No category</option>' + projCatOptions + '<option value="__new__">+ Add new…</option></select>'
     + '</label>';
+  // Colour without right-click (#95): native colour inputs, wired in app.js (input previews, change commits).
+  const colorInput = (kind, id, color, label) => '<label class="project-edit-cat">' + label
+    + ' <input type="color" class="cat-color-input" data-color-for="' + kind + '" data-id="' + id + '" value="' + cssColorToHex(color) + '"></label>';
+  const projCat = projectCategories.find((c) => c.id === p.categoryId);
+  const colorRows = colorInput('project', p.id, p.color, 'Colour')
+    + (projCat ? colorInput('project-category', projCat.id, projCat.color, 'Category colour') : '');
   const removeControl = pendingRemove
     ? '<span class="remove-confirm">Remove' + (total ? (' &amp; ' + total + ' task' + (total === 1 ? '' : 's')) : '') + '? <button type="button" class="btn-text danger" data-action="confirm-remove-project" data-project="' + p.id + '">Yes</button><button type="button" class="btn-text" data-action="cancel-remove-project" data-project="' + p.id + '">No</button></span>'
     : '<button type="button" class="btn-text danger" data-action="remove-project" data-project="' + p.id + '">Remove project</button>';
@@ -554,7 +562,7 @@ function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
   const linkRow = (p.source !== 'github' && hasToken)
     ? '<button type="button" class="link-btn small" data-action="toggle-link-panel" data-project="' + p.id + '">Link to GitHub repo</button>' + renderLinkRepoPanel(p, ui)
     : '';
-  return '<div class="project-edit-panel">' + catSelect + removeControl
+  return '<div class="project-edit-panel">' + catSelect + colorRows + removeControl
     + '<button type="button" class="btn-text" data-action="close-project-edit" data-project="' + p.id + '">Done</button>' + linkRow + '</div>';
 }
 

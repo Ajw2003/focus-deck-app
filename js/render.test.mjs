@@ -267,6 +267,13 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   const plainRow = row({ source: 'manual', url: undefined, repoFullName: undefined, issueNumber: undefined });
   assert.ok(!plainRow.includes('link-github-issue') && !plainRow.includes('create-github-issue'), 'an unlinked row has no Link or + Issue');
   const linkedForm = renderTaskEditForm({ ...base }, p, cats);
+  {
+    const swatchCats = [{ id: 'l1', name: 'Bug', color: '#112233' }, { id: 'l2', name: 'UI', color: '#445566' }];
+    const f = renderTaskEditForm({ ...base }, p, swatchCats);
+    const inputs = f.match(/<input type="color"[^>]*>/g) || [];
+    assert.strictEqual(inputs.length, 2, 'the label picker has one colour input per label');
+    assert.ok(inputs[0].includes('data-id="l1"') && inputs[0].includes('value="#112233"') && inputs[1].includes('data-id="l2"') && inputs[1].includes('value="#445566"'), 'each with its label hex');
+  }
   assert.ok(linkedForm.includes('Linked to o/r#1') && linkedForm.includes('data-action="unlink-github-issue"'), 'the edit form of a linked task offers Unlink');
   assert.ok(linkedForm.includes('data-action="focus-task" data-task="t1" data-project="p1">Focus on this<'), 'the edit form offers Focus on this');
   assert.ok(/<a class="link-btn small" href="https:\/\/github.com\/o\/r\/issues\/1" target="_blank" rel="noopener">Open issue ↗ o\/r#1<\/a>/.test(linkedForm), 'a linked task\'s edit form offers Open issue ↗, showing owner/repo#N, as a real link');
@@ -303,6 +310,13 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   assert.ok(editing.includes('project-edit-panel') && editing.includes('data-action="set-project-category" data-project="p2"'), 'the Edit panel holds the category select');
   assert.ok(editing.includes('data-action="remove-project" data-project="p2">Remove project<'), 'the Edit panel holds Remove project');
   assert.ok(editing.includes('data-action="close-project-edit" data-project="p2">Done<'), 'Done closes the panel');
+  // Colour without right-click (#95): colour input for the project, and for its category only when it has one
+  const hexProj = { ...long, color: '#aa5500' };
+  const colourEdit = renderProjectCard(hexProj, { ...cardUi(), editingProject: { p2: true } }, [], projectCategories);
+  assert.ok(colourEdit.includes('data-color-for="project" data-id="p2" value="#aa5500"'), 'the Edit panel has a colour input with the project hex');
+  assert.ok(colourEdit.includes('data-color-for="project-category" data-id="c1" value="#123456"'), 'and a category colour input with the category hex');
+  const noCatEdit = renderProjectCard({ ...hexProj, categoryId: '' }, { ...cardUi(), editingProject: { p2: true } }, [], projectCategories);
+  assert.ok(noCatEdit.includes('data-color-for="project"') && !noCatEdit.includes('data-color-for="project-category"'), 'no category colour input without a category');
   const confirming = renderProjectCard(long, { ...cardUi(), editingProject: { p2: true }, pendingRemove: { p2: true } }, [], projectCategories);
   assert.ok(confirming.includes('Yes') && confirming.includes('No'), 'Remove project still uses the two-step Yes/No confirm');
 
