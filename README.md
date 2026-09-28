@@ -50,7 +50,7 @@ it. On a linked issue it syncs both ways as a `priority: …` label, and common 
 carry a color-coded category (set up and customized in Settings), so a glance at a chip tells
 you what kind of work something is without reading it.
 
-**One project list** — search, category filter, sort, Collapse all, and a row per project that
+**One project list** — search, category filter, sort (including **Custom order**), Collapse all, and a row per project that
 jumps to it. From 1100px wide it's a sticky column on the left; below that width it's a **Projects**
 drawer opened from the top bar. An **All** / **One** switch at the top of the list, remembered per
 device, picks how the main column shows projects: **All** is every visible project — from 1100px as
@@ -59,6 +59,12 @@ below that width, stacked at natural height — with a minimise button (▾/▸)
 "Collapse all" to gather several at once; minimised tiles gather in their own group below the full
 ones. **One** shows a single project at a time, on any width, opening on the last one viewed or the
 busiest; tapping a row selects it (closing the drawer on a phone) and scrolls to it.
+
+**Reordering projects** — in **All**, drag a project by the grip (six dots) on its header; in the
+list, drag any row (on a phone, press and hold a row for a moment, then drag; a quick swipe still
+scrolls). Dragging switches the sort to **Custom order**, which is kept when you pick another sort
+and come back, and syncs to your other devices. From the keyboard, focus a grip and use the arrow
+keys (Alt+Up/Down on a list row). Escape cancels a drag in progress.
 
 **Adding projects and GitHub repos** — a "+ New" button always sits in the project list's header
 (never inside the scrolling list) and opens a panel with two tabs: **New project** (just a name —
@@ -120,7 +126,8 @@ js/
   github.js             thin GitHub REST API client (issues, labels, gists)
   github-sync.js         issue <-> task linking, category <-> label sync, completion sync
   sync.js                cross-device sync via a GitHub Gist
-  project-filter.js      project search/sort/filter logic
+  project-filter.js      project search/sort/filter logic, and where a dragged project lands
+  project-drag.js        the drag gesture: pointer + keyboard, ghost, drop line, auto-scroll
   *.test.mjs             plain node:test files alongside the modules they test
 css/app.css             all styling
 service-worker.js       offline caching for the installed PWA

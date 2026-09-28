@@ -4,6 +4,30 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-28 — Calls made while building drag-to-reorder (PR 9), beyond the entry below
+
+**Context.** Building PR 9 hit four cases the entry below doesn't settle.
+
+**Decision.**
+1. *The first drag from another sort re-numbers the group.* A project's number only means something
+   in Custom order. If the person drags while the screen is sorted by Name (or any other sort),
+   placing one number between two neighbours would put the project somewhere they didn't drop it.
+   So in that one case the displayed projects take each other's existing numbers in the order on
+   screen (`moveProject`, js/project-filter.js), and Custom matches what they saw. Every later drag
+   in Custom changes exactly one record. Hidden projects are untouched.
+2. *The sort choice is now remembered per device* (`focusdeck-project-sort`). It used to reset to Name
+   on every load; a drag that switched to Custom would have looked lost after a reload.
+3. *A drop lands right next to the neighbour on the side it was dropped,* not halfway to the neighbour
+   on the other side, so projects hidden by a filter keep their positions and a new number can never
+   equal a hidden project's. A gap under 1e-6 renumbers everything 1..n.
+4. *The drag gesture is its own module* (`js/project-drag.js`), added to the service worker's shell list
+   (cache name bumped to v14); app.js only supplies "move this project to that index".
+
+**Why.** 1 is the only way to keep "the order I saw is the order I get". 2 follows from the required
+"reload keeps it". 3 and 4 are small and keep the design's promise of one changed record per move.
+
+**Status.** Standing.
+
 ## 2026-09-28 — How dragging projects works (PR 9)
 
 **Context.** The user asked for dragging projects into order (#73, Q27a) after PR 8. They gave the

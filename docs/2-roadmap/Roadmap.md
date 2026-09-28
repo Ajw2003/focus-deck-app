@@ -77,7 +77,7 @@ after tweaks to the original plan and scheduled prompt that are not recorded in 
 archived plan, `docs/archive/2026-09-21-claude-daily-checkin.md`, is the pre-tweak version).
 Shelved the same day as less useful than expected; nothing further is planned for it.
 
-## 6. Handcrafted redesign — ~90%, PRs 1-7 merged, PR 8 (task row columns) next
+## 6. Handcrafted redesign — ~93%, PRs 1-7 merged, PRs 8-9 built (pending merge), PR 10 next
 
 One-line: a focus-first, warm-editorial visual and structural redesign of the existing screens,
 landed as ordered PRs: (1) the docs move, (2) feature/control cuts, (3) the visual system,
@@ -98,10 +98,13 @@ GitHub" disclosure that needs a token with Administration: Read and write), and 
 project's Edit panel gets "Link to GitHub repo" (turns it into a repo project in place, keeping its
 id/name/colour/category and hand-made tasks, refusing a repo another project already tracks). See
 `docs/4-systems/github-sync.md` and `docs/6-decisions/Decisions.md` (2026-09-28). Next, in the
-order the user set on 2026-09-28: PR 8, task rows with the title and a scaling chips column (#97, #92); then
-PR 9, dragging projects into order, and PR 10, dragging tasks (both #73, milestone 8).
+order the user set on 2026-09-28: PR 8, task rows with the title and a scaling chips column (#97, #92),
+built, pending merge; then PR 9, dragging projects into order (the project half of #73), built,
+pending merge (2026-09-28: grip on each header and every sidebar row are handles, mouse/touch/keyboard,
+"Custom order" sort, a per-project `sortOrder` that syncs as an ordinary field); then PR 10, dragging
+tasks (the task half of #73, milestone 8).
 
-**Acceptance:** PRs 1-8 merged, `node --test js/*.test.mjs` and
+**Acceptance:** PRs 1-10 merged, `node --test js/*.test.mjs` and
 `node scripts/guard-file-churn.mjs` still pass after each, and the plan's own acceptance notes
 (inside `docs/plans/handcrafted-redesign.md`) are satisfied.
 
@@ -151,8 +154,8 @@ may already be fully or partly covered by it; check each against the app and clo
 One-line: arrange projects and tasks by hand, and make a task's status follow its GitHub issue.
 
 **Contains:**
-- #73 — drag to reorder projects and tasks: projects are PR 9 of the redesign and tasks PR 10, in
-  that order, straight after PR 8 (2026-09-28)
+- #73 — drag to reorder projects and tasks: the project half is done by PR 9 (built 2026-09-28,
+  pending merge); the task half is PR 10
 - #7 — drag a task from one project into another
 - #6 — rework how Waiting becomes In progress, linked to GitHub issue labels
 
