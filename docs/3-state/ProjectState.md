@@ -17,7 +17,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 3 | Cross-device sync (Gist) | 100% | Shipped, tested |
 | 4 | Claude integration (on-demand) | 100% | Shipped, tested, archived plan |
 | 5 | Claude integration (autonomous check-in) | 100% | Works (user-confirmed 2026-09-26), shelved |
-| 6 | Handcrafted redesign | ~93% (PRs 1-7 merged; PRs 8-9 built, pending merge) | PR 8 task rows (#97, #92) and PR 9 drag projects into order (project half of #73) built, pending merge; next PR 10 drag tasks; also open: #95, #90, #87 |
+| 6 | Handcrafted redesign | ~93% (PRs 1-7 merged; PRs 8-9 built, pending merge) | PR 8 task rows (#97, #92) and PR 9 drag projects into order (project half of #73) built, pending merge; next PR 10 drag tasks; #95 (colour without right-click) fixed by PR 10, pending merge; also open: #90, #87 |
 | 7 | Unsorted and focus flow polish | 0% | #70 #72 #74 #75 #76 #77 #89 #96 #69 open; #72, #75, #77 may be covered by PR #78 |
 | 8 | Reordering and task status | ~25% | #73 project half built in PR 9 (pending merge; checked in real Chromium with mouse, touch and keyboard); task half is PR 10; #7, #6 open |
 | 9 | Usability and accessibility audit | 0% | #27 #46 open |

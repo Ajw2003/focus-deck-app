@@ -4,6 +4,19 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-28 — Calls made while building colour without right-click (PR 10, #95)
+
+**Context.** The entry below fixed the design; these are the interpretation calls.
+
+- The label swatch is a native colour input inside the label option, outside the checkbox's hit area, so
+  tapping it never toggles the label. It previews on every chip of that label on the page.
+- The tooltips ("Right-click to change color") were left as they are: still true on desktop, and
+  no shorter wording fits a tooltip that only touch users would miss.
+- `cssColorToHex` returns a `#rrggbb` input as is and `#888888` when there is no DOM, so the render
+  tests can run in Node.
+
+**Status.** Standing.
+
 ## 2026-09-28 — Dragging tasks, selecting several, and colour on phones (Q32a, Q33b, #95)
 
 **Context.** Asked while PR 9 (dragging projects) was being built. The user wants tasks draggable

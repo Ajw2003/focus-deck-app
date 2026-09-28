@@ -364,6 +364,9 @@ export function nextHue() { return Math.round((state.projects.length * 137.508) 
 // var(--proj-light)) to #rrggbb, for pre-filling <input type="color">. Shared by settings.html
 // and app.js.
 export function cssColorToHex(cssColor) {
+  // already #rrggbb (also lets the DOM-free render tests run); no document -> neutral grey
+  if (/^#[0-9a-f]{6}$/i.test(cssColor)) return cssColor.toLowerCase();
+  if (typeof document === 'undefined') return '#888888';
   const el = document.createElement('span');
   el.style.color = cssColor;
   document.body.appendChild(el);

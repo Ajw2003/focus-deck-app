@@ -414,7 +414,34 @@ function onAppContextMenu(e) {
     (hex) => { if (catType === 'project') M.setProjectCategoryColor(catId, hex); else M.setCategoryColor(catId, hex); });
 }
 
+// Colour without right-click (#95): the Edit panel's colour inputs and the label picker's swatches.
+// Same split as settings.html: 'input' only previews on the elements already on screen (a repaint
+// mid-drag would close the native picker), 'change' commits through the mutation right-click uses.
+function colorInputTarget(e) {
+  return e.target.matches && e.target.matches('input[data-color-for]') ? e.target : null;
+}
+function onColorInput(el) {
+  const kind = el.getAttribute('data-color-for'), id = el.getAttribute('data-id'), hex = el.value;
+  if (kind === 'project') {
+    const card = el.closest('.project-card');
+    if (card) card.style.setProperty('--proj-color', hex);
+  } else {
+    const type = kind === 'project-category' ? 'project' : 'task';
+    document.querySelectorAll('#app [data-cat-id="' + id + '"][data-cat-type="' + type + '"]').forEach((c) => c.style.setProperty('--chip-color', hex));
+    const opt = el.closest('.label-option');
+    if (opt) opt.style.setProperty('--chip-color', hex);
+  }
+}
+function onColorChange(el) {
+  const kind = el.getAttribute('data-color-for'), id = el.getAttribute('data-id');
+  if (kind === 'project') M.setProjectColor(id, el.value);
+  else if (kind === 'project-category') M.setProjectCategoryColor(id, el.value);
+  else M.setCategoryColor(id, el.value);
+}
+
 function onAppChange(e) {
+  const colorEl = colorInputTarget(e);
+  if (colorEl) { onColorChange(colorEl); return; }
   if (e.target.matches && e.target.matches('.label-picker input[name="categoryIds"]')) {
     const picker = e.target.closest('.label-picker');
     picker.querySelector('summary').textContent = R.labelPickerSummary(picker.querySelectorAll('input[name="categoryIds"]:checked').length);
@@ -436,6 +463,8 @@ function onAppChange(e) {
 }
 
 function onAppInput(e) {
+  const colorEl = colorInputTarget(e);
+  if (colorEl) { onColorInput(colorEl); return; }
   // keep typed-in new labels across the repaints that toggling a pick causes
   if (e.target.matches && e.target.matches('.sort-new')) { ui.unsorted.newLabels = e.target.value; return; }
   if (e.target.matches && e.target.matches('[data-action="set-project-query"]')) {

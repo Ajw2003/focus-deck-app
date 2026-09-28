@@ -466,6 +466,18 @@ placeholder are gone. Right-click-to-recolour still works on the dot and on the 
 wherever it's shown (`data-project-color`/`data-cat-id`, read by `onAppContextMenu` in js/app.js —
 neither depends on where the chip sits in the markup).
 
+**Colour without right-click (#95, PR 10, 2026-09-28).** For phones, the Edit panel also has a
+"Colour" row (a native `<input type="color" class="cat-color-input" data-color-for="project">`, the
+same look as Settings' colour inputs) and, when the project has a category, a "Category colour" row
+(`data-color-for="project-category"`). In the task editor's label picker each label option ends with
+a small round swatch (`.cat-color-input.label-swatch`, `data-color-for="label"`); it sits inside the
+option but tapping it does not toggle the checkbox. All three are wired by `onAppInput`/`onAppChange`
+in js/app.js with Settings' split: `input` only previews (the card's `--proj-color`, or `--chip-color`
+on every chip of that category on the page) and never repaints, because a repaint mid-drag closes the
+native picker; `change` commits through the same mutations right-click uses (`setProjectColor`,
+`setProjectCategoryColor`, `setCategoryColor`), so sync and the GitHub label push behave identically.
+Right-click on the project dot and the chips is unchanged on desktop.
+
 ### Collapsed "+ Add task" (Q3b, PR 4 2026-09-27)
 
 A project card ends with a single `.link-btn`-style "+ Add task" line (`open-add-task`) instead of
