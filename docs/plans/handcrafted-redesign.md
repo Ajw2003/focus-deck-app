@@ -75,7 +75,12 @@ on 2026-09-26; each decision below keeps its question number from that session.
   be linked to a GitHub repo from its Edit panel; the repo's issues come in as tasks and the
   hand-made tasks stay as they are. This replaces the single "New project or owner/repo" field at
   the bottom of the list, which scrolled out of sight once the list grew.
-- **Dragging projects into order (Q27a, #73).** Its own PR after adding repos: a saved, synced
+- **Task rows: 75% title, 25% chips (#97, #92, 2026-09-28).** Each task row splits its width
+  beside the checkbox: the title in the left 75%, the chips (priority, labels, deadline) anchored
+  to the right in the other 25%. Neither ever spills into the other's zone: a long title wraps
+  inside its 75%, and chips wrap inside their 25%. This replaces PR 4's rule where a long title
+  took the whole line and its chips dropped underneath.
+- **Dragging projects into order (Q27a, #73).** Its own PR after the task-row split: a saved, synced
   project order and a "Custom" sort option.
 - **Project headers never shift the card (#83).** A header whose name and badges don't fit wrapped
   its controls onto a second line, pushing the progress bar lower than its neighbours'. The
@@ -112,4 +117,6 @@ Four, in order, each checked on a phone before the next starts:
 5. Wide screens get 2x2 tiles; one project at a time moves to phones (Q26a, Q28, 2026-09-27).
 6. Minimising back, and the "All" / "One" switch on every device (2026-09-27).
 7. Adding projects and repos: "+ New", your-repos picker, create a repo, link a project (2026-09-28).
-8. Drag projects into order (Q27a, the project half of #73).
+8. Task rows split 75% title / 25% chips (#97, #92; next, 2026-09-28).
+9. Drag projects into order (Q27a, the project half of #73).
+10. Drag tasks into order (the task half of #73).

@@ -390,3 +390,17 @@ Dragging projects into order (Q27a, PR 7) -- explicitly the next PR in the plan,
    next).
 2. PR 7: dragging projects into order (Q27a, the project half of #73).
 3. Milestone 7 onward, per `docs/2-roadmap/Roadmap.md`.
+
+## 2026-09-28 — next, in the order the user set
+
+1. **PR 8: task rows split 75% title / 25% chips (#97, #92).** The title sits in the left 75% of
+   the row beside the checkbox; the chips (priority, labels, deadline) are anchored right in the
+   other 25%; neither leaves its zone. Replaces PR 4's rule where a long title took the whole line
+   and dropped its chips underneath.
+2. **PR 9: drag projects into order** (the project half of #73).
+3. **PR 10: drag tasks into order** (the task half of #73; whether #7, dragging a task into another
+   project, joins it is still to be asked).
+
+The roadmap now carries all 21 open issues, including the nine opened since 2026-09-27 and #69,
+which was missed when the roadmap was first written. Surfaced, not in the order above: #93 and
+#94 are GitHub sync bugs (reopening milestone 2 at ~90%), raised with the user on 2026-09-28.
