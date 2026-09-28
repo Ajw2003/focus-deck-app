@@ -381,6 +381,8 @@ assert.ok(info.includes('class="toast"') && info.includes('role="status"'), 'a n
   // The button always renders, whatever ui.newPanelOpen is -- never inside the scrolling list.
   const closed = renderProjectSidebar({ projects, projectCategories: [] }, baseUi, projects, true);
   assert.ok(closed.includes('data-action="toggle-new-panel"'), 'the "+ New" button is always present');
+  // app.js returns focus here by id when Escape closes the panel; without the id focus went nowhere
+  assert.ok(closed.includes('id="new-panel-toggle"'), 'the "+ New" button carries the id app.js focuses');
   assert.ok(closed.indexOf('data-action="toggle-new-panel"') < closed.indexOf('<ul class="sidebar-list">'), '"+ New" sits in the header, before the scrolling list');
   assert.ok(closed.includes('aria-expanded="false"') && closed.includes('aria-controls="new-panel"'), 'the button carries aria-expanded/aria-controls');
   assert.ok(!closed.includes('id="new-panel"'), 'the panel itself is absent while closed');
@@ -401,7 +403,7 @@ assert.ok(info.includes('class="toast"') && info.includes('role="status"'), 'a n
   const repoTabWithToken = renderProjectSidebar({ projects, projectCategories: [] }, { ...repoTabUi, newPanelRepos: { list: [{ full_name: 'me/one', private: false }, { full_name: 'me/two', private: true }] } }, projects, true);
   assert.ok(repoTabWithToken.includes('me/one') && repoTabWithToken.includes('me/two') && repoTabWithToken.includes('>Private<'), 'Your repos lists the untracked repos, with a Private chip');
   assert.ok(repoTabWithToken.includes('data-action="track-repo" data-repo="me/one"'), 'each row has a Track button');
-  assert.ok(repoTabWithToken.includes('data-action="paste-repo"') && repoTabWithToken.includes('owner/repo or a GitHub URL'), 'the paste field is present');
+  assert.ok(repoTabWithToken.includes('data-action="paste-repo"') && repoTabWithToken.includes('owner/repo or URL'), 'the paste field is present');
   assert.ok(repoTabWithToken.includes('Create a new repo on GitHub') && repoTabWithToken.includes('data-action="create-repo"'), 'the create-a-repo disclosure is present');
 
   const loading = renderProjectSidebar({ projects, projectCategories: [] }, { ...repoTabUi, newPanelRepos: { loading: true } }, projects, true);

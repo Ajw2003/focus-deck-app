@@ -436,7 +436,7 @@ function renderYourRepos(ui) {
 }
 function renderPasteRepo(ui) {
   return '<form class="add-project-form" data-action="paste-repo">'
-    + '<input type="text" name="value" placeholder="owner/repo or a GitHub URL" required>'
+    + '<input type="text" name="value" placeholder="owner/repo or URL" required>'
     + '<button type="submit">Track</button>'
     + '</form>'
     + (ui.newPanelPasteError ? '<p class="field-error small">' + esc(ui.newPanelPasteError) + '</p>' : '');
@@ -492,7 +492,7 @@ export function renderProjectSidebar(st, ui, visibleProjects, hasToken) {
     // sidebar doesn't tell screen readers the rest of the page is out of reach
     + '<aside class="project-sidebar' + (isOpen ? ' is-open' : '') + '" id="projects-drawer" tabindex="-1" aria-label="Projects"' + (isOpen ? ' role="dialog" aria-modal="true"' : '') + '>'
     + '<div class="sidebar-head"><h2 class="sidebar-title">Projects</h2><div class="sidebar-head-right"><span class="muted small">' + visibleProjects.length + '</span>'
-      + '<button type="button" class="link-btn small" data-action="toggle-new-panel" aria-expanded="' + !!ui.newPanelOpen + '" aria-controls="new-panel">+ New</button></div></div>'
+      + '<button type="button" class="link-btn small" id="new-panel-toggle" data-action="toggle-new-panel" aria-expanded="' + !!ui.newPanelOpen + '" aria-controls="new-panel">+ New</button></div></div>'
     + renderNewPanel(ui, hasToken)
     + renderViewSwitch(ui)
     + '<input type="text" class="project-search sidebar-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
@@ -528,7 +528,7 @@ function renderYourReposForLink(ui) {
 }
 function renderPasteRepoForLink() {
   return '<form class="add-project-form" data-action="paste-link-repo">'
-    + '<input type="text" name="value" placeholder="owner/repo or a GitHub URL" required>'
+    + '<input type="text" name="value" placeholder="owner/repo or URL" required>'
     + '<button type="submit">Link</button>'
     + '</form>';
 }

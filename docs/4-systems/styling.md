@@ -309,7 +309,9 @@ The panel is a two-option segmented control, the same pill style as the All/One 
     says so); a 403/404 shows "GitHub refused: your token needs Administration: Read and write to
     create repos. See Settings." plus GitHub's own message, a 422 shows GitHub's message as-is.
 
-Escape inside the panel closes it and returns focus to "+ New" (`closeNewPanel`, js/app.js).
+Escape inside the panel closes it and returns focus to "+ New" (`#new-panel-toggle`, `closeNewPanel`,
+js/app.js), and only the panel: the handler stops the key there, so on a phone the drawer it sits
+in stays open (the drawer's own Escape handler listens on `document`).
 
 **Linking a hand-made project to a repo (Q30c, PR 7).** A project that isn't GitHub-backed gets a
 "Link to GitHub repo" row in its Edit panel, opening the same repo picker (Your repos + Paste, no

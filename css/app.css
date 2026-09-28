@@ -287,6 +287,8 @@ button.chip.proj-chip:hover{background:var(--line);}
 .project-card.is-collapsed .progress-track{margin-bottom:0;}
 /* The "All"/"One" switch: two pills right under the sidebar/drawer title. */
 .view-switch{display:flex; gap:6px;}
+/* the labels never break mid-label ("New / project") in the 270px sidebar */
+.view-switch .filter-pill{white-space:nowrap;}
 /* Minimised projects gather below the full-size tiles as their own quiet group (#82: a minimised
    tile left in the tile grid would sit beside a full-height one and reopen the gap). */
 .minimised-projects{margin-top:24px;}
@@ -377,7 +379,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 .sidebar-title{font-size:var(--text-h); font-style:italic;}
 /* The "+ New" panel (PR 7, Q29a): opens right under the header row, above the All/One switch. See
    docs/4-systems/styling.md#add-a-project-or-a-repo. */
-.new-panel{border:1px solid var(--line); border-radius:var(--r-card); padding:12px; margin:10px 0; display:flex; flex-direction:column; gap:10px;}
+.new-panel{border:1px solid var(--line); border-radius:var(--r-control); padding:12px; margin:10px 0; display:flex; flex-direction:column; gap:10px;}
 .new-panel-section{display:flex; flex-direction:column; gap:6px;}
 .repo-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; max-height:220px; overflow-y:auto;}
 .repo-row{display:flex; align-items:center; gap:8px; padding:4px 0;}

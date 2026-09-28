@@ -619,7 +619,10 @@ function onAppKeydown(e) {
     if (form) { delete ui.addingTask[form.getAttribute('data-project')]; paint(); }
   }
   // Escape inside the "+ New" panel closes it and returns focus to "+ New" (Q29a).
+  // Each Escape closes only the innermost thing: stopPropagation keeps it from also reaching the
+  // document-level handler that closes the phone drawer the panel sits in.
   if (e.key === 'Escape' && e.target.closest && e.target.closest('#new-panel')) {
+    e.stopPropagation();
     closeNewPanel();
     paint();
     const btn = document.getElementById('new-panel-toggle');
@@ -627,6 +630,7 @@ function onAppKeydown(e) {
   }
   // Escape inside the Edit panel's inline repo chooser closes just that.
   if (e.key === 'Escape' && e.target.closest && e.target.closest('.link-repo-panel')) {
+    e.stopPropagation();
     ui.linkPanel = null;
     paint();
   }
