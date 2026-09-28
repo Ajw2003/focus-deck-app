@@ -4,6 +4,34 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-28 — Dragging tasks, selecting several, and colour on phones (Q32a, Q33b, #95)
+
+**Context.** Asked while PR 9 (dragging projects) was being built. The user wants tasks draggable
+within and between projects (#73, #7), several tasks or projects selected and dragged together,
+and a way to set colours on a phone, where there is no right-click (#95).
+
+**Decision.**
+- Selecting several: Shift-click adds or removes an item; dragging a box over empty space selects
+  what it touches; the selection then drags as one. On a phone, press and hold an item to start
+  selecting, then tap others to add or remove them (Q32a). Applies to tasks and to projects.
+- A task dragged into another project moves there. A GitHub-linked task dropped into a
+  GitHub-connected project also moves its issue to that project's repo on GitHub (Q33b), but
+  first a message says exactly what will happen on GitHub and offers Cancel. Moves into or within
+  a project with no GitHub repo never show a message (the user: "Offline projects should never
+  warn you"): a linked task moved there keeps its issue link. A hand-made task dropped into a
+  GitHub-connected project gets a new issue created in that repo and is linked to it, after the
+  same message with Cancel (corrected by the user 2026-09-28; my first reading left it unlinked).
+  GitHub can only transfer an issue between repos with the same owner; for any other pair the
+  message says so and the task moves in the app only, keeping its link (confirmed by the user).
+- Colour on phones (#95): each project's Edit panel gets its colour and its category's colour,
+  and the task editor's label list gets a colour swatch per label. Right-click keeps working on
+  desktop; Settings keeps its colour lists.
+
+**Order.** PR 9 (dragging projects, in progress), then PR 10 (colours on phones, #95, small), then
+PR 11 (tasks: dragging, moving between projects, selecting several tasks and projects).
+
+**Status.** Standing. Both edge cases confirmed with the user on 2026-09-28.
+
 ## 2026-09-28 — Calls made while building drag-to-reorder (PR 9), beyond the entry below
 
 **Context.** Building PR 9 hit four cases the entry below doesn't settle.
