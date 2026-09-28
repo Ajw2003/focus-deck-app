@@ -1,5 +1,6 @@
 // focus-deck-app/js/project-drag.js
-// Dragging projects into order (PR 9). Pointer events only (mouse, touch and pen through one code
+// Dragging projects into order (PR 9) and single tasks between and within projects (PR 11; a `task`
+// kind beside `card` and `row`, see taskTargetAt and keyboardTaskMove). Pointer events only (mouse, touch and pen through one code
 // path, no drag library), plus the keyboard equivalents. This file owns the gesture and the
 // on-screen feedback (ghost, dashed placeholder, drop indicator, auto-scroll); it decides nothing
 // about the order itself -- on a drop or an arrow key it calls `move(id, toIndex, orderedIds)`,
