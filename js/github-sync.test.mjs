@@ -5,6 +5,7 @@ import {
   dropStaleCompletedLabel, refreshClosedTaskLabels, syncIssueCompletion, upsertRepoProject,
   priorityFromLabels, pushCategoriesToIssue, pushPriorityToIssue, closeIssueForDeletedTask,
   sameIssueTitle, createGithubIssueFromTask,
+  untrackedRepos, isValidRepoName, linkProjectToRepo, linkProjectToRepoOnGithub,
 } from './github-sync.js';
 import { state } from './state.js';
 import { deleteTask } from './mutations.js';
@@ -324,6 +325,88 @@ assert.strictEqual(parseRepoInput('someone/somerepo'), 'someone/somerepo', '"som
   assert.ok(calls.includes('POST /repos/o/r/issues'), 'a new issue should be created when there is no match');
   assert.strictEqual(t.issueNumber, 10);
   state.projects.length = 0;
+}
+
+// --- untrackedRepos (PR 7, "+ New" panel's Your repos tab) ---
+{
+  const repos = [
+    { full_name: 'me/tracked', name: 'tracked', html_url: 'u', private: false },
+    { full_name: 'ME/CaseTracked', name: 'CaseTracked', html_url: 'u', private: false },
+    { full_name: 'me/excluded', name: 'excluded', html_url: 'u', private: false },
+    { full_name: 'me/fresh', name: 'fresh', html_url: 'u', private: true },
+  ];
+  const projects = [
+    { id: 'p1', source: 'github', repoFullName: 'me/tracked', tasks: [] },
+    { id: 'p2', source: 'github', repoFullName: 'me/casetracked', tasks: [] }, // lowercase -- must still match "ME/CaseTracked"
+    { id: 'p3', source: 'manual', name: 'not a repo project', tasks: [] },
+  ];
+  const result = untrackedRepos(repos, projects, ['me/excluded']);
+  assert.deepStrictEqual(result.map((r) => r.full_name), ['me/fresh'], 'only the untracked, unexcluded repo should remain: ' + JSON.stringify(result.map((r) => r.full_name)));
+  assert.deepStrictEqual(untrackedRepos([], [], []), [], 'no repos in -> no repos out');
+  assert.deepStrictEqual(untrackedRepos(repos, [], []), repos, 'nothing tracked or excluded -> every repo is untracked');
+}
+
+// --- isValidRepoName (the "Create a new repo" disclosure's validation) ---
+{
+  assert.ok(isValidRepoName('my-repo_1.0'), 'letters, digits, dot, hyphen, underscore are all valid');
+  assert.ok(!isValidRepoName('has spaces'), 'spaces are not allowed');
+  assert.ok(!isValidRepoName(''), 'empty name is not valid');
+  assert.ok(!isValidRepoName('slash/in/name'), 'a slash is not a valid repo name');
+}
+
+// --- linkProjectToRepo: keeps id/name/colour/category/manual tasks; refuses if already tracked ---
+{
+  const repo = { full_name: 'o/newrepo', name: 'newrepo', html_url: 'https://github.com/o/newrepo', private: true };
+  const manualTask = { id: 't1', title: 'Water the plants', status: 'next', source: 'manual' };
+  const project = { id: 'p_hand', name: 'Garden', color: 'hsl(120 var(--proj-sat) var(--proj-light))', categoryId: 'cat_home', source: 'manual', tasks: [manualTask] };
+  const result = linkProjectToRepo(project, repo, [project]);
+  assert.ok(!result.error, 'linking an untracked repo should not be refused: ' + result.error);
+  assert.strictEqual(project.id, 'p_hand', 'id must not change');
+  assert.strictEqual(project.name, 'Garden', 'name must not change');
+  assert.strictEqual(project.color, 'hsl(120 var(--proj-sat) var(--proj-light))', 'colour must not change');
+  assert.strictEqual(project.categoryId, 'cat_home', 'category must not change');
+  assert.strictEqual(project.tasks[0], manualTask, 'the hand-made task object must be untouched');
+  assert.strictEqual(manualTask.source, 'manual', 'the hand-made task must stay manual, unlinked');
+  assert.strictEqual(project.source, 'github');
+  assert.strictEqual(project.repoFullName, 'o/newrepo');
+  assert.strictEqual(project.htmlUrl, 'https://github.com/o/newrepo');
+  assert.strictEqual(project.private, true);
+
+  // refusal: another project already tracks this repo
+  const other = { id: 'p_other', name: 'Side project', source: 'manual', tasks: [] };
+  const already = { id: 'p_taken', name: 'Already tracked', source: 'github', repoFullName: 'o/taken', tasks: [] };
+  const refused = linkProjectToRepo(other, { full_name: 'o/taken', name: 'taken', html_url: 'u', private: false }, [already, other]);
+  assert.ok(refused.error, 'linking a repo another project tracks should be refused');
+  assert.ok(refused.error.includes('o/taken') && refused.error.includes('Already tracked'), 'the refusal should name the repo and the project already tracking it: ' + refused.error);
+  assert.strictEqual(other.source, 'manual', 'a refused link must not change the project');
+}
+
+// --- linkProjectToRepoOnGithub: reuses the linked project via upsertRepoProject, not a new one ---
+{
+  globalThis.localStorage = { getItem: () => 'test-token', setItem() {}, removeItem() {} };
+  globalThis.fetch = async (url) => {
+    if (String(url).includes('/issues')) {
+      return { ok: true, status: 200, json: async () => [
+        { number: 1, title: 'Do the thing', labels: [{ name: 'Bug', color: 'ff0000' }], body: '', state: 'open', html_url: 'u', pull_request: undefined },
+      ] };
+    }
+    return { ok: true, status: 200, json: async () => ({}) };
+  };
+  state.projects.length = 0;
+  const project = { id: 'p_link', name: 'Side project', source: 'manual', tasks: [] };
+  state.projects.push(project);
+  const ui = {};
+  const repo = { full_name: 'o/side', name: 'side', html_url: 'https://github.com/o/side', private: false };
+  const result = await linkProjectToRepoOnGithub('p_link', repo, ui);
+  assert.ok(!result.error, 'linking should not error: ' + result.error);
+  assert.strictEqual(state.projects.length, 1, 'no second project should be created for the same repo');
+  assert.strictEqual(state.projects[0].id, 'p_link', 'the same project (same id) should now be the repo project');
+  assert.strictEqual(state.projects[0].source, 'github');
+  assert.strictEqual(state.projects[0].tasks.length, 1, 'the repo\'s issue should come in as a task');
+  assert.strictEqual(state.projects[0].tasks[0].title, 'Do the thing');
+  assert.ok(state.pinnedRepos.includes('o/side'), 'a linked repo should be pinned so future syncs keep pulling it');
+  state.projects.length = 0;
+  state.pinnedRepos.length = 0;
 }
 
 console.log('GITHUB SYNC HEURISTIC TESTS PASSED');

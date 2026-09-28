@@ -25,9 +25,17 @@ export async function ghFetch(path, options = {}) {
   if (resp.status === 403) {
     const body = await resp.json().catch(() => ({}));
     if (body.message && /rate limit/i.test(body.message)) throw new GithubError('GitHub rate limit hit — try again in a few minutes.', 403);
-    throw new GithubError('GitHub token is missing a required permission — check Settings for the scopes needed.', 403);
+    const err = new GithubError('GitHub token is missing a required permission — check Settings for the scopes needed.', 403);
+    err.githubMessage = body.message || null;
+    throw err;
   }
   if (resp.status === 404) throw new GithubError('Not found on GitHub — check the repo/gist exists and your token can see it.', 404);
+  if (resp.status === 422) {
+    const body = await resp.json().catch(() => ({}));
+    const err = new GithubError(body.message || 'GitHub error (422)', 422);
+    err.githubMessage = body.message || null;
+    throw err;
+  }
   if (!resp.ok) throw new GithubError('GitHub error (' + resp.status + ')', resp.status);
   return resp.status === 204 ? null : resp.json();
 }
@@ -39,6 +47,25 @@ export async function validateToken() {
 
 export async function listRepos() {
   return ghFetch('/user/repos?per_page=100&affiliation=owner&sort=updated');
+}
+
+// Used by the "+ New" panel's "Your repos" tab (PR 7): every repo the token's user owns,
+// collaborates on, or belongs to through an organisation -- not just ones they own outright, so a
+// work repo someone was added to as a collaborator shows up too. Capped at the first 100 (one
+// page); ghFetch doesn't expose response headers, so further pages (the `Link` header) aren't
+// followed here.
+export async function listYourRepos() {
+  return ghFetch('/user/repos?per_page=100&affiliation=owner,collaborator,organization_member&sort=updated');
+}
+
+// Requires a token with "Administration: Read and write" (settings.html says so) -- used by the
+// "+ New" panel's "Create a new repo" disclosure (Q31a, #39). auto_init:true so the repo isn't
+// empty (an empty repo has no default branch, which trips up later API calls).
+export async function createRepo(name, isPrivate, description) {
+  return ghFetch('/user/repos', {
+    method: 'POST',
+    body: JSON.stringify({ name, private: !!isPrivate, description: description || undefined, auto_init: true }),
+  });
 }
 
 export async function listIssues(owner, repo) {

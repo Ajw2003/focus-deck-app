@@ -192,6 +192,41 @@ that category's label in every repo a github-sourced task is currently using it 
 — recoloring doesn't change any task's `categoryIds`, so nothing else would ever
 tell those repos' labels to catch up.
 
+### The "+ New" panel: tracking, creating and linking (PR 7, 2026-09-28)
+
+<!-- ref:17bf -->
+The project list's "+ New" button (`renderProjectSidebar`, js/render.js) opens a panel with **New
+project** and **GitHub repo** tabs (state in `ui.newPanel*`, not persisted; see
+docs/4-systems/styling.md). Its **Your repos** list is `untrackedRepos(repos, projects,
+excludedRepos)` (js/github-sync.js, pure, tested): every repo `listYourRepos()` returns (now
+`/user/repos` with `affiliation=owner,collaborator,organization_member`, so a repo you only
+collaborate on or reach through an org shows up too — before PR 7 `listRepos()` only asked for
+`affiliation=owner`), minus one already tracked by a project (matched on `repoFullName`,
+case-insensitively — GitHub itself treats `owner/repo` as case-insensitive) and minus one in
+`state.excludedRepos`. That list holds repos the user deliberately removed as a project
+(`excludeRepo`, js/mutations.js) — surfacing one there in the picker would invite tracking it right
+back the moment it was dropped, so it's left out; pasting the same `owner/repo` or using **Create**
+still works regardless, since both paths (`addRepoManually`) already un-exclude on success. Picking
+a repo from the list, or pasting one, both go through `addRepoManually` — the same path PR 4's old
+bottom field used. **Create a new repo** posts to `/user/repos` (`createRepo`, js/github.js) and
+then tracks the result the same way (`createRepoAndTrack`); it needs a token with **Administration:
+Read and write** (settings.html says so), and a 403/404 from GitHub is read as that permission being
+missing, a 422 as the name being taken or invalid — `ghFetch` attaches GitHub's own `message` to the
+thrown error (`err.githubMessage`) so the panel can show it verbatim. `ghFetch` doesn't expose
+response headers, so `listYourRepos()` only reads the first 100 repos (one page) — further pages
+(the `Link` header) aren't followed.
+
+Linking a hand-made project to a repo (`linkProjectToRepo`, js/github-sync.js, pure) keeps the
+project's id, name, colour and category, and leaves its hand-made tasks exactly as they are — still
+`source:'manual'`, unlinked to anything on GitHub — while setting `source:'github'`, `repoFullName`,
+`htmlUrl` and `private`. It refuses (no change made) when another project already tracks that repo,
+naming it in the message. The network half (`linkProjectToRepoOnGithub`) pins the repo
+(`state.pinnedRepos`) and un-excludes it, then pulls its issues in through the same
+`upsertRepoProject` a normal sync uses: `upsertRepoProject` already finds a project by
+`repoFullName` before creating one (`state.projects.find(...)` at the top of the function), so
+linking never creates a second project for the same repo — this was already true of the sync path
+and PR 7 added a regression test for it (`js/github-sync.test.mjs`).
+
 ## Invariants
 
 - A category first seen as a GitHub label takes that label's colour. From then on the
