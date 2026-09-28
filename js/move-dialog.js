@@ -6,8 +6,8 @@
 // See docs/4-systems/styling.md#dragging-tasks.
 import { renderMoveDialog } from './render.js';
 
-// Resolves true for Move, false for Cancel. `returnTo` is a fallback selector for the element to
-// refocus if the one focused when the dialog opened is gone after a repaint.
+// Resolves true for Move, false for Cancel. `returnTo` is a selector for the element to give focus
+// back to (a mouse drag leaves focus on <body>, so it can't be read from activeElement).
 export function confirmMove(message, returnTo) {
   return new Promise((resolve) => {
     const before = document.activeElement;
@@ -20,8 +20,10 @@ export function confirmMove(message, returnTo) {
     const close = (result) => {
       document.removeEventListener('keydown', onKey, true);
       backdrop.remove();
-      let target = before && before.isConnected ? before : null;
-      if (!target && returnTo) target = document.querySelector(returnTo);
+      // back to where the person was: the task's grip (looked up again, since a repaint may have replaced
+      // it), else whatever had focus when the dialog opened
+      let target = returnTo ? document.querySelector(returnTo) : null;
+      if (!target && before && before.isConnected) target = before;
       if (target && target.focus) target.focus();
       resolve(result);
     };

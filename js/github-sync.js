@@ -302,7 +302,9 @@ export async function transferTaskIssue(taskId, targetRepoFullName, ui, projectN
     return true;
   } catch (e) {
     ui.syncing = false;
-    ui.syncError = 'Moved “' + task.title + '” to ' + projectName + ' here, but GitHub refused to move the issue: ' + (e.githubMessage || e.message) + ' It stays linked to ' + from + '#' + number + '.';
+    let why = e.message || 'unknown error';
+    if (e.githubMessage && e.githubMessage !== e.message) why += ' (' + e.githubMessage + ')';
+    ui.syncError = 'Moved “' + task.title + '” to ' + projectName + ' here, but GitHub refused to move the issue: ' + why.replace(/\.?$/, '.') + ' It stays linked to ' + from + '#' + number + '.';
     persist();
     return false;
   }

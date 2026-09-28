@@ -568,7 +568,7 @@ body.is-dragging, body.is-dragging *{cursor:grabbing !important; -webkit-user-se
 .task-grip{
   flex:none; display:inline-flex; align-items:center; justify-content:center;
   width:22px; height:24px; margin:0 -2px 0 -6px; padding:0; border:none; border-radius:var(--r-control);
-  background:none; color:var(--ink-faint); cursor:grab; touch-action:none;
+  background:none; color:var(--ink-soft); cursor:grab; touch-action:none;
 }
 .task-grip svg{width:13px; height:13px;}
 .task-grip:hover{background:var(--surface-2); color:var(--ink-soft);}
