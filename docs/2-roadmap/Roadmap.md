@@ -72,7 +72,7 @@ after tweaks to the original plan and scheduled prompt that are not recorded in 
 archived plan, `docs/archive/2026-09-21-claude-daily-checkin.md`, is the pre-tweak version).
 Shelved the same day as less useful than expected; nothing further is planned for it.
 
-## 6. Handcrafted redesign — ~98%, PRs 1-6 merged, PR 7 next
+## 6. Handcrafted redesign — ~95%, PRs 1-6 merged, PR 7 next
 
 One-line: a focus-first, warm-editorial visual and structural redesign of the existing screens,
 landed as ordered PRs: (1) the docs move, (2) feature/control cuts, (3) the visual system,
@@ -86,7 +86,9 @@ one-at-a-time to phones instead (Decisions, 2026-09-27). PR 6 brought minimising
 per-project toggle and Collapse all, hidden by PR 5) and replaced the width-based tiles/one-at-a-time
 split with a per-device "All"/"One" switch in the sidebar/drawer header: "All" is tiles from
 1100px (minimised projects gathering below the grid) or a stacked column below it; "One" is
-one-project-at-a-time, now at any width. PR 7, dragging projects into order, belongs to milestone 8.
+one-project-at-a-time, now at any width. PR 7 (2026-09-28) brings adding back into view: a "+ New"
+panel for new projects and GitHub repos (pick one of yours, paste one, or create one), and linking
+a hand-made project to a repo. PR 8, dragging projects into order, belongs to milestone 8.
 
 **Acceptance:** PRs 1-7 merged, `node --test js/*.test.mjs` and
 `node scripts/guard-file-churn.mjs` still pass after each, and the plan's own acceptance notes
@@ -124,8 +126,8 @@ may already be fully or partly covered by it; check each against the app and clo
 One-line: arrange projects and tasks by hand, and make a task's status follow its GitHub issue.
 
 **Contains:**
-- #73 — drag to reorder projects and tasks (the project half is PR 7 of the redesign, after the
-  "All" / "One" switch; the task half stays here)
+- #73 — drag to reorder projects and tasks (the project half is PR 8 of the redesign, after
+  adding repos; the task half stays here)
 - #7 — drag a task from one project into another
 - #6 — rework how Waiting becomes In progress, linked to GitHub issue labels
 
@@ -152,7 +154,8 @@ One-line: show how much work is really happening on a project, and create repos 
 - #36 — sync pull requests as well as issues, to show work done, not just issues closed
 - #35 — a small visual of commits and commit frequency, joined with the existing task-completion
   visual
-- #39 — from Unsorted, create a new repo and project that syncs with GitHub
+- #39 — from Unsorted, create a new repo and project that syncs with GitHub (creating a repo from
+  the project list's "+ New" panel is PR 7 of the redesign; doing it from Unsorted stays here)
 
 **Acceptance:** each issue above is closed and covered by `js/github-sync.test.mjs`-style tests
 where it touches sync.

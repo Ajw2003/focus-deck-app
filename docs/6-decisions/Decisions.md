@@ -4,6 +4,30 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-28 — Adding projects and GitHub repos gets a "+ New" panel
+
+**Context.** After PR 6 (#86) the user found no way to add a GitHub repo or link an existing one.
+The only way in was PR 4's "New project or owner/repo" field at the bottom of the project list:
+its placeholder didn't say repos went there, and after PR 6 sized the sidebar to fit the screen
+the field sat below the fold at 900px tall (measured: field top 805px, visible list ends 818px).
+Creating a repo on GitHub (#39) and linking a hand-made project to a repo had never existed.
+
+**Decision.**
+- Q29a: a "+ New" button in the project list's header (sidebar and drawer) opens a panel with
+  **New project** and **GitHub repo**. The single bottom field goes.
+- Q30c: both kinds of linking. **GitHub repo** lists the user's repos that no project tracks yet
+  (one tap to track) and takes a pasted `owner/repo` or URL. A hand-made project's Edit panel gets
+  **Link to GitHub repo**: the repo's issues come in as tasks in that project, its hand-made tasks
+  stay unlinked, and a repo another project already tracks is refused with a message naming it.
+- Q31a: **GitHub repo** can create a new repo on GitHub (name, private by default, optional
+  description) and track it straight away (#39's repo half). The token then needs Administration:
+  Read and write; Settings says so, and a refusal from GitHub says so too.
+
+**Why.** A picker beats typing `owner/repo`, and a header button can't scroll out of sight. The
+alternative, keeping one field but moving it to the top, would still not say what it's for.
+
+**Status.** Standing.
+
 ## 2026-09-27 — PR 6 interpretations (All/One switch, minimising back)
 
 **Context.** The task for PR 6 ("Minimising comes back; 'All' or 'One' becomes a per-device
