@@ -37,6 +37,18 @@ const manual = row({ source: 'manual', url: undefined, repoFullName: undefined, 
 assert.ok(/<span class="task-title" data-action="edit-task"/.test(manual), 'an unlinked task title still opens the edit form');
 assert.ok(!manual.includes('>Edit<'), 'an unlinked task needs no separate Edit button');
 
+// #97/#92: checkbox, then the title zone, then the chips zone (priority -> labels -> deadline);
+// the chips zone stays present, empty, when a task has no chips.
+const full = row({ priority: 'high', deadline: '2026-10-01' });
+const iBox = full.indexOf('<input type="checkbox"'), iTitle = full.indexOf('class="task-title"'), iChips = full.indexOf('<div class="task-chips">');
+const iPrio = full.indexOf('priority-chip'), iCat = full.indexOf('cat-chip'), iDl = full.indexOf('deadline-chip');
+assert.ok(iBox >= 0 && iBox < iTitle && iTitle < iChips, 'row order is checkbox, .task-title, .task-chips');
+assert.ok(iChips < iPrio && iPrio < iCat && iCat < iDl, '.task-chips holds priority, then labels, then the deadline');
+assert.ok(!full.includes('task-main'), 'the .task-main wrapper is gone');
+assert.ok(row({ categoryIds: [], priority: undefined, deadline: undefined }).includes('<div class="task-chips"></div>'), 'a chipless row keeps an empty .task-chips zone');
+const longCat = renderTaskRow({ ...base, categoryIds: ['cat_long'] }, p, [{ id: 'cat_long', name: 'a very long label name that cannot fit', color: '#fbca04' }], ui);
+assert.ok(/class="chip cat-chip small"[^>]*title="A Very Long Label Name That Cannot Fit" aria-label="A Very Long Label Name That Cannot Fit"/.test(longCat), 'a label chip carries its full (displayed) name in title and aria-label');
+
 const multi = renderTaskRow({ ...base, categoryIds: ['cat_bug', 'cat_art'] }, p, cats.concat([{ id: 'cat_art', name: 'Art', color: '#fbca04' }]), ui);
 assert.ok(multi.includes('>Bug<') && multi.includes('>Art<'), 'every label on a task gets its own chip');
 assert.ok(row({ priority: 'urgent' }).includes('class="chip priority-chip small" data-action="cycle-priority"') && row({ priority: 'urgent' }).includes('>Urgent<'), 'a task with a priority shows it as a chip');

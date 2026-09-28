@@ -356,17 +356,16 @@ export function renderTaskRow(t, p, categories, ui) {
   // no GitHub badge, Edit link, Focus → or delete button any more; those moved into the editor's
   // own action row. See docs/4-systems/github-sync.md#where-the-github-controls-live
   const catChips = (t.categoryIds || []).map((id) => categories.find((c) => c.id === id)).filter(Boolean)
-    .map((cat) => '<span class="chip cat-chip small" data-cat-id="' + cat.id + '" data-cat-type="task" title="Right-click to change color" style="--chip-color:' + mutedChip(cat.color) + '">' + esc(formatLabelName(cat.name)) + '</span>').join('');
+    .map((cat) => '<span class="chip cat-chip small" data-cat-id="' + cat.id + '" data-cat-type="task" title="' + esc(formatLabelName(cat.name)) + '" aria-label="' + esc(formatLabelName(cat.name)) + '" style="--chip-color:' + mutedChip(cat.color) + '">' + esc(formatLabelName(cat.name)) + '</span>').join('');
   const priorityChip = t.priority && PRIORITY[t.priority]
     ? '<button type="button" class="chip priority-chip small" data-action="cycle-priority" data-task="' + t.id + '" title="Priority — tap to change" style="--chip-color:var(--prio-' + t.priority + ')"' + (isDone ? ' disabled' : '') + '>' + PRIORITY[t.priority].label + '</button>'
     : '';
   return '<div class="task-row' + (isDone ? ' is-done' : '') + '" data-task="' + t.id + '" data-project="' + p.id + '">'
     + '<input type="checkbox" data-action="toggle-task" data-task="' + t.id + '" data-project="' + p.id + '"' + (isDone ? ' checked' : '') + '>'
-    // title and chips wrap as one group beside the checkbox: a short title keeps its chips on its
-    // line, a long one takes the full width and its chips drop underneath instead of squeezing it
-    + '<div class="task-main">'
+    // two zones beside the checkbox: the title in the left 75%, the chips right-anchored in the
+    // right 25% (kept even when there are no chips, so the title never grows into it) -- #97, #92
     + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + '</span>'
-    + priorityChip + catChips
+    + '<div class="task-chips">' + priorityChip + catChips
     + (t.deadline ? deadlineChip(t.deadline) : '')
     + '</div>'
     + '</div>';

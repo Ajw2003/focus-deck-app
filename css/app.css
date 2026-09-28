@@ -435,15 +435,16 @@ button.chip.proj-chip:hover{background:var(--line);}
 .task-group{margin-bottom:10px;}
 .group-label{margin-bottom:6px;}
 .task-row{
-  display:flex; align-items:flex-start; gap:8px;
+  display:grid; grid-template-columns:auto minmax(0,3fr) minmax(0,1fr); column-gap:8px; align-items:start;
   padding:7px 0; border-top:1px solid var(--line);
 }
-/* title + chips: the title's basis is its own width, so a long title claims the whole line and the
-   chips wrap below it rather than squeezing it into a narrow column */
-.task-main{flex:1; min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px;}
+/* 75/25 (#97, #92): the title wraps inside its zone; the chips sit right-anchored in theirs and
+   wrap onto more lines rather than widen it. The zone stays (empty) on a row with no chips. */
+.task-chips{display:flex; flex-wrap:wrap; justify-content:flex-end; align-content:flex-start; gap:6px; min-width:0;}
+.task-chips .chip{max-width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-sizing:border-box;}
 .task-group .task-row:first-of-type{border-top:none;}
 .task-row input[type="checkbox"]{width:17px; height:17px; margin-top:3px; accent-color:var(--accent); flex:none;}
-.task-title{flex:1 1 auto; min-width:0;}
+.task-title{min-width:0; overflow-wrap:anywhere;}
 .task-row.is-done .task-title{color:var(--ink-faint); text-decoration:line-through;}
 .task-title[role="button"]{cursor:pointer;}
 .task-title[role="button"]:hover{text-decoration:underline; text-decoration-style:dotted;}
