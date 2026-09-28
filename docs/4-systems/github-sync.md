@@ -294,9 +294,12 @@ and PR 7 added a regression test for it (`js/github-sync.test.mjs`).
 ## Traps
 
 - **2026-09-28 — a sync while a transfer is in flight.** The moved task keeps its old link until
-  `transferIssue` returns. A sync landing in that gap sees the old repo's issue gone and marks the task
-  done. The window is one round of three requests; reopening it (uncheck) or the next sync after the
-  new link is stored puts it right.
+  `transferIssue` returns, so a sync already running when the transfer started could list the old
+  repo after the issue had left it and mark the task done. Fixed the same day, before merge: tasks
+  with a transfer in flight (`transfersInFlight` in js/github-sync.js) are skipped by both close
+  paths (`upsertRepoProject` and the reconciliation pass). Auto-sync already waited on `ui.syncing`;
+  this covered the sync that was already running. Test: js/task-move.test.mjs, "a sync that lists the
+  old repo while a transfer is in flight".
 - **2026-09-26 — a linked issue without labels closed its task on the next sync.** `upsertRepoProject`
   built its "still open" set from labelled issues only, so a task whose issue had no labels (for
   example one made with **+ Issue** from an unlabelled task) was marked done while the issue stayed
