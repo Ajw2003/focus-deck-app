@@ -1,6 +1,7 @@
 // focus-deck-app/js/render.js
 import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
 import { ICON_SYNC, ICON_GRIP } from './icons.js';
+import { sortTasks } from './task-move.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -371,7 +372,11 @@ export function renderTaskRow(t, p, categories, ui) {
   const priorityChip = t.priority && PRIORITY[t.priority]
     ? '<button type="button" class="chip priority-chip small" data-action="cycle-priority" data-task="' + t.id + '" title="Priority — tap to change" style="--chip-color:var(--prio-' + t.priority + ')"' + (isDone ? ' disabled' : '') + '>' + PRIORITY[t.priority].label + '</button>'
     : '';
-  return '<div class="task-row' + (isDone ? ' is-done' : '') + '" data-task="' + t.id + '" data-project="' + p.id + '" style="--chips-max:' + chipsMaxPct(t.title) + '%">'
+  // Open rows carry a drag grip before the checkbox (PR 11); done rows don't drag. The grip is a real
+  // button so the arrow keys work on it (js/project-drag.js). See docs/4-systems/styling.md#dragging-tasks
+  const grip = isDone ? '' : '<button type="button" class="task-grip" data-task="' + t.id + '" data-project="' + p.id + '" aria-label="Move ' + esc(t.title) + '" title="Drag to move, or use the arrow keys">' + ICON_GRIP + '</button>';
+  return '<div class="task-row' + (isDone ? ' is-done' : ' has-grip') + '" data-task="' + t.id + '" data-project="' + p.id + '" style="--chips-max:' + chipsMaxPct(t.title) + '%">'
+    + grip
     + '<input type="checkbox" data-action="toggle-task" data-task="' + t.id + '" data-project="' + p.id + '"' + (isDone ? ' checked' : '') + '>'
     // two zones beside the checkbox: the title in the left 75%, the chips right-anchored in the
     // right 25% (kept even when there are no chips, so the title never grows into it) -- #97, #92
@@ -566,6 +571,29 @@ function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
     + '<button type="button" class="btn-text" data-action="close-project-edit" data-project="' + p.id + '">Done</button>' + linkRow + '</div>';
 }
 
+// One of a project's two open-task groups. Both always render, so a task can be dropped into either
+// (PR 11): an empty one stays hidden (CSS) until a task is being dragged, then shows a "Drop here"
+// zone. Rows are in ascending sortOrder. See docs/4-systems/styling.md#dragging-tasks
+function taskGroup(p, status, label, tasks, ui, categories) {
+  const rows = sortTasks(tasks).map((t) => renderTaskRow(t, p, categories, ui)).join('');
+  return '<div class="task-group' + (tasks.length ? '' : ' is-empty') + '" data-group="' + status + '" data-project="' + p.id + '">'
+    + '<h4 class="group-label">' + label + '</h4>' + rows
+    + (tasks.length ? '' : '<div class="drop-zone">Drop here</div>')
+    + '</div>';
+}
+
+// The confirmation shown before a task move that touches GitHub (js/move-dialog.js puts it on the
+// page). A small modal card: the question, an accent Move, a quiet Cancel.
+export function renderMoveDialog(message) {
+  return '<div class="move-dialog-backdrop">'
+    + '<div class="move-dialog" role="dialog" aria-modal="true" aria-labelledby="move-dialog-text">'
+    + '<p class="move-dialog-text" id="move-dialog-text">' + esc(message) + '</p>'
+    + '<div class="move-dialog-actions">'
+    + '<button type="button" class="btn-text" data-dialog="cancel">Cancel</button>'
+    + '<button type="button" class="btn primary" data-dialog="move">Move</button>'
+    + '</div></div></div>';
+}
+
 export function renderProjectCard(p, ui, categories, projectCategories, hasToken) {
   const doing = p.tasks.filter((t) => t.status === 'doing');
   const next = p.tasks.filter((t) => t.status === 'next');
@@ -623,9 +651,9 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
     // and named for a screen reader. See docs/4-systems/styling.md.
     + (collapsed ? '' : (
       '<div class="project-body" tabindex="0" role="region" aria-label="' + esc(p.name) + ' tasks">'
-      + (doing.length ? '<div class="task-group"><h4 class="group-label">In progress</h4>' + doing.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
-      + (next.length ? '<div class="task-group"><h4 class="group-label">Up next</h4>' + next.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
-      + (!doing.length && !next.length ? '<p class="muted small">Nothing open — add a task below.</p>' : '')
+      + taskGroup(p, 'doing', 'In progress', doing, ui, categories)
+      + taskGroup(p, 'next', 'Up next', next, ui, categories)
+      + (!doing.length && !next.length ? '<p class="muted small empty-note">Nothing open — add a task below.</p>' : '')
       + (done.length ? (
           '<button type="button" class="section-toggle small" data-action="toggle-done" data-project="' + p.id + '">' + (doneOpen ? '−' : '+') + ' ' + done.length + ' done</button>'
           + (doneOpen ? '<div class="task-group done-group">' + done.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')

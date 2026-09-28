@@ -6,10 +6,12 @@ import { registerPaint, initSyncLifecycle } from './sync.js';
 import {
   syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask,
   parseRepoInput, listYourRepos, untrackedRepos, isValidRepoName, REPO_NAME_RULE,
-  createRepoAndTrack, linkProjectToRepoOnGithub, linkProjectToRepoByInput,
+  createRepoAndTrack, linkProjectToRepoOnGithub, linkProjectToRepoByInput, transferTaskIssue,
 } from './github-sync.js';
 import { getToken } from './github.js';
 import { initProjectDrag, isDragging } from './project-drag.js';
+import { taskOrderChanges, sortTasks, planTaskMove } from './task-move.js';
+import { confirmMove } from './move-dialog.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
@@ -163,6 +165,48 @@ function moveProjectTo(id, toIndex, orderedIds) {
   ui.projectSort = 'custom';
   saveProjectSort();
   M.applySortOrders(changes); // saves, schedules the Gist push and repaints
+  return true;
+}
+
+// A dropped (or arrow-keyed) task from js/project-drag.js (PR 11). Within its own project it is a
+// re-order and/or a status change (into the other group). Into another project it is a move, which
+// first asks when it would touch GitHub (planTaskMove says); Cancel changes nothing. Returns true
+// when something changed or a question was asked. The GitHub half of a confirmed move runs after
+// the task has moved here, and a refusal leaves it moved (github-sync.js transferTaskIssue, and
+// the create-issue branch below).
+function moveTaskTo(req) {
+  const found = findTaskWithProject(req.taskId);
+  const to = state.projects.find((p) => p.id === req.toProjectId);
+  if (!found || !to) return false;
+  const { task, project: from } = found;
+  const group = sortTasks(to.tasks.filter((t) => t.status === req.status));
+  const changes = taskOrderChanges(group, task.id, req.toIndex);
+  if (from.id === to.id) {
+    if (task.status === req.status && !Object.keys(changes).length) return false;
+    return M.applyTaskMove({ taskId: task.id, toProjectId: to.id, status: req.status, changes });
+  }
+  const plan = planTaskMove(task, from, to);
+  // (re-read by id when it runs: a sync landing while the question was open replaces state's objects)
+  const run = () => {
+    const now = findTaskWithProject(req.taskId);
+    const dest = state.projects.find((p) => p.id === req.toProjectId);
+    if (!now || !dest) return;
+    const order = taskOrderChanges(sortTasks(dest.tasks.filter((t) => t.status === req.status)), req.taskId, req.toIndex);
+    M.applyTaskMove({ taskId: req.taskId, toProjectId: dest.id, status: req.status, changes: order });
+    const title = now.task.title;
+    if (plan.kind === 'create-issue') {
+      createGithubIssueFromTask(req.taskId, dest.repoFullName, ui).then(() => {
+        const t = findTaskWithProject(req.taskId);
+        if (ui.syncError) ui.syncError = 'Moved “' + title + '” to ' + dest.name + ', but it stays unlinked. ' + ui.syncError;
+        else if (t && t.task.source === 'github') ui.notice = 'Moved “' + title + '” to ' + dest.name + ' and linked it to ' + t.task.repoFullName + '#' + t.task.issueNumber + '.';
+        paint();
+      });
+    } else if (plan.kind === 'transfer') {
+      transferTaskIssue(req.taskId, dest.repoFullName, ui, dest.name).then(paint);
+    }
+  };
+  if (!plan.confirm) { run(); return true; }
+  confirmMove(plan.message, '.task-grip[data-task="' + task.id + '"]').then((ok) => { if (ok) run(); });
   return true;
 }
 
@@ -812,6 +856,7 @@ function init() {
   app.addEventListener('contextmenu', onAppContextMenu);
   initProjectDrag(app, {
     move: moveProjectTo,
+    moveTask: moveTaskTo,
     announce: announceDrag,
     onEnd: () => { if (paintWaitingOnDrag) { paintWaitingOnDrag = false; paint(); } },
   });
