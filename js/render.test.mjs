@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderTaskRow, chipsMaxPct, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderSyncButton, syncButtonTitle } from './render.js';
 import assert from 'node:assert';
 
 // the top-bar sync button: title/aria-label branch on whether it's ever synced, and it spins +
@@ -438,3 +438,12 @@ assert.ok(info.includes('class="toast"') && info.includes('role="status"'), 'a n
 }
 
 console.log('RENDER CHIP TESTS PASSED');
+
+// #97/#92: the chips column's ceiling eases from half the row down to a third as the title grows,
+// and the row carries it as --chips-max
+assert.strictEqual(chipsMaxPct('Short'), 50, 'a short title lets the chips take up to half the row');
+assert.strictEqual(chipsMaxPct('x'.repeat(30)), 50, 'up to 30 characters the ceiling stays at half');
+assert.strictEqual(chipsMaxPct('x'.repeat(60)), 40, 'a 60-character title caps the chips at 40%');
+assert.strictEqual(chipsMaxPct('x'.repeat(200)), 33, 'however long the title, the chips can still have a third');
+assert.strictEqual(chipsMaxPct(''), 50, 'an empty title is treated as short');
+assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds: [] }, { id: 'p1' }, [], { editingTask: null }).includes('style="--chips-max:50%"'), 'the row carries its chips ceiling');

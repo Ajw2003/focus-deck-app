@@ -77,7 +77,7 @@ after tweaks to the original plan and scheduled prompt that are not recorded in 
 archived plan, `docs/archive/2026-09-21-claude-daily-checkin.md`, is the pre-tweak version).
 Shelved the same day as less useful than expected; nothing further is planned for it.
 
-## 6. Handcrafted redesign — ~90%, PRs 1-7 merged, PR 8 (task rows 75/25) next
+## 6. Handcrafted redesign — ~90%, PRs 1-7 merged, PR 8 (task row columns) next
 
 One-line: a focus-first, warm-editorial visual and structural redesign of the existing screens,
 landed as ordered PRs: (1) the docs move, (2) feature/control cuts, (3) the visual system,
@@ -98,7 +98,7 @@ GitHub" disclosure that needs a token with Administration: Read and write), and 
 project's Edit panel gets "Link to GitHub repo" (turns it into a repo project in place, keeping its
 id/name/colour/category and hand-made tasks, refusing a repo another project already tracks). See
 `docs/4-systems/github-sync.md` and `docs/6-decisions/Decisions.md` (2026-09-28). Next, in the
-order the user set on 2026-09-28: PR 8, task rows split 75% title / 25% chips (#97, #92); then
+order the user set on 2026-09-28: PR 8, task rows with the title and a scaling chips column (#97, #92); then
 PR 9, dragging projects into order, and PR 10, dragging tasks (both #73, milestone 8).
 
 **Acceptance:** PRs 1-8 merged, `node --test js/*.test.mjs` and
@@ -112,7 +112,8 @@ minimised tiles out of the tile grid for the same reason. #27 and #46 (usability
 milestone 9.
 
 Still open here (added 2026-09-28):
-- #97 — task rows: title in the left 75%, chips anchored in the right 25%, neither leaving its zone
+- #97 — task rows: title left, chips anchored right, neither leaving its zone (asked as 75/25; built
+  as a chips column that scales with its chips, 2026-09-28)
   (fixed by PR 8, pending merge)
 - #92 — chips anchored to the right side of a task row (same fix as #97; fixed by PR 8, pending merge)
 - #95 — a phone equivalent of right-click, for colour changing and the other right-click actions

@@ -435,11 +435,15 @@ button.chip.proj-chip:hover{background:var(--line);}
 .task-group{margin-bottom:10px;}
 .group-label{margin-bottom:6px;}
 .task-row{
-  display:grid; grid-template-columns:auto minmax(0,3fr) minmax(0,1fr); column-gap:8px; align-items:start;
+  /* the chips column is as wide as its chips need, up to half the row (fit-content): one short chip
+     takes little room, several sit side by side and wrap into a small block; the title gets the
+     rest. The ceiling (--chips-max, set per row from the title's length by chipsMaxPct in
+     js/render.js) drops toward a third for long titles. Neither ever enters the other's column (#97, #92, reworked 2026-09-28) */
+  display:grid; grid-template-columns:auto minmax(0,1fr) fit-content(var(--chips-max, 50%)); column-gap:10px; align-items:start;
   padding:7px 0; border-top:1px solid var(--line);
 }
-/* 75/25 (#97, #92): the title wraps inside its zone; the chips sit right-anchored in theirs and
-   wrap onto more lines rather than widen it. The zone stays (empty) on a row with no chips. */
+/* the chips wrap inside their column rather than widen it past half the row; a chip still too
+   long for it is cut with an ellipsis (its full name is in title/aria-label and the editor) */
 .task-chips{display:flex; flex-wrap:wrap; justify-content:flex-end; align-content:flex-start; gap:6px; min-width:0;}
 .task-chips .chip{max-width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-sizing:border-box;}
 .task-group .task-row:first-of-type{border-top:none;}

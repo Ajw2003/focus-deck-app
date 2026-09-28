@@ -349,6 +349,15 @@ export function renderTaskEditForm(t, p, categories) {
     + '</form>';
 }
 
+// How wide a task row's chips column may grow, as a % of the row: half for a short title, easing
+// down to a third as the title gets longer, so a long title keeps most of the row and a short one
+// lets several chips sit side by side. The column itself is only as wide as its chips need (CSS
+// fit-content), so this is a ceiling, not a size (#97, #92).
+export function chipsMaxPct(title) {
+  const len = (title || '').length;
+  return Math.round(50 - Math.min(17, Math.max(0, len - 30) / 3));
+}
+
 export function renderTaskRow(t, p, categories, ui) {
   if (ui.editingTask && ui.editingTask.taskId === t.id) return renderTaskEditForm(t, p, categories);
   const isDone = t.status === 'done';
@@ -360,7 +369,7 @@ export function renderTaskRow(t, p, categories, ui) {
   const priorityChip = t.priority && PRIORITY[t.priority]
     ? '<button type="button" class="chip priority-chip small" data-action="cycle-priority" data-task="' + t.id + '" title="Priority — tap to change" style="--chip-color:var(--prio-' + t.priority + ')"' + (isDone ? ' disabled' : '') + '>' + PRIORITY[t.priority].label + '</button>'
     : '';
-  return '<div class="task-row' + (isDone ? ' is-done' : '') + '" data-task="' + t.id + '" data-project="' + p.id + '">'
+  return '<div class="task-row' + (isDone ? ' is-done' : '') + '" data-task="' + t.id + '" data-project="' + p.id + '" style="--chips-max:' + chipsMaxPct(t.title) + '%">'
     + '<input type="checkbox" data-action="toggle-task" data-task="' + t.id + '" data-project="' + p.id + '"' + (isDone ? ' checked' : '') + '>'
     // two zones beside the checkbox: the title in the left 75%, the chips right-anchored in the
     // right 25% (kept even when there are no chips, so the title never grows into it) -- #97, #92
