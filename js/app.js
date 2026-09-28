@@ -9,9 +9,8 @@ import {
   createRepoAndTrack, linkProjectToRepoOnGithub, linkProjectToRepoByInput,
 } from './github-sync.js';
 import { getToken } from './github.js';
-import { moveProject } from './project-filter.js';
 import { initProjectDrag, isDragging } from './project-drag.js';
-import { filterAndSortProjects, resolveSelectedProject, resolveProjectView } from './project-filter.js';
+import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
 // storage rather than in the synced state.

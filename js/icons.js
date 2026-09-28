@@ -41,6 +41,6 @@ export const ICON_COMPASS =
 // true so they read as dots made by hand. Smaller than the toolbar icons (16px).
 export const ICON_GRIP =
   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-  + '<path d="M8.6 6.4v.3"/><path d="M8.4 12v.4"/><path d="M8.7 17.5v.3"/>'
-  + '<path d="M15.4 6.3v.4"/><path d="M15.6 11.9v.3"/><path d="M15.3 17.6v.3"/>'
+  + '<path d="M8.6 5.6v1.6"/><path d="M8.4 11.2v1.7"/><path d="M8.7 16.8v1.5"/>'
+  + '<path d="M15.4 5.5v1.7"/><path d="M15.6 11.3v1.5"/><path d="M15.3 16.9v1.5"/>'
   + '</svg>';
