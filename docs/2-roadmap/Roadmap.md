@@ -113,8 +113,8 @@ milestone 9.
 
 Still open here (added 2026-09-28):
 - #97 — task rows: title in the left 75%, chips anchored in the right 25%, neither leaving its zone
-  (**next**, PR 8)
-- #92 — chips anchored to the right side of a task row (same fix as #97)
+  (fixed by PR 8, pending merge)
+- #92 — chips anchored to the right side of a task row (same fix as #97; fixed by PR 8, pending merge)
 - #95 — a phone equivalent of right-click, for colour changing and the other right-click actions
 - #90 — make the completion bar a little more distinct
 - #87 — warmer: "like a nice notebook with leather edges, quality thick paper and a sense of

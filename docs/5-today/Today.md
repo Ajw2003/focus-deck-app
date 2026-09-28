@@ -404,3 +404,11 @@ Dragging projects into order (Q27a, PR 7) -- explicitly the next PR in the plan,
 The roadmap now carries all 21 open issues, including the nine opened since 2026-09-27 and #69,
 which was missed when the roadmap was first written. Surfaced, not in the order above: #93 and
 #94 are GitHub sync bugs (reopening milestone 2 at ~90%), raised with the user on 2026-09-28.
+
+## 2026-09-28 — PR 8 built (pending merge)
+
+Task rows are now checkbox + title zone (left 75%) + `.task-chips` zone (right 25%, chips
+right-anchored, wrapping inside it; over-long labels ellipsised with the full name in `title` and
+`aria-label`). `.task-main` is gone. Measured in real Chromium at 390, 1440 and 1920 wide; no chip
+left its zone. Screenshots in `docs/generated/pr8/` (fonts fall back in the sandbox). Fixes #97 and
+#92 once merged. Next: PR 9, dragging projects.

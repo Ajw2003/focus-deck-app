@@ -4,6 +4,14 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-28 — Task row zones: ellipsis for over-long chips, empty 25% on chipless rows
+
+**Decision.** "Never let either exist outside its zone" (#97, #92) is taken literally. A label chip
+too long for the 25% zone is cut with an ellipsis and carries its full displayed name in `title`
+and `aria-label` (this replaces the chip's old "Right-click to change color" tooltip). A row with
+no chips keeps the 25% zone empty, so a long title wraps inside its 75% instead of using the space.
+**Tier.** Systems (`docs/4-systems/styling.md`, "Task rows and the editor").
+
 ## 2026-09-28 — PR 7 interpretations ("+ New" panel)
 
 **Context.** The 2026-09-28 "+ New" panel decision above left a few implementation calls open.
