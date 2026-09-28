@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
-import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderAddProjectField, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderTaskRow, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderSyncButton, syncButtonTitle } from './render.js';
 import assert from 'node:assert';
 
 // the top-bar sync button: title/aria-label branch on whether it's ever synced, and it spins +
@@ -325,8 +325,7 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   const html = renderProjectSidebar({ projects, projectCategories: [] }, sideUi, projects);
   assert.ok(html.includes('data-action="scroll-project" data-project="p2"') && /class="sidebar-project is-selected"[^>]*data-project="p2"[^>]*aria-current="true"/.test(html), 'the selected row is highlighted with aria-current');
   assert.ok(!/data-project="p1"[^>]*aria-current/.test(html), 'the unselected row carries no aria-current');
-  assert.ok(html.includes('<form class="add-project-form" data-action="add-project-field">') && html.includes('placeholder="New project or owner/repo"'), 'the sidebar ends with the one add field');
-  assert.strictEqual(renderAddProjectField(), '<form class="add-project-form" data-action="add-project-field"><input type="text" name="value" placeholder="New project or owner/repo" maxlength="200" required><button type="submit">+ Add</button></form>', 'the add field itself');
+  assert.ok(html.includes('data-action="toggle-new-panel"') && html.includes('+ New<'), 'the header carries the "+ New" button');
 
   // The "All" view: every project is its own card/tile, so no row is "current" -- no is-selected
   // class, no aria-current, even though ui.selectedProjectId is still set (it's read in "One" only).
@@ -372,5 +371,56 @@ assert.ok(toast.includes('Could not link &lt;b&gt;'), 'the message text is escap
 assert.ok(toast.includes('data-action="dismiss-toast"'), 'the toast can be dismissed');
 const info = renderToast('Linked instead', 'info');
 assert.ok(info.includes('class="toast"') && info.includes('role="status"'), 'a notice uses the plain toast style and a polite announcement');
+
+// The "+ New" panel (PR 7, Q29a/Q30c): always in the header, opens under it, two tabs, the
+// no-token line, and the Edit panel's Link to GitHub repo row.
+{
+  const projects = [{ id: 'p1', name: 'Alpha', color: 'red', tasks: [] }];
+  const baseUi = { projectQuery: '', projectSort: 'name', projectCollapsed: {}, projectView: 'all' };
+
+  // The button always renders, whatever ui.newPanelOpen is -- never inside the scrolling list.
+  const closed = renderProjectSidebar({ projects, projectCategories: [] }, baseUi, projects, true);
+  assert.ok(closed.includes('data-action="toggle-new-panel"'), 'the "+ New" button is always present');
+  assert.ok(closed.indexOf('data-action="toggle-new-panel"') < closed.indexOf('<ul class="sidebar-list">'), '"+ New" sits in the header, before the scrolling list');
+  assert.ok(closed.includes('aria-expanded="false"') && closed.includes('aria-controls="new-panel"'), 'the button carries aria-expanded/aria-controls');
+  assert.ok(!closed.includes('id="new-panel"'), 'the panel itself is absent while closed');
+
+  const openUi = { ...baseUi, newPanelOpen: true };
+  const open = renderProjectSidebar({ projects, projectCategories: [] }, openUi, projects, true);
+  assert.ok(open.includes('id="new-panel"'), 'the panel renders when open');
+  assert.ok(open.indexOf('id="new-panel"') < open.indexOf('<div class="view-switch" role="group" aria-label="Project view">'), 'the panel sits under the header, above the All/One view switch');
+  assert.ok(open.includes('aria-expanded="true"'), 'aria-expanded flips to true while open');
+  assert.ok(open.includes('New project') && open.includes('GitHub repo'), 'the panel has both tabs');
+  assert.ok(open.includes('data-action="add-new-project"'), 'the New project tab defaults open with its add form');
+
+  const repoTabUi = { ...openUi, newPanelTab: 'repo' };
+  const repoTabNoToken = renderProjectSidebar({ projects, projectCategories: [] }, repoTabUi, projects, false);
+  assert.ok(repoTabNoToken.includes('Connect GitHub in') && repoTabNoToken.includes('href="settings.html"'), 'no token -- just the Settings line, nothing else');
+  assert.ok(!repoTabNoToken.includes('data-action="track-repo"') && !repoTabNoToken.includes('data-action="create-repo"'), 'no repo picker or Create when there is no token');
+
+  const repoTabWithToken = renderProjectSidebar({ projects, projectCategories: [] }, { ...repoTabUi, newPanelRepos: { list: [{ full_name: 'me/one', private: false }, { full_name: 'me/two', private: true }] } }, projects, true);
+  assert.ok(repoTabWithToken.includes('me/one') && repoTabWithToken.includes('me/two') && repoTabWithToken.includes('>Private<'), 'Your repos lists the untracked repos, with a Private chip');
+  assert.ok(repoTabWithToken.includes('data-action="track-repo" data-repo="me/one"'), 'each row has a Track button');
+  assert.ok(repoTabWithToken.includes('data-action="paste-repo"') && repoTabWithToken.includes('owner/repo or a GitHub URL'), 'the paste field is present');
+  assert.ok(repoTabWithToken.includes('Create a new repo on GitHub') && repoTabWithToken.includes('data-action="create-repo"'), 'the create-a-repo disclosure is present');
+
+  const loading = renderProjectSidebar({ projects, projectCategories: [] }, { ...repoTabUi, newPanelRepos: { loading: true } }, projects, true);
+  assert.ok(loading.includes('Loading your repos…'), 'a loading state shows while the fetch is in flight');
+  const errored = renderProjectSidebar({ projects, projectCategories: [] }, { ...repoTabUi, newPanelRepos: { error: 'boom' } }, projects, true);
+  assert.ok(errored.includes('boom') && errored.includes('data-action="retry-new-panel-repos"'), 'an error shows the message and a Retry link');
+
+  // Edit panel: Link to GitHub repo row for a hand-made project, nothing new for a repo project
+  const cardUi = () => ({ doneOpen: {}, pendingRemove: {}, projectCollapsed: {}, editingProject: { p1: true }, addingTask: {}, selectedProjectId: null, editingTask: null, projectView: 'all' });
+  const manualCard = renderProjectCard({ id: 'p1', name: 'Alpha', color: 'red', source: 'manual', tasks: [] }, cardUi(), [], [], true);
+  assert.ok(manualCard.includes('data-action="toggle-link-panel" data-project="p1">Link to GitHub repo<'), 'a hand-made project\'s Edit panel offers Link to GitHub repo');
+  const manualCardNoToken = renderProjectCard({ id: 'p1', name: 'Alpha', color: 'red', source: 'manual', tasks: [] }, cardUi(), [], [], false);
+  assert.ok(!manualCardNoToken.includes('Link to GitHub repo'), 'no token -- no link row either');
+  const ghCard = renderProjectCard({ id: 'p1', name: 'Alpha', color: 'red', source: 'github', repoFullName: 'o/r', htmlUrl: 'u', tasks: [] }, cardUi(), [], [], true);
+  assert.ok(!ghCard.includes('Link to GitHub repo'), 'a project already tracking a repo gets nothing new');
+
+  const linkOpenCard = renderProjectCard({ id: 'p1', name: 'Alpha', color: 'red', source: 'manual', tasks: [] }, { ...cardUi(), linkPanel: { projectId: 'p1', open: true, repos: { list: [{ full_name: 'me/untracked', private: false }] } } }, [], [], true);
+  assert.ok(linkOpenCard.includes('data-action="link-repo" data-repo="me/untracked"'), 'the inline link panel lists untracked repos with a Link button');
+  assert.ok(linkOpenCard.includes('data-action="paste-link-repo"'), 'the inline link panel also takes a pasted repo');
+}
 
 console.log('RENDER CHIP TESTS PASSED');

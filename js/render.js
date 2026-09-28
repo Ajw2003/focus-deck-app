@@ -413,11 +413,69 @@ function renderViewSwitch(ui) {
   return '<div class="view-switch" role="group" aria-label="Project view">' + option('all', 'All projects') + option('one', 'One project') + '</div>';
 }
 
+// The "+ New" panel (PR 7, replacing the old bottom add field, Q29a): a two-tab segmented control
+// (New project / GitHub repo) that opens directly under the header row. See
+// docs/4-systems/styling.md#add-a-project-or-a-repo.
+function renderRepoRow(r) {
+  return '<li class="repo-row"><span class="repo-name">' + esc(r.full_name) + '</span>'
+    + (r.private ? '<span class="chip small">Private</span>' : '')
+    + '<button type="button" class="btn-text small" data-action="track-repo" data-repo="' + esc(r.full_name) + '">Track</button></li>';
+}
+function renderYourRepos(ui) {
+  const rs = ui.newPanelRepos || {};
+  if (rs.loading) return '<p class="muted small">Loading your repos…</p>';
+  if (rs.error) return '<p class="field-error small">' + esc(rs.error) + ' <button type="button" class="link-btn small" data-action="retry-new-panel-repos">Retry</button></p>';
+  const repos = rs.list || [];
+  const q = (ui.newPanelRepoFilter || '').toLowerCase();
+  const filtered = q ? repos.filter((r) => r.full_name.toLowerCase().includes(q)) : repos;
+  const filterBox = repos.length > 8
+    ? '<input type="text" class="repo-filter" data-action="set-repo-filter" placeholder="Filter repos…" value="' + esc(ui.newPanelRepoFilter || '') + '">'
+    : '';
+  const rows = filtered.map(renderRepoRow).join('');
+  return filterBox + '<ul class="repo-list">' + (rows || '<li class="muted small">No untracked repos.</li>') + '</ul>';
+}
+function renderPasteRepo(ui) {
+  return '<form class="add-project-form" data-action="paste-repo">'
+    + '<input type="text" name="value" placeholder="owner/repo or a GitHub URL" required>'
+    + '<button type="submit">Track</button>'
+    + '</form>'
+    + (ui.newPanelPasteError ? '<p class="field-error small">' + esc(ui.newPanelPasteError) + '</p>' : '');
+}
+function renderCreateRepo(ui) {
+  return '<details class="new-repo-disclosure"' + (ui.newPanelCreateOpen ? ' open' : '') + '>'
+    + '<summary>Create a new repo on GitHub</summary>'
+    + '<form class="new-repo-form" data-action="create-repo">'
+      + '<input type="text" name="name" placeholder="repo-name" required>'
+      + '<p class="muted small">letters, numbers, dots, hyphens and underscores only, no spaces</p>'
+      + '<label><input type="checkbox" name="private" checked> Private</label>'
+      + '<input type="text" name="description" placeholder="Description (optional)">'
+      + '<button type="submit">Create</button>'
+    + '</form>'
+    + (ui.newPanelCreateError ? '<p class="field-error small">' + esc(ui.newPanelCreateError) + '</p>' : '')
+    + '</details>';
+}
+function renderNewRepoTab(ui, hasToken) {
+  if (!hasToken) return '<p class="muted small">Connect GitHub in <a href="settings.html">Settings</a> to add repos.</p>';
+  return '<div class="new-panel-section"><h4 class="group-label">Your repos</h4>' + renderYourRepos(ui) + '</div>'
+    + '<div class="new-panel-section"><h4 class="group-label">Paste</h4>' + renderPasteRepo(ui) + '</div>'
+    + '<div class="new-panel-section">' + renderCreateRepo(ui) + '</div>';
+}
+function renderNewPanel(ui, hasToken) {
+  if (!ui.newPanelOpen) return '';
+  const tab = ui.newPanelTab === 'repo' ? 'repo' : 'project';
+  const tabBtn = (value, label) => '<button type="button" class="filter-pill' + (tab === value ? ' active' : '') + '" data-action="set-new-panel-tab" data-tab="' + value + '" aria-pressed="' + (tab === value) + '">' + label + '</button>';
+  const tabs = '<div class="view-switch" role="group" aria-label="Add">' + tabBtn('project', 'New project') + tabBtn('repo', 'GitHub repo') + '</div>';
+  const body = tab === 'project'
+    ? '<form class="add-project-form" data-action="add-new-project"><input type="text" name="name" placeholder="Project name" maxlength="200" required autofocus><button type="submit">Add</button></form>'
+    : renderNewRepoTab(ui, hasToken);
+  return '<div class="new-panel" id="new-panel">' + tabs + body + '</div>';
+}
+
 // The single project list: search, category pills, sort, Collapse all, and a row per project that
 // jumps to its card. CSS shows it as a sticky left column at >=1100px; below that it's the drawer
 // opened from the topbar's Projects button (see app.js's toggle-projects-drawer/scroll-project).
 // See docs/4-systems/styling.md#project-sidebar
-export function renderProjectSidebar(st, ui, visibleProjects) {
+export function renderProjectSidebar(st, ui, visibleProjects, hasToken) {
   if (!st.projects.length) return '';
   const isOpen = !!ui.projectsDrawerOpen;
   const isOneView = ui.projectView === 'one';
@@ -433,20 +491,48 @@ export function renderProjectSidebar(st, ui, visibleProjects) {
     // a modal dialog only while open as the phone drawer; otherwise a plain landmark, so the wide-screen
     // sidebar doesn't tell screen readers the rest of the page is out of reach
     + '<aside class="project-sidebar' + (isOpen ? ' is-open' : '') + '" id="projects-drawer" tabindex="-1" aria-label="Projects"' + (isOpen ? ' role="dialog" aria-modal="true"' : '') + '>'
-    + '<div class="sidebar-head"><h2 class="sidebar-title">Projects</h2><span class="muted small">' + visibleProjects.length + '</span></div>'
+    + '<div class="sidebar-head"><h2 class="sidebar-title">Projects</h2><div class="sidebar-head-right"><span class="muted small">' + visibleProjects.length + '</span>'
+      + '<button type="button" class="link-btn small" data-action="toggle-new-panel" aria-expanded="' + !!ui.newPanelOpen + '" aria-controls="new-panel">+ New</button></div></div>'
+    + renderNewPanel(ui, hasToken)
     + renderViewSwitch(ui)
     + '<input type="text" class="project-search sidebar-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
     + '<div class="filter-pills sidebar-pills">' + projectFilterPills(st, ui) + '</div>'
     + '<div class="sidebar-tools">' + projectSortSelect(ui) + collapseAllButton(ui, visibleProjects) + '</div>'
     + '<ul class="sidebar-list">' + (rows || '<li class="muted small">No projects match.</li>') + '</ul>'
-    + renderAddProjectField()
     + '</aside>';
 }
 
 // The project header's Edit panel (Q15a): the category picker (moved off the header itself) and
 // Remove project (moved off the header's own button), both under one "Edit" link. Replaces the
 // old header "+ Category" placeholder and "Remove" button.
-function renderProjectEditPanel(p, ui, projectCategories) {
+// Q30c (PR 7): a hand-made (non-GitHub) project also gets a "Link to GitHub repo" row here, opening
+// the same repo picker (your untracked repos + paste, no Create) inline in the panel.
+function renderLinkRepoPanel(p, ui) {
+  if (!ui.linkPanel || ui.linkPanel.projectId !== p.id || !ui.linkPanel.open) return '';
+  const err = ui.linkPanel.error ? '<p class="field-error small">' + esc(ui.linkPanel.error) + '</p>' : '';
+  return '<div class="new-panel link-repo-panel">'
+    + '<div class="new-panel-section"><h4 class="group-label">Your repos</h4>' + renderYourReposForLink(ui) + '</div>'
+    + '<div class="new-panel-section"><h4 class="group-label">Paste</h4>' + renderPasteRepoForLink(ui) + '</div>'
+    + err
+    + '</div>';
+}
+function renderYourReposForLink(ui) {
+  const rs = (ui.linkPanel && ui.linkPanel.repos) || {};
+  if (rs.loading) return '<p class="muted small">Loading your repos…</p>';
+  if (rs.error) return '<p class="field-error small">' + esc(rs.error) + ' <button type="button" class="link-btn small" data-action="retry-link-panel-repos">Retry</button></p>';
+  const repos = rs.list || [];
+  const rows = repos.map((r) => '<li class="repo-row"><span class="repo-name">' + esc(r.full_name) + '</span>'
+    + (r.private ? '<span class="chip small">Private</span>' : '')
+    + '<button type="button" class="btn-text small" data-action="link-repo" data-repo="' + esc(r.full_name) + '">Link</button></li>').join('');
+  return '<ul class="repo-list">' + (rows || '<li class="muted small">No untracked repos.</li>') + '</ul>';
+}
+function renderPasteRepoForLink() {
+  return '<form class="add-project-form" data-action="paste-link-repo">'
+    + '<input type="text" name="value" placeholder="owner/repo or a GitHub URL" required>'
+    + '<button type="submit">Link</button>'
+    + '</form>';
+}
+function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
   const total = p.tasks.length;
   const pendingRemove = !!ui.pendingRemove[p.id];
   const projCatOptions = projectCategories.map((c) => '<option value="' + c.id + '"' + (p.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
@@ -456,11 +542,15 @@ function renderProjectEditPanel(p, ui, projectCategories) {
   const removeControl = pendingRemove
     ? '<span class="remove-confirm">Remove' + (total ? (' &amp; ' + total + ' task' + (total === 1 ? '' : 's')) : '') + '? <button type="button" class="btn-text danger" data-action="confirm-remove-project" data-project="' + p.id + '">Yes</button><button type="button" class="btn-text" data-action="cancel-remove-project" data-project="' + p.id + '">No</button></span>'
     : '<button type="button" class="btn-text danger" data-action="remove-project" data-project="' + p.id + '">Remove project</button>';
+  // A project already tracking a repo has nothing new here -- unlinking is out of scope (Q30c).
+  const linkRow = (p.source !== 'github' && hasToken)
+    ? '<button type="button" class="link-btn small" data-action="toggle-link-panel" data-project="' + p.id + '">Link to GitHub repo</button>' + renderLinkRepoPanel(p, ui)
+    : '';
   return '<div class="project-edit-panel">' + catSelect + removeControl
-    + '<button type="button" class="btn-text" data-action="close-project-edit" data-project="' + p.id + '">Done</button></div>';
+    + '<button type="button" class="btn-text" data-action="close-project-edit" data-project="' + p.id + '">Done</button>' + linkRow + '</div>';
 }
 
-export function renderProjectCard(p, ui, categories, projectCategories) {
+export function renderProjectCard(p, ui, categories, projectCategories, hasToken) {
   const doing = p.tasks.filter((t) => t.status === 'doing');
   const next = p.tasks.filter((t) => t.status === 'next');
   const done = p.tasks.filter((t) => t.status === 'done');
@@ -505,7 +595,7 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
       + '<div class="project-head-right">' + (p.deadline ? deadlineChip(p.deadline) : '') + collapseBtn + editLink + '</div>'
     + '</div>'
     + '<div class="project-badges">' + ghBadge + projCatChip + '</div>'
-    + (editingPanel ? renderProjectEditPanel(p, ui, projectCategories) : '')
+    + (editingPanel ? renderProjectEditPanel(p, ui, projectCategories, hasToken) : '')
     + '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>'
     // The task groups, done group and "+ Add task" scroll inside a fixed-height tile at >=1100px
     // (Q26a, #82) instead of the whole tile growing; below that width this is just a plain block in
@@ -528,9 +618,9 @@ export function renderProjectCard(p, ui, categories, projectCategories) {
 
 // The main column's projects area: what renders depends on ui.projectView and, in "All", the
 // caller's isWide. Pure and directly testable. See docs/4-systems/styling.md#project-sidebar.
-export function renderProjectsMain(st, ui, visibleProjects, isWide) {
+export function renderProjectsMain(st, ui, visibleProjects, isWide, hasToken) {
   const noMatch = st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '';
-  const card = (p) => renderProjectCard(p, ui, st.categories, st.projectCategories);
+  const card = (p) => renderProjectCard(p, ui, st.categories, st.projectCategories, hasToken);
   if (ui.projectView === 'one') {
     const selected = visibleProjects.find((p) => p.id === ui.selectedProjectId);
     return '<div class="projects-grid">' + (selected ? card(selected) : noMatch) + '</div>';
@@ -544,14 +634,4 @@ export function renderProjectsMain(st, ui, visibleProjects, isWide) {
         : '');
   }
   return '<div class="projects-grid">' + visibleProjects.map(card).join('') + noMatch + '</div>';
-}
-
-// The one field at the bottom of the project list (Q15a, Q12d): a project name, or an owner/repo /
-// GitHub URL, detected with the same parseRepoInput used everywhere else a repo is entered. See
-// docs/4-systems/styling.md.
-export function renderAddProjectField() {
-  return '<form class="add-project-form" data-action="add-project-field">'
-    + '<input type="text" name="value" placeholder="New project or owner/repo" maxlength="200" required>'
-    + '<button type="submit">+ Add</button>'
-    + '</form>';
 }
