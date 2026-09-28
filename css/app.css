@@ -388,7 +388,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 .new-repo-form{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
 .new-repo-form input[type="text"]{padding:7px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
 .field-error{color:var(--danger);}
-.link-repo-panel{margin-top:8px;}
+.link-repo-panel{flex-basis:100%; margin-top:8px;}
 .sidebar-search{flex:none; width:100%; padding:8px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
 .sidebar-pills{gap:5px;}
 .sidebar-pills .filter-pill{padding:4px 10px; font-size:var(--text-sm);}
