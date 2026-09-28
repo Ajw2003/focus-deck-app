@@ -4,6 +4,37 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-28 — Calls made while building task dragging (PR 11)
+
+**Context.** The two entries below fixed the design (drag tasks, the GitHub moves and their messages,
+no message for offline projects); these are the interpretation calls.
+
+- **Order is per project, per record.** `sortOrder` is numbered per project (not per group), so a
+  task changing group keeps a sensible number; a move writes only the moved task's number
+  (`positionBetween`), like projects. Done tasks keep array order.
+- **Both groups always render.** So a task can be dropped into an empty "In progress" or "Up next";
+  an empty group is hidden until a task is dragged, then shows "Drop here". The cost: rows below it
+  shift down when the drag starts.
+- **Status on a cross-project move is set directly**, not through `setTaskStatus`: that would PATCH
+  the old repo's issue open, and a move is not a completion change. Within a project it does go
+  through `setTaskStatus`, as the brief asked.
+- **The move happens in Focus Deck first, then GitHub is asked.** So a refusal (or a network failure)
+  leaves the task where the person dropped it, with its old link (transfer) or unlinked (create), and
+  a toast that says why. Cancel never moves anything.
+- **The dialog defaults focus to Cancel**, so a stray Enter cancels rather than creating or
+  transferring an issue.
+- **A move stamps the task** (`updatedAt`) and the Gist merge keeps the newest copy of a task id
+  wherever it lives (`dedupeMovedTasks`); an edit made on another device after the move therefore
+  puts the task back in that device's project (last write wins). Chosen over tombstoning the old
+  location, which would resurrect nothing but could delete a task under a slower device.
+- **Sync matches issues to tasks across all projects** (`upsertRepoProject`), and closes a moved task
+  wherever it lives, rather than remembering "moved out of" markers per project.
+- **Keyboard moves are within one project only**, by the brief; a move to another project is drag only.
+- **The real `transferIssue` call was not run against GitHub**: it is tested against a stub of the
+  documented REST/GraphQL shapes.
+
+**Status.** Standing.
+
 ## 2026-09-28 — Calls made while building colour without right-click (PR 10, #95)
 
 **Context.** The entry below fixed the design; these are the interpretation calls.

@@ -77,7 +77,7 @@ after tweaks to the original plan and scheduled prompt that are not recorded in 
 archived plan, `docs/archive/2026-09-21-claude-daily-checkin.md`, is the pre-tweak version).
 Shelved the same day as less useful than expected; nothing further is planned for it.
 
-## 6. Handcrafted redesign — ~93%, PRs 1-7 merged, PRs 8-9 built (pending merge), PR 10 next
+## 6. Handcrafted redesign — ~93%, PRs 1-7 merged, PRs 8-11 built (pending merge), PR 12 next
 
 One-line: a focus-first, warm-editorial visual and structural redesign of the existing screens,
 landed as ordered PRs: (1) the docs move, (2) feature/control cuts, (3) the visual system,
@@ -101,8 +101,10 @@ id/name/colour/category and hand-made tasks, refusing a repo another project alr
 order the user set on 2026-09-28: PR 8, task rows with the title and a scaling chips column (#97, #92),
 built, pending merge; then PR 9, dragging projects into order (the project half of #73), built,
 pending merge (2026-09-28: grip on each header and every sidebar row are handles, mouse/touch/keyboard,
-"Custom order" sort, a per-project `sortOrder` that syncs as an ordinary field); then PR 10, dragging
-tasks (the task half of #73, milestone 8).
+"Custom order" sort, a per-project `sortOrder` that syncs as an ordinary field); then PR 10 (colour without right-click, #95);
+then PR 11, dragging single tasks within a project and into others with the GitHub moves (the task half of
+#73 and #7, milestone 8), built, pending merge; PR 12, selecting several tasks or projects and dragging
+them together, is next.
 
 **Acceptance:** PRs 1-10 merged, `node --test js/*.test.mjs` and
 `node scripts/guard-file-churn.mjs` still pass after each, and the plan's own acceptance notes
@@ -155,9 +157,9 @@ may already be fully or partly covered by it; check each against the app and clo
 One-line: arrange projects and tasks by hand, and make a task's status follow its GitHub issue.
 
 **Contains:**
-- #73 — drag to reorder projects and tasks: the project half is done by PR 9 (built 2026-09-28,
-  pending merge); the task half is PR 10
-- #7 — drag a task from one project into another
+- #73 — drag to reorder projects and tasks: the project half is done by PR 9 and the task half by
+  PR 11 (both built 2026-09-28, pending merge); selecting several items to drag together is PR 12
+- #7 — drag a task from one project into another: done by PR 11 (built 2026-09-28, pending merge)
 - #6 — rework how Waiting becomes In progress, linked to GitHub issue labels
 
 **Acceptance:** each issue above is closed; a drag reorder survives a reload and a Gist sync to a

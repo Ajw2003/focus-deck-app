@@ -68,6 +68,17 @@ scrolls). Dragging switches the sort to **Custom order**, which is kept when you
 and come back, and syncs to your other devices. From the keyboard, focus a grip and use the arrow
 keys (Alt+Up/Down on a list row). Escape cancels a drag in progress.
 
+**Moving tasks** — every open task has a small grip (six dots) before its checkbox. Drag it to put the
+task in order within its group, into the other group (In progress / Up next, which changes its status),
+or into another project (a minimised project takes it at the top of its Up next; an empty group shows
+"Drop here"). On a phone, press and hold the grip for a moment, then drag; a quick swipe from the grip does
+nothing. In the One view only the project shown is a target. From the keyboard, focus a grip and use
+ArrowUp/ArrowDown (they cross between the two groups); moving to another project is drag only. Escape
+cancels a drag. Moving into a project that is connected to a GitHub repo asks first and says what will
+happen on GitHub: a hand-made task gets a new issue in that repo, an issue moves to the other repo with
+the same owner, and for a different owner it moves here only and stays linked to its old issue. Cancel
+leaves everything as it was. Moving into a project with no repo never asks.
+
 **Adding projects and GitHub repos** — a "+ New" button always sits in the project list's header
 (never inside the scrolling list) and opens a panel with two tabs: **New project** (just a name —
 set a category afterward from the project's own Edit panel) and **GitHub repo**, which lists your
@@ -129,7 +140,9 @@ js/
   github-sync.js         issue <-> task linking, category <-> label sync, completion sync
   sync.js                cross-device sync via a GitHub Gist
   project-filter.js      project search/sort/filter logic, and where a dragged project lands
-  project-drag.js        the drag gesture: pointer + keyboard, ghost, drop line, auto-scroll
+  project-drag.js        the drag gesture (projects and tasks): pointer + keyboard, ghost, drop line, auto-scroll
+  task-move.js           where a dragged task lands, and what moving it to another project means for GitHub
+  move-dialog.js         the confirmation shown before a task move that touches GitHub
   *.test.mjs             plain node:test files alongside the modules they test
 css/app.css             all styling
 service-worker.js       offline caching for the installed PWA

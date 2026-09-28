@@ -57,6 +57,28 @@ Two cases change more than one record, both rare and both still ordinary project
 Two devices moving the *same* project: the newer move wins. Projects that end up with the same number
 tie-break by name in `sortProjects('custom')`, so both devices show the same order.
 
+### Task sortOrder, and a task moving between projects
+
+Tasks carry a `sortOrder` the same way projects do (PR 11): a per-record field, numbered per project by
+`ensureTaskSortOrder` (`js/task-move.js`; on load, after a merge, when a task is added or comes from
+GitHub), and a move gives only the moved task a new number next to its new neighbour
+(`taskOrderChanges`, reusing `positionBetween`), so `stampChanges` stamps that one task. The group is
+renumbered 1..n only when the two neighbours are closer than `MIN_SORT_GAP`. The numbers order each
+group (In progress, Up next) within a project; done tasks keep array order.
+
+Tasks are nested in projects, so a move to another project is a task leaving one project's list and
+joining another's. Two things make that merge cleanly:
+- **The move stamps the task.** Nothing in the task changes (same id, same fields), so `stampChanges`
+  would not notice it; `applyTaskMove` sets `updatedAt` explicitly. No tombstone is written, because
+  the stamper compares tasks across all projects by id and the task never disappears.
+- **A task lives in one project.** The per-project union in `mergeStates` would otherwise keep the
+  old copy in P1 (device B, unchanged) and the new one in P2 (device A, moved). After merging,
+  `dedupeMovedTasks` (`js/merge.js`) keeps one copy per task id: the newest by `updatedAt`, and on a tie
+  the copy the remote side has (like `newer`). So a move made after another device's last edit wins
+  the task's *place*; an edit made on another device after the move puts it back where that device had
+  it (last write wins). Tested in `js/task-move.test.mjs` (device A moved T from P1 to P2, device B
+  unchanged: merged once, in P2, whichever side merges).
+
 ### Deletion tombstones
 
 <!-- ref:bce8 -->

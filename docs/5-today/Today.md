@@ -432,3 +432,18 @@ Colour without right-click (#95). The project Edit panel has "Colour" and (with 
 `cssColorToHex` gained a `#rrggbb` fast path so the render tests run without a DOM. Checked in real
 Chromium at 390x844 (touch) and 1440x900; screenshots in `docs/generated/pr10/` (fonts fall back in
 the sandbox). The native picker cannot be driven, so `input`/`change` events were dispatched by hand.
+
+## 2026-09-28 — PR 11 built (pending merge)
+
+Dragging single tasks (the task half of #73, and #7). Tasks have a `sortOrder`; every open row has a
+grip (mouse and pen after 4px, touch after a 350ms hold, ArrowUp/ArrowDown on the grip, crossing
+between In progress and Up next); a task can be dropped into either group of any project (the other
+group changes its status), on a minimised project's header, or into an empty group ("Drop here"). A
+move into a project with a GitHub repo asks first: hand-made task creates and links an issue, a linked
+task in a repo of the same owner is transferred with GraphQL `transferIssue`, a different owner moves
+in Focus Deck only and keeps its link. Offline targets and a task's own repo never ask. A sync no
+longer re-imports a moved task, and the Gist merge keeps one copy of it. 61 unit tests pass (new:
+`js/task-move.test.mjs`); checked in real Chromium at 1440x900 and 390x844 with GitHub stubbed;
+screenshots in `docs/generated/pr11/` (fonts fall back in the sandbox). Not run against real GitHub:
+the `transferIssue` mutation. Judgement calls are in Decisions, 2026-09-28 ("Calls made while building
+task dragging"). Next: PR 12, selecting several items.

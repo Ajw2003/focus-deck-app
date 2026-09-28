@@ -174,6 +174,47 @@ project) still need their status/labels reconciled — this pass fetches each su
 issue individually and applies the same completion/category sync as the normal
 repo-wide path.
 
+### Moving a task to another project
+
+A task dragged into another project (`moveTaskTo`, `js/app.js`) moves in Focus Deck first, keeping its
+id; the GitHub part runs after. `planTaskMove(task, fromProject, toProject)` (`js/task-move.js`)
+decides, and asks first unless the answer is `local`:
+
+| Target project | Task | Kind | What happens |
+|---|---|---|---|
+| no repo | any | `local` | moves, no message; a linked task keeps its link |
+| has a repo | hand-made | `create-issue` | asks; then `createGithubIssueFromTask` creates the issue in that repo (labels pushed as it always does) and links |
+| the task's own repo | linked | `local` | plain move, no message |
+| a repo, same owner as the task's | linked | `transfer` | asks; then `transferTaskIssue` |
+| a repo, another owner | linked | `cross-owner` | asks; moves in Focus Deck only, keeps the link |
+
+Owners and repo names compare without case. The messages are in `planTaskMove` and quoted in
+`js/task-move.test.mjs`.
+
+**`transferTaskIssue`** (`js/github-sync.js`, `transferIssue` in `js/github.js`): GET the issue and the
+target repo for their `node_id`, then `POST /graphql` with the `transferIssue` mutation
+(`issueId`, `repositoryId`), asking for the new `number` and `url`. GraphQL reports a refusal as HTTP
+200 with an `errors` array, which `transferIssue` turns into an error. On success the task's
+`repoFullName`, `issueNumber` and `url` become the transferred issue's and the toast says so. On any
+failure the task stays where it was dropped, keeps its old link, and the toast says "GitHub refused to
+move the issue: <why>" and which issue it stays linked to. Needs a token that can write issues in both
+repos. GitHub keeps only the labels the target repo also has; the next sync corrects the task's labels
+from the issue.
+
+**Create-issue failure.** The task stays moved and unlinked, and the toast is "Moved “<title>” to
+<project>, but it stays unlinked." plus the usual "Could not create the issue: ..." text; **+ Create
+issue** in the editor retries. If an issue with the same title already exists in that repo the task is
+linked to it instead (existing behaviour of `createGithubIssueFromTask`).
+
+**The de-duplication rule.** `upsertRepoProject` matches an issue to a task across **every** project by
+`repoFullName` + `issueNumber` (before, only inside the repo's own project). A task linked to that issue
+that lives in another project (dragged there) is refreshed where it is and is not imported again; its
+issue leaving the open list marks it done wherever it lives (`completedLog` names the project it is in);
+and a repo with no project of its own gets none created for such a task. So neither a moved task nor a
+transferred one comes back in its old project: after a transfer the old repo simply no longer lists the
+issue and the new repo's sync finds the task already linked to it. Tested in
+`js/task-move.test.mjs` and, against stubbed GitHub in Chromium, in the PR 11 checks.
+
 ### Label colors — `ensureLabelExists` (js/github.js:101), `pushCategoryColorToLinkedIssues` (js/github-sync.js:92)
 
 <!-- ref:0c0e -->
@@ -252,6 +293,10 @@ and PR 7 added a regression test for it (`js/github-sync.test.mjs`).
 
 ## Traps
 
+- **2026-09-28 — a sync while a transfer is in flight.** The moved task keeps its old link until
+  `transferIssue` returns. A sync landing in that gap sees the old repo's issue gone and marks the task
+  done. The window is one round of three requests; reopening it (uncheck) or the next sync after the
+  new link is stored puts it right.
 - **2026-09-26 — a linked issue without labels closed its task on the next sync.** `upsertRepoProject`
   built its "still open" set from labelled issues only, so a task whose issue had no labels (for
   example one made with **+ Issue** from an unlabelled task) was marked done while the issue stayed
