@@ -9,7 +9,8 @@ import {
   createRepoAndTrack, linkProjectToRepoOnGithub, linkProjectToRepoByInput,
 } from './github-sync.js';
 import { getToken } from './github.js';
-import { filterAndSortProjects, resolveSelectedProject, resolveProjectView } from './project-filter.js';
+import { initProjectDrag, isDragging } from './project-drag.js';
+import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
 // storage rather than in the synced state.
@@ -68,6 +69,19 @@ function saveProjectView(view) {
   catch (e) { console.error('Could not save the project view:', e); }
 }
 
+// The project sort is a per-device choice too (PR 9): a drag switches it to "custom", and it has to
+// still be "custom" after a reload, or the person's order would look lost.
+const PROJECT_SORT_KEY = 'focusdeck-project-sort';
+const PROJECT_SORTS = ['name', 'open-tasks', 'deadline', 'recent-sync', 'custom'];
+function loadProjectSort() {
+  try { const v = localStorage.getItem(PROJECT_SORT_KEY); return PROJECT_SORTS.includes(v) ? v : 'name'; }
+  catch (e) { console.error('Could not read the project sort:', e); return 'name'; }
+}
+function saveProjectSort() {
+  try { localStorage.setItem(PROJECT_SORT_KEY, ui.projectSort); }
+  catch (e) { console.error('Could not save the project sort:', e); }
+}
+
 // Per-item scratch for the Unsorted flow (chosen project, ticked labels, typed new labels, "show
 // all" toggles) plus this session's skip list and which queue item it belongs to. Reset whenever
 // the current item changes -- see renderApp below.
@@ -77,7 +91,7 @@ function freshUnsortedScratch(skipped) {
 
 export const ui = {
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
-  projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(),
+  projectFilter: undefined, projectQuery: '', projectSort: loadProjectSort(), projectCollapsed: loadCollapsedProjects(),
   focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(),
   projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: resolveProjectView(loadProjectView(), isWideScreen()),
   // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
@@ -117,7 +131,12 @@ function paintHeaderControls() {
   if (projectsBtn) projectsBtn.setAttribute('aria-expanded', String(!!ui.projectsDrawerOpen));
 }
 
+// A repaint mid-drag (a sync landing, say) would tear down the elements being dragged, so it waits
+// until the drag ends (js/project-drag.js calls onEnd, below).
+let paintWaitingOnDrag = false;
+
 export function paint() {
+  if (isDragging()) { paintWaitingOnDrag = true; return; }
   const scrollY = window.scrollY;
   const active = document.activeElement;
   // the one project search box (the sidebar/drawer's)
@@ -135,6 +154,24 @@ export function paint() {
 
 registerPaint(paint);
 onExternalStateChange(paint);
+
+// A drop or arrow key from js/project-drag.js: works out the new sortOrder among the displayed
+// order it was given, and only if something changes switches the sort to Custom and saves.
+function moveProjectTo(id, toIndex, orderedIds) {
+  const changes = moveProject(state.projects, id, toIndex, orderedIds);
+  if (!Object.keys(changes).length) return false;
+  ui.projectSort = 'custom';
+  saveProjectSort();
+  M.applySortOrders(changes); // saves, schedules the Gist push and repaints
+  return true;
+}
+
+function announceDrag(text) {
+  const live = document.getElementById('drag-live');
+  if (!live) return;
+  live.textContent = '';
+  setTimeout(() => { live.textContent = text; }, 30);
+}
 
 // Shared by the project card's delete-task button and the Unsorted card's Delete: same confirm
 // text, same "can't be undone" warning about a linked issue.
@@ -385,6 +422,7 @@ function onAppChange(e) {
     M.toggleTask(e.target.getAttribute('data-task'), e.target.getAttribute('data-project'));
   } else if (e.target.matches && e.target.matches('[data-action="set-project-sort"]')) {
     ui.projectSort = e.target.value;
+    saveProjectSort();
     paint();
   } else if (e.target.matches && e.target.matches('[data-action="set-project-category"]')) {
     const projectId = e.target.getAttribute('data-project');
@@ -743,6 +781,11 @@ function init() {
   app.addEventListener('submit', onAppSubmit);
   app.addEventListener('keydown', onAppKeydown);
   app.addEventListener('contextmenu', onAppContextMenu);
+  initProjectDrag(app, {
+    move: moveProjectTo,
+    announce: announceDrag,
+    onEnd: () => { if (paintWaitingOnDrag) { paintWaitingOnDrag = false; paint(); } },
+  });
   // the sync button and Projects toggle live in the topbar, outside #app -- same handler, since it
   // only acts on data-action values it recognizes
   const topbar = document.querySelector('.topbar');

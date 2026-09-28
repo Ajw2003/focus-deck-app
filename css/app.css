@@ -522,3 +522,39 @@ a.task-title:hover{text-decoration:underline;}
 @media (display-mode: standalone) {
   .topbar { padding-top: max(16px, env(safe-area-inset-top)); }
 }
+
+/* Dragging projects into order (PR 9). The grip on a project header, the sidebar rows as their own
+   handles, and what shows while one is being carried: a lifted ghost that follows the pointer, the
+   original's place as a dashed placeholder, and a drop line where it will land. Only the ghost
+   gets a shadow (the cards are flat). See docs/4-systems/styling.md#dragging-projects */
+.drag-grip{
+  flex:none; display:inline-flex; align-items:center; justify-content:center;
+  width:28px; height:28px; margin:-2px -4px -2px -6px; padding:0; border:none; border-radius:var(--r-control);
+  background:none; color:var(--ink-soft); cursor:grab;
+  /* the grip never scrolls the page: a touch on it is a drag (after the hold) or nothing */
+  touch-action:none;
+}
+.drag-grip:hover{background:var(--surface-2); color:var(--ink-soft);}
+@media (pointer:coarse){ .drag-grip{width:36px; height:36px; margin:-6px -6px -6px -8px;} }
+/* sidebar rows are drag handles as a whole: no text selection or touch callout on a long press, but
+   vertical panning stays, so a swipe still scrolls the drawer */
+.sidebar-project{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none; touch-action:pan-y;}
+body.is-dragging, body.is-dragging *{cursor:grabbing !important; -webkit-user-select:none; user-select:none;}
+.drag-ghost{
+  position:fixed; top:0; left:0; z-index:1000; margin:0; pointer-events:none;
+  background:var(--surface); border-radius:var(--r-card);
+  box-shadow:0 10px 28px rgba(28,36,34,.22), 0 2px 6px rgba(28,36,34,.12);
+  opacity:1;
+}
+.drag-ghost.is-row{border-radius:var(--r-control); padding:7px 8px;}
+.drag-ghost.is-card{border:1px solid var(--line); border-top:3px solid var(--proj-color); overflow:hidden;}
+.drag-placeholder{
+  outline:2px dashed var(--ink-faint); outline-offset:-2px; background:var(--surface-2); box-shadow:none;
+  border-radius:var(--r-card);
+}
+.sidebar-list li.drag-placeholder{border-radius:var(--r-control);}
+.drag-placeholder > *{visibility:hidden;}
+.drop-indicator{position:fixed; z-index:1001; pointer-events:none; background:var(--accent); border-radius:2px;}
+.drop-indicator[hidden]{display:none;}
+/* the live region for "moved to position N of M": present for screen readers, invisible */
+.sr-only{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}

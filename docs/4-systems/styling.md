@@ -476,6 +476,52 @@ task re-renders a fresh, empty, still-open form (autofocus re-fires on the new e
 several in a row is one tap plus Enter each time. Cancel (`cancel-add-task`) or Escape while focus
 is inside the form (`onAppKeydown`) collapses it back to the link.
 
+### Dragging projects (PR 9, 2026-09-28)
+
+Projects are put in order by hand. The gesture and its on-screen feedback live in
+`js/project-drag.js` (pointer events, no library); the order itself is worked out by `moveProject`
+(`js/project-filter.js:84`) and applied by `moveProjectTo` (`js/app.js:160`). See
+`docs/4-systems/gist-sync.md#sortorder-a-projects-hand-made-position` for how it is stored and synced.
+
+**Handles.** In the "All" view every project header carries a `.drag-grip` (first thing in
+`.project-title`): a real `<button>` with `aria-label="Move <name>"` and a hand-drawn two-column,
+six-stroke icon (`ICON_GRIP`, `js/icons.js`). It has `touch-action:none`, so a touch on it never
+scrolls the page. It is 28px, 36px on coarse pointers. Minimised cards keep theirs. The "One" view's
+single card has none: the list in the sidebar/drawer is the order there. Every sidebar/drawer row is
+a handle as a whole; rows keep `touch-action:pan-y`, so a swipe still scrolls the drawer.
+
+**Mouse and pen.** A drag starts once the pointer has moved more than 4px with the button down, so
+a plain click on a row still selects/scrolls (the click that follows a drag is swallowed). **Touch**
+starts after a 350ms press-and-hold without moving more than 8px (moving sooner is a scroll and
+cancels the pending drag); once it has started a non-passive `touchmove` handler stops the page from
+scrolling, the pointer is captured, and the phone gives a short vibration where supported. The
+long-press context menu is suppressed while pending or dragging.
+
+**While dragging.** The dragged item follows the pointer as a lifted ghost (a clone with
+`.drag-ghost`, the only thing in the app that gets a shadow); its place shows as a dashed
+`.drag-placeholder`; and a `.drop-indicator` line (accent colour) shows where it will land among the
+same kind of items: tiles among the tiles (a vertical bar between columns), minimised cards among
+the minimised, rows among the rows (horizontal). Dropping in the same place shows no indicator and
+does nothing. Near the top or bottom edge (70px; the top edge sits below the sticky topbar) the page
+auto-scrolls, faster nearer the edge; dragging a sidebar row scrolls the sidebar/drawer when that is
+what overflows. Escape or `pointercancel` aborts with no change and no save. A repaint that arrives
+mid-drag (a sync landing) waits until the drag ends.
+
+**Drop.** The new index among the displayed group goes to `moveProject`; if the order changed the
+sort menu switches to "Custom order" (`ui.projectSort = 'custom'`, remembered per device in
+`focusdeck-project-sort`), it saves and repaints. Picking another sort later leaves `sortOrder`
+alone, so choosing Custom again brings the hand-made order back. Custom applies everywhere the
+order shows: tiles, minimised group, stacked cards, the One view's list and the sidebar.
+
+**Keyboard.** With a grip focused, ArrowUp/ArrowLeft move the project one place earlier and
+ArrowDown/ArrowRight one later (in the displayed order of its group); focus stays on the grip
+across the repaint, and a polite live region (`#drag-live`, in `index.html`) says "<name> moved to
+position 3 of 11". At an end it says the project is already first/last. On a sidebar row it is
+Alt+ArrowUp/Down (`aria-keyshortcuts` on the row).
+
+**Filtered lists.** Dragging inside a searched or category-filtered list puts the project next to
+its visible neighbour; projects hidden by the filter keep their own positions.
+
 ## Invariants
 
 - A task row's title and chips never overlap, no chip leaves `.task-chips` or the row, and the chips

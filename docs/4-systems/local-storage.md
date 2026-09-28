@@ -18,6 +18,7 @@ Six localStorage keys:
 | `focusdeck-state-backups` | up to 5 earlier raw copies, newest first | `backupRaw` |
 | `focusdeck-push-pending` | `1` while a local change hasn't reached the Gist | `js/sync.js` |
 | `focusdeck-collapsed-projects` | which projects are minimised, as `{ projectId: true }`; per device, never synced | `saveCollapsedProjects` in `js/app.js` |
+| `focusdeck-project-sort` | the project sort menu's choice (`name`, `open-tasks`, `deadline`, `recent-sync`, `custom`); per device, never synced; a drag sets `custom` | `saveProjectSort` in `js/app.js` |
 | `focusdeck-focus-filter` | the focus pick's chosen project pill, as `{ projectId }` (older saves may also hold an ignored `mode`/`categoryId`); per device, never synced | `saveFocusFilter` in `js/app.js` |
 
 **Loading.** `loadState` parses the main key. If the value is there but unreadable, it is copied

@@ -4,6 +4,75 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-28 — Dragging tasks, selecting several, and colour on phones (Q32a, Q33b, #95)
+
+**Context.** Asked while PR 9 (dragging projects) was being built. The user wants tasks draggable
+within and between projects (#73, #7), several tasks or projects selected and dragged together,
+and a way to set colours on a phone, where there is no right-click (#95).
+
+**Decision.**
+- Selecting several: Shift-click adds or removes an item; dragging a box over empty space selects
+  what it touches; the selection then drags as one. On a phone, press and hold an item to start
+  selecting, then tap others to add or remove them (Q32a). Applies to tasks and to projects.
+- A task dragged into another project moves there. A GitHub-linked task dropped into a
+  GitHub-connected project also moves its issue to that project's repo on GitHub (Q33b), but
+  first a message says exactly what will happen on GitHub and offers Cancel. Moves into or within
+  a project with no GitHub repo never show a message (the user: "Offline projects should never
+  warn you"): a linked task moved there keeps its issue link. A hand-made task dropped into a
+  GitHub-connected project gets a new issue created in that repo and is linked to it, after the
+  same message with Cancel (corrected by the user 2026-09-28; my first reading left it unlinked).
+  GitHub can only transfer an issue between repos with the same owner; for any other pair the
+  message says so and the task moves in the app only, keeping its link (confirmed by the user).
+- Colour on phones (#95): each project's Edit panel gets its colour and its category's colour,
+  and the task editor's label list gets a colour swatch per label. Right-click keeps working on
+  desktop; Settings keeps its colour lists.
+
+**Order.** PR 9 (dragging projects, in progress), then PR 10 (colours on phones, #95, small), then
+PR 11 (tasks: dragging, moving between projects, selecting several tasks and projects).
+
+**Status.** Standing. Both edge cases confirmed with the user on 2026-09-28.
+
+## 2026-09-28 — Calls made while building drag-to-reorder (PR 9), beyond the entry below
+
+**Context.** Building PR 9 hit four cases the entry below doesn't settle.
+
+**Decision.**
+1. *The first drag from another sort re-numbers the group.* A project's number only means something
+   in Custom order. If the person drags while the screen is sorted by Name (or any other sort),
+   placing one number between two neighbours would put the project somewhere they didn't drop it.
+   So in that one case the displayed projects take each other's existing numbers in the order on
+   screen (`moveProject`, js/project-filter.js), and Custom matches what they saw. Every later drag
+   in Custom changes exactly one record. Hidden projects are untouched.
+2. *The sort choice is now remembered per device* (`focusdeck-project-sort`). It used to reset to Name
+   on every load; a drag that switched to Custom would have looked lost after a reload.
+3. *A drop lands right next to the neighbour on the side it was dropped,* not halfway to the neighbour
+   on the other side, so projects hidden by a filter keep their positions and a new number can never
+   equal a hidden project's. A gap under 1e-6 renumbers everything 1..n.
+4. *The drag gesture is its own module* (`js/project-drag.js`), added to the service worker's shell list
+   (cache name bumped to v14); app.js only supplies "move this project to that index".
+
+**Why.** 1 is the only way to keep "the order I saw is the order I get". 2 follows from the required
+"reload keeps it". 3 and 4 are small and keep the design's promise of one changed record per move.
+
+**Status.** Standing.
+
+## 2026-09-28 — How dragging projects works (PR 9)
+
+**Context.** The user asked for dragging projects into order (#73, Q27a) after PR 8. They gave the
+goal, not the mechanics; these are the calls made, told to the user before building.
+
+**Decision.** Drag handles: a grip on each tile header and each sidebar/drawer row; touch starts
+a drag on press-and-hold; the grip also takes arrow keys. A drag switches the sort to a new
+"Custom" option; the custom order is kept when another sort is picked. Each project carries its
+own position (`sortOrder`), and a move changes only the moved project's position (placed between
+its new neighbours), so the per-record newest-wins Gist merge carries it without special code and
+two devices reordering different projects don't overwrite each other. New projects go to the end.
+
+**Why.** One changed record per move is what the existing merge handles well; rewriting a whole
+order array on every move would make the last device to sync win every project's position.
+
+**Status.** Standing.
+
 ## 2026-09-28 — Task row chips column scales with its chips, not a fixed 25%
 
 **Context.** PR 8 first built #97 as a fixed 75/25 split. On a phone the 25% column was about

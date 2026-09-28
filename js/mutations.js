@@ -5,6 +5,7 @@ import { syncIssueCompletion, pushCategoriesToIssue, pushPriorityToIssue, pushCa
 // used to have its own copy that saved locally but never pushed, so most edits never reached the
 // Gist. See doc-ref 2425 docs/4-systems/gist-sync.md
 import { persist } from './sync.js';
+import { ensureSortOrder } from './project-filter.js';
 export { persist };
 
 // categoryId was previously discarded here (the add-project form's submit handler was calling
@@ -19,8 +20,21 @@ export function addProject(name, categoryId) {
     if (cat) project.color = cat.color;
   }
   state.projects.push(project);
+  ensureSortOrder(state.projects); // a new project goes to the end of the custom order
   persist();
   return project;
+}
+
+// Applies a drag's result (project-filter.js moveProject: normally one { id: sortOrder } entry) and
+// saves. Only the projects named change, so only they are stamped and synced.
+export function applySortOrders(changes) {
+  let n = 0;
+  Object.keys(changes).forEach((id) => {
+    const p = state.projects.find((x) => x.id === id);
+    if (p) { p.sortOrder = changes[id]; n += 1; }
+  });
+  if (n) persist();
+  return n;
 }
 
 // steps is the raw newline-separated textarea value, split into the array shape the rest of the

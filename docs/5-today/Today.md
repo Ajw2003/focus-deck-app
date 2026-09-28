@@ -412,3 +412,14 @@ right-anchored, wrapping inside it; over-long labels ellipsised with the full na
 `aria-label`). `.task-main` is gone. Measured in real Chromium at 390, 1440 and 1920 wide; no chip
 left its zone. Screenshots in `docs/generated/pr8/` (fonts fall back in the sandbox). Fixes #97 and
 #92 once merged. Next: PR 9, dragging projects.
+
+## 2026-09-28 — PR 9 built (pending merge)
+
+Dragging projects into order (the project half of #73). Each project has a `sortOrder`; the sort menu
+has "Custom order"; the grip on each "All"-view header and every sidebar/drawer row are drag handles
+(mouse and pen after 4px, touch after a 350ms hold, arrow keys on the grip, Alt+Up/Down on a row), with
+a ghost, dashed placeholder, drop line and edge auto-scroll. A move changes one project record, so the
+Gist merge keeps two devices' moves. Unit tests in `js/sort-order.test.mjs`; checked in real Chromium
+(mouse, touch via CDP touch events, keyboard) at 1440x900 and 390x844; screenshots in
+`docs/generated/pr9/` (fonts fall back in the sandbox). Judgement calls are in Decisions, 2026-09-28
+("Calls made while building drag-to-reorder"). Next: PR 10, dragging tasks.

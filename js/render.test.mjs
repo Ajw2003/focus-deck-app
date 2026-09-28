@@ -328,6 +328,21 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   const oneCard = renderProjectCard(short, oneUi, [], []);
   assert.ok(oneCard.includes('is-selected') && !oneCard.includes('is-collapsed'), 'the selected project in "One" always renders expanded, whatever its collapsed flag says');
   assert.ok(!oneCard.includes('collapse-toggle'), 'the "One" view has no minimise button at all');
+
+  // Drag grip (PR 9): a real button named for its project, in the header, in "All" only
+  assert.ok(/<button type="button" class="drag-grip" data-project="p1" aria-label="Move Short"/.test(shortHtml), 'the "All" view header carries a grip button labelled "Move <name>"');
+  assert.ok(headOf(shortHtml).includes('drag-grip') && headOf(shortHtml).includes('<svg'), 'the grip sits in the project header and draws an svg');
+  assert.ok(renderProjectCard({ ...short, name: 'A & <B>' }, cardUi(), [], []).includes('aria-label="Move A &amp; &lt;B&gt;"'), 'the grip label escapes the name');
+  assert.ok(renderProjectCard(short, { ...cardUi(), projectCollapsed: { p1: true } }, [], []).includes('class="drag-grip"'), 'a minimised card keeps its grip');
+  assert.ok(!oneCard.includes('drag-grip'), 'the "One" view single card has no grip');
+}
+
+// Sidebar rows are drag handles (PR 9) and the sort menu offers Custom order
+{
+  const projects = [{ id: 'p1', name: 'Alpha', color: 'red', tasks: [] }, { id: 'p2', name: 'Beta', color: 'blue', tasks: [] }];
+  const html = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: '', projectSort: 'custom', projectCollapsed: {}, projectView: 'all' }, projects);
+  assert.ok(html.includes('<option value="custom" selected>Custom order</option>'), 'the sort menu has "Custom order", selected when the sort is custom');
+  assert.ok(/class="sidebar-project"[^>]*data-project="p1"[^>]*aria-keyshortcuts="Alt\+ArrowUp Alt\+ArrowDown"/.test(html), 'each sidebar row announces its Alt+Arrow reorder keys');
 }
 
 // Sidebar: selection highlight + the one add field at the bottom

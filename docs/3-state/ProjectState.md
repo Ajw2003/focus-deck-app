@@ -17,9 +17,9 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 3 | Cross-device sync (Gist) | 100% | Shipped, tested |
 | 4 | Claude integration (on-demand) | 100% | Shipped, tested, archived plan |
 | 5 | Claude integration (autonomous check-in) | 100% | Works (user-confirmed 2026-09-26), shelved |
-| 6 | Handcrafted redesign | ~90% (PRs 1-7 merged; PR 8 built, pending merge) | PR 8 task rows, title plus a scaling chips column (#97, #92), built, pending merge; next PR 9 drag projects, PR 10 drag tasks; also open: #95, #90, #87 |
+| 6 | Handcrafted redesign | ~93% (PRs 1-7 merged; PRs 8-9 built, pending merge) | PR 8 task rows (#97, #92) and PR 9 drag projects into order (project half of #73) built, pending merge; next PR 10 drag tasks; also open: #95, #90, #87 |
 | 7 | Unsorted and focus flow polish | 0% | #70 #72 #74 #75 #76 #77 #89 #96 #69 open; #72, #75, #77 may be covered by PR #78 |
-| 8 | Reordering and task status | 0% | #73 (projects PR 9, tasks PR 10 of the redesign), #7, #6 open |
+| 8 | Reordering and task status | ~25% | #73 project half built in PR 9 (pending merge; checked in real Chromium with mouse, touch and keyboard); task half is PR 10; #7, #6 open |
 | 9 | Usability and accessibility audit | 0% | #27 #46 open |
 | 10 | GitHub depth and progress visuals | 0% | #36 #35 #39 open |
 | 11 | Teams and shared repos | 0% | #51 #4 open |
@@ -97,8 +97,14 @@ on GitHub disclosure) -- replacing PR 4's one bottom field. A hand-made project'
 hand-made tasks left unlinked) via `linkProjectToRepo`/`linkProjectToRepoOnGithub`
 (js/github-sync.js); `upsertRepoProject` already found an existing project by `repoFullName` before
 creating one, so this never creates a second project. See `docs/4-systems/github-sync.md` and
-`docs/6-decisions/Decisions.md` (2026-09-28). Not built: unlinking a repo project back to hand-made,
-and dragging projects into order (Q27a, the project half of #73).
+`docs/6-decisions/Decisions.md` (2026-09-28). And PR 9 (dragging projects into order, 2026-09-28,
+built, pending merge): each project carries a `sortOrder` (`ensureSortOrder`, `moveProject`,
+`positionBetween`, js/project-filter.js) and the sort menu gains "Custom order"; a grip on each
+"All"-view project header and every sidebar/drawer row are drag handles, by mouse, pen, touch
+(press and hold) and keyboard (`js/project-drag.js`); a move changes only the moved project's record
+so the Gist merge carries it. Tested in `js/sort-order.test.mjs` and checked in real Chromium at
+1440x900 and 390x844 (`docs/generated/pr9/`). Not built: unlinking a repo project back to
+hand-made, and dragging tasks into order (the task half of #73, PR 10).
 
 ## The one thing that is not what it looks like
 

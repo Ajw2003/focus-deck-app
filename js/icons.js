@@ -36,3 +36,11 @@ export const ICON_COMPASS =
   + '<path d="M12.3 3.4a8.6 8.6 0 1 1-.4 17.2 8.6 8.6 0 0 1 .4-17.2Z"/>'
   + '<g transform="rotate(25 12 12)"><path d="M12 5.2 14.3 12H9.7Z" fill="currentColor"/><path d="M9.7 12 12 18.8 14.3 12"/></g>'
   + '</svg>';
+
+// The drag grip on a project header (PR 9): two columns of three short strokes, drawn slightly off
+// true so they read as dots made by hand. Smaller than the toolbar icons (16px).
+export const ICON_GRIP =
+  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  + '<path d="M8.6 5.6v1.6"/><path d="M8.4 11.2v1.7"/><path d="M8.7 16.8v1.5"/>'
+  + '<path d="M15.4 5.5v1.7"/><path d="M15.6 11.3v1.5"/><path d="M15.3 16.9v1.5"/>'
+  + '</svg>';

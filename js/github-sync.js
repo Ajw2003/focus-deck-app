@@ -5,6 +5,7 @@ import {
   setIssueState, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists,
 } from './github.js';
 import { persist } from './sync.js';
+import { ensureSortOrder } from './project-filter.js';
 
 function normLabel(s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); }
 
@@ -455,6 +456,7 @@ export function upsertRepoProject(repo, issues, ui) {
   if (!project) {
     project = { id: uid('gh'), name: repo.name, color: 'hsl(' + nextHue() + ' var(--proj-sat) var(--proj-light))', deadline: null, source: 'github', repoFullName: repo.full_name, htmlUrl: repo.html_url, private: !!repo.private, tasks: [] };
     state.projects.push(project);
+    ensureSortOrder(state.projects); // a new repo project goes to the end of the custom order
   } else {
     project.htmlUrl = repo.html_url;
     project.private = !!repo.private;

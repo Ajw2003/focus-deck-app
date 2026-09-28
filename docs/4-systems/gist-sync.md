@@ -30,6 +30,33 @@ every record that changed, appeared or disappeared gets the current time (or a t
 A record whose `updatedAt` already moved (a mutation set it, or a merge brought in the other
 side's copy) is left alone, so merged-in data isn't mistaken for a local edit.
 
+### sortOrder: a project's hand-made position
+
+Each project carries a numeric `sortOrder` (PR 9). It is an ordinary per-project field, so it rides
+on the project record: the newest copy of a project wins, like its name or colour, and no merge code
+knows about it. That is why a move must change **one record**: `moveProject`
+(`js/project-filter.js:84`) gives only the moved project a new number, next to its new neighbour and
+strictly between it and the project beyond (`positionBetween`, `:63`), so `stampChanges` stamps that
+one project and two devices moving different projects both survive the merge (tested in
+`js/sort-order.test.mjs`). Rewriting an order array instead would make the last device to sync win
+every project's place.
+
+`ensureSortOrder` (`:51`) numbers any project without one after the current maximum, in array order:
+on load (old saves), after a merge (an older device's projects) and when a project is added, including
+repo projects from sync and "+ New", so new projects go to the end. On load it runs before the
+snapshot `stampChanges` compares against, so numbering old data is not itself a change to stamp; the
+first save after it writes the numbers out.
+
+Two cases change more than one record, both rare and both still ordinary project edits:
+- **Renumbering.** If the two neighbours are closer than `MIN_SORT_GAP` (1e-6, after many moves into
+  the same gap), every project is renumbered 1..n in custom order.
+- **First drag from another sort.** When the order on screen is not the custom order (the person was
+  on Name, say), the group's projects take each other's existing numbers so Custom matches what they
+  saw; hidden projects and the set of numbers are untouched.
+
+Two devices moving the *same* project: the newer move wins. Projects that end up with the same number
+tie-break by name in `sortProjects('custom')`, so both devices show the same order.
+
 ### Deletion tombstones
 
 <!-- ref:bce8 -->
