@@ -68,6 +68,19 @@ function saveProjectView(view) {
   catch (e) { console.error('Could not save the project view:', e); }
 }
 
+// The project sort is a per-device choice too (PR 9): a drag switches it to "custom", and it has to
+// still be "custom" after a reload, or the person's order would look lost.
+const PROJECT_SORT_KEY = 'focusdeck-project-sort';
+const PROJECT_SORTS = ['name', 'open-tasks', 'deadline', 'recent-sync', 'custom'];
+function loadProjectSort() {
+  try { const v = localStorage.getItem(PROJECT_SORT_KEY); return PROJECT_SORTS.includes(v) ? v : 'name'; }
+  catch (e) { console.error('Could not read the project sort:', e); return 'name'; }
+}
+function saveProjectSort() {
+  try { localStorage.setItem(PROJECT_SORT_KEY, ui.projectSort); }
+  catch (e) { console.error('Could not save the project sort:', e); }
+}
+
 // Per-item scratch for the Unsorted flow (chosen project, ticked labels, typed new labels, "show
 // all" toggles) plus this session's skip list and which queue item it belongs to. Reset whenever
 // the current item changes -- see renderApp below.
@@ -77,7 +90,7 @@ function freshUnsortedScratch(skipped) {
 
 export const ui = {
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
-  projectFilter: undefined, projectQuery: '', projectSort: 'name', projectCollapsed: loadCollapsedProjects(),
+  projectFilter: undefined, projectQuery: '', projectSort: loadProjectSort(), projectCollapsed: loadCollapsedProjects(),
   focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(),
   projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: resolveProjectView(loadProjectView(), isWideScreen()),
   // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
@@ -385,6 +398,7 @@ function onAppChange(e) {
     M.toggleTask(e.target.getAttribute('data-task'), e.target.getAttribute('data-project'));
   } else if (e.target.matches && e.target.matches('[data-action="set-project-sort"]')) {
     ui.projectSort = e.target.value;
+    saveProjectSort();
     paint();
   } else if (e.target.matches && e.target.matches('[data-action="set-project-category"]')) {
     const projectId = e.target.getAttribute('data-project');
