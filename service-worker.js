@@ -1,5 +1,5 @@
 // Paths below must stay relative — see docs/4-systems/pwa-shell.md#invariants
-const CACHE_NAME = 'focus-deck-shell-v13';
+const CACHE_NAME = 'focus-deck-shell-v14';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ const SHELL_ASSETS = [
   './js/state.js',
   './js/merge.js',
   './js/project-filter.js',
+  './js/project-drag.js',
   './js/mutations.js',
   './js/sync.js',
   './js/github.js',

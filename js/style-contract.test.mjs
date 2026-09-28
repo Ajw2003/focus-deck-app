@@ -96,7 +96,19 @@ const invariants = [
   ['.energy-btn', 'border-top:3px solid var\\(--chip-color\\)', 'focus-picker buttons must show their energy-level color as a top border'],
   ['.card', 'border:1px solid var\\(--line\\)', 'cards must keep a visible border, not just background+shadow'],
   ['.filter-pill', 'border-radius:999px', 'project/category filter pills must render as pills, not bare text'],
+  // dragging projects (PR 9): these classes are added by js/project-drag.js (classList, so the
+  // class="..." scan above can't see them) -- the drag feels wrong or breaks without these lines
+  ['.drag-grip', 'touch-action:none', 'the grip must not let a touch scroll the page, or a touch drag never starts'],
+  ['.drag-ghost', 'position:fixed', 'the lifted ghost must follow the pointer, not sit in the layout'],
+  ['.drag-ghost', 'pointer-events:none', 'the ghost must not swallow the pointer it follows'],
+  ['.drag-placeholder', 'dashed', 'the original\'s place must show as a dashed placeholder'],
+  ['.drop-indicator', 'position:fixed', 'the drop indicator is positioned from measured rectangles'],
 ];
+
+// the classes js/project-drag.js and the grip markup rely on must each have a rule
+for (const cls of ['drag-grip', 'drag-ghost', 'drag-placeholder', 'drop-indicator', 'sr-only']) {
+  assert.ok(cssClasses.has(cls), `css/app.css has no rule for .${cls} (dragging projects, PR 9)`);
+}
 
 for (const [selector, expectedSubstring, why] of invariants) {
   const body = ruleBody(selector);

@@ -1,6 +1,6 @@
 // focus-deck-app/js/render.js
 import { state, esc, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
-import { ICON_SYNC } from './icons.js';
+import { ICON_SYNC, ICON_GRIP } from './icons.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -492,7 +492,7 @@ export function renderProjectSidebar(st, ui, visibleProjects, hasToken) {
     // Selection only means anything in the "One" view (PR 6): an "All" row just scrolls to the
     // project's card/tile, with no "current" project and no aria-current there.
     const isSelected = isOneView && ui.selectedProjectId === p.id;
-    return '<li><button type="button" class="sidebar-project' + (isSelected ? ' is-selected' : '') + '" data-action="scroll-project" data-project="' + p.id + '" style="--dot:' + p.color + '"' + (isSelected ? ' aria-current="true"' : '') + '>'
+    return '<li><button type="button" class="sidebar-project' + (isSelected ? ' is-selected' : '') + '" data-action="scroll-project" data-project="' + p.id + '" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown" style="--dot:' + p.color + '"' + (isSelected ? ' aria-current="true"' : '') + '>'
       + '<span class="dot"></span><span class="sidebar-name">' + esc(p.name) + '</span><span class="sidebar-count" title="Open tasks">' + open(p) + '</span></button></li>';
   }).join('');
   return '<div class="drawer-backdrop' + (isOpen ? ' is-open' : '') + '" data-action="close-projects-drawer"></div>'
@@ -582,6 +582,10 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
   // above) -- there's only ever one card on screen there.
   const collapseBtn = isOneView ? '' : '<button type="button" class="btn-text collapse-toggle" data-action="toggle-project-collapse" data-project="' + p.id + '" aria-label="' + (collapsed ? 'Expand project' : 'Minimise project') + '" aria-expanded="' + (!collapsed) + '">' + (collapsed ? '▸' : '▾') + '</button>';
   const editLink = '<button type="button" class="link-btn small" data-action="' + (editingPanel ? 'close-project-edit' : 'open-project-edit') + '" data-project="' + p.id + '">Edit</button>';
+  // The drag grip (PR 9) shows in the "All" view only: in "One" the list in the sidebar/drawer is
+  // the order, and there's a single card. A real button, so the arrow keys work on it too
+  // (js/project-drag.js). See docs/4-systems/styling.md#dragging-projects
+  const gripBtn = isOneView ? '' : '<button type="button" class="drag-grip" data-project="' + p.id + '" aria-label="Move ' + esc(p.name) + '" title="Drag to reorder, or use the arrow keys">' + ICON_GRIP + '</button>';
   const addingTask = !!ui.addingTask[p.id];
   const addTaskBlock = addingTask
     ? '<form class="add-task-form" data-action="add-task" data-project="' + p.id + '">'
@@ -599,7 +603,7 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
     // whatever the name's length (#83). Line 2 (badges) always renders, even empty, so a card's
     // progress bar always sits at the same offset from its top as its neighbours'.
     + '<div class="project-head">'
-      + '<div class="project-title"><span class="dot" data-project-color="' + p.id + '" title="Right-click to set a custom color"></span><h3>' + esc(p.name) + '</h3></div>'
+      + '<div class="project-title">' + gripBtn + '<span class="dot" data-project-color="' + p.id + '" title="Right-click to set a custom color"></span><h3>' + esc(p.name) + '</h3></div>'
       + '<div class="project-head-right">' + (p.deadline ? deadlineChip(p.deadline) : '') + collapseBtn + editLink + '</div>'
     + '</div>'
     + '<div class="project-badges">' + ghBadge + projCatChip + '</div>'

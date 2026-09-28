@@ -9,6 +9,8 @@ import {
   createRepoAndTrack, linkProjectToRepoOnGithub, linkProjectToRepoByInput,
 } from './github-sync.js';
 import { getToken } from './github.js';
+import { moveProject } from './project-filter.js';
+import { initProjectDrag, isDragging } from './project-drag.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
@@ -130,7 +132,12 @@ function paintHeaderControls() {
   if (projectsBtn) projectsBtn.setAttribute('aria-expanded', String(!!ui.projectsDrawerOpen));
 }
 
+// A repaint mid-drag (a sync landing, say) would tear down the elements being dragged, so it waits
+// until the drag ends (js/project-drag.js calls onEnd, below).
+let paintWaitingOnDrag = false;
+
 export function paint() {
+  if (isDragging()) { paintWaitingOnDrag = true; return; }
   const scrollY = window.scrollY;
   const active = document.activeElement;
   // the one project search box (the sidebar/drawer's)
@@ -148,6 +155,24 @@ export function paint() {
 
 registerPaint(paint);
 onExternalStateChange(paint);
+
+// A drop or arrow key from js/project-drag.js: works out the new sortOrder among the displayed
+// order it was given, and only if something changes switches the sort to Custom and saves.
+function moveProjectTo(id, toIndex, orderedIds) {
+  const changes = moveProject(state.projects, id, toIndex, orderedIds);
+  if (!Object.keys(changes).length) return false;
+  ui.projectSort = 'custom';
+  saveProjectSort();
+  M.applySortOrders(changes); // saves, schedules the Gist push and repaints
+  return true;
+}
+
+function announceDrag(text) {
+  const live = document.getElementById('drag-live');
+  if (!live) return;
+  live.textContent = '';
+  setTimeout(() => { live.textContent = text; }, 30);
+}
 
 // Shared by the project card's delete-task button and the Unsorted card's Delete: same confirm
 // text, same "can't be undone" warning about a linked issue.
@@ -757,6 +782,11 @@ function init() {
   app.addEventListener('submit', onAppSubmit);
   app.addEventListener('keydown', onAppKeydown);
   app.addEventListener('contextmenu', onAppContextMenu);
+  initProjectDrag(app, {
+    move: moveProjectTo,
+    announce: announceDrag,
+    onEnd: () => { if (paintWaitingOnDrag) { paintWaitingOnDrag = false; paint(); } },
+  });
   // the sync button and Projects toggle live in the topbar, outside #app -- same handler, since it
   // only acts on data-action values it recognizes
   const topbar = document.querySelector('.topbar');
