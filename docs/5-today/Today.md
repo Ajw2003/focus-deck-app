@@ -259,6 +259,116 @@ stacked (11 of 11 visible, 11 minimise buttons). Tapping the first minimise butt
 card (`is-collapsed`); "Collapse all" (reopening the drawer to reach it) collapsed all 11. Reloading
 kept "All" as the active pill.
 
+# Today (continued) — PR 7, 2026-09-28
+
+## What today was
+
+PR 7 of the handcrafted redesign: a "+ New" panel for projects and GitHub repos (pick one of yours,
+paste one, or create one), and linking a hand-made project to a repo — Q29a, Q30c, Q31a/#39's repo
+half, per `docs/6-decisions/Decisions.md`.
+
+## What was done
+
+- `js/github.js`: `listYourRepos()` (`/user/repos` with `affiliation=owner,collaborator,organization_member`,
+  wider than the existing owner-only `listRepos()`), `createRepo(name, isPrivate, description)`
+  (POST `/user/repos`), and `ghFetch` now attaches GitHub's own `message` to a thrown 403 and reads
+  it on 422 (`err.githubMessage`), so the "+ New" panel can show GitHub's real wording.
+- `js/github-sync.js`: `untrackedRepos` (pure, tested — drops already-tracked and excluded repos,
+  case-insensitively), `isValidRepoName`/`REPO_NAME_RULE`, `createRepoAndTrack`, `linkProjectToRepo`
+  (pure — keeps id/name/colour/category/hand-made tasks, refuses if another project tracks the
+  repo), `linkProjectToRepoOnGithub` and `linkProjectToRepoByInput` (the network halves). Confirmed
+  and tested that `upsertRepoProject` already finds an existing project by `repoFullName` before
+  creating one, so linking never creates a second project.
+- `js/render.js`: `renderProjectSidebar`'s header always carries a "+ New" button
+  (`aria-expanded`/`aria-controls`), opening `renderNewPanel` (New project / GitHub repo tabs — Your
+  repos with a filter box past 8, Paste, a Create-a-repo disclosure, or a Settings line with no
+  token) under the header row. Removed `renderAddProjectField` and its bottom-of-list markup.
+  `renderProjectEditPanel` gained a "Link to GitHub repo" row (hand-made projects only) opening
+  `renderLinkRepoPanel` inline.
+- `js/app.js`: `ui.newPanel*` and `ui.linkPanel` state (not persisted); handlers for opening/closing
+  the panel, switching tabs, fetching repos, Track/Paste/Create, the Edit panel's Link
+  chooser, and Escape closing whichever panel focus is inside and returning it to the button that
+  opened it. Every result/error shows inline in the panel it happened in, not the toast (see
+  today's Decisions.md entry for why).
+- `css/app.css`: `.new-panel`/`.repo-list`/`.repo-row`/`.new-repo-disclosure`/`.field-error` and
+  friends; `.link-repo-panel{flex-basis:100%}` so the Edit panel's inline chooser sits below its own
+  "Link to GitHub repo" toggle instead of wrapping ahead of it in the Edit panel's flex row (caught
+  in the Chromium pass below).
+- `settings.html`: a token step for **Administration: Read and write**, "only needed to create new
+  repos from Focus Deck; everything else works without it."
+- Tests: `js/github-sync.test.mjs` (`untrackedRepos`, `isValidRepoName`, `linkProjectToRepo`
+  including the refusal, `linkProjectToRepoOnGithub` reusing the linked project), `js/render.test.mjs`
+  (the "+ New" button always in the header, the panel's markup for both tabs and the no-token line,
+  the Edit panel's Link row and inline chooser). `js/style-contract.test.mjs` passed unchanged once
+  every new class had a CSS rule.
+- Docs: `docs/4-systems/github-sync.md` (the "+ New" panel's tracking/creating/linking, doc-ref
+  17bf), `docs/4-systems/styling.md` (replaced the old add-field section, added the Edit panel's
+  link row), `docs/3-state/ProjectState.md` and `docs/2-roadmap/Roadmap.md` (PR 7 built), `README.md`
+  (how to add projects and repos), one Decisions.md entry for the interpretation calls (the
+  excludedRepos rule, the 100-repo pagination cap, inline vs. toast, the shared `ui.linkPanel` slot).
+
+## Verified in real Chromium (Playwright, headless off, the seeded 11-project state, GitHub stubbed)
+
+1440x900: "+ New" sat at (visible, in-viewport) top of the header with all 11 projects loaded; the
+panel opened directly under the header row (its top at the header's bottom edge). New project added
+a 12th project card and closed the panel. GitHub repo tab, Your repos listed exactly the 10
+untracked repos out of 11 stubbed (`me/fresh-one` through `me/fresh-nine` plus `someorg/collab-repo`
+— `Octo-Org/Octo-Repo` was correctly left out, matching the seed's tracked `octo-org/octo-repo`
+case-insensitively); the filter narrowed to `me/fresh-one` alone. Track added a repo project card
+with exactly 3 task rows (the stubbed issues). Paste with `someone/else` added another project.
+Create posted `{"name":"my-new-repo","private":true,"description":"A test repo","auto_init":true}`
+and the new repo then appeared as a project. A stubbed 403 on create showed "GitHub refused: your
+token needs Administration: Read and write to create repos. See Settings. (Resource not accessible
+by personal access token)" inline; a stubbed 422 showed GitHub's own "name already exists on this
+account" inline. With no token, the GitHub repo tab showed only the Settings line, no Track/Create
+UI. Escape while focus was inside the panel closed it and returned focus to `#new-panel-toggle`.
+
+Linking: opening "Empty Garden" (hand-made)'s Edit panel, Link to GitHub repo, listed the same 10
+untracked repos; picking `me/fresh-two` (private) turned it into a repo project (12 → 12 project
+cards, no new one created) with 3 issue tasks and a "Private · GitHub ↗" badge, name still "Empty
+Garden". Pasting `octo-org/octo-repo` (already tracked by the long-named project) into "Busiest
+Workshop"'s own Link chooser showed the refusal inline: "octo-org/octo-repo is already tracked as
+“A Very Long Project Name That Used To Wrap The Header Controls Onto A Second Line And Push The
+Progress Bar Down”." — and Busiest Workshop was untouched.
+
+Caught and fixed in this pass: the Edit panel's `.link-repo-panel` (inside `.project-edit-panel`'s
+flex row) wrapped ahead of the "Link to GitHub repo" button that opens it, since the wide panel
+didn't fit the row's remaining space; `flex-basis:100%` fixed it, confirmed by bounding-rect checks
+before/after.
+
+390x844 (drawer): "+ New" visible without scrolling, panel opened under the header, above the
+All/One switch — screenshot at `docs/generated/pr7/phone-drawer-new-panel.png`.
+
+No JS errors beyond the sandbox's Google Fonts TLS failure (confirmed separately: the only
+`requestfailed`/non-OK response on a plain load is `fonts.googleapis.com` with
+`ERR_CERT_AUTHORITY_INVALID`) and two harmless 404s from an unrelated background call
+(`/user`/`/gists` from the app's own auto-sync-on-load, not stubbed in every scenario — pre-existing
+behaviour, not part of this PR). The 403/422 console entries during the create-repo scenarios are
+the test's own stubbed failures, already asserted as handled above.
+
+Screenshots: `docs/generated/pr7/desktop-new-panel-project.png`,
+`desktop-new-panel-your-repos.png`, `desktop-new-panel-create.png`,
+`desktop-link-in-edit-panel.png`, `phone-drawer-new-panel.png`. Fonts render as the system
+sans/serif fallback in every shot (the sandbox proxy blocks Google Fonts), not Fraunces/IBM Plex
+Sans.
+
+## What was deliberately not done
+
+Unlinking a repo project back to hand-made (Q30c said linking only). `listYourRepos()` doesn't
+follow GitHub's `Link` pagination header past the first 100 repos — `ghFetch` doesn't expose
+response headers, so this was noted as a cap rather than built around (see today's Decisions.md
+entry). Dragging projects into order is PR 8.
+
+## What got surfaced that isn't today's job
+
+Nothing beyond the `.link-repo-panel` flex-wrap bug above, which was fixed in this same PR rather
+than filed separately, since it was caught and understood before the pass finished.
+
+## Next, in order
+
+1. PR 8 — dragging projects into order (Q27a, the project half of #73).
+2. Milestone 7 onward, per `docs/2-roadmap/Roadmap.md`.
+
 Every tile/card's progress-bar offset from its own top was a uniform 85px, except the 112-character
 project name (offset 127px) -- its name wraps to multiple lines and grows line 1 itself, the same
 pre-existing #83 behaviour PR 5's report already noted (the badges line's fixed `min-height` only

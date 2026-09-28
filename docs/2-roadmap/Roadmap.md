@@ -72,23 +72,28 @@ after tweaks to the original plan and scheduled prompt that are not recorded in 
 archived plan, `docs/archive/2026-09-21-claude-daily-checkin.md`, is the pre-tweak version).
 Shelved the same day as less useful than expected; nothing further is planned for it.
 
-## 6. Handcrafted redesign — ~95%, PRs 1-6 merged, PR 7 next
+## 6. Handcrafted redesign — ~97%, PRs 1-7 merged, PR 8 next
 
 One-line: a focus-first, warm-editorial visual and structural redesign of the existing screens,
 landed as ordered PRs: (1) the docs move, (2) feature/control cuts, (3) the visual system,
 (4) control moves, (5) 2x2 tiles on wide screens and one project at a time on phones,
-(6) minimising comes back and "All"/"One" becomes a per-device switch.
+(6) minimising comes back and "All"/"One" becomes a per-device switch, (7) the "+ New" panel.
 
 **Contains:** the decisions and PR breakdown in `docs/plans/handcrafted-redesign.md`
-("Pull requests (Q21a)"). PRs 1-6 are merged (#79, #80, #81, #84, #85, and PR 6). PR 5 replaced PR 4's one-project-at-a-time wide-screen layout with 2x2 tiles (every
+("Pull requests (Q21a)"). PRs 1-7 are merged (#79, #80, #81, #84, #85, PR 6, PR 7). PR 5 replaced PR 4's one-project-at-a-time wide-screen layout with 2x2 tiles (every
 visible project its own tile, two columns, equal height, scrolling inside itself) and moves
 one-at-a-time to phones instead (Decisions, 2026-09-27). PR 6 brought minimising back (the
 per-project toggle and Collapse all, hidden by PR 5) and replaced the width-based tiles/one-at-a-time
 split with a per-device "All"/"One" switch in the sidebar/drawer header: "All" is tiles from
 1100px (minimised projects gathering below the grid) or a stacked column below it; "One" is
-one-project-at-a-time, now at any width. PR 7 (2026-09-28) brings adding back into view: a "+ New"
-panel for new projects and GitHub repos (pick one of yours, paste one, or create one), and linking
-a hand-made project to a repo. PR 8, dragging projects into order, belongs to milestone 8.
+one-project-at-a-time, now at any width. PR 7 (2026-09-28) brought adding back into view: the
+sidebar/drawer header always carries a "+ New" button opening a two-tab panel (New project;
+GitHub repo — Your repos, filterable and fetched on open, Paste, and a "Create a new repo on
+GitHub" disclosure that needs a token with Administration: Read and write), and a hand-made
+project's Edit panel gets "Link to GitHub repo" (turns it into a repo project in place, keeping its
+id/name/colour/category and hand-made tasks, refusing a repo another project already tracks). See
+`docs/4-systems/github-sync.md` and `docs/6-decisions/Decisions.md` (2026-09-28). PR 8, dragging
+projects into order, belongs to milestone 8.
 
 **Acceptance:** PRs 1-7 merged, `node --test js/*.test.mjs` and
 `node scripts/guard-file-churn.mjs` still pass after each, and the plan's own acceptance notes

@@ -89,7 +89,16 @@ leave the grid and gather below it as header-only cards, two to a row, under a "
 one column. "One" is PR 5's one-project-at-a-time view, now available at every width; the shown
 card always renders expanded and has no minimise button. See `docs/4-systems/styling.md`'s "Project
 sidebar / Projects drawer" section and `docs/6-decisions/Decisions.md` (2026-09-27) for the calls
-made along the way. Not built: dragging projects into order (PR 7, Q27a, the project half of #73).
+made along the way. And PR 7 (the "+ New" panel, 2026-09-28): the sidebar/drawer header always
+carries a "+ New" button (`renderProjectSidebar`, js/render.js) opening a two-tab panel -- New
+project, and GitHub repo (Your repos fetched on open and filterable, Paste, and a Create a new repo
+on GitHub disclosure) -- replacing PR 4's one bottom field. A hand-made project's Edit panel gets
+"Link to GitHub repo", turning it into a repo project in place (same id, name, colour, category,
+hand-made tasks left unlinked) via `linkProjectToRepo`/`linkProjectToRepoOnGithub`
+(js/github-sync.js); `upsertRepoProject` already found an existing project by `repoFullName` before
+creating one, so this never creates a second project. See `docs/4-systems/github-sync.md` and
+`docs/6-decisions/Decisions.md` (2026-09-28). Not built: unlinking a repo project back to hand-made,
+and dragging projects into order (Q27a, the project half of #73).
 
 ## The one thing that is not what it looks like
 
