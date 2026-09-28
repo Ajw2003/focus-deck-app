@@ -1,6 +1,7 @@
 // focus-deck-app/js/state.js
 import { mergeStates, stampChanges } from './merge.js';
 import { ensureSortOrder } from './project-filter.js';
+import { ensureTaskSortOrder } from './task-move.js';
 
 // Priority, most urgent first. githubLabel is the label Focus Deck writes; color is its GitHub hex.
 export const PRIORITY_ORDER = ['urgent', 'high', 'medium', 'low'];
@@ -135,6 +136,7 @@ function repairLoaded(st) {
   normalizeTaskCategories(st);
   dropEnergyFields(st);
   ensureSortOrder(st.projects); // saves from before PR 9 have no sortOrder: number them in stored order
+  ensureTaskSortOrder(st.projects); // ...and tasks from before PR 11, per project
   [st.categories, st.projectCategories].forEach((list, listIdx) => (list || []).forEach((c, i) => {
     if (typeof c.color !== 'string' || !c.color) c.color = 'hsl(' + Math.round(((i + listIdx * 7) * 137.508) % 360) + ' var(--proj-sat) var(--proj-light))';
   }));

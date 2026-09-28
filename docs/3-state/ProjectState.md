@@ -17,9 +17,9 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 3 | Cross-device sync (Gist) | 100% | Shipped, tested |
 | 4 | Claude integration (on-demand) | 100% | Shipped, tested, archived plan |
 | 5 | Claude integration (autonomous check-in) | 100% | Works (user-confirmed 2026-09-26), shelved |
-| 6 | Handcrafted redesign | ~93% (PRs 1-7 merged; PRs 8-9 built, pending merge) | PR 8 task rows (#97, #92) and PR 9 drag projects into order (project half of #73) built, pending merge; next PR 10 drag tasks; #95 (colour without right-click) fixed by PR 10, pending merge; also open: #90, #87 |
+| 6 | Handcrafted redesign | ~93% (PRs 1-7 merged; PRs 8-9 built, pending merge) | PR 8 task rows (#97, #92) and PR 9 drag projects into order (project half of #73) built, pending merge; PR 11 drag tasks built, pending merge, next PR 12 select several; #95 (colour without right-click) fixed by PR 10, pending merge; also open: #90, #87 |
 | 7 | Unsorted and focus flow polish | 0% | #70 #72 #74 #75 #76 #77 #89 #96 #69 open; #72, #75, #77 may be covered by PR #78 |
-| 8 | Reordering and task status | ~25% | #73 project half built in PR 9 (pending merge; checked in real Chromium with mouse, touch and keyboard); task half is PR 10; #7, #6 open |
+| 8 | Reordering and task status | ~50% | #73 (project half PR 9, task half PR 11) and #7 (task into another project, PR 11) built, pending merge, checked in real Chromium with mouse, touch and keyboard; selecting several is PR 12; #6 open |
 | 9 | Usability and accessibility audit | 0% | #27 #46 open |
 | 10 | GitHub depth and progress visuals | 0% | #36 #35 #39 open |
 | 11 | Teams and shared repos | 0% | #51 #4 open |
@@ -104,7 +104,17 @@ built, pending merge): each project carries a `sortOrder` (`ensureSortOrder`, `m
 (press and hold) and keyboard (`js/project-drag.js`); a move changes only the moved project's record
 so the Gist merge carries it. Tested in `js/sort-order.test.mjs` and checked in real Chromium at
 1440x900 and 390x844 (`docs/generated/pr9/`). Not built: unlinking a repo project back to
-hand-made, and dragging tasks into order (the task half of #73, PR 10).
+hand-made. And PR 11 (dragging single tasks, 2026-09-28, built, pending merge): tasks carry a `sortOrder`
+(`ensureTaskSortOrder`, `taskOrderChanges`, js/task-move.js), every open task row has a `.task-grip`, and
+a task can be dragged within its group, into the other group (status follows), and into another
+project, including a minimised one or an empty group (`js/project-drag.js`, `moveTaskTo` in js/app.js);
+keyboard moves within and across the two groups. A cross-project move into a repo project asks first
+(`planTaskMove`, `js/move-dialog.js`) and then creates the issue, transfers it (GraphQL `transferIssue`)
+or, for a different owner, moves in the app only; `upsertRepoProject` now matches issues to tasks across
+all projects and `mergeStates` keeps one copy of a moved task. Tested in `js/task-move.test.mjs` and
+checked in real Chromium at 1440x900 and 390x844 with GitHub stubbed (`docs/generated/pr11/`). The real
+GitHub `transferIssue` call has not been run against GitHub itself. Not built: selecting several items
+and dragging them together (PR 12), moving a task to another project by keyboard.
 
 ## The one thing that is not what it looks like
 

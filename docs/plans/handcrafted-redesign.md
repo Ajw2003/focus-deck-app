@@ -123,4 +123,6 @@ Four, in order, each checked on a phone before the next starts:
 7. Adding projects and repos: "+ New", your-repos picker, create a repo, link a project (2026-09-28).
 8. Task rows: title and chips in their own columns, the chips column scaling with its chips (#97, #92).
 9. Drag projects into order (Q27a, the project half of #73).
-10. Drag tasks into order (the task half of #73).
+10. Colours without right-click, so they work on phones (#95).
+11. Drag tasks within a project and into other projects, with the GitHub moves (#73's task half, #7).
+12. Select several tasks or projects (Shift-click, box, press-and-hold on phones) and drag them together.

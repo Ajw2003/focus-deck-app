@@ -2,10 +2,11 @@
 import { state, uid, nextHue, findTaskWithProject, cssColorToHex, PRIORITY, PRIORITY_ORDER } from './state.js';
 import {
   validateToken, listRepos, listYourRepos, createRepo, listIssues, getIssue, createIssue, ghFetch,
-  setIssueState, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists,
+  setIssueState, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists, transferIssue,
 } from './github.js';
 import { persist } from './sync.js';
 import { ensureSortOrder } from './project-filter.js';
+import { ensureTaskSortOrder } from './task-move.js';
 
 function normLabel(s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); }
 
@@ -275,6 +276,49 @@ export function unlinkTask(taskId) {
   persist();
 }
 
+// PR 11: a task dragged to another project is moved in Focus Deck first; for the kinds of move that
+// touch GitHub this runs afterwards. It reports through the toast and never moves the task back: a
+// refusal leaves it where the person put it, still linked to its old issue.
+// See docs/4-systems/github-sync.md#moving-a-task-to-another-project.
+// Tasks whose issue is being transferred right now. A sync that was already running when the
+// transfer started can list the old repo after the issue has left it; without this it would mark
+// the task done (the issue looks closed from the old repo's side). Both close paths skip these.
+const transfersInFlight = new Set();
+export function isTransferInFlight(taskId) { return transfersInFlight.has(taskId); }
+
+export async function transferTaskIssue(taskId, targetRepoFullName, ui, projectName) {
+  const found = findTaskWithProject(taskId);
+  if (!found || !isLinked(found.task)) return false;
+  const task = found.task;
+  const from = task.repoFullName;
+  const number = task.issueNumber;
+  const [owner, name] = from.split('/');
+  const [tOwner, tName] = targetRepoFullName.split('/');
+  ui.syncing = true;
+  ui.syncError = null;
+  transfersInFlight.add(taskId);
+  try {
+    const moved = await transferIssue(owner, name, number, tOwner, tName);
+    task.repoFullName = targetRepoFullName;
+    task.issueNumber = moved.number;
+    task.url = moved.url;
+    task.updatedAt = Date.now();
+    ui.syncing = false;
+    ui.notice = 'Moved “' + task.title + '” to ' + projectName + '; ' + from + '#' + number + ' is now ' + targetRepoFullName + '#' + moved.number + ' on GitHub.';
+    persist();
+    return true;
+  } catch (e) {
+    ui.syncing = false;
+    let why = e.message || 'unknown error';
+    if (e.githubMessage && e.githubMessage !== e.message) why += ' (' + e.githubMessage + ')';
+    ui.syncError = 'Moved “' + task.title + '” to ' + projectName + ' here, but GitHub refused to move the issue: ' + why.replace(/\.?$/, '.') + ' It stays linked to ' + from + '#' + number + '.';
+    persist();
+    return false;
+  } finally {
+    transfersInFlight.delete(taskId);
+  }
+}
+
 // Case- and whitespace-insensitive, so "Fix login" and "fix  login " count as the same issue.
 export function sameIssueTitle(a, b) {
   const norm = (s) => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
@@ -451,32 +495,37 @@ export function upsertRepoProject(repo, issues, ui) {
   // only labelled issues become new tasks; an issue already linked to a task counts however it's labelled
   const labeled = open.filter((iss) => iss.labels && iss.labels.length > 0);
   let project = state.projects.find((p) => p.source === 'github' && p.repoFullName === repo.full_name);
-  if (!project && labeled.length === 0 && !state.pinnedRepos.includes(repo.full_name)) return [];
+  // A task linked to this repo's issue may live in ANOTHER project (PR 11: dragged there). Issues are
+  // matched to tasks across every project, so such a task is updated where it is, never re-imported
+  // here as a duplicate; and its issue closing on GitHub is noticed wherever it sits.
+  const isThisRepos = (t) => t.source === 'github' && t.repoFullName === repo.full_name;
+  const holderOf = (number) => state.projects.find((p) => p.tasks.some((t) => isThisRepos(t) && t.issueNumber === number));
+  const wouldCreate = !!project || labeled.length > 0 || state.pinnedRepos.includes(repo.full_name);
 
-  if (!project) {
+  if (!project && wouldCreate) {
     project = { id: uid('gh'), name: repo.name, color: 'hsl(' + nextHue() + ' var(--proj-sat) var(--proj-light))', deadline: null, source: 'github', repoFullName: repo.full_name, htmlUrl: repo.html_url, private: !!repo.private, tasks: [] };
     state.projects.push(project);
     ensureSortOrder(state.projects); // a new repo project goes to the end of the custom order
-  } else {
+  } else if (project) {
     project.htmlUrl = repo.html_url;
     project.private = !!repo.private;
   }
-  project.lastSyncedAt = Date.now();
+  if (project) project.lastSyncedAt = Date.now();
 
   const openNumbers = new Set(open.map((iss) => iss.number));
-  const isThisRepos = (t) => t.source === 'github' && t.repoFullName === repo.full_name;
   const newlyClosed = [];
-  project.tasks.forEach((t) => {
-    if (isThisRepos(t) && t.status !== 'done' && !openNumbers.has(t.issueNumber)) {
+  state.projects.forEach((holder) => holder.tasks.forEach((t) => {
+    if (isThisRepos(t) && t.status !== 'done' && !openNumbers.has(t.issueNumber) && !transfersInFlight.has(t.id)) {
       t.status = 'done';
       t.updatedAt = Date.now();
       newlyClosed.push(t);
-      state.completedLog.unshift({ id: uid('log'), taskId: t.id, title: t.title, projectId: project.id, color: project.color, completedAt: Date.now() });
+      state.completedLog.unshift({ id: uid('log'), taskId: t.id, title: t.title, projectId: holder.id, color: holder.color, completedAt: Date.now() });
     }
-  });
+  }));
 
   open.forEach((iss) => {
-    const existing = project.tasks.find((t) => isThisRepos(t) && t.issueNumber === iss.number);
+    const holder = holderOf(iss.number);
+    const existing = holder && holder.tasks.find((t) => isThisRepos(t) && t.issueNumber === iss.number);
     if (existing) {
       existing.title = iss.title;
       existing.url = repo.html_url + '/issues/' + iss.number;
@@ -486,10 +535,11 @@ export function upsertRepoProject(repo, issues, ui) {
       if (existing.status === 'done') existing.status = statusFromLabels(iss.labels);
       applyLabels(existing, iss.labels, iss.labelColors);
       dropStaleCompletedLabel(existing, iss.labels);
-    } else if (iss.labels && iss.labels.length > 0) {
+    } else if (project && iss.labels && iss.labels.length > 0) {
       const task = { id: uid('t'), title: iss.title, status: statusFromLabels(iss.labels), deadline: null, categoryIds: [], source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
       applyLabels(task, iss.labels, iss.labelColors);
       project.tasks.push(task);
+      ensureTaskSortOrder([project]); // a task new from GitHub goes to the end of its group
     }
   });
   return newlyClosed;
@@ -541,6 +591,7 @@ export async function syncGithub(ui) {
       if (t.source === 'github' && t.repoFullName && !syncedRepos.has(t.repoFullName)) linked.push({ t, p });
     }));
     for (const { t, p } of linked) {
+      if (transfersInFlight.has(t.id)) continue; // mid-transfer: its link is about to change
       try {
         const [owner, name] = t.repoFullName.split('/');
         const iss = await getIssue(owner, name, t.issueNumber);

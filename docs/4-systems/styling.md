@@ -534,6 +534,56 @@ Alt+ArrowUp/Down (`aria-keyshortcuts` on the row).
 **Filtered lists.** Dragging inside a searched or category-filtered list puts the project next to
 its visible neighbour; projects hidden by the filter keep their own positions.
 
+### Dragging tasks
+
+Single tasks are moved by hand (PR 11, 2026-09-28): within their group, into the other group, and into other projects.
+The gesture is `js/project-drag.js` again (one module, a `task` kind beside `card` and `row`); where
+a task lands is worked out by `taskOrderChanges` and what a cross-project move means for GitHub by
+`planTaskMove` (both pure, `js/task-move.js`); `moveTaskTo` (`js/app.js`) applies them through
+`applyTaskMove` (`js/mutations.js`). See `docs/4-systems/github-sync.md#moving-a-task-to-another-project`
+and `docs/4-systems/gist-sync.md#task-sortorder-and-a-task-moving-between-projects`.
+
+**Handle.** Every open task row, in every view, starts with a `.task-grip`: a real `<button>` with
+`aria-label="Move <title>"`, `ICON_GRIP` scaled to 13px (15px on coarse pointers, where the button is
+30px), `touch-action:none`. Done rows have none and don't drag. Tapping the title still opens the row
+editor; an editing row has no grip.
+
+**Gesture.** The same rules as projects: mouse and pen after 4px, touch after a 350ms press-and-hold on
+the grip (a quick swipe starting on the grip does nothing), a ghost (`.drag-ghost.is-task`), the dashed
+`.drag-placeholder` on the original row, a `.drop-indicator` line between rows, Escape or
+`pointercancel` aborts. Auto-scroll: the page near its top/bottom edge, and, when the pointer is over a
+tile's own scroll area (`.project-body`) near its top or bottom edge with room to scroll that way, that
+area first.
+
+**Targets.** The card under the pointer is the project. On an open card the task group under the
+pointer (or the nearest one on that card) is the group, and the slot is the number of the group's other
+rows whose middle is above the pointer. A minimised card takes the task at the top of its "Up next"
+when dropped anywhere on it (it outlines in the accent colour). Both groups always render
+(`data-group="doing"|"next"`); an empty one is hidden until a task is being dragged
+(`body.is-dragging-task`), then shows a dashed "Drop here" zone (accent when it is the target). That
+appears when the drag starts, so rows below it shift down by the zone's height. In the "One" view only
+the shown project is a card, so only it is a target; the sidebar is not a target for tasks. Dropping in
+the same place shows no line and does nothing.
+
+**Groups and status.** "In progress" and "Up next" render in ascending `sortOrder`. Dropping into the
+other group of the same project changes the status (`doing`/`next`) through `setTaskStatus`, so it
+behaves as any status change; into another project the status is set directly (the move is not a
+completion change, and it must not PATCH the old repo's issue). Done tasks keep their order.
+
+**Keyboard.** On a focused grip, ArrowUp/ArrowDown move the task one place in its group and cross into
+the neighbouring group at the ends (Up next's top to In progress's bottom, and back). Focus stays on
+the grip, and the live region says "<title> moved to In progress, position 2 of 4" (or "<title> is
+already first/last"). Moving to another project is drag only, by design.
+
+**Confirmation.** A move that touches GitHub asks first, in `js/move-dialog.js`: a small modal card
+(`.move-dialog`, `--r-control`, accent **Move**, quiet **Cancel**) appended to `<body>`, so a repaint
+can't remove it. Focus goes to Cancel (Enter cancels), Tab cycles the two buttons, Escape or a click
+outside is Cancel, and focus returns to the task's grip. The markup is `renderMoveDialog`
+(`js/render.js`). Offline targets and moves within a task's own repo never ask.
+
+**Checked in real Chromium** (1440x900 tiles and 390x844 touch, GitHub stubbed with `page.route`):
+screenshots in `docs/generated/pr11/`.
+
 ## Invariants
 
 - A task row's title and chips never overlap, no chip leaves `.task-chips` or the row, and the chips

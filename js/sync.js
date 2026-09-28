@@ -3,6 +3,7 @@ import { state, saveStateLocal, serializeState, setGistId, normalizeTaskCategori
 import { ghFetch, getToken } from './github.js';
 import { mergeStates } from './merge.js';
 import { ensureSortOrder } from './project-filter.js';
+import { ensureTaskSortOrder } from './task-move.js';
 
 export { mergeStates };
 
@@ -46,6 +47,7 @@ function applyMerged(merged) {
   Object.keys(merged).forEach((k) => { if (!k.startsWith('_')) state[k] = merged[k]; });
   normalizeTaskCategories(state); // the Gist may hold tasks from a device on an older version
   ensureSortOrder(state.projects); // ...and projects with no sortOrder yet
+  ensureTaskSortOrder(state.projects); // ...and tasks with none (a device on an older version)
 }
 
 export async function pullFromGist() {

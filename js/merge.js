@@ -46,6 +46,19 @@ function mergeRecordList(localList, remoteList, tombstones, mergeOne = newer) {
   return order.map((id) => byId.get(id)).filter((r) => r && survives(r, tombstones));
 }
 
+function dedupeMovedTasks(projects, remoteProjects) {
+  const remoteHome = new Map();
+  (remoteProjects || []).forEach((p) => (p.tasks || []).forEach((t) => { if (t && t.id != null) remoteHome.set(t.id, p.id); }));
+  const winner = new Map(); // task id -> { project, task }
+  projects.forEach((p) => (p.tasks || []).forEach((t) => {
+    const cur = winner.get(t.id);
+    if (!cur) { winner.set(t.id, { project: p, task: t }); return; }
+    const better = stamp(t) > stamp(cur.task) || (stamp(t) === stamp(cur.task) && remoteHome.get(t.id) === p.id);
+    if (better) winner.set(t.id, { project: p, task: t });
+  }));
+  projects.forEach((p) => { p.tasks = (p.tasks || []).filter((t) => winner.get(t.id).task === t); });
+}
+
 export function mergeStates(local, remote) {
   if (!remote) return local;
   const l = copy(local);
@@ -72,6 +85,12 @@ export function mergeStates(local, remote) {
       const deletedAt = deletedRecordIds.projects[p.id];
       return deletedAt === undefined || stamp(p) > deletedAt || p.tasks.some((t) => stamp(t) > deletedAt);
     });
+
+  // A task moved between projects (PR 11) is in one project on the device that moved it and still in
+  // the old one on a device that hasn't seen the move: the per-project union above would keep both.
+  // A task id lives in exactly one project, so keep the newest copy (a move stamps the task); on a tie
+  // the copy the remote side has wins, like `newer`.
+  dedupeMovedTasks(merged.projects, r.projects);
 
   ['categories', 'projectCategories', 'inbox'].forEach((kind) => {
     merged[kind] = mergeRecordList(l[kind], r[kind], deletedRecordIds[kind]);
