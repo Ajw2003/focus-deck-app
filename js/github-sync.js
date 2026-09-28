@@ -1,7 +1,7 @@
 // focus-deck-app/js/github-sync.js
 import { state, uid, nextHue, findTaskWithProject, cssColorToHex, PRIORITY, PRIORITY_ORDER } from './state.js';
 import {
-  validateToken, listRepos, listIssues, getIssue, createIssue, ghFetch,
+  validateToken, listRepos, listYourRepos, createRepo, listIssues, getIssue, createIssue, ghFetch,
   setIssueState, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists,
 } from './github.js';
 import { persist } from './sync.js';
@@ -339,6 +339,86 @@ export function parseRepoInput(input) {
   if (urlMatch) return urlMatch[1] + '/' + urlMatch[2];
   if (/^[^\/\s]+\/[^\/\s]+$/.test(input)) return input;
   return null;
+}
+
+// The "+ New" panel's "Your repos" tab: repos minus any already tracked (case-insensitive) and
+// minus state.excludedRepos (repos the user removed as a project -- see doc-ref 17bf
+// docs/4-systems/github-sync.md). Pure and tested.
+export function untrackedRepos(repos, projects, excludedRepos) {
+  const tracked = new Set((projects || []).filter((p) => p.source === 'github' && p.repoFullName).map((p) => p.repoFullName.toLowerCase()));
+  const excluded = new Set((excludedRepos || []).map((f) => f.toLowerCase()));
+  return (repos || []).filter((r) => !tracked.has(r.full_name.toLowerCase()) && !excluded.has(r.full_name.toLowerCase()));
+}
+
+export { listYourRepos };
+
+// GitHub's own allowed characters for a repo name: letters, digits, dot, hyphen, underscore -- no
+// spaces. Used by the "+ New" panel's "Create a new repo" disclosure to validate before the request
+// ever goes out, and shown as the rule next to the field.
+export const REPO_NAME_RULE = 'letters, numbers, dots, hyphens and underscores only, no spaces';
+export function isValidRepoName(name) {
+  return typeof name === 'string' && name.length > 0 && /^[A-Za-z0-9._-]+$/.test(name);
+}
+
+// Creates a new repo on GitHub, then tracks it through the same path as picking or pasting one
+// (Q31a, #39). Requires a token with "Administration: Read and write" (settings.html says so); a
+// 403/404 from GitHub means that permission is missing, a 422 means the name is taken or invalid --
+// the caller (js/app.js) turns those into the panel's inline message.
+export async function createRepoAndTrack(name, isPrivate, description, ui) {
+  const repo = await createRepo(name, isPrivate, description);
+  await addRepoManually(repo.full_name, ui);
+  return repo;
+}
+
+// Turns a hand-made project into a repo project in place (Q30c) -- see doc-ref 17bf
+// docs/4-systems/github-sync.md. Pure; the caller pulls the repo's issues in afterward.
+export function linkProjectToRepo(project, repo, projects) {
+  const already = (projects || []).find((p) => p.source === 'github' && p.repoFullName && p.repoFullName.toLowerCase() === repo.full_name.toLowerCase());
+  if (already) return { error: repo.full_name + ' is already tracked as “' + already.name + '”.' };
+  project.source = 'github';
+  project.repoFullName = repo.full_name;
+  project.htmlUrl = repo.html_url;
+  project.private = !!repo.private;
+  return { project };
+}
+
+// The network half of linking: see doc-ref 17bf docs/4-systems/github-sync.md.
+export async function linkProjectToRepoOnGithub(projectId, repo, ui) {
+  const project = state.projects.find((p) => p.id === projectId);
+  if (!project) return { error: 'Project not found.' };
+  const result = linkProjectToRepo(project, repo, state.projects);
+  if (result.error) return result;
+  ui.syncing = true;
+  ui.syncError = null;
+  try {
+    if (!state.pinnedRepos.includes(repo.full_name)) state.pinnedRepos.push(repo.full_name);
+    const exIdx = state.excludedRepos.indexOf(repo.full_name);
+    if (exIdx !== -1) state.excludedRepos.splice(exIdx, 1);
+    const issues = await listIssues(repo.full_name.split('/')[0], repo.full_name.split('/')[1]);
+    const closedNow = upsertRepoProject(repo, issues, ui);
+    await refreshClosedTaskLabels(closedNow);
+    ui.syncing = false;
+    persist();
+    return { project };
+  } catch (e) {
+    ui.syncing = false;
+    ui.syncError = 'Could not link that repo: ' + e.message;
+    return { error: ui.syncError };
+  }
+}
+
+// The Edit panel's "Link to GitHub repo" paste field: parses the input, fetches the repo, then
+// links it the same way picking one from the list does (linkProjectToRepoOnGithub, above).
+export async function linkProjectToRepoByInput(projectId, input, ui) {
+  const fullName = parseRepoInput(input);
+  if (!fullName) return { error: 'Enter it as "owner/repo" or a full github.com URL.' };
+  try {
+    const [owner, name] = fullName.split('/');
+    const repo = await ghFetch('/repos/' + owner + '/' + name);
+    return await linkProjectToRepoOnGithub(projectId, repo, ui);
+  } catch (e) {
+    return { error: 'Could not link that repo: ' + e.message };
+  }
 }
 
 export async function addRepoManually(input, ui) {

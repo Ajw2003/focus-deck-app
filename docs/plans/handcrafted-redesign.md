@@ -68,7 +68,14 @@ on 2026-09-26; each decision below keeps its question number from that session.
   in the "All" view. In the tile view minimised projects gather below the full-size tiles as
   header-only cards, two to a row. (PR 5 hid minimising; the user asked for it back after using
   it. See the Decisions entry "Minimising comes back; "All" or "One" becomes a per-device switch".)
-- **Dragging projects into order (Q27a, #73).** Its own PR after the switch: a saved, synced
+- **Adding projects and repos (Q29a, Q30c, Q31a, 2026-09-28).** A "+ New" button in the project
+  list's header, always visible, opens a small panel with two choices: **New project** (a name)
+  and **GitHub repo**, which lists your repos not yet tracked, takes a pasted `owner/repo` or URL
+  for anyone else's, and can create a brand-new repo on GitHub (#39). A project made by hand can
+  be linked to a GitHub repo from its Edit panel; the repo's issues come in as tasks and the
+  hand-made tasks stay as they are. This replaces the single "New project or owner/repo" field at
+  the bottom of the list, which scrolled out of sight once the list grew.
+- **Dragging projects into order (Q27a, #73).** Its own PR after adding repos: a saved, synced
   project order and a "Custom" sort option.
 - **Project headers never shift the card (#83).** A header whose name and badges don't fit wrapped
   its controls onto a second line, pushing the progress bar lower than its neighbours'. The
@@ -104,4 +111,5 @@ Four, in order, each checked on a phone before the next starts:
    Q25a, 2026-09-27).
 5. Wide screens get 2x2 tiles; one project at a time moves to phones (Q26a, Q28, 2026-09-27).
 6. Minimising back, and the "All" / "One" switch on every device (2026-09-27).
-7. Drag projects into order (Q27a, the project half of #73).
+7. Adding projects and repos: "+ New", your-repos picker, create a repo, link a project (2026-09-28).
+8. Drag projects into order (Q27a, the project half of #73).

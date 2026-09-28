@@ -60,6 +60,14 @@ below that width, stacked at natural height — with a minimise button (▾/▸)
 ones. **One** shows a single project at a time, on any width, opening on the last one viewed or the
 busiest; tapping a row selects it (closing the drawer on a phone) and scrolls to it.
 
+**Adding projects and GitHub repos** — a "+ New" button always sits in the project list's header
+(never inside the scrolling list) and opens a panel with two tabs: **New project** (just a name —
+set a category afterward from the project's own Edit panel) and **GitHub repo**, which lists your
+untracked repos (filterable, one tap to track), takes a pasted `owner/repo` or URL, and can create a
+brand-new repo on GitHub and track it straight away. A hand-made project's Edit panel also gets
+**Link to GitHub repo**, turning it into a repo project in place — same id, name, colour, category,
+and hand-made tasks — while pulling the repo's issues in as tasks.
+
 **Inbox capture** — a single always-visible input at the top of the page for getting a thought
 out of your head. The **Unsorted** card below guides it (and any task with no labels) through one
 at a time: a captured thought picks a project, then both pick labels the same way, ranked for that

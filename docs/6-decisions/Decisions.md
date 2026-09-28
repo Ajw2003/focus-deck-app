@@ -4,6 +4,62 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-28 — PR 7 interpretations ("+ New" panel)
+
+**Context.** The 2026-09-28 "+ New" panel decision above left a few implementation calls open.
+
+**Decision.**
+- `untrackedRepos` drops repos in `state.excludedRepos` from "Your repos", not just already-tracked
+  ones: that list means "the user removed this repo as a project" (`excludeRepo`, js/mutations.js),
+  so surfacing it in the picker would invite tracking it right back the moment it was dropped.
+  Pasting the same `owner/repo`, or using **Create**, still works regardless (both un-exclude on
+  success, unchanged from `addRepoManually`'s existing behaviour).
+- `listYourRepos()` reads one page (100 repos, `/user/repos` with
+  `affiliation=owner,collaborator,organization_member`) and doesn't follow further pages: `ghFetch`
+  doesn't expose response headers, so reading the `Link` header would need its own change there.
+  Noted as a known cap rather than built around.
+- Every result and error in the "+ New" panel and the Edit panel's inline chooser shows inline (a
+  paragraph in the panel), not the toast: the panel already carries its own error slots (paste,
+  create), and a person adding several repos in a row shouldn't have each one's outcome sitting in
+  the one pinned toast instead of next to the field they just used. `addRepoManually`'s own
+  `ui.syncError` (used when Track/Paste hits a network error) is read once and moved into the
+  panel's own field before the next paint, rather than shown as a toast too — one place per error,
+  not two.
+- The Edit panel's inline repo chooser keeps its state in one shared `ui.linkPanel` slot
+  (`{projectId, open, repos, error}`), not one per project: only one project's Edit panel is
+  realistically open with the chooser open at a time, and a second `toggle-link-panel` just replaces
+  it. Simpler than a per-project map for no real loss.
+
+**Why.** Each call follows the same rule: keep the person's most recent, most specific action
+in view (the field they're looking at, the repo they just excluded) rather than a general
+history or a farther-away notice.
+
+**Status.** Standing.
+
+## 2026-09-28 — Adding projects and GitHub repos gets a "+ New" panel
+
+**Context.** After PR 6 (#86) the user found no way to add a GitHub repo or link an existing one.
+The only way in was PR 4's "New project or owner/repo" field at the bottom of the project list:
+its placeholder didn't say repos went there, and after PR 6 sized the sidebar to fit the screen
+the field sat below the fold at 900px tall (measured: field top 805px, visible list ends 818px).
+Creating a repo on GitHub (#39) and linking a hand-made project to a repo had never existed.
+
+**Decision.**
+- Q29a: a "+ New" button in the project list's header (sidebar and drawer) opens a panel with
+  **New project** and **GitHub repo**. The single bottom field goes.
+- Q30c: both kinds of linking. **GitHub repo** lists the user's repos that no project tracks yet
+  (one tap to track) and takes a pasted `owner/repo` or URL. A hand-made project's Edit panel gets
+  **Link to GitHub repo**: the repo's issues come in as tasks in that project, its hand-made tasks
+  stay unlinked, and a repo another project already tracks is refused with a message naming it.
+- Q31a: **GitHub repo** can create a new repo on GitHub (name, private by default, optional
+  description) and track it straight away (#39's repo half). The token then needs Administration:
+  Read and write; Settings says so, and a refusal from GitHub says so too.
+
+**Why.** A picker beats typing `owner/repo`, and a header button can't scroll out of sight. The
+alternative, keeping one field but moving it to the top, would still not say what it's for.
+
+**Status.** Standing.
+
 ## 2026-09-27 — PR 6 interpretations (All/One switch, minimising back)
 
 **Context.** The task for PR 6 ("Minimising comes back; 'All' or 'One' becomes a per-device

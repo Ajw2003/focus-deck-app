@@ -274,16 +274,56 @@ carries `aria-label="Projects"` and, only while open, `role="dialog"` and `aria-
 wide-screen sidebar is not modal); the button carries `aria-expanded`/`aria-controls`, kept current
 by `paintHeaderControls` since the button lives outside `#app`.
 
-**Add a project or a repo (Q15a, Q12d, PR 4 2026-09-27).** One field, `renderAddProjectField`,
-sits at the bottom of the sidebar/drawer list — "New project or owner/repo" — replacing the two
-forms (`renderAddProjectForm`) that used to sit at the bottom of the page. `add-project-field` in
-js/app.js decides which path with `parseRepoInput` (js/github-sync.js, already used everywhere else
-a repo is typed in): if it parses (`owner/repo`, or a `github.com` URL), the value takes the old
-track-repo path (`addRepoManually`); otherwise it's a plain project name with no category —
-category is set afterward through the project's own Edit panel (see below), since the field has
-nowhere to put one. After adding, `afterProjectAdded` selects the new project in the "One" view or,
-in "All", just scrolls to its new card/tile once it's rendered — the same `ui.projectView` split
-`scrollToProject` uses (PR 6).
+**Add a project or a repo: the "+ New" panel (Q29a, PR 7 2026-09-28).** A small accent
+`.link-btn`-style "+ New" button always sits in the sidebar/drawer's header row, next to the visible
+count — never inside the scrolling list, so it can't scroll out of sight (the problem the old bottom
+field had, per the 2026-09-28 Decisions.md entry). It carries `aria-expanded`/`aria-controls="new-panel"`
+and toggles a panel (`renderNewPanel`, js/render.js) directly under the header, above the All/One
+switch. This replaces PR 4's single bottom field (`renderAddProjectField`, gone) and, before that,
+the two forms (`renderAddProjectForm`) at the bottom of the page.
+
+The panel is a two-option segmented control, the same pill style as the All/One switch:
+
+- **New project** — a name field and Add, straight to `M.addProject(name, null)` — no category;
+  set one afterward through the project's own Edit panel, same as before. Adding closes the panel
+  and runs `afterProjectAdded` (selects the new project in "One", or scrolls to its tile/card in
+  "All" — the same `ui.projectView` split `scrollToProject` uses, PR 6).
+- **GitHub repo** — with no token, just a line: "Connect GitHub in Settings to add repos." No token
+  means no repo picker, no Create, nothing else in the tab. With a token:
+  - **Your repos** — fetched once when the tab first opens (`listYourRepos`, js/github.js: `/user/repos`
+    with `affiliation=owner,collaborator,organization_member`, so a repo you collaborate on or reach
+    through an org shows up too, not just ones you own), cached in `ui.newPanelRepos` until the panel
+    closes. `untrackedRepos` (js/github-sync.js, pure, tested) narrows it to repos no project tracks
+    yet and drops ones in `state.excludedRepos` (see doc-ref 17bf docs/4-systems/github-sync.md).
+    More than 8 repos gets a filter box (`.repo-filter`). Each row shows the full name, a "Private"
+    chip, and a **Track** button straight to `addRepoManually` — the same path the old bottom field's
+    repo side used.
+  - **Paste** — `owner/repo` or a URL, same `addRepoManually` path; `parseRepoInput`'s rejection
+    shows inline (`.field-error`), not in the toast (see the 2026-09-28 PR 7 Decisions.md entry for
+    why every result here is inline, not toast).
+  - **Create a new repo on GitHub** — a `<details>` disclosure: name (validated to GitHub's allowed
+    characters before the request goes out, `isValidRepoName`/`REPO_NAME_RULE`, js/github-sync.js),
+    a Private checkbox (checked by default), an optional description, and Create
+    (`createRepoAndTrack`: POSTs `/user/repos`, then tracks the result through the same
+    `addRepoManually` path). Needs a token with **Administration: Read and write** (settings.html
+    says so); a 403/404 shows "GitHub refused: your token needs Administration: Read and write to
+    create repos. See Settings." plus GitHub's own message, a 422 shows GitHub's message as-is.
+
+Escape inside the panel closes it and returns focus to "+ New" (`#new-panel-toggle`, `closeNewPanel`,
+js/app.js), and only the panel: the handler stops the key there, so on a phone the drawer it sits
+in stays open (the drawer's own Escape handler listens on `document`).
+
+**Linking a hand-made project to a repo (Q30c, PR 7).** A project that isn't GitHub-backed gets a
+"Link to GitHub repo" row in its Edit panel, opening the same repo picker (Your repos + Paste, no
+Create) inline, right there (`renderLinkRepoPanel`, js/render.js; state in the shared `ui.linkPanel`
+slot, see the 2026-09-28 PR 7 Decisions.md entry for why it's one slot, not one per project). Picking
+or pasting a repo goes through `linkProjectToRepoOnGithub`/`linkProjectToRepoByInput`
+(js/github-sync.js): it refuses inline, naming the project already tracking it, or turns this
+project into a repo project in place — same id, name, colour, category, and every hand-made task
+untouched (still `source:'manual'`, unlinked) — and pulls the repo's issues in as new tasks. A
+project already tracking a repo shows nothing new here (unlinking is out of scope). Its badges then
+read "GitHub ↗" / "Private · GitHub ↗" exactly like any other repo project — `renderProjectCard`
+doesn't distinguish how a project came to have `source:'github'`.
 
 The sidebar/drawer markup is always in the DOM; a repaint rebuilds it, so `paint()` in js/app.js
 records whether the one project search box (`.project-search`) had focus and puts the cursor back

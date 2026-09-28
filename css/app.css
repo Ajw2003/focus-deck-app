@@ -287,6 +287,8 @@ button.chip.proj-chip:hover{background:var(--line);}
 .project-card.is-collapsed .progress-track{margin-bottom:0;}
 /* The "All"/"One" switch: two pills right under the sidebar/drawer title. */
 .view-switch{display:flex; gap:6px;}
+/* the labels never break mid-label ("New / project") in the 270px sidebar */
+.view-switch .filter-pill{white-space:nowrap;}
 /* Minimised projects gather below the full-size tiles as their own quiet group (#82: a minimised
    tile left in the tile grid would sit beside a full-height one and reopen the gap). */
 .minimised-projects{margin-top:24px;}
@@ -373,7 +375,22 @@ button.chip.proj-chip:hover{background:var(--line);}
    no extra scoping by view -- it just paints the highlight when that class is there. */
 .sidebar-project.is-selected{background:var(--surface-2); font-weight:700;}
 .sidebar-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
+.sidebar-head-right{display:flex; align-items:baseline; gap:10px;}
 .sidebar-title{font-size:var(--text-h); font-style:italic;}
+/* The "+ New" panel (PR 7, Q29a): opens right under the header row, above the All/One switch. See
+   docs/4-systems/styling.md#add-a-project-or-a-repo. */
+.new-panel{border:1px solid var(--line); border-radius:var(--r-control); padding:12px; margin:10px 0; display:flex; flex-direction:column; gap:10px;}
+.new-panel-section{display:flex; flex-direction:column; gap:6px;}
+.repo-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; max-height:220px; overflow-y:auto;}
+.repo-row{display:flex; align-items:center; gap:8px; padding:4px 0;}
+.repo-name{flex:1 1 auto; min-width:0; overflow-wrap:anywhere; font-size:var(--text-sm);}
+.repo-filter{padding:6px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);}
+.new-repo-disclosure{font-size:var(--text-sm);}
+.new-repo-disclosure summary{cursor:pointer; color:var(--accent); font-weight:600;}
+.new-repo-form{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
+.new-repo-form input[type="text"]{padding:7px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
+.field-error{color:var(--danger);}
+.link-repo-panel{flex-basis:100%; margin-top:8px;}
 .sidebar-search{flex:none; width:100%; padding:8px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
 .sidebar-pills{gap:5px;}
 .sidebar-pills .filter-pill{padding:4px 10px; font-size:var(--text-sm);}
