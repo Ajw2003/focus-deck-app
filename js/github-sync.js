@@ -280,6 +280,12 @@ export function unlinkTask(taskId) {
 // touch GitHub this runs afterwards. It reports through the toast and never moves the task back: a
 // refusal leaves it where the person put it, still linked to its old issue.
 // See docs/4-systems/github-sync.md#moving-a-task-to-another-project.
+// Tasks whose issue is being transferred right now. A sync that was already running when the
+// transfer started can list the old repo after the issue has left it; without this it would mark
+// the task done (the issue looks closed from the old repo's side). Both close paths skip these.
+const transfersInFlight = new Set();
+export function isTransferInFlight(taskId) { return transfersInFlight.has(taskId); }
+
 export async function transferTaskIssue(taskId, targetRepoFullName, ui, projectName) {
   const found = findTaskWithProject(taskId);
   if (!found || !isLinked(found.task)) return false;
@@ -290,6 +296,7 @@ export async function transferTaskIssue(taskId, targetRepoFullName, ui, projectN
   const [tOwner, tName] = targetRepoFullName.split('/');
   ui.syncing = true;
   ui.syncError = null;
+  transfersInFlight.add(taskId);
   try {
     const moved = await transferIssue(owner, name, number, tOwner, tName);
     task.repoFullName = targetRepoFullName;
@@ -307,6 +314,8 @@ export async function transferTaskIssue(taskId, targetRepoFullName, ui, projectN
     ui.syncError = 'Moved “' + task.title + '” to ' + projectName + ' here, but GitHub refused to move the issue: ' + why.replace(/\.?$/, '.') + ' It stays linked to ' + from + '#' + number + '.';
     persist();
     return false;
+  } finally {
+    transfersInFlight.delete(taskId);
   }
 }
 
@@ -506,7 +515,7 @@ export function upsertRepoProject(repo, issues, ui) {
   const openNumbers = new Set(open.map((iss) => iss.number));
   const newlyClosed = [];
   state.projects.forEach((holder) => holder.tasks.forEach((t) => {
-    if (isThisRepos(t) && t.status !== 'done' && !openNumbers.has(t.issueNumber)) {
+    if (isThisRepos(t) && t.status !== 'done' && !openNumbers.has(t.issueNumber) && !transfersInFlight.has(t.id)) {
       t.status = 'done';
       t.updatedAt = Date.now();
       newlyClosed.push(t);
@@ -582,6 +591,7 @@ export async function syncGithub(ui) {
       if (t.source === 'github' && t.repoFullName && !syncedRepos.has(t.repoFullName)) linked.push({ t, p });
     }));
     for (const { t, p } of linked) {
+      if (transfersInFlight.has(t.id)) continue; // mid-transfer: its link is about to change
       try {
         const [owner, name] = t.repoFullName.split('/');
         const iss = await getIssue(owner, name, t.issueNumber);

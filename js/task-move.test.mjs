@@ -14,7 +14,7 @@ let respond = () => ({});
 globalThis.fetch = async (url, opts = {}) => {
   const call = { url: String(url).replace('https://api.github.com', ''), method: opts.method || 'GET', body: opts.body };
   calls.push(call);
-  const out = respond(call);
+  const out = await respond(call);
   if (out && out.__status) return { ok: false, status: out.__status, json: async () => out.body || {} };
   return { ok: true, status: 200, json: async () => out };
 };
@@ -224,4 +224,26 @@ test('markup: the move dialog', () => {
   assert.match(html, /role="dialog" aria-modal="true"/);
   assert.match(html, /A &amp; B/);
   assert.ok(html.includes('data-dialog="move"') && html.includes('data-dialog="cancel"'));
+});
+
+test('a sync that lists the old repo while a transfer is in flight does not mark the task done', async () => {
+  const t = task('t', 1, { source: 'github', repoFullName: 'a/b', issueNumber: 12, url: 'old' });
+  state.projects = [
+    { id: 'pb', name: 'b', source: 'github', repoFullName: 'a/b', tasks: [] },
+    { id: 'pc', name: 'c', source: 'github', repoFullName: 'a/c', tasks: [t] },
+  ];
+  let releaseGraphql;
+  const graphqlHeld = new Promise((r) => { releaseGraphql = r; });
+  respond = (c) => {
+    if (c.url === '/graphql') return graphqlHeld.then(() => ({ data: { transferIssue: { issue: { number: 3, url: 'https://github.com/a/c/issues/3' } } } }));
+    return { node_id: 'N' };
+  };
+  const moving = transferTaskIssue('t', 'a/c', {}, 'c');
+  await new Promise((r) => setTimeout(r, 0)); // let the transfer reach the held GraphQL call
+  // the old repo's list no longer has #12: it has left for a/c
+  upsertRepoProject({ full_name: 'a/b', name: 'b', html_url: 'u', private: false }, [], {});
+  assert.strictEqual(t.status, 'next', 'mid-transfer, the task is not closed by the old repo\'s list');
+  releaseGraphql();
+  assert.strictEqual(await moving, true);
+  assert.deepStrictEqual([t.status, t.repoFullName, t.issueNumber], ['next', 'a/c', 3]);
 });
