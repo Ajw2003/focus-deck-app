@@ -6,6 +6,7 @@ import { syncIssueCompletion, pushCategoriesToIssue, pushPriorityToIssue, pushCa
 // Gist. See doc-ref 2425 docs/4-systems/gist-sync.md
 import { persist } from './sync.js';
 import { ensureSortOrder } from './project-filter.js';
+import { ensureTaskSortOrder } from './task-move.js';
 export { persist };
 
 // categoryId was previously discarded here (the add-project form's submit handler was calling
@@ -37,6 +38,35 @@ export function applySortOrders(changes) {
   return n;
 }
 
+// A dragged task's move (PR 11), after the caller has worked the order out (task-move.js
+// taskOrderChanges: normally just the moved task's own number). Within a project into the other
+// group the status changes through setTaskStatus, so it behaves as a status change does anywhere
+// else; into another project the task leaves its old project's list and joins the new one, keeping
+// its id, and its status is set directly (no issue update: the move is not a completion change).
+// The moved task is stamped explicitly: a move to another project changes no field of the task,
+// so the change stamper would not see it, and the Gist merge picks the newest copy of a task
+// wherever it lives (merge.js dedupeMovedTasks). Returns false when the task or project is gone.
+export function applyTaskMove({ taskId, toProjectId, status, changes }) {
+  const found = findTaskWithProject(taskId);
+  const to = state.projects.find((p) => p.id === toProjectId);
+  if (!found || !to) return false;
+  const { task, project: from } = found;
+  const crossing = from.id !== to.id;
+  if (!crossing && status && task.status !== status) setTaskStatus(taskId, status);
+  if (crossing) {
+    from.tasks = from.tasks.filter((t) => t.id !== taskId);
+    to.tasks.push(task);
+    if (status) task.status = status;
+  }
+  Object.keys(changes || {}).forEach((id) => {
+    const t = to.tasks.find((x) => x.id === id);
+    if (t) t.sortOrder = changes[id];
+  });
+  task.updatedAt = Date.now();
+  persist();
+  return true;
+}
+
 // steps is the raw newline-separated textarea value, split into the array shape the rest of the
 // app expects. deadline/categories/steps were previously dropped entirely -- the add-task form
 // already submitted them, but this function's old (projectId, title) signature had nowhere to
@@ -52,6 +82,7 @@ export function addTask(projectId, title, deadline, categoryIds, steps, priority
   };
   if (steps) task.steps = String(steps).split('\n').map((s) => s.trim()).filter(Boolean);
   project.tasks.push(task);
+  ensureTaskSortOrder([project]); // a new task goes to the end of its group
   persist();
   return task;
 }
@@ -182,6 +213,7 @@ export function fileInboxItem(inboxId, projectId, categoryIds) {
   if (!item || !project) return;
   const task = { id: uid('t'), title: item.text, status: 'next', deadline: null, categoryIds: categoryIds || [], priority: null, source: 'manual', updatedAt: Date.now() };
   project.tasks.push(task);
+  ensureTaskSortOrder([project]); // a new task goes to the end of its group
   state.inbox = state.inbox.filter((i) => i.id !== inboxId);
   persist();
   return task;

@@ -142,3 +142,28 @@ export async function ensureLabelExists(owner, repo, name, color) {
     }
   }
 }
+
+// Moving a linked task's issue to another repo of the same owner (PR 11) goes through GitHub's
+// GraphQL `transferIssue` mutation -- REST has no transfer -- which needs the issue's and the target
+// repo's node IDs, read from their REST objects. Requires a token that can write issues in both
+// repos. GraphQL reports a refusal as HTTP 200 with an `errors` array, so that is turned into a
+// GithubError here. See docs/4-systems/github-sync.md#moving-a-task-to-another-project.
+export async function transferIssue(owner, repo, number, targetOwner, targetRepo) {
+  const issue = await ghFetch('/repos/' + owner + '/' + repo + '/issues/' + number);
+  const target = await ghFetch('/repos/' + targetOwner + '/' + targetRepo);
+  const result = await ghFetch('/graphql', {
+    method: 'POST',
+    body: JSON.stringify({
+      query: 'mutation TransferIssue($issueId: ID!, $repositoryId: ID!) { transferIssue(input: {issueId: $issueId, repositoryId: $repositoryId}) { issue { number url } } }',
+      variables: { issueId: issue.node_id, repositoryId: target.node_id },
+    }),
+  });
+  if (result && Array.isArray(result.errors) && result.errors.length) {
+    const err = new GithubError(result.errors.map((e) => e.message).filter(Boolean).join('; ') || 'GitHub refused the transfer.', 422);
+    err.githubMessage = err.message;
+    throw err;
+  }
+  const moved = result && result.data && result.data.transferIssue && result.data.transferIssue.issue;
+  if (!moved) throw new GithubError('GitHub did not say where the issue went.', 422);
+  return { number: moved.number, url: moved.url };
+}
