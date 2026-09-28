@@ -103,11 +103,19 @@ const invariants = [
   ['.drag-ghost', 'pointer-events:none', 'the ghost must not swallow the pointer it follows'],
   ['.drag-placeholder', 'dashed', 'the original\'s place must show as a dashed placeholder'],
   ['.drop-indicator', 'position:fixed', 'the drop indicator is positioned from measured rectangles'],
+  // dragging tasks (PR 11)
+  ['.task-grip', 'touch-action:none', 'the task grip must not let a touch scroll the page, or a touch drag never starts'],
+  ['.task-group.is-empty', 'display:none', 'an empty group stays out of sight until a task is being dragged'],
+  ['body.is-dragging-task .task-group.is-empty', 'display:block', 'while a task is dragged the empty groups show their drop zone'],
+  ['.drop-zone', 'dashed', 'the empty-group drop zone reads as a dashed target'],
+  ['.project-card.drop-target', 'outline', 'a minimised card that would take the drop must show it'],
+  ['.move-dialog-backdrop', 'position:fixed', 'the move dialog covers the page'],
+  ['.move-dialog', 'border-radius:var\\(--r-control\\)', 'the move dialog uses the control radius'],
 ];
 
 // the classes js/project-drag.js and the grip markup rely on must each have a rule
-for (const cls of ['drag-grip', 'drag-ghost', 'drag-placeholder', 'drop-indicator', 'sr-only']) {
-  assert.ok(cssClasses.has(cls), `css/app.css has no rule for .${cls} (dragging projects, PR 9)`);
+for (const cls of ['drag-grip', 'drag-ghost', 'drag-placeholder', 'drop-indicator', 'sr-only', 'task-grip', 'drop-zone', 'drop-target', 'is-dragging-task', 'move-dialog']) {
+  assert.ok(cssClasses.has(cls), `css/app.css has no rule for .${cls} (dragging projects and tasks, PR 9 and 11)`);
 }
 
 for (const [selector, expectedSubstring, why] of invariants) {
