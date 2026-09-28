@@ -48,7 +48,9 @@ it. On a linked issue it syncs both ways as a `priority: …` label, and common 
 
 **Projects, categories, and colors** — tasks live inside projects; both projects and tasks can
 carry a color-coded category (set up and customized in Settings), so a glance at a chip tells
-you what kind of work something is without reading it.
+you what kind of work something is without reading it. Colours can be changed without a mouse:
+the project's Edit panel has its colour and its category's colour, and the task editor's label
+list has a swatch per label (on desktop, right-click on a project dot or chip still works).
 
 **One project list** — search, category filter, sort (including **Custom order**), Collapse all, and a row per project that
 jumps to it. From 1100px wide it's a sticky column on the left; below that width it's a **Projects**

@@ -423,3 +423,12 @@ Gist merge keeps two devices' moves. Unit tests in `js/sort-order.test.mjs`; che
 (mouse, touch via CDP touch events, keyboard) at 1440x900 and 390x844; screenshots in
 `docs/generated/pr9/` (fonts fall back in the sandbox). Judgement calls are in Decisions, 2026-09-28
 ("Calls made while building drag-to-reorder"). Next: PR 10, dragging tasks.
+
+## 2026-09-28 — PR 10 built (pending merge)
+
+Colour without right-click (#95). The project Edit panel has "Colour" and (with a category)
+"Category colour" inputs; the task editor's label list has a swatch per label. `input` previews,
+`change` commits through the same mutations right-click uses. Right-click on desktop is unchanged.
+`cssColorToHex` gained a `#rrggbb` fast path so the render tests run without a DOM. Checked in real
+Chromium at 390x844 (touch) and 1440x900; screenshots in `docs/generated/pr10/` (fonts fall back in
+the sandbox). The native picker cannot be driven, so `input`/`change` events were dispatched by hand.
