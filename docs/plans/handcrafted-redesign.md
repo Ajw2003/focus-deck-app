@@ -81,8 +81,11 @@ on 2026-09-26; each decision below keeps its question number from that session.
   by side, up to half the row for a short title and about a third for a long one. (First built as
   a fixed 75/25 split; the user asked for it to scale after seeing it cramped on a phone.) This
   replaces PR 4's rule where a long title took the whole line and its chips dropped underneath.
-- **Dragging projects into order (Q27a, #73).** Its own PR after the task-row split: a saved, synced
-  project order and a "Custom" sort option.
+- **Dragging projects into order (Q27a, #73, PR 9, 2026-09-28).** Drag a tile by a grip on its
+  header, or a row in the sidebar or phone drawer (press and hold on touch); keyboard: focus the
+  grip, arrow keys move it. Dragging switches the sort menu to a new "Custom" option, and the
+  custom order survives picking another sort and coming back. The order is saved per project and
+  syncs to other devices like any other change; a new project goes to the end.
 - **Project headers never shift the card (#83).** A header whose name and badges don't fit wrapped
   its controls onto a second line, pushing the progress bar lower than its neighbours'. The
   header keeps its controls on the first line whatever the name's length.

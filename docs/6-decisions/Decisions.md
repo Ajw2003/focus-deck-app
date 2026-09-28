@@ -4,6 +4,23 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-28 — How dragging projects works (PR 9)
+
+**Context.** The user asked for dragging projects into order (#73, Q27a) after PR 8. They gave the
+goal, not the mechanics; these are the calls made, told to the user before building.
+
+**Decision.** Drag handles: a grip on each tile header and each sidebar/drawer row; touch starts
+a drag on press-and-hold; the grip also takes arrow keys. A drag switches the sort to a new
+"Custom" option; the custom order is kept when another sort is picked. Each project carries its
+own position (`sortOrder`), and a move changes only the moved project's position (placed between
+its new neighbours), so the per-record newest-wins Gist merge carries it without special code and
+two devices reordering different projects don't overwrite each other. New projects go to the end.
+
+**Why.** One changed record per move is what the existing merge handles well; rewriting a whole
+order array on every move would make the last device to sync win every project's position.
+
+**Status.** Standing.
+
 ## 2026-09-28 — Task row chips column scales with its chips, not a fixed 25%
 
 **Context.** PR 8 first built #97 as a fixed 75/25 split. On a phone the 25% column was about
