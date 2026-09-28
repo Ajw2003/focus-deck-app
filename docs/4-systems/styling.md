@@ -341,11 +341,25 @@ in the browser and just renders with default/no styling.
 
 ### Task rows and the editor (Q14a, Q12f, PR 4 2026-09-27)
 
-A row (`renderTaskRow`, js/render.js) shows only the checkbox, the title, label chips, the deadline
-chip, and the priority chip when one is set (it still cycles on tap). The title and chips sit in
-one wrapping group (`.task-main`) beside the checkbox, with the title's width set by its own text:
-a short title keeps its chips on its line, a long one takes the full width and its chips drop
-underneath, instead of the chips squeezing it into a narrow column. No `#N` GitHub badge, no
+A row (`renderTaskRow`, js/render.js) is three things in a grid
+(`grid-template-columns:auto minmax(0,3fr) minmax(0,1fr)`, css/app.css `.task-row`): the checkbox,
+the title zone (`.task-title`, the `role="button"` span), and the chips zone (`.task-chips`,
+holding the priority chip, then label chips, then the deadline chip; the priority chip still
+cycles on tap). The row is a grid, `auto minmax(0,1fr) fit-content(var(--chips-max))`, the same at
+every width and in every view, done rows included. The chips column is only as wide as its chips
+need, up to a ceiling: one short chip takes little room, several sit side by side and wrap into a
+small right-anchored block (`justify-content:flex-end`). The ceiling, `--chips-max`, is set on each
+row from its title's length by `chipsMaxPct` (js/render.js): half the row for a title up to 30
+characters, easing down to a third for long ones, so a long title keeps most of the row. The title
+takes everything else and wraps inside it (`overflow-wrap:anywhere`). Neither column ever enters the
+other's. A chip still too long for the column is cut with an ellipsis and carries its full
+(displayed) name in `title` and `aria-label` (it is also in full in the row's editor).
+
+*2026-09-28 (PR 8, #97, #92):* this replaced PR 4's wrap-under rule, where the title and chips sat
+in one wrapping group (`.task-main`, now removed) and a long title took the whole line and pushed
+its chips underneath. A fixed 75/25 split came first the same day; the user found it too cramped on a phone (a chip column about 80px wide stacked chips one per line and cut longer ones) and asked for it to scale with the text and the number of chips, which is the rule above.
+
+No `#N` GitHub badge, no
 "Edit" link, no "Focus →", no × delete button — all four moved into the editor. Tapping the title
 always opens `renderTaskEditForm`, linked or not: a linked task's title used to be an `<a>` straight
 to its issue, so opening its issue took one tap and editing it took a second (a separate "Edit"
@@ -464,6 +478,10 @@ is inside the form (`onAppKeydown`) collapses it back to the link.
 
 ## Invariants
 
+- A task row's title and chips never overlap, no chip leaves `.task-chips` or the row, and the chips
+  column is never wider than half the row. Checked in real Chromium in PR 8 (every visible row at
+  390, 1440 and 1920 wide, both views); markup order and `chipsMaxPct` are asserted in
+  `js/render.test.mjs`.
 - Every class referenced in `js/render.js`, `js/app.js`, `index.html`, or `settings.html` must
   either have a matching selector somewhere in `css/app.css`, or be listed in
   `ALLOWED_WITHOUT_RULE` in `js/style-contract.test.mjs` with a reason. Enforced by

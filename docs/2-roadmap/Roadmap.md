@@ -22,7 +22,7 @@ sidebar layout, inbox capture / Unsorted sorting flow, installable manifest + se
 shell documented in `docs/4-systems/pwa-shell.md`). Checked — this is the shipped, deployed app
 described start to finish in root `README.md`.
 
-## 2. GitHub issue sync — 100%
+## 2. GitHub issue sync — ~90%, two open sync bugs
 
 One-line: link tasks to GitHub issues so labels, priority, and completion stay in sync both ways.
 
@@ -31,6 +31,11 @@ completion sync, auto-sync on load/focus (`js/github.js`, `js/github-sync.js`).
 
 **Acceptance:** `js/github-sync.test.mjs` passes and `docs/4-systems/github-sync.md` describes the
 live invariants. Checked — covered by root `README.md`'s "GitHub issue sync" section.
+
+**Open issues (reported 2026-09-28, reopening this milestone):**
+- #93 — GitHub issues not being pulled into Focus Deck properly, and new tasks not reaching GitHub
+- #94 — a task and a GitHub issue with the same number: when the local task is older, the issue
+  is silently ignored instead of added or merged
 
 ## 3. Cross-device sync (Gist) — 100%
 
@@ -72,7 +77,7 @@ after tweaks to the original plan and scheduled prompt that are not recorded in 
 archived plan, `docs/archive/2026-09-21-claude-daily-checkin.md`, is the pre-tweak version).
 Shelved the same day as less useful than expected; nothing further is planned for it.
 
-## 6. Handcrafted redesign — ~97%, PRs 1-7 merged, PR 8 next
+## 6. Handcrafted redesign — ~90%, PRs 1-7 merged, PR 8 (task row columns) next
 
 One-line: a focus-first, warm-editorial visual and structural redesign of the existing screens,
 landed as ordered PRs: (1) the docs move, (2) feature/control cuts, (3) the visual system,
@@ -92,10 +97,11 @@ GitHub repo — Your repos, filterable and fetched on open, Paste, and a "Create
 GitHub" disclosure that needs a token with Administration: Read and write), and a hand-made
 project's Edit panel gets "Link to GitHub repo" (turns it into a repo project in place, keeping its
 id/name/colour/category and hand-made tasks, refusing a repo another project already tracks). See
-`docs/4-systems/github-sync.md` and `docs/6-decisions/Decisions.md` (2026-09-28). PR 8, dragging
-projects into order, belongs to milestone 8.
+`docs/4-systems/github-sync.md` and `docs/6-decisions/Decisions.md` (2026-09-28). Next, in the
+order the user set on 2026-09-28: PR 8, task rows with the title and a scaling chips column (#97, #92); then
+PR 9, dragging projects into order, and PR 10, dragging tasks (both #73, milestone 8).
 
-**Acceptance:** PRs 1-7 merged, `node --test js/*.test.mjs` and
+**Acceptance:** PRs 1-8 merged, `node --test js/*.test.mjs` and
 `node scripts/guard-file-churn.mjs` still pass after each, and the plan's own acceptance notes
 (inside `docs/plans/handcrafted-redesign.md`) are satisfied.
 
@@ -104,6 +110,16 @@ projects into order, belongs to milestone 8.
 heights rule out #82's gaps; the header's line-1/line-2 split from #83 is untouched); PR 6 keeps
 minimised tiles out of the tile grid for the same reason. #27 and #46 (usability audits) are
 milestone 9.
+
+Still open here (added 2026-09-28):
+- #97 — task rows: title left, chips anchored right, neither leaving its zone (asked as 75/25; built
+  as a chips column that scales with its chips, 2026-09-28)
+  (fixed by PR 8, pending merge)
+- #92 — chips anchored to the right side of a task row (same fix as #97; fixed by PR 8, pending merge)
+- #95 — a phone equivalent of right-click, for colour changing and the other right-click actions
+- #90 — make the completion bar a little more distinct
+- #87 — warmer: "like a nice notebook with leather edges, quality thick paper and a sense of
+  familiarity"
 
 ## 7. Unsorted and focus flow polish — 0%
 
@@ -119,6 +135,10 @@ and make finishing, deleting and switching between them deliberate.
 - #76 — make the sort flow's **Done** more deliberate and set apart; make switching between the
   sort flow and the focus flow easier
 - #77 — delete from the sort flow, just as deliberately
+- #89 — filter the projects, or pick several, for Surprise me and the random pick
+- #69 — make reminder tasks schedulable: a date (and maybe a time) when a `reminder` task comes back
+  to attention (split out of #42; missed when this roadmap was first written, added 2026-09-28)
+- #96 — in the "One project" view, "What's your focus right now?" switches to the open project
 
 **Acceptance:** each issue above is closed with its behaviour checked in the running app.
 
@@ -131,8 +151,8 @@ may already be fully or partly covered by it; check each against the app and clo
 One-line: arrange projects and tasks by hand, and make a task's status follow its GitHub issue.
 
 **Contains:**
-- #73 — drag to reorder projects and tasks (the project half is PR 8 of the redesign, after
-  adding repos; the task half stays here)
+- #73 — drag to reorder projects and tasks: projects are PR 9 of the redesign and tasks PR 10, in
+  that order, straight after PR 8 (2026-09-28)
 - #7 — drag a task from one project into another
 - #6 — rework how Waiting becomes In progress, linked to GitHub issue labels
 

@@ -4,6 +4,35 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-28 — Task row chips column scales with its chips, not a fixed 25%
+
+**Context.** PR 8 first built #97 as a fixed 75/25 split. On a phone the 25% column was about
+80px: chips stacked one per line and longer ones were cut. The user asked for it to "scale with
+text and scale such that multiple category pills can be stacked or sit beside each other ...
+dynamically with text amount and category amount".
+
+**Decision.** The chips column is `fit-content` up to a per-row ceiling: as wide as its chips
+need, several side by side, never more than half the row, and the ceiling eases down to a third
+as the title grows (`chipsMaxPct`, js/render.js: 50% up to 30 characters, minus 1% per 3 more,
+floor 33%). The title takes the rest. Neither enters the other's column; an over-long chip is
+still cut with an ellipsis, full name in `title`/`aria-label`.
+
+**Why.** "Scale with text amount" needs the title's length in the rule, which CSS can't read, so
+the row carries its ceiling as `--chips-max`. The numbers were checked on every row in real
+Chromium: one chip takes 3-16% of the row, seven chips spread to half, a long title with four
+chips keeps 55-61%.
+
+**Status.** Standing. Supersedes the "empty 25% on chipless rows" half of the entry below (a
+chipless row's title now takes the whole width); its ellipsis half stands.
+
+## 2026-09-28 — Task row zones: ellipsis for over-long chips, empty 25% on chipless rows
+
+**Decision.** "Never let either exist outside its zone" (#97, #92) is taken literally. A label chip
+too long for the 25% zone is cut with an ellipsis and carries its full displayed name in `title`
+and `aria-label` (this replaces the chip's old "Right-click to change color" tooltip). A row with
+no chips keeps the 25% zone empty, so a long title wraps inside its 75% instead of using the space.
+**Tier.** Systems (`docs/4-systems/styling.md`, "Task rows and the editor").
+
 ## 2026-09-28 — PR 7 interpretations ("+ New" panel)
 
 **Context.** The 2026-09-28 "+ New" panel decision above left a few implementation calls open.
