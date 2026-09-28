@@ -17,6 +17,21 @@ line to `Superseded` when a later entry replaces it.
 
 **Status.** Standing.
 
+## 2026-09-28 — Task dragging split into two PRs
+
+**Decision.** The PR planned as "PR 11 (tasks: dragging, moving between projects, selecting several
+tasks and projects)" in the entry "Dragging tasks, selecting several, and colour on phones" is
+built as two: PR 11 drags single tasks within a project and into other projects, with the GitHub
+moves and their messages; PR 12 adds selecting several tasks or projects and dragging them
+together. Dropping a task into a project's other group (In progress / Up next) changes its status
+to that group's; done tasks don't drag.
+
+**Why.** Each half is large on its own, and the GitHub moves (transfer, create-and-link) need
+their own careful check. The status-by-group rule is the natural meaning of dropping a task under
+"In progress", and was told to the user when announced.
+
+**Status.** Standing.
+
 ## 2026-09-28 — Dragging tasks, selecting several, and colour on phones (Q32a, Q33b, #95)
 
 **Context.** Asked while PR 9 (dragging projects) was being built. The user wants tasks draggable
