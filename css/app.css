@@ -498,6 +498,8 @@ a.task-title:hover{text-decoration:underline;}
 .due-defaults-form input[type="number"]{width:4.5rem; padding:6px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
 .due-step{flex:1 0 100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:var(--text-sm); color:var(--ink-soft);}
 .due-step select{font-size:var(--text-sm); padding:4px 6px;}
+.add-task-form .due-step button,.task-edit-form .due-step button[type="button"]{background:none; color:var(--accent); padding:2px 4px; font-size:var(--text-sm); font-weight:600; border-radius:var(--r-control);}
+.add-task-form .due-step button:hover,.task-edit-form .due-step button[type="button"]:hover{text-decoration:underline;}
 .add-task-form{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; border-top:1px dashed var(--line); padding-top:12px;}
 .add-task-form input[type="text"]{
   flex:1 1 140px; min-width:0; padding:7px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);
