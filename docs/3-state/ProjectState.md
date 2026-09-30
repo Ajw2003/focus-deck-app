@@ -34,8 +34,8 @@ not sized, so averaging them with the finished ones would say nothing true.
 merge rule, stage-coloured task deadline chips, the skippable lead-time step, the Settings "Due dates"
 section; covered by `js/due-stage.test.mjs` and `js/due-dates.test.mjs`, checked in real Chromium
 (`docs/generated/pr106/`). Not built: PRs 2-6 (red rises, time of day, repeats, in-app reminders,
-phone notifications). Tasks that had a deadline before this PR have no `dueSetAt` and stay white
-until overdue. See `docs/4-systems/due-dates.md`.
+phone notifications). Tasks that had a deadline before this PR are stamped with `dueSetAt` = now
+on first load (`ensureDueSetAt`). See `docs/4-systems/due-dates.md`.
 
 **1. Core focus-picker PWA** — Built: focus cards, priority chips (`js/render.js`), project
 categories/colors, wide-screen sidebar (`css/app.css`), inbox capture and Unsorted sorting

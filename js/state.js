@@ -143,10 +143,21 @@ function repairLoaded(st) {
   dropEnergyFields(st);
   ensureSortOrder(st.projects); // saves from before PR 9 have no sortOrder: number them in stored order
   ensureTaskSortOrder(st.projects); // ...and tasks from before PR 11, per project
+  ensureDueSetAt(st); // tasks whose deadline predates dueSetAt (#106): their span starts now, so they can still turn yellow and red
   [st.categories, st.projectCategories].forEach((list, listIdx) => (list || []).forEach((c, i) => {
     if (typeof c.color !== 'string' || !c.color) c.color = 'hsl(' + Math.round(((i + listIdx * 7) * 137.508) % 360) + ' var(--proj-sat) var(--proj-light))';
   }));
   return st;
+}
+
+// A task saved with a deadline before dueSetAt existed has no span start. Without one its stage
+// would stay white until overdue, so give it "now": a task due in 2 days then turns yellow and red
+// on the 2-day schedule from here. Already-stamped tasks are never touched.
+export function ensureDueSetAt(st) {
+  const now = Date.now();
+  (st.projects || []).forEach((p) => (p.tasks || []).forEach((t) => {
+    if (t.deadline && typeof t.dueSetAt !== 'number') t.dueSetAt = now;
+  }));
 }
 
 // A task carries a list of category ids, one per GitHub label. Saves from before that (and from a

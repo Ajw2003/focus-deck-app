@@ -49,8 +49,10 @@ PRs and are not here.
 
 ## Traps
 
-- **Old tasks have no `dueSetAt`** and no `createdAt`, so their span starts now and they stay white
-  until overdue. Nothing back-fills them (open question for the user, see Decisions 2026-09-30).
+- **Old tasks have no `dueSetAt`** and no `createdAt`. `ensureDueSetAt` (`js/state.js`, called from
+  `repairLoaded`) stamps them with now on load, so a task due in 2 days turns yellow and red on the
+  2-day schedule from that moment. Without it they would stay white until overdue. Two devices may
+  stamp different "now"s; the newer task record wins the merge, which only shifts the span start.
 - The stage tokens are close in use to priority chips: `--due-soon` (olive-lime) is 22 degrees from
   the gold `--prio-medium`, `--due-now` (crimson) 25 degrees from `--prio-urgent`. The border, words
   and icon are what tell them apart; do not drop them.

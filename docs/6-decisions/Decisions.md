@@ -15,8 +15,9 @@ offers the smallest choice. (3) Choices are only stored when a select is touched
 preselected values (nearest the default percentages) are a suggestion. (4) The stage tokens are an
 olive-lime and a crimson, with a border, rather than yellow and red, because the gold `--prio-medium`
 and red `--prio-urgent` are already taken; the yellow stage is 22 degrees from medium. (5) Old tasks
-with a deadline but no `dueSetAt` are not back-filled: they stay white until overdue. Back-filling
-with "first seen now" is a one-line repair in `repairLoaded` if wanted. (6) Settings refuses red not
+with a deadline but no `dueSetAt` are back-filled with "now" on load (`ensureDueSetAt`), as the plan
+said; the first build skipped this, which would have left the user's real deck white until overdue,
+and it was added before merge. (6) Settings refuses red not
 lower than yellow, and values outside 1-99.
 
 **Status.** Active. Item 5 is the one to judge on the real deck.

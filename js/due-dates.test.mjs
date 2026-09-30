@@ -96,6 +96,19 @@ test('a save from before this field loads with the defaults', () => {
   assert.strictEqual(loaded.dueDefaults.updatedAt, 0);
 });
 
+test('a saved task with a deadline but no dueSetAt gets one on load, and stamped or deadline-less tasks are untouched', () => {
+  const before = Date.now();
+  store['focusdeck-state-v1'] = JSON.stringify({ projects: [{ id: 'p', name: 'P', tasks: [
+    { id: 'old', title: 'old', status: 'next', deadline: '2026-10-02' },
+    { id: 'stamped', title: 's', status: 'next', deadline: '2026-10-02', dueSetAt: 1000 },
+    { id: 'none', title: 'n', status: 'next', deadline: null },
+  ] }] });
+  const tasks = loadState().projects[0].tasks;
+  assert.ok(tasks[0].dueSetAt >= before, 'the old task is stamped with now');
+  assert.strictEqual(tasks[1].dueSetAt, 1000, 'an already stamped task keeps its stamp');
+  assert.ok(!('dueSetAt' in tasks[2]), 'a task without a deadline gets no stamp');
+});
+
 test('setDueDefaults refuses numbers the stage arithmetic cannot use', () => {
   M.resetDueDefaults();
   const before = JSON.stringify(state.dueDefaults);
