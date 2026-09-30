@@ -12,6 +12,7 @@ import { getToken } from './github.js';
 import { initProjectDrag, isDragging } from './project-drag.js';
 import { taskOrderChanges, sortTasks, planTaskMove } from './task-move.js';
 import { confirmMove } from './move-dialog.js';
+import { dueMoment } from './due-stage.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
@@ -235,6 +236,12 @@ function onAppClick(e) {
   const action = el.getAttribute('data-action');
   const taskId = el.getAttribute('data-task');
   const projectId = el.getAttribute('data-project');
+  if (action === 'skip-due-step') {
+    const form = el.closest('form');
+    el.closest('.due-step').remove();
+    if (form) form.querySelector('input[name="deadline"]').focus();
+    return;
+  }
   if (action === 'pick-focus') {
     // each card carries its full filter: its own label or project plus the pill chosen above it
     if (!M.pickFocus({ categoryId: el.getAttribute('data-category') || null, projectId: projectId || null })) {
@@ -486,6 +493,16 @@ function onColorChange(el) {
 function onAppChange(e) {
   const colorEl = colorInputTarget(e);
   if (colorEl) { onColorChange(colorEl); return; }
+  if (e.target.matches && e.target.matches('.add-task-form input[name="deadline"], .task-edit-form input[name="deadline"]')) { syncDueStageStep(e.target); return; }
+  if (e.target.matches && e.target.matches('.due-step select')) {
+    const step = e.target.closest('.due-step');
+    const yellow = step.querySelector('select[name="dueYellow"]'), red = step.querySelector('select[name="dueRed"]');
+    const due = dueMoment({ deadline: step.closest('form').querySelector('input[name="deadline"]').value });
+    // red must stay shorter than yellow, so a new yellow rebuilds the red choices
+    if (e.target === yellow && due !== null) red.innerHTML = R.dueRedOptions(due - Date.now(), Number(yellow.value), Number(red.value));
+    step.querySelector('input[name="dueStepChosen"]').value = '1';
+    return;
+  }
   if (e.target.matches && e.target.matches('.label-picker input[name="categoryIds"]')) {
     const picker = e.target.closest('.label-picker');
     picker.querySelector('summary').textContent = R.labelPickerSummary(picker.querySelectorAll('input[name="categoryIds"]:checked').length);
@@ -620,13 +637,35 @@ function focusNewPanelFirstField() {
   });
 }
 
+// The skippable due-date step (#106). Shown when a date is first set in the add or edit form, only
+// if the span leaves room for a choice; removed when the date is cleared, set back to what the task
+// already had, or skipped. A fresh span is now -> end of the due day, the same one dueStage will use.
+function syncDueStageStep(dateInput) {
+  const form = dateInput.closest('form');
+  if (!form) return;
+  const old = form.querySelector('.due-step');
+  if (old) old.remove();
+  if (!dateInput.value || dateInput.value === dateInput.defaultValue) return;
+  const due = dueMoment({ deadline: dateInput.value });
+  const html = due === null ? '' : R.renderDueStageStep(due - Date.now(), state.dueDefaults);
+  if (html) dateInput.insertAdjacentHTML('afterend', html);
+}
+
+// Nothing is stored unless the user touched a select: untouched, the step is only a suggestion.
+function dueStagesFromForm(fd) {
+  if (fd.get('dueStepChosen') !== '1') return undefined;
+  const yellow = Number(fd.get('dueYellow')), red = Number(fd.get('dueRed'));
+  if (!(yellow > 0 && red > 0)) return undefined;
+  return { yellow: { leadHours: yellow }, red: { leadHours: red } };
+}
+
 function onAppSubmit(e) {
   const addTaskForm = e.target.closest('[data-action="add-task"]');
   if (addTaskForm) {
     e.preventDefault();
     const fd = new FormData(addTaskForm);
     const projectId = addTaskForm.getAttribute('data-project');
-    const task = M.addTask(projectId, fd.get('title'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'));
+    const task = M.addTask(projectId, fd.get('title'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'), dueStagesFromForm(fd));
     createIssueIfGithubProject(task, projectId);
     return;
   }
@@ -711,13 +750,21 @@ function onAppSubmit(e) {
     // this task in that repaint.
     ui.editingTask = null;
     M.editTask(editForm.getAttribute('data-task'), editForm.getAttribute('data-project'), {
-      title: fd.get('title'), deadline: fd.get('deadline'), categoryIds: labelsFromForm(fd), steps: fd.get('steps'), priority: fd.get('priority'),
+      title: fd.get('title'), deadline: fd.get('deadline'), categoryIds: labelsFromForm(fd), steps: fd.get('steps'), priority: fd.get('priority'), dueStages: dueStagesFromForm(fd),
     });
     return;
   }
 }
 
 function onAppKeydown(e) {
+  // Escape in the due-date step skips just the step; it must not also close the form around it.
+  if (e.key === 'Escape' && e.target.closest && e.target.closest('.due-step')) {
+    e.stopPropagation();
+    const form = e.target.closest('form');
+    e.target.closest('.due-step').remove();
+    if (form) form.querySelector('input[name="deadline"]').focus();
+    return;
+  }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-action="edit-task"]')) {
     e.preventDefault(); // stop Space from scrolling the page
     ui.editingTask = { taskId: e.target.getAttribute('data-task'), projectId: e.target.getAttribute('data-project') };
