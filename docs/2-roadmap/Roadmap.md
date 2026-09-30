@@ -55,8 +55,8 @@ One-line: Claude can create, comment on, close, and reopen GitHub issues for a l
 sticky/live provenance chips so the user can always see and undo what Claude touched.
 
 **Contains:** provenance labels (`Claude created this` / `Claude completed this`) ->
-`task.claudeCreated` / `task.claudeCompleted` (`js/github-sync.js:69-71`), provenance chips
-(`js/render.js:379-380`), the contract doc `docs/4-systems/claude-integration.md`.
+`task.claudeCreated` / `task.claudeCompleted` (`js/github-sync.js:69-71`), the row marker
+(`claudeMarks`, `js/render.js`, #104), the contract doc `docs/4-systems/claude-integration.md`.
 
 **Acceptance:** `js/github-sync.test.mjs` covers the provenance-label read path; visual
 verification recorded in `docs/archive/2026-09-21-claude-issues-provenance.md`. Checked and

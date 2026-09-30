@@ -5,7 +5,7 @@
 The contract governing any Claude session (chat, scheduled, or Claude Code) that acts on
 Focus Deck tasks through GitHub Issues, and the two provenance labels that record what
 Claude did: `Claude created this` and `Claude completed this`. The app side lives in
-`js/github-sync.js` (label parsing and reopen cleanup) and `js/render.js` (the chips).
+`js/github-sync.js` (label parsing and reopen cleanup) and `js/render.js` (the row marker).
 
 ## The contract (non-negotiable)
 
@@ -45,13 +45,36 @@ Closed issues drop out of the open-issue list, so their labels would never be re
 `refreshClosedTaskLabels` fixes this: `upsertRepoProject` returns the tasks it newly marked
 done, and after the repo loop (in `syncGithub` and `addRepoManually`) each one's issue is
 fetched once and, if it is closed, run through `applyLabels`. Fetch failures
-are swallowed; the chip just doesn't show.
+are swallowed; the tick just doesn't show.
 
 Until 2026-09-26, `renderTaskRow` showed the flags as "Claude created"/"Claude completed"
 `.chip` variants after the category chip (gated so unchecking a task hid the completed chip
 immediately, before any network round trip). Those chips were removed from the row that day (see
 `docs/6-decisions/Decisions.md`) — `task.claudeCreated`/`task.claudeCompleted` are still read from
-labels exactly as before, they're just not shown anywhere on the page any more.
+labels exactly as before. They were shown nowhere until 2026-09-30, when #104 brought them back as
+a "Claude created" label chip and quiet icon marks (below).
+
+## Where the marker shows
+
+**Chip.** A task with `task.claudeCreated` gets a neutral `.chip.cat-chip.claude-chip` reading
+"Claude created" in the chips column, after the real labels, sized like any label chip. It is built
+from the flag in `renderTaskRow`, not from a category: the GitHub label is in `RESERVED_LABELS`, so it
+is never a category (which would also add a card to the focus picker and Unsorted). It has no
+`data-cat-id`, so the colour editing that real label chips allow does not apply. There is no chip for
+`claudeCompleted`; the tick below covers it.
+
+**Icons.** `claudeMarks(t)` in `js/render.js` appends up to two small icons to the end of a task row's title
+(inside `.task-title`, so the marker wraps with the title and is never in the chips column):
+
+- a four-point spark (`ICON_CLAUDE_CREATED`, "Opened by Claude") when `task.claudeCreated`;
+- a ringed tick (`ICON_CLAUDE_COMPLETED`, "Completed by Claude") when `task.claudeCompleted` **and**
+  `task.status === 'done'` (the status check is repeated at render time so unchecking a task hides the
+  tick at once, before any network round trip, as the old chip was).
+
+Each is a `.claude-mark` with `role="img"` plus `title`/`aria-label`, 14px, `--ink-faint`. A task
+without the label shows nothing. The icons are not chips, so they never enter the chips column;
+`chipsMaxPct` depends on the title only. Both are asserted in `js/render.test.mjs`. Screenshots of rows with and without it,
+phone and desktop, light and dark: `docs/generated/pr104/`.
 
 To revert Claude's work the user uses the existing controls: the completion checkbox
 (reopens the issue), Unlink, and the task delete button. No new mechanism exists.
@@ -70,7 +93,7 @@ To revert Claude's work the user uses the existing controls: the completion chec
 - Callers of `applyLabels` must set `task.status` first, because
   `claudeCompleted` depends on it.
 - A reopen made directly on GitHub is only noticed on the next Sync; until then the issue
-  still carries the stale label, though the chip is already hidden for any non-done task.
+  still carries the stale label, though the tick is already hidden for any non-done task.
 - Claude should make sure a provenance label exists on the repo before applying it
   (creating it if missing), mirroring `ensureLabelExists`; never delete or recreate one.
 - The daily check-in (Part 2 of the integration) is a separate read-only mechanism. It adds

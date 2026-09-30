@@ -44,3 +44,16 @@ export const ICON_GRIP =
   + '<path d="M8.6 5.6v1.6"/><path d="M8.4 11.2v1.7"/><path d="M8.7 16.8v1.5"/>'
   + '<path d="M15.4 5.5v1.7"/><path d="M15.6 11.3v1.5"/><path d="M15.3 16.9v1.5"/>'
   + '</svg>';
+
+// The Claude provenance marks on a task row (#104): a four-point spark for "Claude opened this
+// issue", and a small ringed tick for "Claude closed it". 14px, drawn slightly off true like the rest.
+export const ICON_CLAUDE_CREATED =
+  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  + '<path d="M12.1 3.4c.5 4.7 1.9 6.7 8.4 8.4-6.5 1.5-7.9 3.6-8.5 8.7-.5-5-2-7-8.4-8.5 6.4-1.6 7.9-3.6 8.5-8.6Z"/>'
+  + '</svg>';
+
+export const ICON_CLAUDE_COMPLETED =
+  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  + '<path d="M12.2 3.6a8.5 8.5 0 1 1-.5 17 8.5 8.5 0 0 1 .5-17Z"/>'
+  + '<path d="M8 12.4l2.9 2.9 5.2-6"/>'
+  + '</svg>';

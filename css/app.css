@@ -195,6 +195,7 @@ button.chip.proj-chip:hover{background:var(--line);}
    so this rule just reads it back; text is pulled further toward ink so a light colour (e.g.
    yellow) stays readable. */
 .chip.cat-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink)); font-weight:700;}
+.chip.cat-chip.claude-chip{background:var(--surface-2); color:var(--ink-soft);} /* "Claude created" (#104): a neutral label chip, not a tinted category */
 .chip.priority-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color); font-weight:700; cursor:pointer;}
 .chip.priority-chip.small{font-size:var(--text-sm); padding:3px 8px;}
 .chip.priority-chip:disabled{opacity:.5; cursor:default;}
@@ -451,6 +452,9 @@ button.chip.proj-chip:hover{background:var(--line);}
 .task-title{min-width:0; overflow-wrap:anywhere;}
 .task-row.is-done .task-title{color:var(--ink-faint); text-decoration:line-through;}
 .task-title[role="button"]{cursor:pointer;}
+/* Claude provenance marks after the title (#104): quiet and faint, never a chip */
+.claude-mark{display:inline-block; margin-left:6px; vertical-align:-2px; color:var(--ink-faint); line-height:0; text-decoration:none;}
+.claude-mark svg{width:14px; height:14px; display:block;}
 .task-title[role="button"]:hover{text-decoration:underline; text-decoration-style:dotted;}
 a.task-title{color:inherit; text-decoration:none;}
 a.task-title:hover{text-decoration:underline;}
