@@ -234,11 +234,13 @@ One-line: due-date tasks turn white, yellow, then red as the date nears; some ta
 schedule; Focus Deck notifies at a time the user sets.
 
 **Contains:**
-- #106 — the whole feature, planned in `docs/plans/due-dates-and-repeats.md` as five PRs (stages, time
-  of day, repeating tasks, in-app reminders, phone notifications)
-- #69 — make reminder tasks schedulable: folded into PR 4 of that plan
+- #106 — the whole feature, planned in `docs/plans/due-dates-and-repeats.md` as six PRs (percentage
+  stages, red tasks rise to the top, time of day, repeating tasks, in-app reminders, phone
+  notifications)
+- #69 — make reminder tasks schedulable: folded into PR 5 of that plan
 
 **Acceptance:** #106 and #69 closed; a task turns yellow then red in both themes; a repeating task
 comes back on the right date and never advances twice across two devices; a phone notification
-arrives at the set time with the app closed. Five questions in the plan are open; the notification
-route is chosen by a spike, not assumed.
+arrives at the set time with the app closed; a red task is first in its list and first in the focus
+pick. The user's five questions were answered on 2026-09-30 (see the plan); the notification route is
+chosen by a spike, not assumed.
