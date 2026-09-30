@@ -195,6 +195,7 @@ button.chip.proj-chip:hover{background:var(--line);}
    so this rule just reads it back; text is pulled further toward ink so a light colour (e.g.
    yellow) stays readable. */
 .chip.cat-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink)); font-weight:700;}
+.chip.cat-chip.claude-chip{background:var(--surface-2); color:var(--ink-soft);} /* "Claude created" (#104): a neutral label chip, not a tinted category */
 .chip.priority-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color); font-weight:700; cursor:pointer;}
 .chip.priority-chip.small{font-size:var(--text-sm); padding:3px 8px;}
 .chip.priority-chip:disabled{opacity:.5; cursor:default;}

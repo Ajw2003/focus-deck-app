@@ -45,7 +45,7 @@ tombstone merge (`js/merge.js`). Not built: nothing outstanding.
 `task.claudeCreated` / `task.claudeCompleted` (`js/github-sync.js`), contract doc
 `docs/4-systems/claude-integration.md`. The "Claude created"/"Claude completed" row chips
 (`js/render.js`) were removed in PR 2 of the redesign (2026-09-26); #104 (2026-09-30) brought the
-information back as a quiet spark/tick icon after the task title (`claudeMarks`, `js/render.js`).
+information back as a neutral "Claude created" chip plus a quiet spark/tick icon after the task title (`claudeMarks`, `js/render.js`).
 
 **5. Claude integration (autonomous check-in)** — Built: the trigger itself
 (`trig_01DrH7KqRxHMEzANb9kgbYKe`, daily at 13:00 UTC, push notification), per

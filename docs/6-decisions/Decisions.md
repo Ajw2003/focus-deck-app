@@ -11,7 +11,10 @@ a task row said which tasks Claude opened. That matters again now that Claude op
 per plan and a child per step (Ajw2003/AjsClaudeCodeTools#107).
 
 **Decision.** A four-point spark after the title for `claudeCreated`, and a ringed tick beside it for
-`claudeCompleted` on a done task. Both are 14px, faint, with a tooltip and `aria-label`, inside
+`claudeCompleted` on a done task. After review the same day, a neutral "Claude created" chip was
+added to the chips column as well, so the label renders like the other labels (the user's ask); the
+icons stay. No chip for `claudeCompleted`. The chip is drawn from the flag, not a category, because
+the label is reserved. Both are 14px, faint, with a tooltip and `aria-label`, inside
 `.task-title`. The issue offered "icon beside the title" or "chip in the chips column".
 
 **Why.** An icon in the title zone leaves the chips column, `chipsMaxPct` and the long-row wrapping

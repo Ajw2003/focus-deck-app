@@ -361,7 +361,7 @@ export function chipsMaxPct(title) {
   return Math.round(50 - Math.min(17, Math.max(0, len - 30) / 3));
 }
 
-// Quiet provenance marks trailing the title (#104): a spark when Claude opened the issue, a ringed
+// Quiet provenance icons trailing the title (#104): a spark when Claude opened the issue, a ringed
 // tick when Claude closed it (only ever on a done task; github-sync clears claudeCompleted on reopen).
 // They sit in the title zone, not the chips column, so chipsMaxPct and the chip wrapping never see them.
 // See docs/4-systems/claude-integration.md#where-the-marker-shows
@@ -379,6 +379,11 @@ export function renderTaskRow(t, p, categories, ui) {
   // own action row. See docs/4-systems/github-sync.md#where-the-github-controls-live
   const catChips = (t.categoryIds || []).map((id) => categories.find((c) => c.id === id)).filter(Boolean)
     .map((cat) => '<span class="chip cat-chip small" data-cat-id="' + cat.id + '" data-cat-type="task" title="' + esc(formatLabelName(cat.name)) + '" aria-label="' + esc(formatLabelName(cat.name)) + '" style="--chip-color:' + mutedChip(cat.color) + '">' + esc(formatLabelName(cat.name)) + '</span>').join('');
+  // "Claude created" renders like any other label, but from the claudeCreated flag: the GitHub label is
+  // reserved (never a category), so it has no category chip of its own. No data-cat-id: it is not editable.
+  const claudeChip = t.claudeCreated
+    ? '<span class="chip cat-chip claude-chip small" title="Claude created" aria-label="Claude created" style="--chip-color:var(--ink-soft)">Claude created</span>'
+    : '';
   const priorityChip = t.priority && PRIORITY[t.priority]
     ? '<button type="button" class="chip priority-chip small" data-action="cycle-priority" data-task="' + t.id + '" title="Priority — tap to change" style="--chip-color:var(--prio-' + t.priority + ')"' + (isDone ? ' disabled' : '') + '>' + PRIORITY[t.priority].label + '</button>'
     : '';
@@ -391,7 +396,7 @@ export function renderTaskRow(t, p, categories, ui) {
     // two zones beside the checkbox: the title in the left 75%, the chips right-anchored in the
     // right 25% (kept even when there are no chips, so the title never grows into it) -- #97, #92
     + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + claudeMarks(t) + '</span>'
-    + '<div class="task-chips">' + priorityChip + catChips
+    + '<div class="task-chips">' + priorityChip + catChips + claudeChip
     + (t.deadline ? deadlineChip(t.deadline) : '')
     + '</div>'
     + '</div>';

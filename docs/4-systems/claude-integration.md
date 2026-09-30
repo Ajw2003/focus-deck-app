@@ -52,11 +52,18 @@ Until 2026-09-26, `renderTaskRow` showed the flags as "Claude created"/"Claude c
 immediately, before any network round trip). Those chips were removed from the row that day (see
 `docs/6-decisions/Decisions.md`) — `task.claudeCreated`/`task.claudeCompleted` are still read from
 labels exactly as before. They were shown nowhere until 2026-09-30, when #104 brought them back as
-quiet icon marks (below), not chips.
+a "Claude created" label chip and quiet icon marks (below).
 
 ## Where the marker shows
 
-`claudeMarks(t)` in `js/render.js` appends up to two small icons to the end of a task row's title
+**Chip.** A task with `task.claudeCreated` gets a neutral `.chip.cat-chip.claude-chip` reading
+"Claude created" in the chips column, after the real labels, sized like any label chip. It is built
+from the flag in `renderTaskRow`, not from a category: the GitHub label is in `RESERVED_LABELS`, so it
+is never a category (which would also add a card to the focus picker and Unsorted). It has no
+`data-cat-id`, so the colour editing that real label chips allow does not apply. There is no chip for
+`claudeCompleted`; the tick below covers it.
+
+**Icons.** `claudeMarks(t)` in `js/render.js` appends up to two small icons to the end of a task row's title
 (inside `.task-title`, so the marker wraps with the title and is never in the chips column):
 
 - a four-point spark (`ICON_CLAUDE_CREATED`, "Opened by Claude") when `task.claudeCreated`;
@@ -65,8 +72,8 @@ quiet icon marks (below), not chips.
   tick at once, before any network round trip, as the old chip was).
 
 Each is a `.claude-mark` with `role="img"` plus `title`/`aria-label`, 14px, `--ink-faint`. A task
-without the label shows nothing. The marker is not a chip, so `chipsMaxPct` and the chips-column
-wrapping are unaffected (asserted in `js/render.test.mjs`). Screenshots of rows with and without it,
+without the label shows nothing. The icons are not chips, so they never enter the chips column;
+`chipsMaxPct` depends on the title only. Both are asserted in `js/render.test.mjs`. Screenshots of rows with and without it,
 phone and desktop, light and dark: `docs/generated/pr104/`.
 
 To revert Claude's work the user uses the existing controls: the completion checkbox
