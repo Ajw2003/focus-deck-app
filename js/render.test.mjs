@@ -25,7 +25,23 @@ const ui = { editingTask: null };
 const base = { id: 't1', title: 'T', status: 'next', source: 'github', repoFullName: 'o/r', issueNumber: 1, url: 'https://github.com/o/r/issues/1', categoryIds: ['cat_bug'] };
 const row = (over) => renderTaskRow({ ...base, ...over }, p, cats, ui);
 
-assert.ok(!row({ claudeCreated: true, claudeCompleted: true, status: 'done' }).includes('claude'), 'a task never shows a Claude chip -- the "Claude created"/"Claude completed" chips were removed');
+// #104: Claude provenance is a quiet icon mark after the title (never a chip, never in the chips column)
+{
+  const plain = row({});
+  assert.ok(!plain.includes('claude-mark'), 'a task without the Claude created label shows no marker');
+  const created = row({ claudeCreated: true });
+  assert.ok(created.includes('aria-label="Opened by Claude"') && created.includes('title="Opened by Claude"'), 'claudeCreated shows an "Opened by Claude" mark');
+  assert.ok(!created.includes('Completed by Claude'), 'an open Claude-created task shows only the created mark');
+  assert.ok(created.indexOf('claude-mark') > created.indexOf('class="task-title"') && created.indexOf('claude-mark') < created.indexOf('<div class="task-chips">'), 'the mark sits inside the title zone, before the chips column');
+  assert.ok(!created.includes('chip claude'), 'the marker is not a chip');
+  const closed = row({ claudeCreated: true, claudeCompleted: true, status: 'done' });
+  assert.ok(closed.includes('Opened by Claude') && closed.includes('Completed by Claude'), 'a done task Claude opened and closed shows both marks');
+  assert.ok(row({ claudeCompleted: true, status: 'next' }).includes('claude-mark') === false, 'a stale claudeCompleted on a non-done task shows nothing');
+  assert.ok(row({ claudeCompleted: true, status: 'done' }).includes('Completed by Claude') && !row({ claudeCompleted: true, status: 'done' }).includes('Opened by Claude'), 'Claude can close an issue it did not open');
+  // a marker changes neither the chips column ceiling nor its chips
+  assert.strictEqual(row({ claudeCreated: true, title: 'A long title '.repeat(6) }).match(/--chips-max:(\d+)%/)[1], String(chipsMaxPct('A long title '.repeat(6))), 'chipsMaxPct ignores the marker');
+  assert.strictEqual(created.match(/<div class="task-chips">.*<\/div>/)[0], plain.match(/<div class="task-chips">.*<\/div>/)[0], 'the chips column is identical with and without the marker');
+}
 
 // Q14a/Q12f: tapping the title always opens the editor now, linked or not -- the row itself has no
 // #N badge, Edit link, Focus → or delete button any more (those moved into the editor).

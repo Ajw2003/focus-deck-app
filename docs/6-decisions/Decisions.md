@@ -4,6 +4,24 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-30 — Claude provenance comes back as an icon after the title, not a chip (#104)
+
+**Context.** The 2026-09-26 redesign cut the "Claude created"/"Claude completed" chips, so nothing on
+a task row said which tasks Claude opened. That matters again now that Claude opens a parent issue
+per plan and a child per step (Ajw2003/AjsClaudeCodeTools#107).
+
+**Decision.** A four-point spark after the title for `claudeCreated`, and a ringed tick beside it for
+`claudeCompleted` on a done task. Both are 14px, faint, with a tooltip and `aria-label`, inside
+`.task-title`. The issue offered "icon beside the title" or "chip in the chips column".
+
+**Why.** An icon in the title zone leaves the chips column, `chipsMaxPct` and the long-row wrapping
+untouched, where an extra chip would have competed with labels for a column that is already the
+crowded part of the row. The redesign removed chips precisely because they crowded; an icon is the
+quietest thing that still answers "who opened this?" at a glance. The tick is a second icon rather
+than a colour change so it reads on a struck-through done title.
+
+**Status.** Standing. Mechanism: `docs/4-systems/claude-integration.md#where-the-marker-shows`.
+
 ## 2026-09-28 — Calls made while building task dragging (PR 11)
 
 **Context.** The two entries below fixed the design (drag tasks, the GitHub moves and their messages,

@@ -1,6 +1,6 @@
 // focus-deck-app/js/render.js
 import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
-import { ICON_SYNC, ICON_GRIP } from './icons.js';
+import { ICON_SYNC, ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
 import { sortTasks } from './task-move.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
@@ -361,6 +361,16 @@ export function chipsMaxPct(title) {
   return Math.round(50 - Math.min(17, Math.max(0, len - 30) / 3));
 }
 
+// Quiet provenance marks trailing the title (#104): a spark when Claude opened the issue, a ringed
+// tick when Claude closed it (only ever on a done task; github-sync clears claudeCompleted on reopen).
+// They sit in the title zone, not the chips column, so chipsMaxPct and the chip wrapping never see them.
+// See docs/4-systems/claude-integration.md#where-the-marker-shows
+function claudeMarks(t) {
+  const mark = (icon, label) => '<span class="claude-mark" role="img" title="' + label + '" aria-label="' + label + '">' + icon + '</span>';
+  return (t.claudeCreated ? mark(ICON_CLAUDE_CREATED, 'Opened by Claude') : '')
+    + (t.claudeCompleted && t.status === 'done' ? mark(ICON_CLAUDE_COMPLETED, 'Completed by Claude') : '');
+}
+
 export function renderTaskRow(t, p, categories, ui) {
   if (ui.editingTask && ui.editingTask.taskId === t.id) return renderTaskEditForm(t, p, categories);
   const isDone = t.status === 'done';
@@ -380,7 +390,7 @@ export function renderTaskRow(t, p, categories, ui) {
     + '<input type="checkbox" data-action="toggle-task" data-task="' + t.id + '" data-project="' + p.id + '"' + (isDone ? ' checked' : '') + '>'
     // two zones beside the checkbox: the title in the left 75%, the chips right-anchored in the
     // right 25% (kept even when there are no chips, so the title never grows into it) -- #97, #92
-    + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + '</span>'
+    + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + claudeMarks(t) + '</span>'
     + '<div class="task-chips">' + priorityChip + catChips
     + (t.deadline ? deadlineChip(t.deadline) : '')
     + '</div>'

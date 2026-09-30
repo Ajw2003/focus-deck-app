@@ -414,7 +414,7 @@ page.
 inline line icons (`stroke="currentColor"`, `fill="none"`, ~1.75 stroke, round caps/joins,
 viewBox 24 except the pre-existing sync icon's viewBox 20) — `js/icons.test.mjs` checks every
 export is a well-formed, themeable, non-emoji SVG string. `js/render.js` imports from it
-(currently `ICON_SYNC`, for the sync button); `index.html`/`settings.html` have no render step for
+(currently `ICON_SYNC` for the sync button, `ICON_GRIP` for the drag grip, and the two Claude provenance marks after a task title, `ICON_CLAUDE_CREATED`/`ICON_CLAUDE_COMPLETED`, see [Claude integration](claude-integration.md#where-the-marker-shows)); `index.html`/`settings.html` have no render step for
 their static header markup, so they inline the same paths by hand for the brand mark (compass),
 the settings link and the Projects drawer button — all `.icon-btn`s with an `aria-label`. The
 favicon `data:` URI is the same compass path in the accent colour, not a rendered glyph. No emoji
