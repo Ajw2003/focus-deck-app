@@ -227,3 +227,18 @@ One-line: put Focus Deck in front of other people.
   want
 
 **Acceptance:** #44 closed, with what the pilot taught recorded in `docs/6-decisions/`.
+
+## 14. Due dates, repeats and reminders — 0%
+
+One-line: due-date tasks turn white, yellow, then red as the date nears; some tasks repeat on a
+schedule; Focus Deck notifies at a time the user sets.
+
+**Contains:**
+- #106 — the whole feature, planned in `docs/plans/due-dates-and-repeats.md` as five PRs (stages, time
+  of day, repeating tasks, in-app reminders, phone notifications)
+- #69 — make reminder tasks schedulable: folded into PR 4 of that plan
+
+**Acceptance:** #106 and #69 closed; a task turns yellow then red in both themes; a repeating task
+comes back on the right date and never advances twice across two devices; a phone notification
+arrives at the set time with the app closed. Five questions in the plan are open; the notification
+route is chosen by a spike, not assumed.
