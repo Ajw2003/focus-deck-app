@@ -56,6 +56,12 @@ function cutoffMs(spec, span, fallbackPct) {
   return span * pct / 100;
 }
 
+// The viewer's local calendar date of a timestamp, as YYYY-MM-DD (the same shape as task.deadline).
+function localDate(ms) {
+  const d = new Date(ms);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 export function dueStage(task, now, defaults) {
   if (!task) return 'white';
   if (task.status === 'done') return 'done';
@@ -63,9 +69,14 @@ export function dueStage(task, now, defaults) {
   if (due === null) return 'white';
   if (now > due) return 'red';
   const d = normalizeDueDefaults(defaults);
-  const span = due - spanStart(task, now);
+  const start = spanStart(task, now);
+  const span = due - start;
   const left = due - now;
   const stages = task.dueStages || {};
+  // A date set for the same day it falls on is "do it today": red for the whole day. A percentage of
+  // a span of a few hours would leave it white until the last minutes, which is not what "due today"
+  // means. A task that carries its own lead times chose them on purpose, so they win.
+  if (!task.dueStages && localDate(start) === task.deadline) return 'red';
   if (left <= cutoffMs(stages.red, span, d.redPct)) return 'red';
   if (left <= cutoffMs(stages.yellow, span, d.yellowPct)) return 'yellow';
   return 'white';

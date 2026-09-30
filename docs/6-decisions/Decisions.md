@@ -4,6 +4,22 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-30 — A task due today is red for the whole day (#106, found testing PR 1)
+
+**Context.** The user added a task due today to try PR 1 and it showed white. A date set for the day it
+falls on has a span of a few hours, and 10% of a few hours is minutes, so the percentage rule left it
+white until the last moments. That contradicts what "due today" means to the person setting it.
+
+**Decision.** In `dueStage` (`js/due-stage.js`), a task whose span starts on the due date's own
+calendar day is red for the whole day. A task with its own `dueStages` is exempt, because those lead
+times were chosen on purpose. Nothing else changes: due tomorrow still follows the percentages.
+
+**Why.** The percentage model is right for spans of days or months and wrong below one day; a calendar
+rule is the plain-language promise. Due tomorrow is deliberately not changed, since it was not asked
+for; if it should be at least yellow, that is a one-line extension of the same rule.
+
+**Status.** Standing. Tested in `js/due-stage.test.mjs`, checked through the real add-task form.
+
 ## 2026-09-30 — Due-date stages, PR 1 of #106: interpretation calls the plan left open
 
 **Context.** The plan fixed the model; building PR 1 needed small calls it did not make.

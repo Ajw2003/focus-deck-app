@@ -15,7 +15,9 @@ PRs and are not here.
   unit-tested in `js/due-stage.test.mjs`.
 - **Span and left.** Span runs from `task.dueSetAt` (else `createdAt`, else now) to the due moment, the
   end of the due day in local time (`dueMoment`, `js/due-stage.js:38`). Left runs from now to the
-  due moment. Overdue is always red; otherwise red when left/span is at or under the red cut-off,
+  due moment. Overdue is always red. **A date set for the day it falls on is red for the whole day**
+  (the span starts on the due date's own calendar day), unless the task carries its own `dueStages`;
+  otherwise red when left/span is at or under the red cut-off,
   yellow at or under the yellow cut-off. Defaults 33% and 10% (`DEFAULT_DUE_DEFAULTS`).
 - **Per-task lead times.** `task.dueStages = { yellow, red }`, each `{ pct }` or `{ leadHours }`; a
   missing stage uses the defaults. The skippable step only ever writes `{ leadHours }`.
@@ -40,6 +42,8 @@ PRs and are not here.
 ## Invariants
 
 - No deadline is white; a done task is `'done'`; overdue is red whatever the span or lead times.
+- A task due the same day it was set is red, even though a percentage of a few hours would leave it
+  white; explicit per-task lead times are the only thing that overrides this.
 - `dueSetAt` is clamped to now inside `dueStage`, so clock skew cannot make left exceed span.
 - The due moment is built from the date parts, so a daylight-saving day is 23 or 25 hours and the
   stage still follows (tested with America/New_York).
