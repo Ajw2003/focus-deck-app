@@ -2,6 +2,8 @@
 import { mergeStates, stampChanges } from './merge.js';
 import { ensureSortOrder } from './project-filter.js';
 import { ensureTaskSortOrder } from './task-move.js';
+import { dueStage, DEFAULT_DUE_DEFAULTS } from './due-stage.js';
+import { ICON_DUE_RED } from './icons.js';
 
 // Priority, most urgent first. githubLabel is the label Focus Deck writes; color is its GitHub hex.
 export const PRIORITY_ORDER = ['urgent', 'high', 'medium', 'low'];
@@ -42,6 +44,9 @@ function defaultState() {
     ],
     githubSync: { user: null, lastSyncedAt: null },
     gistId: null,
+    // Settings > Due dates: the percentage cut-offs for the stage colours. updatedAt is its own
+    // stamp (this is not a record in a list), used by mergeStates: newest wins.
+    dueDefaults: Object.assign({}, DEFAULT_DUE_DEFAULTS, { updatedAt: 0 }),
   };
 }
 
@@ -122,6 +127,7 @@ function withDefaults(parsed) {
     excludedRepos: Array.isArray(parsed.excludedRepos) ? parsed.excludedRepos : d.excludedRepos,
     pinnedRepos: Array.isArray(parsed.pinnedRepos) ? parsed.pinnedRepos : d.pinnedRepos,
     excludedIssues: Array.isArray(parsed.excludedIssues) ? parsed.excludedIssues : d.excludedIssues,
+    dueDefaults: parsed.dueDefaults && typeof parsed.dueDefaults === 'object' ? Object.assign({}, d.dueDefaults, parsed.dueDefaults) : d.dueDefaults,
   });
 }
 
@@ -137,10 +143,21 @@ function repairLoaded(st) {
   dropEnergyFields(st);
   ensureSortOrder(st.projects); // saves from before PR 9 have no sortOrder: number them in stored order
   ensureTaskSortOrder(st.projects); // ...and tasks from before PR 11, per project
+  ensureDueSetAt(st); // tasks whose deadline predates dueSetAt (#106): their span starts now, so they can still turn yellow and red
   [st.categories, st.projectCategories].forEach((list, listIdx) => (list || []).forEach((c, i) => {
     if (typeof c.color !== 'string' || !c.color) c.color = 'hsl(' + Math.round(((i + listIdx * 7) * 137.508) % 360) + ' var(--proj-sat) var(--proj-light))';
   }));
   return st;
+}
+
+// A task saved with a deadline before dueSetAt existed has no span start. Without one its stage
+// would stay white until overdue, so give it "now": a task due in 2 days then turns yellow and red
+// on the 2-day schedule from here. Already-stamped tasks are never touched.
+export function ensureDueSetAt(st) {
+  const now = Date.now();
+  (st.projects || []).forEach((p) => (p.tasks || []).forEach((t) => {
+    if (t.deadline && typeof t.dueSetAt !== 'number') t.dueSetAt = now;
+  }));
 }
 
 // A task carries a list of category ids, one per GitHub label. Saves from before that (and from a
@@ -329,13 +346,19 @@ export function relTime(ts) {
   return Math.round(hr / 24) + 'd ago';
 }
 
-export function deadlineChip(iso) {
+// Pass the task to get its stage colour (due-white / due-yellow / due-red, docs/4-systems/due-dates.md);
+// a project's deadline has no stages, so it is called without one and stays the neutral chip. A done
+// task's stage is 'done', which adds no class. The words carry the meaning on their own; red adds an
+// icon so colour is never the only signal.
+export function deadlineChip(iso, task) {
   const d = new Date(iso + 'T00:00:00');
   const now = new Date();
   const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const days = Math.round((d - startToday) / 86400000);
   const label = days < 0 ? Math.abs(days) + 'd overdue' : days === 0 ? 'due today' : 'due in ' + days + 'd';
-  return '<span class="chip deadline-chip">' + label + '</span>';
+  const stage = task ? dueStage(task, now.getTime(), state.dueDefaults) : 'done';
+  const stageClass = stage === 'done' ? '' : ' due-' + stage;
+  return '<span class="chip deadline-chip' + stageClass + '">' + (stage === 'red' ? ICON_DUE_RED : '') + label + '</span>';
 }
 
 export function shortName(name) { return name.length > 14 ? name.slice(0, 13) + '…' : name; }

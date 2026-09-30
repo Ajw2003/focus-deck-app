@@ -4,6 +4,24 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-09-30 — Due-date stages, PR 1 of #106: interpretation calls the plan left open
+
+**Context.** The plan fixed the model; building PR 1 needed small calls it did not make.
+
+**Decision.** (1) A changed or cleared deadline drops the task's `dueStages`, since lead times chosen
+for the old span do not fit the new one; unchanged keeps them. (2) The lead-time list adds "1 hour"
+to the plan's examples so a task due later today still has a red choice below yellow; yellow never
+offers the smallest choice. (3) Choices are only stored when a select is touched; untouched, the
+preselected values (nearest the default percentages) are a suggestion. (4) The stage tokens are an
+olive-lime and a crimson, with a border, rather than yellow and red, because the gold `--prio-medium`
+and red `--prio-urgent` are already taken; the yellow stage is 22 degrees from medium. (5) Old tasks
+with a deadline but no `dueSetAt` are back-filled with "now" on load (`ensureDueSetAt`), as the plan
+said; the first build skipped this, which would have left the user's real deck white until overdue,
+and it was added before merge. (6) Settings refuses red not
+lower than yellow, and values outside 1-99.
+
+**Status.** Active. Item 5 is the one to judge on the real deck.
+
 ## 2026-09-30 — Claude provenance comes back as an icon after the title, not a chip (#104)
 
 **Context.** The 2026-09-26 redesign cut the "Claude created"/"Claude completed" chips, so nothing on

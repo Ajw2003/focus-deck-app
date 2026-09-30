@@ -414,7 +414,7 @@ page.
 inline line icons (`stroke="currentColor"`, `fill="none"`, ~1.75 stroke, round caps/joins,
 viewBox 24 except the pre-existing sync icon's viewBox 20) — `js/icons.test.mjs` checks every
 export is a well-formed, themeable, non-emoji SVG string. `js/render.js` imports from it
-(currently `ICON_SYNC` for the sync button, `ICON_GRIP` for the drag grip, and the two Claude provenance marks after a task title, `ICON_CLAUDE_CREATED`/`ICON_CLAUDE_COMPLETED`, see [Claude integration](claude-integration.md#where-the-marker-shows)); `index.html`/`settings.html` have no render step for
+(currently `ICON_SYNC` for the sync button, `ICON_GRIP` for the drag grip, and the two Claude provenance marks after a task title, `ICON_CLAUDE_CREATED`/`ICON_CLAUDE_COMPLETED`, `ICON_DUE_RED` on a red deadline chip, see [Claude integration](claude-integration.md#where-the-marker-shows)); `index.html`/`settings.html` have no render step for
 their static header markup, so they inline the same paths by hand for the brand mark (compass),
 the settings link and the Projects drawer button — all `.icon-btn`s with an `aria-label`. The
 favicon `data:` URI is the same compass path in the accent colour, not a rendered glyph. No emoji
@@ -487,6 +487,18 @@ nothing clears another project's flag but nothing needs to: each card reads only
 task re-renders a fresh, empty, still-open form (autofocus re-fires on the new element), so adding
 several in a row is one tap plus Enter each time. Cancel (`cancel-add-task`) or Escape while focus
 is inside the form (`onAppKeydown`) collapses it back to the link.
+
+### Due-date stage chip (#106, PR 1)
+
+A task's deadline chip carries a stage class (`due-white|due-yellow|due-red`, from `dueStage`, see
+[due-dates.md](./due-dates.md)); a project's deadline chip and a done task's stay the neutral chip.
+Tokens `--due-soon` (olive-lime: `#4F5A00` light, `#D9E66B` dark) and `--due-now` (crimson: `#AB0F46`
+light, `#FF88B0` dark) are defined in all three theme blocks. The chip is tinted 18% with a 60%
+border, same size as every chip, so the chips column and `chipsMaxPct` are untouched. Red adds
+`ICON_DUE_RED` (a 13px flame). `scripts/check-due-contrast.mjs` reads the tint from the stylesheet and
+fails below 4.5:1. `.due-step` (the skippable lead-time line, `flex:1 0 100%` inside the add and edit
+forms) and `.due-defaults-form` (Settings) are the only other new rules. Screenshots:
+`docs/generated/pr106/`.
 
 ### Dragging projects (PR 9, 2026-09-28)
 

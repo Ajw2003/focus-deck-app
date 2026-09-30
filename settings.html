@@ -57,6 +57,19 @@
       <button type="submit">+ Add</button>
     </form>
   </section>
+  <section class="card settings-section" id="due-dates-section">
+    <h2 style="margin-bottom:10px;">Due dates</h2>
+    <p class="muted small" style="margin-bottom:6px;">
+      A task's due chip turns <b>yellow</b>, then <b>red</b>, as its time runs down. The cut-offs are a share of the time between setting the due date and the due date itself, so a task due in three months and a task due in three days both turn at a fitting moment. An overdue task is always red. A task can still pick its own lead times when you set its date.
+    </p>
+    <div class="due-defaults-form">
+      <label for="due-yellow-pct">Turn yellow with <input type="number" id="due-yellow-pct" min="2" max="99" step="1" inputmode="numeric"> % of the time left</label>
+      <label for="due-red-pct">Turn red with <input type="number" id="due-red-pct" min="1" max="98" step="1" inputmode="numeric"> % of the time left</label>
+      <button type="button" id="due-reset" class="btn ghost">Reset to defaults</button>
+    </div>
+    <p id="due-preview" class="muted small" aria-live="polite"></p>
+    <p id="due-error" class="muted small" role="alert"></p>
+  </section>
   <div id="toast-root"></div>
 </div>
 <script type="module">
@@ -243,6 +256,65 @@
     addCategory(input.value);
     input.value = '';
     renderCategoryList(taskCatList, state.categories);
+  });
+</script>
+<script type="module">
+  // Settings > Due dates (#106). Same rules as the category script above: the shared `state`
+  // singleton and a mutations.js setter, so the change goes through persist() and syncs. Numbers
+  // only save when they make sense (red lower than yellow, both under 100); until then the preview
+  // and the message say so and nothing is written.
+  import { state } from './js/state.js';
+  import { setDueDefaults, resetDueDefaults } from './js/mutations.js';
+  import { stageMoments, normalizeDueDefaults } from './js/due-stage.js';
+
+  const yellowEl = document.getElementById('due-yellow-pct');
+  const redEl = document.getElementById('due-red-pct');
+  const previewEl = document.getElementById('due-preview');
+  const errorEl = document.getElementById('due-error');
+
+  function fillInputs() {
+    const d = normalizeDueDefaults(state.dueDefaults);
+    yellowEl.value = d.yellowPct;
+    redEl.value = d.redPct;
+  }
+  function showDate(ms) {
+    const d = new Date(ms);
+    const opts = { day: 'numeric', month: 'long' };
+    if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+    return d.toLocaleDateString(undefined, opts);
+  }
+  // The example always reads "due in 3 months"; its dates come from the same arithmetic dueStage uses.
+  function renderPreview(defaults) {
+    const now = new Date();
+    const due = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate(), 23, 59, 59);
+    const m = stageMoments(due.getTime(), due.getTime() - now.getTime(), defaults);
+    previewEl.textContent = 'A task due in 3 months turns yellow about ' + showDate(m.yellowAt) + ' and red about ' + showDate(m.redAt) + '.';
+  }
+  function valid() {
+    const y = Number(yellowEl.value), r = Number(redEl.value);
+    return yellowEl.value !== '' && redEl.value !== '' && y > 0 && y < 100 && r > 0 && r < 100 && r < y;
+  }
+  fillInputs();
+  renderPreview(state.dueDefaults);
+
+  function onEdit() {
+    if (!valid()) {
+      errorEl.textContent = 'Red has to come after yellow: use a lower percentage for red than for yellow, both between 1 and 99. Nothing is saved until they do.';
+      return false;
+    }
+    errorEl.textContent = '';
+    renderPreview({ yellowPct: Number(yellowEl.value), redPct: Number(redEl.value) });
+    return true;
+  }
+  [yellowEl, redEl].forEach((el) => {
+    el.addEventListener('input', onEdit);
+    el.addEventListener('change', () => { if (onEdit()) setDueDefaults(yellowEl.value, redEl.value); });
+  });
+  document.getElementById('due-reset').addEventListener('click', () => {
+    resetDueDefaults();
+    errorEl.textContent = '';
+    fillInputs();
+    renderPreview(state.dueDefaults);
   });
 </script>
 </body></html>

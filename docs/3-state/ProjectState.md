@@ -25,8 +25,17 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 11 | Teams and shared repos | 0% | #51 #4 open |
 | 12 | Time-of-day suggestions | 0% | #48 open; the user decided 2026-09-26 to delete energy fully, so #48 (if built) builds on labels and time of day, not energy |
 | 13 | Pilot and public rollout | 0% | #44 open |
+| 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 built, pending merge) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; PRs 2-6 not started |
 
 ## What's built / not built, per milestone
+
+**14. Due dates, repeats and reminders** — Built, pending merge (PR 1 of #106, branch
+`claude/due-stages-pr1`): `js/due-stage.js`, `task.dueSetAt`/`dueStages`, `state.dueDefaults` with its
+merge rule, stage-coloured task deadline chips, the skippable lead-time step, the Settings "Due dates"
+section; covered by `js/due-stage.test.mjs` and `js/due-dates.test.mjs`, checked in real Chromium
+(`docs/generated/pr106/`). Not built: PRs 2-6 (red rises, time of day, repeats, in-app reminders,
+phone notifications). Tasks that had a deadline before this PR are stamped with `dueSetAt` = now
+on first load (`ensureDueSetAt`). See `docs/4-systems/due-dates.md`.
 
 **1. Core focus-picker PWA** — Built: focus cards, priority chips (`js/render.js`), project
 categories/colors, wide-screen sidebar (`css/app.css`), inbox capture and Unsorted sorting
