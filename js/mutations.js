@@ -7,6 +7,7 @@ import { syncIssueCompletion, pushCategoriesToIssue, pushPriorityToIssue, pushCa
 import { persist } from './sync.js';
 import { ensureSortOrder } from './project-filter.js';
 import { ensureTaskSortOrder } from './task-move.js';
+import { DEFAULT_DUE_DEFAULTS } from './due-stage.js';
 export { persist };
 
 // categoryId was previously discarded here (the add-project form's submit handler was calling
@@ -71,7 +72,7 @@ export function applyTaskMove({ taskId, toProjectId, status, changes }) {
 // app expects. deadline/categories/steps were previously dropped entirely -- the add-task form
 // already submitted them, but this function's old (projectId, title) signature had nowhere to
 // put them. categoryIds is a list (one per label); priority is a PRIORITY_ORDER level or empty.
-export function addTask(projectId, title, deadline, categoryIds, steps, priority) {
+export function addTask(projectId, title, deadline, categoryIds, steps, priority, dueStages) {
   const project = state.projects.find((p) => p.id === projectId);
   if (!project) return;
   const task = {
@@ -80,6 +81,11 @@ export function addTask(projectId, title, deadline, categoryIds, steps, priority
     priority: PRIORITY_ORDER.includes(priority) ? priority : null,
     source: 'manual', updatedAt: Date.now(),
   };
+  // The span of the due-date stages starts when the date is set (js/due-stage.js).
+  if (task.deadline) {
+    task.dueSetAt = Date.now();
+    if (dueStages) task.dueStages = dueStages;
+  }
   if (steps) task.steps = String(steps).split('\n').map((s) => s.trim()).filter(Boolean);
   project.tasks.push(task);
   ensureTaskSortOrder([project]); // a new task goes to the end of its group
@@ -93,7 +99,15 @@ export function updateTaskFields(taskId, fields) {
   const { task } = found;
   const oldCategoryIds = (task.categoryIds || []).slice();
   const oldPriority = task.priority || null;
+  // A changed deadline starts a new span: stamp it, and drop stage choices made for the old date
+  // unless the caller brings new ones. The edit form sends the deadline on every save, so an
+  // unchanged one must not restamp.
+  if ('deadline' in fields && (fields.deadline || null) !== (task.deadline || null)) {
+    if (fields.deadline) task.dueSetAt = Date.now(); else delete task.dueSetAt;
+    if (!('dueStages' in fields)) delete task.dueStages;
+  }
   Object.assign(task, fields);
+  if (!task.deadline) delete task.dueStages;
   task.updatedAt = Date.now();
   persist();
   if ('categoryIds' in fields && JSON.stringify(task.categoryIds) !== JSON.stringify(oldCategoryIds)) {
@@ -112,6 +126,7 @@ export function editTask(taskId, projectId, fields) {
   const normalized = {};
   if (fields.title !== undefined) normalized.title = fields.title;
   if (fields.deadline !== undefined) normalized.deadline = fields.deadline || null;
+  if (fields.dueStages) normalized.dueStages = fields.dueStages;
   if (fields.categoryIds !== undefined) normalized.categoryIds = fields.categoryIds || [];
   if (fields.priority !== undefined) normalized.priority = PRIORITY_ORDER.includes(fields.priority) ? fields.priority : null;
   if (fields.steps !== undefined) {
@@ -295,6 +310,22 @@ export function addCategory(name, color) {
   state.categories.push(cat);
   persist();
   return cat;
+}
+
+// Settings > Due dates. Stamped here, not by stampChanges: dueDefaults is one object, not a record
+// in a list, and mergeStates picks the newer stamp (js/merge.js). Returns false for values the
+// stage arithmetic cannot use (both must be between 0 and 100, red lower than yellow).
+export function setDueDefaults(yellowPct, redPct) {
+  const y = Number(yellowPct), r = Number(redPct);
+  if (!(y > 0 && y < 100 && r > 0 && r < 100 && r < y)) return false;
+  state.dueDefaults = { yellowPct: y, redPct: r, updatedAt: Date.now() };
+  persist();
+  return true;
+}
+
+export function resetDueDefaults() {
+  state.dueDefaults = { yellowPct: DEFAULT_DUE_DEFAULTS.yellowPct, redPct: DEFAULT_DUE_DEFAULTS.redPct, updatedAt: Date.now() };
+  persist();
 }
 
 export function setCategoryColor(id, color) {

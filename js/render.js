@@ -2,6 +2,7 @@
 import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED, TASK_KINDS } from './state.js';
 import { ICON_SYNC, ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
 import { sortTasks } from './task-move.js';
+import { leadChoices, suggestLead, normalizeDueDefaults } from './due-stage.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -126,7 +127,7 @@ export function renderFocus(st, findTaskWithProject, ui) {
   const found = findTaskWithProject(st.focus.taskId);
   if (!found) { state.focus = null; return renderFocus(st, findTaskWithProject, ui); }
   const t = found.task, p = found.project;
-  const deadlineHTML = t.deadline ? deadlineChip(t.deadline) : '';
+  const deadlineHTML = t.deadline ? deadlineChip(t.deadline, t) : '';
   const canReroll = st.focus.pool && st.focus.pool.length > 1;
   return '<section class="card focus-card focus-active">'
     + '<div class="focus-tags">'
@@ -310,6 +311,34 @@ export function renderPrioritySelect(selected) {
     + '</select>';
 }
 
+// The skippable step under a due date field (#106): one line, never a dialog. app.js inserts it when
+// a date is first set and removes it on Skip, Escape, or a date with no room for a choice. The
+// selects start on the lead times nearest the percentage defaults, but nothing is stored until one
+// is changed (the hidden dueStepChosen flips to "1"), so saving untouched stores nothing.
+// spanMs is now -> due moment; yellow choices must leave a shorter choice for red.
+function dueOption(c, selected) {
+  return '<option value="' + c.hours + '"' + (selected && selected.hours === c.hours ? ' selected' : '') + '>' + c.label + ' left</option>';
+}
+export function dueRedOptions(spanMs, yellowHours, selectedHours) {
+  const choices = leadChoices(spanMs, yellowHours);
+  const pick = choices.find((c) => c.hours === selectedHours) || suggestLead(spanMs, 10, yellowHours);
+  return choices.map((c) => dueOption(c, pick)).join('');
+}
+export function renderDueStageStep(spanMs, defaults) {
+  const d = normalizeDueDefaults(defaults);
+  const yellowChoices = leadChoices(spanMs).filter((c) => leadChoices(spanMs, c.hours).length);
+  if (!yellowChoices.length) return '';
+  const yellow = yellowChoices.find((c) => c.hours === (suggestLead(spanMs, d.yellowPct) || {}).hours) || yellowChoices[yellowChoices.length - 1];
+  return '<div class="due-step" role="group" aria-label="When this task turns yellow and red">'
+    + '<span>Turn yellow at</span>'
+    + '<select name="dueYellow" aria-label="Turn yellow when this much time is left">' + yellowChoices.map((c) => dueOption(c, yellow)).join('') + '</select>'
+    + '<span>and red at</span>'
+    + '<select name="dueRed" aria-label="Turn red when this much time is left">' + dueRedOptions(spanMs, yellow.hours, null) + '</select>'
+    + '<input type="hidden" name="dueStepChosen" value="">'
+    + '<button type="button" class="link-btn small" data-action="skip-due-step" title="Use the automatic stages (Escape does the same)">Skip</button>'
+    + '</div>';
+}
+
 // The edit form's GitHub line: a linked task can be unlinked (kept here, dropped from GitHub sync);
 // an unlinked one can get a new issue or be linked to an existing one.
 function renderTaskGithubLine(t, p) {
@@ -397,7 +426,7 @@ export function renderTaskRow(t, p, categories, ui) {
     // right 25% (kept even when there are no chips, so the title never grows into it) -- #97, #92
     + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + claudeMarks(t) + '</span>'
     + '<div class="task-chips">' + priorityChip + catChips + claudeChip
-    + (t.deadline ? deadlineChip(t.deadline) : '')
+    + (t.deadline ? deadlineChip(t.deadline, t) : '')
     + '</div>'
     + '</div>';
 }

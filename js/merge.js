@@ -109,6 +109,11 @@ export function mergeStates(local, remote) {
   });
   merged.listStamps = listStamps;
 
+  // dueDefaults is one object with its own updatedAt, set by the Settings page. mergeStates starts
+  // from the local copy for any field it does not name, so without this the other device's change
+  // would never arrive. Newest stamp wins; a side that has none keeps the other's.
+  if (r.dueDefaults && (!l.dueDefaults || stamp(r.dueDefaults) > stamp(l.dueDefaults))) merged.dueDefaults = r.dueDefaults;
+
   // Done-list entries follow their task: kept only while that task exists and is done. An entry
   // with no taskId is a completed inbox thought (M.completeInboxItem) rather than a task — it never
   // has a task to survive alongside, so it's kept outright instead of being filtered against

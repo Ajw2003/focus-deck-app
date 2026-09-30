@@ -57,3 +57,10 @@ export const ICON_CLAUDE_COMPLETED =
   + '<path d="M12.2 3.6a8.5 8.5 0 1 1-.5 17 8.5 8.5 0 0 1 .5-17Z"/>'
   + '<path d="M8 12.4l2.9 2.9 5.2-6"/>'
   + '</svg>';
+
+// The mark on a red deadline chip (#106): a small flame, so the stage is not colour alone. 13px,
+// drawn slightly off true like the rest. Inline in the chip, so render.js and state.js both use it.
+export const ICON_DUE_RED =
+  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  + '<path d="M12.2 2.8c.4 3.3 1.9 4.6 3.6 6.6 1.6 1.8 2.6 3.4 2.4 5.6-.3 3.2-3 5.4-6.3 5.3-3.4-.1-6-2.6-5.9-5.9.1-2 1.1-3.3 2.2-4.3.2 1.6.9 2.5 1.8 2.9-.5-3.6.2-6.3 2.2-10.2Z"/>'
+  + '</svg>';
