@@ -3,8 +3,44 @@
 ## What it owns
 
 The installable PWA shell: `manifest.webmanifest`, the offline caching behavior in
-`service-worker.js`, and the registration call in `index.html` (`index.html:31`) that
+`app/service-worker.js`, and the registration call in `app/index.html` (`app/index.html:34-36`) that
 wires the service worker into the page.
+
+### Layout (issue #117)
+
+The app is served from `/focus-deck-app/app/`; the site root is kept for a landing page.
+
+- `app/` — `index.html`, `settings.html`, `js/`, `css/`, `service-worker.js` (scope `app/`), and
+  `icons/` (generated at deploy time by `generate_icons.py`).
+- Root — `manifest.webmanifest`, `index.html` + `forward.js` (the root page), and `service-worker.js`
+  (the retirement worker).
+- The manifest sits at the root with `"id": "./"`, `"start_url": "app/"`, `"scope": "./"`. An existing
+  install's identity was its old `start_url` `./`, so `id: "./"` keeps it the same installed app while
+  its start page moves. A root scope lets the landing page offer the install too. Icon paths are
+  `app/icons/...`; the app pages link `../manifest.webmanifest`, which is also in `SHELL_ASSETS`.
+- Cache rule: the app worker's caches start with `focus-deck-app-shell-` (`CACHE_PREFIX`). Its
+  `activate` deletes only caches with that prefix that are not current. Never delete other caches: the
+  origin (`ajw2003.github.io`) is shared with other sites, and the old root worker's
+  `focus-deck-shell-*` caches are the retirement worker's job.
+
+### The retirement worker
+
+Existing installs have a worker registered at `/focus-deck-app/service-worker.js` with scope
+`/focus-deck-app/`. Browsers re-fetch that script URL on navigation, so the root `service-worker.js`
+is now a small replacement: `install` calls `skipWaiting()`; `activate` deletes caches starting
+`focus-deck-shell-`, unregisters itself, and navigates its open window clients to their own URL so they
+load from the network. It has no `fetch` handler, so it never serves anything. Verified in Chromium: the
+old registration and `focus-deck-shell-v17` were gone and only `app/` held a registration with
+`focus-deck-app-shell-v1`.
+
+### The root page
+
+Root `index.html` is a placeholder (the landing page, issue #118, replaces its body). `forward.js`
+does `location.replace('app/' + location.search + location.hash)` immediately when the page runs as
+an installed app (`display-mode: standalone`, or `navigator.standalone` on iOS) or when
+`localStorage` already holds `focusdeck-state-v1` (`STORAGE_KEY`, `app/js/state.js:20`); storage access
+is in try/catch. Otherwise it shows the name, a line about the app and an "Open Focus Deck" link to
+`app/`. It registers no service worker.
 
 ## How it works
 
@@ -28,7 +64,7 @@ It used to be cache-first. Because `service-worker.js` itself didn't change when
 `js/mutations.js` was fixed, installed copies kept serving the old file, which wrote
 `"undefined"` over the saved data, indefinitely. Don't go back to cache-first for app code.
 
-### Select backgrounds must stay opaque — `.add-project-form select` (css/app.css:280-282)
+### Select backgrounds must stay opaque — `.add-project-form select` (app/css/app.css:280-282)
 
 <!-- ref:63c4 -->
 Unlike the sibling text input, this can't stay `background:transparent` — a `<select>`'s
@@ -50,7 +86,7 @@ deployed as a GitHub Pages *project* page under `/focus-deck-app/`, not a domain
 root-absolute path resolves against the bare domain instead of the actual subpath and
 404s there. Paths must resolve against wherever the script's own URL actually is, whether
 that's a GitHub Pages subpath or a local dev server's root.
-- Every `<select>` in css/app.css must set an explicit opaque `background` (never
+- Every `<select>` in app/css/app.css must set an explicit opaque `background` (never
   `transparent`) — there's no `appearance:none` anywhere in the codebase, so nothing
   guarantees CSS fully controls the native widget's rendering; without an opaque
   background, the OS/browser's own popup background can show through instead.
