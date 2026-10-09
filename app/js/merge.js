@@ -114,6 +114,9 @@ export function mergeStates(local, remote) {
   // would never arrive. Newest stamp wins; a side that has none keeps the other's.
   if (r.dueDefaults && (!l.dueDefaults || stamp(r.dueDefaults) > stamp(l.dueDefaults))) merged.dueDefaults = r.dueDefaults;
 
+  // choosingMode (Settings > Choosing a card) is the same shape and the same rule as dueDefaults.
+  if (r.choosingMode && (!l.choosingMode || stamp(r.choosingMode) > stamp(l.choosingMode))) merged.choosingMode = r.choosingMode;
+
   // Done-list entries follow their task: kept only while that task exists and is done. An entry
   // with no taskId is a completed inbox thought (M.completeInboxItem) rather than a task — it never
   // has a task to survive alongside, so it's kept outright instead of being filtered against

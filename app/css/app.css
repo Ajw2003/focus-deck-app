@@ -738,6 +738,7 @@ body.is-dragging-task .empty-note{display:none;}
 /* Wallets (#120): the focus picker's two strips of cards that turn away like CD sleeves. Projects are
    manila folders, categories are ruled index cards. Tilt and brightness are set inline by js/wallet.js;
    the rest is here. Paper stays paper in both themes. See docs/4-systems/wallets.md */
+.choosing-modes{border:0; padding:0; margin:0 0 6px;}
 .wallet-root{overflow:hidden;}
 .wallet{margin-top:4px;}
 .wallet-h{display:flex; justify-content:space-between; align-items:baseline; margin-top:6px;}
