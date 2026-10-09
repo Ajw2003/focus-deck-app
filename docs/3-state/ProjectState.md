@@ -47,7 +47,8 @@ page, so Install scrolls to the instructions. #119, the desk look for the focus 
 tokens and faces, the jotter, the sticky-note focus card, the paper checkbox with the biro cross-out
 (`app/js/focus-complete.js`), the ticket-stub "Not this one"; see `docs/4-systems/styling.md`. The
 due-now stage and light-mode High/Medium priority colours were darkened to keep contrast. In progress:
-#120 wallets.
+#120 wallets (step 1 of 3 on branch `AjsAgent/issue-120-wallets`). Paused 2026-10-09 until
+the house-rules prompt fix lands; resume from `docs/plans/consumer-product-handoff.md`.
 
 **14. Due dates, repeats and reminders** — Built, pending merge (PR 1 of #106, branch
 `claude/due-stages-pr1`): `js/due-stage.js`, `task.dueSetAt`/`dueStages`, `state.dueDefaults` with its
