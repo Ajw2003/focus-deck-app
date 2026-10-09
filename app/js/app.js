@@ -13,6 +13,7 @@ import { initProjectDrag, isDragging } from './project-drag.js';
 import { taskOrderChanges, sortTasks, planTaskMove } from './task-move.js';
 import { confirmMove } from './move-dialog.js';
 import { dueMoment } from './due-stage.js';
+import { startComplete, phaseClasses } from './focus-complete.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
@@ -93,6 +94,7 @@ function freshUnsortedScratch(skipped) {
 }
 
 export const ui = {
+  completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectFilter: undefined, projectQuery: '', projectSort: loadProjectSort(), projectCollapsed: loadCollapsedProjects(),
   focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(),
@@ -230,6 +232,33 @@ function confirmDeleteTask(taskId, projectId) {
   return confirm('Delete "' + title + '"? This can\'t be undone.' + issueNote);
 }
 
+// "I've done it": the box ticks, the title is crossed out, the note peels away, THEN the task is
+// completed through the same M.completeFocus path as before (so the GitHub completion sync is
+// unchanged). Animating first and mutating last means the repaint the mutation causes is the end of
+// the sequence, not something that cuts it off. Reduced motion skips straight to the mutation.
+function completeFocusWithNote() {
+  if (!state.focus) return;
+  const taskId = state.focus.taskId;
+  startComplete(ui, taskId, {
+    reduceMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    setPhase: drawCompletePhase,
+    isCurrent: () => !!state.focus && state.focus.taskId === taskId,
+    complete: () => M.completeFocus(findProjectIdForTask),
+    finish: paint,
+    wait: (ms, fn) => setTimeout(fn, ms),
+  });
+}
+
+// Draws a phase on the live DOM (a full repaint would replace the elements and restart nothing: the
+// transitions only run when a class is added to an element already on the page).
+function drawCompletePhase(phase) {
+  const want = phaseClasses(phase);
+  const button = document.querySelector('.focus-active .check-btn');
+  const note = document.querySelector('.focus-active .note');
+  if (button) button.classList.toggle('is-ticked', want.button.includes('is-ticked'));
+  if (note) ['is-crossed', 'is-peeling'].forEach((c) => note.classList.toggle(c, want.note.includes(c)));
+}
+
 function onAppClick(e) {
   const el = e.target.closest('[data-action]');
   if (!el) return;
@@ -306,7 +335,7 @@ function onAppClick(e) {
   else if (action === 'toggle-focus-projects') { ui.focusShowAllProjects = !ui.focusShowAllProjects; paint(); }
   else if (action === 'reroll') M.reroll();
   else if (action === 'clear-focus') M.clearFocus();
-  else if (action === 'complete-focus') M.completeFocus(findProjectIdForTask);
+  else if (action === 'complete-focus') completeFocusWithNote();
   // M.setFocusTask doesn't exist -- the correct exported function is setFocus.
   // "Focus on this" lives in the edit form now (Q14a, Q12f) -- picking a task closes the form.
   else if (action === 'focus-task') { ui.editingTask = null; M.setFocus(taskId); }

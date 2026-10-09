@@ -1,25 +1,54 @@
+/* "Low light" desk (#116, #119): the app is a desk. Dark is the desk at night under an amber lamp; light is
+   the same desk by day. Existing token names (--bg, --surface, --ink ...) map onto the desk so the
+   screens #123 has not restyled yet keep their contrast; the paper tokens are for stationery objects
+   (jotter, sticky note, checkbox, ticket stub). See docs/4-systems/styling.md#visual-system */
 :root{
   color-scheme: light dark;
-  --bg:#F3F5F2;
-  --surface:#FFFFFF;
-  --surface-2:#EAEFEA;
-  --ink:#1C2422;
-  --ink-soft:#5C6864;
-  --ink-faint:#93A19B;
-  --line:#DCE3DE;
-  --accent:#3D5A80;
+  --bg:#E4E8EF;
+  --surface:#FBFAF7;
+  --surface-2:#EEF1F6;
+  --ink:#1C2438;
+  --ink-soft:#59627A;
+  --ink-faint:#6E7790;
+  --line:#C7CEDB;
+  --accent:#8F5A06;
   --accent-ink:#FFFFFF;
   --danger:#A83E3E;
   --prio-urgent:#B42318;
-  --prio-high:#C4540F;
-  --prio-medium:#9A7200;
-  --prio-low:#4F7A63;
+  --prio-high:#AD4A0B;
+  --prio-medium:#7A5A00;
+  --prio-low:#3F6E53;
   /* Deadline chip stages (#106). Borders + tint + words, never hue alone: --due-soon is an olive-lime and
      --due-now a crimson, apart from the gold --prio-medium, orange --prio-high and red --prio-urgent. */
   --due-soon:#4F5A00;
-  --due-now:#AB0F46;
+  --due-now:#9F0C3D;
   --proj-sat:58%;
   --proj-light:40%;
+  /* The lamp: a glow on the desk behind the focus area, and the brand dot */
+  --lamp:rgba(255,255,255,.75);
+  --lamp-dot:#D98A12;
+  /* Paper objects. Paper stays paper in both themes (dark ink on cream), so most of these are shared. */
+  --paper:#FFFEFA;
+  --paper-ink:#1D2733;
+  --paper-soft:#4E5A68;
+  --paper-faint:#5F6A79;
+  --rule:#C3CEDD;
+  --paper-shadow:rgba(40,52,80,.35);
+  --hole:var(--bg);
+  --note:#FFE27A;
+  --note-fold:#E2C055;
+  --note-ink:#2B2412;
+  --note-soft:#6B5520;
+  --pen:#1F3F99;
+  /* Stage colours on paper, for the deadline chip's border and icon on the sticky note (its words stay ink) */
+  --paper-due-soon:#5E6B00;
+  --paper-due-now:#A30D40;
+  /* The sticky note's handwriting, in one place: #122 makes it a setting (Kalam / Atkinson / OpenDyslexic) */
+  --note-font:'Kalam', 'Comic Sans MS', cursive;
+  --font-display:'Young Serif', Georgia, serif;
+  --font-ui:'Figtree', system-ui, -apple-system, sans-serif;
+  --font-paper:'Bricolage Grotesque', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-paper-small:'Atkinson Hyperlegible', system-ui, sans-serif;
   /* Type scale (Q17a): exactly five sizes. See docs/4-systems/styling.md#visual-system */
   --text-sm:.8rem;
   --text-body:.95rem;
@@ -30,73 +59,90 @@
   --r-pill:999px;
   --r-control:10px;
   --r-card:18px;
-  --shadow:0 1px 2px rgba(28,36,34,.06), 0 6px 20px rgba(28,36,34,.07);
+  --shadow:0 1px 2px rgba(28,36,60,.06), 0 6px 20px rgba(28,36,60,.09);
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#14181A;
-    --surface:#1B2124;
-    --surface-2:#20282A;
-    --ink:#EAEFEC;
-    --ink-soft:#AEBAB5;
-    --ink-faint:#6C7975;
-    --line:#2B3336;
-    --accent:#8FADD6;
-    --accent-ink:#10161A;
-    --danger:#DD8686;
-    --prio-urgent:#F08A80;
-    --prio-high:#F0A060;
-    --prio-medium:#E6C35C;
-    --prio-low:#8FB79E;
+    --bg:#111829;
+    --surface:#18213A;
+    --surface-2:#212C4A;
+    --ink:#E9E4D8;
+    --ink-soft:#9BA3B8;
+    --ink-faint:#7F89A3;
+    --line:#2A3555;
+    --accent:#F2B45A;
+    --accent-ink:#2A1B05;
+    --danger:#F19A92;
+    --prio-urgent:#F58F85;
+    --prio-high:#F5A867;
+    --prio-medium:#E8C75E;
+    --prio-low:#8FBF9F;
     --due-soon:#D9E66B;
-    --due-now:#FF88B0;
+    --due-now:#FF96B9;
     --proj-sat:55%;
     --proj-light:68%;
+    --lamp:rgba(242,180,90,.17);
+    --lamp-dot:#F2B45A;
+    --paper:#EFEADF;
+    --rule:#C3CEDD;
+    --paper-shadow:rgba(0,0,0,.8);
+    --note:#EFCB66;
+    --note-fold:#C9A243;
+    --pen:#2346A0;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.35);
   }
 }
 :root[data-theme="dark"]{
-  --bg:#14181A;
-  --surface:#1B2124;
-  --surface-2:#20282A;
-  --ink:#EAEFEC;
-  --ink-soft:#AEBAB5;
-  --ink-faint:#6C7975;
-  --line:#2B3336;
-  --accent:#8FADD6;
-  --accent-ink:#10161A;
-  --danger:#DD8686;
-  --prio-urgent:#F08A80;
-  --prio-high:#F0A060;
-  --prio-medium:#E6C35C;
-  --prio-low:#8FB79E;
+  --bg:#111829;
+  --surface:#18213A;
+  --surface-2:#212C4A;
+  --ink:#E9E4D8;
+  --ink-soft:#9BA3B8;
+  --ink-faint:#7F89A3;
+  --line:#2A3555;
+  --accent:#F2B45A;
+  --accent-ink:#2A1B05;
+  --danger:#F19A92;
+  --prio-urgent:#F58F85;
+  --prio-high:#F5A867;
+  --prio-medium:#E8C75E;
+  --prio-low:#8FBF9F;
   --due-soon:#D9E66B;
-  --due-now:#FF88B0;
+  --due-now:#FF96B9;
   --proj-sat:55%;
   --proj-light:68%;
+  --lamp:rgba(242,180,90,.17);
+  --lamp-dot:#F2B45A;
+  --paper:#EFEADF;
+  --rule:#C3CEDD;
+  --paper-shadow:rgba(0,0,0,.8);
+  --note:#EFCB66;
+  --note-fold:#C9A243;
+  --pen:#2346A0;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box;}
 html,body{height:100%;}
 body{
   margin:0;
-  background:var(--bg);
+  /* the lamp's glow on the desk, behind the focus area */
+  background:radial-gradient(70% 380px at 50% 90px, var(--lamp), transparent 72%) no-repeat, var(--bg);
   color:var(--ink);
-  font-family:'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-family:var(--font-ui);
   font-size:var(--text-body);
   -webkit-font-smoothing:antialiased;
 }
 img{max-width:100%;}
 [hidden]{display:none!important;}
-h1,h2,h3,h4{font-family:'Fraunces', Georgia, serif; margin:0; text-wrap:balance; font-weight:600;}
-/* Section headings (Q18a): Fraunces italic, sentence case, no letter-spacing or uppercase. h2 is the
-   default "section heading" size/style; .focus-q/.focus-title (the two big Fraunces moments) and
-   h3 (project names, upright) override it below. */
-h2{font-size:var(--text-h); font-style:italic;}
-h3{font-size:var(--text-h); font-style:normal;}
-h4{font-size:var(--text-body); font-style:italic; font-weight:600; color:var(--ink-soft);}
+h1,h2,h3,h4{font-family:var(--font-display); margin:0; text-wrap:balance; font-weight:400;}
+/* Section headings: Young Serif, sentence case, no letter-spacing or uppercase. Young Serif has one
+   weight and no italic, so headings never ask for bold or italic (the browser would fake both). h2 is
+   the default "section heading" size; .focus-q and h3 (project names) override it below. */
+h2{font-size:var(--text-h);}
+h3{font-size:var(--text-h);}
+h4{font-size:var(--text-body); color:var(--ink-soft);}
 p{margin:0;}
 button,input,select{font:inherit; color:inherit;}
 button{cursor:pointer;}
@@ -106,7 +152,7 @@ a{color:inherit;}
   *{transition:none!important; scroll-behavior:auto!important;}
 }
 
-.wrap{max-width:760px; margin:0 auto; padding:0 16px 64px;}
+.wrap{max-width:760px; margin:0 auto; padding:0 16px 64px; overflow-x:clip;} /* clip, not hidden: the note peeling away must not widen the page, and the sticky topbar must keep working */
 
 .topbar{
   position:sticky; top:env(safe-area-inset-top,0px);
@@ -117,22 +163,32 @@ a{color:inherit;}
   border-bottom:1px solid var(--line);
   margin-bottom:18px;
 }
-.brand{display:flex; align-items:center; gap:8px;}
-/* The brand mark is a hand-drawn SVG compass (js/icons.js ICON_COMPASS, inlined statically here and
-   in settings.html — see docs/4-systems/styling.md#icons), in the accent colour. */
-.brand-mark{display:inline-flex; color:var(--accent);}
-.brand-mark svg{width:22px; height:22px;}
-.brand h1{font-size:var(--text-h); font-style:normal; font-weight:600; letter-spacing:-.01em;}
-.capture-form{display:flex; gap:8px; flex:1 1 260px; min-width:0;}
+.brand{display:flex; align-items:center; gap:10px;}
+/* The brand mark is the lamp: a small amber dot with a glow (the same light that falls on the focus area) */
+.brand-mark{display:inline-flex;}
+.lamp{width:10px; height:10px; border-radius:50%; background:var(--lamp-dot); box-shadow:0 0 12px 3px color-mix(in srgb, var(--lamp-dot) 55%, transparent);}
+.brand h1{font-size:var(--text-h); letter-spacing:-.01em;}
+/* The jotter: a notepad strip with binding holes along its top edge and a ruled line under the
+   writing. The holes are the desk showing through (--hole); the add button is a small paper stamp so a
+   phone still has a visible submit control. See docs/4-systems/styling.md#the-jotter */
+.capture-form{display:flex; align-items:center; gap:8px; flex:1 1 260px; min-width:0; max-width:560px;}
+.jotter{
+  position:relative; border-radius:2px 2px 4px 4px; padding:14px 12px 6px; background-color:var(--paper);
+  box-shadow:0 8px 16px -12px var(--paper-shadow);
+  background-image:radial-gradient(circle, var(--hole) 2.2px, transparent 2.7px), linear-gradient(transparent calc(100% - 9px), var(--rule) calc(100% - 9px), var(--rule) calc(100% - 8px), transparent calc(100% - 8px));
+  background-size:12px 8px, 100% 100%; background-repeat:repeat-x, no-repeat; background-position:4px 2px, 0 0;
+}
+.jotter:focus-within{box-shadow:0 0 0 2px var(--accent), 0 8px 16px -12px var(--paper-shadow);}
 #capture-input{
-  flex:1; min-width:0; padding:9px 12px;
-  border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);
+  flex:1; min-width:0; padding:2px 0; border:0; background:transparent; color:var(--paper-ink); outline:none;
+  font:700 1.05rem var(--note-font);
 }
-#capture-input::placeholder{color:var(--ink-faint);}
-.capture-form button{
-  padding:9px 16px; border:none; border-radius:var(--r-control);
-  background:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;
+#capture-input::placeholder{color:var(--paper-faint); font-weight:400;}
+.jot-add{
+  flex:none; min-height:36px; padding:4px 14px; border:1.5px solid var(--paper-ink); border-radius:3px; background:transparent;
+  color:var(--paper-ink); font:700 var(--text-sm) var(--font-paper); white-space:nowrap; transform:rotate(-1.5deg);
 }
+.jot-add:active{transform:rotate(-1.5deg) translateY(2px);}
 
 /* The topbar sync icon, settings icon and Projects drawer toggle (index.html, outside #app). See
    docs/4-systems/styling.md#sync-button and #icons */
@@ -165,6 +221,69 @@ a{color:inherit;}
   .card{padding:28px;}
 }
 
+/* The focus picker sits on the desk in the lamp's light until #120 swaps its pills and cards for wallets */
+.focus-empty.card{background:radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--lamp-dot) 20%, transparent), transparent 60%), var(--surface);}
+/* Nothing to pick yet: an empty spot on the desk, outlined, with the next step in words */
+.desk-empty{border:1.5px dashed var(--line); border-radius:var(--r-card); padding:22px 20px; margin-bottom:16px;}
+
+/* The focus area as stationery (#119): the picked task is a sticky note in the lamp's light, with a
+   paper checkbox and a ticket stub under it. A drop-shadow on the wrapper survives the note's
+   folded-corner clip-path (a box-shadow on the note itself would be cut off by it). See
+   docs/4-systems/styling.md#the-sticky-note */
+.desk-focus{display:grid; gap:14px; margin:6px 0 18px; max-width:600px;}
+.note-shadow{filter:drop-shadow(0 10px 12px rgba(40,52,80,.26)) drop-shadow(0 1px 1px rgba(40,52,80,.2));}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .note-shadow{filter:drop-shadow(0 12px 12px rgba(0,0,0,.45)) drop-shadow(0 1px 1px rgba(0,0,0,.25));}
+}
+:root[data-theme="dark"] .note-shadow{filter:drop-shadow(0 12px 12px rgba(0,0,0,.45)) drop-shadow(0 1px 1px rgba(0,0,0,.25));}
+.note{
+  --fold:22px; position:relative; color:var(--note-ink); padding:22px 20px 32px; min-height:152px; transform:rotate(-1.4deg);
+  background:linear-gradient(rgba(0,0,0,.05) 0 16px, transparent 16px), var(--note);
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - var(--fold)), calc(100% - var(--fold)) 100%, 0 100%);
+}
+.note::after{content:""; position:absolute; right:0; bottom:0; width:var(--fold); height:var(--fold); background:linear-gradient(to top left, transparent 50%, var(--note-fold) 50%);}
+.note-meta{display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; font:var(--text-sm) var(--font-paper-small); color:var(--note-soft); letter-spacing:.02em;}
+.note-meta > span:not(.chip)::before{content:"\00B7" / ""; margin-right:6px;}
+.note-project{padding:6px 0; border:0; background:none; color:var(--note-ink); font:inherit; font-weight:700; text-decoration:underline dotted; text-underline-offset:3px;}
+.note .chip.deadline-chip{background:var(--paper); color:var(--paper-ink); border:1.5px solid var(--paper-soft); font-family:var(--font-paper-small);}
+.note .chip.deadline-chip.due-yellow{border-color:var(--paper-due-soon); font-weight:700;}
+.note .chip.deadline-chip.due-red{border-color:var(--paper-due-now); font-weight:700;}
+.note .chip.deadline-chip.due-red svg{color:var(--paper-due-now);}
+.focus-title{font-family:var(--note-font); font-weight:700; font-size:var(--text-q); line-height:1.2; margin:8px 0 0; text-wrap:balance;}
+@media (min-width:700px){.focus-title{font-size:var(--text-title);}}
+/* Crossing it off: a biro line drawn through the task, one stroke per line of text (the span is
+   inline and box-decoration-break:clone repeats the gradient on every wrapped line) */
+.focus-title .ink{
+  background-image:linear-gradient(var(--pen), var(--pen)); background-repeat:no-repeat; background-position:0 58%; background-size:0% 3px;
+  -webkit-box-decoration-break:clone; box-decoration-break:clone; transition:background-size .38s ease-out;
+}
+.note.is-crossed .focus-title .ink{background-size:100% 3px;}
+.note.is-peeling{transform:translate(130px, -40px) rotate(20deg); opacity:0; transition:transform .38s ease-in, opacity .38s ease-in;}
+
+/* Paper checkbox and ticket stub: the two things you can do with the note */
+.desk-acts{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; align-items:stretch;}
+.desk-acts.is-single{grid-template-columns:minmax(0,1fr);}
+.check-btn{
+  border:0; cursor:pointer; text-align:left; font:inherit; color:var(--paper-ink); display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:3px; transform:rotate(-1deg);
+  background-color:var(--paper); background-image:repeating-linear-gradient(transparent 0 21px, var(--rule) 21px 22px); background-position:0 10px; box-shadow:0 10px 18px -12px var(--paper-shadow); transition:transform .12s ease;
+}
+.check-btn:active{transform:rotate(-1deg) translateY(3px);}
+.check-btn .box{flex:none; width:30px; height:30px; border:2.5px solid var(--paper-ink); border-radius:4px 6px 3px 5px; transform:rotate(-3deg); display:grid; place-items:center; background:var(--paper);}
+.check-btn svg{width:30px; height:30px; overflow:visible;}
+.check-btn .tick{fill:none; stroke:var(--pen); stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:26; stroke-dashoffset:26;}
+.check-btn.is-ticked .tick{stroke-dashoffset:0; transition:stroke-dashoffset .25s ease-out;}
+.check-words{display:grid; gap:2px;}
+.slip-btn{
+  border:0; cursor:pointer; text-align:left; font:inherit; color:var(--paper-ink); padding:12px 34px 12px 18px; align-content:center; border-radius:3px; transform:rotate(1.2deg); position:relative; display:grid; gap:2px;
+  background:radial-gradient(circle at 0 50%, transparent 7px, var(--paper) 7.5px); box-shadow:0 10px 18px -12px var(--paper-shadow); transition:transform .12s ease;
+}
+.slip-btn:active{transform:rotate(1.2deg) translateY(3px);}
+.slip-btn::after{content:"\21A9" / ""; position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:var(--text-h); color:var(--paper-soft);}
+.slip-main{font-family:var(--font-paper); font-weight:700; font-size:var(--text-body);}
+.slip-sub{font-family:var(--font-paper-small); font-size:var(--text-sm); color:var(--paper-soft);}
+.check-btn:focus-visible, .slip-btn:focus-visible{outline:2px solid var(--accent); outline-offset:4px; border-radius:8px;}
+.desk-clear{text-align:right; margin-top:-6px;}
+
 .focus-empty .focus-q{font-size:var(--text-q); font-style:normal; margin-bottom:6px;}
 .muted{color:var(--ink-soft);}
 .muted.small{font-size:var(--text-sm);}
@@ -183,7 +302,6 @@ a{color:inherit;}
 .link-btn.small{font-size:var(--text-sm); padding:2px 0;}
 .link-btn:hover{text-decoration:underline;}
 
-.focus-tags{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:10px;}
 .chip{
   display:inline-flex; align-items:center; font-size:var(--text-sm); font-weight:600;
   padding:4px 10px; border-radius:var(--r-pill); background:var(--surface-2); color:var(--ink-soft);
@@ -214,7 +332,6 @@ button.chip.proj-chip:hover{background:var(--line);}
 .chip.priority-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color); font-weight:700; cursor:pointer;}
 .chip.priority-chip.small{font-size:var(--text-sm); padding:3px 8px;}
 .chip.priority-chip:disabled{opacity:.5; cursor:default;}
-.focus-title{font-size:var(--text-title); font-style:normal; line-height:1.15; margin-bottom:16px;}
 .focus-actions{display:flex; flex-wrap:wrap; gap:10px;}
 /* focus picker: project pills, then label cards that reuse .energy-btn; two across on a phone */
 .focus-scope{margin:-4px 0 14px;}
@@ -257,7 +374,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 .section-toggle{
   width:100%; text-align:left; background:none; border:none; padding:6px 0;
   display:flex; align-items:center; gap:8px;
-  font-family:'Fraunces', Georgia, serif; font-style:italic; font-weight:600; font-size:var(--text-h);
+  font-family:var(--font-display); font-weight:400; font-size:var(--text-h);
 }
 .section-toggle.small{width:auto; font-family:inherit; font-style:normal; font-size:var(--text-sm); color:var(--ink-soft); margin:6px 0; font-weight:600;}
 .section-toggle .count{color:var(--ink-faint); font-weight:500; font-size:var(--text-sm);}
@@ -283,7 +400,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 }
 
 /* Category-colour group labels: a section heading, not an uppercase micro-label (Q18a). */
-.cat-color-group-label{font-size:var(--text-sm); font-family:'Fraunces', Georgia, serif; font-style:italic; font-weight:600; color:var(--ink-soft); margin:16px 0 8px;}
+.cat-color-group-label{font-size:var(--text-sm); font-family:var(--font-display); font-weight:400; color:var(--ink-soft); margin:16px 0 8px;}
 .cat-color-group-label:first-child{margin-top:0;}
 .cat-color-list{display:flex; flex-direction:column; gap:8px;}
 .cat-color-row{display:flex; align-items:center; justify-content:space-between; gap:12px; border-top:1px solid var(--line); padding-top:8px;}
@@ -392,7 +509,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 .sidebar-project.is-selected{background:var(--surface-2); font-weight:700;}
 .sidebar-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
 .sidebar-head-right{display:flex; align-items:baseline; gap:10px;}
-.sidebar-title{font-size:var(--text-h); font-style:italic;}
+.sidebar-title{font-size:var(--text-h);}
 /* The "+ New" panel (PR 7, Q29a): opens right under the header row, above the All/One switch. See
    docs/4-systems/styling.md#add-a-project-or-a-repo. */
 .new-panel{border:1px solid var(--line); border-radius:var(--r-control); padding:12px; margin:10px 0; display:flex; flex-direction:column; gap:10px;}
