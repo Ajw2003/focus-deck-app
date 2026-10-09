@@ -4,6 +4,30 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-09 — A new look: a lamp-lit desk of stationery, and a landing page (#116)
+
+**Context.** The user asked to turn Focus Deck into a consumer product: a more polished look and
+UX, onboarding for new users, and a GitHub Pages site for the download, instructions and pitch.
+
+**Decision.** Chosen in conversation from three mockups and then refined over four rounds
+(`docs/plans/redesign-directions.html`, "Your pick"): direction "Low light", dark-first with a light
+mode, where every object is stationery. The task in focus is a sticky note; projects are manila
+folders and categories index cards, each in a sideways wallet flipped like CD sleeves; capture is a
+jotter; done is a paper checkbox that crosses the task out (a rubber stamp was tried and dropped);
+"Not this one" is a ticket stub; Unsorted is an in-tray filed with folders and category flags. All
+three ways of choosing a card (swipe up, tap, tap twice) stay as a setting, and the writing on
+notes is a setting (handwriting, print, OpenDyslexic). The landing page takes the site root and the
+app moves to `/app/`. GitHub stays required for syncing, so new users are walked through it rather
+than having it hidden. Scope and steps: `docs/plans/consumer-product.md`, issues #117-#126.
+
+**Replaces.** The "warm editorial, touch of notebook" visual direction of
+`docs/plans/handcrafted-redesign.md` (Q5b, Q17a-Q20a: Fraunces and IBM Plex Sans, one raised focus
+card, flat sections, the project pills and label cards of the focus picker). Its layout and control
+decisions (one project list, tiles, dragging, the editor) are not reversed by this entry; #123
+restyles them.
+
+**Status.** Active.
+
 ## 2026-09-30 — Due-date stages, PR 1 of #106: interpretation calls the plan left open
 
 **Context.** The plan fixed the model; building PR 1 needed small calls it did not make.

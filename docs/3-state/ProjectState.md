@@ -26,8 +26,15 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 12 | Time-of-day suggestions | 0% | #48 open; the user decided 2026-09-26 to delete energy fully, so #48 (if built) builds on labels and time of day, not energy |
 | 13 | Pilot and public rollout | 0% | #44 open |
 | 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 built, pending merge) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; PRs 2-6 not started |
+| 15 | Consumer product: desk redesign, landing page, onboarding | 0% | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; issues #116-#126 open; #117 (app to `/app/`) in progress |
 
 ## What's built / not built, per milestone
+
+**15. Consumer product** — Not built yet. Agreed design: the "Your pick" section of
+`docs/plans/redesign-directions.html` (a lamp-lit desk of stationery: sticky note, index-card and
+folder wallets, jotter, paper checkbox, Unsorted in-tray), screenshots in
+`docs/generated/redesign-mockup/`. Plan and decisions: `docs/plans/consumer-product.md`. Ten child
+issues #117-#126 under #116; #117 (move the app to `/app/`) in progress.
 
 **14. Due dates, repeats and reminders** — Built, pending merge (PR 1 of #106, branch
 `claude/due-stages-pr1`): `js/due-stage.js`, `task.dueSetAt`/`dueStages`, `state.dueDefaults` with its
