@@ -35,12 +35,18 @@ old registration and `focus-deck-shell-v17` were gone and only `app/` held a reg
 
 ### The root page
 
-Root `index.html` is a placeholder (the landing page, issue #118, replaces its body). `forward.js`
+Root `index.html` is the landing page (issue #118): hero, how it works, install instructions, "Do I
+need GitHub?", footer. Styles are in `site.css`, behaviour in `site.js` (install button and
+per-device instructions chosen from the user agent). The install button saves `beforeinstallprompt`
+and calls `prompt()`; with no saved prompt it scrolls to the instructions. In Chromium on this root
+page, which registers no service worker, `beforeinstallprompt` did not fire in a 4 second wait, so
+the instructions fallback is the normal path there. `forward.js`
 does `location.replace('app/' + location.search + location.hash)` immediately when the page runs as
 an installed app (`display-mode: standalone`, or `navigator.standalone` on iOS) or when
 `localStorage` already holds `focusdeck-state-v1` (`STORAGE_KEY`, `app/js/state.js:20`); storage access
-is in try/catch. Otherwise it shows the name, a line about the app and an "Open Focus Deck" link to
-`app/`. It registers no service worker.
+is in try/catch. Escape: a URL with `?about` is never forwarded, so returning users can still read the
+landing page (`/focus-deck-app/?about`). Otherwise the landing page shows. The root page registers no
+service worker.
 
 ## How it works
 

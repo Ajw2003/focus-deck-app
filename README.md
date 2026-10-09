@@ -178,7 +178,7 @@ Then open `http://localhost:8000` (the root page, which forwards to the app once
 
 ## Installing it as an app
 
-The deployed site (`https://ajw2003.github.io/focus-deck-app/`) is a PWA; the app itself lives at `https://ajw2003.github.io/focus-deck-app/app/` (the root forwards existing users there), so most browsers can
+The deployed address (`https://ajw2003.github.io/focus-deck-app/`) opens the landing page, which has an Install button and the same steps as below; people who already use the app are forwarded to it (add `?about` to read the landing page anyway). The app itself lives at `https://ajw2003.github.io/focus-deck-app/app/`. It is a PWA, so most browsers can
 install it as a standalone app instead of leaving it as a tab. Installing vs. using it in a tab
 makes no functional difference — it's the same app either way — it's just a more app-like way to
 open it.
