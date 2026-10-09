@@ -246,7 +246,41 @@ const freshUnsorted = () => ({ skipped: [], projectId: null, selected: [], newLa
   const st = { focus: { taskId: 'x1', pool: ['x1'] }, categories: [], projects: [{ id: 'pZ', name: 'PlunderSpell', color: 'red', tasks: [{ id: 'x1', title: 'Pick me', status: 'next', categoryIds: [] }] }] };
   const find = (id) => ({ task: st.projects[0].tasks.find((t) => t.id === id), project: st.projects[0] });
   const active = renderFocus(st, find, { focusFilter: {} });
-  assert.ok(active.includes('<button type="button" class="chip proj-chip" data-action="scroll-project" data-project="pZ"'), 'the picked task\'s project chip is a button that jumps to the project');
+  assert.ok(active.includes('<button type="button" class="note-project" data-action="scroll-project" data-project="pZ"'), 'the picked task\'s project, on the note, is a button that jumps to the project');
+}
+
+// the focus area as a sticky note with a paper checkbox and a ticket stub (#119)
+{
+  const cats = [{ id: 'c_bug', name: 'bug', color: '#f00' }, { id: 'c_art', name: 'art', color: '#0f0' }];
+  const task = (id, extra) => ({ id, title: 'Reply to <Sam>', status: 'next', categoryIds: ['c_bug'], priority: 'high', ...extra });
+  const mk = (focus, tasks) => ({ focus, categories: cats, projects: [{ id: 'pZ', name: 'Home', color: 'red', tasks }] });
+  const findIn = (st) => (id) => { const t = st.projects[0].tasks.find((x) => x.id === id); return t ? { task: t, project: st.projects[0] } : null; };
+  const st = mk({ taskId: 'x1', pool: ['x1', 'x2'], filter: { categoryId: 'c_bug', projectId: null } }, [task('x1'), task('x2', { title: 'b' })]);
+  const html = renderFocus(st, findIn(st), { focusFilter: {} });
+  assert.ok(html.includes('<div class="note-shadow"><div class="note">'), 'the shadow sits on a wrapper around the clipped note');
+  assert.ok(/<div class="note-meta">.*Home ↓<\/button><span>Bug<\/span><span>High<\/span>/.test(html), 'project, labels and priority form the line above the title');
+  assert.ok(html.includes('<h2 class="focus-title"><span class="ink">Reply to &lt;Sam&gt;</span></h2>'), 'the title is escaped and wrapped in the span the biro line is drawn on');
+  assert.ok(html.indexOf('note-meta') < html.indexOf('focus-title'), 'the meta line is above the title');
+  assert.ok(html.includes('class="check-btn" data-action="complete-focus"') && html.includes('I&rsquo;ve done it') && html.includes('<path class="tick"'), '"I\'ve done it" is the paper checkbox with its tick');
+  assert.ok(html.includes('class="slip-btn" data-action="reroll"') && html.includes('slip it back in the deck'), '"Not this one" is the ticket stub');
+  assert.ok(html.includes('data-action="clear-focus">Clear<'), 'Clear is still there');
+  // no pool to re-roll from: no stub
+  const single = mk({ taskId: 'x1', pool: ['x1'] }, [task('x1')]);
+  const one = renderFocus(single, findIn(single), { focusFilter: {} });
+  assert.ok(!one.includes('data-action="reroll"') && one.includes('desk-acts is-single'), 'with nothing to swap to there is no stub');
+  assert.ok(one.includes('<span>Random pick</span>'), 'a pick with no label filter says it was a random pick');
+  // deadline chip still shows on the note
+  const dated = mk({ taskId: 'x1' }, [task('x1', { deadline: '2999-01-01' })]);
+  assert.ok(renderFocus(dated, findIn(dated), { focusFilter: {} }).includes('deadline-chip'), 'the deadline chip is on the note');
+  // a repaint mid-sequence redraws the phase it had reached, only for that task
+  const mid = renderFocus(st, findIn(st), { focusFilter: {}, completing: { taskId: 'x1', phase: 'crossed' } });
+  assert.ok(mid.includes('class="note is-crossed"') && mid.includes('class="check-btn is-ticked"'), 'a repaint keeps the tick and the cross-out');
+  const other = renderFocus(st, findIn(st), { focusFilter: {}, completing: { taskId: 'zzz', phase: 'peeling' } });
+  assert.ok(!other.includes('is-peeling') && !other.includes('is-ticked'), 'another task\'s sequence does not leak onto this note');
+  // nothing open: the empty desk says what to do next
+  const empty = mk(null, [task('x1', { status: 'done' })]);
+  const emptyHtml = renderFocus(empty, () => null, { focusFilter: {} });
+  assert.ok(emptyHtml.includes('desk-empty') && emptyHtml.includes('Add a task to a project') && emptyHtml.includes('jot a thought'), 'the empty desk names the next step');
 }
 
 // wide-screen project sidebar: search, category pills, sort, and a row per visible project that jumps to it

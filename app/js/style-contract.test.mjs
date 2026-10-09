@@ -91,7 +91,7 @@ function ruleBody(selector) {
 }
 
 const invariants = [
-  ['h1', 'Fraunces', "headings must use the 'Fraunces' display serif font"],
+  ['h1', 'var\\(--font-display\\)', 'headings must use the display face (--font-display, Young Serif)'],
   ['.wrap', 'max-width:760px', 'the page must stay constrained to .wrap\'s 760px max width'],
   ['.energy-btn', 'border-top:3px solid var\\(--chip-color\\)', 'focus-picker buttons must show their energy-level color as a top border'],
   ['.card', 'border:1px solid var\\(--line\\)', 'cards must keep a visible border, not just background+shadow'],
@@ -111,6 +111,19 @@ const invariants = [
   ['.project-card.drop-target', 'outline', 'a minimised card that would take the drop must show it'],
   ['.move-dialog-backdrop', 'position:fixed', 'the move dialog covers the page'],
   ['.move-dialog', 'border-radius:var\\(--r-control\\)', 'the move dialog uses the control radius'],
+  // the desk (#119): the focus area's stationery
+  ['.note', 'clip-path:polygon', 'the sticky note\'s folded corner is a clip-path'],
+  ['.note', 'var\\(--note\\)', 'the sticky note is the sticky-note colour token'],
+  ['.note-shadow', 'drop-shadow', 'the shadow sits on the wrapper as a drop-shadow, or the note\'s clip-path would cut it off'],
+  ['.focus-title', 'var\\(--note-font\\)', 'the note\'s handwriting comes from the one --note-font property (#122 makes it a setting)'],
+  ['.focus-title .ink', 'box-decoration-break:clone', 'the biro line repeats on every wrapped line of the title'],
+  ['.focus-title .ink', 'background-size:0%', 'the biro line starts undrawn'],
+  ['.note.is-crossed .focus-title .ink', 'background-size:100%', 'crossing it off draws the line across the title'],
+  ['.check-btn .tick', 'stroke-dashoffset:26', 'the tick starts undrawn'],
+  ['.check-btn.is-ticked .tick', 'stroke-dashoffset:0', 'ticking draws the tick'],
+  ['.note.is-peeling', 'opacity:0', 'the finished note peels away'],
+  ['.jotter', 'radial-gradient', 'the jotter shows binding holes along its top edge'],
+  ['.slip-btn', 'radial-gradient', 'the ticket stub has its punched notch'],
 ];
 
 // the classes js/project-drag.js and the grip markup rely on must each have a rule
@@ -123,6 +136,38 @@ for (const [selector, expectedSubstring, why] of invariants) {
   assert.ok(body !== null, `no CSS rule found for ${selector} at all (${why})`);
   const re = new RegExp(expectedSubstring);
   assert.ok(re.test(body), `${selector} rule is missing "${expectedSubstring}" -- ${why}`);
+}
+
+// --- Test 3: the "Low light" tokens (#119). The light desk is :root, the dark desk is in the media
+// query and in :root[data-theme="dark"]; both dark blocks must agree, and every colour the rest of
+// the stylesheet reads by its old name must still exist in all three so nothing loses its colour.
+const tokenBlocks = [...css.matchAll(/:root(?::not\(\[data-theme="light"\]\))?(?:\[data-theme="dark"\])?\s*\{[^}]*\}/g)].map((m) => m[0]);
+assert.strictEqual(tokenBlocks.length, 3, 'three token blocks: light :root, dark media query, :root[data-theme="dark"]');
+const declared = (block) => new Set([...block.matchAll(/(--[a-z0-9-]+)\s*:/g)].map((m) => m[1]));
+const values = (block) => [...block.replace(/^[^{]*\{/, '').matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)].map((m) => m[1] + '=' + m[2].trim()).sort().join('|');
+assert.strictEqual(values(tokenBlocks[1]), values(tokenBlocks[2]), 'the two dark blocks must declare the same values');
+const COLOUR_TOKENS = ['--bg', '--surface', '--surface-2', '--ink', '--ink-soft', '--ink-faint', '--line', '--accent', '--accent-ink', '--danger',
+  '--prio-urgent', '--prio-high', '--prio-medium', '--prio-low', '--due-soon', '--due-now', '--lamp', '--lamp-dot', '--paper', '--rule', '--paper-shadow', '--note', '--note-fold', '--pen'];
+['light', 'dark (system)', 'dark (chosen)'].forEach((name, i) => {
+  const have = declared(tokenBlocks[i]);
+  for (const t of COLOUR_TOKENS) assert.ok(have.has(t), `${name} theme block is missing ${t}`);
+});
+const PAPER_TOKENS = ['--paper-ink', '--paper-soft', '--paper-faint', '--note-ink', '--note-soft', '--paper-due-soon', '--paper-due-now', '--hole', '--note-font'];
+for (const t of PAPER_TOKENS) assert.ok(declared(tokenBlocks[0]).has(t), `:root is missing the paper token ${t}`);
+assert.ok(/--note-font:'Kalam'/.test(tokenBlocks[0]), '--note-font defaults to Kalam');
+assert.strictEqual((css.match(/--note-font\s*:/g) || []).length, 1, '--note-font is declared exactly once (#122 will make it a setting)');
+
+// --- Test 4: the faces. Young Serif headings, Figtree interface, Bricolage Grotesque and Atkinson
+// Hyperlegible on paper, Kalam handwriting; both pages load them, and the old faces are gone.
+for (const face of ['Young Serif', 'Figtree', 'Bricolage Grotesque', 'Atkinson Hyperlegible', 'Kalam']) {
+  assert.ok(css.includes("'" + face + "'"), `css/app.css never names ${face}`);
+  for (const page of ['index.html', 'settings.html']) {
+    assert.ok(fs.readFileSync(path.join(root, page), 'utf8').includes(face.replace(/ /g, '+')), `${page} does not load ${face}`);
+  }
+}
+for (const page of ['css/app.css', 'index.html', 'settings.html']) {
+  const text = fs.readFileSync(path.join(root, page), 'utf8');
+  assert.ok(!/Fraunces|IBM[ +]Plex/.test(text), `${page} still mentions Fraunces or IBM Plex Sans`);
 }
 
 console.log('STYLE CONTRACT TESTS PASSED');

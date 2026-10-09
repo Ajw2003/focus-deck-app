@@ -3,6 +3,7 @@ import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIO
 import { ICON_SYNC, ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
 import { sortTasks } from './task-move.js';
 import { leadChoices, suggestLead, normalizeDueDefaults } from './due-stage.js';
+import { phaseClasses } from './focus-complete.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -52,9 +53,11 @@ function renderFocusPicker(st, ui) {
   // a remembered project that no longer exists counts as "All projects", which is what shows
   const projectId = st.projects.some((p) => p.id === f.projectId) ? f.projectId : null;
   if (!st.projects.some((p) => p.tasks.some((t) => t.status !== 'done'))) {
-    return '<section class="card focus-card focus-empty">'
-      + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
-      + '<p class="muted">Nothing open yet &mdash; add a task to a project below and it can be picked from here.</p>'
+    // an empty desk, with the next step spelled out (a project can be added from the list; a stray
+    // thought can go on the jotter above and be sorted later)
+    return '<section class="focus-card focus-empty desk-empty">'
+      + '<h2 class="focus-q">Your desk is clear.</h2>'
+      + '<p class="muted">Nothing is waiting to be picked. Add a task to a project in the list (the Projects button, on a phone), or jot a thought on the pad above and sort it later.</p>'
       + '</section>';
   }
   const openWhere = (catId, projId) => {
@@ -129,27 +132,39 @@ export function renderFocus(st, findTaskWithProject, ui) {
   const t = found.task, p = found.project;
   const deadlineHTML = t.deadline ? deadlineChip(t.deadline, t) : '';
   const canReroll = st.focus.pool && st.focus.pool.length > 1;
-  return '<section class="card focus-card focus-active">'
-    + '<div class="focus-tags">'
-      + '<button type="button" class="chip proj-chip" data-action="scroll-project" data-project="' + p.id + '" title="Go to ' + esc(p.name) + '">' + projectDot(p.color) + esc(p.name) + ' ↓</button>'
-      + focusReasonChip(st.focus)
-      + deadlineHTML
+  // a repaint during the "I've done it" sequence (js/focus-complete.js) draws the phase it had reached
+  const leaving = ui && ui.completing && ui.completing.taskId === t.id ? phaseClasses(ui.completing.phase) : { button: '', note: '' };
+  return '<section class="focus-card focus-active desk-focus">'
+    + '<div class="note-shadow"><div class="note' + leaving.note + '">'
+      + '<div class="note-meta">'
+        + '<button type="button" class="note-project" data-action="scroll-project" data-project="' + p.id + '" title="Go to ' + esc(p.name) + '">' + esc(p.name) + ' ↓</button>'
+        + focusMetaParts(st, t)
+        + deadlineHTML
+      + '</div>'
+      + '<h2 class="focus-title"><span class="ink">' + esc(t.title) + '</span></h2>'
+    + '</div></div>'
+    + '<div class="desk-acts' + (canReroll ? '' : ' is-single') + '">'
+      + '<button type="button" class="check-btn' + leaving.button + '" data-action="complete-focus">'
+        + '<span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="tick" d="M4.5 12.8l4.6 4.7L19.8 6.2"/></svg></span>'
+        + '<span class="check-words"><span class="slip-main">I&rsquo;ve done it</span><span class="slip-sub">tick it off</span></span>'
+      + '</button>'
+      + (canReroll ? '<button type="button" class="slip-btn" data-action="reroll"><span class="slip-main">Not this one</span><span class="slip-sub">slip it back in the deck</span></button>' : '')
     + '</div>'
-    + '<h2 class="focus-title">' + esc(t.title) + '</h2>'
-    + '<div class="focus-actions">'
-      + '<button type="button" class="btn primary" data-action="complete-focus">Done ✓</button>'
-      + (canReroll ? '<button type="button" class="btn ghost" data-action="reroll">Not this one</button>' : '')
-      + '<button type="button" class="btn ghost" data-action="clear-focus">Clear</button>'
-    + '</div>'
+    + '<div class="desk-clear"><button type="button" class="btn-text" data-action="clear-focus">Clear</button></div>'
     + '</section>';
 }
 
-// Says why this task is showing: the label it was picked from, or a random pick.
-function focusReasonChip(focus) {
-  if (focus.filter && focus.filter.categoryId === UNLABELLED) return '<span class="chip">Unlabelled</span>';
-  const cat = focus.filter && focus.filter.categoryId && state.categories.find((c) => c.id === focus.filter.categoryId);
-  if (cat) return '<span class="chip cat-chip" style="--chip-color:' + mutedChip(cat.color) + '">' + esc(formatLabelName(cat.name)) + '</span>';
-  return focus.pool ? '<span class="chip">Random pick</span>' : '';
+// The note's line after the project: the task's labels (or why it was picked when it has none), then
+// its priority. Plain words, separated by a dot in CSS; the deadline chip follows separately.
+function focusMetaParts(st, t) {
+  const focus = st.focus;
+  const parts = [];
+  const labels = (t.categoryIds || []).map((id) => (st.categories || []).find((c) => c.id === id)).filter(Boolean);
+  if (focus.filter && focus.filter.categoryId === UNLABELLED) parts.push('Unlabelled');
+  labels.forEach((c) => parts.push(formatLabelName(c.name)));
+  if (focus.pool && !(focus.filter && focus.filter.categoryId)) parts.push('Random pick');
+  if (t.priority && PRIORITY[t.priority]) parts.push(PRIORITY[t.priority].label);
+  return parts.map((x) => '<span>' + esc(x) + '</span>').join('');
 }
 
 // The Unsorted queue: captured thoughts (oldest first), then every open task with no labels, in
