@@ -26,7 +26,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 12 | Time-of-day suggestions | 0% | #48 open; the user decided 2026-09-26 to delete energy fully, so #48 (if built) builds on labels and time of day, not energy |
 | 13 | Pilot and public rollout | 0% | #44 open |
 | 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 built, pending merge) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; PRs 2-6 not started |
-| 15 | Consumer product: desk redesign, landing page, onboarding | ~10% (1 of 10 steps built) | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; issues #116-#126 open; #117 (app to `/app/`) built and merged on `ccr-a03de58c-0j19tb`, checked in Chromium, not yet deployed; #118, #119 in progress |
+| 15 | Consumer product: desk redesign, landing page, onboarding | ~30% (3 of 10 steps built) | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117 (app to `/app/`), #118 (landing page), #119 (desk look, focus area) built and merged on `ccr-a03de58c-0j19tb`, checked in Chromium, not yet deployed; #120 (wallets) in progress |
 
 ## What's built / not built, per milestone
 
@@ -40,7 +40,14 @@ the app's own worker (`app/service-worker.js`, cache prefix `focus-deck-app-shel
 worker at the old root URL (`service-worker.js`); see `docs/4-systems/pwa-shell.md`. Checked in
 Chromium under a `/focus-deck-app/` subpath (data survives, old worker and caches gone, fresh visitor
 not forwarded, standalone forwarded); not checked: a real installed PWA's identity, iOS, the live
-GitHub Pages deploy. In progress: #118 landing page, #119 desk look for the focus area.
+GitHub Pages deploy. Also built: #118, the landing page at the root (`index.html`, `site.css`,
+`site.js`; `?about` skips forwarding), checked in Chromium (no sideways scroll at 390/1280 in both
+themes, device-matched install tabs, forwarding cases); `beforeinstallprompt` did not fire on the root
+page, so Install scrolls to the instructions. #119, the desk look for the focus area: the Low light
+tokens and faces, the jotter, the sticky-note focus card, the paper checkbox with the biro cross-out
+(`app/js/focus-complete.js`), the ticket-stub "Not this one"; see `docs/4-systems/styling.md`. The
+due-now stage and light-mode High/Medium priority colours were darkened to keep contrast. In progress:
+#120 wallets.
 
 **14. Due dates, repeats and reminders** — Built, pending merge (PR 1 of #106, branch
 `claude/due-stages-pr1`): `js/due-stage.js`, `task.dueSetAt`/`dueStages`, `state.dueDefaults` with its
