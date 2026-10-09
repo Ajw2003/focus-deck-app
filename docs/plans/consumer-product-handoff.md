@@ -30,15 +30,16 @@ not stop prompts for merges, deletions or background processes from timing out.
 
 ## What needs fixing next, in order
 
-1. **Service worker install very likely fails: missing icons (pre-existing, probably since #117).**
+1. **Service worker install fails: missing icons (pre-existing, probably since #117). Confirmed in Chromium.**
    `app/service-worker.js:11-12` lists `./icons/icon-192.png` and `./icons/icon-512.png`, and the root
    `manifest.webmanifest:13-14` points at `app/icons/...`, but no icon PNG exists anywhere in the repo
    (`git ls-tree -r ccr-a03de58c-0j19tb | grep icon-` finds nothing; not gitignored). The install
    uses `cache.addAll` (`app/service-worker.js:34`), which rejects if any file 404s, so the worker
-   probably never installs and the app does not work offline. **Not yet confirmed in a browser**:
-   this is a lead from reading the code. It is also why #122's offline check hangs at
-   `await navigator.serviceWorker.ready` (`scripts/check-note-faces-browser.mjs:142`). Confirm in
-   Chromium (serve, register, read the worker's install error), then restore or generate the icons
+   never installs and the app does not work offline. **Confirmed 2026-10-09** on this branch's code
+   (same as `ccr-a03de58c-0j19tb`): served `/app/` in Chromium, the install requested
+   `/app/icons/icon-192.png` and `/app/icons/icon-512.png`, both 404, and after 6 s
+   `navigator.serviceWorker.getRegistrations()` returned `[]`. It is also almost certainly why #122's offline check hangs at
+   `await navigator.serviceWorker.ready` (`scripts/check-note-faces-browser.mjs:142`). Restore or generate the icons
    (check git history for where they went in the #117 move) and re-run.
 2. **Merge #120** into `ccr-a03de58c-0j19tb` (see above).
 3. **#122: finish the browser check.** Branch `AjsAgent/issue-122-note-writing`, head `a07271e`.
@@ -46,7 +47,11 @@ not stop prompts for merges, deletions or background processes from timing out.
    With the reload fix (`a07271e`), the real-Chromium check passes every face check: all three faces
    on the sticky note and jotter in dark and light, the right font family, OpenDyslexic reported
    loaded by `document.fonts`, a long title fits, stored and applied after reload, no sideways scroll.
-   Screenshots in `docs/generated/pr122/` (8 PNGs, **not yet looked at**). It then hangs at the
+   Screenshots in `docs/generated/pr122/` (8 PNGs). Looked at `dark-dyslexic.png` and `light-settings.png`:
+   OpenDyslexic fits the note in four lines with interface text unchanged; Settings shows the "Note
+   writing" previews. This sandbox blocks Google Fonts, so Handwriting rendered in its fallback, not
+   Kalam: check Kalam on a real network. The pinned Settings header appears mid-page in the full-page
+   capture; that is the screenshot, not the layout. It then hangs at the
    service-worker/offline section (item 1). Also: the scale values (.95 Print, .78 OpenDyslexic) were
    untuned guesses; the run shows titles of 3, 3 and 4 lines at 24, 22.8 and 18.72px, so check by eye.
    Before merging, reconcile `CACHE_NAME`: #121 set `v4`, #122 `v5`; the merged result needs one value
@@ -55,7 +60,7 @@ not stop prompts for merges, deletions or background processes from timing out.
    connected: `app/js/in-tray.js` (decisions), `app/js/in-tray-view.js` (`renderInTrayCard`),
    `app/js/in-tray.test.mjs` (11 tests), CSS "In-tray (#121)" section using the `--note-font` /
    `--note-scale` hook from #122, `docs/4-systems/in-tray.md` (keep/change/drop inventory and a
-   "To wire it" list). The builder reported 130/130 tests; the parent has not re-run them. What's
+   "To wire it" list). Unit tests on that head: 130/130 (re-run by the parent). What's
    left: replace the old Unsorted block in `app/js/render.js` (lines 207-325 on that branch) with the
    new one (kept in `scripts/.tmp-block.js`, committed only so it isn't lost: delete it once used),
    wire `app/js/app.js`, rewrite the Unsorted tests in `app/js/render.test.mjs`, write and run a
