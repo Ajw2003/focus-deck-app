@@ -126,6 +126,35 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
 .c .row { display: flex; gap: 10px; flex-wrap: wrap; }
 .c .row .pc { min-height: 70px; width: 96px; }
 
+/* ---------- Pick: B + A's cards in a flip-through ---------- */
+.ba.screen { min-height: 680px; }
+.ba .card h3 { transition: opacity .25s ease; }
+.ba .draw-h { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; }
+.ba .draw-h .q { margin: 0; }
+.ba .draw-h .count { font-size: .8rem; color: var(--b-mist); font-variant-numeric: tabular-nums; }
+.flip { position: relative; margin: 0 -18px; }
+.flip-track { display: flex; gap: 0; overflow-x: auto; scroll-snap-type: x mandatory; padding: 18px 0 22px; scrollbar-width: none; overscroll-behavior-x: contain; outline: none; }
+.flip-track::-webkit-scrollbar { display: none; }
+.flip-track:focus-visible { box-shadow: inset 0 0 0 2px var(--b-amber); border-radius: 14px; }
+.flip-pad { flex: 0 0 25%; }
+.sleeve { flex: 0 0 50%; scroll-snap-align: center; display: flex; justify-content: center; }
+.icard { width: 100%; height: 150px; border-radius: 6px; background: #EFEADF; color: #1D2733; position: relative; cursor: pointer; border: 0; text-align: left; font: inherit;
+  padding: 14px 14px 12px 26px; box-shadow: 0 14px 26px -14px rgba(0,0,0,.8); transform-origin: center; will-change: transform;
+  background-image: linear-gradient(#C9584F, #C9584F), repeating-linear-gradient(transparent 0 21px, #C3CEDD 21px 22px);
+  background-size: 1.5px 100%, 100% 100%; background-position: 16px 0, 0 38px; background-repeat: no-repeat; border-top: 6px solid var(--c); }
+.icard:focus-visible { outline: 2px solid var(--b-amber); outline-offset: 3px; }
+.icard .nm { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 1.1rem; white-space: nowrap; letter-spacing: -0.01em; display: block; }
+.icard .ct { font-family: "Atkinson Hyperlegible", sans-serif; font-size: .82rem; color: #4E5A68; display: block; margin-top: 18px; line-height: 22px; }
+.icard .go { position: absolute; right: 12px; bottom: 10px; font-family: "Atkinson Hyperlegible", sans-serif; font-size: .78rem; font-weight: 700; color: #1D2733; opacity: 0; transition: opacity .2s; }
+.sleeve.is-centre .icard .go { opacity: 1; }
+.flip-hint { text-align: center; font-size: .78rem; color: var(--b-mist); margin-top: -8px; }
+@media (prefers-reduced-motion: reduce) { .icard { transform: none !important; } .ba .card h3 { transition: none; } }
+.pick { border-top: 2px solid var(--pick); }
+.pick .tag { font-size: .85rem; }
+.earlier { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 28px; }
+.earlier h2 { margin: 0; font-size: 1.2rem; }
+.earlier p { margin: 0; color: var(--muted); max-width: 70ch; }
+
 .note { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; max-width: 74ch; }
 .note h2 { margin: 0 0 6px; font-size: 1.05rem; }
 .note p { margin: 0; color: var(--muted); }
@@ -134,8 +163,61 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
 <div class="sheet">
   <header class="intro">
     <h1>Three directions for Focus Deck</h1>
-    <p>Each row shows the same moment in the app, one task picked for you, plus the top of the new landing page in that look. Pick one, or name the parts you want mixed. The tasks shown are examples.</p>
+    <p>Your pick is first: Low light, with Index card categories you flip through. The three original options are kept below for reference. The tasks shown are examples.</p>
   </header>
+
+  <section class="direction pick" id="your-pick">
+    <div class="dir-head">
+      <span class="tag">Your pick</span>
+      <h2>Low light, with a card wallet</h2>
+      <p>Direction B's calm dark screen and glowing focus card. The pills are gone. The categories are A's index cards, kept in a sideways wallet you flip through like CD sleeves: the middle card faces you and the ones either side turn away like pages.</p>
+      <ul>
+        <li>Swipe or drag sideways to flip. On a computer, click the wallet and use the arrow keys.</li>
+        <li>Tap the card facing you to draw a task from that category. Try it, it works.</li>
+      </ul>
+    </div>
+    <div class="mocks">
+      <div>
+        <div class="phone"><div class="screen b ba">
+          <div class="top"><div class="brand"><span class="dot"></span>Focus Deck</div><span>Synced</span></div>
+          <div class="capture">Something on your mind?</div>
+          <div class="q">Right now, just this:</div>
+          <div class="card">
+            <div class="k" id="ba-meta">Home · Chore · due Friday</div>
+            <h3 id="ba-task">Reply to Sam about the camping trip</h3>
+            <div class="acts"><span class="btn main">I've done it</span><span class="btn ghost">Not this one</span></div>
+          </div>
+          <div class="draw-h"><div class="q">Draw from…</div><span class="count" id="ba-count">1 of 5</span></div>
+          <div class="flip">
+            <div class="flip-track" id="ba-track" tabindex="0" aria-label="Categories. Use left and right arrow keys to flip.">
+              <div class="flip-pad"></div>
+              <div class="sleeve"><button class="icard" style="--c:#3E8E5E" data-cat="Chore"><span class="nm">Chore</span><span class="ct">4 open<br>top: High</span><span class="go">Draw →</span></button></div>
+              <div class="sleeve"><button class="icard" style="--c:#C2731E" data-cat="Art"><span class="nm">Art</span><span class="ct">2 open<br>none urgent</span><span class="go">Draw →</span></button></div>
+              <div class="sleeve"><button class="icard" style="--c:#C9584F" data-cat="Bug"><span class="nm">Bug</span><span class="ct">3 open<br>top: Urgent</span><span class="go">Draw →</span></button></div>
+              <div class="sleeve"><button class="icard" style="--c:#4D6FB8" data-cat="Study"><span class="nm">Study</span><span class="ct">5 open<br>top: Medium</span><span class="go">Draw →</span></button></div>
+              <div class="sleeve"><button class="icard" style="--c:#1D2733" data-cat="Anything"><span class="nm">Surprise me</span><span class="ct">14 open<br>any category</span><span class="go">Draw →</span></button></div>
+              <div class="flip-pad"></div>
+            </div>
+          </div>
+          <div class="flip-hint">Swipe to flip · tap to draw</div>
+        </div></div>
+        <div class="cap">App: one task picked, categories in the wallet</div>
+      </div>
+      <div>
+        <div class="hero b">
+          <h2>Too many tasks? Start with one.</h2>
+          <p>Focus Deck keeps your list out of sight and shows you a single task, picked for you. Fewer choices, less noise, an easier start.</p>
+          <div class="cta"><span class="btn main">Install Focus Deck</span><span class="small">Free · Works offline · iPhone, Android, desktop</span></div>
+        </div>
+        <div class="cap">Landing page: top of the page (unchanged from B)</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="earlier">
+    <h2>The three original options</h2>
+    <p>Kept for reference.</p>
+  </div>
 
   <!-- A -->
   <section class="direction" id="index-card">
@@ -275,3 +357,88 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
     <p>The landing page goes at the site root with an Install button and setup steps for each device. The app moves to /app/ and existing installs get forwarded there. The first time you open the app, it walks you through making a first task and then setting up GitHub sync, one step at a time. Settings gets reorganised so the token steps sit inside that guided setup.</p>
   </div>
 </div>
+
+<script>
+(() => {
+  // Example tasks per category, so tapping a card visibly deals one.
+  const examples = {
+    Chore: [['Home · Chore · due Friday', 'Reply to Sam about the camping trip'], ['Home · Chore', 'Take the recycling out'], ['Home · Chore', 'Book a dentist appointment']],
+    Art: [['Portfolio · Art', 'Ink the second page of the comic'], ['Portfolio · Art', 'Pick three photos for the gallery wall']],
+    Bug: [['Website · Bug · Urgent', 'Fix the menu that won’t close on phones'], ['Website · Bug', 'Contact form sends twice']],
+    Study: [['School · Study · due Monday', 'Read chapter 4 of the biology book'], ['School · Study', 'Make flashcards for French verbs']],
+  };
+  const track = document.getElementById('ba-track');
+  const meta = document.getElementById('ba-meta');
+  const title = document.getElementById('ba-task');
+  const count = document.getElementById('ba-count');
+  if (!track) return;
+  const sleeves = [...track.querySelectorAll('.sleeve')];
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let centreIndex = 0;
+
+  // Each card turns away from you by how far it sits from the middle, like sleeves in a CD wallet.
+  function updateTilt() {
+    const box = track.getBoundingClientRect();
+    const middle = box.left + box.width / 2;
+    let nearest = 0, nearestDistance = Infinity;
+    sleeves.forEach((sleeve, i) => {
+      const r = sleeve.getBoundingClientRect();
+      const offset = (r.left + r.width / 2 - middle) / r.width; // 0 in the middle, ±1 one card away
+      if (Math.abs(offset) < nearestDistance) { nearestDistance = Math.abs(offset); nearest = i; }
+      const clamped = Math.max(-1.6, Math.min(1.6, offset));
+      const card = sleeve.firstElementChild;
+      if (!reduceMotion) {
+        card.style.transform = `perspective(600px) rotateY(${clamped * -48}deg) translateZ(${-Math.abs(clamped) * 60}px)`;
+        card.style.filter = `brightness(${1 - Math.min(0.45, Math.abs(clamped) * 0.32)})`;
+      }
+      card.style.zIndex = String(10 - Math.round(Math.abs(clamped) * 4));
+    });
+    sleeves.forEach((s, i) => s.classList.toggle('is-centre', i === nearest));
+    centreIndex = nearest;
+    count.textContent = `${nearest + 1} of ${sleeves.length}`;
+  }
+
+  function flipTo(index) {
+    const i = Math.max(0, Math.min(sleeves.length - 1, index));
+    sleeves[i].scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
+  }
+
+  function draw(category) {
+    const pool = category === 'Anything' ? Object.values(examples).flat() : examples[category];
+    const current = title.textContent;
+    const options = pool.filter(([, t]) => t !== current);
+    const [m, t] = options[Math.floor(Math.random() * options.length)];
+    title.style.opacity = 0;
+    setTimeout(() => { meta.textContent = m; title.textContent = t; title.style.opacity = 1; }, reduceMotion ? 0 : 180);
+  }
+
+  track.addEventListener('scroll', () => requestAnimationFrame(updateTilt), { passive: true });
+  window.addEventListener('resize', updateTilt);
+  track.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); flipTo(centreIndex + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); flipTo(centreIndex - 1); }
+  });
+  sleeves.forEach((sleeve, i) => sleeve.firstElementChild.addEventListener('click', () => {
+    // A side card flips to the middle first; only the card facing you deals a task.
+    if (i !== centreIndex) { flipTo(i); return; }
+    draw(sleeve.firstElementChild.dataset.cat);
+  }));
+
+  // Mouse users can drag the wallet sideways too, not only touch users.
+  let dragStartX = null, dragStartScroll = 0, dragged = false;
+  track.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') return; dragStartX = e.clientX; dragStartScroll = track.scrollLeft; dragged = false; });
+  window.addEventListener('pointermove', (e) => {
+    if (dragStartX === null) return;
+    const dx = e.clientX - dragStartX;
+    if (Math.abs(dx) > 4) { dragged = true; track.style.scrollSnapType = 'none'; track.scrollLeft = dragStartScroll - dx; }
+  });
+  window.addEventListener('pointerup', () => {
+    if (dragStartX === null) return;
+    dragStartX = null; track.style.scrollSnapType = '';
+    if (dragged) flipTo(centreIndex);
+  });
+  track.addEventListener('click', (e) => { if (dragged) { e.stopPropagation(); e.preventDefault(); dragged = false; } }, true);
+
+  updateTilt();
+})();
+</script>
