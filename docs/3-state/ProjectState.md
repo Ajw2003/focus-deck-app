@@ -26,7 +26,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 12 | Time-of-day suggestions | 0% | #48 open; the user decided 2026-09-26 to delete energy fully, so #48 (if built) builds on labels and time of day, not energy |
 | 13 | Pilot and public rollout | 0% | #44 open |
 | 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 built, pending merge) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; PRs 2-6 not started |
-| 15 | Consumer product: desk redesign, landing page, onboarding | ~40% (4 of 10 steps built) | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117 (app to `/app/`), #118 (landing page), #119 (desk look, focus area) built and merged on `ccr-a03de58c-0j19tb`, checked in Chromium, not yet deployed; #120 (wallets) built, checked in Chromium (44 of 44, 2026-10-09) and merged on `ccr-a03de58c-0j19tb` |
+| 15 | Consumer product: desk redesign, landing page, onboarding | ~40% (4 of 10 steps built) | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117 (app to `/app/`), #118 (landing page), #119 (desk look, focus area) built and merged on `ccr-a03de58c-0j19tb`, checked in Chromium, not yet deployed; #120 (wallets) built, checked in Chromium (44 of 44, 2026-10-09) and merged on `ccr-a03de58c-0j19tb`; #122 (note-writing setting, OpenDyslexic self-hosted) built on `AjsAgent/issue-122-note-writing`, unit tests and contrast pass, real-Chromium check written but not yet run (permission refused) |
 
 ## What's built / not built, per milestone
 

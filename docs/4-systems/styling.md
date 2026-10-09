@@ -501,6 +501,33 @@ dialog, drag ghosts and the whole Settings page. They use `--surface`, `--line`,
 Figtree/Young Serif faces, which keeps them legible, but none use paper, the note or the lamp. The
 focus picker's pills and label cards are #120's.
 
+### Note faces
+
+Settings > Note writing (#122) chooses the face for the writing on paper notes: Handwriting (Kalam,
+the default), Print (Atkinson Hyperlegible) or OpenDyslexic. It applies to the sticky note
+(`.focus-title`), the jotter (`#capture-input`) and the in-tray slips (#121 reads the same two
+tokens). Interface text is not affected.
+
+- **Mechanism.** `js/note-face.js` sets `data-note-face="hand|print|dyslexic"` on `<html>`. The "Note
+  faces" section at the end of `css/app.css` sets `--note-font` and `--note-scale` per face (the
+  hand default is in the first `:root` block). Notes write `font-family: var(--note-font)` and
+  `font-size: calc(<size> * var(--note-scale))`. Scales: hand 1, print .95, OpenDyslexic .78 (it runs
+  wide, so the sticky note's title takes about the same lines).
+- **Stored** as `state.noteFace = { face, updatedAt }`, defaulted, merged (newest stamp wins) and set
+  (`setNoteFace`) exactly like `choosingMode` (`js/state.js`, `js/merge.js`, `js/mutations.js`;
+  tests in `js/choosing-mode.test.mjs`). Per device, and syncs; `renderApp` re-applies it so a synced
+  change shows.
+- **No flash.** A tiny inline script in `<head>` of `index.html` and `settings.html` reads the saved
+  face from localStorage and sets the attribute before `css/app.css` paints.
+- **OpenDyslexic is self-hosted:** `app/fonts/opendyslexic-latin-700-normal.woff2` from
+  `@fontsource/opendyslexic` 5.3.0 (not an npm dependency), licence at `app/fonts/OpenDyslexic-OFL.txt`
+  (SIL OFL 1.1). `@font-face` uses `font-display: swap`. Kalam and Atkinson still come from the
+  Google Fonts link. The font and `js/note-face.js` are in the service worker's `SHELL_ASSETS`
+  (cache `v5`), so OpenDyslexic works offline.
+- **Trap.** Settings samples carry `data-note-face` themselves (`.note-face-sample`) so each shows its
+  own face; the face rules' selectors cover both `<html>` and the sample.
+- Checked by `scripts/check-note-faces-browser.mjs` (screenshots in `docs/generated/pr122/`).
+
 ### Project header and the Edit panel (Q15a, #83, PR 4 2026-09-27)
 
 `renderProjectCard`'s header is two lines that always render in the same shape, whatever the
