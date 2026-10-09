@@ -1,0 +1,277 @@
+<title>Focus Deck Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Young+Serif&family=Figtree:wght@400;500;600&family=Archivo:wdth,wght@62..125,400..900&display=swap">
+<style>
+/* Layout: a comparison sheet. Three direction rows, each a phone mock beside a landing-hero mock. */
+:root {
+  --bg: #F2F3F5; --fg: #1B1E24; --muted: #5C6370; --line: #D9DCE2; --panel: #FFFFFF; --pick: #2F5BD3;
+  --sheet-font: "Figtree", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15171B; --fg: #E8EAEE; --muted: #9AA1AD; --line: #2C3038; --panel: #1E2127; --pick: #7FA2FF; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #15171B; --fg: #E8EAEE; --muted: #9AA1AD; --line: #2C3038; --panel: #1E2127; --pick: #7FA2FF; color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 32px 64px; }
+.sheet { max-width: 1120px; margin: 0 auto; display: grid; gap: 48px; }
+.intro h1 { font-size: 1.9rem; margin: 0 0 8px; text-wrap: balance; letter-spacing: -0.01em; }
+.intro p { margin: 0; max-width: 64ch; color: var(--muted); }
+.direction { display: grid; gap: 18px; border-top: 1px solid var(--line); padding-top: 28px; }
+.dir-head { display: grid; gap: 4px; }
+.dir-head .tag { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--pick); font-weight: 600; }
+.dir-head h2 { margin: 0; font-size: 1.45rem; text-wrap: balance; }
+.dir-head p { margin: 0; max-width: 70ch; color: var(--muted); }
+.dir-head ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); max-width: 70ch; }
+.mocks { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 820px) { .mocks { grid-template-columns: minmax(0, 1fr); } .phone { margin: 0 auto; } }
+.cap { font-size: .8rem; color: var(--muted); margin-top: 6px; text-align: center; }
+
+.phone { width: 100%; max-width: 340px; border-radius: 34px; padding: 10px; background: #0E0F12; box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 18px 40px -18px rgba(0,0,0,.45); }
+.screen { border-radius: 26px; overflow: hidden; min-height: 600px; display: flex; flex-direction: column; }
+.hero { border-radius: 18px; overflow: hidden; min-width: 0; }
+
+/* ---------- A. Index card ---------- */
+.a { --a-desk: #DCE3EA; --a-card: #FFFEFB; --a-ink: #1D2733; --a-rule: #B9CCE4; --a-red: #D9423B; --a-soft: #5D6B7B;
+     font-family: "Atkinson Hyperlegible", system-ui, sans-serif; color: var(--a-ink); }
+.a.screen { background: var(--a-desk); padding: 18px 16px; gap: 14px; }
+.a .top { display: flex; align-items: center; justify-content: space-between; }
+.a .brand { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+.a .stack { width: 22px; height: 16px; position: relative; }
+.a .stack i { position: absolute; inset: 0; border-radius: 3px; background: var(--a-card); border: 1.5px solid var(--a-ink); }
+.a .stack i:first-child { transform: translate(4px,-3px) rotate(6deg); }
+.a .capture { background: var(--a-card); border-radius: 12px; padding: 11px 14px; color: var(--a-soft); font-size: .92rem; border: 1.5px dashed #9FB0C3; }
+.a .focus { position: relative; margin-top: 4px; }
+.a .focus .under { position: absolute; inset: 8px -6px -8px 6px; background: #EEF2F6; border-radius: 6px; transform: rotate(2.2deg); box-shadow: 0 6px 14px -8px rgba(29,39,51,.35); }
+.a .card { position: relative; background: var(--a-card); border-radius: 6px; padding: 22px 20px 18px 34px; box-shadow: 0 10px 22px -12px rgba(29,39,51,.45);
+  background-image: linear-gradient(var(--a-red), var(--a-red)), repeating-linear-gradient(transparent 0 27px, var(--a-rule) 27px 28px);
+  background-size: 1.5px 100%, 100% 100%; background-position: 22px 0, 0 46px; background-repeat: no-repeat, no-repeat; }
+.a .card .k { font-size: .78rem; color: var(--a-red); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.a .card h3 { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 1.55rem; line-height: 28px; margin: 8px 0 12px; letter-spacing: -0.015em; }
+.a .meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: .8rem; }
+.a .chip { border: 1.5px solid var(--a-ink); border-radius: 999px; padding: 1px 10px; }
+.a .chip.hot { background: var(--a-red); color: #fff; border-color: var(--a-red); }
+.a .acts { display: flex; gap: 8px; margin-top: 16px; }
+.a .btn { font-weight: 700; border-radius: 10px; padding: 10px 14px; font-size: .9rem; }
+.a .btn.main { background: var(--a-ink); color: #fff; flex: 1; text-align: center; }
+.a .btn.ghost { border: 1.5px solid var(--a-ink); }
+.a .pick-h { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 1rem; margin-top: 8px; }
+.a .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.a .tab { background: var(--a-card); border-radius: 6px; padding: 10px 12px; border-top: 4px solid var(--c); display: flex; justify-content: space-between; font-size: .9rem; }
+.a .tab b { font-family: "Bricolage Grotesque", sans-serif; }
+.a.hero { background: var(--a-desk); padding: 40px 36px; display: grid; gap: 18px; position: relative; }
+.a.hero h2 { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: clamp(2rem, 4.6vw, 3.4rem); line-height: 1; letter-spacing: -0.035em; margin: 0; max-width: 13ch; text-wrap: balance; }
+.a.hero h2 em { font-style: normal; color: var(--a-red); }
+.a.hero p { margin: 0; max-width: 46ch; font-size: 1.05rem; color: var(--a-soft); }
+.a .cta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.a .fan { display: flex; gap: 0; margin-top: 6px; }
+.a .fan span { width: 120px; height: 78px; background: var(--a-card); border-radius: 5px; box-shadow: 0 8px 18px -10px rgba(29,39,51,.5); margin-right: -46px; border-top: 5px solid var(--c); padding: 8px 10px; font-size: .78rem; font-weight: 700; }
+.a .fan span:nth-child(1) { transform: rotate(-8deg); } .a .fan span:nth-child(2) { transform: rotate(-3deg) translateY(-4px); } .a .fan span:nth-child(3) { transform: rotate(3deg) translateY(-6px); } .a .fan span:nth-child(4) { transform: rotate(9deg); }
+
+/* ---------- B. Low light ---------- */
+.b { --b-night: #18213A; --b-deep: #111829; --b-moon: #E9E4D8; --b-mist: #9BA3B8; --b-amber: #F2B45A; --b-line: #2A3555;
+     font-family: "Figtree", system-ui, sans-serif; color: var(--b-moon); }
+.b.screen { background: var(--b-deep); padding: 20px 18px; gap: 16px; }
+.b .top { display: flex; align-items: center; justify-content: space-between; color: var(--b-mist); font-size: .85rem; }
+.b .brand { font-family: "Young Serif", serif; font-size: 1.15rem; color: var(--b-moon); display: flex; align-items: center; gap: 8px; }
+.b .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--b-amber); box-shadow: 0 0 12px 3px rgba(242,180,90,.55); }
+.b .capture { border-bottom: 1px solid var(--b-line); padding: 8px 2px; color: var(--b-mist); font-size: .92rem; }
+.b .q { font-family: "Young Serif", serif; font-size: 1.05rem; color: var(--b-mist); margin-top: 18px; }
+.b .card { position: relative; border-radius: 22px; padding: 26px 22px 20px; background: radial-gradient(120% 90% at 50% 0%, rgba(242,180,90,.20), rgba(242,180,90,0) 60%), var(--b-night); border: 1px solid #2E3A5E; }
+.b .card .k { font-size: .78rem; color: var(--b-amber); letter-spacing: .04em; }
+.b .card h3 { font-family: "Young Serif", serif; font-weight: 400; font-size: 1.6rem; line-height: 1.2; margin: 10px 0 14px; text-wrap: balance; }
+.b .meta { display: flex; gap: 14px; font-size: .82rem; color: var(--b-mist); }
+.b .acts { display: grid; gap: 10px; margin-top: 22px; }
+.b .btn { border-radius: 999px; padding: 12px 16px; text-align: center; font-weight: 600; font-size: .92rem; }
+.b .btn.main { background: var(--b-amber); color: #2A1B05; }
+.b .btn.ghost { color: var(--b-mist); }
+.b .breath { margin-top: auto; text-align: center; font-size: .8rem; color: var(--b-mist); display: grid; gap: 10px; justify-items: center; }
+.b .ring { width: 54px; height: 54px; border-radius: 50%; border: 1.5px solid rgba(242,180,90,.6); box-shadow: 0 0 0 8px rgba(242,180,90,.07); }
+.b .others { display: flex; gap: 8px; flex-wrap: wrap; }
+.b .others span { border: 1px solid var(--b-line); border-radius: 999px; padding: 4px 12px; font-size: .82rem; color: var(--b-mist); }
+.b.hero { background: var(--b-deep); padding: 48px 40px; display: grid; gap: 20px; background-image: radial-gradient(60% 80% at 85% 20%, rgba(242,180,90,.16), transparent 60%); }
+.b.hero h2 { font-family: "Young Serif", serif; font-weight: 400; font-size: clamp(2rem, 4.4vw, 3.2rem); line-height: 1.08; margin: 0; max-width: 15ch; text-wrap: balance; }
+.b.hero p { margin: 0; max-width: 48ch; font-size: 1.05rem; color: var(--b-mist); }
+.b .cta { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.b .cta .btn.main { padding: 13px 22px; }
+.b .small { font-size: .85rem; color: var(--b-mist); }
+
+/* ---------- C. The deal ---------- */
+.c { --c-paper: #FBF7EF; --c-ink: #161616; --c-tomato: #EE4B2B; --c-mustard: #F4B528; --c-cobalt: #2457D6; --c-mint: #2FB37A;
+     font-family: "Archivo", system-ui, sans-serif; color: var(--c-ink); }
+.c.screen { background: var(--c-paper); padding: 18px 16px; gap: 14px; }
+.c .top { display: flex; align-items: center; justify-content: space-between; }
+.c .brand { font-weight: 900; font-stretch: 75%; font-size: 1.3rem; text-transform: uppercase; letter-spacing: .01em; }
+.c .brand span { color: var(--c-tomato); }
+.c .capture { border: 2.5px solid var(--c-ink); border-radius: 14px; padding: 10px 14px; font-size: .9rem; background: #fff; box-shadow: 3px 3px 0 var(--c-ink); }
+.c .q { font-weight: 800; font-stretch: 80%; text-transform: uppercase; font-size: 1.5rem; line-height: 1; margin-top: 6px; }
+.c .hand { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.c .pc { border: 2.5px solid var(--c-ink); border-radius: 14px; padding: 10px 12px; background: var(--c); color: var(--t, var(--c-ink)); box-shadow: 3px 3px 0 var(--c-ink); min-height: 92px; display: flex; flex-direction: column; justify-content: space-between; }
+.c .pc .n { font-weight: 900; font-stretch: 70%; font-size: 2rem; line-height: 1; }
+.c .pc .l { font-weight: 700; font-size: .9rem; }
+.c .pc.wild { grid-column: span 2; background: var(--c-ink); color: var(--c-paper); flex-direction: row; align-items: center; min-height: 0; padding: 14px; }
+.c .pc.wild .l { font-weight: 900; font-stretch: 80%; text-transform: uppercase; font-size: 1.1rem; }
+.c .drawn { border: 2.5px solid var(--c-ink); border-radius: 18px; background: #fff; padding: 16px; box-shadow: 5px 5px 0 var(--c-ink); transform: rotate(-1.2deg); }
+.c .drawn .k { display: inline-block; background: var(--c-mustard); border: 2px solid var(--c-ink); border-radius: 999px; padding: 0 9px; font-weight: 700; font-size: .78rem; }
+.c .drawn h3 { font-weight: 800; font-size: 1.3rem; line-height: 1.15; margin: 10px 0; }
+.c .drawn .acts { display: flex; gap: 8px; }
+.c .btn { border: 2.5px solid var(--c-ink); border-radius: 12px; padding: 8px 12px; font-weight: 800; font-size: .88rem; }
+.c .btn.main { background: var(--c-mint); flex: 1; text-align: center; }
+.c.hero { background: var(--c-paper); padding: 40px 36px; display: grid; gap: 18px; border: 2.5px solid #161616; }
+.c.hero h2 { font-weight: 900; font-stretch: 72%; text-transform: uppercase; font-size: clamp(2.4rem, 6vw, 4.6rem); line-height: .9; margin: 0; letter-spacing: -0.01em; }
+.c.hero h2 span { color: var(--c-tomato); }
+.c.hero p { margin: 0; max-width: 46ch; font-size: 1.05rem; }
+.c .cta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.c .cta .btn.main { background: var(--c-tomato); color: #fff; padding: 12px 20px; flex: none; box-shadow: 4px 4px 0 var(--c-ink); }
+.c .row { display: flex; gap: 10px; flex-wrap: wrap; }
+.c .row .pc { min-height: 70px; width: 96px; }
+
+.note { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; max-width: 74ch; }
+.note h2 { margin: 0 0 6px; font-size: 1.05rem; }
+.note p { margin: 0; color: var(--muted); }
+</style>
+
+<div class="sheet">
+  <header class="intro">
+    <h1>Three directions for Focus Deck</h1>
+    <p>Each row shows the same moment in the app, one task picked for you, plus the top of the new landing page in that look. Pick one, or name the parts you want mixed. The tasks shown are examples.</p>
+  </header>
+
+  <!-- A -->
+  <section class="direction" id="index-card">
+    <div class="dir-head">
+      <span class="tag">Direction A</span>
+      <h2>Index card</h2>
+      <p>The "deck" taken literally: your focus task is a real ruled index card lying on top of the pile. Calm cool-blue desk, one red margin line as the only loud colour.</p>
+      <ul>
+        <li>Body type is Atkinson Hyperlegible, a typeface designed for readers with low vision. It's easy on tired eyes and on dyslexic readers.</li>
+        <li>Labels become coloured card tabs. Light mode first, with a dark "desk at night" version.</li>
+      </ul>
+    </div>
+    <div class="mocks">
+      <div>
+        <div class="phone"><div class="screen a">
+          <div class="top"><div class="brand"><span class="stack"><i></i><i></i></span>Focus Deck</div><span style="font-size:.85rem;color:#5D6B7B">Synced</span></div>
+          <div class="capture">Get it out of your head…</div>
+          <div class="focus"><div class="under"></div>
+            <div class="card">
+              <div class="k">Your one thing</div>
+              <h3>Reply to Sam about the camping trip</h3>
+              <div class="meta"><span class="chip">Home</span><span class="chip">Chore</span><span class="chip hot">Due Friday</span></div>
+              <div class="acts"><span class="btn main">Done</span><span class="btn ghost">Not this one</span></div>
+            </div>
+          </div>
+          <div class="pick-h">Or draw from…</div>
+          <div class="tabs">
+            <div class="tab" style="--c:#3E8E5E"><span>Chore</span><b>4</b></div>
+            <div class="tab" style="--c:#C2731E"><span>Art</span><b>2</b></div>
+            <div class="tab" style="--c:#D9423B"><span>Bug</span><b>3</b></div>
+            <div class="tab" style="--c:#1D2733"><span>Surprise me</span><b>9</b></div>
+          </div>
+        </div></div>
+        <div class="cap">App: one task picked</div>
+      </div>
+      <div>
+        <div class="hero a">
+          <h2>One card. <em>Not the whole pile.</em></h2>
+          <p>Focus Deck hides your to-do list and deals you a single task at a time. Built for ADHD brains that freeze at a wall of tasks.</p>
+          <div class="cta"><span class="btn main" style="flex:none;padding:12px 20px">Install Focus Deck</span><span class="btn ghost">How it works</span></div>
+          <div class="fan"><span style="--c:#3E8E5E">Chore</span><span style="--c:#C2731E">Art</span><span style="--c:#D9423B">Bug</span><span style="--c:#1D2733">Surprise me</span></div>
+        </div>
+        <div class="cap">Landing page: top of the page</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B -->
+  <section class="direction" id="low-light">
+    <div class="dir-head">
+      <span class="tag">Direction B</span>
+      <h2>Low light</h2>
+      <p>Low-stimulus, dark-first. The screen is almost empty and the one task gets a soft amber glow. The other choices sit back as quiet outlines. Made to calm you down rather than wind you up.</p>
+      <ul>
+        <li>Soft serif headings (Young Serif) with a clean sans for everything else. Very little motion: one slow "breathe" ring for starting a task.</li>
+        <li>Dark mode is the main look, with a dusk-paper light version.</li>
+      </ul>
+    </div>
+    <div class="mocks">
+      <div>
+        <div class="phone"><div class="screen b">
+          <div class="top"><div class="brand"><span class="dot"></span>Focus Deck</div><span>Synced</span></div>
+          <div class="capture">Something on your mind?</div>
+          <div class="q">Right now, just this:</div>
+          <div class="card">
+            <div class="k">Home · Chore · due Friday</div>
+            <h3>Reply to Sam about the camping trip</h3>
+            <div class="meta"><span>About 5 minutes</span><span>High priority</span></div>
+            <div class="acts"><span class="btn main">I've done it</span><span class="btn ghost">Not this one</span></div>
+          </div>
+          <div class="others"><span>Chore 4</span><span>Art 2</span><span>Bug 3</span><span>Surprise me</span></div>
+          <div class="breath"><span class="ring"></span>Breathe in, then start</div>
+        </div></div>
+        <div class="cap">App: one task picked</div>
+      </div>
+      <div>
+        <div class="hero b">
+          <h2>Too many tasks? Start with one.</h2>
+          <p>Focus Deck keeps your list out of sight and shows you a single task, picked for you. Fewer choices, less noise, an easier start.</p>
+          <div class="cta"><span class="btn main">Install Focus Deck</span><span class="small">Free · Works offline · iPhone, Android, desktop</span></div>
+        </div>
+        <div class="cap">Landing page: top of the page</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- C -->
+  <section class="direction" id="the-deal">
+    <div class="dir-head">
+      <span class="tag">Direction C</span>
+      <h2>The deal</h2>
+      <p>Bold and playful: labels are playing cards in strong colours with chunky ink outlines, and picking a task feels like drawing from a hand. Gives you a bit of a push, which might suit students in the school pilot.</p>
+      <ul>
+        <li>Condensed Archivo in heavy weights for headings, the same family for body text. Flat colour, hard offset shadows, cards tilted a little.</li>
+        <li>Light mode first. The dark version swaps the paper for charcoal and keeps the colours.</li>
+      </ul>
+    </div>
+    <div class="mocks">
+      <div>
+        <div class="phone"><div class="screen c">
+          <div class="top"><div class="brand">Focus<span>Deck</span></div><span style="font-weight:700;font-size:.85rem">Synced</span></div>
+          <div class="capture">Dump a thought here…</div>
+          <div class="drawn">
+            <span class="k">You drew: Chore</span>
+            <h3>Reply to Sam about the camping trip</h3>
+            <div class="acts"><span class="btn main">Done!</span><span class="btn">Redraw</span></div>
+          </div>
+          <div class="q">Pick a card</div>
+          <div class="hand">
+            <div class="pc" style="--c:var(--c-mint)"><span class="n">4</span><span class="l">Chore</span></div>
+            <div class="pc" style="--c:var(--c-mustard)"><span class="n">2</span><span class="l">Art</span></div>
+            <div class="pc" style="--c:var(--c-tomato);--t:#fff"><span class="n">3</span><span class="l">Bug</span></div>
+            <div class="pc" style="--c:var(--c-cobalt);--t:#fff"><span class="n">5</span><span class="l">Study</span></div>
+            <div class="pc wild"><span class="l">Surprise me</span></div>
+          </div>
+        </div></div>
+        <div class="cap">App: one task picked</div>
+      </div>
+      <div>
+        <div class="hero c">
+          <h2>Stop scrolling your to-do list. <span>Draw a card.</span></h2>
+          <p>Focus Deck turns your tasks into a deck. Pick the kind of work, get one task, do it. Made for ADHD brains.</p>
+          <div class="cta"><span class="btn main">Install Focus Deck</span><span class="btn">See how it works</span></div>
+          <div class="row">
+            <div class="pc" style="--c:var(--c-mint)"><span class="n">4</span><span class="l">Chore</span></div>
+            <div class="pc" style="--c:var(--c-mustard)"><span class="n">2</span><span class="l">Art</span></div>
+            <div class="pc" style="--c:var(--c-tomato);--t:#fff"><span class="n">3</span><span class="l">Bug</span></div>
+          </div>
+        </div>
+        <div class="cap">Landing page: top of the page</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="note">
+    <h2>Same plan whichever look you pick</h2>
+    <p>The landing page goes at the site root with an Install button and setup steps for each device. The app moves to /app/ and existing installs get forwarded there. The first time you open the app, it walks you through making a first task and then setting up GitHub sync, one step at a time. Settings gets reorganised so the token steps sit inside that guided setup.</p>
+  </div>
+</div>
