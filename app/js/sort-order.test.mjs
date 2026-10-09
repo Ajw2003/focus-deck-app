@@ -1,4 +1,4 @@
-// focus-deck-app/js/sort-order.test.mjs — run with: node --test js/sort-order.test.mjs
+// focus-deck-app/js/sort-order.test.mjs — run with: node --test app/js/sort-order.test.mjs
 //
 // Custom project order (PR 9): sortOrder numbering, where a drag lands, the Custom sort, and the
 // property the whole design rests on -- a move changes ONE record, so stampChanges stamps one

@@ -1,4 +1,4 @@
-// focus-deck-app/js/task-move.test.mjs -- run with: node --test js/task-move.test.mjs
+// focus-deck-app/js/task-move.test.mjs -- run with: node --test app/js/task-move.test.mjs
 //
 // Dragging tasks (PR 11): task sortOrder, where a drop lands, what moving a task to another project
 // means for GitHub (planTaskMove), the mutation, the two guarantees that a moved task neither comes

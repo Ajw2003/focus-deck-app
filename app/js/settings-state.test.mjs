@@ -1,4 +1,4 @@
-// focus-deck-app/js/settings-state.test.mjs — run with: node js/settings-state.test.mjs
+// focus-deck-app/js/settings-state.test.mjs — run with: node app/js/settings-state.test.mjs
 //
 // Regression test for a stale-state bug found while investigating a user report of "credentials
 // and Gist ID disappearing." The report itself turned out to be explained by Chrome's "Desktop

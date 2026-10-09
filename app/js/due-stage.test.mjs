@@ -1,4 +1,4 @@
-// focus-deck-app/js/due-stage.test.mjs — run with: node --test js/due-stage.test.mjs
+// focus-deck-app/js/due-stage.test.mjs — run with: node --test app/js/due-stage.test.mjs
 // Clock values are built with local Date constructors so the cases mean the same in any timezone;
 // the DST cases pin a zone (America/New_York) because that is the only way to make a day 23 hours.
 import test from 'node:test';

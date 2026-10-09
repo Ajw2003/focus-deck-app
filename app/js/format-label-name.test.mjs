@@ -1,4 +1,4 @@
-// focus-deck-app/js/format-label-name.test.mjs — run with: node --test js/format-label-name.test.mjs
+// focus-deck-app/js/format-label-name.test.mjs — run with: node --test app/js/format-label-name.test.mjs
 //
 // Display-only auto-formatting of label (task category) names (Q7b). Never touches the stored
 // name or anything sent to GitHub — see docs/4-systems/styling.md.

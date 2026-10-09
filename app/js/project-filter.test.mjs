@@ -1,4 +1,4 @@
-// focus-deck-app/js/project-filter.test.mjs — run with: node js/project-filter.test.mjs
+// focus-deck-app/js/project-filter.test.mjs — run with: node app/js/project-filter.test.mjs
 import { filterAndSortProjects, sortProjects, resolveSelectedProject, resolveProjectView } from './project-filter.js';
 import assert from 'node:assert';
 

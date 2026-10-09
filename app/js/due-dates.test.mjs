@@ -1,4 +1,4 @@
-// focus-deck-app/js/due-dates.test.mjs -- run with: node --test js/due-dates.test.mjs
+// focus-deck-app/js/due-dates.test.mjs -- run with: node --test app/js/due-dates.test.mjs
 //
 // Due-date stages (#106, PR 1) around the pure js/due-stage.js: dueSetAt stamping in the mutations,
 // the state.dueDefaults field (defaults, survives save and load, merge rule), the stage class on the

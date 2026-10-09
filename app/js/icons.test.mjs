@@ -1,4 +1,4 @@
-// focus-deck-app/js/icons.test.mjs — run with: node --test js/icons.test.mjs
+// focus-deck-app/js/icons.test.mjs — run with: node --test app/js/icons.test.mjs
 //
 // The icons module is the app's one source of truth for its hand-drawn SVG line icons (Q19a).
 // This is dependency-free static analysis, matching every other test in this repo: it doesn't

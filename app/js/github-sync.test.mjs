@@ -1,4 +1,4 @@
-// focus-deck-app/js/github-sync.test.mjs — run with: node js/github-sync.test.mjs
+// focus-deck-app/js/github-sync.test.mjs — run with: node app/js/github-sync.test.mjs
 import {
   statusFromLabels, parseRepoInput,
   applyLabels, CLAUDE_CREATED_LABEL, CLAUDE_COMPLETED_LABEL,

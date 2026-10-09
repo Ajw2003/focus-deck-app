@@ -1,4 +1,4 @@
-// focus-deck-app/js/style-contract.test.mjs — run with: node js/style-contract.test.mjs
+// focus-deck-app/js/style-contract.test.mjs — run with: node app/js/style-contract.test.mjs
 //
 // A regression test for GitHub issue #17: commit af88e6d replaced almost all of css/app.css with
 // a different, smaller draft stylesheet while claiming a one-line fix, and nothing caught it

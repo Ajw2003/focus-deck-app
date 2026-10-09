@@ -1,4 +1,4 @@
-// focus-deck-app/js/render.test.mjs — run with: node js/render.test.mjs
+// focus-deck-app/js/render.test.mjs — run with: node app/js/render.test.mjs
 import { renderTaskRow, chipsMaxPct, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderSyncButton, syncButtonTitle } from './render.js';
 import assert from 'node:assert';
 

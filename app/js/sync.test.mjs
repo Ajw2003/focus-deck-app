@@ -1,4 +1,4 @@
-// focus-deck-app/js/sync.test.mjs — run with: node js/sync.test.mjs
+// focus-deck-app/js/sync.test.mjs — run with: node app/js/sync.test.mjs
 import { mergeStates } from './sync.js';
 import assert from 'node:assert';
 

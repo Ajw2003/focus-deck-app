@@ -1,4 +1,4 @@
-// focus-deck-app/js/persist-storage.test.mjs — run with: node js/persist-storage.test.mjs
+// focus-deck-app/js/persist-storage.test.mjs — run with: node app/js/persist-storage.test.mjs
 //
 // Regression test for a bug found while investigating a user report of losing all local data
 // and their sync Gist ID ("the changes made deleted all of my credentials from my local copy and
