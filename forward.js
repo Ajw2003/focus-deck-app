@@ -1,6 +1,7 @@
 // Sends people who already use Focus Deck straight to the app (docs/4-systems/pwa-shell.md#the-root-page).
-// Keep this when the landing page replaces the body of index.html.
+// Returning users skip the landing page. "?about" is the escape: it lets them read it anyway.
 (function () {
+  if (new URLSearchParams(location.search).has('about')) return;
   // key written by app/js/state.js (STORAGE_KEY)
   const DATA_KEY = 'focusdeck-state-v1';
   function isInstalled() {

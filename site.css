@@ -1,0 +1,104 @@
+/* Landing page. Tokens and paper objects come from the "Low light" direction in
+   docs/plans/redesign-directions.html. Dark is the default desk; light is the same desk by day. */
+:root {
+  --night: #18213A; --deep: #111829; --moon: #E9E4D8; --mist: #9BA3B8; --amber: #F2B45A; --line: #2A3555;
+  --card-edge: #2E3A5E; --on-amber: #2A1B05; --paper: #EFEADF; --rule: #C3CEDD; --shadow: rgba(0,0,0,.8);
+  --note: #EFCB66; --note-fold: #C9A243; --lamp: rgba(242,180,90,.17); --folder: #F1E6CC;
+  --focus: #F2B45A;
+  --note-font: "Kalam", "Comic Sans MS", cursive;
+  color-scheme: dark;
+}
+/* Light amber is darker than the mockup's #B9760F so white text on it passes AA contrast. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --night: #FBFAF7; --deep: #E4E8EF; --moon: #1C2438; --mist: #59627A; --amber: #8F5A0A; --line: #C7CEDB;
+    --card-edge: #D3D9E4; --on-amber: #FFFFFF; --paper: #FFFEFA; --shadow: rgba(40,52,80,.35);
+    --note: #FFE27A; --note-fold: #E2C055; --lamp: rgba(255,255,255,.75);
+    --focus: #1F3F99;
+    color-scheme: light;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--deep); color: var(--moon); font: 1rem/1.55 "Figtree", system-ui, sans-serif; }
+h1, h2, h3 { font-family: "Young Serif", serif; font-weight: 400; margin: 0; text-wrap: balance; }
+a { color: var(--moon); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+.skip { position: absolute; left: 8px; top: -60px; background: var(--night); color: var(--moon); padding: 8px 12px; z-index: 10; }
+.skip:focus { top: 8px; }
+
+.site-top { max-width: 1100px; margin: 0 auto; padding: 20px 20px 0; }
+.brand { font-family: "Young Serif", serif; font-size: 1.15rem; display: inline-flex; align-items: center; gap: 8px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 12px 3px rgba(242,180,90,.55); }
+
+.hero { max-width: 1100px; margin: 12px auto 0; padding: 40px 20px 48px; display: grid; gap: 28px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center;
+  background-image: radial-gradient(70% 90% at 80% 40%, var(--lamp), transparent 70%); }
+@media (max-width: 800px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+.hero h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.08; max-width: 15ch; }
+.hero p { margin: 16px 0 0; max-width: 48ch; font-size: 1.05rem; color: var(--mist); }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 24px; }
+.small, .hero .small { font-size: .88rem; color: var(--mist); }
+
+.btn { display: inline-block; border-radius: 999px; padding: 13px 22px; font: inherit; font-weight: 600; font-size: .95rem; text-decoration: none; cursor: pointer; border: 0; text-align: center; }
+.btn.main { background: var(--amber); color: var(--on-amber); }
+.btn.ghost { color: var(--moon); box-shadow: 0 0 0 1.5px var(--line) inset; background: none; }
+.btn[hidden] { display: none; }
+
+/* Desk illustration: a folder, two index cards and a sticky note. */
+.hero-desk { position: relative; height: 240px; min-width: 0; max-width: 420px; width: 100%; }
+.mini-folder { position: absolute; left: 2%; top: 18px; width: 60%; height: 150px; border-radius: 3px 10px 10px 10px; transform: rotate(-5deg);
+  background-color: color-mix(in srgb, var(--c) 55%, var(--folder)); box-shadow: 0 14px 22px -14px var(--shadow); padding: 14px; }
+.mini-folder::before { content: ""; position: absolute; left: 0; top: -12px; width: 46%; height: 13px; border-radius: 6px 10px 0 0; background: inherit; }
+.mini-folder span { display: inline-block; background: #FFFEFA; color: #1D2733; padding: 1px 8px; border-radius: 2px; font: 700 .9rem "Bricolage Grotesque", sans-serif; }
+.mini-card { position: absolute; left: calc(22% + var(--x)); top: 74px; width: 40%; height: 92px; padding: 8px 10px; border-radius: 4px; color: #1D2733; font: 700 .95rem "Bricolage Grotesque", sans-serif;
+  background-color: var(--paper); background-image: repeating-linear-gradient(transparent 0 17px, var(--rule) 17px 18px); background-position: 0 30px;
+  border-top: 5px solid var(--c); transform: rotate(var(--r)); box-shadow: 0 12px 18px -12px var(--shadow); }
+.note-shadow { filter: drop-shadow(0 12px 12px rgba(0,0,0,.45)) drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
+@media (prefers-color-scheme: light) { .note-shadow { filter: drop-shadow(0 10px 12px rgba(40,52,80,.26)) drop-shadow(0 1px 1px rgba(40,52,80,.2)); } }
+.note { --fold: 22px; position: relative; color: #2B2412; padding: 22px 20px 30px; min-height: 152px; transform: rotate(-1.4deg);
+  background: linear-gradient(rgba(0,0,0,.05) 0 16px, transparent 16px), var(--note);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--fold)), calc(100% - var(--fold)) 100%, 0 100%); }
+.note::after { content: ""; position: absolute; right: 0; bottom: 0; width: var(--fold); height: var(--fold); background: linear-gradient(to top left, transparent 50%, var(--note-fold) 50%); }
+.note-shadow.mini { position: absolute; right: 0; top: 104px; width: 48%; }
+.note-shadow.mini .note { --fold: 16px; min-height: 0; padding: 18px 14px 22px; font: 700 1.05rem/1.2 var(--note-font); transform: rotate(4deg); }
+
+.band { max-width: 1100px; margin: 0 auto; padding: 48px 20px; border-top: 1px solid var(--line); }
+.band h2 { font-size: clamp(1.5rem, 4vw, 2rem); margin-bottom: 20px; }
+.band h3 { font-size: 1.2rem; margin: 12px 0 6px; }
+.band p { margin: 0 0 12px; max-width: 60ch; }
+.lead { color: var(--mist); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; grid-template-columns: repeat(3, minmax(0, 1fr)); counter-reset: step; }
+@media (max-width: 800px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+.steps li { counter-increment: step; background: var(--night); border: 1px solid var(--card-edge); border-radius: 22px; padding: 20px; }
+.steps li h3::before { content: counter(step) ". "; color: var(--mist); }
+.steps li p { color: var(--mist); margin: 0; }
+.ill { height: 96px; position: relative; display: flex; align-items: center; justify-content: center; }
+.pad { width: 90px; height: 84px; background: var(--paper); border-top: 10px solid #6B5A3A; border-radius: 3px; transform: rotate(-3deg); padding: 10px 10px 0; box-shadow: 0 10px 14px -10px var(--shadow); }
+.pad i { display: block; height: 1.5px; background: var(--rule); margin-bottom: 14px; }
+.pad i:first-child { background: #2346A0; width: 70%; height: 2px; }
+.fan { position: relative; width: 130px; height: 80px; }
+.fan span { position: absolute; top: 4px; width: 62px; height: 74px; background: var(--paper); border-top: 5px solid var(--c); border-radius: 3px; box-shadow: 0 8px 12px -8px var(--shadow); }
+.fan span:nth-child(1) { left: 0; transform: rotate(-9deg); } .fan span:nth-child(2) { left: 30px; transform: rotate(-1deg); } .fan span:nth-child(3) { left: 62px; transform: rotate(8deg); }
+.note-shadow.tiny .note { --fold: 14px; width: 84px; min-height: 0; height: 74px; padding: 0; }
+
+.tablist { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.tablist [role=tab] { font: inherit; font-weight: 600; font-size: .92rem; color: var(--mist); background: none; border: 1.5px solid var(--line); border-radius: 999px; padding: 8px 16px; cursor: pointer; }
+.tablist [role=tab][aria-selected=true] { color: var(--on-amber); background: var(--amber); border-color: var(--amber); }
+[role=tabpanel] { background: var(--night); border: 1px solid var(--card-edge); border-radius: 18px; padding: 18px 22px; max-width: 70ch; }
+[role=tabpanel][hidden] { display: none; }
+[role=tabpanel] ol { margin: 0; padding-left: 1.3rem; }
+[role=tabpanel] li { margin: 6px 0; }
+[role=tabpanel] p:last-child { margin-bottom: 0; }
+#install-note { min-height: 1.4em; margin-top: 12px; }
+
+.answers { display: grid; gap: 20px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 800px) { .answers { grid-template-columns: minmax(0, 1fr); } }
+.answers > div { background: var(--night); border: 1px solid var(--card-edge); border-radius: 22px; padding: 6px 20px 14px; }
+.answers p { color: var(--mist); }
+
+.site-foot { max-width: 1100px; margin: 0 auto; padding: 28px 20px 48px; border-top: 1px solid var(--line); display: flex; gap: 24px; flex-wrap: wrap; }
+.site-foot a { color: var(--mist); }
+
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
