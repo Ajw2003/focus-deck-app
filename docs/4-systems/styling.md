@@ -33,28 +33,18 @@ announced with `role="alert"`) or `'info'` (accent edge, `role="status"`).
 
 ### Focus picker
 
-"What's your focus right now?" (`renderFocusPicker`, js/render.js) shows one big card per label
-(task type) that has open tasks, busiest first. Tapping a card picks a random open task with that
-label, within the chosen project pill. **Surprise me** picks from every label. It is deliberately
-not a card: it sits below the grid in its own `.focus-surprise` row, set apart by space and a
-divider, as a `.btn.primary` accent button with the pool size beside it, because it is a
-different kind of choice. (It was a full-width "Anything" card until 2026-09-26.)
-
-The cards reuse `.energy-btn` inside `.energy-grid`, the look of the old Low/Medium/High buttons:
-surface-2 fill, the label's colour on the top edge, the name, and a detail line ("3 open · 1 urgent
-· 2 projects"). `.focus-grid` sets two columns on a phone. Six cards show until "Show all N labels".
-
-Project pills above the cards (`.filter-pills`, plain `.filter-pill`s with a small colour dot for
-identity — project colour is not used to tint them, see "Visual system" below — and the same
-`.filter-pill.active` accent fill as any other chosen pill) narrow the cards and counts. They are
-sorted busiest first, and six show
-until the dashed **+N more** pill (`.focus-more-pill`) expands them. The chosen project always
-shows, and names are never shortened. The chosen pill is kept per device (`focusdeck-focus-filter`).
-
-Open tasks with no label get an **Unlabelled** card after the label cards (neutral `--ink-faint`
-edge, always shown). It picks with the stand-in id `UNLABELLED` (js/state.js). This card is only a
-focus pick, though — filing those tasks (and captured thoughts) into projects and labels happens in
-the Unsorted card below, not from here.
+"What's your focus right now?" (`renderFocusPicker`, js/render.js) is two **wallets** (#120): manila
+folders for projects, ruled index cards for categories, with "Surprise me" as the last index card.
+How they work, the Choosing a card setting and the traps are in
+[wallets.md](./wallets.md). Styling lives at the end of `css/app.css` ("Wallets"): `.flip-track`,
+`.sleeve`, `.icard` (paper tokens `--paper`, `--rule`, `--paper-soft`; folders use `--folder` and
+the project's colour mixed 55%), `.icard.project` for the folder tab and label sticker. The tilt
+and brightness are set inline by js/wallet.js. Open tasks with no label get an **Unlabelled** index
+card (neutral `--ink-faint` edge); it picks with the stand-in id `UNLABELLED` (js/state.js).
+Filing those tasks (and captured thoughts) happens in the Unsorted card below, not from here. The
+chosen folder is kept per device (`focusdeck-focus-filter`). The old project pills, label cards
+and the "+N more" / "Show all N labels" reveals are gone from this picker; `.energy-grid` and
+`.filter-pill`s remain for the Unsorted flow until #121.
 
 ### Top bar
 

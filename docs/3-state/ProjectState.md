@@ -26,7 +26,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 12 | Time-of-day suggestions | 0% | #48 open; the user decided 2026-09-26 to delete energy fully, so #48 (if built) builds on labels and time of day, not energy |
 | 13 | Pilot and public rollout | 0% | #44 open |
 | 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 built, pending merge) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; PRs 2-6 not started |
-| 15 | Consumer product: desk redesign, landing page, onboarding | ~30% (3 of 10 steps built) | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117 (app to `/app/`), #118 (landing page), #119 (desk look, focus area) built and merged on `ccr-a03de58c-0j19tb`, checked in Chromium, not yet deployed; #120 (wallets) in progress |
+| 15 | Consumer product: desk redesign, landing page, onboarding | ~30% (3 of 10 steps built) | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117 (app to `/app/`), #118 (landing page), #119 (desk look, focus area) built and merged on `ccr-a03de58c-0j19tb`, checked in Chromium, not yet deployed; #120 (wallets) built on `AjsAgent/issue-120-wallets`, unit tests pass, real-Chromium check not yet run |
 
 ## What's built / not built, per milestone
 
@@ -46,9 +46,14 @@ themes, device-matched install tabs, forwarding cases); `beforeinstallprompt` di
 page, so Install scrolls to the instructions. #119, the desk look for the focus area: the Low light
 tokens and faces, the jotter, the sticky-note focus card, the paper checkbox with the biro cross-out
 (`app/js/focus-complete.js`), the ticket-stub "Not this one"; see `docs/4-systems/styling.md`. The
-due-now stage and light-mode High/Medium priority colours were darkened to keep contrast. In progress:
-#120 wallets (step 1 of 3 on branch `AjsAgent/issue-120-wallets`). Paused 2026-10-09 until
-the house-rules prompt fix lands; resume from `docs/plans/consumer-product-handoff.md`.
+due-now stage and light-mode High/Medium priority colours were darkened to keep contrast. #120 wallets, on
+branch `AjsAgent/issue-120-wallets` (not merged): the focus picker is a folder wallet and an index-card
+wallet (`app/js/wallet.js`, `docs/4-systems/wallets.md`), and "Choosing a card" (Swipe up / Tap / Tap
+twice, default Tap twice) is a synced setting on the Settings page (`state.choosingMode`, merged like
+`dueDefaults`). Dropped from the old picker: "+N more", "Show all N labels", and "1 urgent" (now
+"top: Urgent"). Unit tests pass (119); the real-Chromium check (`scripts/check-wallets-browser.mjs`) has
+not been run because starting a static server was refused. Resume from
+`docs/plans/consumer-product-handoff.md`.
 
 **14. Due dates, repeats and reminders** — Built, pending merge (PR 1 of #106, branch
 `claude/due-stages-pr1`): `js/due-stage.js`, `task.dueSetAt`/`dueStages`, `state.dueDefaults` with its
