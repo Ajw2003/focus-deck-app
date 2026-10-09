@@ -22,7 +22,7 @@ not stop prompts for merges, deletions or background processes from timing out.
 - The main checkout is now on `AjsAgent/consumer-product-continuation-sk1mqt` (same commit as
   `ccr-a03de58c-0j19tb`, `add42bf`, plus this doc). Under 2.59.0 that made builder commits pass
   without a prompt; it does not help with merges.
-- **#120 is finished and checked but NOT merged.** Branch `AjsAgent/issue-120-wallets`, head `580718a`.
+- **#120 is finished and checked but NOT merged.** Branch `AjsAgent/issue-120-wallets`, head `56df2bd` (re-checked 2026-10-09: 119/119 unit tests, 44/44 in Chromium).
   The user approved merging it, drops included ("Merge with the drops"), but the git merge prompt
   then went unanswered and was refused. Next step: merge it into `ccr-a03de58c-0j19tb`
   (`git merge --no-ff origin/AjsAgent/issue-120-wallets`), with the user ready to approve.
@@ -42,7 +42,7 @@ not stop prompts for merges, deletions or background processes from timing out.
    `await navigator.serviceWorker.ready` (`scripts/check-note-faces-browser.mjs:142`). Restore or generate the icons
    (check git history for where they went in the #117 move) and re-run.
 2. **Merge #120** into `ccr-a03de58c-0j19tb` (see above).
-3. **#122: finish the browser check.** Branch `AjsAgent/issue-122-note-writing`, head `a07271e`.
+3. **#122: finish the browser check.** Branch `AjsAgent/issue-122-note-writing`, head `abe8403` (re-checked: 121/121 unit tests; browser check 60 passed, 0 failed before the offline section).
    Feature built; unit tests passed for the builder (121/121), contrast and churn guard passed.
    With the reload fix (`a07271e`), the real-Chromium check passes every face check: all three faces
    on the sticky note and jotter in dark and light, the right font family, OpenDyslexic reported
