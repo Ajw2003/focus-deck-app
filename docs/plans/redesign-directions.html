@@ -1,6 +1,6 @@
 <title>Focus Deck Directions</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Young+Serif&family=Figtree:wght@400;500;600&family=Archivo:wdth,wght@62..125,400..900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Young+Serif&family=Kalam:wght@400;700&family=Figtree:wght@400;500;600&family=Archivo:wdth,wght@62..125,400..900&display=swap">
 <style>
 /* Layout: a comparison sheet. Three direction rows, each a phone mock beside a landing-hero mock. */
 :root {
@@ -155,7 +155,6 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
   padding: 12px 12px 10px 24px; box-shadow: 0 14px 26px -14px var(--b-shadow); will-change: transform; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
   background-image: linear-gradient(#C9584F, #C9584F), repeating-linear-gradient(transparent 0 21px, var(--b-rule) 21px 22px);
   background-size: 1.5px 100%, 100% 100%; background-position: 15px 0, 0 34px; background-repeat: no-repeat; border-top: 6px solid var(--c); transition: box-shadow .2s ease; }
-.icard.project { height: 96px; border-top: 0; border-left: 8px solid var(--c); padding-left: 16px; background-image: repeating-linear-gradient(transparent 0 21px, var(--b-rule) 21px 22px); background-size: 100% 100%; background-position: 0 30px; }
 .icard:focus-visible { outline: 2px solid var(--b-amber); outline-offset: 3px; }
 .icard .nm { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em; display: block; white-space: nowrap; }
 .icard .ct { font-family: "Atkinson Hyperlegible", sans-serif; font-size: .8rem; color: var(--b-paper-soft); display: block; margin-top: 12px; line-height: 22px; }
@@ -174,6 +173,78 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
 .ba.hero.light h2 { color: #1C2438; } .ba.hero.light p, .ba.hero.light .small { color: #59627A; }
 @media (prefers-reduced-motion: reduce) { .icard { transform: none !important; } .ba .card h3, .sleeve { transition: none; } .sleeve.is-nudge { animation: none; } }
 
+/* ---------- The desk: every object is stationery people already use ---------- */
+.ba { --note: #EFCB66; --note-fold: #C9A243; --lamp: rgba(242,180,90,.17); --folder: #F1E6CC; --stamp-ink: #B3362C; }
+.ba.light { --note: #FFE27A; --note-fold: #E2C055; --lamp: rgba(255,255,255,.75); }
+.ba.screen { background: radial-gradient(120% 42% at 50% 22%, var(--lamp), transparent 72%), var(--b-deep); }
+
+/* Jotter: a notepad strip with binding holes along the top. */
+.jotter { display: block; position: relative; border-radius: 2px 2px 4px 4px; padding: 14px 12px 6px; background-color: var(--b-paper); box-shadow: 0 8px 16px -12px var(--b-shadow);
+  background-image: radial-gradient(circle, var(--b-deep) 2.2px, transparent 2.7px), linear-gradient(transparent calc(100% - 9px), var(--b-rule) calc(100% - 9px), var(--b-rule) calc(100% - 8px), transparent calc(100% - 8px));
+  background-size: 12px 8px, 100% 100%; background-repeat: repeat-x, no-repeat; background-position: 4px 2px, 0 0; }
+.jotter input { width: 100%; border: 0; background: transparent; font: 700 1.05rem "Kalam", "Comic Sans MS", cursive; color: var(--b-paper-ink); outline: none; padding: 2px 0; }
+.jotter input::placeholder { color: #7D8794; font-weight: 400; }
+.jotter:focus-within { box-shadow: 0 0 0 2px var(--b-amber), 0 8px 16px -12px var(--b-shadow); }
+
+/* Sticky note: the one task, in the lamp's light. A drop-shadow on the wrapper survives the note's folded-corner clip. */
+.desk-focus { display: grid; gap: 14px; margin-top: 6px; }
+.note-shadow { filter: drop-shadow(0 12px 12px rgba(0,0,0,.45)) drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
+.ba.light .note-shadow { filter: drop-shadow(0 10px 12px rgba(40,52,80,.26)) drop-shadow(0 1px 1px rgba(40,52,80,.2)); }
+.note { --fold: 22px; position: relative; color: #2B2412; padding: 22px 20px 30px; min-height: 152px; transform: rotate(-1.4deg);
+  background: linear-gradient(rgba(0,0,0,.05) 0 16px, transparent 16px), var(--note);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--fold)), calc(100% - var(--fold)) 100%, 0 100%); }
+.note::after { content: ""; position: absolute; right: 0; bottom: 0; width: var(--fold); height: var(--fold); background: linear-gradient(to top left, transparent 50%, var(--note-fold) 50%); }
+.note .k { font-family: "Atkinson Hyperlegible", sans-serif; font-size: .78rem; color: #6B5520; letter-spacing: .02em; }
+.note h3 { font-family: "Kalam", "Comic Sans MS", cursive; font-weight: 700; font-size: 1.6rem; line-height: 1.15; margin: 8px 0 0; text-wrap: balance; }
+.stamp-mark { position: absolute; right: 26px; bottom: 16px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: .14em; font-size: 1.35rem;
+  color: var(--stamp-ink); border: 3px solid currentColor; border-radius: 6px; padding: 0 10px; transform: rotate(-12deg) scale(1.9); opacity: 0; mix-blend-mode: multiply; pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle at 30% 40%, #000 45%, rgba(0,0,0,.65) 85%); mask-image: radial-gradient(circle at 30% 40%, #000 45%, rgba(0,0,0,.65) 85%); }
+.note.is-stamped .stamp-mark { opacity: .92; transform: rotate(-12deg) scale(1); transition: transform .16s cubic-bezier(.3,1.6,.5,1), opacity .08s; }
+.note.is-arriving { animation: note-in .32s ease-out; }
+@keyframes note-in { from { transform: translateY(-18px) rotate(-5deg); opacity: 0; } to { transform: rotate(-1.4deg); opacity: 1; } }
+.note.is-leaving-up { transform: translateY(-26px) rotate(3deg); opacity: 0; transition: transform .24s ease-in, opacity .24s ease-in; }
+.note.is-leaving-down { transform: translateY(70px) rotate(-3deg) scale(.9); opacity: 0; transition: transform .24s ease-in, opacity .24s ease-in; }
+.note.is-peeling { transform: translate(130px, -40px) rotate(20deg); opacity: 0; transition: transform .38s ease-in, opacity .38s ease-in; }
+
+/* Rubber stamp and paper slip: the two things you can do with the note. */
+.desk-acts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; }
+.stamp-btn { border: 0; background: none; padding: 0 4px; cursor: pointer; display: grid; justify-items: center; gap: 4px; color: var(--b-moon); font: inherit; }
+.stamp-tool { position: relative; width: 70px; height: 62px; display: block; transition: transform .1s ease; }
+.stamp-btn:active .stamp-tool { transform: translateY(6px); }
+.stamp-tool .knob { position: absolute; left: 50%; top: 0; width: 32px; height: 25px; transform: translateX(-50%); border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 35% 30%, #F08C80, var(--stamp-ink) 70%); }
+.stamp-tool .neck { position: absolute; left: 50%; top: 21px; width: 12px; height: 14px; transform: translateX(-50%); background: #7A4E31; }
+.stamp-tool .block { position: absolute; left: 4px; right: 4px; top: 33px; height: 19px; border-radius: 4px; background: linear-gradient(#C08B5B, #8A5A3A); box-shadow: 0 6px 10px -6px rgba(0,0,0,.6); }
+.stamp-tool .rubber { position: absolute; left: 8px; right: 8px; top: 52px; height: 7px; border-radius: 0 0 3px 3px; background: var(--stamp-ink); }
+.act-lbl { font-size: .82rem; font-weight: 600; }
+.slip-btn { border: 0; cursor: pointer; text-align: left; font: inherit; color: var(--b-paper-ink); padding: 12px 36px 12px 20px; border-radius: 3px; transform: rotate(1.2deg); position: relative; display: grid; gap: 2px;
+  background: radial-gradient(circle at 0 50%, transparent 7px, var(--b-paper) 7.5px); box-shadow: 0 10px 18px -12px var(--b-shadow); transition: transform .12s ease; }
+.slip-btn:active { transform: rotate(1.2deg) translateY(3px); }
+.slip-btn::after { content: "\21A9"; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 1.15rem; color: var(--b-paper-soft); }
+.slip-main { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 1rem; }
+.slip-sub { font-family: "Atkinson Hyperlegible", sans-serif; font-size: .76rem; color: var(--b-paper-soft); }
+.stamp-btn:focus-visible, .slip-btn:focus-visible { outline: 2px solid var(--b-amber); outline-offset: 4px; border-radius: 8px; }
+
+/* Manila folders for projects: a coloured folder, a tab, and a white label sticker. */
+.icard.project { height: 90px; margin-top: 10px; border-top: 0; border-radius: 3px 8px 8px 8px; padding: 14px 12px 10px; color: #1D2733;
+  background-color: color-mix(in srgb, var(--c) 55%, var(--folder)); background-image: linear-gradient(rgba(255,255,255,.16), rgba(0,0,0,.06)); background-size: auto; background-position: 0 0; }
+.icard.project::before { content: ""; position: absolute; left: 0; top: -11px; width: 50%; height: 12px; border-radius: 6px 10px 0 0; background-color: color-mix(in srgb, var(--c) 55%, var(--folder)); }
+.icard.project .nm { display: inline-block; background: #FFFEFA; padding: 1px 8px; border-radius: 2px; box-shadow: 0 1px 0 rgba(0,0,0,.14); font-size: 1rem; }
+.icard.project .ct { color: #3F4A57; margin-top: 10px; line-height: 1.2; }
+
+/* Landing hero: the same desk, with a folder, two index cards and the note on top. */
+.desk-hero { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 24px; background-image: radial-gradient(70% 90% at 80% 40%, var(--lamp), transparent 70%) !important; }
+@media (max-width: 1060px) { .desk-hero { grid-template-columns: minmax(0, 1fr); } }
+.hero-copy { display: grid; gap: 18px; min-width: 0; }
+.hero-desk { position: relative; height: 240px; min-width: 0; max-width: 420px; }
+.mini-folder { position: absolute; left: 2%; top: 18px; width: 60%; height: 150px; border-radius: 3px 10px 10px 10px; transform: rotate(-5deg); background-color: color-mix(in srgb, var(--c) 55%, var(--folder)); box-shadow: 0 14px 22px -14px var(--b-shadow); padding: 14px; }
+.mini-folder::before { content: ""; position: absolute; left: 0; top: -12px; width: 46%; height: 13px; border-radius: 6px 10px 0 0; background: inherit; }
+.mini-folder span { display: inline-block; background: #FFFEFA; color: #1D2733; padding: 1px 8px; border-radius: 2px; font: 700 .9rem "Bricolage Grotesque", sans-serif; }
+.mini-card { position: absolute; left: calc(22% + var(--x)); top: 74px; width: 40%; height: 92px; padding: 8px 10px; border-radius: 4px; color: #1D2733; font: 700 .95rem "Bricolage Grotesque", sans-serif;
+  background-color: var(--b-paper); background-image: repeating-linear-gradient(transparent 0 17px, var(--b-rule) 17px 18px); background-position: 0 30px; border-top: 5px solid var(--c); transform: rotate(var(--r)); box-shadow: 0 12px 18px -12px var(--b-shadow); }
+.note-shadow.mini { position: absolute; right: 0; top: 104px; width: 48%; }
+.note-shadow.mini .note { --fold: 16px; min-height: 0; padding: 18px 14px 22px; font: 700 1.05rem/1.2 "Kalam", "Comic Sans MS", cursive; transform: rotate(4deg); }
+@media (prefers-reduced-motion: reduce) { .note, .note.is-arriving { animation: none; transition: none; } }
+
 .controls { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
 .seg { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .seg .lbl { font-size: .82rem; color: var(--muted); font-weight: 600; }
@@ -188,9 +259,9 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
 .earlier h2 { margin: 0; font-size: 1.2rem; }
 .earlier p { margin: 0; color: var(--muted); max-width: 70ch; }
 
-.note { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; max-width: 74ch; }
-.note h2 { margin: 0 0 6px; font-size: 1.05rem; }
-.note p { margin: 0; color: var(--muted); }
+.plan-note { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; max-width: 74ch; }
+.plan-note h2 { margin: 0 0 6px; font-size: 1.05rem; }
+.plan-note p { margin: 0; color: var(--muted); }
 </style>
 
 <div class="sheet">
@@ -202,17 +273,18 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
   <section class="direction pick" id="your-pick">
     <div class="dir-head">
       <span class="tag">Your pick</span>
-      <h2>Low light, with two card wallets</h2>
-      <p>Direction B's calm screen and glowing focus card, with no pills. Projects and categories are each a wallet of A's index cards that you flip through like CD sleeves. The project facing you narrows the categories underneath to that project, and their counts update to match.</p>
+      <h2>Low light: a desk under a lamp</h2>
+      <p>Everything on screen is a real thing people already use to keep track. Your one task is a sticky note in the lamp's pool of light. Categories are index cards and projects are manila folders, each kept in a wallet you flip through like CD sleeves. You jot thoughts on a notepad, stamp a task done with a rubber stamp, and slip a note back into the deck when it isn't the right one. Light mode is the same desk in daylight.</p>
       <ul>
+        <li>The folder facing you narrows the index cards underneath to that project, and their counts update to match.</li>
         <li>Swipe or drag sideways to flip. On a computer, click a wallet and use the arrow keys, then press Enter to choose.</li>
-        <li>Use the switches below to try dark or light, and the three ways of choosing a card. Drawing really works.</li>
+        <li>All three ways of choosing a card stay in the app as a setting. Try them with the switch below. Drawing, stamping and slipping back all really work.</li>
       </ul>
     </div>
     <div class="controls">
       <div class="seg"><span class="lbl">Look</span><span class="opts" id="look-opts">
         <button type="button" data-look="dark" aria-pressed="true">Dark</button><button type="button" data-look="light" aria-pressed="false">Light</button></span></div>
-      <div class="seg"><span class="lbl">Choosing a card</span><span class="opts" id="mode-opts">
+      <div class="seg"><span class="lbl">Choosing a card (a setting in the app)</span><span class="opts" id="mode-opts">
         <button type="button" data-mode="swipe" aria-pressed="true">Swipe up</button><button type="button" data-mode="tap" aria-pressed="false">Tap</button><button type="button" data-mode="twice" aria-pressed="false">Tap twice</button></span></div>
       <p class="mode-help" id="mode-help"></p>
     </div>
@@ -220,11 +292,20 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
       <div>
         <div class="phone"><div class="screen b ba" id="ba-screen">
           <div class="top"><div class="brand"><span class="dot"></span>Focus Deck</div><span>Synced</span></div>
-          <div class="capture">Something on your mind?</div>
-          <div class="card">
-            <div class="k" id="ba-meta">Home · Chore · High</div>
-            <h3 id="ba-task">Reply to Sam about the camping trip</h3>
-            <div class="acts"><button type="button" class="btn main" id="ba-done">I've done it</button><button type="button" class="btn ghost" id="ba-reroll">Not this one</button></div>
+          <label class="jotter" for="ba-jot"><input id="ba-jot" type="text" placeholder="Jot down a stray thought…" autocomplete="off"></label>
+          <div class="desk-focus">
+            <div class="note-shadow"><div class="note" id="ba-note">
+              <div class="k" id="ba-meta">Home · Chore · High</div>
+              <h3 id="ba-task">Reply to Sam about the camping trip</h3>
+              <div class="stamp-mark" aria-hidden="true">Done</div>
+            </div></div>
+            <div class="desk-acts">
+              <button type="button" class="stamp-btn" id="ba-done" aria-label="I've done it">
+                <span class="stamp-tool" aria-hidden="true"><span class="knob"></span><span class="neck"></span><span class="block"></span><span class="rubber"></span></span>
+                <span class="act-lbl">I've done it</span>
+              </button>
+              <button type="button" class="slip-btn" id="ba-reroll"><span class="slip-main">Not this one</span><span class="slip-sub">slip it back in the deck</span></button>
+            </div>
           </div>
           <div class="wallet-h"><div class="q">Project</div><span class="count" id="proj-count"></span></div>
           <div class="flip"><div class="flip-track" id="proj-track" tabindex="0" aria-label="Projects. Arrow keys flip, Enter chooses."></div></div>
@@ -235,10 +316,18 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
         <div class="cap">App: projects and categories as wallets</div>
       </div>
       <div>
-        <div class="hero b ba" id="ba-hero">
-          <h2>Too many tasks? Start with one.</h2>
-          <p>Focus Deck keeps your list out of sight and shows you a single task, picked for you. Fewer choices, less noise, an easier start.</p>
-          <div class="cta"><span class="btn main">Install Focus Deck</span><span class="small">Free · Works offline · iPhone, Android, desktop</span></div>
+        <div class="hero b ba desk-hero" id="ba-hero">
+          <div class="hero-copy">
+            <h2>Too many tasks? Start with one.</h2>
+            <p>Focus Deck keeps your list out of sight and puts a single task on the desk in front of you, picked for you. Fewer choices, less noise, an easier start.</p>
+            <div class="cta"><span class="btn main">Install Focus Deck</span><span class="small">Free · Works offline · iPhone, Android, desktop</span></div>
+          </div>
+          <div class="hero-desk" aria-hidden="true">
+            <div class="mini-folder" style="--c:#4D6FB8"><span>School</span></div>
+            <div class="mini-card" style="--c:#3E8E5E;--r:-9deg;--x:0px">Chore</div>
+            <div class="mini-card" style="--c:#C9584F;--r:4deg;--x:58px">Bug</div>
+            <div class="note-shadow mini"><div class="note">Read chapter 4 of the biology book</div></div>
+          </div>
         </div>
         <div class="cap">Landing page: top of the page</div>
       </div>
@@ -383,7 +472,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
     </div>
   </section>
 
-  <div class="note">
+  <div class="plan-note">
     <h2>Same plan whichever look you pick</h2>
     <p>The landing page goes at the site root with an Install button and setup steps for each device. The app moves to /app/ and existing installs get forwarded there. The first time you open the app, it walks you through making a first task and then setting up GitHub sync, one step at a time. Settings gets reorganised so the token steps sit inside that guided setup.</p>
   </div>
@@ -409,7 +498,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
     { p: 'Portfolio', c: 'Study', pri: 'Low', t: 'Watch the colour theory video' },
   ];
   const projects = [
-    { id: 'all', name: 'All projects', color: '#59627A' },
+    { id: 'all', name: 'All projects', color: '#C9A55A' },
     { id: 'Home', name: 'Home', color: '#3E8E5E' },
     { id: 'School', name: 'School', color: '#4D6FB8' },
     { id: 'Website', name: 'Website', color: '#C9584F' },
@@ -450,23 +539,30 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
     hintTimer = setTimeout(() => { $('ba-hint').textContent = modeHint[mode]; }, holdMs);
   }
 
-  function show(task) {
+  // How the old note leaves the desk: lifted off for a fresh draw, slid back into the deck for
+  // "Not this one", peeled away after it was stamped done.
+  const leaveClass = { draw: 'is-leaving-up', back: 'is-leaving-down', peel: 'is-peeling' };
+  function show(task, how = 'draw') {
     current = task;
-    const title = $('ba-task');
-    title.style.opacity = 0;
-    setTimeout(() => {
-      $('ba-meta').textContent = `${task.p} · ${task.c} · ${task.pri}`;
-      title.textContent = task.t;
-      title.style.opacity = 1;
-    }, reduceMotion ? 0 : 180);
+    const note = $('ba-note');
+    const swap = () => {
+      note.classList.remove('is-leaving-up', 'is-leaving-down', 'is-peeling', 'is-stamped', 'is-arriving');
+      $('ba-meta').textContent = task ? `${task.p} · ${task.c} · ${task.pri}` : 'All clear';
+      $('ba-task').textContent = task ? task.t : 'Nothing left in that pile. Pick another card when you’re ready.';
+      void note.offsetWidth;
+      note.classList.add('is-arriving');
+    };
+    if (reduceMotion) { swap(); return; }
+    note.classList.add(leaveClass[how]);
+    setTimeout(swap, how === 'peel' ? 380 : 240);
   }
 
-  function draw(pool, emptyMessage) {
+  function draw(pool, emptyMessage, how = 'draw') {
     if (pool.length === 0) { say(emptyMessage); return; }
     lastPool = pool;
     const others = pool.filter((t) => t !== current);
-    if (others.length === 0) { say('That’s the only task in there.'); show(pool[0]); return; }
-    show(others[Math.floor(Math.random() * others.length)]);
+    if (others.length === 0) { say('That’s the only task in there.'); show(pool[0], how); return; }
+    show(others[Math.floor(Math.random() * others.length)], how);
   }
 
   // One wallet: a sideways strip of index cards that turn away from you like CD sleeves.
@@ -633,15 +729,32 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
   document.querySelectorAll('#mode-opts button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
   document.querySelectorAll('#look-opts button').forEach((b) => b.addEventListener('click', () => setLook(b.dataset.look)));
 
-  $('ba-reroll').addEventListener('click', () => draw(lastPool, 'Nothing else to draw.'));
+  $('ba-reroll').addEventListener('click', () => {
+    if (!current) { say('Pick a card to draw a task.'); return; }
+    draw(lastPool, 'Nothing else to draw.', 'back');
+  });
+  let stamping = false;
   $('ba-done').addEventListener('click', () => {
-    const i = tasks.indexOf(current);
-    if (i >= 0) tasks.splice(i, 1);
-    lastPool = lastPool.filter((t) => t !== current);
-    projectWallet.refresh(); categoryWallet.refresh();
-    if (lastPool.length === 0) { say('All done in that pile. Pick another card.'); $('ba-task').textContent = 'Nice. Pick another card when you’re ready.'; $('ba-meta').textContent = 'Done'; current = null; return; }
-    say('Done. Here’s the next one.');
-    draw(lastPool, '');
+    if (!current || stamping) return;
+    stamping = true;
+    const finished = current;
+    tasks.splice(tasks.indexOf(finished), 1);
+    lastPool = lastPool.filter((t) => t !== finished);
+    $('ba-note').classList.add('is-stamped');
+    // Let the stamp land and be seen before the note peels away.
+    setTimeout(() => {
+      stamping = false;
+      projectWallet.refresh(); categoryWallet.refresh();
+      if (lastPool.length === 0) { say('That pile is empty. Nice work.'); show(null, 'peel'); return; }
+      say('Done. Here’s the next one.');
+      current = null;
+      draw(lastPool, '', 'peel');
+    }, reduceMotion ? 300 : 650);
+  });
+  $('ba-jot').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || !e.target.value.trim()) return;
+    e.target.value = '';
+    say('Torn off and put in Unsorted.');
   });
 
   setMode('swipe');
