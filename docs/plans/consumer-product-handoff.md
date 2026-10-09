@@ -1,4 +1,93 @@
-# Handoff: consumer product (#116), paused 2026-10-09
+# Handoff: consumer product (#116), paused 2026-10-09 (updated the same evening)
+
+## Read this first: no subagents until the refusal problem is fixed (the user, 2026-10-09)
+
+Do **not** use builder (or any) subagents for this work for now. The user's instruction, after
+a second session where builders kept stopping. Why: when a permission prompt is shown and nobody
+answers within 5 minutes, the house-rules hook refuses it, and a refused action can't be retried
+for the rest of the session. A builder can't ask the user anything itself, so each refusal left it
+half-done. In the evening session that cut short #120's browser check, #121's wiring and #122's
+browser check, and refused the #120 merge. Do the work on the main thread, and ping the user just
+before any step that will prompt (merges, deleting or replacing a block of code, background
+processes) so they can answer in time.
+
+The plugin side: house-rules 2.59.1 (installed 2026-10-09) fixes the branch-ownership bug (it now
+judges ownership from the folder a command runs in, and treats `ccr-` branches as owned). It only
+loads in a session started after 20:39:53 on 2026-10-09. Verify it with a real probe (a commit and
+push from a worktree on an `AjsAgent/` branch, through the hook) before relying on it. That fix does
+not stop prompts for merges, deletions or background processes from timing out.
+
+## Evening session, 2026-10-09: what changed
+
+- The main checkout is now on `AjsAgent/consumer-product-continuation-sk1mqt` (same commit as
+  `ccr-a03de58c-0j19tb`, `add42bf`, plus this doc). Under 2.59.0 that made builder commits pass
+  without a prompt; it does not help with merges.
+- **#120 is finished and checked but NOT merged.** Branch `AjsAgent/issue-120-wallets`, head `580718a`.
+  The user approved merging it, drops included ("Merge with the drops"), but the git merge prompt
+  then went unanswered and was refused. Next step: merge it into `ccr-a03de58c-0j19tb`
+  (`git merge --no-ff origin/AjsAgent/issue-120-wallets`), with the user ready to approve.
+- **#121 and #122** were built on top of #120's branch, not on `ccr-`. Merge #120 first.
+
+## What needs fixing next, in order
+
+1. **Service worker install very likely fails: missing icons (pre-existing, probably since #117).**
+   `app/service-worker.js:11-12` lists `./icons/icon-192.png` and `./icons/icon-512.png`, and the root
+   `manifest.webmanifest:13-14` points at `app/icons/...`, but no icon PNG exists anywhere in the repo
+   (`git ls-tree -r ccr-a03de58c-0j19tb | grep icon-` finds nothing; not gitignored). The install
+   uses `cache.addAll` (`app/service-worker.js:34`), which rejects if any file 404s, so the worker
+   probably never installs and the app does not work offline. **Not yet confirmed in a browser**:
+   this is a lead from reading the code. It is also why #122's offline check hangs at
+   `await navigator.serviceWorker.ready` (`scripts/check-note-faces-browser.mjs:142`). Confirm in
+   Chromium (serve, register, read the worker's install error), then restore or generate the icons
+   (check git history for where they went in the #117 move) and re-run.
+2. **Merge #120** into `ccr-a03de58c-0j19tb` (see above).
+3. **#122: finish the browser check.** Branch `AjsAgent/issue-122-note-writing`, head `a07271e`.
+   Feature built; unit tests passed for the builder (121/121), contrast and churn guard passed.
+   With the reload fix (`a07271e`), the real-Chromium check passes every face check: all three faces
+   on the sticky note and jotter in dark and light, the right font family, OpenDyslexic reported
+   loaded by `document.fonts`, a long title fits, stored and applied after reload, no sideways scroll.
+   Screenshots in `docs/generated/pr122/` (8 PNGs, **not yet looked at**). It then hangs at the
+   service-worker/offline section (item 1). Also: the scale values (.95 Print, .78 OpenDyslexic) were
+   untuned guesses; the run shows titles of 3, 3 and 4 lines at 24, 22.8 and 18.72px, so check by eye.
+   Before merging, reconcile `CACHE_NAME`: #121 set `v4`, #122 `v5`; the merged result needs one value
+   above both and every new file in `SHELL_ASSETS`.
+4. **#121: wire the in-tray in.** Branch `AjsAgent/issue-121-in-tray`, head `a9298c6`. Built but not
+   connected: `app/js/in-tray.js` (decisions), `app/js/in-tray-view.js` (`renderInTrayCard`),
+   `app/js/in-tray.test.mjs` (11 tests), CSS "In-tray (#121)" section using the `--note-font` /
+   `--note-scale` hook from #122, `docs/4-systems/in-tray.md` (keep/change/drop inventory and a
+   "To wire it" list). The builder reported 130/130 tests; the parent has not re-run them. What's
+   left: replace the old Unsorted block in `app/js/render.js` (lines 207-325 on that branch) with the
+   new one (kept in `scripts/.tmp-block.js`, committed only so it isn't lost: delete it once used),
+   wire `app/js/app.js`, rewrite the Unsorted tests in `app/js/render.test.mjs`, write and run a
+   browser check (`scripts/check-in-tray-browser.mjs`, modelled on `scripts/check-wallets-browser.mjs`,
+   which serves the repo inside its own process, so no background server), screenshots in
+   `docs/generated/pr121/`. The replacement deletes a block of code: tell the user first.
+   Named drops to confirm with the user: the "+N more"/"Show fewer" reveals, "N skipped for now" with
+   "Go through them again", and the "· change" project chip.
+5. Then #123 to #126 in the plan's order, on the main thread.
+
+## Browser checks: how they run here
+
+`scripts/check-wallets-browser.mjs` (on the #120 branch) starts its own static server inside the Node
+process and closes it at the end, so no background process and no prompt. Run with
+`CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/check-wallets-browser.mjs`.
+Result on `580718a`: 44 passed, 0 failed. Unit tests on the #120 head: 119/119; contrast check passed;
+`node scripts/guard-file-churn.mjs --base origin/ccr-a03de58c-0j19tb` OK (the guard needs `--base`).
+The one console 404 in that run is the browser's automatic `/favicon.ico`. Seen in the #120
+screenshots: in swipe mode the card does not visibly follow the finger in the first 25px of a drag
+(the swipe still draws). Worth a look.
+
+## Waiting on the user (evening session)
+
+- Merge #120 (approved in principle; the git prompt was refused).
+- Approve deleting the old Unsorted block when wiring #121.
+- `.git/house-rules/waiting-on-you.json` still lists the refused #120 merge and #121's refused `sed`
+  splice and `rm`. Clear them once handled.
+
+---
+
+The sections below are from the first pause, earlier on 2026-10-09; the status table is updated.
+
 
 Where the desk redesign, landing page and onboarding work stands, and exactly how to pick it up.
 The plan is `docs/plans/consumer-product.md`; the agreed design is the "Your pick" section of
@@ -30,9 +119,9 @@ below). Resume once it is merged and the installed plugin has updated.
 | 1 | #117 Move the app to `/app/` | Built, checked, merged |
 | 2 | #118 Landing page | Built, checked, merged |
 | 3 | #119 Desk look for the focus area | Built, checked, merged |
-| 4 | #120 Card wallets | Step 1 of 3 written, on branch `AjsAgent/issue-120-wallets` (see below) |
-| 5 | #121 Unsorted as an in-tray | Not started |
-| 6 | #122 Note-writing setting | Not started |
+| 4 | #120 Card wallets | Built and checked (44/44 in Chromium), NOT merged: merge prompt refused |
+| 5 | #121 Unsorted as an in-tray | Logic, view and tests built; not wired in, no browser check |
+| 6 | #122 Note-writing setting | Built; browser check passes faces, hangs at offline (missing icons?) |
 | 7 | #123 Desk look for the rest of the app | Not started |
 | 8 | #124 First-run onboarding | Not started |
 | 9 | #125 Guided GitHub sync setup | Not started |
@@ -54,7 +143,7 @@ None of #117-#126 is closed: the user closes issues after testing.
   redraws them), the ticket-stub "Not this one". Due-now and light-mode High/Medium priority
   colours were darkened for contrast. `docs/4-systems/styling.md`.
 
-### #120 in progress
+### #120 in progress (superseded: see the top of this doc)
 
 On branch `AjsAgent/issue-120-wallets` on GitHub, commit `52edef0` (based on the #118 merge, `be8d462`):
 - `app/js/wallet.js`: the pure choosing decisions plus `mountWallets` (window listeners installed
@@ -131,8 +220,9 @@ Start a session on this repo and paste:
 
 ```text
 Continue the consumer product work (#116). Read docs/plans/consumer-product-handoff.md first,
-then check out branch ccr-a03de58c-0j19tb. Confirm the house-rules plugin fix is installed (a
-builder commit on an AjsAgent/ branch in a worktree must run without a prompt). Then finish #120
-from branch AjsAgent/issue-120-wallets, verify it and merge it, then carry on with #121 to #126
-in the plan's order, two builders at a time.
+especially the top sections. Do not use subagents. Work on branch
+AjsAgent/consumer-product-continuation-sk1mqt. Follow "What needs fixing next, in order":
+confirm and fix the service worker's missing icons, merge #120 into ccr-a03de58c-0j19tb (tell
+me just before so I can approve the prompt), finish #122's browser check, wire #121, then
+#123 to #126 in the plan's order.
 ```
