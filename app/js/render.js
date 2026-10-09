@@ -9,7 +9,7 @@ import { normalizeChoosingMode, CHOOSING_MODE_INFO } from './wallet.js';
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
 // paints something except the project-identity uses of --proj-color, which stay full strength.
-function mutedChip(color) { return 'color-mix(in oklab, ' + color + ' 65%, var(--ink-soft))'; }
+export function mutedChip(color) { return 'color-mix(in oklab, ' + color + ' 65%, var(--ink-soft))'; }
 
 // A project pill/chip, neutral (Q4b — a project's colour is identity only: its dot and its card
 // edge), carrying a small colour dot before the name instead of a tint.
@@ -65,17 +65,17 @@ function openWhere(st, catId, projId) {
 
 // One card in a wallet. `key` is what the hooks in js/app.js get back; `speak` is read aloud when
 // the card comes to face you.
-function sleeve({ key, name, color, detail, speak, kind }) {
+export function sleeve({ key, name, color, detail, speak, kind, picked }) {
   return '<div class="sleeve" data-key="' + esc(key) + '" data-speak="' + esc(speak) + '">'
-    + '<button type="button" tabindex="-1" class="icard' + (kind ? ' ' + kind : '') + '" style="--c:' + color + '">'
+    + '<button type="button" tabindex="-1" class="icard' + (kind ? ' ' + kind : '') + (picked ? ' is-picked' : '') + '" style="--c:' + color + '">'
     + '<span class="nm">' + esc(name) + '</span><span class="ct">' + esc(detail) + '</span><span class="go"></span></button></div>';
 }
 
 // The strip itself. `facing` goes in the markup as data-facing so a repaint puts the same card in
 // the middle again; js/wallet.js reads it, and the data-mode, when it mounts.
-function walletInner({ wallet, label, aria, items, facing, mode }) {
+export function walletInner({ wallet, label, aria, items, facing, mode, verb }) {
   return '<div class="wallet-h"><div class="q">' + label + '</div><span class="wallet-count muted small"></span></div>'
-    + '<div class="flip"><div class="flip-track' + (mode === 'swipe' ? ' swipe-mode' : '') + '" tabindex="0" role="group" aria-label="' + esc(aria) + '" data-wallet="' + wallet + '" data-mode="' + mode + '" data-facing="' + esc(facing) + '">'
+    + '<div class="flip"><div class="flip-track' + (mode === 'swipe' ? ' swipe-mode' : '') + '" tabindex="0" role="group" aria-label="' + esc(aria) + '" data-wallet="' + wallet + '" data-mode="' + mode + '"' + (verb ? ' data-verb="' + verb + '"' : '') + ' data-facing="' + esc(facing) + '">'
     + '<div class="flip-pad"></div>' + items.join('') + '<div class="flip-pad"></div></div></div>';
 }
 
