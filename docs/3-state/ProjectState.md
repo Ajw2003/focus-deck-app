@@ -26,7 +26,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 12 | Time-of-day suggestions | 0% | #48 open; the user decided 2026-09-26 to delete energy fully, so #48 (if built) builds on labels and time of day, not energy |
 | 13 | Pilot and public rollout | 0% | #44 open |
 | 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 built, pending merge) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; PRs 2-6 not started |
-| 15 | Consumer product: desk redesign, landing page, onboarding | 0% | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; issues #116-#126 open; #117 (app to `/app/`) in progress |
+| 15 | Consumer product: desk redesign, landing page, onboarding | ~10% (1 of 10 steps built) | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; issues #116-#126 open; #117 (app to `/app/`) built and merged on `ccr-a03de58c-0j19tb`, checked in Chromium, not yet deployed; #118, #119 in progress |
 
 ## What's built / not built, per milestone
 
@@ -34,7 +34,13 @@ not sized, so averaging them with the finished ones would say nothing true.
 `docs/plans/redesign-directions.html` (a lamp-lit desk of stationery: sticky note, index-card and
 folder wallets, jotter, paper checkbox, Unsorted in-tray), screenshots in
 `docs/generated/redesign-mockup/`. Plan and decisions: `docs/plans/consumer-product.md`. Ten child
-issues #117-#126 under #116; #117 (move the app to `/app/`) in progress.
+issues #117-#126 under #116. Built: #117, the app now lives in `app/` with a forwarding root page
+(`forward.js`), the manifest at the root keeping the install identity (`id "./"`, `start_url "app/"`),
+the app's own worker (`app/service-worker.js`, cache prefix `focus-deck-app-shell-`) and a retirement
+worker at the old root URL (`service-worker.js`); see `docs/4-systems/pwa-shell.md`. Checked in
+Chromium under a `/focus-deck-app/` subpath (data survives, old worker and caches gone, fresh visitor
+not forwarded, standalone forwarded); not checked: a real installed PWA's identity, iOS, the live
+GitHub Pages deploy. In progress: #118 landing page, #119 desk look for the focus area.
 
 **14. Due dates, repeats and reminders** — Built, pending merge (PR 1 of #106, branch
 `claude/due-stages-pr1`): `js/due-stage.js`, `task.dueSetAt`/`dueStages`, `state.dueDefaults` with its

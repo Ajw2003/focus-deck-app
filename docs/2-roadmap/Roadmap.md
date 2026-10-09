@@ -247,13 +247,14 @@ arrives at the set time with the app closed; a red task is first in its list and
 pick. The user's five questions were answered on 2026-09-30 (see the plan); the notification route is
 chosen by a spike, not assumed.
 
-## 15. Consumer product: desk redesign, landing page and onboarding — 0%
+## 15. Consumer product: desk redesign, landing page and onboarding — ~10%
 
 One-line: a stranger can find Focus Deck, install it from a landing page, and start using it
 without help, in a new look built from real stationery.
 
 **Progress:** design agreed 2026-10-09 (interactive mockup `docs/plans/redesign-directions.html`);
-plan and issues written; #117 (move the app to `/app/`) being built.
+plan and issues written; #117 (move the app to `/app/`) built and merged, not yet deployed;
+#118 and #119 being built.
 
 **Contains:**
 - #116 — the parent, planned in `docs/plans/consumer-product.md` as ten steps: #117 move the app to
