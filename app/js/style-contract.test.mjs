@@ -155,7 +155,10 @@ const COLOUR_TOKENS = ['--bg', '--surface', '--surface-2', '--ink', '--ink-soft'
 const PAPER_TOKENS = ['--paper-ink', '--paper-soft', '--paper-faint', '--note-ink', '--note-soft', '--paper-due-soon', '--paper-due-now', '--hole', '--note-font'];
 for (const t of PAPER_TOKENS) assert.ok(declared(tokenBlocks[0]).has(t), `:root is missing the paper token ${t}`);
 assert.ok(/--note-font:'Kalam'/.test(tokenBlocks[0]), '--note-font defaults to Kalam');
-assert.strictEqual((css.match(/--note-font\s*:/g) || []).length, 1, '--note-font is declared exactly once (#122 will make it a setting)');
+// #122: the :root default (hand), the hand rule for its Settings sample, and print and dyslexic rules
+// (each selector list covers <html> and its sample).
+assert.strictEqual((css.match(/--note-font\s*:/g) || []).length, 4, '--note-font: :root default + hand sample + print + dyslexic');
+assert.ok(declared(tokenBlocks[0]).has('--note-scale'), ':root declares --note-scale');
 
 // --- Test 4: the faces. Young Serif headings, Figtree interface, Bricolage Grotesque and Atkinson
 // Hyperlegible on paper, Kalam handwriting; both pages load them, and the old faces are gone.

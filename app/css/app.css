@@ -44,6 +44,10 @@
   /* Stage colours on paper, for the deadline chip's border and icon on the sticky note (its words stay ink) */
   --paper-due-soon:#5E6B00;
   --paper-due-now:#A30D40;
+  /* The writing on paper notes: the default face (Handwriting). Print and OpenDyslexic override
+     these in the "Note faces" section at the end (#122) */
+  --note-font:'Kalam', 'Comic Sans MS', cursive;
+  --note-scale:1;
   --font-display:'Young Serif', Georgia, serif;
   --font-ui:'Figtree', system-ui, -apple-system, sans-serif;
   --font-paper:'Bricolage Grotesque', 'Atkinson Hyperlegible', system-ui, sans-serif;
@@ -783,7 +787,8 @@ body.is-dragging-task .empty-note{display:none;}
    Interface text does not use these. The Settings samples carry data-note-face themselves, so each
    shows its own face. See docs/4-systems/styling.md#note-faces */
 @font-face{font-family:'OpenDyslexic'; font-style:normal; font-weight:700; font-display:swap; src:url('../fonts/opendyslexic-latin-700-normal.woff2') format('woff2');}
-:root, :root[data-note-face="hand"], .note-face-sample[data-note-face="hand"]{--note-font:'Kalam', 'Comic Sans MS', cursive; --note-scale:1;}
+/* hand is the :root default (top of this file); the sample needs its own copy */
+.note-face-sample[data-note-face="hand"]{--note-font:'Kalam', 'Comic Sans MS', cursive; --note-scale:1;}
 :root[data-note-face="print"], .note-face-sample[data-note-face="print"]{--note-font:'Atkinson Hyperlegible', system-ui, sans-serif; --note-scale:.95;}
 :root[data-note-face="dyslexic"], .note-face-sample[data-note-face="dyslexic"]{--note-font:'OpenDyslexic', 'Atkinson Hyperlegible', system-ui, sans-serif; --note-scale:.78;}
 .note-faces{border:0; padding:0; margin:0 0 6px;}
