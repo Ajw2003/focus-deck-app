@@ -48,7 +48,11 @@ async function open(face, scheme, { sw = false, url = BASE } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 420, height: 900 }, colorScheme: scheme, serviceWorkers: sw ? 'allow' : 'block' });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => check('no page error: ' + e.message, false));
-  await page.addInitScript((s) => { if (!localStorage.getItem('focusdeck-state-v1')) localStorage.setItem('focusdeck-state-v1', JSON.stringify(s)); }, seed(face));
+  // Only seed on the app's own origin: about:blank (the no-flash step's first page) has no storage.
+  await page.addInitScript((s) => {
+    if (location.protocol !== 'http:') return;
+    if (!localStorage.getItem('focusdeck-state-v1')) localStorage.setItem('focusdeck-state-v1', JSON.stringify(s));
+  }, seed(face));
   await page.goto(url);
   return { ctx, page };
 }
