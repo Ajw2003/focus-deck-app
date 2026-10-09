@@ -96,7 +96,9 @@ for (const scheme of ['dark', 'light']) {
     await page.screenshot({ path: OUT + `${scheme}-${face}.png` });
     // stored and applied after reload (no flash: attribute is set by the head script before CSS paints)
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).noteFace.face);
-    await page.reload(); await page.waitForSelector('.flip-track');
+    // A drawn task stays in focus across a reload, so the page may come back on the note, not the wallets.
+    await page.reload(); await page.waitForSelector('.flip-track, .focus-active');
+    console.log(`INFO ${tag} after reload showing: ${(await page.$('.focus-active')) ? 'the drawn task' : 'the wallets'}`);
     check(`${tag} stored (${stored}) and applied after reload`, stored === face && (await page.evaluate(() => document.documentElement.dataset.noteFace)) === face);
     await ctx.close();
   }
