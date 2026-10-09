@@ -15,6 +15,7 @@ import { confirmMove } from './move-dialog.js';
 import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
 import { mountWallets } from './wallet.js';
+import { applyNoteFace } from './note-face.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
@@ -142,6 +143,7 @@ const walletHooks = {
 };
 
 export function renderApp(st) {
+  applyNoteFace(st.noteFace && st.noteFace.face); // also after a sync brings in another device's choice
   st._ui = ui; // the sync button reads sync UI state off the state object it's already passed
   if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
   // a new current Unsorted item (someone filed/skipped/completed the last one, or the queue itself

@@ -44,8 +44,6 @@
   /* Stage colours on paper, for the deadline chip's border and icon on the sticky note (its words stay ink) */
   --paper-due-soon:#5E6B00;
   --paper-due-now:#A30D40;
-  /* The sticky note's handwriting, in one place: #122 makes it a setting (Kalam / Atkinson / OpenDyslexic) */
-  --note-font:'Kalam', 'Comic Sans MS', cursive;
   --font-display:'Young Serif', Georgia, serif;
   --font-ui:'Figtree', system-ui, -apple-system, sans-serif;
   --font-paper:'Bricolage Grotesque', 'Atkinson Hyperlegible', system-ui, sans-serif;
@@ -182,7 +180,7 @@ a{color:inherit;}
 .jotter:focus-within{box-shadow:0 0 0 2px var(--accent), 0 8px 16px -12px var(--paper-shadow);}
 #capture-input{
   flex:1; min-width:0; padding:2px 0; border:0; background:transparent; color:var(--paper-ink); outline:none;
-  font:700 1.05rem var(--note-font);
+  font-family:var(--note-font); font-weight:700; font-size:calc(1.05rem * var(--note-scale));
 }
 #capture-input::placeholder{color:var(--paper-faint); font-weight:400;}
 .jot-add{
@@ -250,7 +248,7 @@ a{color:inherit;}
 .note .chip.deadline-chip.due-yellow{border-color:var(--paper-due-soon); font-weight:700;}
 .note .chip.deadline-chip.due-red{border-color:var(--paper-due-now); font-weight:700;}
 .note .chip.deadline-chip.due-red svg{color:var(--paper-due-now);}
-.focus-title{font-family:var(--note-font); font-weight:700; font-size:var(--text-q); line-height:1.2; margin:8px 0 0; text-wrap:balance;}
+.focus-title{font-family:var(--note-font); font-weight:700; font-size:calc(var(--text-q) * var(--note-scale)); line-height:1.2; margin:8px 0 0; text-wrap:balance;}
 @media (min-width:700px){.focus-title{font-size:var(--text-title);}}
 /* Crossing it off: a biro line drawn through the task, one stroke per line of text (the span is
    inline and box-decoration-break:clone repeats the gradient on every wrapped line) */
@@ -776,3 +774,17 @@ body.is-dragging-task .empty-note{display:none;}
 .icard.project .nm{display:inline-block; max-width:100%; vertical-align:top; background:#FFFEFA; padding:1px 8px; border-radius:2px; box-shadow:0 1px 0 rgba(0,0,0,.14); font-size:1rem;}
 .icard.project .ct{color:#3F4A57; margin-top:10px; line-height:1.2;}
 @media (prefers-reduced-motion: reduce){.icard{transform:none !important;} .sleeve{transition:none;} .sleeve.is-nudge{animation:none;}}
+
+/* ==== Note faces (#122) ====
+   The writing on paper notes (sticky note, jotter, in-tray slips) follows Settings > Note writing.
+   js/note-face.js sets data-note-face="hand|print|dyslexic" on <html>; each face sets --note-font
+   and --note-scale here. Notes size their writing as calc(<size> * var(--note-scale)). The scale
+   is 1 for Kalam; OpenDyslexic runs wide, so it is smaller to fit a task title in the same space.
+   Interface text does not use these. The Settings samples carry data-note-face themselves, so each
+   shows its own face. See docs/4-systems/styling.md#note-faces */
+@font-face{font-family:'OpenDyslexic'; font-style:normal; font-weight:700; font-display:swap; src:url('../fonts/opendyslexic-latin-700-normal.woff2') format('woff2');}
+:root, :root[data-note-face="hand"], .note-face-sample[data-note-face="hand"]{--note-font:'Kalam', 'Comic Sans MS', cursive; --note-scale:1;}
+:root[data-note-face="print"], .note-face-sample[data-note-face="print"]{--note-font:'Atkinson Hyperlegible', system-ui, sans-serif; --note-scale:.95;}
+:root[data-note-face="dyslexic"], .note-face-sample[data-note-face="dyslexic"]{--note-font:'OpenDyslexic', 'Atkinson Hyperlegible', system-ui, sans-serif; --note-scale:.78;}
+.note-faces{border:0; padding:0; margin:0 0 6px;}
+.note-face-sample{font-family:var(--note-font); font-weight:700; font-size:calc(1.05rem * var(--note-scale)); color:var(--paper-ink); background:var(--paper); padding:6px 10px; border-radius:3px; margin:2px 0 0 26px;}

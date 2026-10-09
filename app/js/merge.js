@@ -116,6 +116,8 @@ export function mergeStates(local, remote) {
 
   // choosingMode (Settings > Choosing a card) is the same shape and the same rule as dueDefaults.
   if (r.choosingMode && (!l.choosingMode || stamp(r.choosingMode) > stamp(l.choosingMode))) merged.choosingMode = r.choosingMode;
+  // noteFace (Settings > Note writing) likewise.
+  if (r.noteFace && (!l.noteFace || stamp(r.noteFace) > stamp(l.noteFace))) merged.noteFace = r.noteFace;
 
   // Done-list entries follow their task: kept only while that task exists and is done. An entry
   // with no taskId is a completed inbox thought (M.completeInboxItem) rather than a task — it never
