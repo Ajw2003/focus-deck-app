@@ -126,29 +126,62 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
 .c .row { display: flex; gap: 10px; flex-wrap: wrap; }
 .c .row .pc { min-height: 70px; width: 96px; }
 
-/* ---------- Pick: B + A's cards in a flip-through ---------- */
-.ba.screen { min-height: 680px; }
-.ba .card h3 { transition: opacity .25s ease; }
-.ba .draw-h { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; }
-.ba .draw-h .q { margin: 0; }
-.ba .draw-h .count { font-size: .8rem; color: var(--b-mist); font-variant-numeric: tabular-nums; }
-.flip { position: relative; margin: 0 -18px; }
-.flip-track { display: flex; gap: 0; overflow-x: auto; scroll-snap-type: x mandatory; padding: 18px 0 22px; scrollbar-width: none; overscroll-behavior-x: contain; outline: none; }
+/* ---------- Pick: B + A's cards in two flip-through wallets ---------- */
+.ba { --b-card-edge: #2E3A5E; --b-on-amber: #2A1B05; --b-paper: #EFEADF; --b-paper-ink: #1D2733; --b-paper-soft: #4E5A68; --b-rule: #C3CEDD; --b-shadow: rgba(0,0,0,.8); }
+.ba.light { --b-night: #FBFAF7; --b-deep: #E4E8EF; --b-moon: #1C2438; --b-mist: #59627A; --b-amber: #B9760F; --b-line: #C7CEDB;
+  --b-card-edge: #D3D9E4; --b-on-amber: #FFFFFF; --b-paper: #FFFEFA; --b-shadow: rgba(40,52,80,.35); }
+.ba.screen { min-height: 760px; gap: 12px; transition: background-color .3s ease; }
+.ba .card { padding: 20px 20px 16px; border-color: var(--b-card-edge); }
+.ba.light .card { background: radial-gradient(120% 90% at 50% 0%, rgba(232,160,50,.22), rgba(232,160,50,0) 60%), var(--b-night); box-shadow: 0 12px 26px -18px rgba(40,52,80,.5); }
+.ba .card h3 { font-size: 1.4rem; margin: 8px 0 12px; transition: opacity .25s ease; }
+.ba .card .acts { margin-top: 14px; gap: 6px; }
+.ba .btn.main { color: var(--b-on-amber); }
+.ba .btn { cursor: pointer; border: 0; font: inherit; font-weight: 600; background: none; color: inherit; }
+.ba .btn.main { background: var(--b-amber); }
+.ba .btn.ghost { color: var(--b-mist); }
+.ba .wallet-h { display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px; }
+.ba .wallet-h .q { margin: 0; font-size: .95rem; }
+.ba .wallet-h .count { font-size: .78rem; color: var(--b-mist); font-variant-numeric: tabular-nums; }
+.flip { position: relative; margin: -4px -18px 0; }
+.flip-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding: 34px 0 16px; margin-top: -20px; scrollbar-width: none; overscroll-behavior-x: contain; outline: none; touch-action: pan-x pan-y; }
+.flip-track.swipe-mode { touch-action: pan-x; }
 .flip-track::-webkit-scrollbar { display: none; }
 .flip-track:focus-visible { box-shadow: inset 0 0 0 2px var(--b-amber); border-radius: 14px; }
-.flip-pad { flex: 0 0 25%; }
-.sleeve { flex: 0 0 50%; scroll-snap-align: center; display: flex; justify-content: center; }
-.icard { width: 100%; height: 150px; border-radius: 6px; background: #EFEADF; color: #1D2733; position: relative; cursor: pointer; border: 0; text-align: left; font: inherit;
-  padding: 14px 14px 12px 26px; box-shadow: 0 14px 26px -14px rgba(0,0,0,.8); transform-origin: center; will-change: transform;
-  background-image: linear-gradient(#C9584F, #C9584F), repeating-linear-gradient(transparent 0 21px, #C3CEDD 21px 22px);
-  background-size: 1.5px 100%, 100% 100%; background-position: 16px 0, 0 38px; background-repeat: no-repeat; border-top: 6px solid var(--c); }
+/* Sleeves overlap by 7% each side, so the pads are wider by the same amount to keep the end cards centred. */
+.flip-pad { flex: 0 0 34%; }
+.sleeve { flex: 0 0 46%; margin-inline: -7%; scroll-snap-align: center; display: flex; justify-content: center; position: relative; transition: transform .22s ease, opacity .22s ease; }
+.sleeve.is-centre { z-index: 20; }
+.icard { width: 100%; height: 132px; border-radius: 6px; background-color: var(--b-paper); color: var(--b-paper-ink); position: relative; cursor: pointer; border: 0; text-align: left; font: inherit;
+  padding: 12px 12px 10px 24px; box-shadow: 0 14px 26px -14px var(--b-shadow); will-change: transform; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  background-image: linear-gradient(#C9584F, #C9584F), repeating-linear-gradient(transparent 0 21px, var(--b-rule) 21px 22px);
+  background-size: 1.5px 100%, 100% 100%; background-position: 15px 0, 0 34px; background-repeat: no-repeat; border-top: 6px solid var(--c); transition: box-shadow .2s ease; }
+.icard.project { height: 96px; border-top: 0; border-left: 8px solid var(--c); padding-left: 16px; background-image: repeating-linear-gradient(transparent 0 21px, var(--b-rule) 21px 22px); background-size: 100% 100%; background-position: 0 30px; }
 .icard:focus-visible { outline: 2px solid var(--b-amber); outline-offset: 3px; }
-.icard .nm { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 1.1rem; white-space: nowrap; letter-spacing: -0.01em; display: block; }
-.icard .ct { font-family: "Atkinson Hyperlegible", sans-serif; font-size: .82rem; color: #4E5A68; display: block; margin-top: 18px; line-height: 22px; }
-.icard .go { position: absolute; right: 12px; bottom: 10px; font-family: "Atkinson Hyperlegible", sans-serif; font-size: .78rem; font-weight: 700; color: #1D2733; opacity: 0; transition: opacity .2s; }
+.icard .nm { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em; display: block; white-space: nowrap; }
+.icard .ct { font-family: "Atkinson Hyperlegible", sans-serif; font-size: .8rem; color: var(--b-paper-soft); display: block; margin-top: 12px; line-height: 22px; }
+.icard.project .ct { margin-top: 8px; }
+.icard.is-empty { opacity: .55; }
+.icard .go { position: absolute; right: 10px; bottom: 8px; font-family: "Atkinson Hyperlegible", sans-serif; font-size: .74rem; font-weight: 700; color: var(--b-paper-ink); opacity: 0; transition: opacity .2s; }
 .sleeve.is-centre .icard .go { opacity: 1; }
-.flip-hint { text-align: center; font-size: .78rem; color: var(--b-mist); margin-top: -8px; }
-@media (prefers-reduced-motion: reduce) { .icard { transform: none !important; } .ba .card h3 { transition: none; } }
+.sleeve.is-armed { transform: translateY(-10px); }
+.sleeve.is-armed .icard { box-shadow: 0 0 0 3px var(--b-amber), 0 18px 28px -14px var(--b-shadow); }
+.sleeve.is-lifting { transition: none; }
+.sleeve.is-flying { transform: translateY(-34px) !important; opacity: 0; transition: transform .28s ease-in, opacity .28s ease-in; }
+.sleeve.is-nudge { animation: nudge .5s ease; }
+@keyframes nudge { 30% { transform: translateY(-14px); } 60% { transform: translateY(0); } 80% { transform: translateY(-5px); } }
+.flip-hint { text-align: center; font-size: .78rem; color: var(--b-mist); margin-top: -6px; min-height: 1.2em; }
+.ba.hero.light { background-color: #E4E8EF; background-image: radial-gradient(60% 80% at 85% 20%, rgba(232,160,50,.22), transparent 60%); }
+.ba.hero.light h2 { color: #1C2438; } .ba.hero.light p, .ba.hero.light .small { color: #59627A; }
+@media (prefers-reduced-motion: reduce) { .icard { transform: none !important; } .ba .card h3, .sleeve { transition: none; } .sleeve.is-nudge { animation: none; } }
+
+.controls { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.seg { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.seg .lbl { font-size: .82rem; color: var(--muted); font-weight: 600; }
+.seg .opts { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+.seg button { font: inherit; font-size: .85rem; border: 0; background: none; color: var(--fg); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--pick); color: var(--panel); font-weight: 600; }
+.seg button:focus-visible { outline: 2px solid var(--pick); outline-offset: 2px; }
+.mode-help { flex-basis: 100%; margin: 0; font-size: .85rem; color: var(--muted); }
 .pick { border-top: 2px solid var(--pick); }
 .pick .tag { font-size: .85rem; }
 .earlier { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 28px; }
@@ -169,47 +202,45 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
   <section class="direction pick" id="your-pick">
     <div class="dir-head">
       <span class="tag">Your pick</span>
-      <h2>Low light, with a card wallet</h2>
-      <p>Direction B's calm dark screen and glowing focus card. The pills are gone. The categories are A's index cards, kept in a sideways wallet you flip through like CD sleeves: the middle card faces you and the ones either side turn away like pages.</p>
+      <h2>Low light, with two card wallets</h2>
+      <p>Direction B's calm screen and glowing focus card, with no pills. Projects and categories are each a wallet of A's index cards that you flip through like CD sleeves. The project facing you narrows the categories underneath to that project, and their counts update to match.</p>
       <ul>
-        <li>Swipe or drag sideways to flip. On a computer, click the wallet and use the arrow keys.</li>
-        <li>Tap the card facing you to draw a task from that category. Try it, it works.</li>
+        <li>Swipe or drag sideways to flip. On a computer, click a wallet and use the arrow keys, then press Enter to choose.</li>
+        <li>Use the switches below to try dark or light, and the three ways of choosing a card. Drawing really works.</li>
       </ul>
+    </div>
+    <div class="controls">
+      <div class="seg"><span class="lbl">Look</span><span class="opts" id="look-opts">
+        <button type="button" data-look="dark" aria-pressed="true">Dark</button><button type="button" data-look="light" aria-pressed="false">Light</button></span></div>
+      <div class="seg"><span class="lbl">Choosing a card</span><span class="opts" id="mode-opts">
+        <button type="button" data-mode="swipe" aria-pressed="true">Swipe up</button><button type="button" data-mode="tap" aria-pressed="false">Tap</button><button type="button" data-mode="twice" aria-pressed="false">Tap twice</button></span></div>
+      <p class="mode-help" id="mode-help"></p>
     </div>
     <div class="mocks">
       <div>
-        <div class="phone"><div class="screen b ba">
+        <div class="phone"><div class="screen b ba" id="ba-screen">
           <div class="top"><div class="brand"><span class="dot"></span>Focus Deck</div><span>Synced</span></div>
           <div class="capture">Something on your mind?</div>
-          <div class="q">Right now, just this:</div>
           <div class="card">
-            <div class="k" id="ba-meta">Home · Chore · due Friday</div>
+            <div class="k" id="ba-meta">Home · Chore · High</div>
             <h3 id="ba-task">Reply to Sam about the camping trip</h3>
-            <div class="acts"><span class="btn main">I've done it</span><span class="btn ghost">Not this one</span></div>
+            <div class="acts"><button type="button" class="btn main" id="ba-done">I've done it</button><button type="button" class="btn ghost" id="ba-reroll">Not this one</button></div>
           </div>
-          <div class="draw-h"><div class="q">Draw from…</div><span class="count" id="ba-count">1 of 5</span></div>
-          <div class="flip">
-            <div class="flip-track" id="ba-track" tabindex="0" aria-label="Categories. Use left and right arrow keys to flip.">
-              <div class="flip-pad"></div>
-              <div class="sleeve"><button class="icard" style="--c:#3E8E5E" data-cat="Chore"><span class="nm">Chore</span><span class="ct">4 open<br>top: High</span><span class="go">Draw →</span></button></div>
-              <div class="sleeve"><button class="icard" style="--c:#C2731E" data-cat="Art"><span class="nm">Art</span><span class="ct">2 open<br>none urgent</span><span class="go">Draw →</span></button></div>
-              <div class="sleeve"><button class="icard" style="--c:#C9584F" data-cat="Bug"><span class="nm">Bug</span><span class="ct">3 open<br>top: Urgent</span><span class="go">Draw →</span></button></div>
-              <div class="sleeve"><button class="icard" style="--c:#4D6FB8" data-cat="Study"><span class="nm">Study</span><span class="ct">5 open<br>top: Medium</span><span class="go">Draw →</span></button></div>
-              <div class="sleeve"><button class="icard" style="--c:#1D2733" data-cat="Anything"><span class="nm">Surprise me</span><span class="ct">14 open<br>any category</span><span class="go">Draw →</span></button></div>
-              <div class="flip-pad"></div>
-            </div>
-          </div>
-          <div class="flip-hint">Swipe to flip · tap to draw</div>
+          <div class="wallet-h"><div class="q">Project</div><span class="count" id="proj-count"></span></div>
+          <div class="flip"><div class="flip-track" id="proj-track" tabindex="0" aria-label="Projects. Arrow keys flip, Enter chooses."></div></div>
+          <div class="wallet-h"><div class="q">Category</div><span class="count" id="cat-count"></span></div>
+          <div class="flip"><div class="flip-track" id="cat-track" tabindex="0" aria-label="Categories. Arrow keys flip, Enter chooses."></div></div>
+          <div class="flip-hint" id="ba-hint"></div>
         </div></div>
-        <div class="cap">App: one task picked, categories in the wallet</div>
+        <div class="cap">App: projects and categories as wallets</div>
       </div>
       <div>
-        <div class="hero b">
+        <div class="hero b ba" id="ba-hero">
           <h2>Too many tasks? Start with one.</h2>
           <p>Focus Deck keeps your list out of sight and shows you a single task, picked for you. Fewer choices, less noise, an easier start.</p>
           <div class="cta"><span class="btn main">Install Focus Deck</span><span class="small">Free · Works offline · iPhone, Android, desktop</span></div>
         </div>
-        <div class="cap">Landing page: top of the page (unchanged from B)</div>
+        <div class="cap">Landing page: top of the page</div>
       </div>
     </div>
   </section>
@@ -360,85 +391,259 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sheet-font); 
 
 <script>
 (() => {
-  // Example tasks per category, so tapping a card visibly deals one.
-  const examples = {
-    Chore: [['Home · Chore · due Friday', 'Reply to Sam about the camping trip'], ['Home · Chore', 'Take the recycling out'], ['Home · Chore', 'Book a dentist appointment']],
-    Art: [['Portfolio · Art', 'Ink the second page of the comic'], ['Portfolio · Art', 'Pick three photos for the gallery wall']],
-    Bug: [['Website · Bug · Urgent', 'Fix the menu that won’t close on phones'], ['Website · Bug', 'Contact form sends twice']],
-    Study: [['School · Study · due Monday', 'Read chapter 4 of the biology book'], ['School · Study', 'Make flashcards for French verbs']],
+  // Example tasks, so every wallet really deals one. Not anyone's real list.
+  const tasks = [
+    { p: 'Home', c: 'Chore', pri: 'High', t: 'Reply to Sam about the camping trip' },
+    { p: 'Home', c: 'Chore', pri: 'Low', t: 'Take the recycling out' },
+    { p: 'Home', c: 'Chore', pri: 'Medium', t: 'Book a dentist appointment' },
+    { p: 'Home', c: 'Art', pri: 'Low', t: 'Pick three photos for the hallway frames' },
+    { p: 'School', c: 'Study', pri: 'High', t: 'Read chapter 4 of the biology book' },
+    { p: 'School', c: 'Study', pri: 'Medium', t: 'Make flashcards for French verbs' },
+    { p: 'School', c: 'Study', pri: 'Low', t: 'Tidy the history notes into one folder' },
+    { p: 'School', c: 'Chore', pri: 'Medium', t: 'Return the library books' },
+    { p: 'Website', c: 'Bug', pri: 'Urgent', t: 'Fix the menu that won’t close on phones' },
+    { p: 'Website', c: 'Bug', pri: 'Medium', t: 'Contact form sends twice' },
+    { p: 'Website', c: 'Bug', pri: 'Low', t: 'Footer link points to the old blog' },
+    { p: 'Website', c: 'Art', pri: 'Medium', t: 'Draw a new header image' },
+    { p: 'Portfolio', c: 'Art', pri: 'High', t: 'Ink the second page of the comic' },
+    { p: 'Portfolio', c: 'Study', pri: 'Low', t: 'Watch the colour theory video' },
+  ];
+  const projects = [
+    { id: 'all', name: 'All projects', color: '#59627A' },
+    { id: 'Home', name: 'Home', color: '#3E8E5E' },
+    { id: 'School', name: 'School', color: '#4D6FB8' },
+    { id: 'Website', name: 'Website', color: '#C9584F' },
+    { id: 'Portfolio', name: 'Portfolio', color: '#C2731E' },
+  ];
+  const categories = [
+    { id: 'Chore', name: 'Chore', color: '#3E8E5E' },
+    { id: 'Art', name: 'Art', color: '#C2731E' },
+    { id: 'Bug', name: 'Bug', color: '#C9584F' },
+    { id: 'Study', name: 'Study', color: '#4D6FB8' },
+    { id: 'any', name: 'Surprise me', color: '#1D2733' },
+  ];
+  const priorityRank = { Urgent: 0, High: 1, Medium: 2, Low: 3 };
+  const modeHelp = {
+    swipe: 'Swipe up: flip to the card you want, then push it up toward the focus card. A tap only flips.',
+    tap: 'Tap: one tap on any card draws from it straight away.',
+    twice: 'Tap twice: the first tap lifts and highlights a card, the second tap draws from it. Flipping away cancels.',
   };
-  const track = document.getElementById('ba-track');
-  const meta = document.getElementById('ba-meta');
-  const title = document.getElementById('ba-task');
-  const count = document.getElementById('ba-count');
-  if (!track) return;
-  const sleeves = [...track.querySelectorAll('.sleeve')];
+  const modeHint = { swipe: 'Swipe sideways to flip · swipe a card up to draw', tap: 'Swipe sideways to flip · tap a card to draw', twice: 'Swipe sideways to flip · tap twice to draw' };
+
+  const $ = (id) => document.getElementById(id);
+  const screen = $('ba-screen');
+  if (!screen) return;
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let centreIndex = 0;
+  let mode = 'swipe';
+  let facingProject = 'all';
+  let current = tasks[0];
+  let lastPool = tasks;
+  let hintTimer = null;
 
-  // Each card turns away from you by how far it sits from the middle, like sleeves in a CD wallet.
-  function updateTilt() {
-    const box = track.getBoundingClientRect();
-    const middle = box.left + box.width / 2;
-    let nearest = 0, nearestDistance = Infinity;
-    sleeves.forEach((sleeve, i) => {
-      const r = sleeve.getBoundingClientRect();
-      const offset = (r.left + r.width / 2 - middle) / r.width; // 0 in the middle, ±1 one card away
-      if (Math.abs(offset) < nearestDistance) { nearestDistance = Math.abs(offset); nearest = i; }
-      const clamped = Math.max(-1.6, Math.min(1.6, offset));
-      const card = sleeve.firstElementChild;
-      if (!reduceMotion) {
-        card.style.transform = `perspective(600px) rotateY(${clamped * -48}deg) translateZ(${-Math.abs(clamped) * 60}px)`;
-        card.style.filter = `brightness(${1 - Math.min(0.45, Math.abs(clamped) * 0.32)})`;
-      }
-      card.style.zIndex = String(10 - Math.round(Math.abs(clamped) * 4));
-    });
-    sleeves.forEach((s, i) => s.classList.toggle('is-centre', i === nearest));
-    centreIndex = nearest;
-    count.textContent = `${nearest + 1} of ${sleeves.length}`;
+  function inProject(task, projectId) { return projectId === 'all' || task.p === projectId; }
+  function poolFor(projectId, categoryId) { return tasks.filter((t) => inProject(t, projectId) && (categoryId === 'any' || t.c === categoryId)); }
+  function topPriority(pool) { return pool.slice().sort((a, b) => priorityRank[a.pri] - priorityRank[b.pri])[0]?.pri; }
+
+  function say(text, holdMs = 2200) {
+    $('ba-hint').textContent = text;
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => { $('ba-hint').textContent = modeHint[mode]; }, holdMs);
   }
 
-  function flipTo(index) {
-    const i = Math.max(0, Math.min(sleeves.length - 1, index));
-    sleeves[i].scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
-  }
-
-  function draw(category) {
-    const pool = category === 'Anything' ? Object.values(examples).flat() : examples[category];
-    const current = title.textContent;
-    const options = pool.filter(([, t]) => t !== current);
-    const [m, t] = options[Math.floor(Math.random() * options.length)];
+  function show(task) {
+    current = task;
+    const title = $('ba-task');
     title.style.opacity = 0;
-    setTimeout(() => { meta.textContent = m; title.textContent = t; title.style.opacity = 1; }, reduceMotion ? 0 : 180);
+    setTimeout(() => {
+      $('ba-meta').textContent = `${task.p} · ${task.c} · ${task.pri}`;
+      title.textContent = task.t;
+      title.style.opacity = 1;
+    }, reduceMotion ? 0 : 180);
   }
 
-  track.addEventListener('scroll', () => requestAnimationFrame(updateTilt), { passive: true });
-  window.addEventListener('resize', updateTilt);
-  track.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight') { e.preventDefault(); flipTo(centreIndex + 1); }
-    if (e.key === 'ArrowLeft') { e.preventDefault(); flipTo(centreIndex - 1); }
-  });
-  sleeves.forEach((sleeve, i) => sleeve.firstElementChild.addEventListener('click', () => {
-    // A side card flips to the middle first; only the card facing you deals a task.
-    if (i !== centreIndex) { flipTo(i); return; }
-    draw(sleeve.firstElementChild.dataset.cat);
-  }));
+  function draw(pool, emptyMessage) {
+    if (pool.length === 0) { say(emptyMessage); return; }
+    lastPool = pool;
+    const others = pool.filter((t) => t !== current);
+    if (others.length === 0) { say('That’s the only task in there.'); show(pool[0]); return; }
+    show(others[Math.floor(Math.random() * others.length)]);
+  }
 
-  // Mouse users can drag the wallet sideways too, not only touch users.
-  let dragStartX = null, dragStartScroll = 0, dragged = false;
-  track.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') return; dragStartX = e.clientX; dragStartScroll = track.scrollLeft; dragged = false; });
-  window.addEventListener('pointermove', (e) => {
-    if (dragStartX === null) return;
-    const dx = e.clientX - dragStartX;
-    if (Math.abs(dx) > 4) { dragged = true; track.style.scrollSnapType = 'none'; track.scrollLeft = dragStartScroll - dx; }
-  });
-  window.addEventListener('pointerup', () => {
-    if (dragStartX === null) return;
-    dragStartX = null; track.style.scrollSnapType = '';
-    if (dragged) flipTo(centreIndex);
-  });
-  track.addEventListener('click', (e) => { if (dragged) { e.stopPropagation(); e.preventDefault(); dragged = false; } }, true);
+  // One wallet: a sideways strip of index cards that turn away from you like CD sleeves.
+  function makeWallet({ track, items, cardClass, describe, countEl, onFacingChange, onChoose }) {
+    track.innerHTML = '';
+    track.append(Object.assign(document.createElement('div'), { className: 'flip-pad' }));
+    const sleeves = items.map((item) => {
+      const sleeve = document.createElement('div');
+      sleeve.className = 'sleeve';
+      sleeve.innerHTML = `<button type="button" tabindex="-1" class="icard ${cardClass}" style="--c:${item.color}"><span class="nm"></span><span class="ct"></span><span class="go">Draw ↑</span></button>`;
+      track.append(sleeve);
+      return sleeve;
+    });
+    track.append(Object.assign(document.createElement('div'), { className: 'flip-pad' }));
 
-  updateTilt();
+    let facing = 0, armed = null, flipTarget = null;
+
+    function refresh() {
+      sleeves.forEach((sleeve, i) => {
+        const { title, detail, isEmpty } = describe(items[i]);
+        const card = sleeve.firstElementChild;
+        card.querySelector('.nm').textContent = title;
+        card.querySelector('.ct').innerHTML = detail;
+        card.classList.toggle('is-empty', isEmpty);
+        card.querySelector('.go').textContent = mode === 'swipe' ? 'Draw ↑' : mode === 'twice' ? (sleeve.classList.contains('is-armed') ? 'Tap again' : 'Tap') : 'Tap to draw';
+      });
+    }
+
+    function disarm() { if (armed === null) return; sleeves[armed].classList.remove('is-armed'); armed = null; refresh(); }
+
+    function updateTilt() {
+      const box = track.getBoundingClientRect();
+      const middle = box.left + box.width / 2;
+      let nearest = 0, nearestDistance = Infinity;
+      sleeves.forEach((sleeve, i) => {
+        const r = sleeve.getBoundingClientRect();
+        const offset = (r.left + r.width / 2 - middle) / r.width;
+        if (Math.abs(offset) < nearestDistance) { nearestDistance = Math.abs(offset); nearest = i; }
+        const clamped = Math.max(-1.6, Math.min(1.6, offset));
+        const card = sleeve.firstElementChild;
+        if (!reduceMotion) {
+          card.style.transform = `perspective(600px) rotateY(${clamped * -52}deg) translateZ(${-Math.abs(clamped) * 70}px)`;
+          card.style.filter = `brightness(${1 - Math.min(0.4, Math.abs(clamped) * 0.3)})`;
+        }
+        sleeve.style.zIndex = String(20 - Math.round(Math.abs(clamped) * 6));
+      });
+      if (flipTarget === nearest) flipTarget = null;
+      if (armed !== null && nearest !== armed && flipTarget !== armed) disarm();
+      if (nearest !== facing) { facing = nearest; onFacingChange?.(items[facing]); }
+      sleeves.forEach((s, i) => s.classList.toggle('is-centre', i === facing));
+      countEl.textContent = `${facing + 1} of ${items.length}`;
+    }
+
+    function flipTo(index) {
+      const i = Math.max(0, Math.min(sleeves.length - 1, index));
+      flipTarget = i;
+      sleeves[i].scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
+    }
+
+    function choose(i, sleeve) {
+      onChoose(items[i]);
+      if (!sleeve || reduceMotion) return;
+      sleeve.classList.add('is-flying');
+      setTimeout(() => { sleeve.classList.remove('is-flying', 'is-lifting'); sleeve.style.transform = ''; }, 300);
+    }
+
+    function handleTap(i) {
+      if (mode === 'tap') { if (i !== facing) flipTo(i); choose(i); return; }
+      if (mode === 'twice') {
+        if (armed === i) { disarm(); choose(i); return; }
+        disarm(); if (i !== facing) flipTo(i);
+        armed = i; sleeves[i].classList.add('is-armed'); refresh();
+        say('Tap it again to draw.');
+        return;
+      }
+      if (i !== facing) { flipTo(i); return; }
+      sleeves[i].classList.remove('is-nudge'); void sleeves[i].offsetWidth; sleeves[i].classList.add('is-nudge');
+      say('Swipe the card up to draw from it.');
+    }
+
+    // Pointer handling decides between a tap, a sideways drag (mouse only; touch scrolls natively) and an upward swipe.
+    let press = null;
+    track.addEventListener('pointerdown', (e) => {
+      const sleeve = e.target.closest('.sleeve');
+      press = { x: e.clientX, y: e.clientY, scroll: track.scrollLeft, type: e.pointerType, index: sleeve ? sleeves.indexOf(sleeve) : -1, axis: null, dy: 0 };
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (!press) return;
+      const dx = e.clientX - press.x, dy = e.clientY - press.y;
+      if (!press.axis && Math.hypot(dx, dy) > 6) press.axis = Math.abs(dy) > Math.abs(dx) ? 'y' : 'x';
+      if (press.axis === 'x' && press.type === 'mouse') { track.style.scrollSnapType = 'none'; track.scrollLeft = press.scroll - dx; }
+      if (press.axis === 'y' && mode === 'swipe' && press.index === facing) {
+        press.dy = Math.min(0, dy);
+        const sleeve = sleeves[press.index];
+        sleeve.classList.add('is-lifting');
+        // The track clips anything taller than itself, so the card rises a short way with resistance;
+        // the draw threshold still uses the full finger distance.
+        sleeve.style.transform = `translateY(${Math.max(-30, press.dy * 0.4)}px)`;
+      }
+    });
+    function release(cancelled) {
+      if (!press) return;
+      const p = press; press = null;
+      track.style.scrollSnapType = '';
+      if (p.axis === 'x' && p.type === 'mouse') { flipTo(facing); return; }
+      if (p.axis === 'y' && mode === 'swipe' && p.index === facing) {
+        const sleeve = sleeves[p.index];
+        if (!cancelled && p.dy < -50) { choose(p.index, sleeve); return; }
+        sleeve.classList.remove('is-lifting'); sleeve.style.transform = '';
+        if (!cancelled && p.dy < -8) say('A little further up to draw.');
+        return;
+      }
+      if (!cancelled && !p.axis && p.index >= 0) handleTap(p.index);
+    }
+    window.addEventListener('pointerup', () => release(false));
+    window.addEventListener('pointercancel', () => release(true));
+
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); flipTo(facing + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); flipTo(facing - 1); }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(facing, sleeves[facing]); }
+    });
+    track.addEventListener('scroll', () => requestAnimationFrame(updateTilt), { passive: true });
+    window.addEventListener('resize', updateTilt);
+
+    refresh(); updateTilt();
+    return { refresh, disarm, setSwipe(on) { track.classList.toggle('swipe-mode', on); } };
+  }
+
+  const categoryWallet = makeWallet({
+    track: $('cat-track'), items: categories, cardClass: '', countEl: $('cat-count'),
+    describe(cat) {
+      const pool = poolFor(facingProject, cat.id);
+      const top = topPriority(pool);
+      return { title: cat.name, isEmpty: pool.length === 0, detail: pool.length === 0 ? 'none here' : `${pool.length} open<br>top: ${top}` };
+    },
+    onChoose(cat) {
+      const where = facingProject === 'all' ? 'any project' : facingProject;
+      draw(poolFor(facingProject, cat.id), `Nothing in ${cat.name} for ${where} yet.`);
+    },
+  });
+
+  const projectWallet = makeWallet({
+    track: $('proj-track'), items: projects, cardClass: 'project', countEl: $('proj-count'),
+    describe(project) {
+      const pool = poolFor(project.id, 'any');
+      return { title: project.name, isEmpty: pool.length === 0, detail: `${pool.length} open` };
+    },
+    onFacingChange(project) { facingProject = project.id; categoryWallet.refresh(); },
+    onChoose(project) { draw(poolFor(project.id, 'any'), `Nothing open in ${project.name}.`); },
+  });
+
+  function setMode(next) {
+    mode = next;
+    document.querySelectorAll('#mode-opts button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+    $('mode-help').textContent = modeHelp[mode];
+    $('ba-hint').textContent = modeHint[mode];
+    [projectWallet, categoryWallet].forEach((w) => { w.disarm(); w.setSwipe(mode === 'swipe'); w.refresh(); });
+  }
+  function setLook(look) {
+    document.querySelectorAll('#look-opts button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.look === look)));
+    [screen, $('ba-hero')].forEach((el) => el.classList.toggle('light', look === 'light'));
+  }
+  document.querySelectorAll('#mode-opts button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  document.querySelectorAll('#look-opts button').forEach((b) => b.addEventListener('click', () => setLook(b.dataset.look)));
+
+  $('ba-reroll').addEventListener('click', () => draw(lastPool, 'Nothing else to draw.'));
+  $('ba-done').addEventListener('click', () => {
+    const i = tasks.indexOf(current);
+    if (i >= 0) tasks.splice(i, 1);
+    lastPool = lastPool.filter((t) => t !== current);
+    projectWallet.refresh(); categoryWallet.refresh();
+    if (lastPool.length === 0) { say('All done in that pile. Pick another card.'); $('ba-task').textContent = 'Nice. Pick another card when you’re ready.'; $('ba-meta').textContent = 'Done'; current = null; return; }
+    say('Done. Here’s the next one.');
+    draw(lastPool, '');
+  });
+
+  setMode('swipe');
 })();
 </script>
