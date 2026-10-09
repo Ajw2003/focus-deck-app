@@ -1,0 +1,412 @@
+// focus-deck-app/js/github-sync.test.mjs — run with: node app/js/github-sync.test.mjs
+import {
+  statusFromLabels, parseRepoInput,
+  applyLabels, CLAUDE_CREATED_LABEL, CLAUDE_COMPLETED_LABEL,
+  dropStaleCompletedLabel, refreshClosedTaskLabels, syncIssueCompletion, upsertRepoProject,
+  priorityFromLabels, pushCategoriesToIssue, pushPriorityToIssue, closeIssueForDeletedTask,
+  sameIssueTitle, createGithubIssueFromTask,
+  untrackedRepos, isValidRepoName, linkProjectToRepo, linkProjectToRepoOnGithub,
+} from './github-sync.js';
+import { state } from './state.js';
+import { deleteTask } from './mutations.js';
+import assert from 'node:assert';
+
+// wip / in progress status labels
+assert.strictEqual(statusFromLabels(['wip']), 'doing', '"wip" label should map to doing status');
+assert.strictEqual(statusFromLabels(['in progress']), 'doing', '"in progress" (spaces) should normalize to inprogress -> doing');
+assert.strictEqual(statusFromLabels(['In-Progress']), 'doing', '"In-Progress" (mixed case + hyphen) should normalize to inprogress -> doing');
+assert.strictEqual(statusFromLabels(['enhancement']), 'next', 'unrecognized status label should default to next');
+
+// parseRepoInput: owner/repo shorthand, full GitHub URLs, and invalid input
+assert.strictEqual(parseRepoInput('owner/repo'), 'owner/repo', 'plain "owner/repo" should parse as-is');
+assert.strictEqual(parseRepoInput('https://github.com/owner/repo'), 'owner/repo', 'full github.com URL should parse to owner/repo');
+assert.strictEqual(parseRepoInput('https://github.com/owner/repo/'), 'owner/repo', 'URL with a trailing slash should parse to owner/repo');
+assert.strictEqual(parseRepoInput('https://github.com/owner/repo.git'), 'owner/repo', 'URL with a .git suffix should parse to owner/repo');
+assert.strictEqual(parseRepoInput('not a valid repo input'), null, 'invalid input should return null');
+// the one add field at the bottom of the project list (Q15a, Q12d) reuses this exact function to
+// tell a project name from a repo: parseRepoInput(val) truthy -> track-repo path, else add-project
+assert.strictEqual(parseRepoInput('Garden'), null, '"Garden" (a plain name) is not a repo -- the add field treats it as a new project');
+assert.strictEqual(parseRepoInput('someone/somerepo'), 'someone/somerepo', '"someone/somerepo" is a repo -- the add field takes the track-repo path');
+
+// --- provenance labels ---
+{
+  const catsBefore = state.categories.length;
+
+  // created label sets the sticky flag and is never a category candidate
+  let t = { status: 'next' };
+  applyLabels(t, [CLAUDE_CREATED_LABEL]);
+  assert.strictEqual(t.claudeCreated, true, '"Claude created this" should set claudeCreated');
+  assert.deepStrictEqual(t.categoryIds, [], 'a provenance label must not become a category');
+  assert.strictEqual(state.categories.length, catsBefore, 'a provenance label must not auto-create a category');
+
+  // existing category still wins alongside a provenance label
+  t = { status: 'next' };
+  applyLabels(t, [CLAUDE_CREATED_LABEL, 'Bug']);
+  assert.deepStrictEqual(t.categoryIds, ['cat_bug'], 'a real category label alongside the provenance label should still resolve the category');
+  assert.strictEqual(t.claudeCreated, true);
+
+  // an unknown real label becomes the category even when a provenance label is listed first
+  t = { status: 'done' };
+  applyLabels(t, [CLAUDE_COMPLETED_LABEL, 'Epic']);
+  const epic = state.categories.find((c) => c.name === 'Epic');
+  assert.ok(epic, 'the real label "Epic" should be auto-created as a category');
+  assert.deepStrictEqual(t.categoryIds, [epic.id], 'the category must be the real label, not the provenance label');
+  assert.strictEqual(t.claudeCompleted, true, 'completed label on a done task should set claudeCompleted');
+  state.categories.splice(state.categories.indexOf(epic), 1);
+
+  // claudeCompleted is live: a stale label on a non-done (reopened) task reads as false
+  t = { status: 'next', claudeCompleted: true };
+  applyLabels(t, [CLAUDE_COMPLETED_LABEL]);
+  assert.ok(!t.claudeCompleted, 'a reopened (non-done) task must not read as claudeCompleted, even if the label is stale');
+
+  // ...and it clears when the label is gone
+  t = { status: 'done', claudeCompleted: true };
+  applyLabels(t, ['Bug']);
+  assert.ok(!t.claudeCompleted, 'claudeCompleted should clear when the label is no longer on the issue');
+
+  // claudeCreated is sticky: never cleared, even with no labels or without the label
+  t = { status: 'next', claudeCreated: true };
+  applyLabels(t, []);
+  assert.strictEqual(t.claudeCreated, true, 'claudeCreated must survive an empty label list');
+  applyLabels(t, ['Bug']);
+  assert.strictEqual(t.claudeCreated, true, 'claudeCreated must survive labels that omit the provenance label');
+
+  // spelling/case tolerance, same as other reserved labels
+  t = { status: 'next' };
+  applyLabels(t, ['claude-created-this']);
+  assert.strictEqual(t.claudeCreated, true, 'label matching should normalize case/hyphens like other reserved labels');
+
+  // no labels, no flags
+  t = { status: 'done' };
+  applyLabels(t, []);
+  assert.strictEqual(t.claudeCompleted, undefined);
+  assert.strictEqual(t.claudeCreated, undefined);
+}
+
+// --- several labels per task, GitHub colours, priority ---
+{
+  const before = state.categories.map((c) => c.id);
+  let t = { status: 'next' };
+  applyLabels(t, ['art', 'design', 'lighting', 'priority: high'], { design: 'c5def5', lighting: 'fbca04' });
+  const byName = (n) => state.categories.find((c) => c.name === n);
+  assert.deepStrictEqual(t.categoryIds, ['art', 'design', 'lighting'].map((n) => byName(n).id), 'every non-priority label becomes one of the task\'s categories, in order');
+  assert.strictEqual(byName('lighting').color, '#fbca04', 'a label first seen on GitHub keeps its GitHub colour');
+  assert.ok(!byName('priority: high'), 'a priority label must not become a category');
+  assert.strictEqual(t.priority, 'high');
+  assert.strictEqual(t.priorityLabel, 'priority: high');
+
+  applyLabels(t, ['art'], {});
+  assert.deepStrictEqual(t.categoryIds, [byName('art').id], 'a label removed on GitHub is removed from the task');
+  assert.strictEqual(t.priority, null, 'no priority label means no priority');
+
+  assert.deepStrictEqual(priorityFromLabels(['P1', 'bug']), { priority: 'high', label: 'P1' }, 'common aliases are read as priority');
+  assert.deepStrictEqual(priorityFromLabels(['critical', 'Priority: Low']), { priority: 'low', label: 'Priority: Low' }, 'a canonical priority label wins over an alias');
+  assert.deepStrictEqual(priorityFromLabels(['priority: low', 'priority: urgent']), { priority: 'urgent', label: 'priority: urgent' }, 'among canonical labels the most urgent wins');
+  assert.strictEqual(priorityFromLabels(['bug']), null);
+  applyLabels(t, ['good first issue'], {});
+  assert.ok(byName('good first issue'), '"good first issue" is an ordinary label now, not an energy hint');
+
+  state.categories.splice(0, state.categories.length, ...state.categories.filter((c) => before.includes(c.id)));
+}
+
+// --- live claudeCompleted: stubbed GitHub API ---
+{
+  globalThis.localStorage = { getItem: () => 'test-token', setItem() {}, removeItem() {} };
+  const calls = [];
+  let nextJson = {};
+  globalThis.fetch = async (url, opts = {}) => {
+    calls.push({ url: String(url).replace('https://api.github.com', ''), method: opts.method || 'GET', body: opts.body });
+    return { ok: true, status: 200, json: async () => nextJson };
+  };
+  const LABEL_PATH = '/repos/o/r/issues/5/labels/Claude%20completed%20this';
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+
+  // dropStaleCompletedLabel: removes the stale label from a reopened task
+  calls.length = 0;
+  await dropStaleCompletedLabel({ status: 'next', repoFullName: 'o/r', issueNumber: 5 }, ['Bug', CLAUDE_COMPLETED_LABEL]);
+  assert.deepStrictEqual(calls.map((c) => c.method + ' ' + c.url), ['DELETE ' + LABEL_PATH], 'a reopened task with a stale completed label should have that label removed from the issue');
+
+  // ...but not when the task is done, or the label isn't there
+  calls.length = 0;
+  await dropStaleCompletedLabel({ status: 'done', repoFullName: 'o/r', issueNumber: 5 }, [CLAUDE_COMPLETED_LABEL]);
+  await dropStaleCompletedLabel({ status: 'next', repoFullName: 'o/r', issueNumber: 5 }, ['Bug']);
+  assert.strictEqual(calls.length, 0, 'no label removal when the task is done or the label is absent');
+
+  // syncIssueCompletion: unchecking a Claude-completed task reopens the issue AND removes the label
+  calls.length = 0;
+  let t = { source: 'github', repoFullName: 'o/r', issueNumber: 5, status: 'next', claudeCompleted: true };
+  await syncIssueCompletion(t);
+  assert.deepStrictEqual(calls.map((c) => c.method + ' ' + c.url), ['PATCH /repos/o/r/issues/5', 'DELETE ' + LABEL_PATH], 'reopen should PATCH the issue open then remove the completed label');
+  assert.strictEqual(JSON.parse(calls[0].body).state, 'open');
+  assert.ok(!t.claudeCompleted, 'claudeCompleted should be cleared locally on reopen');
+
+  // syncIssueCompletion: closing (done) never touches labels
+  calls.length = 0;
+  t = { source: 'github', repoFullName: 'o/r', issueNumber: 5, status: 'done' };
+  await syncIssueCompletion(t);
+  assert.deepStrictEqual(calls.map((c) => c.method + ' ' + c.url), ['PATCH /repos/o/r/issues/5']);
+
+  // syncIssueCompletion: reopening a task that was never Claude-completed makes no label call
+  calls.length = 0;
+  t = { source: 'github', repoFullName: 'o/r', issueNumber: 5, status: 'next' };
+  await syncIssueCompletion(t);
+  assert.deepStrictEqual(calls.map((c) => c.method), ['PATCH']);
+
+  // refreshClosedTaskLabels: closed issue with the label -> claudeCompleted
+  calls.length = 0;
+  nextJson = { number: 7, title: 'x', labels: [{ name: CLAUDE_COMPLETED_LABEL }, { name: 'Bug' }], body: '', state: 'closed', html_url: 'u' };
+  t = { status: 'done', repoFullName: 'o/r', issueNumber: 7 };
+  await refreshClosedTaskLabels([t]);
+  assert.strictEqual(t.claudeCompleted, true, 'a newly-closed task whose issue carries the completed label should read as claudeCompleted');
+  assert.deepStrictEqual(t.categoryIds, ['cat_bug']);
+
+  // refreshClosedTaskLabels: an issue that is actually open is ignored
+  nextJson = { number: 7, title: 'x', labels: [{ name: CLAUDE_COMPLETED_LABEL }], body: '', state: 'open', html_url: 'u' };
+  t = { status: 'done', repoFullName: 'o/r', issueNumber: 7 };
+  await refreshClosedTaskLabels([t]);
+  assert.ok(!t.claudeCompleted, 'an issue that is not closed must not set claudeCompleted');
+
+  // refreshClosedTaskLabels: a failing fetch is swallowed
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: false, status: 500, json: async () => ({}) });
+  await refreshClosedTaskLabels([{ status: 'done', repoFullName: 'o/r', issueNumber: 7 }]); // must not throw
+  globalThis.fetch = realFetch;
+
+  // pushCategoriesToIssue: adds only the labels the task gained, removes only those it lost.
+  // cssColorToHex needs a DOM; a stand-in that reports every colour as #aa0000 is enough here.
+  globalThis.document = { createElement: () => ({ style: {} }), body: { appendChild() {}, removeChild() {} } };
+  globalThis.getComputedStyle = () => ({ color: 'rgb(170, 0, 0)' });
+  state.categories.push({ id: 'cat_art', name: 'art', color: '#aa0000' }, { id: 'cat_ui', name: 'ui', color: '#aa0000' });
+  calls.length = 0;
+  nextJson = { color: 'aa0000' };
+  t = { source: 'github', repoFullName: 'o/r', issueNumber: 5, categoryIds: ['cat_bug', 'cat_art'] };
+  await pushCategoriesToIssue(t, ['cat_bug', 'cat_ui']);
+  let writes = calls.filter((c) => c.method !== 'GET').map((c) => c.method + ' ' + c.url + (c.body ? ' ' + c.body : ''));
+  assert.deepStrictEqual(writes, ['POST /repos/o/r/issues/5/labels {"labels":["art"]}', 'DELETE /repos/o/r/issues/5/labels/ui'], 'only the gained label is added and only the lost one removed: ' + writes.join(' | '));
+
+  // pushPriorityToIssue: swaps whatever priority label the issue had for the canonical one
+  calls.length = 0;
+  t = { source: 'github', repoFullName: 'o/r', issueNumber: 5, priority: 'urgent', priorityLabel: 'P1' };
+  await pushPriorityToIssue(t);
+  writes = calls.filter((c) => c.method !== 'GET').map((c) => c.method + ' ' + c.url + (c.body ? ' ' + c.body : ''));
+  assert.ok(writes.includes('POST /repos/o/r/issues/5/labels {"labels":["priority: urgent"]}'), 'the canonical priority label is added: ' + writes.join(' | '));
+  assert.ok(writes.includes('DELETE /repos/o/r/issues/5/labels/P1'), 'the old priority label is removed, whatever its name');
+  assert.strictEqual(t.priorityLabel, 'priority: urgent');
+  calls.length = 0;
+  t.priority = null;
+  await pushPriorityToIssue(t);
+  writes = calls.filter((c) => c.method !== 'GET').map((c) => c.method + ' ' + c.url);
+  assert.deepStrictEqual(writes, ['DELETE /repos/o/r/issues/5/labels/priority%3A%20urgent'], 'clearing the priority only removes its label');
+  assert.strictEqual(t.priorityLabel, null);
+  state.categories.splice(state.categories.findIndex((c) => c.id === 'cat_art'), 2);
+  delete globalThis.document;
+  delete globalThis.getComputedStyle;
+
+  // upsertRepoProject: returns tasks newly closed (issue vanished from the open list)
+  state.projects.length = 0;
+  state.completedLog.length = 0;
+  const repo = { full_name: 'o/r', name: 'r', html_url: 'https://github.com/o/r', private: false };
+  state.projects.push({ id: 'p1', name: 'r', source: 'github', repoFullName: 'o/r', tasks: [
+    { id: 't_closed', title: 'gone', status: 'next', source: 'github', repoFullName: 'o/r', issueNumber: 1 },
+    { id: 't_reopen', title: 'back', status: 'done', source: 'github', repoFullName: 'o/r', issueNumber: 2, claudeCompleted: true },
+    { id: 't_open', title: 'still', status: 'next', source: 'github', repoFullName: 'o/r', issueNumber: 3 },
+  ] });
+  calls.length = 0;
+  const newlyClosed = upsertRepoProject(repo, [
+    { number: 2, title: 'back', labels: ['Bug', CLAUDE_COMPLETED_LABEL], body: '', state: 'open' },
+    { number: 3, title: 'still', labels: ['Bug'], body: '', state: 'open' },
+  ], {});
+  assert.deepStrictEqual(newlyClosed.map((x) => x.id), ['t_closed'], 'only the task whose issue left the open list is newly closed');
+  const reopened = state.projects[0].tasks.find((x) => x.id === 't_reopen');
+  assert.strictEqual(reopened.status, 'next', 'a done task whose issue is open again should reopen');
+  assert.ok(!reopened.claudeCompleted, 'a reopened task must lose claudeCompleted');
+  await tick();
+  assert.deepStrictEqual(calls.map((c) => c.method + ' ' + c.url), ['DELETE /repos/o/r/issues/2/labels/Claude%20completed%20this'], 'the stale label should be removed from the reopened issue');
+  assert.deepStrictEqual(upsertRepoProject({ full_name: 'x/y', name: 'y', html_url: 'u', private: false }, [], {}), [], 'early return yields an empty array');
+
+  // deleting a linked task closes its issue as "not planned" and keeps it out of future syncs
+  state.projects.length = 0;
+  state.excludedIssues.length = 0;
+  state.projects.push({ id: 'p3', name: 'r', source: 'github', repoFullName: 'o/r', tasks: [
+    { id: 't_del', title: 'drop me', status: 'next', source: 'github', repoFullName: 'o/r', issueNumber: 30 },
+    { id: 't_local', title: 'local only', status: 'next', source: 'manual' },
+  ] });
+  calls.length = 0;
+  deleteTask('t_del', 'p3');
+  await tick();
+  const closeCall = calls.find((c) => c.method === 'PATCH' && c.url === '/repos/o/r/issues/30');
+  assert.ok(closeCall && JSON.parse(closeCall.body).state === 'closed' && JSON.parse(closeCall.body).state_reason === 'not_planned', 'deleting a linked task closes its issue as not planned: ' + JSON.stringify(calls));
+  assert.ok(state.excludedIssues.includes('o/r#30'), 'the deleted task\'s issue is excluded from future syncs');
+  upsertRepoProject(repo, [{ number: 30, title: 'drop me', labels: ['Bug'], body: '', state: 'open' }], {});
+  assert.ok(!state.projects[0].tasks.some((t) => t.issueNumber === 30), 'a sync must not bring a deleted linked task back, even if the issue is still open');
+  calls.length = 0;
+  deleteTask('t_local', 'p3');
+  await tick();
+  assert.strictEqual(calls.length, 0, 'deleting an unlinked task makes no GitHub call');
+  state.excludedIssues.length = 0;
+
+  // an issue linked to a task stays open while it's open on GitHub, even with no labels (e.g. one
+  // Focus Deck just created from an unlabelled task); a new unlabelled issue still isn't imported;
+  // a task in this project linked to another repo's issue is left alone
+  state.projects.length = 0;
+  state.completedLog.length = 0;
+  state.projects.push({ id: 'p2', name: 'r', source: 'github', repoFullName: 'o/r', tasks: [
+    { id: 't_nolabel', title: 'made here', status: 'next', source: 'github', repoFullName: 'o/r', issueNumber: 20 },
+    { id: 't_other', title: 'elsewhere', status: 'next', source: 'github', repoFullName: 'x/other', issueNumber: 99 },
+  ] });
+  const closed2 = upsertRepoProject(repo, [
+    { number: 20, title: 'made here', labels: [], body: '', state: 'open' },
+    { number: 21, title: 'stranger', labels: [], body: '', state: 'open' },
+    { number: 22, title: 'labelled', labels: ['Bug'], body: '', state: 'open' },
+  ], {});
+  const tasks2 = state.projects[0].tasks;
+  assert.deepStrictEqual(closed2, [], 'nothing should be closed: #20 is still open, #99 belongs to another repo');
+  assert.strictEqual(tasks2.find((t) => t.id === 't_nolabel').status, 'next', 'a linked issue without labels must not mark its task done');
+  assert.strictEqual(tasks2.find((t) => t.id === 't_other').status, 'next', 'a task linked to another repo must not be closed by this repo\'s sync');
+  assert.ok(!tasks2.some((t) => t.issueNumber === 21), 'a new unlabelled issue is still not imported');
+  assert.ok(tasks2.some((t) => t.issueNumber === 22), 'a new labelled issue is imported');
+  state.projects.length = 0;
+  state.completedLog.length = 0;
+}
+
+// --- createGithubIssueFromTask: pulls the repo's open issues first and links a same-title match ---
+{
+  assert.ok(sameIssueTitle('Fix login', '  fix   LOGIN '), 'titles should match ignoring case and extra whitespace');
+  assert.ok(!sameIssueTitle('Fix login', 'Fix logout'));
+  assert.ok(!sameIssueTitle('', ''), 'two empty titles are not a match');
+
+  globalThis.localStorage = { getItem: () => 'test-token', setItem() {}, removeItem() {} };
+  const calls = [];
+  const openIssues = [
+    { number: 9, title: 'Fix login', labels: [], body: '', state: 'open', html_url: 'https://github.com/o/r/issues/9', pull_request: undefined },
+  ];
+  globalThis.fetch = async (url, opts = {}) => {
+    const path = String(url).replace('https://api.github.com', '');
+    const method = opts.method || 'GET';
+    calls.push(method + ' ' + path);
+    if (method === 'GET' && path.startsWith('/repos/o/r/issues?')) return { ok: true, status: 200, json: async () => openIssues };
+    if (method === 'GET' && path === '/repos/o/r/issues/9') return { ok: true, status: 200, json: async () => openIssues[0] };
+    if (method === 'POST' && path === '/repos/o/r/issues') return { ok: true, status: 201, json: async () => ({ number: 10, title: 'New thing', labels: [], body: '', state: 'open', html_url: 'https://github.com/o/r/issues/10' }) };
+    return { ok: true, status: 200, json: async () => ({}) };
+  };
+  const makeTask = (id, title) => ({ id, title, status: 'next', source: 'manual', categoryIds: [], steps: [] });
+
+  // an open issue with the same title already exists -> link to it, never POST a new one
+  state.projects.length = 0;
+  state.projects.push({ id: 'p1', name: 'r', tasks: [makeTask('t_dup', 'fix login')] });
+  calls.length = 0;
+  let ui = {};
+  await createGithubIssueFromTask('t_dup', 'o/r', ui);
+  let t = state.projects[0].tasks[0];
+  assert.ok(!calls.some((c) => c.startsWith('POST /repos/o/r/issues')), 'no new issue should be created when a same-title issue is already open: ' + calls.join(', '));
+  assert.strictEqual(t.issueNumber, 9, 'the task should be linked to the existing issue');
+  assert.strictEqual(t.source, 'github');
+  assert.ok(!ui.syncError, 'linking to the existing issue is not an error: ' + ui.syncError);
+  assert.ok(/linked to it instead/.test(ui.notice || ''), 'the user should be told the task was linked, not created');
+
+  // the matching issue is already linked to a different task -> stop with a message, create nothing
+  state.projects[0].tasks.push(makeTask('t_second', 'Fix login'));
+  calls.length = 0;
+  ui = {};
+  await createGithubIssueFromTask('t_second', 'o/r', ui);
+  t = state.projects[0].tasks[1];
+  assert.ok(!calls.some((c) => c.startsWith('POST ')), 'nothing should be created when the match is linked elsewhere');
+  assert.strictEqual(t.source, 'manual', 'the second task should stay unlinked');
+  assert.ok(/already exists/.test(ui.syncError || ''), 'the user should be told why nothing was created');
+  assert.strictEqual(ui.syncing, false);
+
+  // no same-title issue -> the check runs first, then a new issue is created as before
+  state.projects[0].tasks.push(makeTask('t_new', 'New thing'));
+  calls.length = 0;
+  ui = {};
+  await createGithubIssueFromTask('t_new', 'o/r', ui);
+  t = state.projects[0].tasks[2];
+  assert.ok(calls[0].startsWith('GET /repos/o/r/issues?'), 'the repo\'s open issues should be pulled before anything is created');
+  assert.ok(calls.includes('POST /repos/o/r/issues'), 'a new issue should be created when there is no match');
+  assert.strictEqual(t.issueNumber, 10);
+  state.projects.length = 0;
+}
+
+// --- untrackedRepos (PR 7, "+ New" panel's Your repos tab) ---
+{
+  const repos = [
+    { full_name: 'me/tracked', name: 'tracked', html_url: 'u', private: false },
+    { full_name: 'ME/CaseTracked', name: 'CaseTracked', html_url: 'u', private: false },
+    { full_name: 'me/excluded', name: 'excluded', html_url: 'u', private: false },
+    { full_name: 'me/fresh', name: 'fresh', html_url: 'u', private: true },
+  ];
+  const projects = [
+    { id: 'p1', source: 'github', repoFullName: 'me/tracked', tasks: [] },
+    { id: 'p2', source: 'github', repoFullName: 'me/casetracked', tasks: [] }, // lowercase -- must still match "ME/CaseTracked"
+    { id: 'p3', source: 'manual', name: 'not a repo project', tasks: [] },
+  ];
+  const result = untrackedRepos(repos, projects, ['me/excluded']);
+  assert.deepStrictEqual(result.map((r) => r.full_name), ['me/fresh'], 'only the untracked, unexcluded repo should remain: ' + JSON.stringify(result.map((r) => r.full_name)));
+  assert.deepStrictEqual(untrackedRepos([], [], []), [], 'no repos in -> no repos out');
+  assert.deepStrictEqual(untrackedRepos(repos, [], []), repos, 'nothing tracked or excluded -> every repo is untracked');
+}
+
+// --- isValidRepoName (the "Create a new repo" disclosure's validation) ---
+{
+  assert.ok(isValidRepoName('my-repo_1.0'), 'letters, digits, dot, hyphen, underscore are all valid');
+  assert.ok(!isValidRepoName('has spaces'), 'spaces are not allowed');
+  assert.ok(!isValidRepoName(''), 'empty name is not valid');
+  assert.ok(!isValidRepoName('slash/in/name'), 'a slash is not a valid repo name');
+}
+
+// --- linkProjectToRepo: keeps id/name/colour/category/manual tasks; refuses if already tracked ---
+{
+  const repo = { full_name: 'o/newrepo', name: 'newrepo', html_url: 'https://github.com/o/newrepo', private: true };
+  const manualTask = { id: 't1', title: 'Water the plants', status: 'next', source: 'manual' };
+  const project = { id: 'p_hand', name: 'Garden', color: 'hsl(120 var(--proj-sat) var(--proj-light))', categoryId: 'cat_home', source: 'manual', tasks: [manualTask] };
+  const result = linkProjectToRepo(project, repo, [project]);
+  assert.ok(!result.error, 'linking an untracked repo should not be refused: ' + result.error);
+  assert.strictEqual(project.id, 'p_hand', 'id must not change');
+  assert.strictEqual(project.name, 'Garden', 'name must not change');
+  assert.strictEqual(project.color, 'hsl(120 var(--proj-sat) var(--proj-light))', 'colour must not change');
+  assert.strictEqual(project.categoryId, 'cat_home', 'category must not change');
+  assert.strictEqual(project.tasks[0], manualTask, 'the hand-made task object must be untouched');
+  assert.strictEqual(manualTask.source, 'manual', 'the hand-made task must stay manual, unlinked');
+  assert.strictEqual(project.source, 'github');
+  assert.strictEqual(project.repoFullName, 'o/newrepo');
+  assert.strictEqual(project.htmlUrl, 'https://github.com/o/newrepo');
+  assert.strictEqual(project.private, true);
+
+  // refusal: another project already tracks this repo
+  const other = { id: 'p_other', name: 'Side project', source: 'manual', tasks: [] };
+  const already = { id: 'p_taken', name: 'Already tracked', source: 'github', repoFullName: 'o/taken', tasks: [] };
+  const refused = linkProjectToRepo(other, { full_name: 'o/taken', name: 'taken', html_url: 'u', private: false }, [already, other]);
+  assert.ok(refused.error, 'linking a repo another project tracks should be refused');
+  assert.ok(refused.error.includes('o/taken') && refused.error.includes('Already tracked'), 'the refusal should name the repo and the project already tracking it: ' + refused.error);
+  assert.strictEqual(other.source, 'manual', 'a refused link must not change the project');
+}
+
+// --- linkProjectToRepoOnGithub: reuses the linked project via upsertRepoProject, not a new one ---
+{
+  globalThis.localStorage = { getItem: () => 'test-token', setItem() {}, removeItem() {} };
+  globalThis.fetch = async (url) => {
+    if (String(url).includes('/issues')) {
+      return { ok: true, status: 200, json: async () => [
+        { number: 1, title: 'Do the thing', labels: [{ name: 'Bug', color: 'ff0000' }], body: '', state: 'open', html_url: 'u', pull_request: undefined },
+      ] };
+    }
+    return { ok: true, status: 200, json: async () => ({}) };
+  };
+  state.projects.length = 0;
+  const project = { id: 'p_link', name: 'Side project', source: 'manual', tasks: [] };
+  state.projects.push(project);
+  const ui = {};
+  const repo = { full_name: 'o/side', name: 'side', html_url: 'https://github.com/o/side', private: false };
+  const result = await linkProjectToRepoOnGithub('p_link', repo, ui);
+  assert.ok(!result.error, 'linking should not error: ' + result.error);
+  assert.strictEqual(state.projects.length, 1, 'no second project should be created for the same repo');
+  assert.strictEqual(state.projects[0].id, 'p_link', 'the same project (same id) should now be the repo project');
+  assert.strictEqual(state.projects[0].source, 'github');
+  assert.strictEqual(state.projects[0].tasks.length, 1, 'the repo\'s issue should come in as a task');
+  assert.strictEqual(state.projects[0].tasks[0].title, 'Do the thing');
+  assert.ok(state.pinnedRepos.includes('o/side'), 'a linked repo should be pinned so future syncs keep pulling it');
+  state.projects.length = 0;
+  state.pinnedRepos.length = 0;
+}
+
+console.log('GITHUB SYNC HEURISTIC TESTS PASSED');

@@ -1,0 +1,321 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Focus Deck — Settings</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head><body>
+<div class="wrap">
+  <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.3 3.4a8.6 8.6 0 1 1-.4 17.2 8.6 8.6 0 0 1 .4-17.2Z"/><g transform="rotate(25 12 12)"><path d="M12 5.2 14.3 12H9.7Z" fill="currentColor"/><path d="M9.7 12 12 18.8 14.3 12"/></g></svg></span><h1>Settings</h1></div><a href="index.html" class="link-btn">← Back</a></header>
+  <section class="card settings-section">
+    <h2 style="margin-bottom:10px;">GitHub token</h2>
+    <p class="muted small" style="margin-bottom:10px;">
+      Focus Deck uses this token to link tasks to issues, create new issues from tasks, close/reopen a linked
+      issue when you complete a task, and keep categories in sync as GitHub labels. Set it up once:
+    </p>
+    <ol class="muted small" style="margin:0 0 10px 20px; padding:0;">
+      <li style="margin-bottom:4px;">Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a> on GitHub.</li>
+      <li style="margin-bottom:4px;">Under <b>Repository access</b>, choose <b>All repositories</b> — or <b>Only select repositories</b> and add every repo you want Focus Deck to link, create issues in, or sync labels with.</li>
+      <li style="margin-bottom:4px;">Under <b>Repository permissions</b>, set <b>Issues</b> to <b>Read and write</b> — this one setting covers linking, creating issues, closing/reopening, and adding/removing labels (GitHub doesn't split those into separate permissions). Leave <b>Metadata</b> at its default <b>Read-only</b> (GitHub requires it on every fine-grained token).</li>
+      <li style="margin-bottom:4px;">Under <b>Account permissions</b>, set <b>Gists</b> to <b>Read and write</b> — only needed for the cross-device sync below.</li>
+      <li style="margin-bottom:4px;">Under <b>Repository permissions</b>, set <b>Administration</b> to <b>Read and write</b> — only needed to create new repos from Focus Deck; everything else works without it.</li>
+      <li>Generate the token and paste it below. It's stored only in this browser and sent only to api.github.com.</li>
+    </ol>
+    <p class="muted small" style="margin-bottom:14px;">
+      Already have a token? Edit its permissions on that same token on GitHub — no need to paste a new one here.
+      If linking works but completing a task or changing its category never reaches the issue, that token's Issues
+      permission is still Read-only; upgrade it there.
+    </p>
+    <div class="add-project-form">
+      <input type="password" id="token-input" placeholder="github_pat_…">
+      <button type="button" id="save-token">Save</button>
+    </div>
+  </section>
+  <section class="card settings-section">
+    <h2 style="margin-bottom:10px;">Cross-device sync</h2>
+    <p id="gist-status" class="muted small" style="margin-bottom:14px;"></p>
+    <button type="button" id="create-gist" class="btn primary">Create sync Gist</button>
+    <div class="add-project-form">
+      <input type="text" id="gist-id-input" placeholder="Paste an existing Gist ID to connect this device to it">
+      <button type="button" id="connect-gist">Connect</button>
+    </div>
+  </section>
+  <section class="card settings-section">
+    <h2 style="margin-bottom:10px;">Category colors</h2>
+    <p class="muted small" style="margin-bottom:6px;">
+      Pick a color for each category. It updates everywhere that category's chip appears, and syncs to your other devices like any other change.
+    </p>
+    <p class="cat-color-group-label">Project categories</p>
+    <div id="proj-cat-list" class="cat-color-list"></div>
+    <form class="add-project-form cat-add-form" id="add-proj-cat-form" style="margin-top:10px;">
+      <input type="text" name="name" placeholder="New project category…" maxlength="40" required>
+      <button type="submit">+ Add</button>
+    </form>
+    <p class="cat-color-group-label">Task categories</p>
+    <div id="task-cat-list" class="cat-color-list"></div>
+    <form class="add-project-form cat-add-form" id="add-task-cat-form" style="margin-top:10px;">
+      <input type="text" name="name" placeholder="New task category…" maxlength="40" required>
+      <button type="submit">+ Add</button>
+    </form>
+  </section>
+  <section class="card settings-section" id="due-dates-section">
+    <h2 style="margin-bottom:10px;">Due dates</h2>
+    <p class="muted small" style="margin-bottom:6px;">
+      A task's due chip turns <b>yellow</b>, then <b>red</b>, as its time runs down. The cut-offs are a share of the time between setting the due date and the due date itself, so a task due in three months and a task due in three days both turn at a fitting moment. An overdue task is always red. A task can still pick its own lead times when you set its date.
+    </p>
+    <div class="due-defaults-form">
+      <label for="due-yellow-pct">Turn yellow with <input type="number" id="due-yellow-pct" min="2" max="99" step="1" inputmode="numeric"> % of the time left</label>
+      <label for="due-red-pct">Turn red with <input type="number" id="due-red-pct" min="1" max="98" step="1" inputmode="numeric"> % of the time left</label>
+      <button type="button" id="due-reset" class="btn ghost">Reset to defaults</button>
+    </div>
+    <p id="due-preview" class="muted small" aria-live="polite"></p>
+    <p id="due-error" class="muted small" role="alert"></p>
+  </section>
+  <div id="toast-root"></div>
+</div>
+<script type="module">
+  // Every script on this page uses the shared `state` singleton, never loadState(): loadState()
+  // returns a fresh, disconnected copy, and saving a copy taken earlier silently reverts anything
+  // saved since (this is how "Connect" used to lose the Gist ID the moment a category was edited).
+  // The Gist ID itself only changes through setGistId()/disconnectGist() — see
+  // docs/4-systems/local-storage.md.
+  import { getToken, setToken, validateToken, ghFetch } from './js/github.js';
+  import { state, setGistId, serializeState } from './js/state.js';
+  import { findSyncGist, pullFromGist, GIST_FILE } from './js/sync.js';
+  import { renderToast } from './js/render.js';
+
+  const input = document.getElementById('token-input');
+  const gistStatusEl = document.getElementById('gist-status');
+  const createBtn = document.getElementById('create-gist');
+
+  // Results of the buttons on this page show in the same pinned toast as the main app.
+  const toastRoot = document.getElementById('toast-root');
+  function showToast(message, kind) { toastRoot.innerHTML = renderToast(message, kind); }
+  toastRoot.addEventListener('click', (e) => { if (e.target.closest('[data-action="dismiss-toast"]')) toastRoot.innerHTML = ''; });
+
+  // The line under "Cross-device sync" always describes the current connection, not the last action.
+  function renderGistStatus() {
+    if (state.gistId) {
+      gistStatusEl.textContent = 'Sync Gist connected (' + state.gistId + '). This device will read/write it automatically.';
+    } else {
+      gistStatusEl.textContent = 'No sync Gist connected. If you already made one on another device, save your token above and it will be found automatically — or paste its ID below. Otherwise create one.';
+    }
+    createBtn.textContent = state.gistId ? 'Create a new Gist instead (advanced)' : 'Create sync Gist';
+  }
+  renderGistStatus();
+
+  async function connectAndPull(id, label) {
+    setGistId(id);
+    renderGistStatus();
+    showToast('Connected to Gist ' + id + ' (' + label + '). Pulling its data…', 'info');
+    try {
+      await pullFromGist();
+      showToast('Connected to Gist ' + id + ' (' + label + ') and merged its data into this device.', 'info');
+    } catch (e) {
+      showToast('Connected to Gist ' + id + ', but pulling it failed: ' + e.message + ' — it will retry when you open the app.', 'error');
+    }
+  }
+
+  if (getToken()) input.placeholder = '•••••••••••••••• (saved — paste a new one to replace)';
+  document.getElementById('save-token').addEventListener('click', async () => {
+    const val = input.value.trim();
+    if (!val) return;
+    showToast('Checking your token…', 'info');
+    setToken(val);
+    try {
+      const login = await validateToken();
+      showToast('Token saved. Connected as @' + login + '.', 'info');
+      input.value = '';
+    } catch (e) {
+      showToast('Could not verify that token: ' + e.message, 'error');
+      return;
+    }
+    if (state.gistId) return;
+    try {
+      const found = await findSyncGist();
+      if (found) await connectAndPull(found, 'found your existing sync Gist');
+    } catch (e) {
+      showToast('Couldn’t look for an existing sync Gist: ' + e.message, 'error');
+    }
+  });
+
+  createBtn.addEventListener('click', async () => {
+    createBtn.disabled = true;
+    try {
+      if (state.gistId) {
+        const ok = confirm('This device is already syncing with Gist ' + state.gistId + '.\n\n'
+          + 'Creating a new Gist switches this device to it. Your other devices will keep using the old one, '
+          + 'so changes will stop reaching each other until you connect them to the new ID too. '
+          + 'The old Gist is not deleted.\n\nCreate a new Gist anyway?');
+        if (!ok) return;
+      } else {
+        const existing = await findSyncGist().catch(() => null);
+        if (existing) { await connectAndPull(existing, 'found your existing sync Gist instead of making a duplicate'); return; }
+      }
+      const gist = await ghFetch('/gists', {
+        method: 'POST',
+        body: JSON.stringify({
+          description: 'Focus Deck sync data — do not edit manually',
+          public: false,
+          files: { [GIST_FILE]: { content: serializeState(state) } },
+        }),
+      });
+      setGistId(gist.id);
+      renderGistStatus();
+      showToast('Created! Gist ID: ' + gist.id + ' — on your other device, save the same token and it will connect automatically (or paste this ID below).', 'info');
+    } catch (e) {
+      showToast('Couldn’t create the sync Gist: ' + e.message, 'error');
+    } finally {
+      createBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('connect-gist').addEventListener('click', async () => {
+    const id = document.getElementById('gist-id-input').value.trim();
+    if (!id || id === state.gistId) return;
+    if (state.gistId && !confirm('This device is syncing with Gist ' + state.gistId + '. Switch it to ' + id + '?\n\n'
+      + 'Nothing is deleted: this device\'s data is merged into the new Gist, and the old Gist stays on GitHub.')) return;
+    await connectAndPull(id, 'pasted ID');
+  });
+</script>
+<script type="module">
+  // Uses the shared `state` singleton (not loadState(), which returns a fresh, disconnected
+  // object) and the mutations.js setters, so every edit here goes through the same persist()/
+  // Gist-sync pipeline as everything else in the app instead of silently bypassing it.
+  import { state, esc, cssColorToHex } from './js/state.js';
+  import {
+    setCategoryColor, setProjectCategoryColor,
+    addCategory, addProjectCategory, removeCategory, removeProjectCategory,
+  } from './js/mutations.js';
+
+  function renderCategoryList(container, categories) {
+    container.innerHTML = categories.map((c) => (
+      '<div class="cat-color-row">'
+        + '<span class="chip cat-chip" style="--chip-color:' + esc(c.color) + '">' + esc(c.name) + '</span>'
+        + '<div class="cat-color-row-actions">'
+          + '<input type="color" class="cat-color-input" data-id="' + c.id + '" value="' + cssColorToHex(c.color) + '">'
+          + '<button type="button" class="mini-x cat-remove-btn" data-id="' + c.id + '" aria-label="Remove ' + esc(c.name) + '">×</button>'
+        + '</div>'
+      + '</div>'
+    )).join('') || '<p class="muted small">None yet.</p>';
+  }
+
+  // How many projects (or tasks, for task categories) currently reference this category — shown
+  // in the removal confirmation so a category in use isn't dropped by accident.
+  function usageCount(type, id) {
+    if (type === 'project') return state.projects.filter((p) => p.categoryId === id).length;
+    let count = 0;
+    state.projects.forEach((p) => p.tasks.forEach((t) => { if ((t.categoryIds || []).includes(id)) count++; }));
+    return count;
+  }
+
+  // 'input' fires continuously while the native color picker is open (including on every drag
+  // tick across the gradient) — it must only touch the preview chip in place, never rebuild the
+  // list, or it destroys and recreates the open <input> mid-drag and closes the picker. 'change'
+  // fires once, when the picker is closed/committed, which is when it's safe to persist.
+  function wireList(container, categoriesOf, type, setColorFn, removeFn) {
+    container.addEventListener('input', (e) => {
+      if (!e.target.matches('.cat-color-input')) return;
+      const chip = e.target.closest('.cat-color-row').querySelector('.cat-chip');
+      if (chip) chip.style.setProperty('--chip-color', e.target.value);
+    });
+    container.addEventListener('change', (e) => {
+      if (!e.target.matches('.cat-color-input')) return;
+      setColorFn(e.target.getAttribute('data-id'), e.target.value);
+    });
+    container.addEventListener('click', (e) => {
+      if (!e.target.matches('.cat-remove-btn')) return;
+      const id = e.target.getAttribute('data-id');
+      const cat = categoriesOf().find((c) => c.id === id);
+      if (!cat) return;
+      const count = usageCount(type, id);
+      const noun = type === 'project' ? 'project' : 'task';
+      const warning = count > 0 ? ' It\'s currently on ' + count + ' ' + noun + (count === 1 ? '' : 's') + ' — removing it clears that assignment.' : '';
+      if (!confirm('Remove "' + cat.name + '"?' + warning)) return;
+      removeFn(id);
+      renderCategoryList(container, categoriesOf());
+    });
+  }
+
+  const projCatList = document.getElementById('proj-cat-list');
+  const taskCatList = document.getElementById('task-cat-list');
+  renderCategoryList(projCatList, state.projectCategories);
+  renderCategoryList(taskCatList, state.categories);
+  wireList(projCatList, () => state.projectCategories, 'project', setProjectCategoryColor, removeProjectCategory);
+  wireList(taskCatList, () => state.categories, 'task', setCategoryColor, removeCategory);
+
+  document.getElementById('add-proj-cat-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = e.target.elements.name;
+    addProjectCategory(input.value);
+    input.value = '';
+    renderCategoryList(projCatList, state.projectCategories);
+  });
+  document.getElementById('add-task-cat-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = e.target.elements.name;
+    addCategory(input.value);
+    input.value = '';
+    renderCategoryList(taskCatList, state.categories);
+  });
+</script>
+<script type="module">
+  // Settings > Due dates (#106). Same rules as the category script above: the shared `state`
+  // singleton and a mutations.js setter, so the change goes through persist() and syncs. Numbers
+  // only save when they make sense (red lower than yellow, both under 100); until then the preview
+  // and the message say so and nothing is written.
+  import { state } from './js/state.js';
+  import { setDueDefaults, resetDueDefaults } from './js/mutations.js';
+  import { stageMoments, normalizeDueDefaults } from './js/due-stage.js';
+
+  const yellowEl = document.getElementById('due-yellow-pct');
+  const redEl = document.getElementById('due-red-pct');
+  const previewEl = document.getElementById('due-preview');
+  const errorEl = document.getElementById('due-error');
+
+  function fillInputs() {
+    const d = normalizeDueDefaults(state.dueDefaults);
+    yellowEl.value = d.yellowPct;
+    redEl.value = d.redPct;
+  }
+  function showDate(ms) {
+    const d = new Date(ms);
+    const opts = { day: 'numeric', month: 'long' };
+    if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+    return d.toLocaleDateString(undefined, opts);
+  }
+  // The example always reads "due in 3 months"; its dates come from the same arithmetic dueStage uses.
+  function renderPreview(defaults) {
+    const now = new Date();
+    const due = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate(), 23, 59, 59);
+    const m = stageMoments(due.getTime(), due.getTime() - now.getTime(), defaults);
+    previewEl.textContent = 'A task due in 3 months turns yellow about ' + showDate(m.yellowAt) + ' and red about ' + showDate(m.redAt) + '.';
+  }
+  function valid() {
+    const y = Number(yellowEl.value), r = Number(redEl.value);
+    return yellowEl.value !== '' && redEl.value !== '' && y > 0 && y < 100 && r > 0 && r < 100 && r < y;
+  }
+  fillInputs();
+  renderPreview(state.dueDefaults);
+
+  function onEdit() {
+    if (!valid()) {
+      errorEl.textContent = 'Red has to come after yellow: use a lower percentage for red than for yellow, both between 1 and 99. Nothing is saved until they do.';
+      return false;
+    }
+    errorEl.textContent = '';
+    renderPreview({ yellowPct: Number(yellowEl.value), redPct: Number(redEl.value) });
+    return true;
+  }
+  [yellowEl, redEl].forEach((el) => {
+    el.addEventListener('input', onEdit);
+    el.addEventListener('change', () => { if (onEdit()) setDueDefaults(yellowEl.value, redEl.value); });
+  });
+  document.getElementById('due-reset').addEventListener('click', () => {
+    resetDueDefaults();
+    errorEl.textContent = '';
+    fillInputs();
+    renderPreview(state.dueDefaults);
+  });
+</script>
+</body></html>

@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: '20'
       - name: Run unit + style-contract tests
-        run: node --test js/*.test.mjs
+        run: node --test app/js/*.test.mjs
       - name: Guard against silent large-scale file overwrites
         # See docs/4-systems/styling.md#traps (GitHub issue #17) and docs/6-decisions/Decisions.md for why this
         # exists. On push, diff every commit the push actually introduces against its parent; on a

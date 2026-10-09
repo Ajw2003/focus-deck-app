@@ -1,0 +1,403 @@
+// focus-deck-app/js/state.js
+import { mergeStates, stampChanges } from './merge.js';
+import { ensureSortOrder } from './project-filter.js';
+import { ensureTaskSortOrder } from './task-move.js';
+import { dueStage, DEFAULT_DUE_DEFAULTS } from './due-stage.js';
+import { ICON_DUE_RED } from './icons.js';
+
+// Priority, most urgent first. githubLabel is the label Focus Deck writes; color is its GitHub hex.
+export const PRIORITY_ORDER = ['urgent', 'high', 'medium', 'low'];
+export const PRIORITY = {
+  urgent: { label: 'Urgent', githubLabel: 'priority: urgent', color: 'b60205' },
+  high: { label: 'High', githubLabel: 'priority: high', color: 'd93f0b' },
+  medium: { label: 'Medium', githubLabel: 'priority: medium', color: 'fbca04' },
+  low: { label: 'Low', githubLabel: 'priority: low', color: '0e8a16' },
+};
+
+// doc-ref 7f3a docs/4-systems/local-storage.md
+// These key names are part of the user's data: renaming one without a migration that reads the
+// old key first orphans everything stored under it.
+export const STORAGE_KEY = 'focusdeck-state-v1';
+export const GIST_ID_KEY = 'focusdeck-gist-id';
+export const BACKUPS_KEY = 'focusdeck-state-backups';
+const MAX_BACKUPS = 5;
+
+function defaultState() {
+  return {
+    projects: [],
+    inbox: [],
+    focus: null,
+    completedLog: [],
+    excludedRepos: [],
+    pinnedRepos: [],
+    excludedIssues: [], // "owner/repo#123" entries for issues explicitly unlinked — keeps repo sync from re-creating them
+    deletedTaskIds: {}, // taskId -> deletion timestamp; stops a stale remote copy from resurrecting a deleted task
+    categories: [
+      { id: 'cat_bug', name: 'Bug', color: 'hsl(4 70% 55%)' },
+      { id: 'cat_feature', name: 'Feature', color: 'hsl(150 55% 40%)' },
+      { id: 'cat_chore', name: 'Chore', color: 'hsl(210 15% 55%)' },
+    ],
+    projectCategories: [
+      { id: 'pcat_work', name: 'Work', color: 'hsl(210 55% 45%)' },
+      { id: 'pcat_personal', name: 'Personal', color: 'hsl(150 50% 40%)' },
+      { id: 'pcat_learning', name: 'Learning', color: 'hsl(35 65% 45%)' },
+    ],
+    githubSync: { user: null, lastSyncedAt: null },
+    gistId: null,
+    // Settings > Due dates: the percentage cut-offs for the stage colours. updatedAt is its own
+    // stamp (this is not a record in a list), used by mergeStates: newest wins.
+    dueDefaults: Object.assign({}, DEFAULT_DUE_DEFAULTS, { updatedAt: 0 }),
+  };
+}
+
+// Set when loading or saving hit a problem the user needs to know about (unreadable saved data,
+// storage full). app.js surfaces it; nothing here clears it.
+export let storageProblem = null;
+
+// The saveId of the copy this page last read or wrote. If storage holds a different one when we
+// save, another tab/window (or this page restored from the back-forward cache) wrote in between,
+// and a blind write would roll its changes back — see saveStateLocal.
+let lastSaveId = null;
+
+// A plain copy of what this page last loaded or saved. saveStateLocal diffs against it to
+// timestamp every changed record (see stampChanges in merge.js), so each edit wins the next merge.
+let lastSaved = null;
+const snapshot = (st) => JSON.parse(serializeState(st));
+
+function readRaw(key) {
+  if (typeof localStorage === 'undefined') return null; // Node tests that don't mock it
+  try { return localStorage.getItem(key); } catch (e) { console.error('localStorage read failed:', e); return null; }
+}
+
+function parseSaved(raw) {
+  if (raw == null) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && Array.isArray(parsed.projects)) return parsed;
+  } catch (e) { /* unreadable — caller decides */ }
+  return null;
+}
+
+function contentSize(st) {
+  if (!st) return 0;
+  const tasks = (st.projects || []).reduce((n, p) => n + ((p && p.tasks) || []).length, 0);
+  return (st.projects || []).length + tasks + (st.inbox || []).length + (st.gistId ? 1 : 0);
+}
+
+export function readBackups() {
+  try { return JSON.parse(readRaw(BACKUPS_KEY)) || []; } catch (e) { return []; }
+}
+
+// Copies a raw saved value aside before anything replaces it. Never throws: a failed backup is
+// logged, and the caller still gets to decide whether to proceed.
+export function backupRaw(raw, reason) {
+  if (raw == null || raw === '') return;
+  try {
+    const backups = readBackups().filter((b) => b.raw !== raw);
+    backups.unshift({ at: Date.now(), reason, raw });
+    localStorage.setItem(BACKUPS_KEY, JSON.stringify(backups.slice(0, MAX_BACKUPS)));
+  } catch (e) { console.error('Could not back up Focus Deck data (' + reason + '):', e); }
+}
+
+// Only these two functions ever change the stored Gist ID. Everything else that sees a missing
+// gistId restores it from GIST_ID_KEY instead of saving the gap.
+export function setGistId(id) {
+  id = String(id || '').trim();
+  if (!id) return;
+  try { localStorage.setItem(GIST_ID_KEY, id); } catch (e) { console.error('Could not save Gist ID:', e); }
+  state.gistId = id;
+  saveStateLocal(state);
+}
+
+export function disconnectGist() {
+  try { localStorage.removeItem(GIST_ID_KEY); } catch (e) { console.error('Could not clear Gist ID:', e); }
+  state.gistId = null;
+  saveStateLocal(state, { allowGistDisconnect: true });
+}
+
+function withDefaults(parsed) {
+  const d = defaultState();
+  return Object.assign(d, parsed, {
+    projects: parsed.projects || d.projects,
+    categories: parsed.categories || d.categories,
+    projectCategories: parsed.projectCategories || d.projectCategories,
+    deletedTaskIds: parsed.deletedTaskIds || d.deletedTaskIds,
+    inbox: Array.isArray(parsed.inbox) ? parsed.inbox : d.inbox,
+    completedLog: Array.isArray(parsed.completedLog) ? parsed.completedLog : d.completedLog,
+    excludedRepos: Array.isArray(parsed.excludedRepos) ? parsed.excludedRepos : d.excludedRepos,
+    pinnedRepos: Array.isArray(parsed.pinnedRepos) ? parsed.pinnedRepos : d.pinnedRepos,
+    excludedIssues: Array.isArray(parsed.excludedIssues) ? parsed.excludedIssues : d.excludedIssues,
+    dueDefaults: parsed.dueDefaults && typeof parsed.dueDefaults === 'object' ? Object.assign({}, d.dueDefaults, parsed.dueDefaults) : d.dueDefaults,
+  });
+}
+
+// Repairs shapes older code saved by mistake, so the data they carried is used instead of being
+// silently ignored: a category object stored where its id belongs, and categories saved without a
+// color (the nextHue function was passed as the color and dropped by JSON.stringify).
+function repairLoaded(st) {
+  const fixRef = (holder) => {
+    if (holder && holder.categoryId && typeof holder.categoryId === 'object') holder.categoryId = holder.categoryId.id || null;
+  };
+  st.projects.forEach((p) => { fixRef(p); (p.tasks || []).forEach(fixRef); });
+  normalizeTaskCategories(st);
+  dropEnergyFields(st);
+  ensureSortOrder(st.projects); // saves from before PR 9 have no sortOrder: number them in stored order
+  ensureTaskSortOrder(st.projects); // ...and tasks from before PR 11, per project
+  ensureDueSetAt(st); // tasks whose deadline predates dueSetAt (#106): their span starts now, so they can still turn yellow and red
+  [st.categories, st.projectCategories].forEach((list, listIdx) => (list || []).forEach((c, i) => {
+    if (typeof c.color !== 'string' || !c.color) c.color = 'hsl(' + Math.round(((i + listIdx * 7) * 137.508) % 360) + ' var(--proj-sat) var(--proj-light))';
+  }));
+  return st;
+}
+
+// A task saved with a deadline before dueSetAt existed has no span start. Without one its stage
+// would stay white until overdue, so give it "now": a task due in 2 days then turns yellow and red
+// on the 2-day schedule from here. Already-stamped tasks are never touched.
+export function ensureDueSetAt(st) {
+  const now = Date.now();
+  (st.projects || []).forEach((p) => (p.tasks || []).forEach((t) => {
+    if (t.deadline && typeof t.dueSetAt !== 'number') t.dueSetAt = now;
+  }));
+}
+
+// A task carries a list of category ids, one per GitHub label. Saves from before that (and from a
+// device still running an older version) have a single categoryId: fold it into the list.
+export function normalizeTaskCategories(st) {
+  (st.projects || []).forEach((p) => (p.tasks || []).forEach((t) => {
+    if (!Array.isArray(t.categoryIds)) t.categoryIds = [];
+    if (t.categoryId && !t.categoryIds.includes(t.categoryId)) t.categoryIds.push(t.categoryId);
+    delete t.categoryId;
+  }));
+}
+
+// The energy system was deleted on 2026-09-26 (see docs/6-decisions/Decisions.md); a save from
+// before that (or a device still running an older version) may still carry these fields on a
+// task. They're simply dropped on load rather than migrated into anything.
+function dropEnergyFields(st) {
+  (st.projects || []).forEach((p) => (p.tasks || []).forEach((t) => { delete t.energy; delete t.energyAuto; }));
+}
+
+// Never returns defaults over data it couldn't read without first copying that data aside and
+// trying the backups — an unreadable save is a problem to report, not an empty deck.
+export function loadState() {
+  const raw = readRaw(STORAGE_KEY);
+  let parsed = parseSaved(raw);
+  if (raw != null && !parsed) {
+    backupRaw(raw, 'unreadable on load');
+    const recovered = readBackups().map((b) => parseSaved(b.raw)).find((b) => b && contentSize(b) > 0);
+    parsed = recovered || null;
+    storageProblem = recovered
+      ? 'Your saved data couldn’t be read, so Focus Deck restored the most recent backup.'
+      : 'Your saved data couldn’t be read. It was kept as a backup, not deleted.';
+    console.error(storageProblem, 'Raw value starts with:', String(raw).slice(0, 80));
+  }
+  // One known-good snapshot per page load, so a later corruption always has something local to
+  // fall back to even if no shrinking save happened in between.
+  if (parsed && raw != null && contentSize(parsed) > 0) backupRaw(raw, 'last good copy at load');
+  const loaded = parsed ? repairLoaded(withDefaults(parsed)) : defaultState();
+
+  const storedGistId = readRaw(GIST_ID_KEY);
+  if (!loaded.gistId && storedGistId) loaded.gistId = storedGistId;
+  if (loaded.gistId && !storedGistId) {
+    try { localStorage.setItem(GIST_ID_KEY, loaded.gistId); } catch (e) { /* retried on next save */ }
+  }
+  return loaded;
+}
+
+// Drops runtime-only fields (anything starting with "_", e.g. the UI object app.js hangs on
+// state) so they never reach localStorage or the Gist.
+export function serializeState(st) {
+  return JSON.stringify(st, (key, value) => (key.startsWith('_') ? undefined : value));
+}
+
+function newSaveId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+// Returns true when the write landed. `opts.allowGistDisconnect` is only for disconnectGist().
+export function saveStateLocal(st, opts = {}) {
+  if (!st || typeof st !== 'object' || !Array.isArray(st.projects)) {
+    // Fail loudly: this is the exact shape of the bug that wrote "undefined" over everything.
+    throw new Error('saveStateLocal needs the state object; refusing to overwrite saved data with ' + String(st));
+  }
+
+  if (!st.gistId && !opts.allowGistDisconnect) {
+    const storedGistId = readRaw(GIST_ID_KEY);
+    if (storedGistId) st.gistId = storedGistId;
+  }
+
+  stampChanges(st, lastSaved);
+
+  const storedRaw = readRaw(STORAGE_KEY);
+  const stored = parseSaved(storedRaw);
+  if (stored && stored.saveId && stored.saveId !== lastSaveId && stored.saveId !== st.saveId) {
+    // Someone else saved since we last looked: fold their copy in rather than roll it back.
+    const merged = mergeStates(st, stored);
+    Object.keys(merged).forEach((k) => { if (!k.startsWith('_')) st[k] = merged[k]; });
+  }
+  if (storedRaw != null && (!stored || contentSize(stored) > contentSize(st))) {
+    backupRaw(storedRaw, stored ? 'before a save with less content' : 'unreadable before save');
+  }
+
+  st.saveId = newSaveId();
+  try {
+    localStorage.setItem(STORAGE_KEY, serializeState(st));
+    lastSaveId = st.saveId;
+    lastSaved = snapshot(st);
+    if (st.gistId) localStorage.setItem(GIST_ID_KEY, st.gistId);
+    return true;
+  } catch (e) {
+    storageProblem = 'Couldn’t save to this browser’s storage (' + (e && e.name) + '). Recent changes may not survive a reload.';
+    console.error(storageProblem, e);
+    return false;
+  }
+}
+
+export const state = loadState();
+lastSaveId = state.saveId || null;
+lastSaved = snapshot(state);
+
+// Replaces the in-memory singleton with what's in storage (keeping runtime "_" fields) and tells
+// the page to repaint. Used when another tab saved, or this page came back from the bfcache.
+const externalChangeListeners = [];
+export function onExternalStateChange(fn) { externalChangeListeners.push(fn); }
+export function reloadStateFromStorage() {
+  const fresh = loadState();
+  Object.keys(state).forEach((k) => { if (!k.startsWith('_')) delete state[k]; });
+  Object.assign(state, fresh);
+  lastSaveId = state.saveId || null;
+  lastSaved = snapshot(state);
+  externalChangeListeners.forEach((fn) => fn());
+}
+
+if (typeof window !== 'undefined' && window.addEventListener) {
+  window.addEventListener('storage', (e) => {
+    if (e.key !== STORAGE_KEY && e.key !== GIST_ID_KEY) return;
+    // Another tab removing the data outright is not a reason for this tab to forget its copy too:
+    // write ours back instead (and let saveStateLocal restore the Gist ID from state if needed).
+    if (e.key === STORAGE_KEY && e.newValue == null) { saveStateLocal(state); return; }
+    reloadStateFromStorage();
+  });
+  window.addEventListener('pageshow', (e) => { if (e.persisted) reloadStateFromStorage(); });
+}
+
+// Asks the browser not to evict this origin's storage under pressure (and, on Safari, exempts an
+// installed home-screen app from the 7-day script-storage cap). Best-effort: resolves false when
+// unsupported or declined, never throws.
+export async function requestPersistentStorage() {
+  try {
+    if (typeof navigator === 'undefined' || !navigator.storage || !navigator.storage.persist) return false;
+    if (navigator.storage.persisted && await navigator.storage.persisted()) return true;
+    return await navigator.storage.persist();
+  } catch (e) { console.warn('storage.persist() failed:', e); return false; }
+}
+
+export function uid(prefix) { return prefix + '_' + Math.random().toString(36).slice(2, 9); }
+
+export function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+export function findProjectIdForTask(taskId) {
+  for (const p of state.projects) if (p.tasks.some((t) => t.id === taskId)) return p.id;
+  return null;
+}
+
+export function findTaskWithProject(taskId) {
+  for (const p of state.projects) {
+    const t = p.tasks.find((t) => t.id === taskId);
+    if (t) return { task: t, project: p };
+  }
+  return null;
+}
+
+// Stands in for a label id to mean "tasks with no labels" (the focus picker's Unlabelled card).
+export const UNLABELLED = '__none__';
+
+// The three kinds from #42, offered first when sorting unlabelled tasks. Each is an ordinary label
+// (created on first use, or an existing label with the same name); color is its GitHub hex.
+export const TASK_KINDS = [
+  { key: 'reminder', label: 'Reminder', desc: 'Something to schedule or remember', color: '#1d76db' },
+  { key: 'build', label: 'Build', desc: 'Something new to make', color: '#0e8a16' },
+  { key: 'fix', label: 'Fix', desc: 'Something broken, or an existing issue', color: '#d93f0b' },
+];
+
+// Open tasks for the focus pick, optionally limited to one label (category id, or UNLABELLED)
+// and/or one project.
+export function openTasksMatching({ categoryId, projectId } = {}) {
+  const ids = [];
+  state.projects.forEach((p) => {
+    if (projectId && p.id !== projectId) return;
+    p.tasks.forEach((t) => {
+      if (t.status === 'done') return;
+      const cats = t.categoryIds || [];
+      if (categoryId === UNLABELLED ? cats.length : (categoryId && !cats.includes(categoryId))) return;
+      ids.push(t.id);
+    });
+  });
+  return ids;
+}
+
+export function relTime(ts) {
+  const diff = Date.now() - ts;
+  const min = Math.round(diff / 60000);
+  if (min < 1) return 'just now';
+  if (min < 60) return min + 'm ago';
+  const hr = Math.round(min / 60);
+  if (hr < 24) return hr + 'h ago';
+  return Math.round(hr / 24) + 'd ago';
+}
+
+// Pass the task to get its stage colour (due-white / due-yellow / due-red, docs/4-systems/due-dates.md);
+// a project's deadline has no stages, so it is called without one and stays the neutral chip. A done
+// task's stage is 'done', which adds no class. The words carry the meaning on their own; red adds an
+// icon so colour is never the only signal.
+export function deadlineChip(iso, task) {
+  const d = new Date(iso + 'T00:00:00');
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((d - startToday) / 86400000);
+  const label = days < 0 ? Math.abs(days) + 'd overdue' : days === 0 ? 'due today' : 'due in ' + days + 'd';
+  const stage = task ? dueStage(task, now.getTime(), state.dueDefaults) : 'done';
+  const stageClass = stage === 'done' ? '' : ' due-' + stage;
+  return '<span class="chip deadline-chip' + stageClass + '">' + (stage === 'red' ? ICON_DUE_RED : '') + label + '</span>';
+}
+
+export function shortName(name) { return name.length > 14 ? name.slice(0, 13) + '…' : name; }
+
+// Display-only formatting for a label (task category) name (Q7b): title-cased, with a small set of
+// known acronyms capitalized. Never changes the stored name or anything sent to GitHub — call this
+// only where a label's name is rendered. Project category names are not labels; leave those alone.
+const LABEL_ACRONYMS = {
+  ui: 'UI', ux: 'UX', api: 'API', ci: 'CI', cd: 'CD', pr: 'PR', qa: 'QA', seo: 'SEO',
+  css: 'CSS', html: 'HTML', js: 'JS', ts: 'TS', pwa: 'PWA', ios: 'iOS', qol: 'QoL',
+};
+export function formatLabelName(name) {
+  if (!name) return name;
+  return String(name).split(/([ _-]+)/).map((part) => {
+    if (/^[ _-]+$/.test(part)) return part === '_' || part === '-' ? ' ' : part;
+    if (!part) return part;
+    const known = LABEL_ACRONYMS[part.toLowerCase()];
+    if (known) return known;
+    // already-mixed-case words (e.g. "GitHub") are kept exactly as written
+    if (/[a-z]/.test(part) && /[A-Z]/.test(part)) return part;
+    return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+  }).join('');
+}
+
+export function nextHue() { return Math.round((state.projects.length * 137.508) % 360); }
+
+// Resolves any category color string (literal hsl(), or one referencing var(--proj-sat)/
+// var(--proj-light)) to #rrggbb, for pre-filling <input type="color">. Shared by settings.html
+// and app.js.
+export function cssColorToHex(cssColor) {
+  // already #rrggbb (also lets the DOM-free render tests run); no document -> neutral grey
+  if (/^#[0-9a-f]{6}$/i.test(cssColor)) return cssColor.toLowerCase();
+  if (typeof document === 'undefined') return '#888888';
+  const el = document.createElement('span');
+  el.style.color = cssColor;
+  document.body.appendChild(el);
+  const rgb = getComputedStyle(el).color;
+  document.body.removeChild(el);
+  const nums = rgb.match(/\d+/g);
+  if (!nums) return '#888888';
+  return '#' + nums.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, '0')).join('');
+}
