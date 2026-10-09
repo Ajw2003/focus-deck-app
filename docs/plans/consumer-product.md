@@ -5,9 +5,9 @@
 Turn Focus Deck into something a stranger can find, install and start using without help. Three
 parts, decided with the user on 2026-10-09:
 
-1. (#117) **A new look across the app**: a desk of real stationery people already use to keep track.
-2. (#118) **A landing page** at the site root that serves the install, the instructions and the pitch.
-3. (#119) **Onboarding and setup for new users**, including a guided walk through GitHub sync, which
+1. **A new look across the app**: a desk of real stationery people already use to keep track.
+2. **A landing page** at the site root that serves the install, the instructions and the pitch.
+3. **Onboarding and setup for new users**, including a guided walk through GitHub sync, which
    stays required for syncing between devices rather than being hidden.
 
 The agreed design is the interactive mockup in `docs/plans/redesign-directions.html` ("Your pick"
@@ -50,13 +50,13 @@ mockup is the design and this plan is the scope.
 Parent issue: #116, "Consumer product: desk redesign, landing page and onboarding". Each step below
 is a child issue (#117 to #126, in order), built and checked on its own.
 
-1. **Move the app to `/app/` and forward existing installs.** Every app file moves under `app/`;
+1. (#117) **Move the app to `/app/` and forward existing installs.** Every app file moves under `app/`;
    a placeholder page at the root forwards installed and returning users; the old root service
    worker is retired cleanly; CI, icons and docs follow the move.
-2. **Landing page at the site root.** The desk design, the pitch, how it works in three steps,
+2. (#118) **Landing page at the site root.** The desk design, the pitch, how it works in three steps,
    install instructions for the visitor's own device (others one tap away), and a plain "Do I need
    GitHub?" answer.
-3. **Desk look for the focus area.** Colour tokens for dark and light, the type faces, the lamp
+3. (#119) **Desk look for the focus area.** Colour tokens for dark and light, the type faces, the lamp
    light, the sticky note, the paper checkbox with the biro cross-out, the "Not this one" slip,
    and the jotter replacing the capture bar.
 4. (#120) **Card wallets for projects and categories.** Replace the focus picker's pills and label cards
