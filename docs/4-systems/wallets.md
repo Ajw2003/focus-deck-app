@@ -52,4 +52,4 @@ shown on the Settings page (`app/settings.html`, "Choosing a card") and is read 
 - The Unsorted flow still uses pills (`render.js` `renderInbox`); that moves to wallets in #121.
 - The service worker (`app/service-worker.js`) is at `v3` and lists `./js/wallet.js`; a new module
   needs adding there and a version bump.
-- The real-Chromium check is `scripts/check-wallets-browser.mjs` (needs a static server on port 8123).
+- The real-Chromium check is `scripts/check-wallets-browser.mjs`. It serves the repo itself on port 8123 for the length of the run: `CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/check-wallets-browser.mjs`. Screenshots land in `docs/generated/pr120/`.
