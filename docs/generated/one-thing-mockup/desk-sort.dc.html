@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>After: desktop, Sort</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,700&amp;family=Kalam:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+.d{width:1440px;height:900px;box-sizing:border-box;background:#111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden}
+.top{display:flex;align-items:center;gap:32px;padding:16px 32px;border-bottom:1px solid #2A3555}
+.brand{font-family:'Young Serif',serif;font-size:20px;display:flex;gap:10px;align-items:center}
+.lamp{width:10px;height:10px;border-radius:50%;background:#F2B45A;box-shadow:0 0 12px #F2B45A}
+.tabs{display:flex;gap:6px;margin:0 auto}
+.tab{font:600 15px Figtree,sans-serif;padding:10px 18px;border-radius:999px;color:#9BA3B8;text-decoration:none}
+.tab.on{background:#F2B45A;color:#2A1B05}
+.count{display:inline-block;margin-left:6px;padding:0 6px;border-radius:999px;background:#2A1B05;color:#F2B45A;font-size:12px}
+.main{display:grid;grid-template-columns:440px 560px;gap:56px;justify-content:center;padding-top:60px}
+.lbl{color:#9BA3B8;font-size:14px;margin-bottom:10px}
+.stack{position:relative;height:250px}
+.behind{position:absolute;left:14px;right:-10px;top:12px;height:200px;background:#EFEADF;opacity:.5;transform:rotate(2.5deg);border-radius:2px}
+.slip{position:relative;background:#EFEADF;color:#1D2733;padding:28px 26px 20px;border-radius:2px;transform:rotate(-1deg);min-height:200px;box-sizing:border-box;box-shadow:0 18px 28px -16px rgba(0,0,0,.9);background-image:radial-gradient(circle,#111829 2.2px,transparent 2.7px);background-size:12px 8px;background-repeat:repeat-x;background-position:4px 4px}
+.slip p{font:700 34px Kalam,cursive;margin:0}
+.slip small{display:block;color:#4E5A68;margin-top:12px;font-size:14px}
+.flag{position:absolute;right:-24px;top:26px;background:#8A6FB8;color:#FFFFFF;font-weight:700;font-size:12px;padding:4px 10px 4px 16px;border-radius:0 4px 4px 0}
+.links{display:flex;gap:22px;margin-top:22px;font-size:14px;color:#9BA3B8}
+.links span{text-decoration:underline}
+.q{font-weight:700;font-size:16px;margin:0 0 12px}
+.row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:28px}
+.fold{position:relative;width:126px;height:56px;border-radius:3px 9px 9px 9px;margin-top:10px;padding:10px;box-sizing:border-box}
+.fold:before{content:"";position:absolute;left:0;top:-9px;width:50%;height:11px;border-radius:6px 10px 0 0;background:inherit}
+.fold span{background:#FFFEFA;color:#1D2733;font:700 13px Figtree,sans-serif;padding:2px 7px;border-radius:2px}
+.on{box-shadow:0 0 0 3px #F2B45A}
+.card{width:126px;height:52px;background:#EFEADF;color:#1D2733;border-radius:4px;border-top:5px solid #3E8E5E;padding:10px 10px 10px 20px;box-sizing:border-box;font:700 14px 'Bricolage Grotesque',sans-serif;background-image:linear-gradient(#C9584F,#C9584F);background-size:1.5px 100%;background-position:12px 0;background-repeat:no-repeat}
+.file{background:#F2B45A;color:#2A1B05;border-radius:999px;text-align:center;padding:16px;font-weight:700;font-size:16px}
+</style>
+</helmet>
+<div class="d">
+  <div class="top"><div class="brand"><span class="lamp"></span>Focus Deck</div>
+    <nav class="tabs" aria-label="What to do"><a class="tab" href="#">Focus</a><a class="tab on" href="#">Sort<span class="count">2</span></a><a class="tab" href="#">Add</a><a class="tab" href="#">Board</a><a class="tab" href="#">Projects</a></nav><div style="color:#9BA3B8;font-size:14px">⚙</div></div>
+  <div class="main">
+    <div>
+      <div class="lbl">1 of 2 in the tray</div>
+      <div class="stack"><div class="behind"></div><div class="slip"><span class="flag">Errand</span><p>Call the dentist</p><small>Thought · 1h ago · going in Home</small></div></div>
+      <div class="links"><span>Already done</span><span>Later</span><span>Bin it</span></div>
+    </div>
+    <div>
+      <p class="q">1. Which folder?</p>
+      <div class="row">
+        <div class="fold on" style="background:#9FC2A6"><span>Home</span></div>
+        <div class="fold" style="background:#A9B3CC"><span>School</span></div>
+        <div class="fold" style="background:#E3A79F"><span>Website</span></div>
+        <div class="fold" style="background:#BFA9CF"><span>Band</span></div>
+        <div class="fold" style="background:#E3B98A"><span>Portfolio</span></div>
+        <div class="fold" style="background:#9FCBC4"><span>Garden</span></div>
+      </div>
+      <p class="q">2. What kind? <span style="color:#9BA3B8;font-weight:400;font-size:13px">Home’s categories · More…</span></p>
+      <div class="row">
+        <div class="card on" style="border-top-color:#8A6FB8">Errand</div>
+        <div class="card">Chore</div>
+        <div class="card" style="border-top-color:#C9584F">Fix</div>
+        <div class="card" style="border-top-color:#4D6FB8">Reminder</div>
+      </div>
+      <div class="file">File it in Home →</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -105,7 +105,8 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
   assert.deepStrictEqual(keys(narrowed, 'categories'), ['c_art', 'c_chore', 'any'], 'and the index cards to that project');
   assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('data-wallet="projects" data-mode="twice" data-facing="all"'), 'a remembered project that no longer exists falls back to All projects');
   assert.ok(renderFocus(st, () => null, { focusFilter: {}, focusCategory: 'c_chore' }).includes('data-wallet="categories" data-mode="twice" data-facing="c_chore"'), 'the facing category is kept across a repaint');
-  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'swipe' } }, () => null, { focusFilter: {} }).includes('data-mode="swipe"'), 'the Choosing a card setting is written into the markup');
+  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'tap' } }, () => null, { focusFilter: {} }).includes('data-mode="tap"'), 'the Choosing a card setting is written into the markup');
+  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'swipe' } }, () => null, { focusFilter: {} }).includes('data-mode="tap"'), 'a save from the retired Swipe up mode draws as Tap');
   assert.ok(renderFocus({ ...st, choosingMode: { mode: 'junk' } }, () => null, { focusFilter: {} }).includes('data-mode="twice"'), 'an unknown mode reads as the default');
   // every project is in the wallet however many there are (it scrolls)
   const many = { ...st, projects: Array.from({ length: 9 }, (_, i) => ({ id: 'p' + i, name: 'project-' + i, color: '#123456', tasks: [task('t' + i, ['c_art'])] })) };
@@ -192,7 +193,7 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   // nothing open: the empty desk says what to do next
   const empty = mk(null, [task('x1', { status: 'done' })]);
   const emptyHtml = renderFocus(empty, () => null, { focusFilter: {} });
-  assert.ok(emptyHtml.includes('desk-empty') && emptyHtml.includes('Add a task to a project') && emptyHtml.includes('jot a thought'), 'the empty desk names the next step');
+  assert.ok(emptyHtml.includes('desk-empty') && emptyHtml.includes('Add a task to a folder on the Projects screen') && emptyHtml.includes('data-action="set-screen" data-screen="projects"') && emptyHtml.includes('jot a thought'), 'the empty desk names the next step');
 }
 
 // wide-screen project sidebar: search, category pills, sort, and a row per visible project that jumps to it
@@ -441,3 +442,16 @@ assert.strictEqual(chipsMaxPct('x'.repeat(60)), 40, 'a 60-character title caps t
 assert.strictEqual(chipsMaxPct('x'.repeat(200)), 33, 'however long the title, the chips can still have a third');
 assert.strictEqual(chipsMaxPct(''), 50, 'an empty title is treated as short');
 assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds: [] }, { id: 'p1' }, [], { editingTask: null }).includes('style="--chips-max:50%"'), 'the row carries its chips ceiling');
+
+// One screen at a time (#135): the rail lists Focus, Sort (with its count) and Projects, marks the
+// current one, and anything unknown reads as Focus.
+{
+  const { renderRail, normalizeScreen } = await import('./render.js');
+  const rail = renderRail('sort', 2);
+  assert.deepStrictEqual([...rail.matchAll(/data-screen="([a-z]+)"/g)].map((m) => m[1]), ['focus', 'sort', 'projects'], 'three screens, in order');
+  assert.ok(/data-screen="sort" aria-current="page"/.test(rail), 'the current screen is marked');
+  assert.ok(rail.includes('>2</b>'), 'Sort shows how many are waiting');
+  assert.ok(!renderRail('focus', 0).includes('rail-count'), 'no count when the tray is empty');
+  assert.strictEqual(normalizeScreen('board'), 'focus');
+  assert.strictEqual(normalizeScreen('projects'), 'projects');
+}

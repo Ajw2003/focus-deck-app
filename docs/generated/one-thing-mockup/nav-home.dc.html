@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Option C: home screen of big buttons</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;family=Kalam:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+.d{width:1440px;height:900px;box-sizing:border-box;background:radial-gradient(55% 50% at 50% 35%, rgba(242,180,90,.15), transparent 70%), #111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden}
+.top{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid #2A3555}
+.brand{font-family:'Young Serif',serif;font-size:20px;display:flex;gap:10px;align-items:center}
+.lamp{width:10px;height:10px;border-radius:50%;background:#F2B45A;box-shadow:0 0 12px #F2B45A}
+.main{display:flex;flex-direction:column;align-items:center;padding-top:70px}
+.q{font-family:'Young Serif',serif;font-size:36px;margin:0 0 8px}
+.sub{color:#9BA3B8;margin:0 0 40px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;width:960px}
+.big{display:flex;flex-direction:column;gap:8px;background:#EFEADF;color:#1D2733;border-radius:4px;padding:24px 24px 22px 40px;text-decoration:none;min-height:150px;box-sizing:border-box;box-shadow:0 18px 30px -18px rgba(0,0,0,.8);background-image:linear-gradient(#C9584F,#C9584F);background-size:1.5px 100%;background-position:24px 0;background-repeat:no-repeat;border-top:7px solid #3E8E5E}
+.big b{font:700 22px Figtree,sans-serif}
+.big span{color:#4E5A68;font-size:15px;line-height:1.4}
+.big.main1{grid-column:span 3;background:#EFCB66;background-image:none;border-top:0;padding:28px 34px;min-height:0}
+.big.main1 b{font:700 30px Kalam,cursive;color:#1F3F99}
+.big.main1 span{color:#6B5520}
+</style>
+</helmet>
+<div class="d">
+  <div class="top"><div class="brand"><span class="lamp"></span>Focus Deck</div><div style="color:#9BA3B8;font-size:14px">⟳ Synced · ⚙</div></div>
+  <div class="main">
+    <h1 class="q">What do you want to do?</h1>
+    <p class="sub">One thing at a time. You can always come back here.</p>
+    <div class="grid">
+      <a class="big main1" href="#"><b>Focus on one thing →</b><span>Still on it: “Reply to Sam about the camping trip” (Home)</span></a>
+      <a class="big" href="#" style="border-top-color:#C9584F"><b>Sort 2 slips</b><span>Thoughts from the jotter waiting for a folder and a category.</span></a>
+      <a class="big" href="#" style="border-top-color:#4D6FB8"><b>Add tasks</b><span>New tasks or GitHub issues, straight into a folder.</span></a>
+      <a class="big" href="#" style="border-top-color:#C2731E"><b>See the board</b><span>Next up 18 · In progress 3 · Done this week 7</span></a>
+      <a class="big" href="#" style="border-top-color:#8A6FB8"><b>Projects</b><span>6 folders. Make one, link it to GitHub, tidy it up.</span></a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

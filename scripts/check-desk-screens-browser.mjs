@@ -66,6 +66,7 @@ async function open(size, scheme, path = '', view = 'all') {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => check(`[${size}/${scheme}] no page error: ` + e.message, false));
   await page.addInitScript(([s, key, v]) => {
+    if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'projects'); // the folders' screen (#135)
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
     if (!localStorage.getItem('focusdeck-project-view')) localStorage.setItem('focusdeck-project-view', v);
   }, [seed(), STATE_KEY, view]);

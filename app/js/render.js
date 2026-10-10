@@ -5,6 +5,7 @@ import { sortTasks } from './task-move.js';
 import { leadChoices, suggestLead, normalizeDueDefaults } from './due-stage.js';
 import { phaseClasses } from './focus-complete.js';
 import { normalizeChoosingMode, CHOOSING_MODE_INFO } from './wallet.js';
+import { splitCategories } from './category-filter.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -33,6 +34,26 @@ export function renderSyncButton(st) {
 // The one place errors and notices appear, on every page: pinned to the bottom of the viewport
 // (see .toast) so it's seen wherever the page is scrolled. kind is 'error' or 'info'.
 // See docs/4-systems/styling.md#how-it-works
+// One activity at a time (#135): the screens, and the rail that switches between them (a column
+// on the left on a wide screen, a bar along the bottom on a phone). Adding stays on every screen:
+// it is the jotter in the topbar. See docs/4-systems/styling.md#one-screen-at-a-time
+export const SCREENS = ['focus', 'sort', 'projects'];
+const SCREEN_INFO = {
+  focus: { label: 'Focus', icon: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>' },
+  sort: { label: 'Sort', icon: '<path d="M4 7h16M4 12h10M4 17h6"/>' },
+  projects: { label: 'Projects', icon: '<path d="M3 7h7l2 2h9v10H3z"/>' },
+};
+export function normalizeScreen(value) { return SCREENS.includes(value) ? value : 'focus'; }
+export function renderRail(screen, unsortedCount) {
+  return '<nav class="rail" aria-label="What to do">' + SCREENS.map((key) => {
+    const on = key === screen;
+    const count = key === 'sort' && unsortedCount ? '<b class="rail-count" aria-label="' + unsortedCount + ' to sort">' + unsortedCount + '</b>' : '';
+    return '<button type="button" class="rail-item' + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
+      + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[key].icon + '</svg>' + count + '</span>'
+      + '<span class="rail-label">' + SCREEN_INFO[key].label + '</span></button>';
+  }).join('') + '</nav>';
+}
+
 export function renderToast(text, kind) {
   if (!text) return '';
   const isError = kind === 'error';
@@ -74,7 +95,7 @@ export function sleeve({ key, name, color, detail, speak, kind, picked }) {
 // the middle again; js/wallet.js reads it, and the data-mode, when it mounts.
 export function walletInner({ wallet, label, aria, items, facing, mode, verb }) {
   return '<div class="wallet-h"><div class="q">' + label + '</div><span class="wallet-count muted small"></span></div>'
-    + '<div class="flip"><div class="flip-track' + (mode === 'swipe' ? ' swipe-mode' : '') + '" tabindex="0" role="group" aria-label="' + esc(aria) + '" data-wallet="' + wallet + '" data-mode="' + mode + '"' + (verb ? ' data-verb="' + verb + '"' : '') + ' data-facing="' + esc(facing) + '">'
+    + '<div class="flip"><div class="flip-track" tabindex="0" role="group" aria-label="' + esc(aria) + '" data-wallet="' + wallet + '" data-mode="' + mode + '"' + (verb ? ' data-verb="' + verb + '"' : '') + ' data-facing="' + esc(facing) + '">'
     + '<div class="flip-pad"></div>' + items.join('') + '<div class="flip-pad"></div></div></div>';
 }
 
@@ -110,8 +131,9 @@ function renderFocusPicker(st, ui) {
     return '<section class="focus-card focus-empty desk-empty">'
       + '<h2 class="focus-q">Your desk is clear.</h2>'
       + (st.projects.length
-        ? '<p class="muted">Nothing is waiting to be picked. Add a task to a project in the list (the Projects button, on a phone), or jot a thought on the pad above and sort it later.</p>'
-        : '<p class="muted">Nothing is waiting to be picked. Make your first folder below and add a task to it, or jot a thought on the pad above and sort it later.</p>')
+        ? '<p class="muted">Nothing is waiting to be picked. Add a task to a folder on the Projects screen, or jot a thought on the pad above and sort it later.</p>'
+        : '<p class="muted">Nothing is waiting to be picked. Make your first folder on the Projects screen and add a task to it, or jot a thought on the pad above and sort it later.</p>')
+      + '<button type="button" class="btn primary" data-action="set-screen" data-screen="projects">Go to Projects</button>'
       + '</section>';
   }
   const mode = focusChoosingMode(st);
@@ -128,7 +150,7 @@ function renderFocusPicker(st, ui) {
 
   return '<section class="card focus-card focus-empty wallet-root">'
     + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
-    + '<p class="muted">Flip to a folder and a kind of work, and I&rsquo;ll surface one task.</p>'
+    + '<p class="muted"><span class="only-narrow">Flip to a folder</span><span class="only-wide">Pick a folder</span> and a kind of work, and I&rsquo;ll surface one task.</p>'
     + '<div class="wallet" id="project-wallet">' + walletInner({ wallet: 'projects', label: 'Project', aria: 'Projects. Arrow keys flip, Enter chooses.', items: folders, facing: projectId || ALL_PROJECTS_KEY, mode }) + '</div>'
     + '<div class="wallet" id="category-wallet">' + renderCategoryWalletInner(st, ui) + '</div>'
     + '<div class="flip-hint">' + CHOOSING_MODE_INFO[mode].hint + '</div>'
@@ -207,9 +229,14 @@ export function unsortedQueue(st) {
 
 // A task can carry several labels (categories), so both task forms pick them with checkboxes in a
 // collapsible list, plus a field for new ones. The summary's count is kept current by app.js.
-export function renderLabelPicker(categories, selectedIds) {
+// With Settings > Category choices on (#133) and a project given, labels that project doesn't use
+// (and that aren't ticked) are drawn hidden behind "Show all N" (app.js's label-show-all toggles a
+// class, no repaint, so a half-typed form is never lost).
+export function renderLabelPicker(categories, selectedIds, project, filterOn = !state.categoryFilter || state.categoryFilter.on !== false) {
   const selected = selectedIds || [];
-  const options = categories.map((c) => '<label class="label-option" style="--chip-color:' + mutedChip(c.color) + '">'
+  const { hidden } = splitCategories(categories, project, { on: filterOn, selected });
+  const extra = new Set(hidden.map((c) => c.id));
+  const options = categories.map((c) => '<label class="label-option' + (extra.has(c.id) ? ' is-extra' : '') + '" style="--chip-color:' + mutedChip(c.color) + '">'
     + '<input type="checkbox" name="categoryIds" value="' + c.id + '"' + (selected.includes(c.id) ? ' checked' : '') + '>'
     + '<span>' + esc(formatLabelName(c.name)) + '</span>'
     + '<input type="color" class="cat-color-input label-swatch" data-color-for="label" data-id="' + c.id + '" value="' + cssColorToHex(c.color) + '" aria-label="Colour for ' + esc(formatLabelName(c.name)) + '">'
@@ -217,6 +244,7 @@ export function renderLabelPicker(categories, selectedIds) {
   return '<details class="label-picker">'
     + '<summary>' + labelPickerSummary(selected.length) + '</summary>'
     + '<div class="label-options">' + options + '</div>'
+    + (hidden.length ? '<button type="button" class="link-btn small label-show-all" data-action="label-show-all">Show all ' + categories.length + ' categories</button>' : '')
     + '<input type="text" name="newLabels" placeholder="New labels, comma-separated…" maxlength="120">'
     + '</details>';
 }
@@ -290,7 +318,7 @@ export function renderTaskEditForm(t, p, categories) {
     + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2">' + esc((t.steps || []).join('\n')) + '</textarea>'
     + renderPrioritySelect(t.priority)
     + '<input type="date" name="deadline" value="' + (t.deadline || '') + '">'
-    + renderLabelPicker(categories, t.categoryIds)
+    + renderLabelPicker(categories, t.categoryIds, p)
     + renderTaskGithubLine(t, p)
     + renderTaskEditActions(t, p)
     + '<button type="submit">Save</button>'
@@ -590,7 +618,7 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
         + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
         + renderPrioritySelect(null)
         + '<input type="date" name="deadline">'
-        + renderLabelPicker(categories, [])
+        + renderLabelPicker(categories, [], p)
         + '<button type="submit" aria-label="Add task">+</button>'
         + '<button type="button" data-action="cancel-add-task" data-project="' + p.id + '">Cancel</button>'
       + '</form>'

@@ -57,7 +57,7 @@ async function open(mode, scheme) {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => check(`[${mode}/${scheme}] no page error: ` + e.message, false));
   page.on('dialog', (d) => d.accept());
-  await page.addInitScript(([s, key]) => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s)); }, [seed(mode), STATE_KEY]);
+  await page.addInitScript(([s, key]) => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s)); if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'sort'); }, [seed(mode), STATE_KEY]);
   await page.goto(BASE);
   await page.waitForSelector('.jot-slip');
   await page.waitForTimeout(300);

@@ -5,6 +5,7 @@ import { ensureTaskSortOrder } from './task-move.js';
 import { dueStage, DEFAULT_DUE_DEFAULTS } from './due-stage.js';
 import { DEFAULT_CHOOSING_MODE, normalizeChoosingMode } from './wallet.js';
 import { DEFAULT_NOTE_FACE, normalizeNoteFace } from './note-face.js';
+import { normalizeCategoryFilter } from './category-filter.js';
 import { ICON_DUE_RED } from './icons.js';
 
 // Priority, most urgent first. githubLabel is the label Focus Deck writes; color is its GitHub hex.
@@ -49,10 +50,12 @@ function defaultState() {
     // Settings > Due dates: the percentage cut-offs for the stage colours. updatedAt is its own
     // stamp (this is not a record in a list), used by mergeStates: newest wins.
     dueDefaults: Object.assign({}, DEFAULT_DUE_DEFAULTS, { updatedAt: 0 }),
-    // Settings > Choosing a card: how the focus wallets pick (swipe / tap / twice). Stamped like dueDefaults.
+    // Settings > Choosing a card: how the focus wallets pick (tap / twice). Stamped like dueDefaults.
     choosingMode: { mode: DEFAULT_CHOOSING_MODE, updatedAt: 0 },
     // Settings > Note writing: the face for writing on paper notes (hand / print / dyslexic). Stamped likewise.
     noteFace: { face: DEFAULT_NOTE_FACE, updatedAt: 0 },
+    // Settings > Category choices (#133): offer only a project's own categories when sorting. Stamped likewise.
+    categoryFilter: normalizeCategoryFilter(null),
   };
 }
 
@@ -140,6 +143,7 @@ function withDefaults(parsed) {
     noteFace: parsed.noteFace && typeof parsed.noteFace === 'object'
       ? { face: normalizeNoteFace(parsed.noteFace.face), updatedAt: Number(parsed.noteFace.updatedAt) || 0 }
       : d.noteFace,
+    categoryFilter: normalizeCategoryFilter(parsed.categoryFilter),
   });
 }
 

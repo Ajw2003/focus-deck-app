@@ -21,13 +21,14 @@ test('the default is tap twice, and a save from before this field loads with it'
 });
 
 test('setChoosingMode stamps and saves, survives load, and refuses unknown modes', () => {
-  assert.strictEqual(M.setChoosingMode('swipe'), true);
-  assert.strictEqual(state.choosingMode.mode, 'swipe');
+  assert.strictEqual(M.setChoosingMode('tap'), true);
+  assert.strictEqual(state.choosingMode.mode, 'tap');
   assert.ok(state.choosingMode.updatedAt > 0);
-  assert.strictEqual(JSON.parse(serializeState(state)).choosingMode.mode, 'swipe', 'serializeState carries it');
-  assert.strictEqual(loadState().choosingMode.mode, 'swipe', 'and load returns it');
+  assert.strictEqual(JSON.parse(serializeState(state)).choosingMode.mode, 'tap', 'serializeState carries it');
+  assert.strictEqual(loadState().choosingMode.mode, 'tap', 'and load returns it');
   assert.strictEqual(M.setChoosingMode('hover'), false);
-  assert.strictEqual(state.choosingMode.mode, 'swipe', 'a refused mode changes nothing');
+  assert.strictEqual(M.setChoosingMode('swipe'), false, 'the retired mode is not offered any more');
+  assert.strictEqual(state.choosingMode.mode, 'tap', 'a refused mode changes nothing');
 });
 
 test('a hand-edited unknown mode loads as the default', () => {
@@ -37,15 +38,15 @@ test('a hand-edited unknown mode loads as the default', () => {
 
 test('merge: choosingMode newest updatedAt wins, either direction; absent on one side keeps the other', () => {
   const base = { projects: [], inbox: [], categories: [], githubSync: {} };
-  const older = Object.assign({}, base, { choosingMode: { mode: 'tap', updatedAt: 100 } });
-  const newer = Object.assign({}, base, { choosingMode: { mode: 'swipe', updatedAt: 200 } });
-  assert.strictEqual(mergeStates(older, newer).choosingMode.mode, 'swipe', 'remote newer wins');
-  assert.strictEqual(mergeStates(newer, older).choosingMode.mode, 'swipe', 'local newer wins');
-  assert.strictEqual(mergeStates(older, base).choosingMode.mode, 'tap', 'remote has none: keep local');
-  assert.strictEqual(mergeStates(base, newer).choosingMode.mode, 'swipe', 'local has none: take remote');
+  const older = Object.assign({}, base, { choosingMode: { mode: 'twice', updatedAt: 100 } });
+  const newer = Object.assign({}, base, { choosingMode: { mode: 'tap', updatedAt: 200 } });
+  assert.strictEqual(mergeStates(older, newer).choosingMode.mode, 'tap', 'remote newer wins');
+  assert.strictEqual(mergeStates(newer, older).choosingMode.mode, 'tap', 'local newer wins');
+  assert.strictEqual(mergeStates(older, base).choosingMode.mode, 'twice', 'remote has none: keep local');
+  assert.strictEqual(mergeStates(base, newer).choosingMode.mode, 'tap', 'local has none: take remote');
   assert.ok(!('choosingMode' in mergeStates(base, base)), 'neither has one: nothing invented');
-  const tie = mergeStates(older, Object.assign({}, base, { choosingMode: { mode: 'swipe', updatedAt: 100 } }));
-  assert.strictEqual(tie.choosingMode.mode, 'tap', 'a tie keeps the local copy');
+  const tie = mergeStates(older, Object.assign({}, base, { choosingMode: { mode: 'tap', updatedAt: 100 } }));
+  assert.strictEqual(tie.choosingMode.mode, 'twice', 'a tie keeps the local copy');
 });
 
 // ---- Note writing (#122): state.noteFace, same shape and rule as choosingMode ----

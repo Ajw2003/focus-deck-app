@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tracking 2: one project, three sections</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.d{width:1440px;height:900px;box-sizing:border-box;background:#111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden}
+.top{display:flex;align-items:center;gap:32px;padding:16px 32px;border-bottom:1px solid #2A3555}
+.brand{font-family:'Young Serif',serif;font-size:20px;display:flex;gap:10px;align-items:center}
+.lamp{width:10px;height:10px;border-radius:50%;background:#F2B45A;box-shadow:0 0 12px #F2B45A}
+.tabs{display:flex;gap:6px;margin:0 auto}
+.tab{font:600 15px Figtree,sans-serif;padding:10px 18px;border-radius:999px;color:#9BA3B8;text-decoration:none}
+.tab.on{background:#F2B45A;color:#2A1B05}
+.wrap{display:flex;justify-content:center;padding-top:44px}
+.folder{position:relative;width:760px;background:#FBFAF7;color:#1C2438;border:8px solid #A9C6B0;border-radius:2px 14px 14px 14px;padding:22px 30px 26px;box-sizing:border-box;box-shadow:0 26px 40px -24px rgba(0,0,0,.9)}
+.folder:before{content:"";position:absolute;left:-8px;top:-26px;width:220px;height:20px;border-radius:9px 14px 0 0;background:#A9C6B0}
+.head{display:flex;align-items:center;gap:14px}
+.arrow{font-size:22px;color:#59627A;text-decoration:none}
+.head h1{font-family:'Young Serif',serif;font-size:30px;margin:0;flex:1;text-align:center}
+.sec{font-family:'Young Serif',serif;font-size:17px;color:#59627A;margin:22px 0 4px;padding-bottom:6px;border-bottom:2px solid #E3A49C;display:flex;justify-content:space-between}
+.sec span{font-family:Figtree,sans-serif;font-size:13px}
+.r{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid #DDE3EC;font-size:16px}
+.box{width:18px;height:18px;border:2px solid #59627A;border-radius:3px}
+.chip{margin-left:auto;font-size:12px;font-weight:700;background:#F6DDCF;color:#AD4A0B;border-radius:999px;padding:2px 9px}
+.due{font-size:12px;font-weight:700;border:1.5px solid #4F5A00;color:#1C2438;border-radius:999px;padding:1px 8px}
+.done{color:#6E7790;text-decoration:line-through}
+.done .box{background:#59627A}
+.add{color:#8F5A06;font-weight:700;margin-top:14px;display:inline-block}
+.dots{display:flex;gap:8px;justify-content:center;margin-top:22px}
+.dots i{width:9px;height:9px;border-radius:50%;background:#2A3555}
+.dots i.on{background:#F2B45A}
+</style>
+</helmet>
+<div class="d">
+  <div class="top"><div class="brand"><span class="lamp"></span>Focus Deck</div>
+    <nav class="tabs" aria-label="What to do"><a class="tab" href="#">Focus</a><a class="tab" href="#">Sort</a><a class="tab" href="#">Add</a><a class="tab on" href="#">Board</a><a class="tab" href="#">Projects</a></nav><div style="color:#9BA3B8;font-size:14px">⚙</div></div>
+  <div class="wrap"><div>
+    <div class="folder">
+      <div class="head"><a class="arrow" href="#" aria-label="Previous project">◀</a><h1>Home</h1><a class="arrow" href="#" aria-label="Next project">▶</a></div>
+      <div class="sec">In progress <span>1</span></div>
+      <div class="r"><span class="box"></span>Mop the kitchen<span class="chip" style="background:#F3E8C8;color:#7A5A00">Medium</span></div>
+      <div class="sec">Up next <span>3</span></div>
+      <div class="r"><span class="box"></span>Bins out Thursday<span class="chip">High</span><span class="due">due in 3d</span></div>
+      <div class="r"><span class="box"></span>Fix the gate latch<span class="chip" style="background:#DCEADF;color:#3F6E53">Low</span></div>
+      <div class="r"><span class="box"></span>Hang hallway photos</div>
+      <div class="sec">Done <span>2</span></div>
+      <div class="r done"><span class="box"></span>Bought the paint</div>
+      <div class="r done"><span class="box"></span>Book boiler service</div>
+      <a class="add" href="#">+ Add a task to Home</a>
+    </div>
+    <div class="dots" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
+  </div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

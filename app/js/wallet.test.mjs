@@ -11,18 +11,18 @@ import {
   SWIPE_DRAW_PX, mountWallets, liveWalletCount,
 } from './wallet.js';
 
-test('the modes: three, tap twice by default, unknown values read as the default', () => {
-  assert.deepStrictEqual(CHOOSING_MODES, ['swipe', 'tap', 'twice']);
+test('the modes: two, tap twice by default, unknown values read as the default', () => {
+  assert.deepStrictEqual(CHOOSING_MODES, ['tap', 'twice']);
   assert.strictEqual(DEFAULT_CHOOSING_MODE, 'twice');
   CHOOSING_MODES.forEach((m) => {
     assert.strictEqual(normalizeChoosingMode(m), m);
     assert.ok(CHOOSING_MODE_INFO[m].label && CHOOSING_MODE_INFO[m].description && CHOOSING_MODE_INFO[m].hint, m + ' has words');
   });
   for (const bad of [undefined, null, '', 'double', 5, {}]) assert.strictEqual(normalizeChoosingMode(bad), 'twice');
+  assert.strictEqual(normalizeChoosingMode('swipe'), 'tap', 'the retired Swipe up mode reads as Tap, which now behaves as it did plus taps (#132)');
 });
 
 test('the corner hint follows the mode, and "Tap again" only once armed', () => {
-  assert.strictEqual(cornerHint('swipe', false), 'Draw ↑');
   assert.strictEqual(cornerHint('tap', false), 'Tap to draw');
   assert.strictEqual(cornerHint('twice', false), 'Tap');
   assert.strictEqual(cornerHint('twice', true), 'Tap again');
@@ -78,23 +78,19 @@ test('tap twice: first tap arms (and flips if needed), second tap on the same ca
   assert.ok(!facingFirst.flip && facingFirst.arm === 2 && !facingFirst.choose, 'a facing card still needs its second tap');
 });
 
-test('swipe mode: a tap only flips, or reminds you to swipe when already facing', () => {
-  const off = tapOutcome('swipe', { index: 4, facing: 1, armed: null });
-  assert.ok(off.flip && !off.choose && !off.nudge);
+test('a save that still says swipe: a tap draws, never just a nudge (#132)', () => {
   const on = tapOutcome('swipe', { index: 1, facing: 1, armed: null });
-  assert.ok(!on.flip && !on.choose && on.nudge && on.say === 'swipe');
+  assert.ok(on.choose && !on.nudge && on.say === null);
 });
 
-test('swipeOutcome: past the threshold chooses, a little up is "short", sideways or other modes never choose', () => {
-  const up = (dy, extra) => swipeOutcome({ mode: 'swipe', dy, index: 2, facing: 2, ...extra });
+test('swipeOutcome: past the threshold chooses in every mode, a little up is "short", only the facing card', () => {
+  const up = (dy, extra) => swipeOutcome({ dy, index: 2, facing: 2, ...extra });
   assert.strictEqual(up(-(SWIPE_DRAW_PX + 1)), 'choose');
   assert.strictEqual(up(-SWIPE_DRAW_PX), 'short', 'exactly the threshold is not past it');
   assert.strictEqual(up(-20), 'short');
   assert.strictEqual(up(-3), 'none');
   assert.strictEqual(up(40), 'none', 'a downward drag does nothing');
   assert.strictEqual(up(-200, { index: 1 }), 'none', 'only the card facing you can be pushed up');
-  assert.strictEqual(up(-200, { mode: 'tap' }), 'none');
-  assert.strictEqual(up(-200, { mode: 'twice' }), 'none');
 });
 
 test('shouldDisarm: flipping away from a lifted card puts it back, flipping to it does not', () => {
@@ -113,4 +109,17 @@ test('keyAction and clampIndex', () => {
 test('the module can be imported and asked for its count without a DOM', () => {
   assert.strictEqual(typeof mountWallets, 'function');
   assert.strictEqual(liveWalletCount(), 0);
+});
+
+test('laid flat on a wide screen (#128): a folder click picks, a click on the picked folder or any other card acts', async () => {
+  const { spreadClick, spreadCorner, spreadHint } = await import('./wallet.js');
+  assert.strictEqual(spreadClick('projects', 2, 0), 'face', 'a different folder: pick it (the categories narrow)');
+  assert.strictEqual(spreadClick('projects', 0, 0), 'choose', 'the picked folder: draw from it');
+  assert.strictEqual(spreadClick('categories', 3, 0), 'choose', 'a category card draws at once');
+  assert.strictEqual(spreadClick('tray-flags', 3, 0), 'choose', 'an in-tray flag goes on at once');
+  assert.strictEqual(spreadCorner('projects', false), 'Click to pick');
+  assert.strictEqual(spreadCorner('projects', true), 'Click to draw');
+  assert.strictEqual(spreadCorner('tray-flags', false, 'use'), 'Click to use');
+  assert.strictEqual(spreadHint('projects'), 'Click a folder to pick it, then a card to draw');
+  assert.strictEqual(spreadHint('tray-flags', 'use'), 'Click a card to use');
 });

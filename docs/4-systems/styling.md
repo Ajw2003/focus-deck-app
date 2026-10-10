@@ -552,6 +552,32 @@ shape only. Behaviour and markup are the same.
 Checked by `scripts/check-desk-screens-browser.mjs`: every screen at 390px and 1280px in dark and
 light, 60 checks. Screenshots are in `docs/generated/pr123/`.
 
+### One screen at a time
+
+Since #135 (2026-10-10), the app shows one activity at a time, chosen from a rail (`renderRail` in
+`js/render.js`; the "One screen at a time (#135)" section of `css/app.css`):
+
+- **Focus:** the picker or the sticky note, alone, in a centred column (`.screen-focus`).
+- **Sort:** the in-tray, always open, centred (`.screen-sort`).
+- **Projects:** the project list and the paper folders, laid out as before. Each folder's next,
+  in-progress and done tasks are the tracking.
+
+The jotter in the topbar is how you add, and it stays on every screen. The rail is fixed on the
+left at 1100px and wider, and is a bar along the bottom on a phone, where `.wrap` and the toast make
+room for it. `ui.screen` is remembered per device (`focusdeck-screen`); anything unknown reads as
+Focus. A few ways into Projects switch screens first: "Home ↓" on the sticky note
+(`scrollToProject`), the ☰ button, and Settings' `?new=repo`. The two-column desk this replaces is
+in `docs/6-decisions/Decisions.md` (2026-10-10). Checked by `scripts/check-desktop-browser.mjs`.
+
+### Projects on paper (#129)
+
+A project card is a folder in both themes: a 6px frame and tab in `color-mix(--proj-color 45%,
+--folder)`, holding a ruled index card on the light `--surface`. Inside `.project-card`, every colour
+token is redeclared with the light theme's value. So its chips, links and due stages use the
+colours `scripts/check-due-contrast.mjs` proves on those surfaces, and no text sits on the coloured
+frame: the amber Edit link on a blue frame would have been about 3.2:1. Wide-screen tiles are
+`overflow: visible` so the tab shows; their `.project-body` still scrolls.
+
 ### Project header and the Edit panel (Q15a, #83, PR 4 2026-09-27)
 
 `renderProjectCard`'s header is two lines that always render in the same shape, whatever the

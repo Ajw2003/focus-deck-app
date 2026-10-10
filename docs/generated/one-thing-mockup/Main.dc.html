@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Before: desktop today</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,700&amp;family=Kalam:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+.d{width:1440px;height:900px;box-sizing:border-box;background:#111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden;position:relative}
+.top{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid #2A3555}
+.brand{font-family:'Young Serif',serif;font-size:20px;display:flex;gap:10px;align-items:center}
+.lamp{width:10px;height:10px;border-radius:50%;background:#F2B45A;box-shadow:0 0 12px #F2B45A}
+.jot{width:540px;height:44px;background:#EFEADF;border-radius:2px;font-family:Kalam,cursive;color:#5F6A79;padding:12px 14px;box-sizing:border-box;font-size:15px}
+.body{display:grid;grid-template-columns:200px 450px minmax(0,1fr);gap:22px;padding:20px 28px}
+.side p{margin:0 0 12px;font-size:14px;color:#9BA3B8}
+.h{font-family:'Young Serif',serif;font-size:19px;margin:0 0 10px}
+.panel{background:#18213A;border:1px solid #2A3555;border-radius:16px;padding:16px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}
+.fold{width:118px;height:52px;border-radius:3px 8px 8px 8px;background:#9FC2A6}
+.card{width:118px;height:64px;background:#EFEADF;border-radius:4px;border-top:5px solid #8A6FB8}
+.lbl{font-size:13px;font-weight:700;color:#C9C4B8}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.proj{background:#FBFAF7;border:6px solid #A9C6B0;border-radius:2px 12px 12px 12px;height:330px;padding:12px;box-sizing:border-box;color:#1C2438}
+.proj b{font-family:'Young Serif',serif;font-size:17px}
+.task{height:30px;border-bottom:1px solid #DDE3EC;margin-top:6px;display:flex;align-items:center;gap:8px;font-size:13px}
+.box{width:13px;height:13px;border:1.5px solid #59627A;border-radius:3px}
+.chip{margin-left:auto;font-size:11px;font-weight:700;background:#F6DDCF;color:#AD4A0B;border-radius:999px;padding:2px 8px}
+.flag{position:absolute;padding:8px 12px;border-radius:999px;background:#A83E3E;color:#FFFFFF;font-weight:700;font-size:13px;box-shadow:0 0 0 3px #111829}
+</style>
+</helmet>
+<div class="d">
+  <div class="top"><div class="brand"><span class="lamp"></span>Focus Deck</div><div class="jot">Jot down a stray thought…</div><div style="width:60px"></div></div>
+  <div class="body">
+    <div class="side">
+      <div class="h">Projects</div>
+      <p>All projects · One project</p><p>Search projects…</p><p>All · Uncategorized</p><p>Name (A–Z)</p>
+      <p>● Band 2</p><p>● Garden 2</p><p>● Home 5</p><p>● Portfolio 3</p><p>● School 4</p><p>● Website 5</p>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="h">What’s your focus right now?</div>
+        <div class="lbl">Project</div>
+        <div class="row"><div class="fold"></div><div class="fold" style="background:#E3A79F"></div><div class="fold" style="background:#A9B3CC"></div><div class="fold" style="background:#E3B98A"></div><div class="fold" style="background:#BFA9CF"></div><div class="fold"></div></div>
+        <div class="lbl">Category</div>
+        <div class="row"><div class="card"></div><div class="card" style="border-top-color:#C2731E"></div><div class="card"></div><div class="card" style="border-top-color:#C9584F"></div><div class="card" style="border-top-color:#2F8F8F"></div><div class="card"></div></div>
+      </div>
+      <div class="h" style="margin-top:18px">Unsorted 2</div>
+      <div style="background:#EFEADF;height:70px;border-radius:2px;margin-bottom:10px"></div>
+      <div class="lbl">1. Which folder?</div>
+      <div class="row"><div class="fold" style="height:40px"></div><div class="fold" style="height:40px;background:#E3A79F"></div><div class="fold" style="height:40px;background:#A9B3CC"></div></div>
+      <div class="lbl">2. Stick on category flags</div>
+      <div class="row"><div class="card" style="height:40px"></div><div class="card" style="height:40px"></div><div class="card" style="height:40px"></div></div>
+    </div>
+    <div class="grid">
+      <div class="proj" style="border-color:#C8B5D6"><b>Band</b><div class="task"><span class="box"></span>Learn the bridge<span class="chip">High</span></div><div class="task"><span class="box"></span>Book rehearsal room<span class="chip">Medium</span></div></div>
+      <div class="proj"><b>Garden</b><div class="task"><span class="box"></span>Plant the bulbs<span class="chip">High</span></div><div class="task"><span class="box"></span>Fix the hose<span class="chip">Medium</span></div></div>
+      <div class="proj"><b>Home</b><div class="task"><span class="box"></span>Bins out Thursday<span class="chip">High</span></div><div class="task"><span class="box"></span>Mop the kitchen<span class="chip">Medium</span></div><div class="task"><span class="box"></span>Fix the gate latch<span class="chip">Low</span></div></div>
+      <div class="proj" style="border-color:#E3C29A"><b>Portfolio</b><div class="task"><span class="box"></span>Ink the comic page<span class="chip">High</span></div><div class="task"><span class="box"></span>Scan sketches<span class="chip">Medium</span></div></div>
+    </div>
+  </div>
+  <div class="flag" style="left:620px;top:84px">Pick</div>
+  <div class="flag" style="left:620px;top:510px">Sort</div>
+  <div class="flag" style="left:1260px;top:82px">Track &amp; tick off</div>
+  <div class="flag" style="left:112px;top:94px">Projects</div>
+  <div class="flag" style="left:1032px;top:22px">Add</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

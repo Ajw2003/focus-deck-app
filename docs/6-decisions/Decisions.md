@@ -4,6 +4,48 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-10 — One screen at a time, from a side rail (#135); replaces the two-column desk
+
+The two-column wide-screen desk (#130, the entry below) still put every activity on one screen,
+and the user found it too busy: "the point is to focus on one step at a time". After seeing
+mockups (`docs/generated/one-thing-mockup/`), they chose:
+
+- **The side rail (option B)**, with Focus, Sort and Projects.
+- **Projects shown as the paper folders.** The folders hold the tracking, so there is no separate
+  board.
+- **Sort centred** like Focus.
+- **Adding unchanged:** the jotter stays at the top of every screen.
+
+The `.desk-col` / `.projects-col` layout is removed. The wallets still lie flat on a wide screen,
+and the projects are still paper folders.
+
+## 2026-10-10 — The desktop is the macro view (#128, #130, #129)
+
+The user found the desktop "drastically less efficient": one card per wallet in a row wide enough
+for ten, and the projects pushed below a full-width in-tray. They chose "spread out, click once".
+
+- **Wallets lie flat at 1100px and wider**, and one click picks or draws. Phones keep the
+  flip-through.
+- **The desk sits beside the projects** in two columns. The page at 1440×900 went from 2671px to
+  1837px tall, with the first folder on the first screen.
+- **Projects are paper folders in both themes**, using the light theme's tokens inside, so the
+  proven chip contrast still holds. Text never sits on the coloured frame.
+
+## 2026-10-10 — Every wallet takes a tap and a push-up; "Swipe up" mode retired (#131, #132)
+
+The user reported that with Swipe up chosen, the page wouldn't scroll over the wallets on a phone
+(#131), and that a tap just played an animation (#132: "use all control types, or at least tap and
+swipe"). Calls made:
+
+- **Every mode draws on a push-up of the facing card**, and every mode draws on a tap. The setting
+  keeps only what differs: one tap or two. A stored `swipe` reads as `tap`, since that is what it
+  now behaves as.
+- **Only the facing card holds back the page scroll**, and only for a finger moving up. Anywhere
+  else on the wallets, vertical drags scroll the page.
+- **Trade-off:** a finger that starts on the facing card and moves up draws instead of scrolling
+  the page. Accepted because it is the gesture asked for. If it draws by accident too often, the
+  next step is a longer `SWIPE_DRAW_PX`, or push-up as an opt-in.
+
 ## 2026-10-10 — Settings regrouped (#126): calls made
 
 - **No theme setting was added.** The issue lists "theme" under How it looks, but none exists:

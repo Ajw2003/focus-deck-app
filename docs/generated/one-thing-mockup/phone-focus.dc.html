@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>After: phone, Focus</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;family=Atkinson+Hyperlegible:wght@400;700&amp;family=Kalam:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+.p{position:relative;width:390px;height:844px;box-sizing:border-box;background:radial-gradient(90% 50% at 50% 35%, rgba(242,180,90,.16), transparent 70%), #111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 8px;font-family:'Young Serif',serif;font-size:19px}
+.lamp{display:inline-block;width:9px;height:9px;border-radius:50%;background:#F2B45A;box-shadow:0 0 10px #F2B45A;margin-right:8px}
+.small{font-size:13px;color:#9BA3B8;font-family:Figtree,sans-serif}
+.note{margin:70px 24px 0;min-height:230px;background:#EFCB66;color:#2B2412;padding:22px 24px;box-sizing:border-box;transform:rotate(-1.2deg);box-shadow:0 22px 36px -18px rgba(0,0,0,.8);clip-path:polygon(0 0,100% 0,100% 86%,88% 100%,0 100%)}
+.meta{font:13px 'Atkinson Hyperlegible',sans-serif;color:#6B5520;margin-bottom:12px}
+.ink{font:700 30px/1.15 Kalam,cursive;color:#1F3F99;margin:0}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:30px 24px 0}
+.paper{display:flex;align-items:center;justify-content:center;gap:10px;background:#EFEADF;color:#1D2733;padding:16px 10px;border-radius:2px;font:700 16px Figtree,sans-serif;border:0}
+.box{width:22px;height:22px;border:2.5px solid #1D2733;border-radius:4px}
+.quiet{text-align:center;margin-top:22px;font-size:14px;color:#9BA3B8}
+.quiet a{color:#F2B45A}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:78px;background:#18213A;border-top:1px solid #2A3555;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding-bottom:14px;box-sizing:border-box}
+.tb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:#9BA3B8;text-decoration:none;position:relative}
+.tb svg{width:22px;height:22px}
+.tb.on{color:#F2B45A}
+.tb b{position:absolute;top:8px;left:52%;background:#F2B45A;color:#2A1B05;font-size:10px;border-radius:999px;padding:0 5px}
+</style>
+</helmet>
+<div class="p">
+  <div class="top"><span><span class="lamp"></span>Focus Deck</span><span class="small">⟳ ⚙</span></div>
+  <div class="note"><div class="meta">Home · Chore · High · due today</div><p class="ink">Reply to Sam about the camping trip</p></div>
+  <div class="acts"><button class="paper" type="button"><span class="box"></span>Done it</button><button class="paper" type="button">Not this one ↩</button></div>
+  <div class="quiet"><a href="#">Doing it now</a> · <a href="#">Pick again</a></div>
+  <nav class="tabbar" aria-label="What to do">
+    <a class="tb on" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Focus</a>
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h6"/></svg>Sort<b>2</b></a>
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</a>
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="4" height="14"/><rect x="10" y="5" width="4" height="9"/><rect x="16" y="5" width="4" height="12"/></svg>Board</a>
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3z"/></svg>Projects</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

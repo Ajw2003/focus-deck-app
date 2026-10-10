@@ -604,6 +604,10 @@ a.task-title:hover{text-decoration:underline;}
 .label-picker{flex:1 1 100%; font-size:var(--text-sm);}
 .label-picker summary{cursor:pointer; color:var(--ink-soft); font-weight:600; padding:4px 0;}
 .label-options{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0;}
+/* Settings > Category choices (#133): labels the project doesn't use wait behind "Show all" */
+.label-option.is-extra{display:none;}
+.label-picker.show-all .label-option.is-extra{display:inline-flex;}
+.label-show-all{margin:0 0 6px;}
 .label-option{
   display:inline-flex; align-items:center; gap:5px; padding:3px 9px 3px 6px; border-radius:var(--r-pill); cursor:pointer;
   background:color-mix(in srgb, var(--chip-color) 12%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink)); font-weight:600;
@@ -751,7 +755,9 @@ body.is-dragging-task .empty-note{display:none;}
 .wallet-count{font-variant-numeric:tabular-nums;}
 .flip{position:relative; margin:-4px -18px 0;}
 .flip-track{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; padding:34px 0 16px; margin-top:-20px; scrollbar-width:none; overscroll-behavior-x:contain; outline:none; touch-action:pan-x pan-y;}
-.flip-track.swipe-mode{touch-action:pan-x;}
+/* Pushing the facing card up draws in every mode (#132), so on that card alone a finger moving up
+   is not a page scroll. Everywhere else, and a finger moving down anywhere, scrolls the page (#131). */
+.flip-track .sleeve.is-centre .icard{touch-action:pan-x pan-up;}
 .flip-track::-webkit-scrollbar{display:none;}
 .flip-track:focus-visible{box-shadow:inset 0 0 0 2px var(--accent); border-radius:14px;}
 /* Sleeves overlap by 7% each side, so the pads are wider by the same amount to keep the end cards centred. */
@@ -982,3 +988,95 @@ body.is-dragging-task .empty-note{display:none;}
 .settings-advanced[open] summary{margin-bottom:8px;}
 .settings-advanced .add-project-form{margin-top:10px;}
 /* ==== end Settings, grouped ==== */
+.setting-toggle{display:flex; align-items:center; gap:8px; font-weight:600;}
+
+/* ==== Wallets spread out on a wide screen (#128) ==========================================
+   js/wallet.js adds .is-spread when (min-width:1100px) matches: every card shows at once, flat, and
+   one click acts. The picked card (.is-centre) is outlined. See docs/4-systems/wallets.md#spread-out */
+.flip-track.is-spread{flex-wrap:wrap; gap:16px 12px; overflow:visible; scroll-snap-type:none; padding:16px 0 4px; margin:0; touch-action:auto;}
+.flip-track.is-spread .flip-pad{display:none;}
+.flip-track.is-spread .sleeve{flex:0 0 164px; margin:0; scroll-snap-align:none;}
+.flip-track.is-spread .icard{height:100px; padding-top:10px;}
+.flip-track.is-spread .icard.project{height:72px; margin-top:12px; padding-top:10px;}
+.flip-track.is-spread .icard .ct{margin-top:8px;}
+.flip-track.is-spread .icard:hover{box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent), 0 14px 26px -14px var(--paper-shadow);}
+/* only the folder wallet has a "picked" card when laid flat; elsewhere a click acts at once, and the in-tray marks its choices with .is-picked */
+.flip-track.is-spread[data-wallet="projects"] .sleeve.is-centre .icard{box-shadow:0 0 0 3px var(--accent), 0 14px 26px -14px var(--paper-shadow);}
+.flip-track.is-spread .icard .go{opacity:0;}
+.flip-track.is-spread[data-wallet="projects"] .sleeve.is-centre .icard .go, .flip-track.is-spread .icard:hover .go{opacity:1;}
+.flip-track.is-spread + .wallet-count, .wallet-root:has(.is-spread) .wallet-count{display:none;}
+.wallet-root:has(.is-spread) .flip{margin:0;}
+.wallet-root:has(.is-spread) .flip-hint{margin-top:6px; text-align:left;}
+/* ==== end Wallets spread out ==== */
+
+/* ==== One screen at a time (#135) ======================================================
+   The rail switches between Focus, Sort and Projects (js/render.js renderRail); only the chosen
+   screen is drawn. Wide: a column fixed on the left under the topbar. Phone: a bar fixed along the
+   bottom. Focus and Sort are one centred column; Projects keeps the project list and folders.
+   The jotter (adding) stays in the topbar on every screen. See docs/4-systems/styling.md#one-screen-at-a-time */
+.rail{position:fixed; z-index:15; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+  background:var(--surface); border-top:1px solid var(--line); padding:6px 8px calc(6px + env(safe-area-inset-bottom, 0px));}
+.rail-item{display:flex; flex-direction:column; align-items:center; gap:3px; border:0; background:none; color:var(--ink-soft); font:600 .72rem var(--font-ui); padding:6px 0; border-radius:12px; cursor:pointer;}
+.rail-item.is-on{color:var(--accent); background:var(--surface-2);}
+.rail-item:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.rail-icon{position:relative; display:block; width:24px; height:24px;}
+.rail-icon svg{width:24px; height:24px; display:block;}
+.rail-count{position:absolute; top:-6px; left:16px; min-width:16px; padding:0 4px; border-radius:999px; background:var(--accent); color:var(--accent-ink); font-size:.66rem; line-height:16px; text-align:center;}
+.wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px));}
+.toast{bottom:calc(84px + env(safe-area-inset-bottom, 0px));}
+.screen{max-width:720px; margin:0 auto;}
+.screen-focus{padding-top:12px;}
+.screen-sort .inbox-card{border-top:0; padding-top:4px;}
+.screen-sort .inbox-card > .section-toggle{pointer-events:none;}
+.screen-sort .inbox-card > .section-toggle .chev{display:none;}
+.desk-empty .btn{margin-top:12px;}
+@media (min-width:1100px){
+  .rail{top:calc(var(--topbar-h, 64px) + 16px); bottom:auto; right:auto; left:max(12px, calc((100vw - 1800px) / 2 + 12px)); width:84px; grid-template-columns:1fr; gap:6px; padding:8px 6px; border:1px solid var(--line); border-radius:18px;}
+  .wrap{padding-left:116px; padding-bottom:64px;}
+  .toast{bottom:calc(16px + env(safe-area-inset-bottom, 0px));}
+  #app:has(> .screen){display:block;}
+  .screen-focus{padding-top:28px;}
+  .screen{max-width:760px;}
+}
+/* ==== end One screen at a time ==== */
+/* words for the screen size: flipping on a phone, clicking on a wide screen (#128) */
+.only-wide{display:none;}
+@media (min-width:1100px){.only-wide{display:inline;} .only-narrow{display:none;}}
+
+/* ==== Projects as folders of index cards (#129) ===========================================
+   A project is a manila folder (a frame and tab in its colour) holding a ruled index card with its
+   tasks, in both themes, like the wallet folders and cards: paper stays paper. Inside, every colour
+   token is the light theme's, so the chips, links, checkboxes and due stages use the colours
+   scripts/check-due-contrast.mjs already proves on these surfaces. Text never sits on the coloured
+   frame: the folder's colour is a frame and tab only. See docs/4-systems/styling.md#the-rest-of-the-desk */
+.project-card{
+  --bg:#E4E8EF; --surface:#FBFAF7; --surface-2:#EEF1F6;
+  --ink:#1C2438; --ink-soft:#59627A; --ink-faint:#6E7790; --line:#C7CEDB;
+  --accent:#8F5A06; --accent-ink:#FFFFFF; --danger:#A83E3E;
+  --prio-urgent:#B42318; --prio-high:#AD4A0B; --prio-medium:#7A5A00; --prio-low:#3F6E53;
+  --due-soon:#4F5A00; --due-now:#9F0C3D;
+  --index-rule:color-mix(in srgb, var(--rule) 45%, #FBFAF7);
+  --folder-edge:color-mix(in srgb, var(--proj-color) 45%, var(--folder));
+  color-scheme:light; color:var(--ink);
+  background:var(--surface);
+  border:6px solid var(--folder-edge); border-top-width:6px; border-radius:2px 12px 12px 12px;
+  box-shadow:0 18px 30px -20px var(--paper-shadow);
+}
+.project-card::before{background:var(--folder-edge); top:-19px; left:-6px; height:14px;}
+.project-card .group-label{color:var(--ink-soft);}
+.project-card .task-row{border-top-color:var(--index-rule);}
+.project-card .task-title{color:var(--ink);}
+.project-card .project-title h3{color:var(--ink);}
+@media (min-width:1100px){.view-all .project-card:not(.is-collapsed) .project-body{border-bottom-color:var(--index-rule);}}
+/* ==== end Projects as folders ==== */
+/* the tile's own task list scrolls (.project-body), so the tile need not clip: that would cut off its folder tab */
+@media (min-width:1100px){.view-all .project-card{overflow:visible;}}
+/* the in-tray's folders and flags, laid flat on the Sort screen: small enough to see all at once */
+.tray-wallets .flip-track.is-spread{gap:12px 10px; padding-top:12px;}
+.screen-sort .tray-wallets .flip-track.is-spread .sleeve{flex-basis:124px;}
+.screen-sort .tray-wallets .flip-track.is-spread .icard{height:50px; padding:8px 8px 6px 20px;}
+.screen-sort .tray-wallets .flip-track.is-spread .icard.project{height:46px; margin-top:10px; padding:7px 8px;}
+.screen-sort .tray-wallets .flip-track.is-spread .icard .ct{display:none;}
+.rail-label{display:block; line-height:1.1;}
+/* laid flat, the line under the wallets says what a click does; a corner hint would sit on the card's counts */
+.flip-track.is-spread .icard .go{display:none;}

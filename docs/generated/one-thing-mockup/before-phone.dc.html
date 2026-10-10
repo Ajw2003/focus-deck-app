@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Before: phone today</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;family=Kalam:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+.p{width:390px;height:844px;box-sizing:border-box;background:#111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden;padding:0 16px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:16px 0 10px;font-family:'Young Serif',serif;font-size:19px}
+.jot{height:44px;background:#EFEADF;border-radius:2px;font-family:Kalam,cursive;color:#5F6A79;padding:12px;box-sizing:border-box;font-size:15px;margin-bottom:14px}
+.panel{background:#18213A;border:1px solid #2A3555;border-radius:16px;padding:16px;margin-bottom:14px}
+.h{font-family:'Young Serif',serif;font-size:22px;margin:0 0 8px}
+.fold{width:180px;height:70px;border-radius:3px 8px 8px 8px;background:#E7C98F;margin:10px auto}
+.card{width:180px;height:90px;background:#EFEADF;border-radius:4px;border-top:5px solid #3E8E5E;margin:10px auto}
+.slip{background:#EFEADF;height:90px;border-radius:2px;margin:10px 0}
+.proj{background:#FBFAF7;border:6px solid #A9C6B0;border-radius:2px 12px 12px 12px;height:200px;margin-top:24px}
+.small{font-size:13px;color:#9BA3B8}
+</style>
+</helmet>
+<div class="p">
+  <div class="top"><span>● Focus Deck</span><span class="small">☰ ⟳ ⚙</span></div>
+  <div class="jot">Jot down a stray thought…</div>
+  <div class="panel"><div class="h">What’s your focus right now?</div><div class="small">Project</div><div class="fold"></div><div class="small">Category</div><div class="card"></div></div>
+  <div class="h" style="font-size:18px">Unsorted 2</div>
+  <div class="slip"></div>
+  <div class="small">1. Which folder? · 2. Stick on category flags …</div>
+  <div class="proj"></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

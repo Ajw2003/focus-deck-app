@@ -5,6 +5,10 @@
 // used (M.fileInboxItem, M.updateTaskFields). Tested in in-tray.test.mjs.
 // See docs/4-systems/in-tray.md
 import { TASK_KINDS, formatLabelName } from './state.js';
+import { splitCategories } from './category-filter.js';
+
+// The last flag card while Settings > Category choices hides some (#133): choosing it shows the rest.
+export const MORE_FLAGS_KEY = '__more__';
 
 // The tray in order: everything not sent to the back, in queue order, then the slips sent to the
 // back, in the order they were sent. `later` is a list of queue keys; keys no longer in the queue
@@ -35,7 +39,9 @@ export function toggleFolder(current, key) {
 // "kind:<key>" token whose label is created on first use), then every other label ranked for the
 // chosen project: that project's labels first (busiest first), then by use across every project,
 // then by name. Same ranking the old "Other labels" pills had. Colours are raw (render.js mutes them).
-export function flagCards(st, project) {
+// With Settings > Category choices on (#133) and `showAll` false, labels the project doesn't use are
+// left out (unless already picked) and a last "More categories" card says how many.
+export function flagCards(st, project, { selected = [], showAll = false } = {}) {
   const kindCat = (k) => st.categories.find((c) => c.name.toLowerCase() === k.key);
   const kindIds = new Set(TASK_KINDS.map(kindCat).filter(Boolean).map((c) => c.id));
   const kinds = TASK_KINDS.map((k) => {
@@ -52,7 +58,10 @@ export function flagCards(st, project) {
   const others = st.categories.filter((c) => !kindIds.has(c.id))
     .sort((a, b) => (here[b.id] || 0) - (here[a.id] || 0) || (everywhere[b.id] || 0) - (everywhere[a.id] || 0) || a.name.localeCompare(b.name))
     .map((c) => ({ token: c.id, name: formatLabelName(c.name), color: c.color }));
-  return kinds.concat(others);
+  const filterOn = !st.categoryFilter || st.categoryFilter.on !== false;
+  const { shown, hidden } = splitCategories(others.map((c) => ({ ...c, id: c.token })), project, { on: filterOn && !showAll, selected });
+  const more = hidden.length ? [{ token: MORE_FLAGS_KEY, name: 'More categories', color: 'var(--ink-soft)', more: hidden.length }] : [];
+  return kinds.concat(shown.map(({ id, ...c }) => c), more);
 }
 
 // The folders on offer for a thought: busiest (most open tasks) first, then by name.

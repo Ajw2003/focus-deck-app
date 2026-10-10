@@ -32,6 +32,25 @@ It reuses the #120 wallets (`js/wallet.js`, `docs/4-systems/wallets.md`) for "1.
 Known: the flag tabs on the slip's edge are 46px wide, so a long name is clipped ("Reminder" shows
 its end). The full name is in the tab's `title` and on the flag card.
 
+## Category choices
+
+Settings > How it works > Category choices (#133, `state.categoryFilter = { on, updatedAt }`, on by
+default, synced and merged like `choosingMode`). It brings back what the old pills' "+N more"
+did, as a setting:
+
+- `js/category-filter.js` holds `splitCategories(categories, project, { on, selected })`. It keeps
+  the categories the project's tasks use, plus anything already picked, and returns the rest as
+  hidden. With the setting off, no project, or a project with no categories yet, nothing is hidden.
+  Tested in `js/category-filter.test.mjs`.
+- **In-tray flags** (`flagCards`): the kinds always show; then the project's categories, then a
+  "More categories" card (`MORE_FLAGS_KEY`, "N more"). Choosing it sets `ui.unsorted.showAllFlags`
+  for this slip.
+- **Task add and edit forms** (`renderLabelPicker`): hidden labels are drawn with `is-extra`, behind
+  "Show all N categories". `label-show-all` adds `show-all` to the picker with no repaint, so a
+  half-typed form survives.
+- Checked in Chromium by `scripts/check-category-filter-browser.mjs` (11 checks). Screenshots are in
+  `docs/generated/pr133/`.
+
 ## Old Unsorted flow: keep / change / drop
 
 | Today | Plan |
