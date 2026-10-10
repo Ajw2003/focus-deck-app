@@ -23,10 +23,17 @@ export function normalizeChoosingMode(value) {
 }
 
 // The small text in a card's corner. `armed` only matters in tap-twice.
-export function cornerHint(mode, armed) {
-  if (mode === 'swipe') return 'Draw ↑';
+export function cornerHint(mode, armed, verb) {
+  if (mode === 'swipe') return wording('Draw ↑', verb);
   if (mode === 'twice') return armed ? 'Tap again' : 'Tap';
-  return 'Tap to draw';
+  return wording('Tap to draw', verb);
+}
+
+// The words say "draw" (draw a task). A wallet that does something else with a card (the in-tray's
+// folders and flags "use" it) names its own verb in the track's data-verb; no verb leaves the text.
+export function wording(text, verb) {
+  if (!verb) return text;
+  return text.replace(/\b([dD])raw\b/g, (m, first) => (first === 'D' ? verb[0].toUpperCase() + verb.slice(1) : verb));
 }
 
 // ---- Decisions (pure) --------------------------------------------------------------------------
@@ -189,23 +196,24 @@ function mountOne(track, hooks) {
   const root = track.closest('.wallet-root');
   const hintEl = root && root.querySelector('.flip-hint');
   const start = keys.indexOf(track.dataset.facing);
+  const verb = track.dataset.verb || '';
   const w = { track, name, mode, sleeves, facing: start >= 0 ? start : 0, armed: null, flipTarget: null };
   let announceTimer = null;
 
   // A message under the wallets for a moment (then the mode's own hint comes back), and read aloud.
   w.say = (text) => {
     if (hintEl) {
-      hintEl.textContent = text;
+      hintEl.textContent = wording(text, verb);
       clearTimeout(hintTimer);
-      hintTimer = setTimeout(() => { hintEl.textContent = CHOOSING_MODE_INFO[mode].hint; }, 2200);
+      hintTimer = setTimeout(() => { hintEl.textContent = wording(CHOOSING_MODE_INFO[mode].hint, verb); }, 2200);
     }
-    hooks.announce(text);
+    hooks.announce(wording(text, verb));
   };
 
   function paintCorners() {
     sleeves.forEach((sleeve, i) => {
       const go = sleeve.querySelector('.go');
-      if (go) go.textContent = cornerHint(mode, w.armed === i);
+      if (go) go.textContent = cornerHint(mode, w.armed === i, verb);
     });
   }
 

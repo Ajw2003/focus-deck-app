@@ -20,3 +20,5 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
 - [styling.md](./styling.md) — the stylesheet and its contract with the markup that references it
   (`css/app.css`, `js/render.js`), plus the guardrails against it silently breaking
   (`js/style-contract.test.mjs`, `scripts/guard-file-churn.mjs`).
+- [in-tray.md](./in-tray.md) — the Unsorted card as an in-tray of jotter slips, its old-vs-new
+  inventory and its wiring status (`js/in-tray.js`, `js/in-tray-view.js`).
