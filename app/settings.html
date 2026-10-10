@@ -8,42 +8,23 @@
 </head><body>
 <div class="wrap">
   <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true"><span class="lamp"></span></span><h1>Settings</h1></div><a href="index.html" class="link-btn">← Back</a></header>
-  <section class="card settings-section">
-    <h2 style="margin-bottom:10px;">GitHub token</h2>
-    <p class="setup-callout"><a class="btn primary" href="setup.html">Set up sync step by step</a> <span class="muted small">The easiest way: it checks your key and tells you exactly what&rsquo;s missing.</span></p>
-    <p class="muted small" style="margin-bottom:10px;">
-      Focus Deck uses this token to link tasks to issues, create new issues from tasks, close/reopen a linked
-      issue when you complete a task, and keep categories in sync as GitHub labels. Set it up once:
-    </p>
-    <ol class="muted small" style="margin:0 0 10px 20px; padding:0;">
-      <li style="margin-bottom:4px;">Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a> on GitHub.</li>
-      <li style="margin-bottom:4px;">Under <b>Repository access</b>, choose <b>All repositories</b> — or <b>Only select repositories</b> and add every repo you want Focus Deck to link, create issues in, or sync labels with.</li>
-      <li style="margin-bottom:4px;">Under <b>Repository permissions</b>, set <b>Issues</b> to <b>Read and write</b> — this one setting covers linking, creating issues, closing/reopening, and adding/removing labels (GitHub doesn't split those into separate permissions). Leave <b>Metadata</b> at its default <b>Read-only</b> (GitHub requires it on every fine-grained token).</li>
-      <li style="margin-bottom:4px;">Under <b>Account permissions</b>, set <b>Gists</b> to <b>Read and write</b> — only needed for the cross-device sync below.</li>
-      <li style="margin-bottom:4px;">Under <b>Repository permissions</b>, set <b>Administration</b> to <b>Read and write</b> — only needed to create new repos from Focus Deck; everything else works without it.</li>
-      <li>Generate the token and paste it below. It's stored only in this browser and sent only to api.github.com.</li>
-    </ol>
-    <p class="muted small" style="margin-bottom:14px;">
-      Already have a token? Edit its permissions on that same token on GitHub — no need to paste a new one here.
-      If linking works but completing a task or changing its category never reaches the issue, that token's Issues
-      permission is still Read-only; upgrade it there.
-    </p>
-    <div class="add-project-form">
-      <input type="password" id="token-input" placeholder="github_pat_…">
-      <button type="button" id="save-token">Save</button>
-    </div>
+  <section class="card settings-section" id="setup-checklist" aria-labelledby="checklist-title">
+    <h2 class="settings-h" id="checklist-title">Getting set up</h2>
+    <ul class="checklist" id="checklist-items"></ul>
   </section>
-  <section class="card settings-section" id="sync-section">
-    <h2 style="margin-bottom:10px;">Cross-device sync</h2>
-    <p id="gist-status" class="muted small" style="margin-bottom:14px;"></p>
-    <button type="button" id="create-gist" class="btn primary">Create sync Gist</button>
-    <div class="add-project-form">
-      <input type="text" id="gist-id-input" placeholder="Paste an existing Gist ID to connect this device to it">
-      <button type="button" id="connect-gist">Connect</button>
-    </div>
+  <h2 class="settings-group" id="looks">How it looks</h2>
+  <p class="muted small settings-group-note">Light or dark follows your device&rsquo;s own setting.</p>
+  <section class="card settings-section" id="note-face-section">
+    <h3 class="settings-h">Note writing</h3>
+    <p class="muted small" style="margin-bottom:6px;">
+      The writing on your paper notes: the sticky note, the jotter and the in-tray slips. The rest of the app does not change. Remembered on this device and synced.
+    </p>
+    <fieldset class="note-faces">
+      <legend class="sr-only">Note writing</legend>
+    </fieldset>
   </section>
   <section class="card settings-section">
-    <h2 style="margin-bottom:10px;">Category colors</h2>
+    <h3 class="settings-h">Category colors</h3>
     <p class="muted small" style="margin-bottom:6px;">
       Pick a color for each category. It updates everywhere that category's chip appears, and syncs to your other devices like any other change.
     </p>
@@ -60,8 +41,19 @@
       <button type="submit">+ Add</button>
     </form>
   </section>
+  <h2 class="settings-group" id="works">How it works</h2>
+  <section class="card settings-section" id="choosing-section">
+    <h3 class="settings-h">Choosing a card</h3>
+    <p class="muted small" style="margin-bottom:6px;">
+      How you pick a card from the folder and index-card wallets on the focus screen. Every wallet in the app follows this. Arrow keys and Enter always work on a computer.
+    </p>
+    <fieldset class="choosing-modes">
+      <legend class="sr-only">Choosing a card</legend>
+    </fieldset>
+    <p id="choosing-help" class="muted small" aria-live="polite"></p>
+  </section>
   <section class="card settings-section" id="due-dates-section">
-    <h2 style="margin-bottom:10px;">Due dates</h2>
+    <h3 class="settings-h">Due dates</h3>
     <p class="muted small" style="margin-bottom:6px;">
       A task's due chip turns <b>yellow</b>, then <b>red</b>, as its time runs down. The cut-offs are a share of the time between setting the due date and the due date itself, so a task due in three months and a task due in three days both turn at a fitting moment. An overdue task is always red. A task can still pick its own lead times when you set its date.
     </p>
@@ -73,32 +65,58 @@
     <p id="due-preview" class="muted small" aria-live="polite"></p>
     <p id="due-error" class="muted small" role="alert"></p>
   </section>
-  <section class="card settings-section" id="choosing-section">
-    <h2 style="margin-bottom:10px;">Choosing a card</h2>
-    <p class="muted small" style="margin-bottom:6px;">
-      How you pick a card from the folder and index-card wallets on the focus screen. Every wallet in the app follows this. Arrow keys and Enter always work on a computer.
-    </p>
-    <fieldset class="choosing-modes">
-      <legend class="sr-only">Choosing a card</legend>
-    </fieldset>
-    <p id="choosing-help" class="muted small" aria-live="polite"></p>
+  <h2 class="settings-group" id="github">Sync and GitHub</h2>
+  <section class="card settings-section" id="sync-section">
+    <h3 class="settings-h">Sync between devices</h3>
+    <p id="gist-status" class="muted small" style="margin-bottom:14px;"></p>
+    <p class="setup-callout"><a class="btn primary" href="setup.html">Set up sync step by step</a> <span class="muted small">It checks your key and tells you exactly what&rsquo;s missing.</span></p>
+    <p class="muted small">Issue sync: tasks in a project linked to a GitHub repo become its issues. If completing a task never reaches its issue, the key&rsquo;s <b>Issues</b> permission is still Read-only: change it to Read and write on GitHub (no new key needed).</p>
+    <details class="settings-advanced">
+      <summary>Paste a key or a sync Gist ID directly</summary>
+      <p class="muted small">For people who already know their way around. The key stays in this browser and is only sent to api.github.com.</p>
+      <div class="add-project-form">
+        <input type="password" id="token-input" placeholder="github_pat_…">
+        <button type="button" id="save-token">Save</button>
+      </div>
+      <button type="button" id="create-gist" class="btn primary">Create sync Gist</button>
+      <div class="add-project-form">
+        <input type="text" id="gist-id-input" placeholder="Paste an existing Gist ID to connect this device to it">
+        <button type="button" id="connect-gist">Connect</button>
+      </div>
+    </details>
   </section>
-  <section class="card settings-section" id="note-face-section">
-    <h2 style="margin-bottom:10px;">Note writing</h2>
-    <p class="muted small" style="margin-bottom:6px;">
-      The writing on your paper notes: the sticky note, the jotter and the in-tray slips. The rest of the app does not change. Remembered on this device and synced.
-    </p>
-    <fieldset class="note-faces">
-      <legend class="sr-only">Note writing</legend>
-    </fieldset>
-  </section>
+  <h2 class="settings-group" id="help">Help</h2>
   <section class="card settings-section" id="help-section">
-    <h2 style="margin-bottom:10px;">Help</h2>
+    <h3 class="settings-h">The welcome, and installing</h3>
     <p class="muted small">New here, or showing someone else? The welcome walks through making a folder, adding a few tasks and your first pick. Your tasks stay as they are.</p>
     <a class="btn" href="./?welcome">Replay the welcome</a>
+    <p class="muted small" style="margin-top:14px;">To put Focus Deck on your home screen or desktop, the install steps for each device are on <a href="../?about#install">the Focus Deck page</a>.</p>
   </section>
   <div id="toast-root"></div>
 </div>
+<script type="module">
+  // The setup checklist (#126): what's done and what's left, each unfinished item a link to the step
+  // that finishes it. See docs/4-systems/onboarding.md#the-setup-checklist
+  import { state, esc, onExternalStateChange } from './js/state.js';
+  import { getToken } from './js/github.js';
+  import { checklistItems, checklistProgress } from './js/setup-checklist.js';
+  function renderChecklist() {
+    const items = checklistItems({ st: state, hasToken: !!getToken() });
+    const { done, of } = checklistProgress(items);
+    document.getElementById('checklist-title').textContent = done === of ? 'All set up' : 'Getting set up: ' + done + ' of ' + of + ' done';
+    document.getElementById('checklist-items').innerHTML = items.map((i) => '<li class="check-item' + (i.done ? ' is-done' : '') + '" data-item="' + i.id + '">'
+      + '<span class="check-box" aria-hidden="true">' + (i.done ? '✓' : '') + '</span>'
+      + '<span class="check-label">' + esc(i.label) + (i.optional ? ' <span class="muted small">(optional)</span>' : '') + (i.done ? '<span class="sr-only"> (done)</span>' : '') + '</span>'
+      + (i.done ? '' : '<a class="link-btn small" href="' + i.href + '">' + esc(i.cta) + ' →</a>')
+      + '</li>').join('');
+  }
+  renderChecklist();
+  onExternalStateChange(renderChecklist);
+  window.addEventListener('focus', renderChecklist); // back from GitHub or another tab
+  // saving a key or connecting a Gist on this page rewrites the sync status line or shows a toast
+  const refresh = new MutationObserver(renderChecklist);
+  ['gist-status', 'toast-root'].forEach((id) => refresh.observe(document.getElementById(id), { childList: true, characterData: true, subtree: true }));
+</script>
 <script type="module">
   // Every script on this page uses the shared `state` singleton, never loadState(): loadState()
   // returns a fresh, disconnected copy, and saving a copy taken earlier silently reverts anything
@@ -124,7 +142,7 @@
     if (state.gistId) {
       gistStatusEl.textContent = 'Sync Gist connected (' + state.gistId + '). This device will read/write it automatically.';
     } else {
-      gistStatusEl.textContent = 'No sync Gist connected. If you already made one on another device, save your token above and it will be found automatically — or paste its ID below. Otherwise create one.';
+      gistStatusEl.textContent = 'Sync is off on this device. Already syncing on another one? Set it up here with the same key and your data is found automatically.';
     }
     createBtn.textContent = state.gistId ? 'Create a new Gist instead (advanced)' : 'Create sync Gist';
   }

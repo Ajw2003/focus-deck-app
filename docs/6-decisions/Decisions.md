@@ -4,6 +4,15 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-10 — Settings regrouped (#126): calls made
+
+- **No theme setting was added.** The issue lists "theme" under How it looks, but none exists:
+  light and dark follow the device. The group says so; adding a theme switch is a separate ask.
+- **The direct key and Gist controls stay, tucked under a disclosure.** "Settings keeps only the
+  status and a way back in" is honoured for what shows by default. Removing the controls would
+  have broken "every existing setting still works", and they are the only way to paste a Gist ID.
+- **"Issue sync" is done when a project is linked to a repo**, not when the key merely could.
+
 ## 2026-10-10 — First-run onboarding (#124): calls made
 
 These were made without the user present (they asked for autonomous work):

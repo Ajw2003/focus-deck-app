@@ -48,7 +48,41 @@ there is data, so the app shows.
   exists. The topbar's Projects button does the same with no projects, instead of nothing.
 - The focus area with no projects says to make a folder below, not to use a list that isn't there.
 
+## The setup checklist
+
+Settings opens with a checklist (#126), from `app/js/setup-checklist.js` (`checklistItems`,
+`checklistProgress`; tested in `app/js/setup-checklist.test.mjs`). It shows what's done and what's
+left, so skipping a step in the welcome never loses it.
+
+| Item | Done when | Its link |
+|---|---|---|
+| Your first folder | any project | `./?welcome` |
+| A few tasks | any task | `./?welcome` with no folder, else the desk |
+| Sync between your devices | a key and a sync Gist on this device | `setup.html` |
+| Issue sync (optional) | a project linked to a repo | `index.html?new=repo` with a key (opens "+ New" on its repo tab), else `setup.html` |
+
+The heading counts the needed items ("Getting set up: 1 of 3 done", then "All set up"). The list
+redraws when another tab or a sync changes the state, when the page regains focus, and when this
+page's own key or Gist controls change the sync status line or show a toast.
+
+### Settings groups (#126)
+
+Settings is grouped by what people recognise:
+
+- **How it looks:** note writing, category colours. Light or dark follows the device; there is no
+  theme setting.
+- **How it works:** choosing a card, due dates.
+- **Sync and GitHub:** the status, the guided setup, a line on issue sync, and the key and Gist
+  controls under "Paste a key or a sync Gist ID directly". Every control kept its id, so the page
+  scripts are unchanged.
+- **Help:** replay the welcome, and a link to the install steps on the landing page.
+
+The six-step token instructions left Settings for the guided setup, which gained their one extra
+item (Administration, optional, for making repos).
+
 ## Checks
+
+`scripts/check-settings-browser.mjs`: 26 checks (the groups and checklist, every setting keeping and saving its value, the direct key and Gist controls, the repo link) at 390px and 1280px in both themes; screenshots are in `docs/generated/pr126/`.
 
 `scripts/check-onboarding-browser.mjs`: 48 checks at 390px in a real Chromium. It covers the full
 flow in dark and light; skip, then a first project from the empty state; leaving half-way; no

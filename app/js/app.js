@@ -1042,6 +1042,15 @@ function updateTopbarHeightVar() {
 
 function init() {
   requestPersistentStorage();
+  // Settings' checklist links here to link a first GitHub repo (#126): open "+ New" on its repo tab
+  const params = new URLSearchParams(location.search);
+  if (params.get('new') === 'repo') {
+    ui.newPanelOpen = true;
+    ui.newPanelTab = 'repo';
+    if (state.projects.length && !isWideScreen()) ui.projectsDrawerOpen = true;
+    fetchNewPanelRepos();
+    history.replaceState(null, '', location.pathname);
+  }
   paint();
   updateTopbarHeightVar();
   window.addEventListener('resize', updateTopbarHeightVar);

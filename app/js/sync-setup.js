@@ -38,6 +38,7 @@ function permissionsPicture() {
       + row('Repository access', 'All repositories', 'or “Only select repositories”, for issue sync on just those')
       + row('Account permissions → Gists', 'Read and write', 'needed: this is where your sync data lives')
       + row('Repository permissions → Issues', 'Read and write', 'optional: only for issue sync')
+      + row('Repository permissions → Administration', 'Read and write', 'optional: only to make new repos from Focus Deck')
     + '</ul>'
     + '<figcaption class="muted small">Everything else stays as it is. Then <strong>Generate token</strong>, and copy the key it shows you (it starts github_pat_). GitHub shows it only once.</figcaption>'
     + '</figure>';
