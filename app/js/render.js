@@ -74,7 +74,7 @@ export function sleeve({ key, name, color, detail, speak, kind, picked }) {
 // the middle again; js/wallet.js reads it, and the data-mode, when it mounts.
 export function walletInner({ wallet, label, aria, items, facing, mode, verb }) {
   return '<div class="wallet-h"><div class="q">' + label + '</div><span class="wallet-count muted small"></span></div>'
-    + '<div class="flip"><div class="flip-track' + (mode === 'swipe' ? ' swipe-mode' : '') + '" tabindex="0" role="group" aria-label="' + esc(aria) + '" data-wallet="' + wallet + '" data-mode="' + mode + '"' + (verb ? ' data-verb="' + verb + '"' : '') + ' data-facing="' + esc(facing) + '">'
+    + '<div class="flip"><div class="flip-track" tabindex="0" role="group" aria-label="' + esc(aria) + '" data-wallet="' + wallet + '" data-mode="' + mode + '"' + (verb ? ' data-verb="' + verb + '"' : '') + ' data-facing="' + esc(facing) + '">'
     + '<div class="flip-pad"></div>' + items.join('') + '<div class="flip-pad"></div></div></div>';
 }
 

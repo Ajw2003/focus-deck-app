@@ -7,24 +7,27 @@
 
 // ---- The "Choosing a card" setting -------------------------------------------------------------
 
-export const CHOOSING_MODES = ['swipe', 'tap', 'twice'];
+// Every mode takes every gesture (#132): a tap, and pushing the facing card up. The setting only
+// says whether one tap draws or the first one lifts the card. "Swipe up" was a third mode until
+// 2026-10-10, where a tap only flipped; a save that still says 'swipe' reads as 'tap'.
+export const CHOOSING_MODES = ['tap', 'twice'];
 export const DEFAULT_CHOOSING_MODE = 'twice';
 
 // label/description are Settings' words; hint is the one line under the wallets.
 export const CHOOSING_MODE_INFO = {
-  swipe: { label: 'Swipe up', description: 'Flip to a card, then push it up to draw. A tap only flips.', hint: 'Swipe sideways to flip · swipe a card up to draw' },
-  tap: { label: 'Tap', description: 'One tap on a card draws a task straight away.', hint: 'Swipe sideways to flip · tap a card to draw' },
-  twice: { label: 'Tap twice', description: 'The first tap lifts a card, the second draws. Flipping away cancels.', hint: 'Swipe sideways to flip · tap twice to draw' },
+  tap: { label: 'Tap', description: 'One tap on a card draws a task straight away. Pushing the card up does too.', hint: 'Swipe sideways to flip · tap or push a card up to draw' },
+  twice: { label: 'Tap twice', description: 'The first tap lifts a card, the second draws. Pushing the card up draws at once. Flipping away cancels.', hint: 'Swipe sideways to flip · tap twice or push a card up to draw' },
 };
 
-// Anything that is not a known mode (an old save, a hand-edited one) reads as the default.
+// Anything that is not a known mode (an old save, a hand-edited one) reads as the default; the
+// retired 'swipe' reads as 'tap', the mode it now behaves like.
 export function normalizeChoosingMode(value) {
+  if (value === 'swipe') return 'tap';
   return CHOOSING_MODES.includes(value) ? value : DEFAULT_CHOOSING_MODE;
 }
 
 // The small text in a card's corner. `armed` only matters in tap-twice.
 export function cornerHint(mode, armed, verb) {
-  if (mode === 'swipe') return wording('Draw ↑', verb);
   if (mode === 'twice') return armed ? 'Tap again' : 'Tap';
   return wording('Tap to draw', verb);
 }
@@ -38,7 +41,7 @@ export function wording(text, verb) {
 
 // ---- Decisions (pure) --------------------------------------------------------------------------
 
-export const SWIPE_DRAW_PX = 50; // an upward drag this far draws (swipe mode)
+export const SWIPE_DRAW_PX = 50; // an upward drag on the facing card this far draws (every mode)
 export const SWIPE_TRY_PX = 8; // ...and past this far it was meant, so say "a little further"
 export const MOVE_SLOP_PX = 6; // a press that moves less than this is a tap
 
@@ -74,22 +77,20 @@ export function pointerAxis(dx, dy, slop = MOVE_SLOP_PX) {
 
 // What a tap (a press that did not move) does. `armed` is the index lifted by an earlier tap, or null.
 //   flip: scroll that card to the middle; arm: the index to lift (null = none);
-//   choose: draw from it now; nudge/say: the swipe-mode reminder that a tap only flips.
+//   choose: draw from it now; say: 'arm' when a tap only lifted the card.
 export function tapOutcome(mode, { index, facing, armed }) {
   const flip = index !== facing;
-  if (mode === 'tap') return { flip, arm: null, choose: true, nudge: false, say: null };
-  if (mode === 'twice') {
+  if (normalizeChoosingMode(mode) === 'twice') {
     if (armed === index) return { flip: false, arm: null, choose: true, nudge: false, say: null };
     return { flip, arm: index, choose: false, nudge: false, say: 'arm' };
   }
-  if (flip) return { flip: true, arm: null, choose: false, nudge: false, say: null };
-  return { flip: false, arm: null, choose: false, nudge: true, say: 'swipe' };
+  return { flip, arm: null, choose: true, nudge: false, say: null };
 }
 
-// What an upward drag does once it is let go. Only swipe mode, and only the card facing you.
+// What an upward drag does once it is let go: in every mode, but only on the card facing you.
 // `dy` is negative going up. 'choose', 'short' (meant it, not far enough) or 'none'.
-export function swipeOutcome({ mode, dy, index, facing }) {
-  if (mode !== 'swipe' || index !== facing) return 'none';
+export function swipeOutcome({ dy, index, facing }) {
+  if (index !== facing) return 'none';
   if (dy < -SWIPE_DRAW_PX) return 'choose';
   if (dy < -SWIPE_TRY_PX) return 'short';
   return 'none';
@@ -158,7 +159,7 @@ function onPointerMove(e) {
   const w = press.w;
   // A touch scrolls the track natively; only a mouse needs its drag turned into a scroll.
   if (press.axis === 'x' && press.type === 'mouse') { w.track.style.scrollSnapType = 'none'; w.track.scrollLeft = press.scroll - dx; }
-  if (press.axis === 'y' && w.mode === 'swipe' && press.index === w.facing) {
+  if (press.axis === 'y' && press.index === w.facing) {
     press.dy = Math.min(0, dy);
     const sleeve = w.sleeves[press.index];
     sleeve.classList.add('is-lifting');
@@ -178,7 +179,7 @@ function release(cancelled) {
   if (p.axis === 'x' && p.type === 'mouse') { w.flipTo(w.facing); return; }
   if (p.axis === 'y') {
     const sleeve = w.sleeves[p.index];
-    const outcome = swipeOutcome({ mode: w.mode, dy: p.dy, index: p.index, facing: w.facing });
+    const outcome = swipeOutcome({ dy: p.dy, index: p.index, facing: w.facing });
     if (!cancelled && outcome === 'choose') { w.choose(p.index, sleeve); return; }
     if (sleeve) { sleeve.classList.remove('is-lifting'); sleeve.style.transform = ''; }
     if (!cancelled && outcome === 'short') w.say('A little further up to draw.');
@@ -290,7 +291,6 @@ function mountOne(track, hooks) {
       sleeve.classList.remove('is-nudge'); void sleeve.offsetWidth; sleeve.classList.add('is-nudge');
     }
     if (out.say === 'arm') w.say('Tap it again to draw.');
-    if (out.say === 'swipe') w.say('Swipe the card up to draw.');
     if (out.choose) w.choose(index);
   };
 

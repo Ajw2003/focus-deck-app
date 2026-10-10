@@ -1,7 +1,7 @@
 // scripts/check-wallets-browser.mjs -- real-Chromium check of the focus wallets (#120).
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/check-wallets-browser.mjs
 // Serves the repo root itself on 127.0.0.1:8123 for the length of the run (no separate server),
-// seeds localStorage, checks both wallets, the flip narrowing, all three choosing modes in dark
+// seeds localStorage, checks both wallets, the flip narrowing, both choosing modes and pushing a card up, in dark
 // and light, and the Settings page, and writes screenshots to docs/generated/pr120/.
 import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
@@ -103,14 +103,14 @@ check('markup carries data-facing', (await page.$eval('[data-wallet="projects"]'
 await ctx.close();
 
 // 3. choosing under each mode
-for (const mode of ['twice', 'tap', 'swipe']) {
+// 'push' is Tap twice with the facing card pushed up instead: that draws in every mode (#132)
+for (const mode of ['twice', 'tap', 'push']) {
   for (const scheme of ['dark', 'light']) {
-    ({ ctx, page } = await open(mode, scheme));
+    ({ ctx, page } = await open(mode === 'push' ? 'twice' : mode, scheme));
     const m = await page.$eval('[data-wallet="categories"]', (t) => t.dataset.mode);
-    check(`[${mode}/${scheme}] markup mode`, m === mode);
+    check(`[${mode}/${scheme}] markup mode`, m === (mode === 'push' ? 'twice' : mode));
     const cats = await keysOf(page, 'categories');
     const target = cats[1];
-    const nowFacing = await facing(page, 'categories');
     if (mode === 'twice') {
       await tapCard(page, 'categories', target); // first tap lifts (and flips)
       await page.waitForTimeout(800);
@@ -124,11 +124,7 @@ for (const mode of ['twice', 'tap', 'swipe']) {
       await page.waitForSelector('.focus-active', { timeout: 3000 }).catch(() => {});
       check(`[${mode}/${scheme}] one tap draws a task`, !!(await focusShown(page)));
     } else {
-      // a tap on the facing card only nudges
-      await tapCard(page, 'categories', nowFacing);
-      await page.waitForTimeout(300);
-      check(`[${mode}/${scheme}] a tap alone does not draw`, !(await focusShown(page)));
-      await page.screenshot({ path: OUT + `${scheme}-swipe-idle.png` });
+      await page.screenshot({ path: OUT + `${scheme}-push-idle.png` });
       // flip to target (keyboard), then drag it up with the mouse
       await page.focus('[data-wallet="categories"]');
       await page.keyboard.press('ArrowRight');
@@ -138,11 +134,11 @@ for (const mode of ['twice', 'tap', 'swipe']) {
       const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
       await page.mouse.move(cx, cy); await page.mouse.down();
       await page.mouse.move(cx, cy - 25, { steps: 4 });
-      await page.screenshot({ path: OUT + `${scheme}-swipe-lifting.png` });
+      await page.screenshot({ path: OUT + `${scheme}-push-lifting.png` });
       await page.mouse.move(cx, cy - 80, { steps: 6 });
       await page.mouse.up();
       await page.waitForSelector('.focus-active', { timeout: 3000 }).catch(() => {});
-      check(`[${mode}/${scheme}] swiping the facing card up draws (${face})`, !!(await focusShown(page)));
+      check(`[${mode}/${scheme}] pushing the facing card up draws, even in Tap twice (${face})`, !!(await focusShown(page)));
     }
     if (await focusShown(page)) await page.screenshot({ path: OUT + `${scheme}-${mode}-drawn.png` });
     await ctx.close();
@@ -165,7 +161,7 @@ await ctx.close();
 await page.goto(BASE.replace('/app/', '/app/settings.html'));
 await page.waitForSelector('.choosing-modes input');
 const labels = await page.$$eval('.choosing-modes label', (l) => l.map((x) => x.textContent.trim()));
-check('Settings lists the three modes', labels.join('|') === 'Swipe up|Tap|Tap twice', labels.join('|'));
+check('Settings lists the two modes', labels.join('|') === 'Tap|Tap twice', labels.join('|'));
 check('Settings shows Tap twice selected by default', await page.$eval('.choosing-modes input[value="twice"]', (i) => i.checked));
 await page.screenshot({ path: OUT + 'dark-settings.png', fullPage: false });
 await page.check('.choosing-modes input[value="tap"]');
@@ -173,7 +169,7 @@ const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('focusd
 check('choosing Tap is stored with a stamp', stored.mode === 'tap' && stored.updatedAt > 1, JSON.stringify(stored));
 await page.goto(BASE); await page.waitForSelector('.flip-track');
 check('the wallets follow the setting', (await page.$eval('[data-wallet="projects"]', (t) => t.dataset.mode)) === 'tap');
-check('and the hint reads for that mode', (await page.$eval('.flip-hint', (e) => e.textContent)).includes('tap a card to draw'));
+check('and the hint reads for that mode', (await page.$eval('.flip-hint', (e) => e.textContent)).includes('tap or push a card up to draw'));
 await ctx.close();
 
 // 6. empty-project edge: a folder with its only matching categories, wide screen

@@ -49,7 +49,7 @@ function defaultState() {
     // Settings > Due dates: the percentage cut-offs for the stage colours. updatedAt is its own
     // stamp (this is not a record in a list), used by mergeStates: newest wins.
     dueDefaults: Object.assign({}, DEFAULT_DUE_DEFAULTS, { updatedAt: 0 }),
-    // Settings > Choosing a card: how the focus wallets pick (swipe / tap / twice). Stamped like dueDefaults.
+    // Settings > Choosing a card: how the focus wallets pick (tap / twice). Stamped like dueDefaults.
     choosingMode: { mode: DEFAULT_CHOOSING_MODE, updatedAt: 0 },
     // Settings > Note writing: the face for writing on paper notes (hand / print / dyslexic). Stamped likewise.
     noteFace: { face: DEFAULT_NOTE_FACE, updatedAt: 0 },

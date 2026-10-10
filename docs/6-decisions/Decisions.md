@@ -4,6 +4,21 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-10 — Every wallet takes a tap and a push-up; "Swipe up" mode retired (#131, #132)
+
+The user reported that with Swipe up chosen, the page wouldn't scroll over the wallets on a phone
+(#131), and that a tap just played an animation (#132: "use all control types, or at least tap and
+swipe"). Calls made:
+
+- **Every mode draws on a push-up of the facing card**, and every mode draws on a tap. The setting
+  keeps only what differs: one tap or two. A stored `swipe` reads as `tap`, since that is what it
+  now behaves as.
+- **Only the facing card holds back the page scroll**, and only for a finger moving up. Anywhere
+  else on the wallets, vertical drags scroll the page.
+- **Trade-off:** a finger that starts on the facing card and moves up draws instead of scrolling
+  the page. Accepted because it is the gesture asked for. If it draws by accident too often, the
+  next step is a longer `SWIPE_DRAW_PX`, or push-up as an opt-in.
+
 ## 2026-10-10 — Settings regrouped (#126): calls made
 
 - **No theme setting was added.** The issue lists "theme" under How it looks, but none exists:
