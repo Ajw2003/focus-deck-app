@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>After: desktop, Add</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;family=Kalam:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+.d{width:1440px;height:900px;box-sizing:border-box;background:#111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden}
+.top{display:flex;align-items:center;gap:32px;padding:16px 32px;border-bottom:1px solid #2A3555}
+.brand{font-family:'Young Serif',serif;font-size:20px;display:flex;gap:10px;align-items:center}
+.lamp{width:10px;height:10px;border-radius:50%;background:#F2B45A;box-shadow:0 0 12px #F2B45A}
+.tabs{display:flex;gap:6px;margin:0 auto}
+.tab{font:600 15px Figtree,sans-serif;padding:10px 18px;border-radius:999px;color:#9BA3B8;text-decoration:none}
+.tab.on{background:#F2B45A;color:#2A1B05}
+.main{display:grid;grid-template-columns:620px 380px;gap:48px;justify-content:center;padding-top:52px}
+.h{font-family:'Young Serif',serif;font-size:24px;margin:0 0 14px}
+.card{background:#EFEADF;color:#1D2733;border-radius:4px;padding:22px 24px;border-top:7px solid #3E8E5E;box-shadow:0 20px 30px -18px rgba(0,0,0,.9)}
+label{display:block;font-weight:700;font-size:13px;color:#4E5A68;margin:14px 0 7px}
+.in{background:#FFFEFA;border:1px solid #C3CEDD;border-radius:8px;padding:12px 14px;font:700 24px Kalam,cursive;color:#1D2733}
+.in.plain{font:15px Figtree,sans-serif;color:#4E5A68}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.f{font-weight:700;font-size:14px;color:#1D2733;padding:9px 14px;border-radius:3px 9px 9px 9px;background:#9FC2A6}
+.f.on{box-shadow:0 0 0 2px #8F5A06}
+.c{font-weight:700;font-size:13px;padding:6px 12px;border-radius:999px;border:1.5px solid #59627A}
+.c.on{background:#1D2733;color:#EFEADF}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.gh{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:14px}
+.tick{width:18px;height:18px;border-radius:3px;background:#1D2733;color:#EFEADF;font-size:12px;text-align:center;line-height:18px}
+.go{margin-top:18px;background:#F2B45A;color:#2A1B05;border-radius:999px;text-align:center;padding:15px;font-weight:700}
+.side{background:#18213A;border:1px solid #2A3555;border-radius:14px;padding:20px}
+.side p{color:#9BA3B8;font-size:14px;line-height:1.5;margin:0 0 14px}
+.btn{display:block;text-align:center;padding:12px;border-radius:999px;border:1.5px solid #F2B45A;color:#F2B45A;font-weight:700;margin-top:10px}
+.added{margin-top:18px;font-size:14px;color:#9BA3B8}
+.added div{padding:8px 0;border-top:1px solid #2A3555;color:#E9E4D8}
+</style>
+</helmet>
+<div class="d">
+  <div class="top"><div class="brand"><span class="lamp"></span>Focus Deck</div>
+    <nav class="tabs" aria-label="What to do"><a class="tab" href="#">Focus</a><a class="tab" href="#">Sort</a><a class="tab on" href="#">Add</a><a class="tab" href="#">Board</a><a class="tab" href="#">Projects</a></nav><div style="color:#9BA3B8;font-size:14px">⚙</div></div>
+  <div class="main">
+    <div>
+      <h1 class="h">A new task</h1>
+      <div class="card">
+        <label>What needs doing?</label><div class="in">Fix the gate latch</div>
+        <label>Folder</label><div class="row"><span class="f on">Home</span><span class="f" style="background:#A9B3CC">School</span><span class="f" style="background:#E3A79F">Website</span><span class="f" style="background:#BFA9CF">Band</span><span class="f" style="background:#E3B98A">Portfolio</span></div>
+        <label>Kind (Home’s categories)</label><div class="row"><span class="c on">Fix</span><span class="c">Chore</span><span class="c">Errand</span><span class="c">More…</span></div>
+        <div class="grid2"><div><label>Priority</label><div class="in plain">High</div></div><div><label>Due</label><div class="in plain">Saturday</div></div></div>
+        <div class="gh"><span class="tick">✓</span>Also open it as a GitHub issue</div>
+        <div class="go">Add to Home, and add another</div>
+      </div>
+      <div class="added">Just added<div>✓ Bins out Thursday · Home</div><div>✓ Hang hallway photos · Home</div></div>
+    </div>
+    <div>
+      <h2 class="h" style="font-size:20px">Something else?</h2>
+      <div class="side">
+        <p>A stray thought you’ll sort later goes in the tray.</p>
+        <span class="btn">Jot a thought</span>
+        <p style="margin-top:22px">A new folder for a subject, a room or a side project, or one linked to a GitHub repository.</p>
+        <span class="btn">New project</span>
+        <span class="btn">Link a GitHub repo</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

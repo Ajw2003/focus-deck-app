@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tracking 3: the board narrowed to a project</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.d{width:1440px;height:900px;box-sizing:border-box;background:#111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden}
+.top{display:flex;align-items:center;gap:32px;padding:16px 32px;border-bottom:1px solid #2A3555}
+.brand{font-family:'Young Serif',serif;font-size:20px;display:flex;gap:10px;align-items:center}
+.lamp{width:10px;height:10px;border-radius:50%;background:#F2B45A;box-shadow:0 0 12px #F2B45A}
+.tabs{display:flex;gap:6px;margin:0 auto}
+.tab{font:600 15px Figtree,sans-serif;padding:10px 18px;border-radius:999px;color:#9BA3B8;text-decoration:none}
+.tab.on{background:#F2B45A;color:#2A1B05}
+.bar{display:flex;align-items:center;gap:10px;padding:20px 40px 6px}
+.bar h1{font-family:'Young Serif',serif;font-size:26px;margin:0 18px 0 0}
+.pill{font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid #2A3555;color:#9BA3B8}
+.pill.on{background:#9FC2A6;color:#1D2733;border-color:#9FC2A6}
+.crumb{margin-left:auto;font-size:13px;color:#F2B45A}
+.frame{margin:16px 40px;border:8px solid #A9C6B0;border-radius:2px 14px 14px 14px;position:relative;padding:16px;background:#18213A}
+.frame:before{content:"Home";position:absolute;left:-8px;top:-30px;padding:4px 18px;border-radius:9px 14px 0 0;background:#A9C6B0;color:#1D2733;font:700 14px Figtree,sans-serif}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.col{min-height:560px}
+.ch{display:flex;justify-content:space-between;font-weight:700;margin:2px 4px 12px}
+.ch span{color:#9BA3B8;font-weight:600}
+.t{display:flex;align-items:flex-start;gap:10px;background:#EFEADF;color:#1D2733;border-radius:3px;padding:12px;margin-bottom:10px;box-shadow:0 10px 18px -14px rgba(0,0,0,.9)}
+.box{flex:none;width:18px;height:18px;border:2px solid #1D2733;border-radius:3px}
+.tt{flex:1;font-weight:600;font-size:15px}
+.tt small{display:block;font-weight:400;color:#4E5A68;font-size:12px;margin-top:4px}
+.chip{flex:none;font-size:11px;font-weight:700;border:1.5px solid #AD4A0B;border-radius:999px;padding:1px 8px}
+.done .tt{text-decoration:line-through;color:#4E5A68}
+.done .box{background:#1D2733}
+.add{display:block;color:#F2B45A;font-weight:700;padding:8px 4px;text-decoration:none}
+</style>
+</helmet>
+<div class="d">
+  <div class="top"><div class="brand"><span class="lamp"></span>Focus Deck</div>
+    <nav class="tabs" aria-label="What to do"><a class="tab" href="#">Focus</a><a class="tab" href="#">Sort</a><a class="tab" href="#">Add</a><a class="tab on" href="#">Board</a><a class="tab" href="#">Projects</a></nav><div style="color:#9BA3B8;font-size:14px">⚙</div></div>
+  <div class="bar"><h1>Board</h1><span class="pill">All projects</span><span class="pill on">Home</span><span class="pill">School</span><span class="pill">Website</span><span class="pill">Band</span><a class="crumb" href="#">← Back to all projects</a></div>
+  <div class="frame"><div class="cols">
+    <div class="col"><div class="ch">Up next <span>3</span></div>
+      <div class="t"><span class="box"></span><div class="tt">Bins out Thursday<small>Chore · due in 3d</small></div><span class="chip">High</span></div>
+      <div class="t"><span class="box"></span><div class="tt">Fix the gate latch<small>Bug</small></div><span class="chip" style="border-color:#3F6E53">Low</span></div>
+      <div class="t"><span class="box"></span><div class="tt">Hang hallway photos<small>Art</small></div></div>
+      <a class="add" href="#">+ Add a task to Home</a>
+    </div>
+    <div class="col"><div class="ch">In progress <span>1</span></div>
+      <div class="t"><span class="box"></span><div class="tt">Mop the kitchen<small>Chore</small></div><span class="chip" style="border-color:#7A5A00">Medium</span></div>
+    </div>
+    <div class="col"><div class="ch">Done <span>2</span></div>
+      <div class="t done"><span class="box"></span><div class="tt">Bought the paint<small>yesterday</small></div></div>
+      <div class="t done"><span class="box"></span><div class="tt">Book boiler service<small>Monday</small></div></div>
+    </div>
+  </div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

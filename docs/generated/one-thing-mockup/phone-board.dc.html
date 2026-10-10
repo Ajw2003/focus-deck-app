@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>After: phone, Board</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.p{position:relative;width:390px;height:844px;box-sizing:border-box;background:#111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 8px}
+.top h1{font-family:'Young Serif',serif;font-size:24px;margin:0}
+.pill{font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid #2A3555;color:#E9E4D8;background:#212C4A}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:8px 18px 14px;background:#18213A;border:1px solid #2A3555;border-radius:999px;padding:4px}
+.seg span{text-align:center;padding:8px 0;border-radius:999px;font-weight:600;font-size:14px;color:#9BA3B8}
+.seg span.on{background:#F2B45A;color:#2A1B05}
+.t{display:flex;align-items:flex-start;gap:10px;background:#EFEADF;color:#1D2733;border-radius:3px;padding:13px 12px;margin:0 18px 10px;border-left:6px solid #3E8E5E}
+.box{flex:none;width:20px;height:20px;border:2px solid #1D2733;border-radius:3px}
+.tt{flex:1;font-weight:600;font-size:15px}
+.tt small{display:block;font-weight:400;color:#4E5A68;font-size:12px;margin-top:4px}
+.chip{flex:none;font-size:11px;font-weight:700;border:1.5px solid #AD4A0B;border-radius:999px;padding:1px 8px}
+.hint{text-align:center;color:#9BA3B8;font-size:13px;margin-top:10px}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:78px;background:#18213A;border-top:1px solid #2A3555;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding-bottom:14px;box-sizing:border-box}
+.tb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:#9BA3B8;text-decoration:none}
+.tb svg{width:22px;height:22px}
+.tb.on{color:#F2B45A}
+</style>
+</helmet>
+<div class="p">
+  <div class="top"><h1>Board</h1><span class="pill">All projects ▾</span></div>
+  <div class="seg" role="tablist" aria-label="Column"><span>Up next 18</span><span class="on">Doing 3</span><span>Done 7</span></div>
+  <div class="t" style="border-left-color:#4D6FB8"><span class="box"></span><div class="tt">History essay draft<small>School · Study</small></div><span class="chip" style="border-color:#7A5A00">Medium</span></div>
+  <div class="t" style="border-left-color:#C9584F"><span class="box"></span><div class="tt">Contact form sends twice<small>Website · Bug · #14</small></div></div>
+  <div class="t"><span class="box"></span><div class="tt">Mop the kitchen<small>Home · Chore</small></div></div>
+  <div class="hint">Swipe a card left for Up next, right for Done</div>
+  <nav class="tabbar" aria-label="What to do">
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Focus</a>
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h6"/></svg>Sort</a>
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</a>
+    <a class="tb on" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="4" height="14"/><rect x="10" y="5" width="4" height="9"/><rect x="16" y="5" width="4" height="12"/></svg>Board</a>
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3z"/></svg>Projects</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

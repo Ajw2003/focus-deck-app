@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Option A: tabs along the top</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;family=Atkinson+Hyperlegible:wght@400;700&amp;family=Kalam:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+.d{width:1440px;height:900px;box-sizing:border-box;background:radial-gradient(60% 55% at 50% 38%, rgba(242,180,90,.16), transparent 70%), #111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden}
+.top{display:flex;align-items:center;gap:32px;padding:16px 32px;border-bottom:1px solid #2A3555}
+.brand{font-family:'Young Serif',serif;font-size:20px;display:flex;gap:10px;align-items:center}
+.lamp{width:10px;height:10px;border-radius:50%;background:#F2B45A;box-shadow:0 0 12px #F2B45A}
+.tabs{display:flex;gap:6px;margin:0 auto}
+.tab{font:600 15px Figtree,sans-serif;padding:10px 18px;border-radius:999px;color:#9BA3B8;background:none;border:0;text-decoration:none}
+.tab.on{background:#F2B45A;color:#2A1B05}
+.count{display:inline-block;min-width:18px;margin-left:6px;padding:0 5px;border-radius:999px;background:#2A3555;color:#E9E4D8;font-size:12px;text-align:center}
+.icons{display:flex;gap:18px;color:#9BA3B8;font-size:14px}
+.stage{display:flex;flex-direction:column;align-items:center;padding-top:90px}
+.note{width:460px;min-height:250px;background:#EFCB66;color:#2B2412;padding:26px 30px;box-sizing:border-box;transform:rotate(-1.2deg);box-shadow:0 22px 40px -18px rgba(0,0,0,.8);clip-path:polygon(0 0,100% 0,100% 86%,90% 100%,0 100%)}
+.meta{font:14px 'Atkinson Hyperlegible',sans-serif;color:#6B5520;margin-bottom:14px}
+.ink{font:700 36px/1.15 Kalam,cursive;color:#1F3F99;margin:0}
+.acts{display:flex;gap:18px;margin-top:34px}
+.paper{display:flex;align-items:center;gap:14px;background:#EFEADF;color:#1D2733;padding:16px 22px;border-radius:2px;font-weight:700;font-size:17px;border:0;font-family:Figtree,sans-serif}
+.box{width:26px;height:26px;border:2.5px solid #1D2733;border-radius:4px}
+.quiet{margin-top:26px;color:#9BA3B8;font-size:14px}
+.quiet a{color:#F2B45A}
+</style>
+</helmet>
+<div class="d">
+  <div class="top">
+    <div class="brand"><span class="lamp"></span>Focus Deck</div>
+    <nav class="tabs" aria-label="What to do">
+      <a class="tab on" href="#">Focus</a>
+      <a class="tab" href="#">Sort<span class="count">2</span></a>
+      <a class="tab" href="#">Add</a>
+      <a class="tab" href="#">Board</a>
+      <a class="tab" href="#">Projects</a>
+    </nav>
+    <div class="icons"><span>⟳ Synced</span><span>⚙</span></div>
+  </div>
+  <div class="stage">
+    <div class="note">
+      <div class="meta">Home · Chore · High · due today</div>
+      <p class="ink">Reply to Sam about the camping trip</p>
+    </div>
+    <div class="acts">
+      <button class="paper" type="button"><span class="box"></span>I’ve done it</button>
+      <button class="paper" type="button">Not this one ↩</button>
+    </div>
+    <div class="quiet">Doing it now? <a href="#">Mark in progress</a> · <a href="#">Pick from a different folder</a></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

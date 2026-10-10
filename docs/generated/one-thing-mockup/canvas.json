@@ -1,0 +1,32 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-10-10T06:00:00Z"},
+  "title": "Focus Deck: one thing at a time",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 900, "title": "Before · desktop (today)"},
+    "before-phone.dc.html": {"x": 1520, "y": 0, "w": 390, "h": 844, "title": "Before · phone (today)"},
+    "nav-tabs.dc.html": {"x": 0, "y": 1320, "w": 1440, "h": 900, "title": "A · Tabs along the top"},
+    "nav-rail.dc.html": {"x": 1520, "y": 1320, "w": 1440, "h": 900, "title": "B · Focus first, side rail"},
+    "nav-home.dc.html": {"x": 3040, "y": 1320, "w": 1440, "h": 900, "title": "C · Home screen of big buttons"},
+    "track-board.dc.html": {"x": 0, "y": 2640, "w": 1440, "h": 900, "title": "1 · Board, three columns"},
+    "track-project.dc.html": {"x": 1520, "y": 2640, "w": 1440, "h": 900, "title": "2 · One project, three sections"},
+    "track-both.dc.html": {"x": 3040, "y": 2640, "w": 1440, "h": 900, "title": "3 · Both: board narrowed to a project"},
+    "phone-focus.dc.html": {"x": 0, "y": 3960, "w": 390, "h": 844, "title": "After · phone · Focus"},
+    "phone-sort.dc.html": {"x": 470, "y": 3960, "w": 390, "h": 844, "title": "After · phone · Sort"},
+    "phone-board.dc.html": {"x": 940, "y": 3960, "w": 390, "h": 844, "title": "After · phone · Board"},
+    "phone-add.dc.html": {"x": 1410, "y": 3960, "w": 390, "h": 844, "title": "After · phone · Add"},
+    "desk-sort.dc.html": {"x": 0, "y": 5240, "w": 1440, "h": 900, "title": "After · desktop · Sort"},
+    "desk-add.dc.html": {"x": 1520, "y": 5240, "w": 1440, "h": 900, "title": "After · desktop · Add"}
+  },
+  "order": ["Main.dc.html", "before-phone.dc.html", "nav-tabs.dc.html", "nav-rail.dc.html", "nav-home.dc.html", "track-board.dc.html", "track-project.dc.html", "track-both.dc.html", "phone-focus.dc.html", "phone-sort.dc.html", "phone-board.dc.html", "phone-add.dc.html", "desk-sort.dc.html", "desk-add.dc.html"],
+  "notes": {
+    "rowBefore": {"x": 0, "y": -300, "text": "Before: everything on one screen", "kind": "title1", "maxW": 1910},
+    "rowNav": {"x": 0, "y": 1020, "text": "Moving between activities: three options", "kind": "title1", "maxW": 4480},
+    "rowTrack": {"x": 0, "y": 2340, "text": "Tracking next, in progress, done: three options", "kind": "title1", "maxW": 4480},
+    "rowPhone": {"x": 0, "y": 3660, "text": "After, on a phone (tabs at the bottom)", "kind": "title1", "maxW": 1800},
+    "rowDesk": {"x": 0, "y": 4940, "text": "After, on a desktop: one activity per screen", "kind": "title1", "maxW": 2960}
+  },
+  "designSystems": []
+}

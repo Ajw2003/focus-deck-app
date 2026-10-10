@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>After: phone, Sort</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;family=Kalam:wght@700&amp;display=swap">
+<style>
+body{margin:0}
+.p{position:relative;width:390px;height:844px;box-sizing:border-box;background:#111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 4px}
+.top h1{font-family:'Young Serif',serif;font-size:24px;margin:0}
+.small{font-size:13px;color:#9BA3B8}
+.slip{margin:16px 18px 0;background:#EFEADF;color:#1D2733;padding:20px 18px 14px;border-radius:2px;transform:rotate(-1deg);box-shadow:0 14px 22px -14px rgba(0,0,0,.9);background-image:radial-gradient(circle,#111829 2.2px,transparent 2.7px);background-size:12px 8px;background-repeat:repeat-x;background-position:4px 3px}
+.slip p{font:700 24px Kalam,cursive;margin:0;color:#1D2733}
+.slip small{display:block;color:#4E5A68;margin-top:6px}
+.q{font-weight:700;margin:22px 18px 8px}
+.row{display:flex;flex-wrap:wrap;gap:8px;padding:0 18px}
+.f{font-weight:700;font-size:14px;color:#1D2733;padding:10px 14px;border-radius:3px 9px 9px 9px;background:#9FC2A6}
+.f.on{box-shadow:0 0 0 3px #F2B45A}
+.c{font-weight:700;font-size:14px;color:#1D2733;background:#EFEADF;padding:9px 12px;border-radius:4px;border-top:4px solid #3E8E5E}
+.c.on{box-shadow:0 0 0 3px #F2B45A}
+.more{font-size:14px;color:#F2B45A;padding:9px 6px}
+.file{margin:24px 18px 0;background:#F2B45A;color:#2A1B05;border-radius:999px;text-align:center;padding:15px;font-weight:700}
+.links{display:flex;justify-content:center;gap:22px;margin-top:12px;font-size:14px;color:#9BA3B8;text-decoration:underline}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:78px;background:#18213A;border-top:1px solid #2A3555;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding-bottom:14px;box-sizing:border-box}
+.tb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:#9BA3B8;text-decoration:none}
+.tb svg{width:22px;height:22px}
+.tb.on{color:#F2B45A}
+</style>
+</helmet>
+<div class="p">
+  <div class="top"><h1>Sort</h1><span class="small">1 of 2</span></div>
+  <div class="slip"><p>Call the dentist</p><small>Thought · 1h ago · going in Home</small></div>
+  <div class="q">Which folder?</div>
+  <div class="row"><span class="f on">Home</span><span class="f" style="background:#A9B3CC">School</span><span class="f" style="background:#E3A79F">Website</span><span class="f" style="background:#BFA9CF">Band</span></div>
+  <div class="q">What kind?</div>
+  <div class="row"><span class="c on">Errand</span><span class="c" style="border-top-color:#4D6FB8">Reminder</span><span class="c" style="border-top-color:#C9584F">Chore</span><span class="more">More…</span></div>
+  <div class="file">File it in Home →</div>
+  <div class="links"><span>Already done</span><span>Later</span><span>Bin it</span></div>
+  <nav class="tabbar" aria-label="What to do">
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Focus</a>
+    <a class="tb on" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h6"/></svg>Sort</a>
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</a>
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="4" height="14"/><rect x="10" y="5" width="4" height="9"/><rect x="16" y="5" width="4" height="12"/></svg>Board</a>
+    <a class="tb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3z"/></svg>Projects</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

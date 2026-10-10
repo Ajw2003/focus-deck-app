@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tracking 1: board, three columns</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&amp;family=Figtree:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.d{width:1440px;height:900px;box-sizing:border-box;background:#111829;color:#E9E4D8;font-family:Figtree,system-ui,sans-serif;overflow:hidden}
+.top{display:flex;align-items:center;gap:32px;padding:16px 32px;border-bottom:1px solid #2A3555}
+.brand{font-family:'Young Serif',serif;font-size:20px;display:flex;gap:10px;align-items:center}
+.lamp{width:10px;height:10px;border-radius:50%;background:#F2B45A;box-shadow:0 0 12px #F2B45A}
+.tabs{display:flex;gap:6px;margin:0 auto}
+.tab{font:600 15px Figtree,sans-serif;padding:10px 18px;border-radius:999px;color:#9BA3B8;text-decoration:none}
+.tab.on{background:#F2B45A;color:#2A1B05}
+.bar{display:flex;align-items:center;gap:10px;padding:20px 40px 6px}
+.bar h1{font-family:'Young Serif',serif;font-size:26px;margin:0 18px 0 0}
+.pill{font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid #2A3555;color:#9BA3B8}
+.pill.on{background:#212C4A;color:#E9E4D8}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;padding:16px 40px}
+.col{background:#18213A;border:1px solid #2A3555;border-radius:14px;padding:14px;min-height:640px}
+.ch{display:flex;justify-content:space-between;font-weight:700;margin:2px 4px 12px}
+.ch span{color:#9BA3B8;font-weight:600}
+.t{display:flex;align-items:flex-start;gap:10px;background:#EFEADF;color:#1D2733;border-radius:3px;padding:12px;margin-bottom:10px;border-left:6px solid #3E8E5E;box-shadow:0 10px 18px -14px rgba(0,0,0,.9)}
+.box{flex:none;width:18px;height:18px;border:2px solid #1D2733;border-radius:3px;margin-top:1px}
+.tt{flex:1;font-weight:600;font-size:15px}
+.tt small{display:block;font-weight:400;color:#4E5A68;font-size:12px;margin-top:4px}
+.chip{flex:none;font-size:11px;font-weight:700;border:1.5px solid #AD4A0B;color:#1D2733;border-radius:999px;padding:1px 8px}
+.done .tt{text-decoration:line-through;color:#4E5A68}
+.done .box{background:#1D2733}
+.hint{color:#9BA3B8;font-size:13px;text-align:center;margin-top:8px}
+</style>
+</helmet>
+<div class="d">
+  <div class="top"><div class="brand"><span class="lamp"></span>Focus Deck</div>
+    <nav class="tabs" aria-label="What to do"><a class="tab" href="#">Focus</a><a class="tab" href="#">Sort</a><a class="tab" href="#">Add</a><a class="tab on" href="#">Board</a><a class="tab" href="#">Projects</a></nav><div style="color:#9BA3B8;font-size:14px">⚙</div></div>
+  <div class="bar"><h1>Board</h1><span class="pill on">All projects</span><span class="pill">Home</span><span class="pill">School</span><span class="pill">Website</span><span class="pill">Band</span><span class="pill">+2</span></div>
+  <div class="cols">
+    <div class="col"><div class="ch">Up next <span>18</span></div>
+      <div class="t"><span class="box"></span><div class="tt">Bins out Thursday<small>Home · Chore · due in 3d</small></div><span class="chip">High</span></div>
+      <div class="t" style="border-left-color:#4D6FB8"><span class="box"></span><div class="tt">Read chapter 4<small>School · Study</small></div><span class="chip">High</span></div>
+      <div class="t" style="border-left-color:#C9584F"><span class="box"></span><div class="tt">Footer link to old blog<small>Website · Bug · #12</small></div><span class="chip">Urgent</span></div>
+      <div class="t" style="border-left-color:#8A6FB8"><span class="box"></span><div class="tt">Learn the bridge<small>Band · Art</small></div></div>
+      <div class="hint">+ 14 more</div>
+    </div>
+    <div class="col"><div class="ch">In progress <span>3</span></div>
+      <div class="t" style="border-left-color:#4D6FB8"><span class="box"></span><div class="tt">History essay draft<small>School · Study</small></div><span class="chip" style="border-color:#7A5A00">Medium</span></div>
+      <div class="t" style="border-left-color:#C9584F"><span class="box"></span><div class="tt">Contact form sends twice<small>Website · Bug · #14</small></div></div>
+      <div class="t"><span class="box"></span><div class="tt">Mop the kitchen<small>Home · Chore</small></div></div>
+      <div class="hint">Drag a card across to move it</div>
+    </div>
+    <div class="col"><div class="ch">Done this week <span>7</span></div>
+      <div class="t done"><span class="box"></span><div class="tt">Bought the paint<small>Home · yesterday</small></div></div>
+      <div class="t done" style="border-left-color:#C2731E"><span class="box"></span><div class="tt">Scan sketches<small>Portfolio · Tuesday</small></div></div>
+      <div class="t done" style="border-left-color:#C9584F"><span class="box"></span><div class="tt">Cookie banner text<small>Website · closed #9</small></div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
