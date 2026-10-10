@@ -246,3 +246,23 @@ comes back on the right date and never advances twice across two devices; a phon
 arrives at the set time with the app closed; a red task is first in its list and first in the focus
 pick. The user's five questions were answered on 2026-09-30 (see the plan); the notification route is
 chosen by a spike, not assumed.
+
+## 15. Consumer product: desk redesign, landing page and onboarding — ~30%
+
+One-line: a stranger can find Focus Deck, install it from a landing page, and start using it
+without help, in a new look built from real stationery.
+
+**Progress:** design agreed 2026-10-09 (interactive mockup `docs/plans/redesign-directions.html`);
+plan and issues written; #117 (app to `/app/`), #118 (landing page) and #119 (desk look for the focus
+area) built and merged, not yet deployed; #120 (wallets) being built.
+
+**Contains:**
+- #116 — the parent, planned in `docs/plans/consumer-product.md` as ten steps: #117 move the app to
+  `/app/`, #118 landing page, #119 desk look for the focus area, #120 card wallets, #121 Unsorted
+  in-tray, #122 note-writing setting, #123 desk look for the rest of the app, #124 first-run
+  onboarding, #125 guided GitHub sync setup, #126 Settings with a setup checklist
+- Overlaps #44 (milestone 13, pilot and public release): this is what a public release needs first
+
+**Acceptance:** #117 to #126 closed; a fresh visitor reaches a first picked task in under a minute
+from the landing page; an existing install keeps its data after the move to `/app/`; GitHub sync
+can be set up by following the app alone, with no README.

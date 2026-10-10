@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Checks the due-stage chip colours in css/app.css (#106): chip text on its tinted background must
+// Checks the due-stage chip colours in app/css/app.css (#106): chip text on its tinted background must
 // reach WCAG AA (4.5:1) in light and dark, and reports how far the stage tokens sit from the
 // priority tokens they could be mistaken for. Run: node scripts/check-due-contrast.mjs
 // Exits 1 on a failure. See docs/4-systems/due-dates.md and docs/4-systems/styling.md.
@@ -7,9 +7,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const css = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'css', 'app.css'), 'utf8');
+const css = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'app', 'css', 'app.css'), 'utf8');
 
-// The three token blocks in css/app.css, in file order: light :root, the dark media query, and
+// The three token blocks in app/css/app.css, in file order: light :root, the dark media query, and
 // :root[data-theme="dark"] (the last two must agree; both are checked).
 const starts = [...css.matchAll(/:root(?::not\(\[data-theme="light"\]\))?(?:\[data-theme="dark"\])?\s*\{/g)].map((m) => m.index);
 const blocks = starts.slice(0, 3).map((i) => css.slice(i, css.indexOf('}', i)));
@@ -27,7 +27,7 @@ const mix = (fg, pct, bg) => fg.map((v, i) => v * pct / 100 + bg[i] * (1 - pct /
 // the tint the chip CSS uses, read from the stylesheet so this cannot drift from it
 const tintPct = (token) => {
   const m = css.match(new RegExp('\\.due-(?:yellow|red)[^{]*\\{[^}]*background:color-mix\\(in srgb, var\\(--' + token + '\\) (\\d+)%'));
-  if (!m) throw new Error('no chip rule tinting --' + token + ' found in css/app.css');
+  if (!m) throw new Error('no chip rule tinting --' + token + ' found in app/css/app.css');
   return Number(m[1]);
 };
 const hue = (c) => {

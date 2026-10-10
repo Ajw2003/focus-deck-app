@@ -12,7 +12,7 @@ same string correctly. Nothing enforces that connection except `js/style-contrac
 
 Every visual property (light/dark theme colors, spacing, radius, shadow) is a CSS custom property
 on `:root`, redefined under `@media (prefers-color-scheme: dark)` and `:root[data-theme="dark"]`
-(css/app.css:1-60). Component styling below that is a flat list of class selectors — no nesting,
+(css/app.css:5-125). Component styling below that is a flat list of class selectors — no nesting,
 no BEM discipline, just one rule block per class, in the same order the sections of the app
 appear (topbar, focus card, chips, inbox, project cards, forms).
 
@@ -33,28 +33,18 @@ announced with `role="alert"`) or `'info'` (accent edge, `role="status"`).
 
 ### Focus picker
 
-"What's your focus right now?" (`renderFocusPicker`, js/render.js) shows one big card per label
-(task type) that has open tasks, busiest first. Tapping a card picks a random open task with that
-label, within the chosen project pill. **Surprise me** picks from every label. It is deliberately
-not a card: it sits below the grid in its own `.focus-surprise` row, set apart by space and a
-divider, as a `.btn.primary` accent button with the pool size beside it, because it is a
-different kind of choice. (It was a full-width "Anything" card until 2026-09-26.)
-
-The cards reuse `.energy-btn` inside `.energy-grid`, the look of the old Low/Medium/High buttons:
-surface-2 fill, the label's colour on the top edge, the name, and a detail line ("3 open · 1 urgent
-· 2 projects"). `.focus-grid` sets two columns on a phone. Six cards show until "Show all N labels".
-
-Project pills above the cards (`.filter-pills`, plain `.filter-pill`s with a small colour dot for
-identity — project colour is not used to tint them, see "Visual system" below — and the same
-`.filter-pill.active` accent fill as any other chosen pill) narrow the cards and counts. They are
-sorted busiest first, and six show
-until the dashed **+N more** pill (`.focus-more-pill`) expands them. The chosen project always
-shows, and names are never shortened. The chosen pill is kept per device (`focusdeck-focus-filter`).
-
-Open tasks with no label get an **Unlabelled** card after the label cards (neutral `--ink-faint`
-edge, always shown). It picks with the stand-in id `UNLABELLED` (js/state.js). This card is only a
-focus pick, though — filing those tasks (and captured thoughts) into projects and labels happens in
-the Unsorted card below, not from here.
+"What's your focus right now?" (`renderFocusPicker`, js/render.js) is two **wallets** (#120): manila
+folders for projects, ruled index cards for categories, with "Surprise me" as the last index card.
+How they work, the Choosing a card setting and the traps are in
+[wallets.md](./wallets.md). Styling lives at the end of `css/app.css` ("Wallets"): `.flip-track`,
+`.sleeve`, `.icard` (paper tokens `--paper`, `--rule`, `--paper-soft`; folders use `--folder` and
+the project's colour mixed 55%), `.icard.project` for the folder tab and label sticker. The tilt
+and brightness are set inline by js/wallet.js. Open tasks with no label get an **Unlabelled** index
+card (neutral `--ink-faint` edge); it picks with the stand-in id `UNLABELLED` (js/state.js).
+Filing those tasks (and captured thoughts) happens in the Unsorted card below, not from here. The
+chosen folder is kept per device (`focusdeck-focus-filter`). The old project pills, label cards
+and the "+N more" / "Show all N labels" reveals are gone from this picker; `.energy-grid` and
+`.filter-pill`s remain for the Unsorted flow until #121.
 
 ### Top bar
 
@@ -376,74 +366,191 @@ rel="noopener">`, not another `data-action`), and **Delete** (`.btn-text danger`
 
 ## Visual system
 
-PR 3 (2026-09-27) is a purely visual pass — "warm editorial with a touch of notebook" — over the
-same markup and behaviour: no feature or interaction changed (task-row controls, the add-task
-form, Remove/Add project placement are all untouched; that's PR 4's job). See
-`docs/plans/handcrafted-redesign.md` ("Direction", "Visual system") for the brief this
-implements, and `docs/6-decisions/Decisions.md` (2026-09-27) for the calls made where it was
-ambiguous.
+The app is a **desk** (#116, #119; the design is the "Your pick" section of
+`docs/plans/redesign-directions.html`, screenshots in `docs/generated/redesign-mockup/`, before and
+after in `docs/generated/pr119/`). The earlier "warm editorial with a touch of notebook" look (PR 3,
+2026-09-27: Fraunces and IBM Plex Sans on a grey-green page) is gone; the structure it set up — five
+type sizes, three radii, flat sections — stays. The redesign itself is recorded in
+`docs/6-decisions/Decisions.md` (2026-10-09).
 
-**Five type sizes**, tokens on `:root` (css/app.css:20-24), and nowhere else — every `font-size`
-in `css/app.css`, and every inline one that used to live in `settings.html`, is one of these:
-`--text-sm:.8rem` (meta, chips, pills, counts, small buttons), `--text-body:.95rem` (body text,
-rows, inputs, buttons, `.group-label`'s "In progress"/"Up next"), `--text-h:1.15rem` (section
-headings, project names, the brand `h1`, the Unsorted item title), `--text-q:1.5rem` (the focus
-question), `--text-title:2.1rem` (the picked focus task's title). Headings (`h1`-`h4`,
-`.section-toggle`, `.sidebar-title`, `.focus-title`/`.focus-q`) are Fraunces; everything else is
-IBM Plex Sans (css/app.css:79, 85).
+**Two desks, one token set** (css/app.css:5-125). `:root` is the desk by day ("light": pale
+blue-grey `--bg`, near-white `--surface`, navy `--ink`); `@media (prefers-color-scheme: dark)` and
+`:root[data-theme="dark"]` are the same desk at night ("Low light": deep navy `--bg`, `--surface`
+one step lighter, warm moonlight `--ink`, amber `--accent`). The theme follows the system, as before;
+`data-theme` is only a manual override nothing in the app sets yet. Every token the rest of the
+stylesheet already read keeps its name (`--bg`, `--surface`, `--surface-2`, `--ink`, `--ink-soft`,
+`--ink-faint`, `--line`, `--accent`, `--accent-ink`, `--danger`, `--prio-*`, `--due-*`), now mapped
+onto the desk, so project tiles, rows, the drawer, the editor and dialogs still read correctly
+without having been redesigned. In the light desk `--accent` is a deep amber (`#8F5A06`) rather than
+the brand amber, because amber text on a pale surface fails contrast; the brand/lamp amber is its
+own token, `--lamp-dot`. The two dark blocks must declare the same values
+(`js/style-contract.test.mjs` checks it, as `scripts/check-due-contrast.mjs` reads both).
 
-**Three corner radii**, also tokens (css/app.css:26-28): `--r-pill:999px` for anything chip- or
-pill-shaped (`.filter-pill`, `.chip`, `.label-option`, sidebar pills, priority chips); `--r-control:10px`
-for controls — `.btn`, the capture input/button, other text inputs, `<select>`s, `<textarea>`s,
-`.toast`, `.sidebar-project` rows, `.energy-btn` cards; `--r-card:18px`, used by exactly one thing,
-`.focus-card`. Circles (`.proj-dot`, `.icon-btn`, `.mini-x`) stay `border-radius:50%`, outside the
-token system. `.filter-pill`'s own rule keeps the literal `border-radius:999px` rather than the
-token, on purpose — `js/style-contract.test.mjs` asserts that literal string, so the pill shape
-stays enforced even if `--r-pill` itself were ever redefined.
+**Paper objects have their own tokens** (css/app.css:28-47): `--paper` (cream in the dark desk,
+near-white in the light), `--paper-ink`, `--paper-soft`, `--paper-faint` (the jotter's placeholder,
+the lightest text on paper that still clears 4.5:1), `--rule` (ruled lines), `--paper-shadow`,
+`--hole` (the jotter's binding holes: the desk showing through, so it is `var(--bg)`), `--note` and
+`--note-fold` (sticky-note yellow and its folded corner), `--note-ink`, `--note-soft`, and `--pen`
+(biro blue, for the tick and the cross-out). Paper stays paper in both themes: dark ink on cream. The
+**lamp** is `--lamp`, a soft glow painted on `body` behind the focus area (css/app.css:131), and the
+brand dot (`.lamp`, css/app.css:169).
 
-**One raised card.** `.card`'s base rule (background, `--r-card`, `--shadow`, padding) is what
-`.focus-card` uses, and is the only raised surface in the app. `.inbox-card`, `.project-card`
-and settings.html's `.settings-section` override it back to flat — no background fill, no shadow, no side/bottom border, `border-radius:0`
-— separated from whatever's above by a 1px `--line` top rule, except a project card's is its
-existing 3px project-colour top edge, which doubles as that rule. The wide-screen sidebar
-(>=1100px) is flat too, with a rule on its right edge instead of a box; the phone/tablet drawer
-stays a solid sliding panel, since it's a distinct surface over a backdrop, not a section of the
-page.
+**Faces** (css/app.css:46-50, loaded from Google Fonts in `index.html` and `settings.html`):
+Young Serif for headings (`--font-display`; it has one weight and no italic, so headings never ask
+for bold or italic, css/app.css:139-144); Figtree for interface text (`--font-ui`); Bricolage
+Grotesque and Atkinson Hyperlegible on paper objects (`--font-paper`, `--font-paper-small`); Kalam
+for handwriting on the note and the jotter. The handwriting face is **one custom property,
+`--note-font`** (css/app.css:47), declared exactly once (the contract test enforces it): #122 makes
+it a setting.
 
-**Icons, not emoji.** `js/icons.js` is the one source of truth for the app's hand-drawn-style
-inline line icons (`stroke="currentColor"`, `fill="none"`, ~1.75 stroke, round caps/joins,
-viewBox 24 except the pre-existing sync icon's viewBox 20) — `js/icons.test.mjs` checks every
-export is a well-formed, themeable, non-emoji SVG string. `js/render.js` imports from it
-(currently `ICON_SYNC` for the sync button, `ICON_GRIP` for the drag grip, and the two Claude provenance marks after a task title, `ICON_CLAUDE_CREATED`/`ICON_CLAUDE_COMPLETED`, `ICON_DUE_RED` on a red deadline chip, see [Claude integration](claude-integration.md#where-the-marker-shows)); `index.html`/`settings.html` have no render step for
-their static header markup, so they inline the same paths by hand for the brand mark (compass),
-the settings link and the Projects drawer button — all `.icon-btn`s with an `aria-label`. The
-favicon `data:` URI is the same compass path in the accent colour, not a rendered glyph. No emoji
-remains anywhere in the UI (checked by grepping U+1F300-1FAFF, U+2600-27BF minus the kept
-typographic marks `✓ ↓ × − + ▸ ▾`, and U+FE0F, over every `.html` and `js/*.js`/`*.mjs` file); the
-PNG app icons under `icons/` (built by `generate_icons.py`) were not regenerated, since they're a
-separate asset pipeline this pass didn't touch.
+**Five type sizes**, still tokens on `:root` (css/app.css:53-57), and nowhere else:
+`--text-sm:.8rem`, `--text-body:.95rem`, `--text-h:1.15rem`, `--text-q:1.5rem`,
+`--text-title:2.1rem`. The sticky note's title uses `--text-q` on a phone and `--text-title` from
+700px.
 
-**Colour.** One accent (`--accent`/`--accent-ink`) for every action button — the capture Add
-button and each project's add-task button, which both used to carry their own colour
-(`--capture`, `--proj-color`), now match `.btn.primary`. A label's own colour (from GitHub) only
-ever paints through `mutedChip()` (js/render.js) — `color-mix(in oklab, <color> 65%, --ink-soft)`
-— everywhere a label colour is shown (`.energy-btn` top edges, `.cat-chip`, `.tint-pill`s,
-`.label-option`, Unsorted kind cards, settings' category chips) so a raw GitHub hue (`#a2eeef`,
-`#fbca04`, `#7057ff`, ...) reads as a calmer version of itself in both themes rather than at full
-saturation; `--prio-*` priority colours are untouched. A **project's** colour is identity only —
-the sidebar/drawer dot and a project card's 3px top edge — never a fill: `.progress-fill` is
-neutral `--ink-soft`, and every project pill/chip (`.proj-chip`, the focus picker's project pills,
-Unsorted's "Which project?" pills) is a plain, neutral pill with a small `.proj-dot` in the
-project's colour before the name; the chosen one gets the ordinary `.filter-pill.active` accent
-treatment, same as any other chosen pill, not its own colour.
+**Three corner radii** (css/app.css:59-61): `--r-pill:999px` for chips and pills, `--r-control:10px`
+for controls, `--r-card:18px` for the picker card and the empty-desk outline. Circles stay
+`border-radius:50%`. `.filter-pill`'s rule keeps the literal `border-radius:999px` because
+`js/style-contract.test.mjs` asserts that string.
 
-**Label names.** `formatLabelName(name)` (js/state.js, tested by
-`js/format-label-name.test.mjs`) title-cases a label's raw GitHub name for display only — never
-touching the stored name or anything sent to GitHub — with a fixed list of acronyms kept upper
-(or mixed-)case: UI, UX, API, CI, CD, PR, QA, SEO, CSS, HTML, JS, TS, PWA, iOS, QoL; a word that's
-already mixed-case (`GitHub`) is left as written. Used everywhere a label's name is displayed:
-focus picker cards, row `.cat-chip`s, the label picker, Unsorted's label pills/kind cards, and
-settings' task-category list. Project category names are not labels and are shown as typed.
+**Flat sections, one raised card.** `.card` (css/app.css:216) is the raised surface; `.inbox-card`,
+`.project-card` and `.settings-section` override it back to flat with a 1px `--line` top rule (a
+project card's is its 3px project-colour edge). The focus *picker* (no task chosen yet) is still a
+`.card`, with a faint lamp-coloured gradient on top (`.focus-empty.card`, css/app.css:225). The
+focus area's picked task is not a card any more: it is a sticky note.
+
+### The jotter
+
+The capture form is `<form id="capture-form" class="capture-form jotter">` (index.html:20): same
+form, same ids (`#capture-form`, `#capture-input`), same handler (js/app.js, adds to Unsorted). The
+jotter (css/app.css:175-191) is a paper strip: `radial-gradient` binding holes along the top in
+`--hole`, a ruled line along the bottom, the input in `--note-font` with no border of its own and an
+amber focus ring on the whole strip (`:focus-within`). The **Add** button (`.jot-add`) is a small
+paper stamp: it stays visible on a phone, because a touch keyboard has no reliable Enter. The input
+has `aria-label="Capture a stray thought"` (its name was the placeholder before, which changed to
+"Jot down a stray thought…"). The topbar keeps the brand (a lamp dot and "Focus Deck"), the Projects
+button, the sync icon and the settings link, all unchanged.
+
+### The sticky note
+
+`renderFocus` (js/render.js:128) draws a picked task as
+`.note-shadow > .note` (css/app.css:233-285). **The shadow is on the wrapper**: `.note` has a
+folded-corner `clip-path`, and a `box-shadow` on a clipped element is clipped with it, so the
+`drop-shadow` filter sits on `.note-shadow` instead (and differs per theme). The fold is a
+`::after` triangle in `--note-fold`. Above the title is one line, `.note-meta`: the project (a
+button that scrolls to it, `data-action="scroll-project"`, as the chip did), the task's labels (or
+"Unlabelled", or "Random pick" when nothing narrowed the pick), the priority, then the deadline
+chip (`focusMetaParts`, js/render.js:159). The deadline chip on yellow paper is re-skinned
+(`.note .chip.deadline-chip`): paper fill, ink words, and the stage shown by border colour
+(`--paper-due-soon`, `--paper-due-now`) plus the existing red icon — the words still carry the
+meaning, as everywhere else. The title is an `<h2 class="focus-title">` in `--note-font` holding
+`<span class="ink">`.
+
+Under the note sit two paper objects (`.desk-acts`):
+
+- **"I've done it"** (`.check-btn`, `data-action="complete-focus"`): a lined paper slip with a
+  hand-drawn box. Its tick is an SVG path drawn with `stroke-dashoffset` (26 to 0).
+- **"Not this one"** (`.slip-btn`, `data-action="reroll"`): a ticket stub with a punched notch,
+  "slip it back in the deck". Same `M.reroll()` as before; only drawn when the pick's pool has more
+  than one task, in which case the checkbox takes the whole row (`.desk-acts.is-single`).
+- **Clear** stays a quiet `btn-text` below them.
+
+**The cross-out.** Tapping "I've done it" runs `startComplete` (js/focus-complete.js:28), wired in
+js/app.js:239: (1) the box ticks (`.is-ticked`, 280ms), (2) a biro line is drawn through the title
+(`.note.is-crossed`: `background-size` of a linear-gradient on the *inline* `.ink` span goes 0% to
+100%, with `box-decoration-break:clone` so each wrapped line gets its own stroke, 460ms), (3) the
+note peels away (`.is-peeling`, 400ms), and only then **`M.completeFocus` runs**: the same path as
+before, `setTaskStatus(..., 'done')` with its completed log and GitHub completion sync. The state
+change happens once, at the end; the animation is presentation. Because `paint()` replaces `#app`'s
+innerHTML, the phases are applied to the live DOM (a new element would not run a transition) and also
+stored in `ui.completing`, so a repaint in the middle (a sync landing) re-renders the note in the
+phase it had reached instead of cutting it off. A second tap is ignored; if the focus changed
+meanwhile (a re-roll, Clear) nothing is completed. With `prefers-reduced-motion: reduce` the
+sequence is skipped and the task completes at once. `.wrap` has `overflow-x:clip` so the peeling
+note cannot widen the page (`clip`, not `hidden`, so the sticky topbar keeps working).
+
+**Empty states.** With nothing open, the focus area is an outlined empty spot (`.desk-empty`):
+"Your desk is clear." and what to do next (add a task from the project list, the Projects button on
+a phone, or jot a thought on the pad above). With open tasks but no pick, it is still the picker
+(heading, project pills, label cards, Surprise me) on a lamp-lit card. **#120 replaces the pills and
+label cards with wallets**; they are only re-coloured here.
+
+**Colour.** One accent (`--accent`/`--accent-ink`) for every action button. A label's own colour
+(from GitHub) only ever paints through `mutedChip()` (js/render.js:11). A project's colour is
+identity only: its dot and its card's 3px top edge. Deadline chip stages (#106) are checked by
+`node scripts/check-due-contrast.mjs` against the new `--bg`, `--surface` and `--surface-2`; to keep
+4.5:1 on them `--due-now` moved from `#AB0F46` to `#9F0C3D` (light) and from `#FF88B0` to `#FF96B9`
+(dark). `--due-soon` and the priority tokens kept their hues (the priority tokens were nudged
+slightly for contrast on the new surfaces; the hue gaps the script reports are unchanged in kind).
+
+**Icons, not emoji.** `js/icons.js` is the one source of truth for the hand-drawn-style inline line
+icons (`stroke="currentColor"`, `fill="none"`, round caps), checked by `js/icons.test.mjs`. The brand
+mark is no longer the compass: it is the amber lamp dot (the favicon and the PNG app icons still show
+the compass; they were not redrawn). The two ticks and arrows on the note are drawn in CSS/inline SVG
+inside `renderFocus`, not in `icons.js`. No emoji anywhere in the UI.
+
+**Label names.** `formatLabelName(name)` (js/state.js, tested by `js/format-label-name.test.mjs`)
+title-cases a label's raw GitHub name for display only, with a fixed acronym list (UI, UX, API, CI,
+CD, PR, QA, SEO, CSS, HTML, JS, TS, PWA, iOS, QoL). It is used on the note, the picker cards, row
+chips and the Unsorted flow.
+
+**What #123 still has to restyle.** Only the top of the main screen is on the desk. Everything else
+only *inherits the new tokens* and may look out of place: project tiles and the sidebar/drawer (#123
+folders), task rows and the editor, the Unsorted card, the add-project forms, the toast, the move
+dialog, drag ghosts and the whole Settings page. They use `--surface`, `--line`, `--accent` and the
+Figtree/Young Serif faces, which keeps them legible, but none use paper, the note or the lamp. The
+focus picker's pills and label cards are #120's.
+
+### Note faces
+
+Settings > Note writing (#122) chooses the face for the writing on paper notes: Handwriting (Kalam,
+the default), Print (Atkinson Hyperlegible) or OpenDyslexic. It applies to the sticky note
+(`.focus-title`), the jotter (`#capture-input`) and the in-tray slips (#121 reads the same two
+tokens). Interface text is not affected.
+
+- **Mechanism.** `js/note-face.js` sets `data-note-face="hand|print|dyslexic"` on `<html>`. The "Note
+  faces" section at the end of `css/app.css` sets `--note-font` and `--note-scale` per face (the
+  hand default is in the first `:root` block). Notes write `font-family: var(--note-font)` and
+  `font-size: calc(<size> * var(--note-scale))`. Scales: hand 1, print .95, OpenDyslexic .78 (it runs
+  wide, so the sticky note's title takes about the same lines).
+- **Stored** as `state.noteFace = { face, updatedAt }`, defaulted, merged (newest stamp wins) and set
+  (`setNoteFace`) exactly like `choosingMode` (`js/state.js`, `js/merge.js`, `js/mutations.js`;
+  tests in `js/choosing-mode.test.mjs`). Per device, and syncs; `renderApp` re-applies it so a synced
+  change shows.
+- **No flash.** A tiny inline script in `<head>` of `index.html` and `settings.html` reads the saved
+  face from localStorage and sets the attribute before `css/app.css` paints.
+- **OpenDyslexic is self-hosted:** `app/fonts/opendyslexic-latin-700-normal.woff2` from
+  `@fontsource/opendyslexic` 5.3.0 (not an npm dependency), licence at `app/fonts/OpenDyslexic-OFL.txt`
+  (SIL OFL 1.1). `@font-face` uses `font-display: swap`. Kalam and Atkinson still come from the
+  Google Fonts link. The font and `js/note-face.js` are in the service worker's `SHELL_ASSETS`
+  (cache `v5`), so OpenDyslexic works offline.
+- **Trap.** Settings samples carry `data-note-face` themselves (`.note-face-sample`) so each shows its
+  own face; the face rules' selectors cover both `<html>` and the sample.
+- Checked by `scripts/check-note-faces-browser.mjs` (screenshots in `docs/generated/pr122/`).
+
+### The rest of the desk
+
+Since #123 (2026-10-10), everything outside the focus area is stationery too. It is all in one
+section at the end of `app/css/app.css` ("Desk look for the rest of the app (#123)"), and it changes
+shape only. Behaviour and markup are the same.
+
+- **A project is an open folder.** `.project-card` is a card with a 3px top edge in the project's
+  colour, and `::before` adds a folder tab in that colour. The colour still means the project and
+  nothing else (Q4b).
+- **Its task list is a ruled index card.** "Up next" sits on a red heading line (`--index-red`, the
+  same red as the wallet index cards' margin), and the rows are divided by `--index-rule`.
+- **The task editor, the add-task form and the "+ New" panel are index cards** on `--surface-2`
+  with the red top line. The project Edit panel is a dashed slip, the move dialog is an index card
+  on a dimmed desk, and a toast is a torn-off jotter slip with holes along its top.
+- **Each Settings section is an index card.**
+- **Contrast.** Task rows and chips stay on `--surface` and `--surface-2`, the two backgrounds
+  `scripts/check-due-contrast.mjs` proves the due chips on, so no new background needs checking.
+- **Wallets under the topbar.** `.flip-track` has `isolation:isolate`. Without it, the sleeves'
+  z-index stacked them over the sticky topbar when the page scrolled. That was a #120 bug, fixed
+  here.
+
+Checked by `scripts/check-desk-screens-browser.mjs`: every screen at 390px and 1280px in dark and
+light, 60 checks. Screenshots are in `docs/generated/pr123/`.
 
 ### Project header and the Edit panel (Q15a, #83, PR 4 2026-09-27)
 
@@ -611,9 +718,8 @@ screenshots in `docs/generated/pr11/`.
   `ALLOWED_WITHOUT_RULE` exists for two legitimate cases: a class that's a pure JS hook, matched
   with `.matches()`/`querySelector` and never meant to be styled (`cat-add-form`,
   `cat-remove-btn`); or a modifier class that only ever appears stacked onto another class that
-  carries the actual rule — e.g. `class="card focus-card focus-active"`, where `.card` supplies
-  the border/shadow/padding and `focus-active` is a pure state marker `js/app.js` reads back, never
-  a CSS target (`focus-card`, `focus-active`). Keep this list short and comment every entry — each
+  carries the actual rule — e.g. `class="focus-card focus-active desk-focus"`, where `desk-focus`
+  supplies the layout and `focus-card`/`focus-active` are pure state markers, never a CSS target. Keep this list short and comment every entry — each
   one is a class the contract test can no longer protect, and the test itself asserts the list
   never grows an entry for a class that isn't actually used anywhere, so it can't silently
   accumulate dead exceptions either.
@@ -621,7 +727,9 @@ screenshots in `docs/generated/pr11/`.
 - A hand-picked set of the most visually load-bearing rules must keep specific properties, not
   just keep existing — a selector surviving with gutted properties is exactly how the issue #17
   regression shipped (see Traps below). Enforced by the second half of
-  `js/style-contract.test.mjs`: headings stay on the `'Fraunces'` display font, `.wrap` stays at
+  `js/style-contract.test.mjs`: headings stay on `--font-display` (Young Serif), the sticky note keeps its `clip-path`, its
+  wrapper's `drop-shadow` and the cross-out's `box-decoration-break:clone`, the token blocks keep
+  every colour the stylesheet reads, `--note-font` is declared once, `.wrap` stays at
   `max-width:760px`, `.energy-btn` keeps its `border-top:3px solid var(--chip-color)` (the thing
   that makes the focus picker's label cards visibly color-coded — it's kept for those cards and the
   Unsorted kind cards even though the energy system itself was deleted), `.card` keeps an actual

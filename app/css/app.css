@@ -1,0 +1,984 @@
+/* "Low light" desk (#116, #119): the app is a desk. Dark is the desk at night under an amber lamp; light is
+   the same desk by day. Existing token names (--bg, --surface, --ink ...) map onto the desk so the
+   screens #123 has not restyled yet keep their contrast; the paper tokens are for stationery objects
+   (jotter, sticky note, checkbox, ticket stub). See docs/4-systems/styling.md#visual-system */
+:root{
+  color-scheme: light dark;
+  --bg:#E4E8EF;
+  --surface:#FBFAF7;
+  --surface-2:#EEF1F6;
+  --ink:#1C2438;
+  --ink-soft:#59627A;
+  --ink-faint:#6E7790;
+  --line:#C7CEDB;
+  --accent:#8F5A06;
+  --accent-ink:#FFFFFF;
+  --danger:#A83E3E;
+  --prio-urgent:#B42318;
+  --prio-high:#AD4A0B;
+  --prio-medium:#7A5A00;
+  --prio-low:#3F6E53;
+  /* Deadline chip stages (#106). Borders + tint + words, never hue alone: --due-soon is an olive-lime and
+     --due-now a crimson, apart from the gold --prio-medium, orange --prio-high and red --prio-urgent. */
+  --due-soon:#4F5A00;
+  --due-now:#9F0C3D;
+  --proj-sat:58%;
+  --proj-light:40%;
+  /* The lamp: a glow on the desk behind the focus area, and the brand dot */
+  --lamp:rgba(255,255,255,.75);
+  --lamp-dot:#D98A12;
+  /* Paper objects. Paper stays paper in both themes (dark ink on cream), so most of these are shared. */
+  --paper:#FFFEFA;
+  --paper-ink:#1D2733;
+  --paper-soft:#4E5A68;
+  --paper-faint:#5F6A79;
+  --rule:#C3CEDD;
+  --paper-shadow:rgba(40,52,80,.35);
+  --hole:var(--bg);
+  --folder:#F1E6CC;
+  --index-red:#C9584F; /* the index card's heading line (#123) */
+  --index-rule:color-mix(in srgb, var(--rule) 45%, var(--surface)); /* its row rules, toned to the theme */
+  --note:#FFE27A;
+  --note-fold:#E2C055;
+  --note-ink:#2B2412;
+  --note-soft:#6B5520;
+  --pen:#1F3F99;
+  /* Stage colours on paper, for the deadline chip's border and icon on the sticky note (its words stay ink) */
+  --paper-due-soon:#5E6B00;
+  --paper-due-now:#A30D40;
+  /* The writing on paper notes: the default face (Handwriting). Print and OpenDyslexic override
+     these in the "Note faces" section at the end (#122) */
+  --note-font:'Kalam', 'Comic Sans MS', cursive;
+  --note-scale:1;
+  --font-display:'Young Serif', Georgia, serif;
+  --font-ui:'Figtree', system-ui, -apple-system, sans-serif;
+  --font-paper:'Bricolage Grotesque', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-paper-small:'Atkinson Hyperlegible', system-ui, sans-serif;
+  /* Type scale (Q17a): exactly five sizes. See docs/4-systems/styling.md#visual-system */
+  --text-sm:.8rem;
+  --text-body:.95rem;
+  --text-h:1.15rem;
+  --text-q:1.5rem;
+  --text-title:2.1rem;
+  /* Corners (Q17a): exactly three radii. Circles (dots, icon buttons) stay 50% — a shape, not a step. */
+  --r-pill:999px;
+  --r-control:10px;
+  --r-card:18px;
+  --shadow:0 1px 2px rgba(28,36,60,.06), 0 6px 20px rgba(28,36,60,.09);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111829;
+    --surface:#18213A;
+    --surface-2:#212C4A;
+    --ink:#E9E4D8;
+    --ink-soft:#9BA3B8;
+    --ink-faint:#7F89A3;
+    --line:#2A3555;
+    --accent:#F2B45A;
+    --accent-ink:#2A1B05;
+    --danger:#F19A92;
+    --prio-urgent:#F58F85;
+    --prio-high:#F5A867;
+    --prio-medium:#E8C75E;
+    --prio-low:#8FBF9F;
+    --due-soon:#D9E66B;
+    --due-now:#FF96B9;
+    --proj-sat:55%;
+    --proj-light:68%;
+    --lamp:rgba(242,180,90,.17);
+    --lamp-dot:#F2B45A;
+    --paper:#EFEADF;
+    --rule:#C3CEDD;
+    --paper-shadow:rgba(0,0,0,.8);
+    --note:#EFCB66;
+    --note-fold:#C9A243;
+    --pen:#2346A0;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111829;
+  --surface:#18213A;
+  --surface-2:#212C4A;
+  --ink:#E9E4D8;
+  --ink-soft:#9BA3B8;
+  --ink-faint:#7F89A3;
+  --line:#2A3555;
+  --accent:#F2B45A;
+  --accent-ink:#2A1B05;
+  --danger:#F19A92;
+  --prio-urgent:#F58F85;
+  --prio-high:#F5A867;
+  --prio-medium:#E8C75E;
+  --prio-low:#8FBF9F;
+  --due-soon:#D9E66B;
+  --due-now:#FF96B9;
+  --proj-sat:55%;
+  --proj-light:68%;
+  --lamp:rgba(242,180,90,.17);
+  --lamp-dot:#F2B45A;
+  --paper:#EFEADF;
+  --rule:#C3CEDD;
+  --paper-shadow:rgba(0,0,0,.8);
+  --note:#EFCB66;
+  --note-fold:#C9A243;
+  --pen:#2346A0;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  /* the lamp's glow on the desk, behind the focus area */
+  background:radial-gradient(70% 380px at 50% 90px, var(--lamp), transparent 72%) no-repeat, var(--bg);
+  color:var(--ink);
+  font-family:var(--font-ui);
+  font-size:var(--text-body);
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;}
+[hidden]{display:none!important;}
+h1,h2,h3,h4{font-family:var(--font-display); margin:0; text-wrap:balance; font-weight:400;}
+/* Section headings: Young Serif, sentence case, no letter-spacing or uppercase. Young Serif has one
+   weight and no italic, so headings never ask for bold or italic (the browser would fake both). h2 is
+   the default "section heading" size; .focus-q and h3 (project names) override it below. */
+h2{font-size:var(--text-h);}
+h3{font-size:var(--text-h);}
+h4{font-size:var(--text-body); color:var(--ink-soft);}
+p{margin:0;}
+button,input,select{font:inherit; color:inherit;}
+button{cursor:pointer;}
+a{color:inherit;}
+*:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important; scroll-behavior:auto!important;}
+}
+
+.wrap{max-width:760px; margin:0 auto; padding:0 16px 64px; overflow-x:clip;} /* clip, not hidden: the note peeling away must not widen the page, and the sticky topbar must keep working */
+
+.topbar{
+  position:sticky; top:env(safe-area-inset-top,0px);
+  z-index:10;
+  background:var(--bg);
+  padding-block:16px 12px;
+  display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--line);
+  margin-bottom:18px;
+}
+.brand{display:flex; align-items:center; gap:10px;}
+/* The brand mark is the lamp: a small amber dot with a glow (the same light that falls on the focus area) */
+.brand-mark{display:inline-flex;}
+.lamp{width:10px; height:10px; border-radius:50%; background:var(--lamp-dot); box-shadow:0 0 12px 3px color-mix(in srgb, var(--lamp-dot) 55%, transparent);}
+.brand h1{font-size:var(--text-h); letter-spacing:-.01em;}
+/* The jotter: a notepad strip with binding holes along its top edge and a ruled line under the
+   writing. The holes are the desk showing through (--hole); the add button is a small paper stamp so a
+   phone still has a visible submit control. See docs/4-systems/styling.md#the-jotter */
+.capture-form{display:flex; align-items:center; gap:8px; flex:1 1 260px; min-width:0; max-width:560px;}
+.jotter{
+  position:relative; border-radius:2px 2px 4px 4px; padding:14px 12px 6px; background-color:var(--paper);
+  box-shadow:0 8px 16px -12px var(--paper-shadow);
+  background-image:radial-gradient(circle, var(--hole) 2.2px, transparent 2.7px), linear-gradient(transparent calc(100% - 9px), var(--rule) calc(100% - 9px), var(--rule) calc(100% - 8px), transparent calc(100% - 8px));
+  background-size:12px 8px, 100% 100%; background-repeat:repeat-x, no-repeat; background-position:4px 2px, 0 0;
+}
+.jotter:focus-within{box-shadow:0 0 0 2px var(--accent), 0 8px 16px -12px var(--paper-shadow);}
+#capture-input{
+  flex:1; min-width:0; padding:2px 0; border:0; background:transparent; color:var(--paper-ink); outline:none;
+  font-family:var(--note-font); font-weight:700; font-size:calc(1.05rem * var(--note-scale));
+}
+#capture-input::placeholder{color:var(--paper-faint); font-weight:400;}
+.jot-add{
+  flex:none; min-height:36px; padding:4px 14px; border:1.5px solid var(--paper-ink); border-radius:3px; background:transparent;
+  color:var(--paper-ink); font:700 var(--text-sm) var(--font-paper); white-space:nowrap; transform:rotate(-1.5deg);
+}
+.jot-add:active{transform:rotate(-1.5deg) translateY(2px);}
+
+/* The topbar sync icon, settings icon and Projects drawer toggle (index.html, outside #app). See
+   docs/4-systems/styling.md#sync-button and #icons */
+.icon-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:32px; height:32px; padding:0; border:none; background:none; border-radius:50%;
+  color:var(--ink-soft);
+}
+.icon-btn:hover{color:var(--ink); background:var(--surface-2);}
+.icon-btn:disabled{cursor:default; opacity:.6;}
+.icon-btn.is-syncing svg{animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){
+  .icon-btn.is-syncing svg{animation:none;}
+}
+.topbar-tools{display:flex; align-items:center; gap:12px;}
+/* on a phone the brand and the tools share the first row and capture gets the full second row,
+   instead of the tools wrapping onto a row of their own */
+@media (max-width:699px){.capture-form{order:1; flex-basis:100%;}}
+.projects-toggle{white-space:nowrap;}
+@media (min-width:1100px){.projects-toggle{display:none;}}
+
+/* One raised card (Q5): the focus card is the only surface with a background, radius and shadow.
+   .inbox-card, .project-card and settings.html's .settings-section below override this back to flat, each with its own thin top rule. */
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r-card);
+  box-shadow:var(--shadow); padding:20px; margin-bottom:16px;
+}
+@media (min-width:700px){
+  .card{padding:28px;}
+}
+
+/* The focus picker sits on the desk in the lamp's light until #120 swaps its pills and cards for wallets */
+.focus-empty.card{background:radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--lamp-dot) 20%, transparent), transparent 60%), var(--surface);}
+/* Nothing to pick yet: an empty spot on the desk, outlined, with the next step in words */
+.desk-empty{border:1.5px dashed var(--line); border-radius:var(--r-card); padding:22px 20px; margin-bottom:16px;}
+
+/* The focus area as stationery (#119): the picked task is a sticky note in the lamp's light, with a
+   paper checkbox and a ticket stub under it. A drop-shadow on the wrapper survives the note's
+   folded-corner clip-path (a box-shadow on the note itself would be cut off by it). See
+   docs/4-systems/styling.md#the-sticky-note */
+.desk-focus{display:grid; gap:14px; margin:6px 0 18px; max-width:600px;}
+.note-shadow{filter:drop-shadow(0 10px 12px rgba(40,52,80,.26)) drop-shadow(0 1px 1px rgba(40,52,80,.2));}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .note-shadow{filter:drop-shadow(0 12px 12px rgba(0,0,0,.45)) drop-shadow(0 1px 1px rgba(0,0,0,.25));}
+}
+:root[data-theme="dark"] .note-shadow{filter:drop-shadow(0 12px 12px rgba(0,0,0,.45)) drop-shadow(0 1px 1px rgba(0,0,0,.25));}
+.note{
+  --fold:22px; position:relative; color:var(--note-ink); padding:22px 20px 32px; min-height:152px; transform:rotate(-1.4deg);
+  background:linear-gradient(rgba(0,0,0,.05) 0 16px, transparent 16px), var(--note);
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - var(--fold)), calc(100% - var(--fold)) 100%, 0 100%);
+}
+.note::after{content:""; position:absolute; right:0; bottom:0; width:var(--fold); height:var(--fold); background:linear-gradient(to top left, transparent 50%, var(--note-fold) 50%);}
+.note-meta{display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; font:var(--text-sm) var(--font-paper-small); color:var(--note-soft); letter-spacing:.02em;}
+.note-meta > span:not(.chip)::before{content:"\00B7" / ""; margin-right:6px;}
+.note-project{padding:6px 0; border:0; background:none; color:var(--note-ink); font:inherit; font-weight:700; text-decoration:underline dotted; text-underline-offset:3px;}
+.note .chip.deadline-chip{background:var(--paper); color:var(--paper-ink); border:1.5px solid var(--paper-soft); font-family:var(--font-paper-small);}
+.note .chip.deadline-chip.due-yellow{border-color:var(--paper-due-soon); font-weight:700;}
+.note .chip.deadline-chip.due-red{border-color:var(--paper-due-now); font-weight:700;}
+.note .chip.deadline-chip.due-red svg{color:var(--paper-due-now);}
+.focus-title{font-family:var(--note-font); font-weight:700; font-size:calc(var(--text-q) * var(--note-scale)); line-height:1.2; margin:8px 0 0; text-wrap:balance;}
+@media (min-width:700px){.focus-title{font-size:var(--text-title);}}
+/* Crossing it off: a biro line drawn through the task, one stroke per line of text (the span is
+   inline and box-decoration-break:clone repeats the gradient on every wrapped line) */
+.focus-title .ink{
+  background-image:linear-gradient(var(--pen), var(--pen)); background-repeat:no-repeat; background-position:0 58%; background-size:0% 3px;
+  -webkit-box-decoration-break:clone; box-decoration-break:clone; transition:background-size .38s ease-out;
+}
+.note.is-crossed .focus-title .ink{background-size:100% 3px;}
+.note.is-peeling{transform:translate(130px, -40px) rotate(20deg); opacity:0; transition:transform .38s ease-in, opacity .38s ease-in;}
+
+/* Paper checkbox and ticket stub: the two things you can do with the note */
+.desk-acts{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; align-items:stretch;}
+.desk-acts.is-single{grid-template-columns:minmax(0,1fr);}
+.check-btn{
+  border:0; cursor:pointer; text-align:left; font:inherit; color:var(--paper-ink); display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:3px; transform:rotate(-1deg);
+  background-color:var(--paper); background-image:repeating-linear-gradient(transparent 0 21px, var(--rule) 21px 22px); background-position:0 10px; box-shadow:0 10px 18px -12px var(--paper-shadow); transition:transform .12s ease;
+}
+.check-btn:active{transform:rotate(-1deg) translateY(3px);}
+.check-btn .box{flex:none; width:30px; height:30px; border:2.5px solid var(--paper-ink); border-radius:4px 6px 3px 5px; transform:rotate(-3deg); display:grid; place-items:center; background:var(--paper);}
+.check-btn svg{width:30px; height:30px; overflow:visible;}
+.check-btn .tick{fill:none; stroke:var(--pen); stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:26; stroke-dashoffset:26;}
+.check-btn.is-ticked .tick{stroke-dashoffset:0; transition:stroke-dashoffset .25s ease-out;}
+.check-words{display:grid; gap:2px;}
+.slip-btn{
+  border:0; cursor:pointer; text-align:left; font:inherit; color:var(--paper-ink); padding:12px 34px 12px 18px; align-content:center; border-radius:3px; transform:rotate(1.2deg); position:relative; display:grid; gap:2px;
+  background:radial-gradient(circle at 0 50%, transparent 7px, var(--paper) 7.5px); box-shadow:0 10px 18px -12px var(--paper-shadow); transition:transform .12s ease;
+}
+.slip-btn:active{transform:rotate(1.2deg) translateY(3px);}
+.slip-btn::after{content:"\21A9" / ""; position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:var(--text-h); color:var(--paper-soft);}
+.slip-main{font-family:var(--font-paper); font-weight:700; font-size:var(--text-body);}
+.slip-sub{font-family:var(--font-paper-small); font-size:var(--text-sm); color:var(--paper-soft);}
+.check-btn:focus-visible, .slip-btn:focus-visible{outline:2px solid var(--accent); outline-offset:4px; border-radius:8px;}
+.desk-clear{text-align:right; margin-top:-6px;}
+
+.focus-empty .focus-q{font-size:var(--text-q); font-style:normal; margin-bottom:6px;}
+.muted{color:var(--ink-soft);}
+.muted.small{font-size:var(--text-sm);}
+.focus-empty .muted{margin-bottom:16px; display:block;}
+.energy-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px;}
+@media (max-width:560px){.energy-grid{grid-template-columns:1fr;}}
+.energy-btn{
+  border:1px solid var(--line); background:var(--surface-2); border-radius:var(--r-control);
+  padding:14px 12px; text-align:left; display:flex; flex-direction:column; gap:4px;
+  border-top:3px solid var(--chip-color);
+}
+.energy-btn:hover{background:var(--surface);}
+.energy-label{font-weight:600;}
+.energy-desc{font-size:var(--text-sm); color:var(--ink-soft);}
+.link-btn{background:none; border:none; color:var(--accent); font-weight:600; padding:4px 0;}
+.link-btn.small{font-size:var(--text-sm); padding:2px 0;}
+.link-btn:hover{text-decoration:underline;}
+
+.chip{
+  display:inline-flex; align-items:center; font-size:var(--text-sm); font-weight:600;
+  padding:4px 10px; border-radius:var(--r-pill); background:var(--surface-2); color:var(--ink-soft);
+  border:1px solid var(--line);
+}
+/* A project's own chip/pill is neutral (Q4b — its colour is identity only: its dot and its card
+   edge), carrying a small colour dot (.proj-dot) rather than a colour tint. */
+.chip.proj-chip{background:var(--surface-2); color:var(--ink);}
+button.chip.proj-chip:hover{background:var(--line);}
+.proj-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--dot); margin-right:6px; flex:none;}
+.chip.deadline-chip{font-variant-numeric:tabular-nums;}
+.chip.deadline-chip svg{flex:none; margin-right:4px;}
+/* Stage colours (#106): task deadline chips only, same size as every other chip. White is the
+   neutral chip; yellow and red add a tint and a border so they differ from the borderless priority
+   chips even where a hue is close. A done task or a project deadline gets no stage class. */
+.chip.deadline-chip.due-white{background:var(--surface-2); color:var(--ink-soft);}
+.chip.deadline-chip.due-yellow{background:color-mix(in srgb, var(--due-soon) 18%, transparent); color:var(--due-soon); border-color:color-mix(in srgb, var(--due-soon) 60%, transparent); font-weight:700;}
+.chip.deadline-chip.due-red{background:color-mix(in srgb, var(--due-now) 18%, transparent); color:var(--due-now); border-color:color-mix(in srgb, var(--due-now) 60%, transparent); font-weight:700;}
+.chip.gh-chip{border-color:transparent; background:var(--surface-2); color:var(--ink-soft); text-decoration:none;}
+.chip.gh-chip.small{font-size:var(--text-sm); padding:3px 8px;}
+.chip.gh-chip:hover{color:var(--accent);}
+/* Label colours keep their GitHub hue but muted toward the app's palette (Q4b) — the raw colour
+   value handed to --chip-color is already mixed toward --ink-soft in js/render.js's mutedChip(),
+   so this rule just reads it back; text is pulled further toward ink so a light colour (e.g.
+   yellow) stays readable. */
+.chip.cat-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink)); font-weight:700;}
+.chip.cat-chip.claude-chip{background:var(--surface-2); color:var(--ink-soft);} /* "Claude created" (#104): a neutral label chip, not a tinted category */
+.chip.priority-chip{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:var(--chip-color); font-weight:700; cursor:pointer;}
+.chip.priority-chip.small{font-size:var(--text-sm); padding:3px 8px;}
+.chip.priority-chip:disabled{opacity:.5; cursor:default;}
+.focus-actions{display:flex; flex-wrap:wrap; gap:10px;}
+/* Unsorted flow pills (the focus picker itself is the wallets, below). */
+/* focus picker pills for labels match their chip's colour: tinted in it; chosen = a ring. Project
+   pills (no --chip-color set) stay a plain .filter-pill with a .proj-dot instead. */
+.filter-pill.tint-pill{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink));}
+.filter-pill.tint-pill.active{background:color-mix(in srgb, var(--chip-color) 32%, transparent); color:var(--ink); box-shadow:inset 0 0 0 2px var(--chip-color);}
+.filter-pill.focus-more-pill{background:none; border-style:dashed; color:var(--ink-faint);}
+@media (max-width:560px){.energy-grid.focus-grid{grid-template-columns:1fr 1fr;}}
+.focus-grid .energy-label{overflow-wrap:anywhere;}
+.energy-btn.selected{background:color-mix(in srgb, var(--chip-color) 16%, var(--surface-2)); box-shadow:inset 0 0 0 2px var(--chip-color);}
+.sort-head{display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-start; gap:4px 10px; margin-bottom:10px;}
+.sort-title{font-size:var(--text-h); font-style:normal; margin:4px 0 14px;}
+.sort-q{margin:0 0 8px;}
+.sort-kinds{margin-bottom:14px;}
+.sort-labels{margin-bottom:12px;}
+.sort-new{width:100%; padding:9px 12px; margin-bottom:14px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
+.btn{border-radius:var(--r-control); padding:10px 18px; font-weight:600; border:1px solid var(--line); background:var(--surface-2);}
+.btn.primary{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
+.btn.ghost:hover{background:var(--surface-2);}
+.btn-text{background:none; border:none; padding:3px 7px; font-size:var(--text-sm); font-weight:600; color:var(--ink-faint); border-radius:var(--r-control);}
+.btn-text:hover{background:var(--surface-2); color:var(--ink-soft);}
+.btn-text.danger{color:var(--danger);}
+.remove-confirm{display:flex; align-items:center; gap:4px; font-size:var(--text-sm); color:var(--ink-soft); flex-wrap:wrap;}
+
+/* Flat sections (Q5): the Unsorted card and every project card lose the raised-card look and get a
+   thin top rule instead — a project's is its 3px colour edge (identity, Q4), which doubles as that
+   rule. */
+.inbox-card, .project-card, .settings-section{
+  background:none; box-shadow:none; border-radius:0; border-left:none; border-right:none;
+  border-bottom:none; padding:20px 0;
+}
+.inbox-card{border-top:1px solid var(--line); padding:14px 0;}
+.settings-section{border-top:1px solid var(--line);}
+/* the topbar's own bottom rule already separates the first section */
+.settings-section:first-of-type{border-top:none; padding-top:0;}
+.section-toggle{
+  width:100%; text-align:left; background:none; border:none; padding:6px 0;
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--font-display); font-weight:400; font-size:var(--text-h);
+}
+.section-toggle.small{width:auto; font-family:inherit; font-style:normal; font-size:var(--text-sm); color:var(--ink-soft); margin:6px 0; font-weight:600;}
+.section-toggle .count{color:var(--ink-faint); font-weight:500; font-size:var(--text-sm);}
+.section-toggle .chev{margin-left:auto; color:var(--ink-faint);}
+.unsorted-body{margin-top:12px;}
+.unsorted-delete{margin-left:auto;} /* sits at the far right of the head row, away from the flow buttons */
+.unsorted-delete:hover{color:var(--danger);}
+.task-edit-github{flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; font-size:var(--text-sm); color:var(--ink-faint);}
+.task-edit-form .task-edit-github button[type="button"]{background:none; color:var(--accent); padding:2px 0; font-size:var(--text-sm);}
+.mini-x{border:none; background:var(--surface-2); color:var(--ink-soft); width:22px; height:22px; border-radius:50%; line-height:1;}
+
+.filter-pills{display:flex; flex-wrap:wrap; gap:6px;}
+.filter-pill{
+  border:1px solid var(--line); background:var(--surface); border-radius:999px;
+  padding:6px 13px; font-size:var(--text-sm); font-weight:600; color:var(--ink-soft);
+}
+.filter-pill.active{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
+.project-search{
+  flex:1 1 160px; min-width:0; padding:7px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);
+}
+.project-sort-select{
+  padding:7px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);
+}
+
+/* Category-colour group labels: a section heading, not an uppercase micro-label (Q18a). */
+.cat-color-group-label{font-size:var(--text-sm); font-family:var(--font-display); font-weight:400; color:var(--ink-soft); margin:16px 0 8px;}
+.cat-color-group-label:first-child{margin-top:0;}
+.cat-color-list{display:flex; flex-direction:column; gap:8px;}
+.cat-color-row{display:flex; align-items:center; justify-content:space-between; gap:12px; border-top:1px solid var(--line); padding-top:8px;}
+.cat-color-row:first-child{border-top:none; padding-top:0;}
+.cat-color-input{width:40px; height:32px; padding:2px; border:1px solid var(--line); border-radius:var(--r-control); background:none; cursor:pointer;}
+.cat-color-row-actions{display:flex; align-items:center; gap:6px;}
+.chip.chip-btn{cursor:pointer;}
+.chip.chip-btn:hover{filter:brightness(1.08);}
+.chip.cat-chip.chip-placeholder{background:var(--surface-2); color:var(--ink-faint); border:1px dashed var(--line); font-weight:600;}
+.project-cat-edit{display:inline-flex; align-items:center; gap:4px;}
+.project-cat-edit select{
+  padding:4px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);
+}
+/* Minimising is back (PR 6, 2026-09-27): js/render.js leaves the toggle and "Collapse all" out of
+   the markup itself in the "One" view, so there's nothing here to hide by width or view. */
+.project-card.is-collapsed{padding-bottom:16px;}
+.project-card.is-collapsed .progress-track{margin-bottom:0;}
+/* The "All"/"One" switch: two pills right under the sidebar/drawer title. */
+.view-switch{display:flex; gap:6px;}
+/* the labels never break mid-label ("New / project") in the 270px sidebar */
+.view-switch .filter-pill{white-space:nowrap;}
+/* Minimised projects gather below the full-size tiles as their own quiet group (#82: a minimised
+   tile left in the tile grid would sit beside a full-height one and reopen the gap). */
+.minimised-projects{margin-top:24px;}
+
+.projects-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px;}
+
+/* The one project list: a fixed drawer below 1100px (opened from the topbar's Projects button),
+   a flat sticky left column at and above it. See docs/4-systems/styling.md#project-sidebar */
+.project-sidebar{
+  position:fixed; top:0; left:0; z-index:30;
+  width:min(320px, 85vw); height:100%; overflow-y:auto;
+  display:flex; flex-direction:column; gap:10px;
+  background:var(--surface); border-right:1px solid var(--line);
+  padding:16px; padding-top:calc(16px + env(safe-area-inset-top, 0px)); padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+  transform:translateX(-100%);
+  /* hidden once slid away, so keyboard and screen-reader users can't land in a closed drawer */
+  visibility:hidden;
+  transition:transform .2s ease, visibility 0s linear .2s;
+}
+.project-sidebar.is-open{transform:translateX(0); visibility:visible; transition:transform .2s ease;}
+.project-sidebar:focus{outline:none;}
+.drawer-backdrop{
+  position:fixed; inset:0; z-index:29;
+  background:rgba(0,0,0,.4); opacity:0; pointer-events:none;
+  transition:opacity .2s ease;
+}
+.drawer-backdrop.is-open{opacity:1; pointer-events:auto;}
+@media (prefers-reduced-motion: reduce){
+  .project-sidebar{transition:none;}
+  .drawer-backdrop{transition:none;}
+}
+.main-col{min-width:0;}
+/* "One" view, any width (PR 6, 2026-09-27): every card is still rendered into the same
+   projects-grid the "All" tiles use, but only the selected one shows here; the rest are hidden
+   outright rather than left tall and empty. See docs/6-decisions/Decisions.md. */
+.view-one .project-card{display:none;}
+.view-one .project-card.is-selected{display:block;}
+@media (min-width:1100px){
+  /* use the monitor (#64): the page widens, and the focus card's label cards spread across it */
+  .wrap{max-width:1800px;}
+  #app{display:grid; grid-template-columns:270px minmax(0,1fr); gap:28px; align-items:start;}
+  /* "All" view, 2x2 tiles (Q26a, #82): every non-minimised project is its own tile, two columns,
+     every tile the same height -- half the space below the sticky topbar (--topbar-h, set from
+     js/app.js's updateTopbarHeightVar, since the topbar's real height varies with width and
+     content), with a floor so a narrow-ish wide screen still gets a usable tile. grid-auto-rows
+     applies that same height to every row, not just the first, so further projects continuing below
+     stay level too. Minimised projects are left out of this grid by js/render.js and gather in
+     .minimised-grid below instead, at their own natural height, two to a row. */
+  .view-all .projects-grid{
+    grid-template-columns:1fr 1fr;
+    grid-auto-rows:max(320px, calc((100dvh - var(--topbar-h, 64px) - 16px) / 2));
+    align-items:stretch;
+  }
+  .view-all .minimised-grid{grid-auto-rows:auto;}
+  .view-all .project-card{
+    display:flex; flex-direction:column; overflow:hidden;
+    /* the fixed tile height means a card can't grow with its own content -- min-height:0 lets the
+       flex child (.project-body) shrink below its content size so it, not the tile, scrolls */
+    min-height:0;
+    /* .card's own margin-bottom would otherwise stack on top of the grid gap between rows (#82) */
+    margin-bottom:0;
+  }
+  /* the scrollable part of a full tile: header, badges, edit panel and progress bar stay put above
+     it. A minimised tile has no body at all (js/render.js), so this never applies to one; the "One"
+     view's single card isn't a fixed-height tile either, so it keeps its natural page scroll. */
+  /* a rule marks where the tile ends, so rows cut off by a long list read as scrollable, not broken */
+  .view-all .project-card:not(.is-collapsed) .project-body{flex:1 1 auto; min-height:0; overflow-y:auto; border-bottom:1px solid var(--line);}
+  /* only the task list gives way in a full tile: without this a 55-task list squashed the badges
+     line and the progress bar, moving that tile's bar 4px off its neighbours' (#83) */
+  .view-all .project-card:not(.is-collapsed) > :not(.project-body){flex-shrink:0;}
+  .energy-grid.focus-grid{grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));}
+  .drawer-backdrop{display:none;}
+  .project-sidebar{
+    /* sized from the measured topbar (--topbar-h, js/app.js) so it fits between the topbar and the
+       page's bottom padding: at 100vh - 100px it overran by ~50px, and at the page's end the sticky
+       box was pushed up under the topbar, hiding "Projects" and cutting off "+ Add" */
+    position:sticky; top:calc(var(--topbar-h, 67px) + 17px); left:auto; z-index:auto;
+    width:auto; height:auto; max-height:calc(100vh - var(--topbar-h, 67px) - 100px); overflow-y:auto;
+    transform:none; transition:none; visibility:visible;
+    background:none; border-right:1px solid var(--line); border:none; border-radius:0; padding:0 20px 16px 0;
+  }
+}
+/* js/render.js only ever adds .is-selected/aria-current to a row in the "One" view, so this needs
+   no extra scoping by view -- it just paints the highlight when that class is there. */
+.sidebar-project.is-selected{background:var(--surface-2); font-weight:700;}
+.sidebar-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
+.sidebar-head-right{display:flex; align-items:baseline; gap:10px;}
+.sidebar-title{font-size:var(--text-h);}
+/* The "+ New" panel (PR 7, Q29a): opens right under the header row, above the All/One switch. See
+   docs/4-systems/styling.md#add-a-project-or-a-repo. */
+.new-panel{border:1px solid var(--line); border-radius:var(--r-control); padding:12px; margin:10px 0; display:flex; flex-direction:column; gap:10px;}
+.new-panel-section{display:flex; flex-direction:column; gap:6px;}
+.repo-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; max-height:220px; overflow-y:auto;}
+.repo-row{display:flex; align-items:center; gap:8px; padding:4px 0;}
+.repo-name{flex:1 1 auto; min-width:0; overflow-wrap:anywhere; font-size:var(--text-sm);}
+.repo-filter{padding:6px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);}
+.new-repo-disclosure{font-size:var(--text-sm);}
+.new-repo-disclosure summary{cursor:pointer; color:var(--accent); font-weight:600;}
+.new-repo-form{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
+.new-repo-form input[type="text"]{padding:7px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
+.field-error{color:var(--danger);}
+.link-repo-panel{flex-basis:100%; margin-top:8px;}
+.sidebar-search{flex:none; width:100%; padding:8px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
+.sidebar-pills{gap:5px;}
+.sidebar-pills .filter-pill{padding:4px 10px; font-size:var(--text-sm);}
+.sidebar-tools{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px;}
+.sidebar-tools .project-sort-select{flex:1 1 auto; min-width:0;}
+.sidebar-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; border-top:1px solid var(--line); padding-top:8px;}
+.sidebar-project{
+  width:100%; display:flex; align-items:center; gap:9px; padding:7px 8px; border:none; border-radius:var(--r-control);
+  background:none; color:var(--ink); text-align:left; font-weight:600;
+}
+.sidebar-project:hover{background:var(--surface-2);}
+.sidebar-project .dot{width:9px; height:9px; border-radius:50%; background:var(--dot); flex:none;}
+.sidebar-name{flex:1; min-width:0; overflow-wrap:break-word;}
+.sidebar-count{color:var(--ink-faint); font-size:var(--text-sm); font-variant-numeric:tabular-nums;}
+/* A project's own colour is identity only (Q4b): its dot, and this 3px top edge — the flat card's
+   separating rule, in its colour. */
+.project-card{border-top:3px solid var(--proj-color);}
+/* Line 1 never wraps its controls onto a second line (#83): the name is the only thing allowed to
+   grow, the collapse toggle + Edit link stay put on the right. Line 2 (badges) always renders, even
+   empty, so every card's progress bar sits the same distance from its top. */
+.project-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:nowrap;}
+.project-title{display:flex; align-items:flex-start; gap:8px; min-width:0; flex:1 1 auto;}
+/* beside the name's first line, not halfway down a name that wraps */
+.project-title .dot{width:10px; height:10px; margin-top:.45em; border-radius:50%; background:var(--proj-color); display:inline-block; flex:none;}
+.project-title h3{font-size:var(--text-h); overflow-wrap:break-word; min-width:0;}
+.project-head-right{display:flex; align-items:center; gap:8px; flex:none; white-space:nowrap;}
+.collapse-toggle{font-size:var(--text-h); line-height:1; padding:0 2px;}
+.project-badges{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:1.4em; margin:6px 0 10px;}
+.project-edit-panel{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 0; margin-bottom:10px; border-top:1px dashed var(--line); border-bottom:1px dashed var(--line); font-size:var(--text-sm);}
+.project-edit-cat{display:flex; align-items:center; gap:6px; color:var(--ink-soft); font-weight:600;}
+.project-edit-cat select{padding:5px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);}
+.add-task-toggle{margin-top:12px; color:var(--accent); font-weight:600;}
+.task-edit-actions{flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:4px 14px; font-size:var(--text-sm);}
+.task-edit-actions .link-btn{background:none; color:var(--accent); padding:2px 0; font-size:var(--text-sm);}
+.task-edit-actions a.link-btn{text-decoration:none;}
+.task-edit-actions a.link-btn:hover{text-decoration:underline;}
+.task-edit-actions .btn-text{margin-left:auto;}
+.progress-track{height:5px; border-radius:var(--r-pill); background:var(--surface-2); overflow:hidden; margin-bottom:14px;}
+/* Progress fill is neutral, not the project's colour — the project's colour is identity only (its
+   dot and card edge), not a status indicator (Q4b). */
+.progress-fill{height:100%; background:var(--ink-soft);}
+.task-group{margin-bottom:10px;}
+.group-label{margin-bottom:6px;}
+.task-row{
+  /* the chips column is as wide as its chips need, up to half the row (fit-content): one short chip
+     takes little room, several sit side by side and wrap into a small block; the title gets the
+     rest. The ceiling (--chips-max, set per row from the title's length by chipsMaxPct in
+     js/render.js) drops toward a third for long titles. Neither ever enters the other's column (#97, #92, reworked 2026-09-28) */
+  display:grid; grid-template-columns:auto minmax(0,1fr) fit-content(var(--chips-max, 50%)); column-gap:10px; align-items:start;
+  padding:7px 0; border-top:1px solid var(--line);
+}
+/* the chips wrap inside their column rather than widen it past half the row; a chip still too
+   long for it is cut with an ellipsis (its full name is in title/aria-label and the editor) */
+.task-chips{display:flex; flex-wrap:wrap; justify-content:flex-end; align-content:flex-start; gap:6px; min-width:0;}
+.task-chips .chip{max-width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-sizing:border-box;}
+.task-group .task-row:first-of-type{border-top:none;}
+.task-row input[type="checkbox"]{width:17px; height:17px; margin-top:3px; accent-color:var(--accent); flex:none;}
+.task-title{min-width:0; overflow-wrap:anywhere;}
+.task-row.is-done .task-title{color:var(--ink-faint); text-decoration:line-through;}
+.task-title[role="button"]{cursor:pointer;}
+/* Claude provenance marks after the title (#104): quiet and faint, never a chip */
+.claude-mark{display:inline-block; margin-left:6px; vertical-align:-2px; color:var(--ink-faint); line-height:0; text-decoration:none;}
+.claude-mark svg{width:14px; height:14px; display:block;}
+.task-title[role="button"]:hover{text-decoration:underline; text-decoration-style:dotted;}
+a.task-title{color:inherit; text-decoration:none;}
+a.task-title:hover{text-decoration:underline;}
+.task-edit-form{display:flex; flex-wrap:wrap; gap:6px; padding:7px 0; border-top:1px solid var(--line); width:100%;}
+.task-edit-form input[type="text"]{flex:1 1 160px; min-width:0; padding:6px 9px; border:1px solid var(--accent); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
+.task-edit-form select,.task-edit-form input[type="date"]{padding:6px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
+.task-edit-form button{padding:6px 12px; border:none; border-radius:var(--r-control); font-weight:600;}
+.task-edit-form button[type="submit"]{background:var(--accent); color:var(--accent-ink);}
+.task-edit-form button[type="button"]{background:var(--surface-2); color:var(--ink-soft);}
+.task-edit-form textarea,.add-task-form textarea{
+  flex:1 1 160px; min-width:0; padding:6px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit; resize:vertical;
+}
+.done-group{margin-top:4px;}
+.label-picker{flex:1 1 100%; font-size:var(--text-sm);}
+.label-picker summary{cursor:pointer; color:var(--ink-soft); font-weight:600; padding:4px 0;}
+.label-options{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0;}
+.label-option{
+  display:inline-flex; align-items:center; gap:5px; padding:3px 9px 3px 6px; border-radius:var(--r-pill); cursor:pointer;
+  background:color-mix(in srgb, var(--chip-color) 12%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink)); font-weight:600;
+}
+.label-option input{accent-color:var(--chip-color); margin:0;}
+.label-swatch{width:22px; height:22px; padding:1px; border-radius:50%;}
+.label-picker input[type="text"]{width:100%; padding:6px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);}
+.due-defaults-form{display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; margin:12px 0;}
+.due-defaults-form label{display:inline-flex; align-items:center; gap:6px;}
+.due-defaults-form input[type="number"]{width:4.5rem; padding:6px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
+.due-step{flex:1 0 100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:var(--text-sm); color:var(--ink-soft);}
+.due-step select{font-size:var(--text-sm); padding:4px 6px;}
+.add-task-form .due-step button,.task-edit-form .due-step button[type="button"]{background:none; color:var(--accent); padding:2px 4px; font-size:var(--text-sm); font-weight:600; border-radius:var(--r-control);}
+.add-task-form .due-step button:hover,.task-edit-form .due-step button[type="button"]:hover{text-decoration:underline;}
+.add-task-form{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; border-top:1px dashed var(--line); padding-top:12px;}
+.add-task-form input[type="text"]{
+  flex:1 1 140px; min-width:0; padding:7px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);
+}
+.add-task-form select,.add-task-form input[type="date"]{
+  padding:7px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);
+}
+.add-task-form button{
+  padding:7px 13px; border:none; border-radius:var(--r-control); background:var(--accent); color:var(--accent-ink); font-weight:700;
+}
+.add-project-form{display:flex; gap:8px;}
+/* in the narrow project list the add field takes its own row, so its placeholder isn't cut off */
+.project-sidebar .add-project-form{flex-wrap:wrap;}
+.project-sidebar .add-project-form input[type="text"]{flex-basis:100%;}
+.add-project-form input[type="text"], .add-project-form input[type="password"]{
+  flex:1; min-width:0; padding:11px 14px; border:1.5px dashed var(--line); border-radius:var(--r-control); background:transparent; color:var(--ink);
+}
+.add-project-form select{
+  /* doc-ref 63c4 docs/4-systems/pwa-shell.md */
+  padding:11px 10px; border:1.5px dashed var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);
+}
+.add-project-form button{
+  padding:11px 18px; border:none; border-radius:var(--r-control); background:var(--accent); color:var(--accent-ink); font-weight:600; white-space:nowrap;
+}
+
+.toast{
+  position:fixed; z-index:20;
+  left:50%; transform:translateX(-50%);
+  bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+  width:min(728px, calc(100% - 32px));
+  display:flex; align-items:flex-start; gap:10px;
+  padding:12px 8px 12px 14px;
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--accent); border-left-width:4px; border-radius:var(--r-control);
+  box-shadow:var(--shadow);
+}
+.toast-error{border-color:var(--danger);}
+/* room to scroll the last controls clear of the toast while it is showing */
+.wrap:has(.toast){padding-bottom:calc(160px + env(safe-area-inset-bottom, 0px));}
+.toast-text{flex:1; margin:0; font-size:var(--text-sm); line-height:1.4; overflow-wrap:anywhere;}
+.toast-close{
+  flex:none; min-width:32px; min-height:32px; padding:0;
+  border:none; border-radius:var(--r-control); background:none; color:var(--ink-soft); font-size:var(--text-h); line-height:1; cursor:pointer;
+}
+
+/* PWA install polish — hides browser chrome-shaped gaps when running standalone */
+@media (display-mode: standalone) {
+  .topbar { padding-top: max(16px, env(safe-area-inset-top)); }
+}
+
+/* Dragging projects into order (PR 9). The grip on a project header, the sidebar rows as their own
+   handles, and what shows while one is being carried: a lifted ghost that follows the pointer, the
+   original's place as a dashed placeholder, and a drop line where it will land. Only the ghost
+   gets a shadow (the cards are flat). See docs/4-systems/styling.md#dragging-projects */
+.drag-grip{
+  flex:none; display:inline-flex; align-items:center; justify-content:center;
+  width:28px; height:28px; margin:-2px -4px -2px -6px; padding:0; border:none; border-radius:var(--r-control);
+  background:none; color:var(--ink-soft); cursor:grab;
+  /* the grip never scrolls the page: a touch on it is a drag (after the hold) or nothing */
+  touch-action:none;
+}
+.drag-grip:hover{background:var(--surface-2); color:var(--ink-soft);}
+@media (pointer:coarse){ .drag-grip{width:36px; height:36px; margin:-6px -6px -6px -8px;} }
+/* sidebar rows are drag handles as a whole: no text selection or touch callout on a long press, but
+   vertical panning stays, so a swipe still scrolls the drawer */
+.sidebar-project{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none; touch-action:pan-y;}
+body.is-dragging, body.is-dragging *{cursor:grabbing !important; -webkit-user-select:none; user-select:none;}
+.drag-ghost{
+  position:fixed; top:0; left:0; z-index:1000; margin:0; pointer-events:none;
+  background:var(--surface); border-radius:var(--r-card);
+  box-shadow:0 10px 28px rgba(28,36,34,.22), 0 2px 6px rgba(28,36,34,.12);
+  opacity:1;
+}
+.drag-ghost.is-row{border-radius:var(--r-control); padding:7px 8px;}
+.drag-ghost.is-card{border:1px solid var(--line); border-top:3px solid var(--proj-color); overflow:hidden;}
+.drag-placeholder{
+  outline:2px dashed var(--ink-faint); outline-offset:-2px; background:var(--surface-2); box-shadow:none;
+  border-radius:var(--r-card);
+}
+.sidebar-list li.drag-placeholder{border-radius:var(--r-control);}
+.drag-placeholder > *{visibility:hidden;}
+.drop-indicator{position:fixed; z-index:1001; pointer-events:none; background:var(--accent); border-radius:2px;}
+.drop-indicator[hidden]{display:none;}
+/* the live region for "moved to position N of M": present for screen readers, invisible */
+.sr-only{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
+
+/* Dragging tasks (PR 11). A small grip before the checkbox on every open row, the empty groups' "Drop
+   here" zones (shown only while a task is carried), the minimised card / empty group that would take
+   the drop, and the Move confirmation. The ghost, dashed placeholder and drop line are the ones the
+   project drag uses (above). See docs/4-systems/styling.md#dragging-tasks */
+.task-row.has-grip{grid-template-columns:auto auto minmax(0,1fr) fit-content(var(--chips-max, 50%)); column-gap:8px;}
+.task-grip{
+  flex:none; display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:24px; margin:0 -2px 0 -6px; padding:0; border:none; border-radius:var(--r-control);
+  background:none; color:var(--ink-soft); cursor:grab; touch-action:none;
+}
+.task-grip svg{width:13px; height:13px;}
+.task-grip:hover{background:var(--surface-2); color:var(--ink-soft);}
+@media (pointer:coarse){ .task-grip{width:30px; height:30px; margin:-3px -4px -3px -8px;} .task-grip svg{width:15px; height:15px;} }
+.task-group.is-empty{display:none;}
+body.is-dragging-task .task-group.is-empty{display:block;}
+body.is-dragging-task .empty-note{display:none;}
+.drop-zone{
+  padding:10px; border:1.5px dashed var(--line); border-radius:var(--r-control);
+  text-align:center; font-size:var(--text-sm); color:var(--ink-faint);
+}
+.task-group.drop-target .drop-zone{border-color:var(--accent); color:var(--accent);}
+.project-card.drop-target{outline:2px solid var(--accent); outline-offset:-2px;}
+.drag-ghost.is-task{border:1px solid var(--line); border-radius:var(--r-control); padding:7px 8px; box-sizing:border-box;}
+.task-row.drag-placeholder{border-radius:var(--r-control);}
+.move-dialog-backdrop{
+  position:fixed; inset:0; z-index:1100; display:flex; align-items:center; justify-content:center;
+  padding:16px; background:rgba(28,36,34,.4);
+}
+.move-dialog{
+  width:100%; max-width:420px; padding:18px; background:var(--surface); color:var(--ink);
+  border:1px solid var(--line); border-radius:var(--r-control); box-shadow:var(--shadow);
+}
+.move-dialog-text{margin:0 0 16px; line-height:1.5; overflow-wrap:anywhere;}
+.move-dialog-actions{display:flex; justify-content:flex-end; align-items:center; gap:8px;}
+
+/* Wallets (#120): the focus picker's two strips of cards that turn away like CD sleeves. Projects are
+   manila folders, categories are ruled index cards. Tilt and brightness are set inline by js/wallet.js;
+   the rest is here. Paper stays paper in both themes. See docs/4-systems/wallets.md */
+.choosing-modes{border:0; padding:0; margin:0 0 6px;}
+.wallet-root{overflow:hidden;}
+.wallet{margin-top:4px;}
+.wallet-h{display:flex; justify-content:space-between; align-items:baseline; margin-top:6px;}
+.wallet-h .q{font-weight:700; font-size:var(--text-body);}
+.focus-empty .wallet-count{margin:0; display:inline;}
+.wallet-count{font-variant-numeric:tabular-nums;}
+.flip{position:relative; margin:-4px -18px 0;}
+.flip-track{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; padding:34px 0 16px; margin-top:-20px; scrollbar-width:none; overscroll-behavior-x:contain; outline:none; touch-action:pan-x pan-y;}
+.flip-track.swipe-mode{touch-action:pan-x;}
+.flip-track::-webkit-scrollbar{display:none;}
+.flip-track:focus-visible{box-shadow:inset 0 0 0 2px var(--accent); border-radius:14px;}
+/* Sleeves overlap by 7% each side, so the pads are wider by the same amount to keep the end cards centred. */
+.flip-pad{flex:0 0 34%;}
+.sleeve{flex:0 0 46%; margin-inline:-7%; scroll-snap-align:center; display:flex; justify-content:center; position:relative; transition:transform .22s ease, opacity .22s ease;}
+.sleeve.is-centre{z-index:20;}
+.icard{width:100%; height:132px; border-radius:6px; background-color:var(--paper); color:var(--paper-ink); position:relative; cursor:pointer; border:0; text-align:left; font:inherit;
+  padding:12px 12px 10px 24px; box-shadow:0 14px 26px -14px var(--paper-shadow); will-change:transform; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+  background-image:linear-gradient(#C9584F, #C9584F), repeating-linear-gradient(transparent 0 21px, var(--rule) 21px 22px);
+  background-size:1.5px 100%, 100% 100%; background-position:15px 0, 0 34px; background-repeat:no-repeat; border-top:6px solid var(--c); transition:box-shadow .2s ease;}
+.icard:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+.icard .nm{font-family:var(--font-paper); font-weight:700; font-size:1.1rem; letter-spacing:-0.01em; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.icard .ct{font-family:var(--font-paper-small); font-size:var(--text-sm); color:var(--paper-soft); display:block; margin-top:12px; line-height:22px;}
+.icard .go{position:absolute; right:10px; bottom:8px; font-family:var(--font-paper-small); font-size:var(--text-sm); font-weight:700; color:var(--paper-ink); opacity:0; transition:opacity .2s;}
+.sleeve.is-centre .icard .go{opacity:1;}
+.sleeve.is-armed{transform:translateY(-10px);}
+.sleeve.is-armed .icard{box-shadow:0 0 0 3px var(--accent), 0 18px 28px -14px var(--paper-shadow);}
+.sleeve.is-lifting{transition:none;}
+.sleeve.is-nudge{animation:wallet-nudge .5s ease;}
+@keyframes wallet-nudge{30%{transform:translateY(-14px);} 60%{transform:translateY(0);} 80%{transform:translateY(-5px);}}
+.flip-hint{text-align:center; font-size:var(--text-sm); color:var(--ink-soft); margin-top:-6px; min-height:1.2em;}
+/* Manila folders for projects: a coloured folder, a tab, and a white label sticker. */
+.icard.project{height:90px; margin-top:10px; border-top:0; border-radius:3px 8px 8px 8px; padding:14px 12px 10px; color:#1D2733;
+  background-color:color-mix(in srgb, var(--c) 55%, var(--folder)); background-image:linear-gradient(rgba(255,255,255,.16), rgba(0,0,0,.06)); background-size:auto; background-position:0 0;}
+.icard.project::before{content:""; position:absolute; left:0; top:-11px; width:50%; height:12px; border-radius:6px 10px 0 0; background-color:color-mix(in srgb, var(--c) 55%, var(--folder));}
+.icard.project .nm{display:inline-block; max-width:100%; vertical-align:top; background:#FFFEFA; padding:1px 8px; border-radius:2px; box-shadow:0 1px 0 rgba(0,0,0,.14); font-size:1rem;}
+.icard.project .ct{color:#3F4A57; margin-top:10px; line-height:1.2;}
+@media (prefers-reduced-motion: reduce){.icard{transform:none !important;} .sleeve{transition:none;} .sleeve.is-nudge{animation:none;}}
+
+/* ==== Note faces (#122) ====
+   The writing on paper notes (sticky note, jotter, in-tray slips) follows Settings > Note writing.
+   js/note-face.js sets data-note-face="hand|print|dyslexic" on <html>; each face sets --note-font
+   and --note-scale here. Notes size their writing as calc(<size> * var(--note-scale)). The scale
+   is 1 for Kalam; OpenDyslexic runs wide, so it is smaller to fit a task title in the same space.
+   Interface text does not use these. The Settings samples carry data-note-face themselves, so each
+   shows its own face. See docs/4-systems/styling.md#note-faces */
+@font-face{font-family:'OpenDyslexic'; font-style:normal; font-weight:700; font-display:swap; src:url('../fonts/opendyslexic-latin-700-normal.woff2') format('woff2');}
+/* hand is the :root default (top of this file); the sample needs its own copy */
+.note-face-sample[data-note-face="hand"]{--note-font:'Kalam', 'Comic Sans MS', cursive; --note-scale:1;}
+:root[data-note-face="print"], .note-face-sample[data-note-face="print"]{--note-font:'Atkinson Hyperlegible', system-ui, sans-serif; --note-scale:.95;}
+:root[data-note-face="dyslexic"], .note-face-sample[data-note-face="dyslexic"]{--note-font:'OpenDyslexic', 'Atkinson Hyperlegible', system-ui, sans-serif; --note-scale:.78;}
+.note-faces{border:0; padding:0; margin:0 0 6px;}
+.note-face-sample{font-family:var(--note-font); font-weight:700; font-size:calc(1.05rem * var(--note-scale)); color:var(--paper-ink); background:var(--paper); padding:6px 10px; border-radius:3px; margin:2px 0 0 26px;}
+/* ==== In-tray (#121) ====================================================================
+   The Unsorted card: torn-off jotter slips on a small stack in a tray, a folder wallet and a flag
+   wallet below it (the wallets are the #120 ones, styled above). Slip text takes the sticky note's
+   face and size through the #122 hook: var(--note-font) / var(--note-scale), falling back to the
+   note's own face. See docs/4-systems/in-tray.md */
+.tray-count{margin:0 0 4px; text-align:right;}
+.tray{position:relative; padding:4px 6px 0; margin-top:4px;}
+.tray-stack{position:relative; min-height:150px;}
+.slip-behind{position:absolute; left:10px; right:26px; top:10px; height:118px; border-radius:3px; background:var(--paper); opacity:.75; transform:rotate(2.5deg); box-shadow:0 8px 14px -10px var(--paper-shadow);}
+.slip-behind.two{transform:rotate(-3deg); top:16px; opacity:.55;}
+.jot-slip{position:relative; margin-right:20px; min-height:124px; border-radius:2px 2px 4px 4px; padding:18px 34px 12px 14px; color:var(--paper-ink); transform:rotate(-1deg);
+  background-color:var(--paper); box-shadow:0 12px 18px -12px var(--paper-shadow);
+  background-image:radial-gradient(circle, var(--hole) 2.2px, transparent 2.7px), repeating-linear-gradient(transparent 0 25px, var(--rule) 25px 26px);
+  background-size:12px 8px, 100% 100%; background-repeat:repeat-x, no-repeat; background-position:4px 3px, 0 14px;}
+.slip-text{margin:0; font-family:var(--note-font, 'Kalam', 'Comic Sans MS', cursive); font-weight:700; font-size:calc(1.25rem * var(--note-scale, 1)); line-height:26px; overflow-wrap:anywhere;}
+.slip-dest{margin-top:10px; font:600 var(--text-sm) var(--font-paper-small); color:var(--paper-soft); display:flex; flex-wrap:wrap; align-items:center; gap:6px;}
+.slip-dest .folder-chip{display:inline-block; padding:1px 8px 1px 7px; border-radius:2px 6px 6px 6px; background:color-mix(in srgb, var(--c) 55%, var(--folder)); color:#1D2733;}
+.slip-issue{font-weight:700;}
+.slip-when{margin-top:2px; font:var(--text-sm) var(--font-paper-small); color:var(--paper-soft);}
+.slip-flags{position:absolute; right:-22px; top:10px; display:grid; gap:5px;}
+.slip-flag{width:46px; height:20px; border-radius:0 3px 3px 0; display:flex; align-items:center; justify-content:flex-end; padding-right:4px; overflow:hidden; white-space:nowrap; font:700 .6rem var(--font-paper-small); color:#FFFFFF; letter-spacing:.02em;
+  background:linear-gradient(90deg, color-mix(in srgb, var(--c) 45%, transparent) 0 40%, var(--c) 40%); animation:flag-on .22s ease-out;}
+@keyframes flag-on{from{transform:translateX(-14px); opacity:0;} to{transform:none; opacity:1;}}
+.tray-lip{position:relative; z-index:3; margin:-22px -6px 0; height:34px; border-radius:4px 4px 10px 10px; display:grid; place-items:center;
+  background:var(--surface-2); border:1px solid var(--line); box-shadow:0 10px 18px -12px var(--paper-shadow);}
+.tray-lip span{font:700 .66rem var(--font-paper-small); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft);}
+.tray-empty{display:grid; place-items:center; align-content:center; min-height:124px; margin-right:20px; border:1.5px dashed var(--line); border-radius:6px; color:var(--ink-soft); font-size:var(--text-body); text-align:center; padding:12px;}
+.tray-empty p{margin:0;}
+.tray-wallets{margin-top:6px;}
+.icard.is-picked{box-shadow:0 0 0 3px var(--accent), 0 14px 26px -14px var(--paper-shadow);}
+.sort-acts{display:grid; gap:8px; margin-top:2px;}
+.file-btn{border:0; cursor:pointer; font:700 var(--text-body) var(--font-paper); color:var(--accent-ink); background:var(--accent); border-radius:var(--r-pill); padding:12px 16px; overflow-wrap:anywhere;}
+.file-btn:disabled{cursor:default; background:transparent; color:var(--ink-soft); box-shadow:inset 0 0 0 1.5px var(--line); font-weight:500;}
+.sort-small{display:flex; justify-content:center; gap:6px; flex-wrap:wrap;}
+.sort-small button{border:0; background:none; font:inherit; font-size:var(--text-sm); color:var(--ink-soft); padding:6px 10px; border-radius:var(--r-control); cursor:pointer; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:3px;}
+.sort-small button:hover{color:var(--ink);}
+.file-btn:focus-visible, .sort-small button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){.slip-flag{animation:none;}}
+/* ==== end In-tray ==== */
+
+/* ==== Desk look for the rest of the app (#123) ==========================================
+   Everything outside the focus area becomes stationery on the same desk: a project is an open
+   folder (a tab in its colour over a card), its task list is a ruled index card (a red heading
+   line, blue rules between rows), and the editor, the project Edit panel, the move dialog, toasts,
+   the "+ New" panel and each Settings section are paper cards with the index card's red line.
+   Shape only: rows and chips stay on --surface / --surface-2, the backgrounds
+   scripts/check-due-contrast.mjs proves the due chips on. Behaviour does not change.
+   See docs/4-systems/styling.md#the-rest-of-the-desk */
+
+/* A wallet's cards are stacked with z-index; isolating the track keeps them under the sticky topbar
+   when the page scrolls (they drew over it before). */
+.flip-track{isolation:isolate;}
+
+/* A project: an open folder. The tab carries the project's colour (its identity, Q4b). */
+.project-card{
+  position:relative; margin-top:34px; padding:16px 14px 14px;
+  background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--proj-color);
+  border-radius:0 10px 10px 10px; box-shadow:0 16px 26px -20px var(--paper-shadow);
+}
+.project-card::before{
+  content:''; position:absolute; left:-1px; top:-16px; width:min(40%, 168px); height:13px;
+  background:color-mix(in srgb, var(--proj-color) 75%, var(--surface)); border-radius:9px 12px 0 0;
+}
+@media (min-width:700px){.project-card{padding:20px 22px 18px;}}
+.project-card.is-collapsed{padding-bottom:14px;}
+
+/* Its tasks: a ruled index card. "Up next" sits on the red heading line, rows on blue rules. */
+.project-card .group-label{padding-bottom:5px; margin-bottom:0; border-bottom:2px solid color-mix(in srgb, var(--index-red) 65%, transparent);}
+.project-card .task-row{border-top-color:var(--index-rule);}
+.project-card .task-group .task-row:first-of-type{border-top:none;}
+.project-card .progress-track{background:var(--surface-2);}
+
+/* The task editor and the add-task form: an index card lifted off the list. */
+.task-edit-form, .add-task-form{
+  background:var(--surface-2); border:1px solid var(--line); border-top:2px solid var(--index-red);
+  border-radius:4px 4px 8px 8px; padding:12px; margin:6px 0 8px; box-shadow:0 12px 20px -16px var(--paper-shadow);
+}
+.task-edit-form{border-top:2px solid var(--index-red);}
+
+/* The project Edit panel: a slip tucked in the folder. */
+.project-edit-panel{background:var(--surface-2); border:1px dashed var(--line); border-radius:6px; padding:10px 12px;}
+
+/* The move dialog: an index card on a dimmed desk. */
+.move-dialog-backdrop{background:color-mix(in srgb, var(--bg) 70%, transparent);}
+.move-dialog{border-top:3px solid var(--index-red); border-radius:4px 4px 10px 10px; box-shadow:0 22px 40px -18px var(--paper-shadow);}
+
+/* A toast: a torn-off jotter slip, holes along its top. */
+.toast{
+  border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:3px 3px 8px 8px; padding-top:16px;
+  background-color:var(--surface);
+  background-image:radial-gradient(circle, var(--bg) 2.2px, transparent 2.7px);
+  background-size:12px 8px; background-repeat:repeat-x; background-position:6px 3px;
+  box-shadow:0 16px 26px -14px var(--paper-shadow);
+}
+.toast-error{border-left-color:var(--danger);}
+
+/* The project list: folder tabs in a drawer. */
+.sidebar-project{border-radius:2px 9px 9px 2px; border-left:3px solid transparent;}
+.sidebar-project.is-selected{border-left-color:var(--accent);}
+.new-panel{background:var(--surface-2); border-top:2px solid var(--index-red); border-radius:4px 4px 8px 8px;}
+
+/* Settings: each section is an index card on the desk. */
+.settings-section{
+  background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--index-red);
+  border-radius:4px 4px 10px 10px; padding:18px 16px; margin-bottom:18px; box-shadow:0 16px 26px -20px var(--paper-shadow);
+}
+.settings-section:first-of-type{border-top:3px solid var(--index-red); padding-top:18px;}
+@media (min-width:700px){.settings-section{padding:24px 26px;}}
+/* ==== end Desk look for the rest of the app ==== */
+
+/* ==== First-run onboarding (#124) ======================================================
+   One step per screen, on an index card under the lamp. The pick step shows the real sticky note.
+   See docs/4-systems/onboarding.md */
+.onboarding{
+  background:radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--lamp-dot) 16%, transparent), transparent 60%), var(--surface);
+  border:1px solid var(--line); border-top:3px solid var(--index-red); border-radius:4px 4px 12px 12px;
+  padding:22px 18px 18px; margin:6px 0 24px; box-shadow:0 18px 30px -20px var(--paper-shadow);
+}
+@media (min-width:700px){.onboarding{padding:30px 32px 26px;}}
+.onboarding-col{max-width:640px; width:100%; margin-inline:auto;}
+.onboarding p{line-height:1.5; margin:0 0 12px;}
+.ob-title{font-size:var(--text-q); line-height:1.2; margin:0 0 12px;}
+.ob-progress{display:flex; gap:6px; margin:0 0 14px;}
+.ob-dot{width:22px; height:4px; border-radius:var(--r-pill); background:var(--surface-2);}
+.ob-dot.is-on{background:var(--accent);}
+.ob-form{display:flex; flex-direction:column; gap:10px; margin:6px 0 14px;}
+.ob-form input[type="text"]{padding:11px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:inherit; min-width:0;}
+.ob-row{display:flex; gap:8px;}
+.ob-row input{flex:1;}
+.ob-chips{display:flex; flex-wrap:wrap; gap:6px;}
+.ob-chips .chip{border:1px solid var(--line); background:var(--surface-2); color:var(--ink); padding:5px 12px;}
+.ob-chips .chip.is-on{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
+.ob-list{list-style:none; margin:0 0 14px; padding:0; border-top:2px solid color-mix(in srgb, var(--index-red) 65%, transparent);}
+.ob-list li{padding:7px 2px; border-bottom:1px solid var(--index-rule); overflow-wrap:anywhere;}
+.ob-acts{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin-top:6px;}
+.ob-acts .file-btn{flex:1 1 220px;}
+.onboarding .focus-card{margin:8px 0 12px;}
+.projects-empty{display:grid; gap:12px; justify-items:start;}
+.projects-empty p{margin:0;}
+/* ==== end First-run onboarding ==== */
+
+/* ==== Guided sync setup (#125) =========================================================
+   setup.html reuses the onboarding card (.onboarding, .ob-*). The GitHub settings to choose are a
+   drawing (.gh-picture), not a screenshot. See docs/4-systems/sync-setup.md */
+.setup-links{margin:4px 0 14px;}
+.setup-links .btn{text-decoration:none; color:var(--ink);}
+.setup-links .btn.primary{color:var(--accent-ink);}
+.gh-picture{margin:6px 0 16px; padding:12px; border:1px solid var(--line); border-radius:8px; background:var(--surface-2);}
+.gh-form{list-style:none; margin:0 0 10px; padding:0;}
+.gh-row{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; padding:9px 2px; border-bottom:1px solid var(--line);}
+.gh-row:last-child{border-bottom:none;}
+.gh-label{font-weight:600; display:flex; flex-direction:column; gap:2px; min-width:0;}
+.gh-note{font-weight:400; font-size:var(--text-sm); color:var(--ink-soft);}
+.gh-value{font-weight:700; font-size:var(--text-sm); padding:3px 10px; border-radius:var(--r-pill); background:var(--accent); color:var(--accent-ink); align-self:flex-start; white-space:nowrap;}
+.key-findings{list-style:none; margin:4px 0 16px; padding:0;}
+.key-finding{display:flex; gap:10px; align-items:flex-start; padding:9px 2px; border-bottom:1px solid var(--index-rule); line-height:1.45;}
+.key-mark{flex:none; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:.8rem; background:var(--surface-2); color:var(--ink);}
+.key-finding.is-ok .key-mark{background:color-mix(in srgb, #3E8E5E 70%, var(--surface)); color:#FFFFFF;}
+.key-finding.is-warn .key-mark{background:var(--accent); color:var(--accent-ink);}
+.key-finding.is-missing .key-mark, .key-finding.is-error .key-mark{background:var(--danger); color:#FFFFFF;}
+.key-finding.is-missing, .key-finding.is-error{font-weight:600;}
+.setup a.file-btn{display:block; text-align:center; text-decoration:none;}
+.setup-callout{display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin:0 0 14px;}
+.setup-callout .btn{text-decoration:none;}
+/* ==== end Guided sync setup ==== */
+
+/* ==== Settings, grouped, with the setup checklist (#126) ===============================
+   Groups by what people recognise (How it looks / How it works / Sync and GitHub / Help), each a
+   heading on the desk over its index cards. The checklist is the first card. See
+   docs/4-systems/onboarding.md#the-setup-checklist */
+.settings-group{font-size:var(--text-h); margin:30px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--line);}
+.settings-group-note{margin:-4px 0 12px;}
+.settings-h{font-size:1.15rem; margin:0 0 10px;}
+.checklist{list-style:none; margin:0; padding:0;}
+.check-item{display:flex; align-items:center; gap:12px; padding:9px 2px; border-bottom:1px solid var(--index-rule); flex-wrap:wrap;}
+.check-item:last-child{border-bottom:none;}
+.check-box{flex:none; width:22px; height:22px; border:1.5px solid var(--ink-soft); border-radius:4px; display:grid; place-items:center; font-weight:700; color:var(--accent);}
+.check-item.is-done .check-box{border-color:var(--accent);}
+.check-item.is-done .check-label{color:var(--ink-soft); text-decoration:line-through; text-decoration-color:var(--ink-faint);}
+.check-label{flex:1 1 160px; min-width:0;}
+.check-item .link-btn{font-weight:600; white-space:nowrap;}
+.settings-section > a.btn{display:inline-block; margin-top:4px; text-decoration:none; color:var(--ink);}
+.settings-advanced{margin-top:12px; border-top:1px dashed var(--line); padding-top:10px;}
+.settings-advanced summary{cursor:pointer; font-weight:600; color:var(--ink-soft); padding:4px 0;}
+.settings-advanced[open] summary{margin-bottom:8px;}
+.settings-advanced .add-project-form{margin-top:10px;}
+/* ==== end Settings, grouped ==== */

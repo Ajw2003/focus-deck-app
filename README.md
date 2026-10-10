@@ -123,30 +123,35 @@ icons are generated at deploy time rather than committed, to keep the repo small
 
 Focus Deck is intentionally low-tech: **vanilla JavaScript ES modules, no framework, no bundler,
 no build step.** Any static file server can run it, and a browser can run it by loading
-`index.html` directly. That's a deliberate trade-off — it means slightly more manual DOM/string
+`app/index.html` directly. That's a deliberate trade-off — it means slightly more manual DOM/string
 work in `render.js` than a framework would give you for free, in exchange for a repo anyone can
 clone and immediately understand without learning a build toolchain first.
 
 ```
-index.html            entry point — loads js/app.js as a module, registers the service worker
-settings.html          GitHub token, cross-device sync, and category-color settings
-js/
-  state.js             the single in-memory state object + localStorage persistence and backups
-  merge.js             mergeStates(): pure local/remote state merge
-  mutations.js         every way state is allowed to change (adding/editing/completing tasks, etc.)
-  render.js             pure functions: state -> HTML strings
-  app.js                wires DOM events to mutations, and mutations back to a repaint
-  github.js             thin GitHub REST API client (issues, labels, gists)
-  github-sync.js         issue <-> task linking, category <-> label sync, completion sync
-  sync.js                cross-device sync via a GitHub Gist
-  project-filter.js      project search/sort/filter logic, and where a dragged project lands
-  project-drag.js        the drag gesture (projects and tasks): pointer + keyboard, ghost, drop line, auto-scroll
-  task-move.js           where a dragged task lands, and what moving it to another project means for GitHub
-  move-dialog.js         the confirmation shown before a task move that touches GitHub
-  *.test.mjs             plain node:test files alongside the modules they test
-css/app.css             all styling
-service-worker.js       offline caching for the installed PWA
-manifest.webmanifest    PWA metadata (name, icons, theme color)
+index.html            root page (placeholder for the landing page); forward.js sends existing users to app/
+forward.js            forwards installed/returning users from the root to app/
+service-worker.js     retirement worker for installs made before the app moved to app/
+manifest.webmanifest  PWA metadata (id, start_url app/, scope, icons)
+app/
+  index.html           entry point — loads js/app.js as a module, registers app/service-worker.js
+  settings.html        GitHub token, cross-device sync, and category-color settings
+  service-worker.js    offline caching for the installed PWA (scope app/)
+  css/app.css          all styling
+  icons/               generated at deploy time, not committed
+  js/
+    state.js             the single in-memory state object + localStorage persistence and backups
+    merge.js             mergeStates(): pure local/remote state merge
+    mutations.js         every way state is allowed to change (adding/editing/completing tasks, etc.)
+    render.js             pure functions: state -> HTML strings
+    app.js                wires DOM events to mutations, and mutations back to a repaint
+    github.js             thin GitHub REST API client (issues, labels, gists)
+    github-sync.js         issue <-> task linking, category <-> label sync, completion sync
+    sync.js                cross-device sync via a GitHub Gist
+    project-filter.js      project search/sort/filter logic, and where a dragged project lands
+    project-drag.js        the drag gesture (projects and tasks): pointer + keyboard, ghost, drop line, auto-scroll
+    task-move.js           where a dragged task lands, and what moving it to another project means for GitHub
+    move-dialog.js         the confirmation shown before a task move that touches GitHub
+    *.test.mjs             plain node:test files alongside the modules they test
 generate_icons.py       generates the PWA icons at deploy time (not committed to the repo)
 scripts/
   guard-file-churn.mjs   blocks a commit that silently deletes most of an existing file
@@ -168,12 +173,12 @@ No install, no build. From the project root:
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000` in a browser. Any other static file server works the same way
+Then open `http://localhost:8000` (the root page, which forwards to the app once you have data) or `http://localhost:8000/app/` in a browser. To see the icons locally, run `python3 generate_icons.py` first (it writes `app/icons/`). Any other static file server works the same way
 (`npx serve`, VS Code's Live Server, etc.) — the app has no server-side logic at all.
 
 ## Installing it as an app
 
-The deployed site (`https://ajw2003.github.io/focus-deck-app/`) is a PWA, so most browsers can
+The deployed address (`https://ajw2003.github.io/focus-deck-app/`) opens the landing page, which has an Install button and the same steps as below; people who already use the app are forwarded to it (add `?about` to read the landing page anyway). The app itself lives at `https://ajw2003.github.io/focus-deck-app/app/`. It is a PWA, so most browsers can
 install it as a standalone app instead of leaving it as a tab. Installing vs. using it in a tab
 makes no functional difference — it's the same app either way — it's just a more app-like way to
 open it.
@@ -209,7 +214,7 @@ ever sent to `api.github.com`.
 "Cross-device sync" doesn't use `git` directly — it uses a **GitHub Gist** as a small JSON
 storage bucket for your whole Focus Deck state (every project, task, category, and the inbox).
 A Gist is a lighter-weight GitHub object than a repo, but it's still backed by git underneath;
-Focus Deck just talks to it over GitHub's REST API (`js/sync.js`) rather than running git
+Focus Deck just talks to it over GitHub's REST API (`app/js/sync.js`) rather than running git
 commands, so there's nothing to clone or push by hand.
 
 How it works:
@@ -225,7 +230,7 @@ How it works:
    load — so editing a task on your phone shows up on your laptop the next time it syncs.
 
 **Merging, not overwriting:** if two devices both made changes while offline, Focus Deck doesn't
-just let whichever one syncs last win outright. `mergeStates()` in `js/merge.js` merges record by
+just let whichever one syncs last win outright. `mergeStates()` in `app/js/merge.js` merges record by
 record: every task, project, category and Unsorted item carries an `updatedAt` timestamp, stamped
 automatically whenever it changes, and the newer edit wins for that specific record, not for your
 whole state. Something added on one device while the other was offline shows up rather than
@@ -244,11 +249,11 @@ not in a personal Gist) is the layer that's actually built for that.
 
 Each module with non-trivial logic (`project-filter.js`, `sync.js`'s state
 merge, `github-sync.js`) has a plain `node:test`-based `*.test.mjs` file next to it, with no
-test framework beyond Node's own `node:test` and `node:assert` — including `css/app.css` itself,
-via `js/style-contract.test.mjs` (see [Styling](docs/4-systems/styling.md)):
+test framework beyond Node's own `node:test` and `node:assert` — including `app/css/app.css` itself,
+via `app/js/style-contract.test.mjs` (see [Styling](docs/4-systems/styling.md)):
 
 ```bash
-node --test js/*.test.mjs
+node --test app/js/*.test.mjs
 ```
 
 There's also a guard against a commit silently deleting most of an existing file while its
@@ -264,7 +269,7 @@ git config core.hooksPath .githooks
 
 Pushing to `main` triggers `.github/workflows/deploy.yml`: a `test` job runs the full test suite
 and the file-churn guard first, and `deploy` (which generates the PWA icons and publishes the
-whole directory to GitHub Pages) only runs if `test` passes — there's nothing to build, so the
+whole directory to GitHub Pages, app at `/app/`) only runs if `test` passes — there's nothing to build, so the
 deployed site is just this repo's static files plus the generated icons.
 
 ## Further reading

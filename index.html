@@ -1,41 +1,128 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ADHD-friendly project dashboard with focus picker and GitHub sync">
-  <meta name="theme-color" content="#3D5A80">
-  <title>Focus Deck</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Focus Deck: too many tasks? Start with one.</title>
+  <meta name="description" content="Focus Deck puts a single task on your desk, picked for you. Free, works offline, on iPhone, Android and desktop.">
+  <meta name="theme-color" content="#111829" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#E4E8EF" media="(prefers-color-scheme: light)">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="css/app.css">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233D5A80' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M12.3 3.4a8.6 8.6 0 1 1-.4 17.2 8.6 8.6 0 0 1 .4-17.2Z'/><g transform='rotate(25 12 12)'><path d='M12 5.2 14.3 12H9.7Z' fill='%233D5A80'/><path d='M9.7 12 12 18.8 14.3 12'/></g></svg>">
+  <link rel="apple-touch-icon" href="app/icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Young+Serif&family=Kalam:wght@400;700&family=Figtree:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="site.css">
+  <script src="forward.js"></script>
 </head>
 <body>
-  <div class="wrap">
-    <header class="topbar">
-      <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.3 3.4a8.6 8.6 0 1 1-.4 17.2 8.6 8.6 0 0 1 .4-17.2Z"/><g transform="rotate(25 12 12)"><path d="M12 5.2 14.3 12H9.7Z" fill="currentColor"/><path d="M9.7 12 12 18.8 14.3 12"/></g></svg></span><h1>Focus Deck</h1></div>
-      <form id="capture-form" class="capture-form" autocomplete="off">
-        <input id="capture-input" type="text" placeholder="Capture a stray thought…" maxlength="400">
-        <button type="submit">Add</button>
-      </form>
-      <div class="topbar-tools">
-        <button type="button" id="projects-btn" class="icon-btn projects-toggle" data-action="toggle-projects-drawer" aria-haspopup="dialog" aria-controls="projects-drawer" aria-expanded="false" aria-label="Projects"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.6h13.6"/><path d="M4 12.2h16.4"/><path d="M4 17.6h10.2"/></svg></button>
-        <span id="topbar-sync"></span>
-        <a href="settings.html" class="icon-btn" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h9.4"/><circle cx="16.3" cy="6.4" r="1.8"/><path d="M20 12.3H10.7"/><circle cx="7.6" cy="12.4" r="1.8"/><path d="M4 18.2h9.5"/><circle cx="16.6" cy="18.1" r="1.8"/></svg></a>
+  <a class="skip" href="#main">Skip to the page</a>
+  <header class="site-top">
+    <span class="brand"><span class="dot" aria-hidden="true"></span>Focus Deck</span>
+  </header>
+
+  <main id="main">
+    <section class="hero desk-hero" id="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <h1 id="hero-title">Too many tasks? Start with one.</h1>
+        <p>Focus Deck keeps your list out of sight and puts a single task on the desk in front of you, picked for you. Fewer choices, less noise, an easier start.</p>
+        <div class="cta">
+          <button type="button" class="btn main" id="install-btn">Install Focus Deck</button>
+          <a class="btn ghost" href="app/">Open in your browser</a>
+        </div>
+        <p class="small">Free · Works offline · iPhone, Android, desktop</p>
       </div>
-    </header>
-    <div id="app"></div>
-    <div id="drag-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-  </div>
-  <script type="module" src="js/app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' }).catch(console.error);
-      });
-    }
-  </script>
+      <div class="hero-desk" aria-hidden="true">
+        <div class="mini-folder" style="--c:#4D6FB8"><span>School</span></div>
+        <div class="mini-card" style="--c:#3E8E5E;--r:-9deg;--x:0px">Chore</div>
+        <div class="mini-card" style="--c:#C9584F;--r:4deg;--x:58px">Bug</div>
+        <div class="note-shadow mini"><div class="note">Read chapter 4 of the biology book</div></div>
+      </div>
+    </section>
+
+    <section class="band" id="how" aria-labelledby="how-title">
+      <h2 id="how-title">How it works</h2>
+      <ol class="steps">
+        <li>
+          <div class="ill" aria-hidden="true"><div class="pad"><i></i><i></i><i></i></div></div>
+          <h3>Jot it down</h3>
+          <p>A stray thought goes on the notepad. It waits in your in-tray until you are ready.</p>
+        </li>
+        <li>
+          <div class="ill" aria-hidden="true"><div class="fan"><span style="--c:#4D6FB8"></span><span style="--c:#3E8E5E"></span><span style="--c:#C9584F"></span></div></div>
+          <h3>Pick the kind of work</h3>
+          <p>Flip through your folders and index cards. Choose where the thought belongs.</p>
+        </li>
+        <li>
+          <div class="ill" aria-hidden="true"><div class="note-shadow tiny"><div class="note"></div></div></div>
+          <h3>Get one task</h3>
+          <p>It lands on the desk as a sticky note. Tick it off, or slip it back for later.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="band" id="install" aria-labelledby="install-title">
+      <h2 id="install-title" tabindex="-1">Install it</h2>
+      <p class="lead">Installing is optional. It makes Focus Deck open in its own window, or from your home screen, like any other app. It works the same in a browser tab.</p>
+      <div class="tabs" id="install-tabs">
+        <div class="tablist" role="tablist" aria-label="Choose your device">
+          <button type="button" role="tab" id="tab-ios" aria-controls="panel-ios" data-device="ios">iPhone or iPad</button>
+          <button type="button" role="tab" id="tab-android" aria-controls="panel-android" data-device="android">Android</button>
+          <button type="button" role="tab" id="tab-desktop" aria-controls="panel-desktop" data-device="desktop">Computer</button>
+          <button type="button" role="tab" id="tab-other" aria-controls="panel-other" data-device="other">Other browsers</button>
+        </div>
+        <div role="tabpanel" id="panel-ios" aria-labelledby="tab-ios" tabindex="0">
+          <ol>
+            <li>Tap <strong>Open in your browser</strong> above. Use Safari. The Home Screen option only works from the app page.</li>
+            <li>Tap the <strong>Share</strong> icon.</li>
+            <li>Tap <strong>Add to Home Screen</strong>.</li>
+          </ol>
+        </div>
+        <div role="tabpanel" id="panel-android" aria-labelledby="tab-android" tabindex="0" hidden>
+          <ol>
+            <li>Open this page in Chrome.</li>
+            <li>Tap the <strong>⋮</strong> menu.</li>
+            <li>Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
+          </ol>
+        </div>
+        <div role="tabpanel" id="panel-desktop" aria-labelledby="tab-desktop" tabindex="0" hidden>
+          <ol>
+            <li>Open this page in Chrome or Edge.</li>
+            <li>Click the install icon at the right end of the address bar. It looks like a monitor with a down arrow. Or use the <strong>⋮</strong> menu and choose <strong>Install Focus Deck</strong>.</li>
+            <li>It opens in its own window, with an icon in your taskbar or dock.</li>
+          </ol>
+        </div>
+        <div role="tabpanel" id="panel-other" aria-labelledby="tab-other" tabindex="0" hidden>
+          <p><strong>Opera on a computer</strong> cannot install web apps. There is no install button in the address bar. Its own "Create desktop shortcut" only opens a normal Opera tab. To get an installed app, open this page in Edge or Chrome and install from there. Opera on Android is fine: use Add to Home screen.</p>
+          <p><strong>Firefox on a computer</strong> does not install web apps either. Use Focus Deck in a tab, or install it from Edge or Chrome.</p>
+        </div>
+      </div>
+      <p class="small" id="install-note" role="status"></p>
+    </section>
+
+    <section class="band" id="github" aria-labelledby="github-title">
+      <h2 id="github-title">Do I need GitHub?</h2>
+      <div class="answers">
+        <div>
+          <h3>To use it on one device: no</h3>
+          <p>Everything stays in this browser. There is nothing to sign up for.</p>
+        </div>
+        <div>
+          <h3>To sync between devices: yes</h3>
+          <p>Focus Deck uses your own free GitHub account to store a private copy of your tasks. The app walks you through it in about five minutes.</p>
+          <p>Your access key (GitHub calls it a token) stays in your browser. It is only ever sent to GitHub.</p>
+        </div>
+        <div>
+          <h3>If you write code: an extra</h3>
+          <p>You can link tasks to GitHub issues, so the task you are putting off lives in one place.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <a href="https://github.com/Ajw2003/focus-deck-app">Source on GitHub</a>
+    <a href="app/">Open the app</a>
+  </footer>
+  <script src="site.js"></script>
 </body>
 </html>

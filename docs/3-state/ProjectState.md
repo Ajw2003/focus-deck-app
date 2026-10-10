@@ -26,8 +26,42 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 12 | Time-of-day suggestions | 0% | #48 open; the user decided 2026-09-26 to delete energy fully, so #48 (if built) builds on labels and time of day, not energy |
 | 13 | Pilot and public rollout | 0% | #44 open |
 | 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 built, pending merge) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; PRs 2-6 not started |
+| 15 | Consumer product: desk redesign, landing page, onboarding | 100% built (10 of 10), not deployed | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117-#126 built, checked in Chromium and merged on `ccr-1569909b-xe23b7` (2026-10-10), not yet deployed; nothing merged to `main` yet; see `docs/plans/consumer-product-handoff.md` |
 
 ## What's built / not built, per milestone
+
+**15. Consumer product** — Built on `ccr-1569909b-xe23b7`, not deployed (#117-#126). Agreed design: the "Your pick" section of
+`docs/plans/redesign-directions.html` (a lamp-lit desk of stationery: sticky note, index-card and
+folder wallets, jotter, paper checkbox, Unsorted in-tray), screenshots in
+`docs/generated/redesign-mockup/`. Plan and decisions: `docs/plans/consumer-product.md`. Ten child
+issues #117-#126 under #116. Built: #117, the app now lives in `app/` with a forwarding root page
+(`forward.js`), the manifest at the root keeping the install identity (`id "./"`, `start_url "app/"`),
+the app's own worker (`app/service-worker.js`, cache prefix `focus-deck-app-shell-`) and a retirement
+worker at the old root URL (`service-worker.js`); see `docs/4-systems/pwa-shell.md`. Checked in
+Chromium under a `/focus-deck-app/` subpath (data survives, old worker and caches gone, fresh visitor
+not forwarded, standalone forwarded); not checked: a real installed PWA's identity, iOS, the live
+GitHub Pages deploy. Also built: #118, the landing page at the root (`index.html`, `site.css`,
+`site.js`; `?about` skips forwarding), checked in Chromium (no sideways scroll at 390/1280 in both
+themes, device-matched install tabs, forwarding cases); `beforeinstallprompt` did not fire on the root
+page, so Install scrolls to the instructions. #119, the desk look for the focus area: the Low light
+tokens and faces, the jotter, the sticky-note focus card, the paper checkbox with the biro cross-out
+(`app/js/focus-complete.js`), the ticket-stub "Not this one"; see `docs/4-systems/styling.md`. The
+due-now stage and light-mode High/Medium priority colours were darkened to keep contrast. #120 wallets: the focus picker is a folder wallet and an index-card
+wallet (`app/js/wallet.js`, `docs/4-systems/wallets.md`), and "Choosing a card" (Swipe up / Tap / Tap
+twice, default Tap twice) is a synced setting on the Settings page (`state.choosingMode`, merged like
+`dueDefaults`). Dropped from the old picker: "+N more", "Show all N labels", and "1 urgent" (now
+"top: Urgent"). Chromium check `scripts/check-wallets-browser.mjs`: 44/44. #121 the Unsorted in-tray:
+slips in a tray, filed with the folder and flag wallets (`app/js/in-tray.js`, `app/js/in-tray-view.js`,
+`docs/4-systems/in-tray.md`); dropped: "+N more"/"Show fewer", "N skipped for now" with "Go through
+them again" (Later now sends a slip to the back), and the "· change" project chip. Chromium check
+`scripts/check-in-tray-browser.mjs`: 46/46. #122 the note-writing setting (Handwriting / Print /
+OpenDyslexic, self-hosted): `app/js/note-face.js`; Chromium check `scripts/check-note-faces-browser.mjs`:
+64/64, OpenDyslexic loads offline; Kalam not seen on a real network (this sandbox blocks Google
+Fonts). Offline: `app/js/icons.js` was missing from the worker's cache list (fixed); the worker install
+and an offline reload are checked by `scripts/check-service-worker-browser.mjs` (run
+`python3 generate_icons.py` first: the icons are generated, not committed). All on branch
+`ccr-1569909b-xe23b7`; unit tests 134/134. #123 the desk look for the rest of the app: project folders, ruled task lists, paper editor, dialog, toast and Settings cards (CSS only, `docs/4-systems/styling.md#the-rest-of-the-desk`); also fixes the wallet cards drawing over the sticky topbar. Chromium tour `scripts/check-desk-screens-browser.mjs`: 60/60 at 390/1280 in both themes. #124 first-run onboarding (welcome, first folder, a few tasks, first pick, sync offer; once per device, not for existing data or a second device; replay from Settings > Help) and the no-projects empty states, `docs/4-systems/onboarding.md`; Chromium check `scripts/check-onboarding-browser.mjs`: 48/48. #125 guided sync setup (`app/setup.html`, `docs/4-systems/sync-setup.md`): one step per screen, the pasted key checked at once with each problem named (9 unit tests on fixture responses, not live GitHub), the first device makes the sync Gist and a second finds and pulls it; Chromium check `scripts/check-sync-setup-browser.mjs`: 22/22 with GitHub simulated. Unconfirmed: whether GitHub pre-fills the new-key form from the link. #126 Settings grouped (How it looks / How it works / Sync and GitHub / Help) with a setup checklist at the top, `docs/4-systems/onboarding.md#the-setup-checklist`; Chromium check `scripts/check-settings-browser.mjs`: 26/26. Resume from
+`docs/plans/consumer-product-handoff.md`.
 
 **14. Due dates, repeats and reminders** — Built, pending merge (PR 1 of #106, branch
 `claude/due-stages-pr1`): `js/due-stage.js`, `task.dueSetAt`/`dueStages`, `state.dueDefaults` with its

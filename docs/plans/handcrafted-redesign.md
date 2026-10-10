@@ -1,5 +1,9 @@
 # Handcrafted redesign and feature cuts — Design
 
+> **2026-10-09:** the visual direction below ("Direction" and "Visual system") is superseded by the
+> desk redesign, see `docs/6-decisions/Decisions.md` (2026-10-09) and `docs/plans/consumer-product.md`.
+> The layout and control decisions still stand until #123 restyles them.
+
 ## Goal
 
 Make Focus Deck look like something made by a person rather than a template, and cut the

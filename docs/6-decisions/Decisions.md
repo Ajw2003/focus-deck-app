@@ -4,6 +4,72 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-10 — Settings regrouped (#126): calls made
+
+- **No theme setting was added.** The issue lists "theme" under How it looks, but none exists:
+  light and dark follow the device. The group says so; adding a theme switch is a separate ask.
+- **The direct key and Gist controls stay, tucked under a disclosure.** "Settings keeps only the
+  status and a way back in" is honoured for what shows by default. Removing the controls would
+  have broken "every existing setting still works", and they are the only way to paste a Gist ID.
+- **"Issue sync" is done when a project is linked to a repo**, not when the key merely could.
+
+## 2026-10-10 — First-run onboarding (#124): calls made
+
+These were made without the user present (they asked for autonomous work):
+
+- **"No data" means no projects and no jotted thoughts.** A saved key or Gist ID counts as a
+  second device. A sync that brings projects in during the first screen closes the welcome.
+- **The tasks step uses one category chip at a time**, and it stays on for the next task. This is
+  quicker than choosing per task, and it can be turned off.
+- **"Set up sync" opens the guided setup** (`setup.html`, #125).
+- **The sidebar still hides with no projects**, so the empty main column hosts the "+ New" panel,
+  and the topbar Projects button goes there too. Drawing an empty sidebar was the alternative,
+  but it would put a near-empty drawer in front of a new user.
+
+Detail: `docs/4-systems/onboarding.md`.
+
+## 2026-10-10 — The rest of the desk (#123): interpretation calls
+
+The agreed mockup covers only the focus area, the wallets and the in-tray. #123's own wording
+("a project as an open folder, its tasks as ruled index-card rows") set the direction for the
+rest. These were the calls made from it, without the user present (they asked for autonomous
+work):
+
+- The folder is a tab in the project's colour on a card. It is not a manila-coloured body,
+  because a page of beige folders would drown the dark desk.
+- The task rows keep the existing surfaces and get index-card lines (a red heading line, blue
+  rules). Paper-coloured rows would have needed every due chip's contrast re-proved.
+- The editor, panels, dialog, toast and Settings sections borrow the index card's red top line,
+  and the toast borrows the jotter's holes. Nothing new is invented.
+- The fix for wallet cards drawing over the sticky topbar (a #120 bug) went in with #123, because
+  #123's screenshot tour is what found it.
+
+Detail: `docs/4-systems/styling.md#the-rest-of-the-desk`. Easy to revert: it is one CSS section.
+
+## 2026-10-09 — A new look: a lamp-lit desk of stationery, and a landing page (#116)
+
+**Context.** The user asked to turn Focus Deck into a consumer product: a more polished look and
+UX, onboarding for new users, and a GitHub Pages site for the download, instructions and pitch.
+
+**Decision.** Chosen in conversation from three mockups and then refined over four rounds
+(`docs/plans/redesign-directions.html`, "Your pick"): direction "Low light", dark-first with a light
+mode, where every object is stationery. The task in focus is a sticky note; projects are manila
+folders and categories index cards, each in a sideways wallet flipped like CD sleeves; capture is a
+jotter; done is a paper checkbox that crosses the task out (a rubber stamp was tried and dropped);
+"Not this one" is a ticket stub; Unsorted is an in-tray filed with folders and category flags. All
+three ways of choosing a card (swipe up, tap, tap twice) stay as a setting, and the writing on
+notes is a setting (handwriting, print, OpenDyslexic). The landing page takes the site root and the
+app moves to `/app/`. GitHub stays required for syncing, so new users are walked through it rather
+than having it hidden. Scope and steps: `docs/plans/consumer-product.md`, issues #117-#126.
+
+**Replaces.** The "warm editorial, touch of notebook" visual direction of
+`docs/plans/handcrafted-redesign.md` (Q5b, Q17a-Q20a: Fraunces and IBM Plex Sans, one raised focus
+card, flat sections, the project pills and label cards of the focus picker). Its layout and control
+decisions (one project list, tiles, dragging, the editor) are not reversed by this entry; #123
+restyles them.
+
+**Status.** Active.
+
 ## 2026-09-30 — Due-date stages, PR 1 of #106: interpretation calls the plan left open
 
 **Context.** The plan fixed the model; building PR 1 needed small calls it did not make.
