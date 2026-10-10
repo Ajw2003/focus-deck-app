@@ -1,4 +1,8 @@
-# Handoff: the Board screen (#140), not started
+# Handoff: the Board screen (#140), built
+
+**Built 2026-10-10 (#142-#147).** What is true now is in `docs/4-systems/styling.md#the-board-144`,
+`docs/3-state/ProjectState.md` and `docs/6-decisions/Decisions.md` (2026-10-10, "The Board"). The
+text below is the plan as written before it was built.
 
 Written 2026-10-10, at the end of a session, so the next one can build it without re-deriving
 anything. Read this first, then `docs/4-systems/styling.md#one-screen-at-a-time`.
@@ -35,7 +39,9 @@ All on branch `ccr-1569909b-xe23b7`, in PR #134, which is open and not merged.
 - Dragging between the doing and next groups already exists inside a project folder
   (`app/js/project-drag.js:256-267`). Reuse its keyboard moves and announcements; don't write a
   second drag system.
-- Done tasks carry `completedAt`. `state.completedLog` holds the last 12.
+- Done tasks did not carry `completedAt` when this was written (corrected; #145 added it, and the
+  Board falls back to `updatedAt` for older ones). `state.completedLog` holds the last 12, which is
+  too few to say what was done this week.
 
 ## Steps
 

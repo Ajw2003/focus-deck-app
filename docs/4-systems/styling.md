@@ -554,7 +554,7 @@ light, 60 checks. Screenshots are in `docs/generated/pr123/`.
 
 ### One screen at a time
 
-Since #135 (2026-10-10), the app shows one activity at a time, chosen from a rail (`renderRail` in
+Since #135 (2026-10-10), the app shows one activity at a time (Focus, Sort, Board, Projects), chosen from a rail (`renderRail` in
 `js/render.js`; the "One screen at a time (#135)" section of `css/app.css`):
 
 - **Focus:** the picker or the sticky note, alone, in a centred column (`.screen-focus`).
@@ -569,6 +569,50 @@ room for it. `ui.screen` is remembered per device (`focusdeck-screen`); anything
 Focus. A few ways into Projects switch screens first: "Home ↓" on the sticky note
 (`scrollToProject`), the ☰ button, and Settings' `?new=repo`. The two-column desk this replaces is
 in `docs/6-decisions/Decisions.md` (2026-10-10). Checked by `scripts/check-desktop-browser.mjs`.
+
+A fourth screen, the Board, sits between Sort and Projects in the rail (`SCREENS` in
+`app/js/render.js:40`; drawn by `app/js/app.js:258`). See the next section.
+
+### The Board (#144)
+
+The Board is Up next, In progress and Done this week, as columns of paper cards (#140). Its markup is
+`renderBoard` in `app/js/board-view.js:54`; the columns come from `boardColumns` in
+`app/js/board.js:21`. It is `.screen-board`, as wide as Focus and Sort (`app/css/app.css:1042`).
+
+- **Columns:** Up next and In progress keep each project's own task order (`sortTasks`), projects in
+  list order. Done is only what was finished since Monday 00:00 local time, newest first
+  (`weekStart`, `finishedAt`, `app/js/board.js:10-19`). Each column shows its count.
+- **Cards:** a paper strip with a grip, a checkbox, the title, the project and categories underneath,
+  a priority chip, and a left edge in the project's colour (`card`, `app/js/board-view.js:30`;
+  `app/css/app.css:1134`). The checkbox is the same `toggle-task` as on a task row. A done card is
+  struck through.
+- **Pills and the folder frame:** a row of project pills sits above (`pills`,
+  `app/js/board-view.js:19`). "All projects" is the default. Picking a project narrows the Board to
+  it and draws the columns inside that project's folder frame, with its name and "← Back to all
+  projects" (`app/js/board-view.js:69-72`; `.board-frame`, `app/css/app.css:1152`). The cards then
+  drop the project name. The choice is remembered per device (`focusdeck-board-project`,
+  `app/js/app.js:142-158`).
+- **Phone switch:** below 1100px a three-way switch (Up next / Doing / Done, each with its count)
+  shows one column at a time (`app/js/board-view.js:62`; `app/css/app.css:1124-1130`). The column is
+  `ui.boardCol`, in memory only (`app/js/app.js:158`, `:427`). At 1100px and wider all three columns
+  show and the switch is hidden (`app/css/app.css:1158-1163`).
+- **Drag:** a card's grip drags it between columns with the same `project-drag` code the task rows
+  use (`boardTargetAt`, `app/js/project-drag.js:112`). The column the pointer is level with is the
+  new status. A card stays in its own project. Dropping in Done is the same as ticking it.
+- **Keyboard:** ArrowLeft and ArrowRight on a card's grip move it one column over and say so
+  (`keyboardBoardMove`, `app/js/project-drag.js:167`; `boardStepRequest`, `:149`). Focus stays on
+  the card.
+- **Swipe:** on a phone, a horizontal swipe on a card moves it one column, left toward Up next and
+  right toward Done (`app/js/board-swipe.js:21`). It needs 30% of the card's width
+  (`SWIPE_FRACTION`, `:12`). The card is `touch-action: pan-y`, so vertical scrolling stays the
+  browser's. There is no swipe at 1100px and wider.
+- **In progress from Focus:** "Mark in progress" under the sticky note sets `'doing'`
+  (`app/js/render.js:193`).
+
+Moving a card calls `setTaskStatus` (`app/js/mutations.js:140`), which stamps `completedAt` going to
+Done and clears it coming back. A move to In progress writes no GitHub label, like the project
+folders (`docs/6-decisions/Decisions.md`, 2026-10-10). Checked by `scripts/check-board-browser.mjs`
+(52 checks) and `scripts/check-focus-doing-browser.mjs` (12).
 
 ### Projects on paper (#129)
 

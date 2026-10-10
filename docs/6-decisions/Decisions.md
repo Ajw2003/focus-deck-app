@@ -4,6 +4,25 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-10 — The Board, a fourth screen (#140): calls made
+
+The user asked for the Board after all ("Bring the board to life, I want it after all"). Three
+calls:
+
+- **The Board is a fourth screen**, between Sort and Projects in the rail. The entry below chose
+  folders over a separate board; the user changed their mind, and the folders stay. Nothing is
+  removed. Status: this adds to the entry below, it does not supersede it.
+- **Done means done this week**, since Monday 00:00 local time, newest first. A longer list would
+  grow without end. The finish time is `task.completedAt`, new in #145. Tasks finished before it
+  existed have none, so the Board falls back to `updatedAt`. The risk: an old task edited this week
+  after it was finished looks finished this week. That is accepted, because the alternative is to
+  hide every old done task.
+- **Moving a card to In progress writes no GitHub `doing` label.** The project folders already do
+  not, and the Board matches them. Sync still reads `inprogress`, `wip` and `doing` labels in. If the
+  user wants the label written back, that is a new issue.
+
+Detail: `docs/4-systems/styling.md#the-board-144`.
+
 ## 2026-10-10 — One screen at a time, from a side rail (#135); replaces the two-column desk
 
 The two-column wide-screen desk (#130, the entry below) still put every activity on one screen,
