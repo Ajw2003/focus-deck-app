@@ -26,7 +26,7 @@ function groupFor(handle) {
   if (handle.classList.contains('task-grip')) {
     // a task row (PR 11): what it can be dropped on is worked out from the pointer, not from a fixed
     // list of siblings (taskTargetAt), so the group only names the row itself
-    const item = handle.closest('.task-row');
+    const item = handle.closest('.task-row') || handle.closest('.board-card'); // a Board card (#145) drags like a row
     return item ? { kind: 'task', item } : null;
   }
   if (handle.classList.contains('drag-grip')) {
@@ -61,6 +61,7 @@ function scrollParent(el) {
 // group's other rows whose middle is above the pointer. `orderedIds` are those other rows, in order.
 function taskTargetAt(d) {
   const none = { none: true, noop: true, box: null, hilite: null };
+  if (d.group.item.classList.contains('board-card')) return boardTargetAt(d, none);
   const el = document.elementFromPoint(d.px, d.py);
   const card = el && el.closest ? el.closest('.project-card') : null;
   if (!card) return none;
@@ -94,6 +95,91 @@ function taskTargetAt(d) {
     projectId, status, toIndex: slot, orderedIds: rows.map((r) => r.getAttribute('data-task')), noop: sameSpot,
     box: sameSpot ? null : box, hilite: (rows.length || sameSpot) ? null : group,
   };
+}
+
+// ---- The Board (#145) ---------------------------------------------------------------------------
+// A Board card is a task like a row: same `task` drag, same opts.moveTask. The columns are the
+// "groups" (data-col = the status); a task keeps its own project, and within a column it is ordered
+// among that project's own cards (the order sortTasks gives a project). Done takes the top.
+export const BOARD_COLS = ['next', 'doing', 'done'];
+const BOARD_LABEL = { next: 'Up next', doing: 'In progress', done: 'Done' };
+
+function projectCardsIn(col, projectId, exceptId) {
+  return Array.from(col.querySelectorAll('.board-card'))
+    .filter((c) => c.getAttribute('data-project') === projectId && c.getAttribute('data-task-id') !== exceptId);
+}
+
+function boardTargetAt(d, none) {
+  // the column is the one the pointer is level with, anywhere down the board (columns end where
+  // their cards do, so a drop a little below the last card still counts), not only over a card
+  const cols = Array.from(document.querySelectorAll('.board-col'));
+  const board = cols.length ? cols[0].parentElement.getBoundingClientRect() : null;
+  if (!board || d.py < board.top - 40 || d.py > board.bottom + 40) return none;
+  let col = null;
+  let best = Infinity;
+  cols.forEach((c) => {
+    const r = c.getBoundingClientRect();
+    const dx = d.px < r.left ? r.left - d.px : (d.px > r.right ? d.px - r.right : 0);
+    if (dx < best) { best = dx; col = c; }
+  });
+  if (!col || best > 40) return none;
+  const status = col.getAttribute('data-col');
+  const taskId = d.id;
+  const others = projectCardsIn(col, d.fromProjectId, taskId);
+  const slot = status === 'done' ? 0 : others.filter((c) => { const b = c.getBoundingClientRect(); return b.top + b.height / 2 < d.py; }).length;
+  const mine = d.group.item;
+  const sameCol = mine.closest('.board-col') === col;
+  const sameSpot = sameCol && (status === 'done' || projectCardsIn(col, d.fromProjectId, null).indexOf(mine) === slot);
+  let box = null;
+  if (status !== 'done' && others.length) {
+    const g = col.querySelector('.board-cards').getBoundingClientRect();
+    const y = slot < others.length ? others[slot].getBoundingClientRect().top - 5 : others[others.length - 1].getBoundingClientRect().bottom + 5;
+    box = { left: g.left, top: y - 1.5, width: g.width, height: 3 };
+  }
+  return {
+    projectId: d.fromProjectId, status, toIndex: slot, orderedIds: others.map((c) => c.getAttribute('data-task-id')), noop: sameSpot,
+    box: sameSpot ? null : box, hilite: sameSpot || box ? null : col,
+  };
+}
+
+// One column left (-1, toward Up next) or right (+1, toward Done) from a card: the moveTask request,
+// or null at the edge. Moving right into In progress goes to the end of the project's cards there,
+// otherwise to the top (the same ends the folder's arrow keys use). Used by the keyboard and the
+// phone swipe (board-swipe.js).
+export function boardStepRequest(card, delta) {
+  const from = card.closest('.board-col');
+  if (!from) return null;
+  const i = BOARD_COLS.indexOf(from.getAttribute('data-col')) + delta;
+  if (i < 0 || i >= BOARD_COLS.length) return null;
+  const status = BOARD_COLS[i];
+  const col = card.closest('.board-cols').querySelector('.board-col[data-col="' + status + '"]');
+  const projectId = card.getAttribute('data-project');
+  const taskId = card.getAttribute('data-task-id');
+  const others = projectCardsIn(col, projectId, taskId);
+  const titleEl = card.querySelector('.board-card-title');
+  return {
+    req: { taskId, fromProjectId: projectId, toProjectId: projectId, status, toIndex: status === 'doing' ? others.length : 0, orderedIds: others.map((c) => c.getAttribute('data-task-id')) },
+    title: titleEl ? titleEl.textContent.trim() : 'Task', label: BOARD_LABEL[status],
+  };
+}
+
+// ArrowLeft/ArrowRight on a Board card's grip: one column over; focus stays on the card.
+function keyboardBoardMove(e, grip, opts) {
+  const delta = e.altKey || e.ctrlKey || e.metaKey ? 0 : ({ ArrowLeft: -1, ArrowRight: 1 }[e.key] || 0);
+  if (!delta) return;
+  e.preventDefault();
+  const card = grip.closest('.board-card');
+  if (!card) return;
+  const step = boardStepRequest(card, delta);
+  if (!step) {
+    const t = card.querySelector('.board-card-title');
+    opts.announce((t ? t.textContent.trim() : 'Task') + ' is already in ' + BOARD_LABEL[delta < 0 ? 'next' : 'done']);
+    return;
+  }
+  if (!opts.moveTask(step.req)) return;
+  const again = document.querySelector('.board-grip[data-task="' + step.req.taskId + '"]');
+  if (again) again.focus();
+  opts.announce(step.title + ' moved to ' + step.label);
 }
 
 // Which slot (0..n) the pointer is over, among the group's items, and where to draw the indicator.
@@ -345,7 +431,7 @@ export function initProjectDrag(app, opts) {
   // Keyboard: on a grip, the arrow keys; on a sidebar row, Alt + Up/Down.
   app.addEventListener('keydown', (e) => {
     const taskGrip = e.target.closest && e.target.closest('.task-grip');
-    if (taskGrip) { keyboardTaskMove(e, taskGrip, opts); return; }
+    if (taskGrip) { (taskGrip.closest('.board-card') ? keyboardBoardMove : keyboardTaskMove)(e, taskGrip, opts); return; }
     const grip = e.target.closest && e.target.closest('.drag-grip');
     const row = e.target.closest && e.target.closest('.sidebar-project');
     let handle = null;

@@ -10,6 +10,7 @@ import {
 } from './github-sync.js';
 import { getToken } from './github.js';
 import { initProjectDrag, isDragging } from './project-drag.js';
+import { initBoardSwipe } from './board-swipe.js';
 import { taskOrderChanges, sortTasks, planTaskMove } from './task-move.js';
 import { confirmMove } from './move-dialog.js';
 import { dueMoment } from './due-stage.js';
@@ -19,6 +20,7 @@ import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY } from './in-tray.js';
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
 import { renderOnboarding } from './onboarding-view.js';
+import { normalizeBoardCol } from './board-view.js';
 import { applyNoteFace } from './note-face.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
@@ -136,8 +138,24 @@ function setScreen(screen) {
   catch (e) { console.error('Could not save the screen:', e); }
 }
 
+// Which project the Board shows (#142): null means all projects. Remembered on this device.
+const BOARD_PROJECT_KEY = 'focusdeck-board-project';
+function loadBoardProject() {
+  try { return localStorage.getItem(BOARD_PROJECT_KEY) || null; }
+  catch (e) { console.error('Could not read the board project:', e); return null; }
+}
+function setBoardProject(id) {
+  ui.boardProject = id || null;
+  try {
+    if (ui.boardProject) localStorage.setItem(BOARD_PROJECT_KEY, ui.boardProject);
+    else localStorage.removeItem(BOARD_PROJECT_KEY);
+  } catch (e) { console.error('Could not save the board project:', e); }
+}
+
 export const ui = {
   screen: loadScreen(),
+  boardProject: loadBoardProject(),
+  boardCol: 'next', // the phone's one visible Board column; memory only (#144)
   onboarding: loadOnboarding(),
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
@@ -237,6 +255,7 @@ export function renderApp(st) {
   if (ui.screen === 'focus') return rail + '<div class="screen screen-focus">' + R.renderFocus(st, findTaskWithProject, ui) + '</div>' + toast;
   // the Sort screen is the tray, always open (its header can't fold it away here)
   if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
+  if (ui.screen === 'board') return rail + '<div class="screen screen-board">' + R.renderBoard(st, ui) + '</div>' + toast;
   return rail + R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
     + '<div class="main-col view-' + ui.projectView + '">'
       + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken)
@@ -404,6 +423,8 @@ function onAppClick(e) {
     window.scrollTo(0, 0);
     return;
   }
+  if (action === 'board-project') { setBoardProject(el.getAttribute('data-project-id')); paint(); return; }
+  if (action === 'board-col') { ui.boardCol = normalizeBoardCol(el.getAttribute('data-col')); paint(); return; }
   if (action === 'start-new-project') { openFirstProjectPanel(); return; }
   if (action === 'unsorted-file' || action === 'unsorted-save') {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
@@ -447,6 +468,15 @@ function onAppClick(e) {
   }
   else if (action === 'reroll') M.reroll();
   else if (action === 'clear-focus') M.clearFocus();
+  else if (action === 'focus-doing') {
+    // same path as a board drop: lands at the end of In progress; the task stays in focus
+    const f = state.focus && findTaskWithProject(state.focus.taskId);
+    if (f && f.task.status === 'next') {
+      const end = f.project.tasks.filter((t) => t.status === 'doing').length;
+      if (moveTaskTo({ taskId: f.task.id, toProjectId: f.project.id, status: 'doing', toIndex: end })) ui.notice = 'Moved to In progress';
+      paint();
+    }
+  }
   else if (action === 'complete-focus') completeFocusWithNote();
   // M.setFocusTask doesn't exist -- the correct exported function is setFocus.
   // "Focus on this" lives in the edit form now (Q14a, Q12f) -- picking a task closes the form.
@@ -1111,6 +1141,7 @@ function init() {
     announce: announceDrag,
     onEnd: () => { if (paintWaitingOnDrag) { paintWaitingOnDrag = false; paint(); } },
   });
+  initBoardSwipe(app, { moveTask: moveTaskTo, announce: announceDrag });
   // the sync button and Projects toggle live in the topbar, outside #app -- same handler, since it
   // only acts on data-action values it recognizes
   const topbar = document.querySelector('.topbar');

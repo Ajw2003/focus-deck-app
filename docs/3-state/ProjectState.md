@@ -32,9 +32,27 @@ not sized, so averaging them with the finished ones would say nothing true.
 scroll, and take a tap and a push-up in every mode; Swipe up mode retired), #133 (Category choices),
 #128 and #129 (wallets laid flat with one click on a wide screen, projects as paper folders), and
 #135 (one screen at a time from a side rail: Focus, Sort, Projects; the jotter on every screen; it
-replaces #130's two-column desk). Next: the Board screen (#140), not started; plan in `docs/plans/board-handoff.md`. Checks: `check-wallet-touch-browser.mjs` 22/22,
+replaces #130's two-column desk). Checks: `check-wallet-touch-browser.mjs` 22/22,
 `check-category-filter-browser.mjs` 11/11, `check-desktop-browser.mjs` 25/25, everything else still
 green; unit 163/163.
+
+**The Board (#140, built 2026-10-10, same branch):** a fourth screen, between Sort and Projects. Up
+next, In progress and Done this week as columns of cards; tick, drag, ArrowLeft/Right and a phone
+swipe move a card; "Mark in progress" sits under the sticky note. Detail:
+`docs/4-systems/styling.md#the-board-144`. Checked by `scripts/check-board-browser.mjs` (52 checks)
+and `scripts/check-focus-doing-browser.mjs` (12). What is now true in the data:
+
+- **`task.completedAt`** (a number, ms) is new. `setTaskStatus` sets it when a task goes to done and
+  deletes it when the task is reopened (`app/js/mutations.js:147-153`). GitHub sync does the same when
+  an issue closes or reopens (`app/js/github-sync.js:521`, `:536`, `:604-609`). Tasks finished before
+  this have none; the Board then reads `updatedAt` (`finishedAt`, `app/js/board.js:17`).
+- **The Gist merge carries it with the task.** Tasks merge whole, by the newest `updatedAt`
+  (`mergeRecordList`, `app/js/merge.js:37`, used for tasks at `:79`). Every set or clear also stamps
+  `updatedAt`, so the newest copy brings its `completedAt` (or its absence) with it. There is no
+  per-field merge.
+- **`ui.boardProject`** is the project the Board is narrowed to (null is all). It is kept per device
+  in localStorage `focusdeck-board-project` (`app/js/app.js:142-158`), and is not synced.
+- **`ui.boardCol`** is the phone's visible column, in memory only (`app/js/app.js:158`).
 
 ## What's built / not built, per milestone
 
