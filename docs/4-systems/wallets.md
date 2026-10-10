@@ -42,6 +42,22 @@ retired on 2026-10-10; a save that still says `swipe` reads as `tap` (`normalize
 shown on the Settings page (`app/settings.html`, "Choosing a card") and is read from the markup's
 `data-mode`, so **every** wallet follows it. Arrow keys flip and Enter draws in every mode.
 
+## Spread out
+
+On a wide screen (`SPREAD_QUERY`, `(min-width: 1100px)`, #128), `mountWallets` lays a wallet flat
+instead of making it flip (`spreadOut` in `js/wallet.js`; `.is-spread` in `css/app.css`). Every card
+shows at once, with no scrolling and no tilt.
+
+- **One click acts** (`spreadClick`). In the folder wallet, a click picks a folder (`onFacing`, which
+  narrows the category cards) and a click on the picked folder draws from it. In every other
+  wallet, a click chooses at once. The arrow keys move the pick and Enter chooses.
+- **Only the folder wallet outlines its picked card.** The in-tray marks its choices with
+  `.is-picked`.
+- **Which layout a wallet gets is decided when it mounts.** `onSpreadChange` repaints when the window
+  crosses the width, so a resize swaps the layout.
+- Tap and tap-twice (the setting) apply only to the flip-through wallets on a narrow screen.
+- Checked by `scripts/check-desktop-browser.mjs`.
+
 ## Invariants and traps
 
 - **Touch and page scrolling (#131).** The track is `touch-action: pan-x pan-y`, so a vertical drag

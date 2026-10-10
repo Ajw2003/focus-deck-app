@@ -14,7 +14,7 @@ import { taskOrderChanges, sortTasks, planTaskMove } from './task-move.js';
 import { confirmMove } from './move-dialog.js';
 import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
-import { mountWallets } from './wallet.js';
+import { mountWallets, onSpreadChange } from './wallet.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY } from './in-tray.js';
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
@@ -220,8 +220,9 @@ export function renderApp(st) {
   const hasToken = !!getToken();
   return R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
     + '<div class="main-col view-' + ui.projectView + '">'
-      + R.renderFocus(st, findTaskWithProject, ui) + renderInTrayCard(st, ui)
-      + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken)
+      // a wide screen lays these two side by side: the desk (pick and sort) and the projects (#130)
+      + '<div class="desk-col">' + R.renderFocus(st, findTaskWithProject, ui) + renderInTrayCard(st, ui) + '</div>'
+      + '<div class="projects-col">' + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken) + '</div>'
     + '</div>'
     + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
 }
@@ -258,6 +259,7 @@ export function paint() {
 }
 
 registerPaint(paint);
+onSpreadChange(paint); // wallets lie flat on a wide screen, flip on a narrow one (#128)
 onExternalStateChange(paint);
 
 // A drop or arrow key from js/project-drag.js: works out the new sortOrder among the displayed

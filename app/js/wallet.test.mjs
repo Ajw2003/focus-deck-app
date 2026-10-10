@@ -110,3 +110,16 @@ test('the module can be imported and asked for its count without a DOM', () => {
   assert.strictEqual(typeof mountWallets, 'function');
   assert.strictEqual(liveWalletCount(), 0);
 });
+
+test('laid flat on a wide screen (#128): a folder click picks, a click on the picked folder or any other card acts', async () => {
+  const { spreadClick, spreadCorner, spreadHint } = await import('./wallet.js');
+  assert.strictEqual(spreadClick('projects', 2, 0), 'face', 'a different folder: pick it (the categories narrow)');
+  assert.strictEqual(spreadClick('projects', 0, 0), 'choose', 'the picked folder: draw from it');
+  assert.strictEqual(spreadClick('categories', 3, 0), 'choose', 'a category card draws at once');
+  assert.strictEqual(spreadClick('tray-flags', 3, 0), 'choose', 'an in-tray flag goes on at once');
+  assert.strictEqual(spreadCorner('projects', false), 'Click to pick');
+  assert.strictEqual(spreadCorner('projects', true), 'Click to draw');
+  assert.strictEqual(spreadCorner('tray-flags', false, 'use'), 'Click to use');
+  assert.strictEqual(spreadHint('projects'), 'Click a folder to pick it, then a card to draw');
+  assert.strictEqual(spreadHint('tray-flags', 'use'), 'Click a card to use');
+});

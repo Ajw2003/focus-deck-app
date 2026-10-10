@@ -129,7 +129,7 @@ function renderFocusPicker(st, ui) {
 
   return '<section class="card focus-card focus-empty wallet-root">'
     + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
-    + '<p class="muted">Flip to a folder and a kind of work, and I&rsquo;ll surface one task.</p>'
+    + '<p class="muted"><span class="only-narrow">Flip to a folder</span><span class="only-wide">Pick a folder</span> and a kind of work, and I&rsquo;ll surface one task.</p>'
     + '<div class="wallet" id="project-wallet">' + walletInner({ wallet: 'projects', label: 'Project', aria: 'Projects. Arrow keys flip, Enter chooses.', items: folders, facing: projectId || ALL_PROJECTS_KEY, mode }) + '</div>'
     + '<div class="wallet" id="category-wallet">' + renderCategoryWalletInner(st, ui) + '</div>'
     + '<div class="flip-hint">' + CHOOSING_MODE_INFO[mode].hint + '</div>'

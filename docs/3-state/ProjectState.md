@@ -28,6 +28,13 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 built, pending merge) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; PRs 2-6 not started |
 | 15 | Consumer product: desk redesign, landing page, onboarding | 100% built (10 of 10), not deployed | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117-#126 built, checked in Chromium and merged on `ccr-1569909b-xe23b7` (2026-10-10), not yet deployed; nothing merged to `main` yet; see `docs/plans/consumer-product-handoff.md` |
 
+**After the merge (2026-10-10), on `ccr-1569909b-xe23b7`:** #131 and #132 (wallets let the page
+scroll, and take a tap and a push-up in every mode; Swipe up mode retired), #133 (Category choices),
+#128, #130 and #129 (the wide-screen desk: wallets laid flat with one click, the desk beside the
+projects, projects as paper folders). Checks: `check-wallet-touch-browser.mjs` 22/22,
+`check-category-filter-browser.mjs` 11/11, `check-desktop-browser.mjs` 25/25, everything else still
+green; unit 163/163.
+
 ## What's built / not built, per milestone
 
 **15. Consumer product** — Built on `ccr-1569909b-xe23b7`, not deployed (#117-#126). Agreed design: the "Your pick" section of

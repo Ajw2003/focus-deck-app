@@ -4,6 +4,18 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-10 — The desktop is the macro view (#128, #130, #129)
+
+The user found the desktop "drastically less efficient": one card per wallet in a row wide enough
+for ten, and the projects pushed below a full-width in-tray. They chose "spread out, click once".
+
+- **Wallets lie flat at 1100px and wider**, and one click picks or draws. Phones keep the
+  flip-through.
+- **The desk sits beside the projects** in two columns. The page at 1440×900 went from 2671px to
+  1837px tall, with the first folder on the first screen.
+- **Projects are paper folders in both themes**, using the light theme's tokens inside, so the
+  proven chip contrast still holds. Text never sits on the coloured frame.
+
 ## 2026-10-10 — Every wallet takes a tap and a push-up; "Swipe up" mode retired (#131, #132)
 
 The user reported that with Swipe up chosen, the page wouldn't scroll over the wallets on a phone

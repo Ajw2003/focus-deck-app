@@ -96,6 +96,26 @@ export function swipeOutcome({ dy, index, facing }) {
   return 'none';
 }
 
+// ---- Spread out, on a wide screen (#128) -------------------------------------------------------
+// With room to spare, a wallet lays every card out at once instead of flipping through them, and
+// one click acts. The project wallet's first click picks the folder (the category cards narrow to
+// it); a click on the picked folder draws from it. Every other wallet's click chooses at once.
+export const SPREAD_QUERY = '(min-width: 1100px)';
+
+export function spreadClick(name, index, facing) {
+  return name === 'projects' && index !== facing ? 'face' : 'choose';
+}
+
+export function spreadCorner(name, isFacing, verb) {
+  if (name === 'projects') return isFacing ? wording('Click to draw', verb) : 'Click to pick';
+  return wording('Click to draw', verb);
+}
+
+export function spreadHint(name, verb) {
+  if (name === 'projects') return 'Click a folder to pick it, then a card to draw';
+  return wording('Click a card to draw', verb);
+}
+
 // Flipping away from a lifted card puts it back, unless the flip is the one its own tap asked for.
 export function shouldDisarm({ armed, nearest, flipTarget }) {
   return armed !== null && nearest !== armed && flipTarget !== armed;
@@ -159,7 +179,7 @@ function onPointerMove(e) {
   const w = press.w;
   // A touch scrolls the track natively; only a mouse needs its drag turned into a scroll.
   if (press.axis === 'x' && press.type === 'mouse') { w.track.style.scrollSnapType = 'none'; w.track.scrollLeft = press.scroll - dx; }
-  if (press.axis === 'y' && press.index === w.facing) {
+  if (press.axis === 'y' && press.index === w.facing && !w.spread) {
     press.dy = Math.min(0, dy);
     const sleeve = w.sleeves[press.index];
     sleeve.classList.add('is-lifting');
@@ -177,6 +197,7 @@ function release(cancelled) {
   if (!w.track.isConnected) return;
   w.track.style.scrollSnapType = '';
   if (p.axis === 'x' && p.type === 'mouse') { w.flipTo(w.facing); return; }
+  if (p.axis === 'y' && w.spread) return; // laid out flat: nothing to push up
   if (p.axis === 'y') {
     const sleeve = w.sleeves[p.index];
     const outcome = swipeOutcome({ dy: p.dy, index: p.index, facing: w.facing });
@@ -313,8 +334,46 @@ function mountOne(track, hooks) {
 
   // Put the facing card back in the middle without animating, then draw the tilt for it. Setting
   // facing first means the scroll event this causes finds nothing changed and tells nobody.
+  if (matchesSpread()) return spreadOut(w, hooks, { keys, countEl, hintEl, verb });
   scrollTo(w.facing, 'auto');
   paintCorners();
   updateTilt();
   return w;
+}
+
+const matchesSpread = () => typeof matchMedia === 'function' && matchMedia(SPREAD_QUERY).matches;
+
+// The wide-screen version of a mounted wallet: no scrolling, no tilt, the picked card outlined.
+function spreadOut(w, hooks, { keys, countEl, hintEl, verb }) {
+  const { track, name, sleeves } = w;
+  w.spread = true;
+  track.classList.add('is-spread');
+  if (countEl) countEl.textContent = '';
+  // the focus picker's two wallets share one hint line: the folder wallet's says both steps
+  const sharesWithFolders = name !== 'projects' && hintEl && hintEl.closest('.wallet-root').querySelector('[data-wallet="projects"]');
+  if (hintEl && !sharesWithFolders) hintEl.textContent = spreadHint(name, verb);
+  w.say = (text) => hooks.announce(text);
+  const paint = () => sleeves.forEach((sleeve, i) => {
+    sleeve.classList.toggle('is-centre', i === w.facing);
+    const go = sleeve.querySelector('.go');
+    if (go) go.textContent = spreadCorner(name, i === w.facing, verb);
+  });
+  const face = (index) => {
+    w.facing = clampIndex(index, sleeves.length);
+    paint();
+    hooks.onFacing(name, keys[w.facing]);
+    hooks.announce(sleeves[w.facing].dataset.speak || '');
+  };
+  w.flipTo = face; // the arrow keys move the pick
+  w.recentre = () => {};
+  w.tap = (index) => (spreadClick(name, index, w.facing) === 'face' ? face(index) : w.choose(index));
+  paint();
+  return w;
+}
+
+// Whether a wallet lies flat or flips is decided when it is mounted; `fn` repaints when the screen
+// crosses the width, so every wallet is mounted again the other way.
+export function onSpreadChange(fn) {
+  if (typeof matchMedia !== 'function') return;
+  matchMedia(SPREAD_QUERY).addEventListener('change', fn);
 }

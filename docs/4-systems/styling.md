@@ -552,6 +552,23 @@ shape only. Behaviour and markup are the same.
 Checked by `scripts/check-desk-screens-browser.mjs`: every screen at 390px and 1280px in dark and
 light, 60 checks. Screenshots are in `docs/generated/pr123/`.
 
+### Wide-screen desk
+
+At 1100px and wider (#130), `.main-col` is two columns: `.desk-col` (the focus area and the in-tray,
+400–470px) and `.projects-col` (the project folders, `repeat(auto-fill, minmax(300px, 1fr))`). Both
+scroll with the page. A sticky, self-scrolling desk column was tried and dropped, because it hid the
+in-tray below its own fold. Below 1100px the two stack as before. The wallets inside lie flat (see
+`docs/4-systems/wallets.md#spread-out`), with smaller cards in the desk column.
+
+### Projects on paper (#129)
+
+A project card is a folder in both themes: a 6px frame and tab in `color-mix(--proj-color 45%,
+--folder)`, holding a ruled index card on the light `--surface`. Inside `.project-card`, every colour
+token is redeclared with the light theme's value. So its chips, links and due stages use the
+colours `scripts/check-due-contrast.mjs` proves on those surfaces, and no text sits on the coloured
+frame: the amber Edit link on a blue frame would have been about 3.2:1. Wide-screen tiles are
+`overflow: visible` so the tab shows; their `.project-body` still scrolls.
+
 ### Project header and the Edit panel (Q15a, #83, PR 4 2026-09-27)
 
 `renderProjectCard`'s header is two lines that always render in the same shape, whatever the
