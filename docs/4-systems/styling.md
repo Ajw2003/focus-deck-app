@@ -558,7 +558,8 @@ Since #135 (2026-10-10), the app shows one activity at a time, chosen from a rai
 `js/render.js`; the "One screen at a time (#135)" section of `css/app.css`):
 
 - **Focus:** the picker or the sticky note, alone, in a centred column (`.screen-focus`).
-- **Sort:** the in-tray, always open, centred (`.screen-sort`).
+- **Sort:** the in-tray, always open (`.screen-sort`). On a wide screen it splits in two: the slip and its buttons (`.tray-side`, sticky) on the left, the folder and flag cards on the right. On a phone `.tray-side` is `display: contents`, so the buttons come after the choices.
+- **Width:** the Focus and Sort screens are up to 1320px wide, so the even card grids fill it.
 - **Projects:** the project list and the paper folders, laid out as before. Each folder's next,
   in-progress and done tasks are the tracking.
 

@@ -65,17 +65,19 @@ function renderTray(st, u, ordered, mode) {
   const file = isThought
     ? (project ? '<button type="button" class="file-btn" data-action="unsorted-file" data-inbox="' + cur.item.id + '">File it in ' + esc(project.name) + ' →</button>' : '<button type="button" class="file-btn" disabled>Choose a folder first</button>')
     : '<button type="button" class="file-btn" data-action="unsorted-save" ' + ids + '>Save in ' + esc(project.name) + ' →</button>';
-  return '<p class="tray-count muted small">' + (n === 1 ? '1 in the tray' : n + ' in the tray') + '</p>'
+  // .tray-side holds the slip and its buttons: on a wide Sort screen it stays in view beside the
+  // choices; on a phone it dissolves (display:contents) so the buttons come after the choices
+  return '<div class="tray-side"><p class="tray-count muted small">' + (n === 1 ? '1 in the tray' : n + ' in the tray') + '</p>'
     + '<div class="tray"><div class="tray-stack">'
     + (n >= 2 ? '<div class="slip-behind"></div>' : '') + (n >= 3 ? '<div class="slip-behind two"></div>' : '')
     + '<div class="jot-slip"><div class="slip-flags">' + slipFlags(cards, u.selected) + '</div>'
     + '<p class="slip-text">' + esc(text) + '</p><div class="slip-dest">' + dest + '</div>' + when + '</div>'
     + '</div>' + lip + '</div>'
-    + trayWallets(st, u, cur, cards, mode)
     + '<div class="sort-acts">' + file
     + '<div class="sort-small"><button type="button" data-action="unsorted-complete" ' + ids + '>Already done</button>'
     + '<button type="button" data-action="unsorted-skip">Later</button>'
-    + '<button type="button" data-action="unsorted-delete" ' + ids + '>Bin it</button></div></div>';
+    + '<button type="button" data-action="unsorted-delete" ' + ids + '>Bin it</button></div></div></div>'
+    + trayWallets(st, u, cur, cards, mode);
 }
 
 // The top slip: the queue in tray order (slips sent to the back by "Later" come last), or null

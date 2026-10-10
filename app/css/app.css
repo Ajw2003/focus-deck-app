@@ -839,6 +839,11 @@ body.is-dragging-task .empty-note{display:none;}
 .sort-small button:hover{color:var(--ink);}
 .file-btn:focus-visible, .sort-small button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 @media (prefers-reduced-motion: reduce){.slip-flag{animation:none;}}
+/* the slip and its buttons, then the choices: on a phone the buttons come last (#135) */
+.tray-side{display:contents;}
+.unsorted-body:has(> .tray-side){display:flex; flex-direction:column;}
+.unsorted-body > .tray-side > .sort-acts{order:3;}
+.unsorted-body > .tray-wallets{order:2;}
 /* ==== end In-tray ==== */
 
 /* ==== Desk look for the rest of the app (#123) ==========================================
@@ -993,12 +998,17 @@ body.is-dragging-task .empty-note{display:none;}
 /* ==== Wallets spread out on a wide screen (#128) ==========================================
    js/wallet.js adds .is-spread when (min-width:1100px) matches: every card shows at once, flat, and
    one click acts. The picked card (.is-centre) is outlined. See docs/4-systems/wallets.md#spread-out */
-.flip-track.is-spread{flex-wrap:wrap; gap:16px 12px; overflow:visible; scroll-snap-type:none; padding:16px 0 4px; margin:0; touch-action:auto;}
+/* An even grid: every card the same width, as many across as fit, so rows fill instead of going
+   ragged around long names (which end in an ellipsis; the full name is in the card's speak/title). */
+.flip-track.is-spread{display:grid; grid-template-columns:repeat(auto-fill, minmax(196px, 1fr)); gap:22px 16px; overflow:visible; scroll-snap-type:none; padding:18px 0 6px; margin:0; touch-action:auto;}
 .flip-track.is-spread .flip-pad{display:none;}
-.flip-track.is-spread .sleeve{flex:0 0 164px; margin:0; scroll-snap-align:none;}
-.flip-track.is-spread .icard{height:100px; padding-top:10px;}
-.flip-track.is-spread .icard.project{height:72px; margin-top:12px; padding-top:10px;}
-.flip-track.is-spread .icard .ct{margin-top:8px;}
+.flip-track.is-spread .sleeve{min-width:0; margin:0; scroll-snap-align:none;}
+.flip-track.is-spread .icard{height:128px; padding:16px 16px 12px 28px; background-position:18px 0, 0 40px;}
+.flip-track.is-spread .icard .nm{font-size:1.2rem;}
+.flip-track.is-spread .icard .ct{margin-top:12px; line-height:22px;}
+.flip-track.is-spread .icard.project{height:96px; margin-top:12px; padding:16px 14px 12px;}
+.flip-track.is-spread .icard.project .nm{font-size:1.05rem; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.flip-track.is-spread .icard.project .ct{margin-top:12px;}
 .flip-track.is-spread .icard:hover{box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent), 0 14px 26px -14px var(--paper-shadow);}
 /* only the folder wallet has a "picked" card when laid flat; elsewhere a click acts at once, and the in-tray marks its choices with .is-picked */
 .flip-track.is-spread[data-wallet="projects"] .sleeve.is-centre .icard{box-shadow:0 0 0 3px var(--accent), 0 14px 26px -14px var(--paper-shadow);}
@@ -1036,7 +1046,15 @@ body.is-dragging-task .empty-note{display:none;}
   .toast{bottom:calc(16px + env(safe-area-inset-bottom, 0px));}
   #app:has(> .screen){display:block;}
   .screen-focus{padding-top:28px;}
-  .screen{max-width:760px;}
+  /* the work area uses the screen: the cards fill it in an even grid */
+  .screen{max-width:1320px;}
+  /* Sort, laid out like its mockup: the slip (and its quiet links) on the left, the choices on the right */
+  .screen-sort .unsorted-body{display:grid; grid-template-columns:minmax(360px, 440px) minmax(0, 1fr); column-gap:48px; align-items:start;}
+  .screen-sort .tray-side{display:block; position:sticky; top:calc(var(--topbar-h, 64px) + 20px);}
+  .screen-sort .tray-count{text-align:left;}
+  .screen-sort .sort-acts{margin-top:18px;}
+  .screen-sort .jot-slip{min-height:200px;}
+  .screen-sort .slip-text{font-size:calc(1.9rem * var(--note-scale, 1)); line-height:36px;}
 }
 /* ==== end One screen at a time ==== */
 /* words for the screen size: flipping on a phone, clicking on a wide screen (#128) */
@@ -1071,12 +1089,10 @@ body.is-dragging-task .empty-note{display:none;}
 /* ==== end Projects as folders ==== */
 /* the tile's own task list scrolls (.project-body), so the tile need not clip: that would cut off its folder tab */
 @media (min-width:1100px){.view-all .project-card{overflow:visible;}}
-/* the in-tray's folders and flags, laid flat on the Sort screen: small enough to see all at once */
-.tray-wallets .flip-track.is-spread{gap:12px 10px; padding-top:12px;}
-.screen-sort .tray-wallets .flip-track.is-spread .sleeve{flex-basis:124px;}
-.screen-sort .tray-wallets .flip-track.is-spread .icard{height:50px; padding:8px 8px 6px 20px;}
-.screen-sort .tray-wallets .flip-track.is-spread .icard.project{height:46px; margin-top:10px; padding:7px 8px;}
-.screen-sort .tray-wallets .flip-track.is-spread .icard .ct{display:none;}
+/* the in-tray's folders and flags on the Sort screen: full-size cards, a little shorter than the Focus screen's */
+.screen-sort .tray-wallets .flip-track.is-spread{grid-template-columns:repeat(auto-fill, minmax(176px, 1fr));}
+.screen-sort .tray-wallets .flip-track.is-spread .icard{height:84px;}
+.screen-sort .tray-wallets .flip-track.is-spread .icard.project{height:80px;}
 .rail-label{display:block; line-height:1.1;}
 /* laid flat, the line under the wallets says what a click does; a corner hint would sit on the card's counts */
 .flip-track.is-spread .icard .go{display:none;}
