@@ -34,6 +34,26 @@ export function renderSyncButton(st) {
 // The one place errors and notices appear, on every page: pinned to the bottom of the viewport
 // (see .toast) so it's seen wherever the page is scrolled. kind is 'error' or 'info'.
 // See docs/4-systems/styling.md#how-it-works
+// One activity at a time (#135): the screens, and the rail that switches between them (a column
+// on the left on a wide screen, a bar along the bottom on a phone). Adding stays on every screen:
+// it is the jotter in the topbar. See docs/4-systems/styling.md#one-screen-at-a-time
+export const SCREENS = ['focus', 'sort', 'projects'];
+const SCREEN_INFO = {
+  focus: { label: 'Focus', icon: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>' },
+  sort: { label: 'Sort', icon: '<path d="M4 7h16M4 12h10M4 17h6"/>' },
+  projects: { label: 'Projects', icon: '<path d="M3 7h7l2 2h9v10H3z"/>' },
+};
+export function normalizeScreen(value) { return SCREENS.includes(value) ? value : 'focus'; }
+export function renderRail(screen, unsortedCount) {
+  return '<nav class="rail" aria-label="What to do">' + SCREENS.map((key) => {
+    const on = key === screen;
+    const count = key === 'sort' && unsortedCount ? '<b class="rail-count" aria-label="' + unsortedCount + ' to sort">' + unsortedCount + '</b>' : '';
+    return '<button type="button" class="rail-item' + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
+      + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[key].icon + '</svg>' + count + '</span>'
+      + '<span class="rail-label">' + SCREEN_INFO[key].label + '</span></button>';
+  }).join('') + '</nav>';
+}
+
 export function renderToast(text, kind) {
   if (!text) return '';
   const isError = kind === 'error';
@@ -111,8 +131,9 @@ function renderFocusPicker(st, ui) {
     return '<section class="focus-card focus-empty desk-empty">'
       + '<h2 class="focus-q">Your desk is clear.</h2>'
       + (st.projects.length
-        ? '<p class="muted">Nothing is waiting to be picked. Add a task to a project in the list (the Projects button, on a phone), or jot a thought on the pad above and sort it later.</p>'
-        : '<p class="muted">Nothing is waiting to be picked. Make your first folder below and add a task to it, or jot a thought on the pad above and sort it later.</p>')
+        ? '<p class="muted">Nothing is waiting to be picked. Add a task to a folder on the Projects screen, or jot a thought on the pad above and sort it later.</p>'
+        : '<p class="muted">Nothing is waiting to be picked. Make your first folder on the Projects screen and add a task to it, or jot a thought on the pad above and sort it later.</p>')
+      + '<button type="button" class="btn primary" data-action="set-screen" data-screen="projects">Go to Projects</button>'
       + '</section>';
   }
   const mode = focusChoosingMode(st);

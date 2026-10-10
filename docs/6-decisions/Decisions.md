@@ -4,6 +4,21 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-10 — One screen at a time, from a side rail (#135); replaces the two-column desk
+
+The two-column wide-screen desk (#130, the entry below) still put every activity on one screen,
+and the user found it too busy: "the point is to focus on one step at a time". After seeing
+mockups (`docs/generated/one-thing-mockup/`), they chose:
+
+- **The side rail (option B)**, with Focus, Sort and Projects.
+- **Projects shown as the paper folders.** The folders hold the tracking, so there is no separate
+  board.
+- **Sort centred** like Focus.
+- **Adding unchanged:** the jotter stays at the top of every screen.
+
+The `.desk-col` / `.projects-col` layout is removed. The wallets still lie flat on a wide screen,
+and the projects are still paper folders.
+
 ## 2026-10-10 — The desktop is the macro view (#128, #130, #129)
 
 The user found the desktop "drastically less efficient": one card per wallet in a row wide enough

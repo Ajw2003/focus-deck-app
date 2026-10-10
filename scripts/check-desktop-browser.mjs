@@ -1,5 +1,5 @@
 // scripts/check-desktop-browser.mjs -- real-Chromium check of the wide-screen desk (#128, #130, #129)
-// at 1440x900 in dark and light: the desk column beside the projects, the wallets laid flat with every
+// at 1440x900 in dark and light: one screen at a time from the rail (#135), the wallets laid flat with every
 // card showing, one click to pick a folder (the categories narrow), a click on a category draws, the
 // in-tray filed by clicks alone, project folders on paper in both themes, and resizing to a phone
 // width brings the flip-through wallets back (and back again).
@@ -45,7 +45,7 @@ async function open(scheme, viewport = { width: 1440, height: 900 }) {
   const ctx = await browser.newContext({ viewport, colorScheme: scheme, serviceWorkers: 'block' });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => check(`[${scheme}] no page error: ` + e.message, false));
-  await page.addInitScript(([s, k]) => { if (!localStorage.getItem(k)) { localStorage.setItem('focusdeck-onboarding', 'done'); localStorage.setItem(k, JSON.stringify(s)); } }, [seed, STATE_KEY]);
+  await page.addInitScript(([s, k]) => { if (!localStorage.getItem(k)) { localStorage.setItem('focusdeck-onboarding', 'done'); localStorage.setItem('focusdeck-screen', 'focus'); localStorage.setItem(k, JSON.stringify(s)); } }, [seed, STATE_KEY]);
   await page.goto(BASE);
   await page.waitForSelector('.flip-track');
   await page.waitForTimeout(400);
@@ -66,12 +66,13 @@ for (const scheme of ['dark', 'light']) {
   const tag = `[${scheme}]`;
   const { ctx, page } = await open(scheme);
 
-  // layout: the desk beside the projects, nothing sideways
-  const desk = await (await page.$('.desk-col')).boundingBox();
-  const projs = await (await page.$('.projects-col')).boundingBox();
-  check(`${tag} the desk column sits left of the projects, both starting at the top`, desk.x + desk.width <= projs.x && Math.abs(desk.y - projs.y) < 4, JSON.stringify({ desk: Math.round(desk.x + desk.width), projects: Math.round(projs.x) }));
-  const firstFolder = await (await page.$('.project-card')).boundingBox();
-  check(`${tag} the first project folder is on the first screen`, firstFolder.y < 900);
+  // one screen at a time (#135): the rail on the left, Focus alone on its screen
+  const rail = await (await page.$('.rail')).boundingBox();
+  const screen = await (await page.$('.screen-focus')).boundingBox();
+  check(`${tag} the rail sits on the left, beside the Focus screen`, rail.x + rail.width <= screen.x && rail.height < 400, JSON.stringify({ rail: Math.round(rail.x + rail.width), screen: Math.round(screen.x) }));
+  check(`${tag} the Focus screen shows only the picker: no tray, no folders`, !(await page.$('.inbox-card')) && !(await page.$('.project-card')));
+  check(`${tag} the jotter is there`, await page.isVisible('#capture-input'));
+  check(`${tag} Sort shows its count on the rail`, ((await page.$eval('.rail [data-screen="sort"]', (e) => e.textContent)) || '').includes('1'));
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
 
@@ -95,16 +96,25 @@ for (const scheme of ['dark', 'light']) {
   check(`${tag} one click on a category draws from the picked folder`, title === 'Learn the bridge', title);
   await page.screenshot({ path: OUT + `desktop-${scheme}-drawn.png` });
 
-  // project folders are paper in both themes
+  // the Projects screen: the folders, nothing else; paper in both themes
+  await page.click('.rail [data-screen="projects"]');
+  await page.waitForTimeout(300);
+  check(`${tag} Projects shows the folders and the project list, not the picker or the tray`, (await page.$$('.project-card')).length === 5 && !!(await page.$('.project-sidebar')) && !(await page.$('.focus-card')) && !(await page.$('.inbox-card')));
+  await page.screenshot({ path: OUT + `desktop-${scheme}-projects.png` });
   const bg = await page.$eval('.project-card', (e) => getComputedStyle(e).backgroundColor);
   check(`${tag} project folders are paper (light) in this theme too`, bg === 'rgb(251, 250, 247)', bg);
+  await page.reload();
+  await page.waitForTimeout(300);
+  check(`${tag} the chosen screen is remembered after a reload`, !!(await page.$('.rail [data-screen="projects"][aria-current="page"]')));
   await ctx.close();
 }
 
 // the in-tray by clicks alone
 {
   const { ctx, page } = await open('dark');
-  await page.$eval('.inbox-card', (e) => e.scrollIntoView());
+  await page.click('.rail [data-screen="sort"]');
+  await page.waitForTimeout(300);
+  check('Sort: its own screen, the tray alone', !!(await page.$('.screen-sort .inbox-card')) && !(await page.$('.focus-card')) && !(await page.$('.project-card')));
   await click(page, 'tray-folders', 'p1');
   await click(page, 'tray-flags', 'c1');
   check('in-tray: a click picks the folder and one sticks a flag', ((await page.$eval('.slip-dest', (e) => e.textContent)) || '').includes('School') && (await page.$$('.slip-flag')).length === 1);
@@ -123,8 +133,8 @@ for (const scheme of ['dark', 'light']) {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(500);
   check('narrowed to a phone: the wallets flip again', !(await page.$('.flip-track.is-spread')) && (await visibleCards(page, 'projects')) < (await keys(page, 'projects')).length);
-  const stacked = await page.evaluate(() => { const d = document.querySelector('.desk-col').getBoundingClientRect(), p = document.querySelector('.projects-col').getBoundingClientRect(); return p.top >= d.bottom - 1; });
-  check('narrowed to a phone: the projects stack under the desk', stacked);
+  const bar = await page.evaluate(() => { const r = document.querySelector('.rail').getBoundingClientRect(); return { bottom: Math.round(r.bottom), width: Math.round(r.width) }; });
+  check('narrowed to a phone: the rail becomes a bar along the bottom', bar.bottom === 844 && bar.width === 390, JSON.stringify(bar));
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.waitForTimeout(500);
   check('widened again: laid flat again', (await page.$$('.flip-track.is-spread')).length >= 2);

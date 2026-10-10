@@ -193,7 +193,7 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   // nothing open: the empty desk says what to do next
   const empty = mk(null, [task('x1', { status: 'done' })]);
   const emptyHtml = renderFocus(empty, () => null, { focusFilter: {} });
-  assert.ok(emptyHtml.includes('desk-empty') && emptyHtml.includes('Add a task to a project') && emptyHtml.includes('jot a thought'), 'the empty desk names the next step');
+  assert.ok(emptyHtml.includes('desk-empty') && emptyHtml.includes('Add a task to a folder on the Projects screen') && emptyHtml.includes('data-action="set-screen" data-screen="projects"') && emptyHtml.includes('jot a thought'), 'the empty desk names the next step');
 }
 
 // wide-screen project sidebar: search, category pills, sort, and a row per visible project that jumps to it
@@ -442,3 +442,16 @@ assert.strictEqual(chipsMaxPct('x'.repeat(60)), 40, 'a 60-character title caps t
 assert.strictEqual(chipsMaxPct('x'.repeat(200)), 33, 'however long the title, the chips can still have a third');
 assert.strictEqual(chipsMaxPct(''), 50, 'an empty title is treated as short');
 assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds: [] }, { id: 'p1' }, [], { editingTask: null }).includes('style="--chips-max:50%"'), 'the row carries its chips ceiling');
+
+// One screen at a time (#135): the rail lists Focus, Sort (with its count) and Projects, marks the
+// current one, and anything unknown reads as Focus.
+{
+  const { renderRail, normalizeScreen } = await import('./render.js');
+  const rail = renderRail('sort', 2);
+  assert.deepStrictEqual([...rail.matchAll(/data-screen="([a-z]+)"/g)].map((m) => m[1]), ['focus', 'sort', 'projects'], 'three screens, in order');
+  assert.ok(/data-screen="sort" aria-current="page"/.test(rail), 'the current screen is marked');
+  assert.ok(rail.includes('>2</b>'), 'Sort shows how many are waiting');
+  assert.ok(!renderRail('focus', 0).includes('rail-count'), 'no count when the tray is empty');
+  assert.strictEqual(normalizeScreen('board'), 'focus');
+  assert.strictEqual(normalizeScreen('projects'), 'projects');
+}

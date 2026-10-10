@@ -51,6 +51,8 @@ async function open(mode) {
   }, [seed, mode]);
   await page.goto(BASE);
   await page.waitForSelector('.flip-track');
+  // the Focus screen alone can fit a phone (#135); the scroll checks need a page taller than the window
+  await page.evaluate(() => { document.querySelector('.wrap').style.paddingBottom = '1400px'; });
   await page.waitForTimeout(400);
   return { ctx, page };
 }

@@ -51,7 +51,7 @@ async function open(storage = {}, path = '') {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, serviceWorkers: 'block' });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => check('no page error: ' + e.message, false));
-  await page.addInitScript((entries) => { for (const [k, v] of entries) if (localStorage.getItem(k) === null) localStorage.setItem(k, v); }, Object.entries({ 'focusdeck-onboarding': 'done', [STATE_KEY]: JSON.stringify(seed), ...storage }));
+  await page.addInitScript((entries) => { for (const [k, v] of entries) if (localStorage.getItem(k) === null) localStorage.setItem(k, v); }, Object.entries({ 'focusdeck-onboarding': 'done', 'focusdeck-screen': 'sort', [STATE_KEY]: JSON.stringify(seed), ...storage }));
   await page.goto(BASE + path);
   await page.waitForTimeout(400);
   return { ctx, page };
@@ -101,6 +101,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 // 2. In the task editor: Home's labels, ticked ones, then Show all
 {
   const { ctx, page } = await open();
+  await page.click('.rail [data-screen="projects"]');
   await page.click('.task-title[data-task="h2"]');
   await page.waitForSelector('.task-edit-form .label-picker');
   await page.click('.task-edit-form .label-picker summary');
@@ -127,6 +128,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   await page.waitForSelector('[data-wallet="tray-folders"]');
   await chooseFolder(page, 'pHome');
   check('off: Home offers every category, no More card', (await flagKeys(page)).length === kinds.length + 6);
+  await page.click('.rail [data-screen="projects"]');
   await page.click('.task-title[data-task="h1"]');
   await page.waitForSelector('.task-edit-form');
   check('off: the editor has no Show all', !(await page.$('.task-edit-form [data-action="label-show-all"]')));

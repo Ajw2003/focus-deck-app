@@ -124,7 +124,20 @@ function focusLater(selector) {
   requestAnimationFrame(() => { const el = document.querySelector(selector); if (el) el.focus(); });
 }
 
+// Which screen shows (#135), remembered on this device like the minimised projects.
+const SCREEN_KEY = 'focusdeck-screen';
+function loadScreen() {
+  try { return R.normalizeScreen(localStorage.getItem(SCREEN_KEY)); }
+  catch (e) { console.error('Could not read the screen:', e); return 'focus'; }
+}
+function setScreen(screen) {
+  ui.screen = R.normalizeScreen(screen);
+  try { localStorage.setItem(SCREEN_KEY, ui.screen); }
+  catch (e) { console.error('Could not save the screen:', e); }
+}
+
 export const ui = {
+  screen: loadScreen(),
   onboarding: loadOnboarding(),
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
@@ -218,13 +231,16 @@ export function renderApp(st) {
   // stays selected in the "One" view even if a search or category filter hides it from the list.
   ui.selectedProjectId = resolveSelectedProject(st.projects, ui.selectedProjectId);
   const hasToken = !!getToken();
-  return R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
+  // one activity at a time (#135): the rail, then only the chosen screen
+  const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length);
+  const toast = R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
+  if (ui.screen === 'focus') return rail + '<div class="screen screen-focus">' + R.renderFocus(st, findTaskWithProject, ui) + '</div>' + toast;
+  // the Sort screen is the tray, always open (its header can't fold it away here)
+  if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
+  return rail + R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
     + '<div class="main-col view-' + ui.projectView + '">'
-      // a wide screen lays these two side by side: the desk (pick and sort) and the projects (#130)
-      + '<div class="desk-col">' + R.renderFocus(st, findTaskWithProject, ui) + renderInTrayCard(st, ui) + '</div>'
-      + '<div class="projects-col">' + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken) + '</div>'
-    + '</div>'
-    + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
+      + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken)
+    + '</div>' + toast;
 }
 
 // The topbar's sync button and Projects toggle live outside #app (see index.html), so paint()
@@ -381,6 +397,13 @@ function onAppClick(e) {
     el.remove();
     return;
   }
+  if (action === 'set-screen') {
+    setScreen(el.getAttribute('data-screen'));
+    if (ui.projectsDrawerOpen) ui.projectsDrawerOpen = false;
+    paint();
+    window.scrollTo(0, 0);
+    return;
+  }
   if (action === 'start-new-project') { openFirstProjectPanel(); return; }
   if (action === 'unsorted-file' || action === 'unsorted-save') {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
@@ -497,7 +520,11 @@ function onAppClick(e) {
   else if (action === 'scroll-project') scrollToProject(projectId);
   else if (action === 'sync-github') manualSyncGithub();
   // with no projects there is no list to open yet: go to making the first one instead
-  else if (action === 'toggle-projects-drawer') { if (state.projects.length) setProjectsDrawerOpen(!ui.projectsDrawerOpen); else openFirstProjectPanel(); }
+  // the project list lives on the Projects screen: the button goes there first
+  else if (action === 'toggle-projects-drawer') {
+    if (ui.screen !== 'projects') setScreen('projects');
+    if (state.projects.length) setProjectsDrawerOpen(!ui.projectsDrawerOpen); else openFirstProjectPanel();
+  }
   else if (action === 'close-projects-drawer') { setProjectsDrawerOpen(false); }
   else if (action === 'edit-task') { ui.editingTask = { taskId, projectId }; paint(); scrollOpenedFormIntoView('.task-edit-form'); }
   else if (action === 'cancel-task-edit') { ui.editingTask = null; paint(); }
@@ -1009,6 +1036,7 @@ function scrollOpenedFormIntoView(selector) {
 // project chip, and any other scroll-project source all branch here.
 function scrollToProject(projectId) {
   if (!state.projects.some((p) => p.id === projectId)) return;
+  if (ui.screen !== 'projects') setScreen('projects'); // the folders are on the Projects screen (#135)
   if (ui.projectsDrawerOpen) setProjectsDrawerOpen(false);
   if (ui.projectView === 'one') {
     ui.selectedProjectId = projectId;
@@ -1059,6 +1087,7 @@ function init() {
   // Settings' checklist links here to link a first GitHub repo (#126): open "+ New" on its repo tab
   const params = new URLSearchParams(location.search);
   if (params.get('new') === 'repo') {
+    setScreen('projects'); // the project list, and its + New panel, are on the Projects screen (#135)
     ui.newPanelOpen = true;
     ui.newPanelTab = 'repo';
     if (state.projects.length && !isWideScreen()) ui.projectsDrawerOpen = true;
