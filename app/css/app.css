@@ -35,6 +35,7 @@
   --rule:#C3CEDD;
   --paper-shadow:rgba(40,52,80,.35);
   --hole:var(--bg);
+  --folder:#F1E6CC;
   --note:#FFE27A;
   --note-fold:#E2C055;
   --note-ink:#2B2412;
@@ -333,8 +334,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 .chip.priority-chip.small{font-size:var(--text-sm); padding:3px 8px;}
 .chip.priority-chip:disabled{opacity:.5; cursor:default;}
 .focus-actions{display:flex; flex-wrap:wrap; gap:10px;}
-/* focus picker: project pills, then label cards that reuse .energy-btn; two across on a phone */
-.focus-scope{margin:-4px 0 14px;}
+/* Unsorted flow pills (the focus picker itself is the wallets, below). */
 /* focus picker pills for labels match their chip's colour: tinted in it; chosen = a ring. Project
    pills (no --chip-color set) stay a plain .filter-pill with a .proj-dot instead. */
 .filter-pill.tint-pill{border-color:transparent; background:color-mix(in srgb, var(--chip-color) 18%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink));}
@@ -342,7 +342,6 @@ button.chip.proj-chip:hover{background:var(--line);}
 .filter-pill.focus-more-pill{background:none; border-style:dashed; color:var(--ink-faint);}
 @media (max-width:560px){.energy-grid.focus-grid{grid-template-columns:1fr 1fr;}}
 .focus-grid .energy-label{overflow-wrap:anywhere;}
-.focus-links{display:flex; flex-wrap:wrap; gap:4px 18px;}
 .energy-btn.selected{background:color-mix(in srgb, var(--chip-color) 16%, var(--surface-2)); box-shadow:inset 0 0 0 2px var(--chip-color);}
 .sort-head{display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-start; gap:4px 10px; margin-bottom:10px;}
 .sort-title{font-size:var(--text-h); font-style:normal; margin:4px 0 14px;}
@@ -350,8 +349,6 @@ button.chip.proj-chip:hover{background:var(--line);}
 .sort-kinds{margin-bottom:14px;}
 .sort-labels{margin-bottom:12px;}
 .sort-new{width:100%; padding:9px 12px; margin-bottom:14px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
-.focus-surprise{display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; margin-top:18px; padding-top:16px; border-top:1px solid var(--line);}
-.focus-empty .focus-surprise .muted{margin:0;} /* beats .focus-empty .muted's paragraph spacing */
 .btn{border-radius:var(--r-control); padding:10px 18px; font-weight:600; border:1px solid var(--line); background:var(--surface-2);}
 .btn.primary{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
 .btn.ghost:hover{background:var(--surface-2);}
@@ -737,3 +734,45 @@ body.is-dragging-task .empty-note{display:none;}
 }
 .move-dialog-text{margin:0 0 16px; line-height:1.5; overflow-wrap:anywhere;}
 .move-dialog-actions{display:flex; justify-content:flex-end; align-items:center; gap:8px;}
+
+/* Wallets (#120): the focus picker's two strips of cards that turn away like CD sleeves. Projects are
+   manila folders, categories are ruled index cards. Tilt and brightness are set inline by js/wallet.js;
+   the rest is here. Paper stays paper in both themes. See docs/4-systems/wallets.md */
+.choosing-modes{border:0; padding:0; margin:0 0 6px;}
+.wallet-root{overflow:hidden;}
+.wallet{margin-top:4px;}
+.wallet-h{display:flex; justify-content:space-between; align-items:baseline; margin-top:6px;}
+.wallet-h .q{font-weight:700; font-size:var(--text-body);}
+.focus-empty .wallet-count{margin:0; display:inline;}
+.wallet-count{font-variant-numeric:tabular-nums;}
+.flip{position:relative; margin:-4px -18px 0;}
+.flip-track{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; padding:34px 0 16px; margin-top:-20px; scrollbar-width:none; overscroll-behavior-x:contain; outline:none; touch-action:pan-x pan-y;}
+.flip-track.swipe-mode{touch-action:pan-x;}
+.flip-track::-webkit-scrollbar{display:none;}
+.flip-track:focus-visible{box-shadow:inset 0 0 0 2px var(--accent); border-radius:14px;}
+/* Sleeves overlap by 7% each side, so the pads are wider by the same amount to keep the end cards centred. */
+.flip-pad{flex:0 0 34%;}
+.sleeve{flex:0 0 46%; margin-inline:-7%; scroll-snap-align:center; display:flex; justify-content:center; position:relative; transition:transform .22s ease, opacity .22s ease;}
+.sleeve.is-centre{z-index:20;}
+.icard{width:100%; height:132px; border-radius:6px; background-color:var(--paper); color:var(--paper-ink); position:relative; cursor:pointer; border:0; text-align:left; font:inherit;
+  padding:12px 12px 10px 24px; box-shadow:0 14px 26px -14px var(--paper-shadow); will-change:transform; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+  background-image:linear-gradient(#C9584F, #C9584F), repeating-linear-gradient(transparent 0 21px, var(--rule) 21px 22px);
+  background-size:1.5px 100%, 100% 100%; background-position:15px 0, 0 34px; background-repeat:no-repeat; border-top:6px solid var(--c); transition:box-shadow .2s ease;}
+.icard:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+.icard .nm{font-family:var(--font-paper); font-weight:700; font-size:1.1rem; letter-spacing:-0.01em; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.icard .ct{font-family:var(--font-paper-small); font-size:var(--text-sm); color:var(--paper-soft); display:block; margin-top:12px; line-height:22px;}
+.icard .go{position:absolute; right:10px; bottom:8px; font-family:var(--font-paper-small); font-size:var(--text-sm); font-weight:700; color:var(--paper-ink); opacity:0; transition:opacity .2s;}
+.sleeve.is-centre .icard .go{opacity:1;}
+.sleeve.is-armed{transform:translateY(-10px);}
+.sleeve.is-armed .icard{box-shadow:0 0 0 3px var(--accent), 0 18px 28px -14px var(--paper-shadow);}
+.sleeve.is-lifting{transition:none;}
+.sleeve.is-nudge{animation:wallet-nudge .5s ease;}
+@keyframes wallet-nudge{30%{transform:translateY(-14px);} 60%{transform:translateY(0);} 80%{transform:translateY(-5px);}}
+.flip-hint{text-align:center; font-size:var(--text-sm); color:var(--ink-soft); margin-top:-6px; min-height:1.2em;}
+/* Manila folders for projects: a coloured folder, a tab, and a white label sticker. */
+.icard.project{height:90px; margin-top:10px; border-top:0; border-radius:3px 8px 8px 8px; padding:14px 12px 10px; color:#1D2733;
+  background-color:color-mix(in srgb, var(--c) 55%, var(--folder)); background-image:linear-gradient(rgba(255,255,255,.16), rgba(0,0,0,.06)); background-size:auto; background-position:0 0;}
+.icard.project::before{content:""; position:absolute; left:0; top:-11px; width:50%; height:12px; border-radius:6px 10px 0 0; background-color:color-mix(in srgb, var(--c) 55%, var(--folder));}
+.icard.project .nm{display:inline-block; max-width:100%; vertical-align:top; background:#FFFEFA; padding:1px 8px; border-radius:2px; box-shadow:0 1px 0 rgba(0,0,0,.14); font-size:1rem;}
+.icard.project .ct{color:#3F4A57; margin-top:10px; line-height:1.2;}
+@media (prefers-reduced-motion: reduce){.icard{transform:none !important;} .sleeve{transition:none;} .sleeve.is-nudge{animation:none;}}

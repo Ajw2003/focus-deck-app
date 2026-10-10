@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node app/js/render.test.mjs
-import { renderTaskRow, chipsMaxPct, renderToast, renderFocus, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderTaskRow, chipsMaxPct, renderToast, renderFocus, renderCategoryWalletInner, renderTaskEditForm, renderInbox, unsortedQueue, unsortedCurrent, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderSyncButton, syncButtonTitle } from './render.js';
 import assert from 'node:assert';
 
 // the top-bar sync button: title/aria-label branch on whether it's ever synced, and it spins +
@@ -74,7 +74,7 @@ assert.ok(row({ priority: 'urgent' }).includes('class="chip priority-chip small"
 assert.ok(!row({ priority: null }).includes('priority-chip'), 'an open task with no priority shows no placeholder chip -- priority is set from the edit form');
 assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with the energy system');
 
-// focus picker: one card per label with open tasks, busiest first, then a separate "Surprise me"; project pills narrow it
+// focus picker (#120): a wallet of folders (projects) and a wallet of index cards (categories)
 {
   const task = (id, cats, extra) => ({ id, title: id, status: 'next', categoryIds: cats, ...extra });
   const st = {
@@ -85,34 +85,32 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
       { id: 'pB', name: 'Chores', color: 'hsl(140 58% 40%)', tasks: [task('b1', ['c_chore', 'c_art'])] },
     ],
   };
+  const keys = (html, wallet) => {
+    const track = html.slice(html.indexOf('data-wallet="' + wallet + '"'));
+    const end = track.indexOf('<div class="flip-pad"></div></div>', 10);
+    return [...track.slice(0, end).matchAll(/class="sleeve" data-key="([^"]*)"/g)].map((m) => m[1]);
+  };
   const html = renderFocus(st, () => null, { focusFilter: {} });
-  const cards = [...html.matchAll(/data-action="pick-focus" data-category="([^"]*)"/g)].map((m) => m[1]);
-  assert.deepStrictEqual(cards, ['c_art', 'c_chore', ''], 'label cards busiest first, labels with nothing open left out, "Surprise me" last');
-  assert.ok(/<div class="focus-surprise"><button type="button" class="btn primary" data-action="pick-focus" data-category=""[^>]*>Surprise me<\/button>/.test(html), '"Surprise me" is its own accent button, not a card');
-  assert.ok(html.indexOf('focus-grid') < html.indexOf('focus-surprise') && !html.slice(html.indexOf('focus-grid'), html.indexOf('focus-surprise')).includes('>Surprise me<'), '"Surprise me" sits outside the card grid');
-  assert.ok(!html.includes('>Anything<'), 'there is no "Anything" card any more');
-  assert.ok(html.includes('>3 open · 1 urgent · 2 projects<'), 'a card says how many are open, the most pressing priority, and across how many projects');
-  assert.ok(html.includes('class="filter-pill active" data-action="set-focus-scope" data-scope="">All projects<'), '"All projects" is chosen by default');
-  assert.ok(html.includes('class="filter-pill" data-action="set-focus-scope" data-scope="pB"><span class="proj-dot" style="--dot:hsl(140 58% 40%)"></span>Chores<'), 'a project pill is neutral, with a colour dot for the project\'s identity');
-  assert.ok(!html.includes('<select'), 'no dropdowns in the picker');
+  assert.deepStrictEqual(keys(html, 'categories'), ['c_art', 'c_chore', 'any'], 'category cards busiest first, labels with nothing open left out, "Surprise me" last');
+  assert.deepStrictEqual(keys(html, 'projects'), ['all', 'pA', 'pB'], 'All projects first, then the folders busiest first');
+  assert.ok(html.includes('data-wallet="projects" data-mode="twice" data-facing="all"'), 'the folder wallet faces All projects by default, in the default choosing mode (tap twice)');
+  assert.ok(html.includes('data-wallet="categories" data-mode="twice" data-facing="c_art"'), 'the category wallet faces its first card');
+  assert.ok(html.includes('>3 open · top: Urgent · 2 projects<'), 'a card says how many are open, the highest priority present, and across how many projects');
+  assert.ok(!html.includes('<select') && !html.includes('data-action="pick-focus"'), 'no dropdowns, and no per-card action: the wallets choose');
+  assert.ok(!html.includes('more<') && !html.includes('Show all'), 'no "+N more" or "Show all N labels": the wallets scroll through everything');
   const narrowed = renderFocus(st, () => null, { focusFilter: { projectId: 'pB' } });
-  assert.ok(narrowed.includes('>1 open<') && !narrowed.includes('2 projects'), 'a chosen project narrows the counts');
-  assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('class="filter-pill active" data-action="set-focus-scope" data-scope="">All projects<'), 'a remembered project that no longer exists falls back to All projects');
-
-  // Project mode was removed: a remembered mode: 'project' still renders the Type view
-  const oldMode = renderFocus(st, () => null, { focusFilter: { mode: 'project' } });
-  assert.ok(!oldMode.includes('focus-mode') && oldMode.includes('data-category="c_art"') && oldMode.includes('>All projects<'), 'only the Type view renders, even for a remembered Project mode');
-  // project pills collapse to the busiest six, with a "+N more" pill that expands them
-  const manyProjects = { ...st, projects: Array.from({ length: 9 }, (_, i) => ({ id: 'p' + i, name: 'project-with-a-long-name-' + i, color: '#123456', tasks: Array.from({ length: 9 - i }, (_, j) => task('t' + i + '_' + j, ['c_art'])) })) };
-  const collapsed = renderFocus(manyProjects, () => null, { focusFilter: {} });
-  assert.strictEqual((collapsed.match(/data-action="set-focus-scope"/g) || []).length, 7, 'All projects plus the six busiest projects');
-  assert.ok(collapsed.includes('data-action="toggle-focus-projects">+3 more<'), 'a "+N more" pill counts the hidden projects');
-  assert.ok(!collapsed.includes('>project-with-a-long-name-8<'), 'the least busy project is hidden until expanded');
-  const chosenHidden = renderFocus(manyProjects, () => null, { focusFilter: { projectId: 'p8' } });
-  assert.ok(chosenHidden.includes('class="filter-pill active" data-action="set-focus-scope" data-scope="p8"'), 'the chosen project always shows, even if it would be hidden');
-  const expanded = renderFocus(manyProjects, () => null, { focusFilter: {}, focusShowAllProjects: true });
-  assert.strictEqual((expanded.match(/data-action="set-focus-scope"/g) || []).length, 10, 'expanded: every project gets a pill, with its full name');
-  assert.ok(expanded.includes('data-action="toggle-focus-projects">Show fewer<'), 'expanded pills offer Show fewer');
+  assert.ok(narrowed.includes('data-wallet="projects" data-mode="twice" data-facing="pB"'), 'the remembered folder faces you');
+  assert.ok(narrowed.includes('>1 open<') && !narrowed.includes('2 projects'), 'the facing folder narrows the counts');
+  assert.deepStrictEqual(keys(narrowed, 'categories'), ['c_art', 'c_chore', 'any'], 'and the index cards to that project');
+  assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('data-wallet="projects" data-mode="twice" data-facing="all"'), 'a remembered project that no longer exists falls back to All projects');
+  assert.ok(renderFocus(st, () => null, { focusFilter: {}, focusCategory: 'c_chore' }).includes('data-wallet="categories" data-mode="twice" data-facing="c_chore"'), 'the facing category is kept across a repaint');
+  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'swipe' } }, () => null, { focusFilter: {} }).includes('data-mode="swipe"'), 'the Choosing a card setting is written into the markup');
+  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'junk' } }, () => null, { focusFilter: {} }).includes('data-mode="twice"'), 'an unknown mode reads as the default');
+  // every project is in the wallet however many there are (it scrolls)
+  const many = { ...st, projects: Array.from({ length: 9 }, (_, i) => ({ id: 'p' + i, name: 'project-' + i, color: '#123456', tasks: [task('t' + i, ['c_art'])] })) };
+  assert.strictEqual(keys(renderFocus(many, () => null, { focusFilter: {} }), 'projects').length, 10, 'All projects plus all nine folders');
+  // the category wallet renders alone for a project flip
+  assert.ok(renderCategoryWalletInner(st, { focusFilter: { projectId: 'pB' } }).includes('data-wallet="categories"') && !renderCategoryWalletInner(st, { focusFilter: {} }).includes('data-wallet="projects"'), 'the category wallet slot renders on its own');
 }
 
 // unlabelled tasks: the focus picker keeps its Unlabelled card but no longer links to a sort flow
@@ -124,7 +122,7 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
     projects: [{ id: 'pA', name: 'PlunderSpell', color: 'red', tasks: [task('a1', ['c_art']), task('u1', []), task('u2', [], { priority: 'urgent' }), task('u3', [], { status: 'done' })] }],
   };
   const picker = renderFocus(st, () => null, { focusFilter: {} });
-  assert.ok(picker.includes('data-category="__none__"') && picker.includes('>Unlabelled<') && picker.includes('>2 open · 1 urgent<'), 'an Unlabelled card counts open tasks with no label');
+  assert.ok(picker.includes('data-key="__none__"') && picker.includes('>Unlabelled<') && picker.includes('>2 open · top: Urgent<'), 'an Unlabelled card counts open tasks with no label');
   assert.ok(!picker.includes('start-sort'), 'the old "Sort N unlabelled" link is gone -- the Unsorted card below handles it now');
   const noneLeft = { ...st, projects: [{ id: 'pA', name: 'P', color: 'red', tasks: [task('a1', ['c_art'])] }] };
   assert.ok(!renderFocus(noneLeft, () => null, { focusFilter: {} }).includes('Unlabelled'), 'no Unlabelled card when every task has a label');

@@ -8,6 +8,7 @@ import { persist } from './sync.js';
 import { ensureSortOrder } from './project-filter.js';
 import { ensureTaskSortOrder } from './task-move.js';
 import { DEFAULT_DUE_DEFAULTS } from './due-stage.js';
+import { CHOOSING_MODES } from './wallet.js';
 export { persist };
 
 // categoryId was previously discarded here (the add-project form's submit handler was calling
@@ -319,6 +320,15 @@ export function setDueDefaults(yellowPct, redPct) {
   const y = Number(yellowPct), r = Number(redPct);
   if (!(y > 0 && y < 100 && r > 0 && r < 100 && r < y)) return false;
   state.dueDefaults = { yellowPct: y, redPct: r, updatedAt: Date.now() };
+  persist();
+  return true;
+}
+
+// Settings > Choosing a card. Stamped here like dueDefaults (js/merge.js picks the newer stamp).
+// Returns false for a mode the wallets do not know.
+export function setChoosingMode(mode) {
+  if (!CHOOSING_MODES.includes(mode)) return false;
+  state.choosingMode = { mode, updatedAt: Date.now() };
   persist();
   return true;
 }

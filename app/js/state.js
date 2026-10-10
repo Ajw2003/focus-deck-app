@@ -3,6 +3,7 @@ import { mergeStates, stampChanges } from './merge.js';
 import { ensureSortOrder } from './project-filter.js';
 import { ensureTaskSortOrder } from './task-move.js';
 import { dueStage, DEFAULT_DUE_DEFAULTS } from './due-stage.js';
+import { DEFAULT_CHOOSING_MODE, normalizeChoosingMode } from './wallet.js';
 import { ICON_DUE_RED } from './icons.js';
 
 // Priority, most urgent first. githubLabel is the label Focus Deck writes; color is its GitHub hex.
@@ -47,6 +48,8 @@ function defaultState() {
     // Settings > Due dates: the percentage cut-offs for the stage colours. updatedAt is its own
     // stamp (this is not a record in a list), used by mergeStates: newest wins.
     dueDefaults: Object.assign({}, DEFAULT_DUE_DEFAULTS, { updatedAt: 0 }),
+    // Settings > Choosing a card: how the focus wallets pick (swipe / tap / twice). Stamped like dueDefaults.
+    choosingMode: { mode: DEFAULT_CHOOSING_MODE, updatedAt: 0 },
   };
 }
 
@@ -128,6 +131,9 @@ function withDefaults(parsed) {
     pinnedRepos: Array.isArray(parsed.pinnedRepos) ? parsed.pinnedRepos : d.pinnedRepos,
     excludedIssues: Array.isArray(parsed.excludedIssues) ? parsed.excludedIssues : d.excludedIssues,
     dueDefaults: parsed.dueDefaults && typeof parsed.dueDefaults === 'object' ? Object.assign({}, d.dueDefaults, parsed.dueDefaults) : d.dueDefaults,
+    choosingMode: parsed.choosingMode && typeof parsed.choosingMode === 'object'
+      ? { mode: normalizeChoosingMode(parsed.choosingMode.mode), updatedAt: Number(parsed.choosingMode.updatedAt) || 0 }
+      : d.choosingMode,
   });
 }
 

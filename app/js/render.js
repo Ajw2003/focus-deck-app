@@ -4,6 +4,7 @@ import { ICON_SYNC, ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from
 import { sortTasks } from './task-move.js';
 import { leadChoices, suggestLead, normalizeDueDefaults } from './due-stage.js';
 import { phaseClasses } from './focus-complete.js';
+import { normalizeChoosingMode, CHOOSING_MODE_INFO } from './wallet.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -42,16 +43,68 @@ export function renderToast(text, kind) {
     + '</div>';
 }
 
-// The focus pick: one big card per label (task type), narrowed by project pills. One tap on a card
-// picks a random open task from it. Cards reuse the old energy buttons' look (colour on the top
-// edge). A Project mode (cards = projects) existed briefly and was removed on 2026-09-26.
-// See docs/4-systems/styling.md#focus-picker
-const FOCUS_CARDS_SHOWN = 6;
-const FOCUS_PILLS_SHOWN = 6;
-function renderFocusPicker(st, ui) {
+// The focus picker: two wallets (js/wallet.js). Projects are manila folders; categories are index
+// cards, narrowed to the project facing you. Why and how: docs/4-systems/wallets.md
+export const ALL_PROJECTS_KEY = 'all';
+export const ANY_CATEGORY_KEY = 'any';
+
+// A remembered project that no longer exists counts as "All projects", which is what shows.
+export function focusProjectId(st, ui) {
   const f = (ui && ui.focusFilter) || {};
-  // a remembered project that no longer exists counts as "All projects", which is what shows
-  const projectId = st.projects.some((p) => p.id === f.projectId) ? f.projectId : null;
+  return st.projects.some((p) => p.id === f.projectId) ? f.projectId : null;
+}
+
+function openWhere(st, catId, projId) {
+  const out = [];
+  st.projects.forEach((p) => {
+    if (projId && p.id !== projId) return;
+    p.tasks.forEach((t) => { if (t.status !== 'done' && (!catId || (t.categoryIds || []).includes(catId))) out.push({ t, p }); });
+  });
+  return out;
+}
+
+// One card in a wallet. `key` is what the hooks in js/app.js get back; `speak` is read aloud when
+// the card comes to face you.
+function sleeve({ key, name, color, detail, speak, kind }) {
+  return '<div class="sleeve" data-key="' + esc(key) + '" data-speak="' + esc(speak) + '">'
+    + '<button type="button" tabindex="-1" class="icard' + (kind ? ' ' + kind : '') + '" style="--c:' + color + '">'
+    + '<span class="nm">' + esc(name) + '</span><span class="ct">' + esc(detail) + '</span><span class="go"></span></button></div>';
+}
+
+// The strip itself. `facing` goes in the markup as data-facing so a repaint puts the same card in
+// the middle again; js/wallet.js reads it, and the data-mode, when it mounts.
+function walletInner({ wallet, label, aria, items, facing, mode }) {
+  return '<div class="wallet-h"><div class="q">' + label + '</div><span class="wallet-count muted small"></span></div>'
+    + '<div class="flip"><div class="flip-track' + (mode === 'swipe' ? ' swipe-mode' : '') + '" tabindex="0" role="group" aria-label="' + esc(aria) + '" data-wallet="' + wallet + '" data-mode="' + mode + '" data-facing="' + esc(facing) + '">'
+    + '<div class="flip-pad"></div>' + items.join('') + '<div class="flip-pad"></div></div></div>';
+}
+
+export function focusChoosingMode(st) {
+  return normalizeChoosingMode(st.choosingMode && st.choosingMode.mode);
+}
+
+// The category wallet's contents (header and strip). Re-rendered on its own when the project
+// wallet flips, so the project wallet's scroll animation is not cut off by a whole repaint.
+export function renderCategoryWalletInner(st, ui) {
+  const projectId = focusProjectId(st, ui);
+  const labels = st.categories.map((c) => ({ id: c.id, name: formatLabelName(c.name), color: mutedChip(c.color), matches: openWhere(st, c.id, projectId) }))
+    .filter((x) => x.matches.length)
+    .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
+  // Tasks with no label get their own card (neutral colour), and "Surprise me" (no type at all) is the last card.
+  const unlabelled = openWhere(st, null, projectId).filter(({ t }) => !(t.categoryIds || []).length);
+  if (unlabelled.length) labels.push({ id: UNLABELLED, name: 'Unlabelled', color: 'var(--ink-faint)', matches: unlabelled });
+  labels.push({ id: ANY_CATEGORY_KEY, name: 'Surprise me', color: 'var(--accent)', matches: openWhere(st, null, projectId) });
+  const cards = labels.map((x) => {
+    const detail = focusCardDetail(x.matches, !projectId);
+    return sleeve({ key: x.id, name: x.name, color: x.color, detail, speak: x.name + ', ' + detail });
+  });
+  const wanted = ui && ui.focusCategory;
+  const facing = labels.some((x) => x.id === wanted) ? wanted : labels[0].id;
+  return walletInner({ wallet: 'categories', label: 'Category', aria: 'Categories. Arrow keys flip, Enter chooses.', items: cards, facing, mode: focusChoosingMode(st) });
+}
+
+function renderFocusPicker(st, ui) {
+  const projectId = focusProjectId(st, ui);
   if (!st.projects.some((p) => p.tasks.some((t) => t.status !== 'done'))) {
     // an empty desk, with the next step spelled out (a project can be added from the list; a stray
     // thought can go on the jotter above and be sorted later)
@@ -60,66 +113,34 @@ function renderFocusPicker(st, ui) {
       + '<p class="muted">Nothing is waiting to be picked. Add a task to a project in the list (the Projects button, on a phone), or jot a thought on the pad above and sort it later.</p>'
       + '</section>';
   }
-  const openWhere = (catId, projId) => {
-    const out = [];
-    st.projects.forEach((p) => {
-      if (projId && p.id !== projId) return;
-      p.tasks.forEach((t) => { if (t.status !== 'done' && (!catId || (t.categoryIds || []).includes(catId))) out.push({ t, p }); });
-    });
-    return out;
-  };
-  const labels = st.categories.map((c) => ({ id: c.id, name: c.name, color: c.color, matches: openWhere(c.id, projectId) }))
-    .filter((x) => x.matches.length)
+  const mode = focusChoosingMode(st);
+  // Folders: All projects first, then busiest first. A project with nothing open is left out unless it is the one facing you.
+  const projects = st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, matches: openWhere(st, null, p.id) }))
+    .filter((x) => x.matches.length || x.id === projectId)
     .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
-  const showAllLabels = !!(ui && ui.focusShowAll);
-  const shownLabels = showAllLabels ? labels : labels.slice(0, FOCUS_CARDS_SHOWN);
-  const card = (item) => '<button type="button" class="energy-btn" data-action="pick-focus" data-category="' + item.id + '" data-project="' + (projectId || '') + '" style="--chip-color:' + mutedChip(item.color) + '">'
-    + '<span class="energy-label">' + esc(formatLabelName(item.name)) + '</span>'
-    + '<span class="energy-desc">' + focusCardDetail(item.matches, !projectId) + '</span></button>';
-  // "Surprise me" is a different kind of choice (no type at all), so it is its own element below
-  // the cards rather than one more card: an accent button, set apart by space and a divider.
-  // Tasks with no label get their own card (neutral colour, always shown), plus a way to sort them.
-  const unlabelled = openWhere(null, projectId).filter(({ t }) => !(t.categoryIds || []).length);
-  const unlabelledCard = unlabelled.length ? card({ id: UNLABELLED, name: 'Unlabelled', color: 'var(--ink-faint)', matches: unlabelled }) : '';
-  const links = [];
-  if (labels.length > FOCUS_CARDS_SHOWN) links.push('<button type="button" class="link-btn" data-action="toggle-focus-all">' + (showAllLabels ? 'Show fewer' : 'Show all ' + labels.length + ' labels') + '</button>');
-  const surprise = '<div class="focus-surprise">'
-    + '<button type="button" class="btn primary" data-action="pick-focus" data-category="" data-project="' + (projectId || '') + '">Surprise me</button>'
-    + '<span class="muted small">' + focusCardDetail(openWhere(null, projectId), !projectId) + '</span>'
-    + '</div>';
+  const all = openWhere(st, null, null);
+  const folders = [sleeve({ key: ALL_PROJECTS_KEY, name: 'All projects', color: 'var(--lamp-dot)', kind: 'project', detail: focusCardDetail(all, false), speak: 'All projects, ' + focusCardDetail(all, false) })]
+    .concat(projects.map((x) => {
+      const detail = focusCardDetail(x.matches, false);
+      return sleeve({ key: x.id, name: x.name, color: x.color, kind: 'project', detail, speak: x.name + ', ' + detail });
+    }));
 
-  // Project pills, tinted in each project's colour (.tint-pill), busiest first. Like the label cards,
-  // only the busiest few show until "+N more"; the chosen one always shows.
-  const projects = st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, n: openWhere(null, p.id).length }))
-    .filter((x) => x.n || x.id === projectId)
-    .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
-  const showAllProjects = !!(ui && ui.focusShowAllProjects);
-  const shownProjects = showAllProjects ? projects : projects.filter((x, i) => i < FOCUS_PILLS_SHOWN || x.id === projectId);
-  const pill = (id, label, color) => '<button type="button" class="filter-pill' + ((id || null) === projectId ? ' active' : '') + '" data-action="set-focus-scope" data-scope="' + id + '">' + (color ? projectDot(color) : '') + esc(label) + '</button>';
-  const hidden = projects.length - shownProjects.length;
-  const morePill = projects.length > FOCUS_PILLS_SHOWN
-    ? '<button type="button" class="filter-pill focus-more-pill" data-action="toggle-focus-projects">' + (showAllProjects ? 'Show fewer' : '+' + hidden + ' more') + '</button>'
-    : '';
-  const pills = projects.length > 1
-    ? '<div class="filter-pills focus-scope">' + pill('', 'All projects') + shownProjects.map((x) => pill(x.id, x.name, x.color)).join('') + morePill + '</div>'
-    : '';
-
-  return '<section class="card focus-card focus-empty">'
+  return '<section class="card focus-card focus-empty wallet-root">'
     + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
-    + '<p class="muted">Pick the kind of work and I&rsquo;ll surface one task.</p>'
-    + pills
-    + '<div class="energy-grid focus-grid">' + shownLabels.map(card).join('') + unlabelledCard + '</div>'
-    + (links.length ? '<div class="focus-links">' + links.join('') + '</div>' : '')
-    + surprise
+    + '<p class="muted">Flip to a folder and a kind of work, and I&rsquo;ll surface one task.</p>'
+    + '<div class="wallet" id="project-wallet">' + walletInner({ wallet: 'projects', label: 'Project', aria: 'Projects. Arrow keys flip, Enter chooses.', items: folders, facing: projectId || ALL_PROJECTS_KEY, mode }) + '</div>'
+    + '<div class="wallet" id="category-wallet">' + renderCategoryWalletInner(st, ui) + '</div>'
+    + '<div class="flip-hint">' + CHOOSING_MODE_INFO[mode].hint + '</div>'
+    + '<div class="sr-only" id="wallet-live" aria-live="polite"></div>'
     + '</section>';
 }
 
-// "3 open · 1 urgent · 2 projects": the count, the most pressing priority present, and (when not
+// "3 open · top: High · 2 projects": the count, the highest priority present, and (when not
 // narrowed to one project) how many projects the tasks come from.
 function focusCardDetail(matches, acrossProjects) {
   const parts = [matches.length + ' open'];
-  const top = PRIORITY_ORDER.slice(0, 2).map((lvl) => ({ lvl, n: matches.filter(({ t }) => t.priority === lvl).length })).find(({ n }) => n > 0);
-  if (top) parts.push(top.n + ' ' + PRIORITY[top.lvl].label.toLowerCase());
+  const top = PRIORITY_ORDER.find((lvl) => matches.some(({ t }) => t.priority === lvl));
+  if (top) parts.push('top: ' + PRIORITY[top].label);
   const projects = new Set(matches.map(({ p }) => p.id)).size;
   if (acrossProjects && projects > 1) parts.push(projects + ' projects');
   return parts.join(' · ');

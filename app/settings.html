@@ -71,6 +71,16 @@
     <p id="due-preview" class="muted small" aria-live="polite"></p>
     <p id="due-error" class="muted small" role="alert"></p>
   </section>
+  <section class="card settings-section" id="choosing-section">
+    <h2 style="margin-bottom:10px;">Choosing a card</h2>
+    <p class="muted small" style="margin-bottom:6px;">
+      How you pick a card from the folder and index-card wallets on the focus screen. Every wallet in the app follows this. Arrow keys and Enter always work on a computer.
+    </p>
+    <fieldset class="choosing-modes">
+      <legend class="sr-only">Choosing a card</legend>
+    </fieldset>
+    <p id="choosing-help" class="muted small" aria-live="polite"></p>
+  </section>
   <div id="toast-root"></div>
 </div>
 <script type="module">
@@ -317,5 +327,31 @@
     fillInputs();
     renderPreview(state.dueDefaults);
   });
+</script>
+<script type="module">
+  // Settings > Choosing a card (#120). The shared `state` singleton and a mutations.js setter, so the
+  // change goes through persist() and syncs; js/merge.js keeps the newer stamp.
+  import { state } from './js/state.js';
+  import { setChoosingMode } from './js/mutations.js';
+  import { CHOOSING_MODES, CHOOSING_MODE_INFO, normalizeChoosingMode } from './js/wallet.js';
+
+  const group = document.querySelector('.choosing-modes');
+  const help = document.getElementById('choosing-help');
+  const current = () => normalizeChoosingMode(state.choosingMode && state.choosingMode.mode);
+  // Built once, so choosing one does not drop keyboard focus; paint() only moves the tick and the help.
+  CHOOSING_MODES.forEach((mode) => {
+    const label = document.createElement('label');
+    label.style.cssText = 'display:block; margin:4px 0;';
+    const input = document.createElement('input');
+    input.type = 'radio'; input.name = 'choosing-mode'; input.value = mode;
+    input.addEventListener('change', () => { setChoosingMode(mode); paint(); });
+    label.append(input, ' ' + CHOOSING_MODE_INFO[mode].label);
+    group.append(label);
+  });
+  function paint() {
+    group.querySelectorAll('input').forEach((i) => { i.checked = i.value === current(); });
+    help.textContent = CHOOSING_MODE_INFO[current()].description;
+  }
+  paint();
 </script>
 </body></html>

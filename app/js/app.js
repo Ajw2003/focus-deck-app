@@ -14,6 +14,7 @@ import { taskOrderChanges, sortTasks, planTaskMove } from './task-move.js';
 import { confirmMove } from './move-dialog.js';
 import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
+import { mountWallets } from './wallet.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
@@ -106,6 +107,40 @@ export const ui = {
   linkPanel: null,
 };
 
+// ---- The focus picker's wallets (js/wallet.js) -------------------------------------------------
+// A flip of the project wallet is remembered per device (the same focusdeck-focus-filter as the old
+// pills) and re-renders only the category wallet, so the project wallet's scroll animation is not
+// cut off by a whole repaint. Choosing a card draws a task from it.
+function announceWallet(text) {
+  const live = document.getElementById('wallet-live');
+  if (live) live.textContent = text;
+}
+
+const walletHooks = {
+  announce: announceWallet,
+  onFacing(name, key) {
+    if (name === 'projects') {
+      ui.focusFilter.projectId = key === R.ALL_PROJECTS_KEY ? null : key;
+      saveFocusFilter();
+      const slot = document.getElementById('category-wallet');
+      if (slot) { slot.innerHTML = R.renderCategoryWalletInner(state, ui); mountWallets(slot, walletHooks); }
+    } else if (name === 'categories') {
+      ui.focusCategory = key;
+    }
+  },
+  // Returns false when nothing could be drawn (the card goes back down).
+  onChoose(name, key) {
+    const projectId = name === 'projects'
+      ? (key === R.ALL_PROJECTS_KEY ? null : key)
+      : R.focusProjectId(state, ui);
+    const categoryId = name === 'categories' && key !== R.ANY_CATEGORY_KEY ? key : null;
+    if (M.pickFocus({ categoryId, projectId })) return true;
+    ui.notice = 'No open tasks match that label and project.';
+    paint();
+    return false;
+  },
+};
+
 export function renderApp(st) {
   st._ui = ui; // the sync button reads sync UI state off the state object it's already passed
   if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
@@ -150,6 +185,7 @@ export function paint() {
     : null;
   document.getElementById('app').innerHTML = renderApp(state);
   paintHeaderControls();
+  mountWallets(document.getElementById('app'), walletHooks);
   window.scrollTo(0, scrollY);
   if (restoreSearch) {
     const el = document.querySelector('.project-search');
@@ -271,19 +307,7 @@ function onAppClick(e) {
     if (form) form.querySelector('input[name="deadline"]').focus();
     return;
   }
-  if (action === 'pick-focus') {
-    // each card carries its full filter: its own label or project plus the pill chosen above it
-    if (!M.pickFocus({ categoryId: el.getAttribute('data-category') || null, projectId: projectId || null })) {
-      ui.notice = 'No open tasks match that label and project.';
-      paint();
-    }
-  }
-  else if (action === 'set-focus-scope') {
-    ui.focusFilter.projectId = el.getAttribute('data-scope') || null;
-    saveFocusFilter();
-    paint();
-  }
-  else if (action === 'sort-toggle') {
+  if (action === 'sort-toggle') {
     const token = el.getAttribute('data-token');
     const sel = ui.unsorted.selected;
     ui.unsorted.selected = sel.includes(token) ? sel.filter((x) => x !== token) : sel.concat(token);
@@ -331,8 +355,6 @@ function onAppClick(e) {
       M.deleteTask(taskId, projectId);
     }
   }
-  else if (action === 'toggle-focus-all') { ui.focusShowAll = !ui.focusShowAll; paint(); }
-  else if (action === 'toggle-focus-projects') { ui.focusShowAllProjects = !ui.focusShowAllProjects; paint(); }
   else if (action === 'reroll') M.reroll();
   else if (action === 'clear-focus') M.clearFocus();
   else if (action === 'complete-focus') completeFocusWithNote();
