@@ -47,3 +47,28 @@ test('merge: choosingMode newest updatedAt wins, either direction; absent on one
   const tie = mergeStates(older, Object.assign({}, base, { choosingMode: { mode: 'swipe', updatedAt: 100 } }));
   assert.strictEqual(tie.choosingMode.mode, 'tap', 'a tie keeps the local copy');
 });
+
+// ---- Note writing (#122): state.noteFace, same shape and rule as choosingMode ----
+test('noteFace: defaults to hand, setter stamps/saves/refuses, bad value loads as hand', () => {
+  store['focusdeck-state-v1'] = JSON.stringify({ projects: [] });
+  assert.strictEqual(loadState().noteFace.face, 'hand');
+  assert.strictEqual(M.setNoteFace('dyslexic'), true);
+  assert.strictEqual(state.noteFace.face, 'dyslexic');
+  assert.ok(state.noteFace.updatedAt > 0);
+  assert.strictEqual(loadState().noteFace.face, 'dyslexic');
+  assert.strictEqual(M.setNoteFace('comic'), false);
+  assert.strictEqual(state.noteFace.face, 'dyslexic');
+  store['focusdeck-state-v1'] = JSON.stringify({ projects: [], noteFace: { face: 'comic', updatedAt: 5 } });
+  assert.strictEqual(loadState().noteFace.face, 'hand');
+});
+
+test('merge: noteFace newest updatedAt wins, either direction; absent keeps the other', () => {
+  const base = { projects: [], inbox: [], categories: [], githubSync: {} };
+  const older = Object.assign({}, base, { noteFace: { face: 'print', updatedAt: 100 } });
+  const newer = Object.assign({}, base, { noteFace: { face: 'dyslexic', updatedAt: 200 } });
+  assert.strictEqual(mergeStates(older, newer).noteFace.face, 'dyslexic');
+  assert.strictEqual(mergeStates(newer, older).noteFace.face, 'dyslexic');
+  assert.strictEqual(mergeStates(older, base).noteFace.face, 'print');
+  assert.strictEqual(mergeStates(base, newer).noteFace.face, 'dyslexic');
+  assert.ok(!('noteFace' in mergeStates(base, base)));
+});

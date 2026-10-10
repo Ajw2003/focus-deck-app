@@ -3,6 +3,7 @@
 <title>Focus Deck — Settings</title>
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=Kalam:wght@400;700&display=swap">
+<script>try{var f=JSON.parse(localStorage.getItem('focusdeck-state-v1')).noteFace.face;if(f==='hand'||f==='print'||f==='dyslexic')document.documentElement.setAttribute('data-note-face',f)}catch(e){}</script>
 <link rel="stylesheet" href="css/app.css">
 </head><body>
 <div class="wrap">
@@ -80,6 +81,15 @@
       <legend class="sr-only">Choosing a card</legend>
     </fieldset>
     <p id="choosing-help" class="muted small" aria-live="polite"></p>
+  </section>
+  <section class="card settings-section" id="note-face-section">
+    <h2 style="margin-bottom:10px;">Note writing</h2>
+    <p class="muted small" style="margin-bottom:6px;">
+      The writing on your paper notes: the sticky note, the jotter and the in-tray slips. The rest of the app does not change. Remembered on this device and synced.
+    </p>
+    <fieldset class="note-faces">
+      <legend class="sr-only">Note writing</legend>
+    </fieldset>
   </section>
   <div id="toast-root"></div>
 </div>
@@ -352,6 +362,32 @@
     group.querySelectorAll('input').forEach((i) => { i.checked = i.value === current(); });
     help.textContent = CHOOSING_MODE_INFO[current()].description;
   }
+  paint();
+</script>
+<script type="module">
+  // Settings > Note writing (#122). Same path as Choosing a card: shared state, a mutations.js setter.
+  import { state } from './js/state.js';
+  import { setNoteFace } from './js/mutations.js';
+  import { NOTE_FACES, NOTE_FACE_INFO, normalizeNoteFace, applyNoteFace } from './js/note-face.js';
+
+  const group = document.querySelector('.note-faces');
+  const current = () => normalizeNoteFace(state.noteFace && state.noteFace.face);
+  applyNoteFace(current());
+  // Built once so choosing one keeps keyboard focus. Each sample carries its own face, whatever is chosen.
+  NOTE_FACES.forEach((face) => {
+    const label = document.createElement('label');
+    label.style.cssText = 'display:block; margin:8px 0;';
+    const input = document.createElement('input');
+    input.type = 'radio'; input.name = 'note-face'; input.value = face;
+    input.addEventListener('change', () => { setNoteFace(face); paint(); });
+    const sample = document.createElement('div');
+    sample.className = 'note-face-sample';
+    sample.dataset.noteFace = face;
+    sample.textContent = 'Call the dentist about Tuesday';
+    label.append(input, ' ' + NOTE_FACE_INFO[face].label + ' (' + NOTE_FACE_INFO[face].description + ')', sample);
+    group.append(label);
+  });
+  function paint() { group.querySelectorAll('input').forEach((i) => { i.checked = i.value === current(); }); }
   paint();
 </script>
 </body></html>

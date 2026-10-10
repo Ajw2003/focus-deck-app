@@ -9,6 +9,7 @@ import { ensureSortOrder } from './project-filter.js';
 import { ensureTaskSortOrder } from './task-move.js';
 import { DEFAULT_DUE_DEFAULTS } from './due-stage.js';
 import { CHOOSING_MODES } from './wallet.js';
+import { NOTE_FACES, applyNoteFace } from './note-face.js';
 export { persist };
 
 // categoryId was previously discarded here (the add-project form's submit handler was calling
@@ -329,6 +330,16 @@ export function setDueDefaults(yellowPct, redPct) {
 export function setChoosingMode(mode) {
   if (!CHOOSING_MODES.includes(mode)) return false;
   state.choosingMode = { mode, updatedAt: Date.now() };
+  persist();
+  return true;
+}
+
+// Settings > Note writing (#122). Stamped like choosingMode; applies the face to <html> at once.
+// Returns false for a face we do not know.
+export function setNoteFace(face) {
+  if (!NOTE_FACES.includes(face)) return false;
+  state.noteFace = { face, updatedAt: Date.now() };
+  applyNoteFace(face);
   persist();
   return true;
 }
