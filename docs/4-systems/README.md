@@ -22,3 +22,6 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
   (`js/style-contract.test.mjs`, `scripts/guard-file-churn.mjs`).
 - [in-tray.md](./in-tray.md) — the Unsorted card as an in-tray of jotter slips, its old-vs-new
   inventory and its wiring status (`js/in-tray.js`, `js/in-tray-view.js`).
+- [onboarding.md](./onboarding.md) — first-run onboarding (welcome, first folder, tasks, first pick,
+  sync offer), when it shows, and the no-projects empty states (`js/onboarding.js`,
+  `js/onboarding-view.js`).

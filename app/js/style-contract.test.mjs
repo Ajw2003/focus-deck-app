@@ -22,7 +22,7 @@ const root = path.join(here, '..');
 const css = fs.readFileSync(path.join(root, 'css/app.css'), 'utf8');
 
 // Markup sources whose class="..." attributes are the app's real contract with the stylesheet.
-const MARKUP_SOURCES = ['js/render.js', 'js/app.js', 'index.html', 'settings.html'];
+const MARKUP_SOURCES = ['js/render.js', 'js/app.js', 'js/in-tray-view.js', 'js/onboarding-view.js', 'index.html', 'settings.html'];
 
 // doc-ref f152 docs/4-systems/styling.md
 const ALLOWED_WITHOUT_RULE = new Set([

@@ -4,6 +4,21 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-10 — First-run onboarding (#124): calls made
+
+These were made without the user present (they asked for autonomous work):
+
+- **"No data" means no projects and no jotted thoughts.** A saved key or Gist ID counts as a
+  second device. A sync that brings projects in during the first screen closes the welcome.
+- **The tasks step uses one category chip at a time**, and it stays on for the next task. This is
+  quicker than choosing per task, and it can be turned off.
+- **"Set up sync" goes to the Settings sync section for now.** #125's guided setup replaces it.
+- **The sidebar still hides with no projects**, so the empty main column hosts the "+ New" panel,
+  and the topbar Projects button goes there too. Drawing an empty sidebar was the alternative,
+  but it would put a near-empty drawer in front of a new user.
+
+Detail: `docs/4-systems/onboarding.md`.
+
 ## 2026-10-10 — The rest of the desk (#123): interpretation calls
 
 The agreed mockup covers only the focus area, the wallets and the in-tray. #123's own wording

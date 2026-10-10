@@ -109,7 +109,9 @@ function renderFocusPicker(st, ui) {
     // thought can go on the jotter above and be sorted later)
     return '<section class="focus-card focus-empty desk-empty">'
       + '<h2 class="focus-q">Your desk is clear.</h2>'
-      + '<p class="muted">Nothing is waiting to be picked. Add a task to a project in the list (the Projects button, on a phone), or jot a thought on the pad above and sort it later.</p>'
+      + (st.projects.length
+        ? '<p class="muted">Nothing is waiting to be picked. Add a task to a project in the list (the Projects button, on a phone), or jot a thought on the pad above and sort it later.</p>'
+        : '<p class="muted">Nothing is waiting to be picked. Make your first folder below and add a task to it, or jot a thought on the pad above and sort it later.</p>')
       + '</section>';
   }
   const mode = focusChoosingMode(st);
@@ -627,6 +629,12 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
 // caller's isWide. Pure and directly testable. See docs/4-systems/styling.md#project-sidebar.
 export function renderProjectsMain(st, ui, visibleProjects, isWide, hasToken) {
   const noMatch = st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '';
+  // No projects at all is not a dead end (#124): say what goes here and offer the first one. The
+  // sidebar (home of the "+ New" panel) isn't drawn until there is a project, so the panel opens here.
+  if (!st.projects.length) {
+    return '<div class="desk-empty projects-empty"><p><strong>No folders yet.</strong> A folder holds one project&rsquo;s tasks: a subject, a room, a side project.</p>'
+      + (ui.newPanelOpen ? renderNewPanel(ui, hasToken) : '<button type="button" class="btn primary" data-action="start-new-project">+ New project</button>') + '</div>';
+  }
   const card = (p) => renderProjectCard(p, ui, st.categories, st.projectCategories, hasToken);
   if (ui.projectView === 'one') {
     const selected = visibleProjects.find((p) => p.id === ui.selectedProjectId);

@@ -1,5 +1,5 @@
 // focus-deck-app/js/app.js
-import { state, findTaskWithProject, findProjectIdForTask, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage } from './state.js';
+import { state, findTaskWithProject, findProjectIdForTask, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, GIST_ID_KEY } from './state.js';
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle } from './sync.js';
@@ -17,6 +17,8 @@ import { startComplete, phaseClasses } from './focus-complete.js';
 import { mountWallets } from './wallet.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import { sendToBack, toggleToken, toggleFolder, fileSlip } from './in-tray.js';
+import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
+import { renderOnboarding } from './onboarding-view.js';
 import { applyNoteFace } from './note-face.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
@@ -97,7 +99,33 @@ function freshUnsortedScratch(later) {
   return { later: later || [], projectId: null, selected: [], newLabels: '', facingFolder: null, facingFlag: null, currentKey: null };
 }
 
+// First-run onboarding (#124): shown once per device to someone with nothing here yet, or on
+// demand with ?welcome (Settings > Help). See docs/4-systems/onboarding.md
+function loadOnboarding() {
+  let seen = false, hasGist = !!state.gistId;
+  try {
+    seen = !!localStorage.getItem(ONBOARDING_KEY);
+    hasGist = hasGist || !!localStorage.getItem(GIST_ID_KEY);
+  } catch (e) { console.error('Could not read the onboarding flag:', e); }
+  const forced = new URLSearchParams(location.search).has('welcome');
+  return shouldShowOnboarding({ st: state, seen, hasToken: !!getToken(), hasGist, forced })
+    ? { step: 'welcome', projectId: null, category: null, forced }
+    : null;
+}
+
+function finishOnboarding() {
+  try { localStorage.setItem(ONBOARDING_KEY, 'done'); }
+  catch (e) { console.error('Could not save the onboarding flag:', e); }
+  if (ui.onboarding && ui.onboarding.forced) history.replaceState(null, '', location.pathname);
+  ui.onboarding = null;
+}
+
+function focusLater(selector) {
+  requestAnimationFrame(() => { const el = document.querySelector(selector); if (el) el.focus(); });
+}
+
 export const ui = {
+  onboarding: loadOnboarding(),
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectFilter: undefined, projectQuery: '', projectSort: loadProjectSort(), projectCollapsed: loadCollapsedProjects(),
@@ -172,6 +200,14 @@ export function renderApp(st) {
   const currentUnsorted = unsortedCurrent(st, ui.unsorted);
   const currentKey = currentUnsorted ? currentUnsorted.key : null;
   if (currentKey !== ui.unsorted.currentKey) ui.unsorted = Object.assign(freshUnsortedScratch(ui.unsorted.later), { currentKey });
+  // A sync that brings projects in while the welcome is still on its first screen means this device
+  // already has a life elsewhere: step aside (not when replayed on purpose).
+  if (ui.onboarding && ui.onboarding.step === 'welcome' && !ui.onboarding.forced && st.projects.length) ui.onboarding = null;
+  if (ui.onboarding) {
+    return '<div class="main-col onboarding-col">'
+      + renderOnboarding(st, ui.onboarding, () => R.renderFocus(st, findTaskWithProject, ui))
+      + '</div>' + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
+  }
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   // Resolved against every project, not just the filtered/searched list -- the selected project
   // stays selected in the "One" view even if a search or category filter hides it from the list.
@@ -330,6 +366,8 @@ function onAppClick(e) {
     if (form) form.querySelector('input[name="deadline"]').focus();
     return;
   }
+  if (action.startsWith('ob-')) { onOnboardingClick(action, el); return; }
+  if (action === 'start-new-project') { openFirstProjectPanel(); return; }
   if (action === 'unsorted-file' || action === 'unsorted-save') {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
     const cur = unsortedCurrent(state, ui.unsorted);
@@ -444,7 +482,8 @@ function onAppClick(e) {
   else if (action === 'toggle-done') { ui.doneOpen[projectId] = !ui.doneOpen[projectId]; paint(); }
   else if (action === 'scroll-project') scrollToProject(projectId);
   else if (action === 'sync-github') manualSyncGithub();
-  else if (action === 'toggle-projects-drawer') { setProjectsDrawerOpen(!ui.projectsDrawerOpen); }
+  // with no projects there is no list to open yet: go to making the first one instead
+  else if (action === 'toggle-projects-drawer') { if (state.projects.length) setProjectsDrawerOpen(!ui.projectsDrawerOpen); else openFirstProjectPanel(); }
   else if (action === 'close-projects-drawer') { setProjectsDrawerOpen(false); }
   else if (action === 'edit-task') { ui.editingTask = { taskId, projectId }; paint(); scrollOpenedFormIntoView('.task-edit-form'); }
   else if (action === 'cancel-task-edit') { ui.editingTask = null; paint(); }
@@ -712,7 +751,67 @@ function dueStagesFromForm(fd) {
   return { yellow: { leadHours: yellow }, red: { leadHours: red } };
 }
 
+// No projects yet (#124): the empty main column opens the "+ New" panel in place, since the sidebar
+// that normally holds it isn't drawn until there is a project.
+function openFirstProjectPanel() {
+  ui.newPanelOpen = true;
+  ui.newPanelTab = 'project';
+  paint();
+  const spot = document.querySelector('.projects-empty');
+  if (spot) spot.scrollIntoView({ block: 'center' });
+  focusNewPanelFirstField();
+}
+
+function onOnboardingClick(action, el) {
+  const ob = ui.onboarding;
+  if (!ob) return;
+  if (action === 'ob-next') {
+    ob.step = nextStep(ob.step);
+    if (!ob.step) finishOnboarding();
+    paint();
+    if (ob.step === 'folder') focusLater('#ob-folder-name');
+  } else if (action === 'ob-skip' || action === 'ob-finish') {
+    finishOnboarding();
+    paint();
+  } else if (action === 'ob-suggest') {
+    const input = document.getElementById('ob-folder-name');
+    if (input) { input.value = el.getAttribute('data-name'); input.focus(); }
+  } else if (action === 'ob-category') {
+    const name = el.getAttribute('data-name');
+    ob.category = ob.category === name ? null : name;
+    paint();
+    focusLater('#ob-task-title');
+  } else if (action === 'ob-deal') {
+    M.pickFocus({ projectId: ob.projectId });
+    ob.step = 'pick';
+    paint();
+  } else if (action === 'ob-sync') {
+    finishOnboarding();
+    location.href = 'settings.html#sync-section';
+  }
+}
+
 function onAppSubmit(e) {
+  const obForm = e.target.closest('[data-action="ob-folder"], [data-action="ob-task"]');
+  if (obForm && ui.onboarding) {
+    e.preventDefault();
+    const fd = new FormData(obForm);
+    if (obForm.getAttribute('data-action') === 'ob-folder') {
+      const name = String(fd.get('name') || '').trim();
+      if (!name) return;
+      ui.onboarding.projectId = M.addProject(name, null).id;
+      ui.onboarding.step = 'tasks';
+      paint();
+    } else {
+      const title = String(fd.get('title') || '').trim();
+      if (!title) return;
+      const ids = ui.onboarding.category ? [labelIdByName(ui.onboarding.category)] : [];
+      M.addTask(ui.onboarding.projectId, title, null, ids);
+      paint();
+    }
+    focusLater('#ob-task-title');
+    return;
+  }
   const addTaskForm = e.target.closest('[data-action="add-task"]');
   if (addTaskForm) {
     e.preventDefault();

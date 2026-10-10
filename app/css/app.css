@@ -904,3 +904,34 @@ body.is-dragging-task .empty-note{display:none;}
 .settings-section:first-of-type{border-top:3px solid var(--index-red); padding-top:18px;}
 @media (min-width:700px){.settings-section{padding:24px 26px;}}
 /* ==== end Desk look for the rest of the app ==== */
+
+/* ==== First-run onboarding (#124) ======================================================
+   One step per screen, on an index card under the lamp. The pick step shows the real sticky note.
+   See docs/4-systems/onboarding.md */
+.onboarding{
+  background:radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--lamp-dot) 16%, transparent), transparent 60%), var(--surface);
+  border:1px solid var(--line); border-top:3px solid var(--index-red); border-radius:4px 4px 12px 12px;
+  padding:22px 18px 18px; margin:6px 0 24px; box-shadow:0 18px 30px -20px var(--paper-shadow);
+}
+@media (min-width:700px){.onboarding{padding:30px 32px 26px;}}
+.onboarding-col{max-width:640px; width:100%; margin-inline:auto;}
+.onboarding p{line-height:1.5; margin:0 0 12px;}
+.ob-title{font-size:var(--text-q); line-height:1.2; margin:0 0 12px;}
+.ob-progress{display:flex; gap:6px; margin:0 0 14px;}
+.ob-dot{width:22px; height:4px; border-radius:var(--r-pill); background:var(--surface-2);}
+.ob-dot.is-on{background:var(--accent);}
+.ob-form{display:flex; flex-direction:column; gap:10px; margin:6px 0 14px;}
+.ob-form input[type="text"]{padding:11px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:inherit; min-width:0;}
+.ob-row{display:flex; gap:8px;}
+.ob-row input{flex:1;}
+.ob-chips{display:flex; flex-wrap:wrap; gap:6px;}
+.ob-chips .chip{border:1px solid var(--line); background:var(--surface-2); color:var(--ink); padding:5px 12px;}
+.ob-chips .chip.is-on{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
+.ob-list{list-style:none; margin:0 0 14px; padding:0; border-top:2px solid color-mix(in srgb, var(--index-red) 65%, transparent);}
+.ob-list li{padding:7px 2px; border-bottom:1px solid var(--index-rule); overflow-wrap:anywhere;}
+.ob-acts{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin-top:6px;}
+.ob-acts .file-btn{flex:1 1 220px;}
+.onboarding .focus-card{margin:8px 0 12px;}
+.projects-empty{display:grid; gap:12px; justify-items:start;}
+.projects-empty p{margin:0;}
+/* ==== end First-run onboarding ==== */
