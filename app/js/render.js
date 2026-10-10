@@ -37,13 +37,18 @@ export function renderSyncButton(st) {
 // One activity at a time (#135): the screens, and the rail that switches between them (a column
 // on the left on a wide screen, a bar along the bottom on a phone). Adding stays on every screen:
 // it is the jotter in the topbar. See docs/4-systems/styling.md#one-screen-at-a-time
-export const SCREENS = ['focus', 'sort', 'projects'];
+export const SCREENS = ['focus', 'sort', 'board', 'projects'];
 const SCREEN_INFO = {
   focus: { label: 'Focus', icon: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>' },
   sort: { label: 'Sort', icon: '<path d="M4 7h16M4 12h10M4 17h6"/>' },
+  board: { label: 'Board', icon: '<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="9.5" y="4" width="5" height="11" rx="1.5"/><rect x="16" y="4" width="5" height="7" rx="1.5"/>' },
   projects: { label: 'Projects', icon: '<path d="M3 7h7l2 2h9v10H3z"/>' },
 };
 export function normalizeScreen(value) { return SCREENS.includes(value) ? value : 'focus'; }
+// The Board screen (#142): a placeholder until the columns land (#140).
+export function renderBoard(st, ui) {
+  return '<h2 class="board-title">Board</h2><p class="board-soon">The Next, Doing and Done columns come next.</p>';
+}
 export function renderRail(screen, unsortedCount) {
   return '<nav class="rail" aria-label="What to do">' + SCREENS.map((key) => {
     const on = key === screen;

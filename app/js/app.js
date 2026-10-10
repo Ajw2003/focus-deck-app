@@ -136,8 +136,23 @@ function setScreen(screen) {
   catch (e) { console.error('Could not save the screen:', e); }
 }
 
+// Which project the Board shows (#142): null means all projects. Remembered on this device.
+const BOARD_PROJECT_KEY = 'focusdeck-board-project';
+function loadBoardProject() {
+  try { return localStorage.getItem(BOARD_PROJECT_KEY) || null; }
+  catch (e) { console.error('Could not read the board project:', e); return null; }
+}
+function setBoardProject(id) {
+  ui.boardProject = id || null;
+  try {
+    if (ui.boardProject) localStorage.setItem(BOARD_PROJECT_KEY, ui.boardProject);
+    else localStorage.removeItem(BOARD_PROJECT_KEY);
+  } catch (e) { console.error('Could not save the board project:', e); }
+}
+
 export const ui = {
   screen: loadScreen(),
+  boardProject: loadBoardProject(),
   onboarding: loadOnboarding(),
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
@@ -237,6 +252,7 @@ export function renderApp(st) {
   if (ui.screen === 'focus') return rail + '<div class="screen screen-focus">' + R.renderFocus(st, findTaskWithProject, ui) + '</div>' + toast;
   // the Sort screen is the tray, always open (its header can't fold it away here)
   if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
+  if (ui.screen === 'board') return rail + '<div class="screen screen-board">' + R.renderBoard(st, ui) + '</div>' + toast;
   return rail + R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
     + '<div class="main-col view-' + ui.projectView + '">'
       + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken)

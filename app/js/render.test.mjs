@@ -448,10 +448,11 @@ assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds:
 {
   const { renderRail, normalizeScreen } = await import('./render.js');
   const rail = renderRail('sort', 2);
-  assert.deepStrictEqual([...rail.matchAll(/data-screen="([a-z]+)"/g)].map((m) => m[1]), ['focus', 'sort', 'projects'], 'three screens, in order');
+  assert.deepStrictEqual([...rail.matchAll(/data-screen="([a-z]+)"/g)].map((m) => m[1]), ['focus', 'sort', 'board', 'projects'], 'four screens, in order');
   assert.ok(/data-screen="sort" aria-current="page"/.test(rail), 'the current screen is marked');
   assert.ok(rail.includes('>2</b>'), 'Sort shows how many are waiting');
   assert.ok(!renderRail('focus', 0).includes('rail-count'), 'no count when the tray is empty');
-  assert.strictEqual(normalizeScreen('board'), 'focus');
+  assert.strictEqual(normalizeScreen('nonsense'), 'focus');
+  assert.strictEqual(normalizeScreen('board'), 'board');
   assert.strictEqual(normalizeScreen('projects'), 'projects');
 }
