@@ -1024,7 +1024,7 @@ body.is-dragging-task .empty-note{display:none;}
    screen is drawn. Wide: a column fixed on the left under the topbar. Phone: a bar fixed along the
    bottom. Focus and Sort are one centred column; Projects keeps the project list and folders.
    The jotter (adding) stays in the topbar on every screen. See docs/4-systems/styling.md#one-screen-at-a-time */
-.rail{position:fixed; z-index:15; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+.rail{position:fixed; z-index:15; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
   background:var(--surface); border-top:1px solid var(--line); padding:6px 8px calc(6px + env(safe-area-inset-bottom, 0px));}
 .rail-item{display:flex; flex-direction:column; align-items:center; gap:3px; border:0; background:none; color:var(--ink-soft); font:600 .72rem var(--font-ui); padding:6px 0; border-radius:12px; cursor:pointer;}
 .rail-item.is-on{color:var(--accent); background:var(--surface-2);}
@@ -1036,6 +1036,9 @@ body.is-dragging-task .empty-note{display:none;}
 .toast{bottom:calc(84px + env(safe-area-inset-bottom, 0px));}
 .screen{max-width:720px; margin:0 auto;}
 .screen-focus{padding-top:12px;}
+.screen-board{padding-top:12px;}
+.board-title{margin:0 0 6px; font:700 1.4rem var(--font-ui);}
+.board-soon{margin:0; color:var(--ink-soft);}
 .screen-sort .inbox-card{border-top:0; padding-top:4px;}
 .screen-sort .inbox-card > .section-toggle{pointer-events:none;}
 .screen-sort .inbox-card > .section-toggle .chev{display:none;}
@@ -1045,7 +1048,7 @@ body.is-dragging-task .empty-note{display:none;}
   .wrap{padding-left:116px; padding-bottom:64px;}
   .toast{bottom:calc(16px + env(safe-area-inset-bottom, 0px));}
   #app:has(> .screen){display:block;}
-  .screen-focus{padding-top:28px;}
+  .screen-focus,.screen-board{padding-top:28px;}
   /* the work area uses the screen: the cards fill it in an even grid */
   .screen{max-width:1320px;}
   /* Sort, laid out like its mockup: the slip (and its quiet links) on the left, the choices on the right */
