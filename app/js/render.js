@@ -5,6 +5,7 @@ import { sortTasks } from './task-move.js';
 import { leadChoices, suggestLead, normalizeDueDefaults } from './due-stage.js';
 import { phaseClasses } from './focus-complete.js';
 import { normalizeChoosingMode, CHOOSING_MODE_INFO } from './wallet.js';
+import { splitCategories } from './category-filter.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -207,9 +208,14 @@ export function unsortedQueue(st) {
 
 // A task can carry several labels (categories), so both task forms pick them with checkboxes in a
 // collapsible list, plus a field for new ones. The summary's count is kept current by app.js.
-export function renderLabelPicker(categories, selectedIds) {
+// With Settings > Category choices on (#133) and a project given, labels that project doesn't use
+// (and that aren't ticked) are drawn hidden behind "Show all N" (app.js's label-show-all toggles a
+// class, no repaint, so a half-typed form is never lost).
+export function renderLabelPicker(categories, selectedIds, project, filterOn = !state.categoryFilter || state.categoryFilter.on !== false) {
   const selected = selectedIds || [];
-  const options = categories.map((c) => '<label class="label-option" style="--chip-color:' + mutedChip(c.color) + '">'
+  const { hidden } = splitCategories(categories, project, { on: filterOn, selected });
+  const extra = new Set(hidden.map((c) => c.id));
+  const options = categories.map((c) => '<label class="label-option' + (extra.has(c.id) ? ' is-extra' : '') + '" style="--chip-color:' + mutedChip(c.color) + '">'
     + '<input type="checkbox" name="categoryIds" value="' + c.id + '"' + (selected.includes(c.id) ? ' checked' : '') + '>'
     + '<span>' + esc(formatLabelName(c.name)) + '</span>'
     + '<input type="color" class="cat-color-input label-swatch" data-color-for="label" data-id="' + c.id + '" value="' + cssColorToHex(c.color) + '" aria-label="Colour for ' + esc(formatLabelName(c.name)) + '">'
@@ -217,6 +223,7 @@ export function renderLabelPicker(categories, selectedIds) {
   return '<details class="label-picker">'
     + '<summary>' + labelPickerSummary(selected.length) + '</summary>'
     + '<div class="label-options">' + options + '</div>'
+    + (hidden.length ? '<button type="button" class="link-btn small label-show-all" data-action="label-show-all">Show all ' + categories.length + ' categories</button>' : '')
     + '<input type="text" name="newLabels" placeholder="New labels, comma-separated…" maxlength="120">'
     + '</details>';
 }
@@ -290,7 +297,7 @@ export function renderTaskEditForm(t, p, categories) {
     + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2">' + esc((t.steps || []).join('\n')) + '</textarea>'
     + renderPrioritySelect(t.priority)
     + '<input type="date" name="deadline" value="' + (t.deadline || '') + '">'
-    + renderLabelPicker(categories, t.categoryIds)
+    + renderLabelPicker(categories, t.categoryIds, p)
     + renderTaskGithubLine(t, p)
     + renderTaskEditActions(t, p)
     + '<button type="submit">Save</button>'
@@ -590,7 +597,7 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
         + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
         + renderPrioritySelect(null)
         + '<input type="date" name="deadline">'
-        + renderLabelPicker(categories, [])
+        + renderLabelPicker(categories, [], p)
         + '<button type="submit" aria-label="Add task">+</button>'
         + '<button type="button" data-action="cancel-add-task" data-project="' + p.id + '">Cancel</button>'
       + '</form>'

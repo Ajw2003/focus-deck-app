@@ -54,7 +54,7 @@ test('choosing a card again undoes it', () => {
 test('flags: kinds first, then labels ranked for the chosen project, as the old pills were', () => {
   seed();
   const home = state.projects[1];
-  const names = (project) => flagCards(state, project).map((c) => c.name);
+  const names = (project) => flagCards(state, project, { showAll: true }).map((c) => c.name);
   assert.deepStrictEqual(names(home), ['Reminder', 'Build', 'Fix', 'Chore', 'Study', 'Art'], 'Chore is busiest in Home so it leads; Art is unused');
   assert.deepStrictEqual(names(state.projects[0]), ['Reminder', 'Build', 'Fix', 'Study', 'Chore', 'Art'], 'in School, Study leads');
   assert.deepStrictEqual(flagCards(state, null).map((c) => c.token).slice(0, 3), ['kind:reminder', 'kind:build', 'kind:fix'], 'a kind with no label yet is a kind: token');
@@ -65,6 +65,19 @@ test('flags: kinds first, then labels ranked for the chosen project, as the old 
   assert.deepStrictEqual(folderCards(state).map((f) => f.id), ['pB', 'pA'], 'folders: busiest first, ties by name (Home before School)');
   state.projects[0].tasks.push({ id: 'a3', title: 'x', status: 'next', categoryIds: [] });
   assert.deepStrictEqual(folderCards(state).map((f) => f.id), ['pA', 'pB'], 'a busier folder moves up');
+});
+
+test('Category choices (#133): only the project’s labels, then More categories; off shows all', () => {
+  seed();
+  const home = state.projects[1];
+  const filtered = flagCards(state, home);
+  assert.deepStrictEqual(filtered.map((c) => c.name), ['Reminder', 'Build', 'Fix', 'Chore', 'More categories'], 'Home only uses Chore');
+  assert.strictEqual(filtered.at(-1).more, 2, 'it counts the two left out');
+  assert.deepStrictEqual(flagCards(state, home, { selected: ['c_art'] }).map((c) => c.name), ['Reminder', 'Build', 'Fix', 'Chore', 'Art', 'More categories'], 'a picked label stays');
+  assert.ok(!flagCards(state, null).some((c) => c.more), 'a thought with no folder yet: everything shows');
+  state.categoryFilter = { on: false, updatedAt: 1 };
+  assert.deepStrictEqual(flagCards(state, home).map((c) => c.name), ['Reminder', 'Build', 'Fix', 'Chore', 'Study', 'Art'], 'setting off: all of them');
+  state.categoryFilter = { on: true, updatedAt: 0 };
 });
 
 test('selectionToIds: flags, kind labels created on first use, typed labels de-duplicated', () => {

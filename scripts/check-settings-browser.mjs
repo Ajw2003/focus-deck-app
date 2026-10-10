@@ -44,7 +44,7 @@ const setUp = {
   projectCategories: [{ id: 'pcat_work', name: 'Work', color: '#4D6FB8' }],
   gistId: 'gOLD',
   noteFace: { face: 'dyslexic', updatedAt: 5 },
-  choosingMode: { mode: 'swipe', updatedAt: 5 },
+  choosingMode: { mode: 'tap', updatedAt: 5 },
   dueDefaults: { yellowPct: 40, redPct: 15, updatedAt: 5 },
 };
 
@@ -99,18 +99,18 @@ for (const size of ['phone', 'desktop']) for (const scheme of ['dark', 'light'])
   check('set up: only the optional repo item is left, linking to the repo panel', list.filter((i) => !i.done).map((i) => i.id + '=' + i.href).join() === 'issues=index.html?new=repo', JSON.stringify(list));
   await page.screenshot({ path: OUT + 'phone-dark-set-up.png', fullPage: true });
   check('set up: Note writing shows its saved face', await page.$eval('input[value="dyslexic"]', (i) => i.checked));
-  check('set up: Choosing a card shows its saved mode', await page.$eval('#choosing-section input[value="swipe"]', (i) => i.checked));
+  check('set up: Choosing a card shows its saved mode', await page.$eval('#choosing-section input[value="tap"]', (i) => i.checked));
   check('set up: Due dates show their saved cut-offs', (await page.inputValue('#due-yellow-pct')) === '40' && (await page.inputValue('#due-red-pct')) === '15');
   check('set up: category colours list both kinds', (await page.$$('#task-cat-list .cat-color-row')).length === 1 && (await page.$$('#proj-cat-list .cat-color-row')).length === 1);
   check('set up: the sync status names the Gist', ((await page.textContent('#gist-status')) || '').includes('gOLD'));
 
   await page.check('input[value="print"]');
-  await page.check('#choosing-section input[value="tap"]');
+  await page.check('#choosing-section input[value="twice"]');
   await page.fill('#due-yellow-pct', '50'); await page.dispatchEvent('#due-yellow-pct', 'change');
   await page.fill('#task-cat-list ~ form input[name="name"]', 'Errand'); await page.press('#task-cat-list ~ form input[name="name"]', 'Enter');
   await page.waitForTimeout(200);
   const st = await stored(page);
-  check('set up: changes still save (note face, choosing, due, a new category)', st.noteFace.face === 'print' && st.choosingMode.mode === 'tap' && st.dueDefaults.yellowPct === 50 && st.categories.some((c) => c.name === 'Errand'), JSON.stringify({ n: st.noteFace, c: st.choosingMode, d: st.dueDefaults }));
+  check('set up: changes still save (note face, choosing, due, a new category)', st.noteFace.face === 'print' && st.choosingMode.mode === 'twice' && st.dueDefaults.yellowPct === 50 && st.categories.some((c) => c.name === 'Errand'), JSON.stringify({ n: st.noteFace, c: st.choosingMode, d: st.dueDefaults }));
   await ctx.close();
 }
 

@@ -118,6 +118,8 @@ export function mergeStates(local, remote) {
   if (r.choosingMode && (!l.choosingMode || stamp(r.choosingMode) > stamp(l.choosingMode))) merged.choosingMode = r.choosingMode;
   // noteFace (Settings > Note writing) likewise.
   if (r.noteFace && (!l.noteFace || stamp(r.noteFace) > stamp(l.noteFace))) merged.noteFace = r.noteFace;
+  // categoryFilter (Settings > Category choices, #133) likewise.
+  if (r.categoryFilter && (!l.categoryFilter || stamp(r.categoryFilter) > stamp(l.categoryFilter))) merged.categoryFilter = r.categoryFilter;
 
   // Done-list entries follow their task: kept only while that task exists and is done. An entry
   // with no taskId is a completed inbox thought (M.completeInboxItem) rather than a task — it never

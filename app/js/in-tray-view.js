@@ -33,6 +33,7 @@ function trayWallets(st, u, cur, cards, mode) {
     }
   }
   const items = cards.map((c) => {
+    if (c.more) return sleeve({ key: c.token, name: c.name, color: c.color, detail: c.more + ' more', speak: c.more + ' more categories. Choose to show them all.' });
     const picked = u.selected.includes(c.token);
     const detail = picked ? 'flag on the slip' : 'no flag yet';
     return sleeve({ key: c.token, name: c.name, color: mutedChip(c.color), picked, detail, speak: c.name + ', ' + detail });
@@ -52,7 +53,7 @@ function renderTray(st, u, ordered, mode) {
   }
   const isThought = cur.kind === 'thought';
   const project = isThought ? (u.projectId ? st.projects.find((p) => p.id === u.projectId) : null) : cur.project;
-  const cards = flagCards(st, project);
+  const cards = flagCards(st, project, { selected: u.selected, showAll: !!u.showAllFlags });
   const text = isThought ? cur.item.text : cur.task.title;
   const chip = (p) => '<span class="folder-chip" style="--c:' + p.color + '">' + esc(p.name) + '</span>';
   const dest = isThought

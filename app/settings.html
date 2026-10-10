@@ -65,6 +65,11 @@
     <p id="due-preview" class="muted small" aria-live="polite"></p>
     <p id="due-error" class="muted small" role="alert"></p>
   </section>
+  <section class="card settings-section" id="category-filter-section">
+    <h3 class="settings-h">Category choices</h3>
+    <label class="setting-toggle"><input type="checkbox" id="category-filter-on"> Offer only the categories a project already uses</label>
+    <p class="muted small" style="margin-top:6px;">When you sort a slip into a folder or edit a task, you see that project&rsquo;s own categories first. The rest stay one tap away (&ldquo;More categories&rdquo;, &ldquo;Show all&rdquo;), and a project with none yet shows them all. Synced.</p>
+  </section>
   <h2 class="settings-group" id="github">Sync and GitHub</h2>
   <section class="card settings-section" id="sync-section">
     <h3 class="settings-h">Sync between devices</h3>
@@ -94,6 +99,16 @@
   </section>
   <div id="toast-root"></div>
 </div>
+<script type="module">
+  // Settings > Category choices (#133). See docs/4-systems/in-tray.md#category-choices
+  import { state as st, onExternalStateChange as onChange } from './js/state.js';
+  import { setCategoryFilter } from './js/mutations.js';
+  const box = document.getElementById('category-filter-on');
+  const show = () => { box.checked = !st.categoryFilter || st.categoryFilter.on !== false; };
+  show();
+  box.addEventListener('change', () => setCategoryFilter(box.checked));
+  onChange(show);
+</script>
 <script type="module">
   // The setup checklist (#126): what's done and what's left, each unfinished item a link to the step
   // that finishes it. See docs/4-systems/onboarding.md#the-setup-checklist

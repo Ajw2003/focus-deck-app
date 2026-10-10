@@ -334,6 +334,12 @@ export function setChoosingMode(mode) {
   return true;
 }
 
+// Settings > Category choices (#133). Stamped like choosingMode.
+export function setCategoryFilter(on) {
+  state.categoryFilter = { on: !!on, updatedAt: Date.now() };
+  persist();
+}
+
 // Settings > Note writing (#122). Stamped like choosingMode; applies the face to <html> at once.
 // Returns false for a face we do not know.
 export function setNoteFace(face) {

@@ -16,7 +16,7 @@ import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
 import { mountWallets } from './wallet.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
-import { sendToBack, toggleToken, toggleFolder, fileSlip } from './in-tray.js';
+import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY } from './in-tray.js';
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
 import { renderOnboarding } from './onboarding-view.js';
 import { applyNoteFace } from './note-face.js';
@@ -96,7 +96,7 @@ function saveProjectSort() {
 // card facing in each wallet) plus this session's "Later" list and which slip it belongs to. Reset
 // whenever the top slip changes -- see renderApp below. See docs/4-systems/in-tray.md
 function freshUnsortedScratch(later) {
-  return { later: later || [], projectId: null, selected: [], newLabels: '', facingFolder: null, facingFlag: null, currentKey: null };
+  return { later: later || [], projectId: null, selected: [], newLabels: '', facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null };
 }
 
 // First-run onboarding (#124): shown once per device to someone with nothing here yet, or on
@@ -171,6 +171,11 @@ const walletHooks = {
     if (name === 'tray-folders') {
       ui.unsorted.projectId = toggleFolder(ui.unsorted.projectId, key);
       ui.unsorted.facingFolder = key;
+      paint();
+      return true;
+    }
+    if (name === 'tray-flags' && key === MORE_FLAGS_KEY) {
+      ui.unsorted.showAllFlags = true; // Settings > Category choices hid some (#133)
       paint();
       return true;
     }
@@ -367,6 +372,13 @@ function onAppClick(e) {
     return;
   }
   if (action.startsWith('ob-')) { onOnboardingClick(action, el); return; }
+  if (action === 'label-show-all') {
+    // Settings > Category choices hid some labels in this form (#133): show them, without a repaint
+    const picker = el.closest('.label-picker');
+    if (picker) picker.classList.add('show-all');
+    el.remove();
+    return;
+  }
   if (action === 'start-new-project') { openFirstProjectPanel(); return; }
   if (action === 'unsorted-file' || action === 'unsorted-save') {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first

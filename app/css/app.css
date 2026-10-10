@@ -604,6 +604,10 @@ a.task-title:hover{text-decoration:underline;}
 .label-picker{flex:1 1 100%; font-size:var(--text-sm);}
 .label-picker summary{cursor:pointer; color:var(--ink-soft); font-weight:600; padding:4px 0;}
 .label-options{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0;}
+/* Settings > Category choices (#133): labels the project doesn't use wait behind "Show all" */
+.label-option.is-extra{display:none;}
+.label-picker.show-all .label-option.is-extra{display:inline-flex;}
+.label-show-all{margin:0 0 6px;}
 .label-option{
   display:inline-flex; align-items:center; gap:5px; padding:3px 9px 3px 6px; border-radius:var(--r-pill); cursor:pointer;
   background:color-mix(in srgb, var(--chip-color) 12%, transparent); color:color-mix(in srgb, var(--chip-color) 55%, var(--ink)); font-weight:600;
@@ -984,3 +988,4 @@ body.is-dragging-task .empty-note{display:none;}
 .settings-advanced[open] summary{margin-bottom:8px;}
 .settings-advanced .add-project-form{margin-top:10px;}
 /* ==== end Settings, grouped ==== */
+.setting-toggle{display:flex; align-items:center; gap:8px; font-weight:600;}
