@@ -4,6 +4,24 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-10 — The rest of the desk (#123): interpretation calls
+
+The agreed mockup covers only the focus area, the wallets and the in-tray. #123's own wording
+("a project as an open folder, its tasks as ruled index-card rows") set the direction for the
+rest. These were the calls made from it, without the user present (they asked for autonomous
+work):
+
+- The folder is a tab in the project's colour on a card. It is not a manila-coloured body,
+  because a page of beige folders would drown the dark desk.
+- The task rows keep the existing surfaces and get index-card lines (a red heading line, blue
+  rules). Paper-coloured rows would have needed every due chip's contrast re-proved.
+- The editor, panels, dialog, toast and Settings sections borrow the index card's red top line,
+  and the toast borrows the jotter's holes. Nothing new is invented.
+- The fix for wallet cards drawing over the sticky topbar (a #120 bug) went in with #123, because
+  #123's screenshot tour is what found it.
+
+Detail: `docs/4-systems/styling.md#the-rest-of-the-desk`. Easy to revert: it is one CSS section.
+
 ## 2026-10-09 — A new look: a lamp-lit desk of stationery, and a landing page (#116)
 
 **Context.** The user asked to turn Focus Deck into a consumer product: a more polished look and

@@ -528,6 +528,30 @@ tokens). Interface text is not affected.
   own face; the face rules' selectors cover both `<html>` and the sample.
 - Checked by `scripts/check-note-faces-browser.mjs` (screenshots in `docs/generated/pr122/`).
 
+### The rest of the desk
+
+Since #123 (2026-10-10), everything outside the focus area is stationery too. It is all in one
+section at the end of `app/css/app.css` ("Desk look for the rest of the app (#123)"), and it changes
+shape only. Behaviour and markup are the same.
+
+- **A project is an open folder.** `.project-card` is a card with a 3px top edge in the project's
+  colour, and `::before` adds a folder tab in that colour. The colour still means the project and
+  nothing else (Q4b).
+- **Its task list is a ruled index card.** "Up next" sits on a red heading line (`--index-red`, the
+  same red as the wallet index cards' margin), and the rows are divided by `--index-rule`.
+- **The task editor, the add-task form and the "+ New" panel are index cards** on `--surface-2`
+  with the red top line. The project Edit panel is a dashed slip, the move dialog is an index card
+  on a dimmed desk, and a toast is a torn-off jotter slip with holes along its top.
+- **Each Settings section is an index card.**
+- **Contrast.** Task rows and chips stay on `--surface` and `--surface-2`, the two backgrounds
+  `scripts/check-due-contrast.mjs` proves the due chips on, so no new background needs checking.
+- **Wallets under the topbar.** `.flip-track` has `isolation:isolate`. Without it, the sleeves'
+  z-index stacked them over the sticky topbar when the page scrolled. That was a #120 bug, fixed
+  here.
+
+Checked by `scripts/check-desk-screens-browser.mjs`: every screen at 390px and 1280px in dark and
+light, 60 checks. Screenshots are in `docs/generated/pr123/`.
+
 ### Project header and the Edit panel (Q15a, #83, PR 4 2026-09-27)
 
 `renderProjectCard`'s header is two lines that always render in the same shape, whatever the

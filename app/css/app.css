@@ -36,6 +36,8 @@
   --paper-shadow:rgba(40,52,80,.35);
   --hole:var(--bg);
   --folder:#F1E6CC;
+  --index-red:#C9584F; /* the index card's heading line (#123) */
+  --index-rule:color-mix(in srgb, var(--rule) 45%, var(--surface)); /* its row rules, toned to the theme */
   --note:#FFE27A;
   --note-fold:#E2C055;
   --note-ink:#2B2412;
@@ -832,3 +834,73 @@ body.is-dragging-task .empty-note{display:none;}
 .file-btn:focus-visible, .sort-small button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 @media (prefers-reduced-motion: reduce){.slip-flag{animation:none;}}
 /* ==== end In-tray ==== */
+
+/* ==== Desk look for the rest of the app (#123) ==========================================
+   Everything outside the focus area becomes stationery on the same desk: a project is an open
+   folder (a tab in its colour over a card), its task list is a ruled index card (a red heading
+   line, blue rules between rows), and the editor, the project Edit panel, the move dialog, toasts,
+   the "+ New" panel and each Settings section are paper cards with the index card's red line.
+   Shape only: rows and chips stay on --surface / --surface-2, the backgrounds
+   scripts/check-due-contrast.mjs proves the due chips on. Behaviour does not change.
+   See docs/4-systems/styling.md#the-rest-of-the-desk */
+
+/* A wallet's cards are stacked with z-index; isolating the track keeps them under the sticky topbar
+   when the page scrolls (they drew over it before). */
+.flip-track{isolation:isolate;}
+
+/* A project: an open folder. The tab carries the project's colour (its identity, Q4b). */
+.project-card{
+  position:relative; margin-top:34px; padding:16px 14px 14px;
+  background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--proj-color);
+  border-radius:0 10px 10px 10px; box-shadow:0 16px 26px -20px var(--paper-shadow);
+}
+.project-card::before{
+  content:''; position:absolute; left:-1px; top:-16px; width:min(40%, 168px); height:13px;
+  background:color-mix(in srgb, var(--proj-color) 75%, var(--surface)); border-radius:9px 12px 0 0;
+}
+@media (min-width:700px){.project-card{padding:20px 22px 18px;}}
+.project-card.is-collapsed{padding-bottom:14px;}
+
+/* Its tasks: a ruled index card. "Up next" sits on the red heading line, rows on blue rules. */
+.project-card .group-label{padding-bottom:5px; margin-bottom:0; border-bottom:2px solid color-mix(in srgb, var(--index-red) 65%, transparent);}
+.project-card .task-row{border-top-color:var(--index-rule);}
+.project-card .task-group .task-row:first-of-type{border-top:none;}
+.project-card .progress-track{background:var(--surface-2);}
+
+/* The task editor and the add-task form: an index card lifted off the list. */
+.task-edit-form, .add-task-form{
+  background:var(--surface-2); border:1px solid var(--line); border-top:2px solid var(--index-red);
+  border-radius:4px 4px 8px 8px; padding:12px; margin:6px 0 8px; box-shadow:0 12px 20px -16px var(--paper-shadow);
+}
+.task-edit-form{border-top:2px solid var(--index-red);}
+
+/* The project Edit panel: a slip tucked in the folder. */
+.project-edit-panel{background:var(--surface-2); border:1px dashed var(--line); border-radius:6px; padding:10px 12px;}
+
+/* The move dialog: an index card on a dimmed desk. */
+.move-dialog-backdrop{background:color-mix(in srgb, var(--bg) 70%, transparent);}
+.move-dialog{border-top:3px solid var(--index-red); border-radius:4px 4px 10px 10px; box-shadow:0 22px 40px -18px var(--paper-shadow);}
+
+/* A toast: a torn-off jotter slip, holes along its top. */
+.toast{
+  border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:3px 3px 8px 8px; padding-top:16px;
+  background-color:var(--surface);
+  background-image:radial-gradient(circle, var(--bg) 2.2px, transparent 2.7px);
+  background-size:12px 8px; background-repeat:repeat-x; background-position:6px 3px;
+  box-shadow:0 16px 26px -14px var(--paper-shadow);
+}
+.toast-error{border-left-color:var(--danger);}
+
+/* The project list: folder tabs in a drawer. */
+.sidebar-project{border-radius:2px 9px 9px 2px; border-left:3px solid transparent;}
+.sidebar-project.is-selected{border-left-color:var(--accent);}
+.new-panel{background:var(--surface-2); border-top:2px solid var(--index-red); border-radius:4px 4px 8px 8px;}
+
+/* Settings: each section is an index card on the desk. */
+.settings-section{
+  background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--index-red);
+  border-radius:4px 4px 10px 10px; padding:18px 16px; margin-bottom:18px; box-shadow:0 16px 26px -20px var(--paper-shadow);
+}
+.settings-section:first-of-type{border-top:3px solid var(--index-red); padding-top:18px;}
+@media (min-width:700px){.settings-section{padding:24px 26px;}}
+/* ==== end Desk look for the rest of the app ==== */
