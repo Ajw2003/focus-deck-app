@@ -48,6 +48,7 @@ On a wide screen (`SPREAD_QUERY`, `(min-width: 1100px)`, #128), `mountWallets` l
 instead of making it flip (`spreadOut` in `js/wallet.js`; `.is-spread` in `css/app.css`). Every card
 shows at once, with no scrolling and no tilt.
 
+- **An even grid** (`repeat(auto-fill, minmax(196px, 1fr))`): every card the same width, filling the row; long names end in an ellipsis. Cards are full-size (128px index cards, 96px folders). Fixed-width cards went ragged with real data (19 projects, 45 categories).
 - **One click acts** (`spreadClick`). In the folder wallet, a click picks a folder (`onFacing`, which
   narrows the category cards) and a click on the picked folder draws from it. In every other
   wallet, a click chooses at once. The arrow keys move the pick and Enter chooses.
