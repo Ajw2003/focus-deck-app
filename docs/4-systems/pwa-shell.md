@@ -11,7 +11,8 @@ wires the service worker into the page.
 The app is served from `/focus-deck-app/app/`; the site root is kept for a landing page.
 
 - `app/` — `index.html`, `settings.html`, `js/`, `css/`, `service-worker.js` (scope `app/`), and
-  `icons/` (generated at deploy time by `generate_icons.py`).
+  `icons/` (generated at deploy time by `generate_icons.py`, gitignored; run it locally before a
+  browser check).
 - Root — `manifest.webmanifest`, `index.html` + `forward.js` (the root page), and `service-worker.js`
   (the retirement worker).
 - The manifest sits at the root with `"id": "./"`, `"start_url": "app/"`, `"scope": "./"`. An existing
@@ -92,6 +93,10 @@ deployed as a GitHub Pages *project* page under `/focus-deck-app/`, not a domain
 root-absolute path resolves against the bare domain instead of the actual subpath and
 404s there. Paths must resolve against wherever the script's own URL actually is, whether
 that's a GitHub Pages subpath or a local dev server's root.
+- Every module a page imports is listed in `SHELL_ASSETS`, and every listed file exists (icons:
+  made by `generate_icons.py`). `cache.addAll()` rejects on one 404, and an unlisted module is only
+  cached after a second online visit. Guarded by `app/js/service-worker-shell.test.mjs`; the real
+  install and an offline reload are checked by `scripts/check-service-worker-browser.mjs`.
 - Every `<select>` in app/css/app.css must set an explicit opaque `background` (never
   `transparent`) — there's no `appearance:none` anywhere in the codebase, so nothing
   guarantees CSS fully controls the native widget's rendering; without an opaque
