@@ -32,7 +32,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 scroll, and take a tap and a push-up in every mode; Swipe up mode retired), #133 (Category choices),
 #128 and #129 (wallets laid flat with one click on a wide screen, projects as paper folders), and
 #135 (one screen at a time from a side rail: Focus, Sort, Projects; the jotter on every screen; it
-replaces #130's two-column desk). Checks: `check-wallet-touch-browser.mjs` 22/22,
+replaces #130's two-column desk). Next: the Board screen (#140), not started; plan in `docs/plans/board-handoff.md`. Checks: `check-wallet-touch-browser.mjs` 22/22,
 `check-category-filter-browser.mjs` 11/11, `check-desktop-browser.mjs` 25/25, everything else still
 green; unit 163/163.
 
