@@ -68,6 +68,9 @@ export function dueStage(task, now, defaults) {
   const stages = task.dueStages || {};
   if (left <= cutoffMs(stages.red, span, d.redPct)) return 'red';
   if (left <= cutoffMs(stages.yellow, span, d.yellowPct)) return 'yellow';
+  // The due moment is 23:59, so on a short span the percentages land late in the evening and a
+  // chip reading "due today" stayed white most of the day (#114). On its due day a task is never white.
+  if (new Date(now).toDateString() === new Date(due).toDateString()) return 'yellow';
   return 'white';
 }
 

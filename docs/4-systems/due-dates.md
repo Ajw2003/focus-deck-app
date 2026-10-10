@@ -17,6 +17,9 @@ PRs and are not here.
   end of the due day in local time (`dueMoment`, `js/due-stage.js:38`). Left runs from now to the
   due moment. Overdue is always red; otherwise red when left/span is at or under the red cut-off,
   yellow at or under the yellow cut-off. Defaults 33% and 10% (`DEFAULT_DUE_DEFAULTS`).
+- **Due-day floor (#114).** On its due day (local) a task is at least yellow, whatever the span or
+  lead times (`app/js/due-stage.js:73`). Without it a short span put the cut-offs late in the evening,
+  since the due moment is 23:59, and a chip reading "due today" stayed white until about 7pm.
 - **Per-task lead times.** `task.dueStages = { yellow, red }`, each `{ pct }` or `{ leadHours }`; a
   missing stage uses the defaults. The skippable step only ever writes `{ leadHours }`.
 - **Stamping.** `addTask` and `updateTaskFields` (`js/mutations.js:74`, `:101`) set `dueSetAt` when a
@@ -40,6 +43,7 @@ PRs and are not here.
 ## Invariants
 
 - No deadline is white; a done task is `'done'`; overdue is red whatever the span or lead times.
+- A task due today is never white.
 - `dueSetAt` is clamped to now inside `dueStage`, so clock skew cannot make left exceed span.
 - The due moment is built from the date parts, so a daylight-saving day is 23 or 25 hours and the
   stage still follows (tested with America/New_York).

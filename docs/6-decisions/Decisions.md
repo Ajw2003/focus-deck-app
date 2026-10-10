@@ -4,6 +4,19 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-10 — A task due today is never white (#114)
+
+**Context.** #114 reported due dates "not quite working, especially for tasks created with a one
+day due date" (no further detail). Running `dueStage` on the reported shape showed why: the due
+moment is the end of the due day (23:59), so for a task set at 09:00 and due today the 33%/10%
+cut-offs land at about 19:00 and 22:30. Its chip read "due today" in white for most of the day.
+
+**Decision.** On its due day a task is at least yellow (`app/js/due-stage.js:73`). Red still
+follows the percentages or the chosen lead time. Interpreted by the agent without the user (they
+asked for autonomous work); if "due today" should be red instead, it is that one line.
+
+**Status.** Standing.
+
 ## 2026-10-10 — Settings regrouped (#126): calls made
 
 - **No theme setting was added.** The issue lists "theme" under How it looks, but none exists:

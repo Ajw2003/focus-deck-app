@@ -60,9 +60,25 @@ test('3-day span: yellow with about a day left, red with about 7 hours left', ()
 test('1-day span: yellow with about 8 hours left, red with about 2', () => {
   const t = taskDueIn('2026-10-05', 1 * D);
   const due = dueOf('2026-10-05');
-  assert.strictEqual(dueStage(t, due - 9 * H, undefined), 'white');
+  assert.strictEqual(dueStage(t, due - 25 * H, undefined), 'white'); // the day before
+  assert.strictEqual(dueStage(t, due - 9 * H, undefined), 'yellow'); // the due-day floor (#114); the percentages alone said white
   assert.strictEqual(dueStage(t, due - 7 * H, undefined), 'yellow');
   assert.strictEqual(dueStage(t, due - 2 * H, undefined), 'red');
+});
+
+test('#114: on its due day a task is never white, whatever the span', () => {
+  // Set at 09:00, due today: the percentages alone would leave it white until about 19:00.
+  const t = { status: 'next', deadline: '2026-10-05', dueSetAt: new Date(2026, 9, 5, 9, 0, 0).getTime() };
+  assert.strictEqual(dueStage(t, new Date(2026, 9, 5, 9, 1, 0).getTime(), undefined), 'yellow');
+  assert.strictEqual(dueStage(t, new Date(2026, 9, 5, 15, 0, 0).getTime(), undefined), 'yellow');
+  assert.strictEqual(dueStage(t, new Date(2026, 9, 5, 23, 0, 0).getTime(), undefined), 'red');
+  // Set the evening before, due tomorrow: white that evening, yellow from midnight.
+  const u = { status: 'next', deadline: '2026-10-05', dueSetAt: new Date(2026, 9, 4, 20, 20, 0).getTime() };
+  assert.strictEqual(dueStage(u, new Date(2026, 9, 4, 23, 59, 0).getTime(), undefined), 'white');
+  assert.strictEqual(dueStage(u, new Date(2026, 9, 5, 0, 0, 0).getTime(), undefined), 'yellow');
+  // A chosen lead time does not lift the floor either.
+  const v = { ...t, dueStages: { yellow: { leadHours: 1 }, red: { leadHours: 1 } } };
+  assert.strictEqual(dueStage(v, new Date(2026, 9, 5, 12, 0, 0).getTime(), undefined), 'yellow');
 });
 
 test('overdue is always red, whatever the span or overrides', () => {
@@ -74,7 +90,7 @@ test('overdue is always red, whatever the span or overrides', () => {
 test('a 5-minute span: the percentages still produce three bands', () => {
   const due = dueOf('2026-10-05');
   const t = { status: 'next', deadline: '2026-10-05', dueSetAt: due - 5 * 60000 };
-  assert.strictEqual(dueStage(t, due - 4 * 60000, undefined), 'white');
+  assert.strictEqual(dueStage(t, due - 4 * 60000, undefined), 'yellow'); // the due-day floor (#114), not white
   assert.strictEqual(dueStage(t, due - 90 * 1000, undefined), 'yellow');
   assert.strictEqual(dueStage(t, due - 20 * 1000, undefined), 'red');
 });
@@ -173,7 +189,8 @@ test('daylight-saving change: the due moment is built from the date, so the day 
     // and fall-back, 2026-11-01: a 25-hour day
     const fallSet = new Date(2026, 10, 1, 0, 0, 0).getTime();
     const f = { status: 'next', deadline: '2026-11-01', dueSetAt: fallSet };
-    assert.strictEqual(dueStage(f, new Date(2026, 10, 1, 1, 0, 0).getTime(), undefined), 'white');
+    assert.strictEqual(dueMoment(f) - fallSet, 25 * H - 1000);
+    assert.strictEqual(dueStage(f, new Date(2026, 10, 1, 1, 0, 0).getTime(), undefined), 'yellow'); // due-day floor (#114)
     assert.strictEqual(dueStage(f, new Date(2026, 10, 1, 20, 0, 0).getTime(), undefined), 'yellow');
   } finally {
     if (prev === undefined) delete process.env.TZ; else process.env.TZ = prev;
