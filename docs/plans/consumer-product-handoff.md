@@ -1,4 +1,45 @@
-# Handoff: consumer product (#116), paused 2026-10-09 (updated the same evening)
+# Handoff: consumer product (#116), all ten steps built (updated 2026-10-10)
+
+## Where it stands now (2026-10-10)
+
+Everything for #117-#126 is built, checked in Chromium and pushed on branch
+**`ccr-1569909b-xe23b7`**. It is not merged to `main`, so none of it is deployed. Unit tests: 155/155.
+Browser checks (run each with `CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/<name>`;
+run `python3 generate_icons.py` first for the offline one):
+
+| Check | Result |
+|---|---|
+| `check-service-worker-browser.mjs` (install + offline) | 4/4 |
+| `check-wallets-browser.mjs` (#120) | 44/44 |
+| `check-in-tray-browser.mjs` (#121) | 46/46 |
+| `check-note-faces-browser.mjs` (#122) | 64/64 |
+| `check-desk-screens-browser.mjs` (#123) | 60/60 |
+| `check-onboarding-browser.mjs` (#124) | 48/48 |
+| `check-sync-setup-browser.mjs` (#125, GitHub simulated) | 22/22 |
+| `check-settings-browser.mjs` (#126) | 26/26 |
+
+Corrections to the evening notes below:
+
+- **The "missing icons" were only missing locally.** The deploy job generates `app/icons/`, so the
+  live site was fine. They are now gitignored and accepted by the test. The real offline bug was
+  `js/icons.js` missing from the worker's cache list, now fixed.
+- **#122's hang** at the offline section was that local icon gap. With icons generated it passes.
+- **Wallet cards drew over the sticky topbar** when the page scrolled (a #120 bug). Fixed in #123.
+
+Still open, needing the user:
+
+1. Try it, then merge `ccr-1569909b-xe23b7` into `main` to deploy. Close #117-#126 once happy.
+2. Confirm on a real GitHub account whether `TOKEN_PAGE` (`app/js/sync-setup.js`) pre-fills the
+   new-key form, and try the key check with a real key. Both were only simulated
+   (`docs/4-systems/sync-setup.md`).
+3. Check Kalam (Handwriting) on a real network. The sandbox blocks Google Fonts.
+4. `scripts/.tmp-block.js` is now unused. Deleting it was refused by the safety hook (nobody
+   there to approve), so it is still in the tree.
+5. Decide whether to add a theme switch (#126 assumed none, since none existed).
+
+---
+
+## Earlier notes (2026-10-09), kept for history
 
 ## Read this first: no subagents until the refusal problem is fixed (the user, 2026-10-09)
 
