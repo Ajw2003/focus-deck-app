@@ -287,6 +287,9 @@ a{color:inherit;}
 .slip-main{font-family:var(--font-paper); font-weight:700; font-size:var(--text-body);}
 .slip-sub{font-family:var(--font-paper-small); font-size:var(--text-sm); color:var(--paper-soft);}
 .check-btn:focus-visible, .slip-btn:focus-visible{outline:2px solid var(--accent); outline-offset:4px; border-radius:8px;}
+.focus-doing{text-align:center; margin:2px 0 8px;}
+.focus-doing-btn{text-decoration:underline; text-underline-offset:3px;}
+.focus-doing-mark{font-size:var(--text-sm); font-weight:600; color:var(--ink-faint);}
 .desk-clear{text-align:right; margin-top:-6px;}
 
 .focus-empty .focus-q{font-size:var(--text-q); font-style:normal; margin-bottom:6px;}

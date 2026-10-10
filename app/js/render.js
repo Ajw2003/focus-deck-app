@@ -190,6 +190,8 @@ export function renderFocus(st, findTaskWithProject, ui) {
       + '</div>'
       + '<h2 class="focus-title"><span class="ink">' + esc(t.title) + '</span></h2>'
     + '</div></div>'
+    + (t.status === 'next' ? '<div class="focus-doing"><button type="button" class="btn-text focus-doing-btn" data-action="focus-doing">Mark in progress</button></div>'
+      : t.status === 'doing' ? '<div class="focus-doing"><span class="focus-doing-mark">In progress</span></div>' : '')
     + '<div class="desk-acts' + (canReroll ? '' : ' is-single') + '">'
       + '<button type="button" class="check-btn' + leaving.button + '" data-action="complete-focus">'
         + '<span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="tick" d="M4.5 12.8l4.6 4.7L19.8 6.2"/></svg></span>'

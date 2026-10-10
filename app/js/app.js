@@ -468,6 +468,15 @@ function onAppClick(e) {
   }
   else if (action === 'reroll') M.reroll();
   else if (action === 'clear-focus') M.clearFocus();
+  else if (action === 'focus-doing') {
+    // same path as a board drop: lands at the end of In progress; the task stays in focus
+    const f = state.focus && findTaskWithProject(state.focus.taskId);
+    if (f && f.task.status === 'next') {
+      const end = f.project.tasks.filter((t) => t.status === 'doing').length;
+      if (moveTaskTo({ taskId: f.task.id, toProjectId: f.project.id, status: 'doing', toIndex: end })) ui.notice = 'Moved to In progress';
+      paint();
+    }
+  }
   else if (action === 'complete-focus') completeFocusWithNote();
   // M.setFocusTask doesn't exist -- the correct exported function is setFocus.
   // "Focus on this" lives in the edit form now (Q14a, Q12f) -- picking a task closes the form.

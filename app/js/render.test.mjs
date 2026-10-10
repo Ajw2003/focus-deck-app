@@ -456,3 +456,17 @@ assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds:
   assert.strictEqual(normalizeScreen('board'), 'board');
   assert.strictEqual(normalizeScreen('projects'), 'projects');
 }
+
+// "Mark in progress" under the sticky note (#146): a button for a 'next' task, a quiet marker for a
+// 'doing' one, nothing when no task is in focus
+{
+  const mk = (status) => ({ focus: { taskId: 't1' }, categories: [], projects: [{ id: 'p', name: 'Home', tasks: [{ id: 't1', title: 'Bins', status }] }] });
+  const find = (st) => (id) => ({ task: st.projects[0].tasks.find((x) => x.id === id), project: st.projects[0] });
+  const nextSt = mk('next'), doingSt = mk('doing');
+  const a = renderFocus(nextSt, find(nextSt), {});
+  assert.ok(a.includes('data-action="focus-doing"') && a.includes('Mark in progress'), 'a next task offers Mark in progress');
+  const b = renderFocus(doingSt, find(doingSt), {});
+  assert.ok(!b.includes('data-action="focus-doing"') && b.includes('focus-doing-mark') && b.includes('In progress'), 'a doing task shows the marker, not a button');
+  const c = renderFocus({ focus: null, categories: [], projects: [] }, () => null, { focusFilter: {} });
+  assert.ok(!c.includes('focus-doing'), 'no focus, no Mark in progress');
+}
