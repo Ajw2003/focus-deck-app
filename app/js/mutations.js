@@ -145,9 +145,11 @@ export function setTaskStatus(taskId, status) {
   task.status = status;
   task.updatedAt = Date.now();
   if (status === 'done' && !wasDone) {
+    task.completedAt = Date.now(); // when it was finished; the Board's "Done this week" reads it (#145)
     state.completedLog.unshift({ id: uid('log'), taskId: task.id, title: task.title, projectId: project.id, color: project.color, completedAt: Date.now() });
     state.completedLog = state.completedLog.slice(0, 12);
   } else if (status !== 'done' && wasDone) {
+    delete task.completedAt;
     state.completedLog = state.completedLog.filter((e) => e.taskId !== task.id);
   }
   persist();

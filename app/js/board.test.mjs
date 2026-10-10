@@ -66,3 +66,12 @@ test('empty state and unknown project', () => {
   assert.deepStrictEqual(boardColumns(empty, null, NOW), { next: [], doing: [], done: [], counts: { next: 0, doing: 0, done: 0 } });
   assert.strictEqual(boardColumns(state(), 'nope', NOW).counts.next, 0);
 });
+
+test('completedAt wins over updatedAt for Done this week; updatedAt is the fallback (#145)', () => {
+  const st = { projects: [proj('p', [
+    task('old-edited', 'done', { completedAt: MON - 86400e3, updatedAt: NOW - 3600e3 }), // finished last week, edited today
+    task('fresh', 'done', { completedAt: NOW - 7200e3, updatedAt: 1 }),                   // finished today, stale updatedAt
+    task('legacy', 'done', { updatedAt: NOW - 3600e3 }),                                  // no completedAt: falls back
+  ])] };
+  assert.deepStrictEqual(ids(boardColumns(st, null, NOW).done), ['legacy', 'fresh']);
+});

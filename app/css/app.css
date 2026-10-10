@@ -1138,13 +1138,22 @@ body.is-dragging-task .empty-note{display:none;}
 .board-card-cats{flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .board-card-proj + .board-card-cats::before{content:"\00b7\00a0";}
 .board-card .board-prio{flex:none; cursor:default;}
+.board-card{touch-action:pan-y; -webkit-user-select:none; user-select:none;}
+.board-card.is-swiping{box-shadow:0 10px 18px -8px var(--paper-shadow); z-index:1;}
+/* the lifted copy of a dragged card: .board-card's position:relative (above) would otherwise beat .drag-ghost's fixed */
+.board-card.drag-ghost.is-task{position:fixed; border-left:6px solid var(--proj-color); padding:11px 12px 11px 16px; border-radius:3px 8px 8px 3px; box-sizing:border-box;}
+.board-card.drag-placeholder{border-radius:3px 8px 8px 3px;}
+.board-grip{display:none; margin:0 -4px 0 -8px;}
+.board-grip:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
 .board-empty{margin:0; padding:14px 12px; border:1px dashed var(--line); border-radius:8px; color:var(--ink-soft); font-size:var(--text-sm); text-align:center;}
 .board-frame{position:relative; margin-top:36px; padding:14px 14px 16px; background:var(--surface-2); border:6px solid color-mix(in srgb, var(--proj-color) 45%, var(--folder)); border-radius:2px 12px 12px 12px; box-shadow:0 18px 30px -20px var(--paper-shadow);}
 .board-frame::before{content:""; position:absolute; left:-6px; top:-33px; width:min(200px, 55%); height:27px; border-radius:8px 12px 0 0; background:color-mix(in srgb, var(--proj-color) 45%, var(--folder));}
 .board-frame-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
 .board-frame-name{margin:0; min-width:0; overflow-wrap:anywhere; font:700 var(--text-h) var(--font-ui);}
 .board-back{color:var(--accent);}
+@media (max-width:1099.98px){ .board-col{overflow-x:clip;} } /* a card swiped sideways never widens the page */
 @media (min-width:1100px){
+  .board-grip{display:inline-flex;}
   .board-switch{display:none;}
   .board-cols{grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; align-items:start;}
   .board-col{display:block;}

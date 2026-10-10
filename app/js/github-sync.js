@@ -518,6 +518,7 @@ export function upsertRepoProject(repo, issues, ui) {
     if (isThisRepos(t) && t.status !== 'done' && !openNumbers.has(t.issueNumber) && !transfersInFlight.has(t.id)) {
       t.status = 'done';
       t.updatedAt = Date.now();
+      t.completedAt = t.updatedAt;
       newlyClosed.push(t);
       state.completedLog.unshift({ id: uid('log'), taskId: t.id, title: t.title, projectId: holder.id, color: holder.color, completedAt: Date.now() });
     }
@@ -532,7 +533,7 @@ export function upsertRepoProject(repo, issues, ui) {
       existing.repoFullName = repo.full_name;
       // it was marked done locally by an earlier sync (issue closed) but the issue is back in
       // the open set now, so it was reopened on GitHub — reflect that here too
-      if (existing.status === 'done') existing.status = statusFromLabels(iss.labels);
+      if (existing.status === 'done') { existing.status = statusFromLabels(iss.labels); delete existing.completedAt; }
       applyLabels(existing, iss.labels, iss.labelColors);
       dropStaleCompletedLabel(existing, iss.labels);
     } else if (project && iss.labels && iss.labels.length > 0) {
@@ -600,10 +601,12 @@ export async function syncGithub(ui) {
         const wasDone = t.status === 'done';
         if (iss.state === 'closed' && !wasDone) {
           t.status = 'done';
+          t.completedAt = Date.now();
           state.completedLog.unshift({ id: uid('log'), taskId: t.id, title: t.title, projectId: p.id, color: p.color, completedAt: Date.now() });
           state.completedLog = state.completedLog.slice(0, 12);
         } else if (iss.state === 'open' && wasDone) {
           t.status = statusFromLabels(iss.labels);
+          delete t.completedAt;
           state.completedLog = state.completedLog.filter((e) => e.taskId !== t.id);
         }
         applyLabels(t, iss.labels, iss.labelColors);

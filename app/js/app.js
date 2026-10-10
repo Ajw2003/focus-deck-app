@@ -10,6 +10,7 @@ import {
 } from './github-sync.js';
 import { getToken } from './github.js';
 import { initProjectDrag, isDragging } from './project-drag.js';
+import { initBoardSwipe } from './board-swipe.js';
 import { taskOrderChanges, sortTasks, planTaskMove } from './task-move.js';
 import { confirmMove } from './move-dialog.js';
 import { dueMoment } from './due-stage.js';
@@ -1131,6 +1132,7 @@ function init() {
     announce: announceDrag,
     onEnd: () => { if (paintWaitingOnDrag) { paintWaitingOnDrag = false; paint(); } },
   });
+  initBoardSwipe(app, { moveTask: moveTaskTo, announce: announceDrag });
   // the sync button and Projects toggle live in the topbar, outside #app -- same handler, since it
   // only acts on data-action values it recognizes
   const topbar = document.querySelector('.topbar');
