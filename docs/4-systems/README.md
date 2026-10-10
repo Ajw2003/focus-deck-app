@@ -25,3 +25,5 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
 - [onboarding.md](./onboarding.md) — first-run onboarding (welcome, first folder, tasks, first pick,
   sync offer), when it shows, and the no-projects empty states (`js/onboarding.js`,
   `js/onboarding-view.js`).
+- [sync-setup.md](./sync-setup.md) — the guided GitHub sync setup and the pasted-key check that names
+  what's missing (`setup.html`, `js/sync-setup.js`, `js/key-check.js`).

@@ -185,7 +185,7 @@ for (const [name, storage] of [
   await ctx.close();
 }
 
-// 6. "Set up sync" goes to the sync settings
+// 6. "Set up sync" opens the guided setup (#125)
 {
   const { ctx, page } = await open('dark', {}, '?welcome');
   for (const s of ['welcome', 'folder']) { if (s === 'folder') { await page.fill('#ob-folder-name', 'Home'); await page.keyboard.press('Enter'); } else await page.click('[data-action="ob-next"]'); await page.waitForTimeout(150); }
@@ -195,8 +195,8 @@ for (const [name, storage] of [
   await page.click('[data-action="ob-deal"]');
   await page.click('[data-action="ob-next"]');
   await page.click('[data-action="ob-sync"]');
-  await page.waitForURL(/settings\.html#sync-section/);
-  check('sync: Set up sync opens the sync settings', page.url().endsWith('settings.html#sync-section'));
+  await page.waitForURL(/setup\.html/);
+  check('sync: Set up sync opens the guided setup', page.url().endsWith('setup.html'));
   await ctx.close();
 }
 

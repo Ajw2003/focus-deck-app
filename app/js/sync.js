@@ -86,6 +86,21 @@ export async function findSyncGist() {
   return matches.length ? matches[0].id : null;
 }
 
+// Makes a new private sync Gist holding this device's data and connects this device to it. Used by
+// Settings and the guided setup (js/sync-setup.js); both look for an existing one first.
+export async function createSyncGist() {
+  const gist = await ghFetch('/gists', {
+    method: 'POST',
+    body: JSON.stringify({
+      description: 'Focus Deck sync data — do not edit manually',
+      public: false,
+      files: { [GIST_FILE]: { content: serializeState(state) } },
+    }),
+  });
+  setGistId(gist.id);
+  return gist.id;
+}
+
 // Background sync runs with no button pressed, so its problems are put in the page's toast
 // (state._ui is set by the main page's renderApp; pages without it, like settings, skip this).
 function showOnPage(field, message) {

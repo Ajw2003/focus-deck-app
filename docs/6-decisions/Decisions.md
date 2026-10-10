@@ -12,7 +12,7 @@ These were made without the user present (they asked for autonomous work):
   second device. A sync that brings projects in during the first screen closes the welcome.
 - **The tasks step uses one category chip at a time**, and it stays on for the next task. This is
   quicker than choosing per task, and it can be turned off.
-- **"Set up sync" goes to the Settings sync section for now.** #125's guided setup replaces it.
+- **"Set up sync" opens the guided setup** (`setup.html`, #125).
 - **The sidebar still hides with no projects**, so the empty main column hosts the "+ New" panel,
   and the topbar Projects button goes there too. Drawing an empty sidebar was the alternative,
   but it would put a near-empty drawer in front of a new user.

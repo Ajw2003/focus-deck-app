@@ -787,7 +787,7 @@ function onOnboardingClick(action, el) {
     paint();
   } else if (action === 'ob-sync') {
     finishOnboarding();
-    location.href = 'settings.html#sync-section';
+    location.href = 'setup.html';
   }
 }
 

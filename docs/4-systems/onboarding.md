@@ -24,7 +24,7 @@ set, `renderApp` draws only the onboarding in the main column (the topbar and jo
 | folder | Name a project (suggestions Home / School / Work fill the field); `M.addProject` |
 | tasks | Quick-add tasks; one category chip can be on at a time, and it applies to each task added while on. A suggested category (Study, Art, Errand) is made on first use through `labelIdByName` |
 | pick | `M.pickFocus({ projectId })` and the real sticky note (`R.renderFocus`), so ticking it off and "Not this one" work |
-| sync | "Set up sync" goes to `settings.html#sync-section` (#125 replaces this with the guided setup); "Not now" ends it |
+| sync | "Set up sync" opens the guided setup (`setup.html`, #125, `docs/4-systems/sync-setup.md`); "Not now" ends it |
 
 Every step has "Skip, I'll look around". Skipping or finishing sets `focusdeck-onboarding` to `done` on
 this device. Leaving another way (closing the tab half-way) keeps what was made. On the next load

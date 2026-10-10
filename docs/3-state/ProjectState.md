@@ -26,11 +26,11 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 12 | Time-of-day suggestions | 0% | #48 open; the user decided 2026-09-26 to delete energy fully, so #48 (if built) builds on labels and time of day, not energy |
 | 13 | Pilot and public rollout | 0% | #44 open |
 | 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 built, pending merge) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; PRs 2-6 not started |
-| 15 | Consumer product: desk redesign, landing page, onboarding | ~80% (8 of 10 steps built) | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117-#124 built, checked in Chromium and merged on `ccr-1569909b-xe23b7` (2026-10-10), not yet deployed; #125-#126 not started; see `docs/plans/consumer-product-handoff.md` |
+| 15 | Consumer product: desk redesign, landing page, onboarding | ~90% (9 of 10 steps built) | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117-#125 built, checked in Chromium and merged on `ccr-1569909b-xe23b7` (2026-10-10), not yet deployed; #126 not started; see `docs/plans/consumer-product-handoff.md` |
 
 ## What's built / not built, per milestone
 
-**15. Consumer product** — Partly built (#117-#124). Agreed design: the "Your pick" section of
+**15. Consumer product** — Partly built (#117-#125). Agreed design: the "Your pick" section of
 `docs/plans/redesign-directions.html` (a lamp-lit desk of stationery: sticky note, index-card and
 folder wallets, jotter, paper checkbox, Unsorted in-tray), screenshots in
 `docs/generated/redesign-mockup/`. Plan and decisions: `docs/plans/consumer-product.md`. Ten child
@@ -60,7 +60,7 @@ OpenDyslexic, self-hosted): `app/js/note-face.js`; Chromium check `scripts/check
 Fonts). Offline: `app/js/icons.js` was missing from the worker's cache list (fixed); the worker install
 and an offline reload are checked by `scripts/check-service-worker-browser.mjs` (run
 `python3 generate_icons.py` first: the icons are generated, not committed). All on branch
-`ccr-1569909b-xe23b7`; unit tests 134/134. #123 the desk look for the rest of the app: project folders, ruled task lists, paper editor, dialog, toast and Settings cards (CSS only, `docs/4-systems/styling.md#the-rest-of-the-desk`); also fixes the wallet cards drawing over the sticky topbar. Chromium tour `scripts/check-desk-screens-browser.mjs`: 60/60 at 390/1280 in both themes. #124 first-run onboarding (welcome, first folder, a few tasks, first pick, sync offer; once per device, not for existing data or a second device; replay from Settings > Help) and the no-projects empty states, `docs/4-systems/onboarding.md`; Chromium check `scripts/check-onboarding-browser.mjs`: 48/48. Not started: #125-#126. Resume from
+`ccr-1569909b-xe23b7`; unit tests 134/134. #123 the desk look for the rest of the app: project folders, ruled task lists, paper editor, dialog, toast and Settings cards (CSS only, `docs/4-systems/styling.md#the-rest-of-the-desk`); also fixes the wallet cards drawing over the sticky topbar. Chromium tour `scripts/check-desk-screens-browser.mjs`: 60/60 at 390/1280 in both themes. #124 first-run onboarding (welcome, first folder, a few tasks, first pick, sync offer; once per device, not for existing data or a second device; replay from Settings > Help) and the no-projects empty states, `docs/4-systems/onboarding.md`; Chromium check `scripts/check-onboarding-browser.mjs`: 48/48. #125 guided sync setup (`app/setup.html`, `docs/4-systems/sync-setup.md`): one step per screen, the pasted key checked at once with each problem named (9 unit tests on fixture responses, not live GitHub), the first device makes the sync Gist and a second finds and pulls it; Chromium check `scripts/check-sync-setup-browser.mjs`: 22/22 with GitHub simulated. Unconfirmed: whether GitHub pre-fills the new-key form from the link. Not started: #126. Resume from
 `docs/plans/consumer-product-handoff.md`.
 
 **14. Due dates, repeats and reminders** — Built, pending merge (PR 1 of #106, branch

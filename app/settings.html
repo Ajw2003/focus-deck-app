@@ -10,6 +10,7 @@
   <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true"><span class="lamp"></span></span><h1>Settings</h1></div><a href="index.html" class="link-btn">← Back</a></header>
   <section class="card settings-section">
     <h2 style="margin-bottom:10px;">GitHub token</h2>
+    <p class="setup-callout"><a class="btn primary" href="setup.html">Set up sync step by step</a> <span class="muted small">The easiest way: it checks your key and tells you exactly what&rsquo;s missing.</span></p>
     <p class="muted small" style="margin-bottom:10px;">
       Focus Deck uses this token to link tasks to issues, create new issues from tasks, close/reopen a linked
       issue when you complete a task, and keep categories in sync as GitHub labels. Set it up once:
@@ -104,9 +105,9 @@
   // saved since (this is how "Connect" used to lose the Gist ID the moment a category was edited).
   // The Gist ID itself only changes through setGistId()/disconnectGist() — see
   // docs/4-systems/local-storage.md.
-  import { getToken, setToken, validateToken, ghFetch } from './js/github.js';
-  import { state, setGistId, serializeState } from './js/state.js';
-  import { findSyncGist, pullFromGist, GIST_FILE } from './js/sync.js';
+  import { getToken, setToken, validateToken } from './js/github.js';
+  import { state, setGistId } from './js/state.js';
+  import { findSyncGist, pullFromGist, createSyncGist } from './js/sync.js';
   import { renderToast } from './js/render.js';
 
   const input = document.getElementById('token-input');
@@ -177,17 +178,9 @@
         const existing = await findSyncGist().catch(() => null);
         if (existing) { await connectAndPull(existing, 'found your existing sync Gist instead of making a duplicate'); return; }
       }
-      const gist = await ghFetch('/gists', {
-        method: 'POST',
-        body: JSON.stringify({
-          description: 'Focus Deck sync data — do not edit manually',
-          public: false,
-          files: { [GIST_FILE]: { content: serializeState(state) } },
-        }),
-      });
-      setGistId(gist.id);
+      const gistId = await createSyncGist();
       renderGistStatus();
-      showToast('Created! Gist ID: ' + gist.id + ' — on your other device, save the same token and it will connect automatically (or paste this ID below).', 'info');
+      showToast('Created! Gist ID: ' + gistId + ' — on your other device, save the same token and it will connect automatically (or paste this ID below).', 'info');
     } catch (e) {
       showToast('Couldn’t create the sync Gist: ' + e.message, 'error');
     } finally {

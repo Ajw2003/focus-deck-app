@@ -935,3 +935,28 @@ body.is-dragging-task .empty-note{display:none;}
 .projects-empty{display:grid; gap:12px; justify-items:start;}
 .projects-empty p{margin:0;}
 /* ==== end First-run onboarding ==== */
+
+/* ==== Guided sync setup (#125) =========================================================
+   setup.html reuses the onboarding card (.onboarding, .ob-*). The GitHub settings to choose are a
+   drawing (.gh-picture), not a screenshot. See docs/4-systems/sync-setup.md */
+.setup-links{margin:4px 0 14px;}
+.setup-links .btn{text-decoration:none; color:var(--ink);}
+.setup-links .btn.primary{color:var(--accent-ink);}
+.gh-picture{margin:6px 0 16px; padding:12px; border:1px solid var(--line); border-radius:8px; background:var(--surface-2);}
+.gh-form{list-style:none; margin:0 0 10px; padding:0;}
+.gh-row{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; padding:9px 2px; border-bottom:1px solid var(--line);}
+.gh-row:last-child{border-bottom:none;}
+.gh-label{font-weight:600; display:flex; flex-direction:column; gap:2px; min-width:0;}
+.gh-note{font-weight:400; font-size:var(--text-sm); color:var(--ink-soft);}
+.gh-value{font-weight:700; font-size:var(--text-sm); padding:3px 10px; border-radius:var(--r-pill); background:var(--accent); color:var(--accent-ink); align-self:flex-start; white-space:nowrap;}
+.key-findings{list-style:none; margin:4px 0 16px; padding:0;}
+.key-finding{display:flex; gap:10px; align-items:flex-start; padding:9px 2px; border-bottom:1px solid var(--index-rule); line-height:1.45;}
+.key-mark{flex:none; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:.8rem; background:var(--surface-2); color:var(--ink);}
+.key-finding.is-ok .key-mark{background:color-mix(in srgb, #3E8E5E 70%, var(--surface)); color:#FFFFFF;}
+.key-finding.is-warn .key-mark{background:var(--accent); color:var(--accent-ink);}
+.key-finding.is-missing .key-mark, .key-finding.is-error .key-mark{background:var(--danger); color:#FFFFFF;}
+.key-finding.is-missing, .key-finding.is-error{font-weight:600;}
+.setup a.file-btn{display:block; text-align:center; text-decoration:none;}
+.setup-callout{display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin:0 0 14px;}
+.setup-callout .btn{text-decoration:none;}
+/* ==== end Guided sync setup ==== */

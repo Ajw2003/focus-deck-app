@@ -25,9 +25,10 @@ const root = path.join(here, '..');
 const html = fs.readFileSync(path.join(root, 'settings.html'), 'utf8');
 
 // Pull out the <script type="module">...</script> block that wires up the "Create sync Gist"
-// button (identified by its ghFetch('/gists' POST call, which is unique to this block).
+// button (identified by its createSyncGist( call; the POST itself moved into js/sync.js in #125,
+// checked at the end of this file).
 const scriptBlocks = [...html.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)].map((m) => m[1]);
-const createGistBlock = scriptBlocks.find((b) => b.includes("ghFetch('/gists'"));
+const createGistBlock = scriptBlocks.find((b) => b.includes('createSyncGist('));
 
 assert.ok(createGistBlock, 'could not find the "Create sync Gist" script block in settings.html at all');
 
@@ -52,5 +53,12 @@ assert.ok(
     '`state` singleton imported from js/state.js instead, so it always sees the same live data ' +
     'every other script block on the page sees'
 );
+
+// The Gist itself is created by js/sync.js's createSyncGist (shared with the guided setup, #125):
+// it must serialize the same shared state, never a loadState() copy.
+const syncSrc = fs.readFileSync(path.join(root, 'js/sync.js'), 'utf8');
+const createFn = syncSrc.slice(syncSrc.indexOf('export async function createSyncGist'), syncSrc.indexOf('\n}\n', syncSrc.indexOf('export async function createSyncGist')));
+assert.ok(createFn.includes('serializeState(state)'), 'createSyncGist must write the shared `state` singleton');
+assert.ok(!/\bloadState\s*\(/.test(createFn), 'createSyncGist must not call loadState()');
 
 console.log('SETTINGS STATE TESTS PASSED');

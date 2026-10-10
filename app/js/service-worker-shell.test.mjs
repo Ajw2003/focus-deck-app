@@ -28,7 +28,7 @@ function reachableModules() {
       visit(normalize(join(dirname(file), m[1])));
     }
   };
-  for (const page of ['index.html', 'settings.html']) {
+  for (const page of ['index.html', 'settings.html', 'setup.html']) {
     const html = readFileSync(join(APP, page), 'utf8');
     for (const m of html.matchAll(/<script type="module" src="([^"]+)"/g)) visit(join(APP, m[1]));
     for (const m of html.matchAll(/import\s[^'"]*?['"](\.[^'"]+)['"]/g)) visit(normalize(join(APP, m[1])));
