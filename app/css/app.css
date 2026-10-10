@@ -1037,8 +1037,6 @@ body.is-dragging-task .empty-note{display:none;}
 .screen{max-width:720px; margin:0 auto;}
 .screen-focus{padding-top:12px;}
 .screen-board{padding-top:12px;}
-.board-title{margin:0 0 6px; font:700 1.4rem var(--font-ui);}
-.board-soon{margin:0; color:var(--ink-soft);}
 .screen-sort .inbox-card{border-top:0; padding-top:4px;}
 .screen-sort .inbox-card > .section-toggle{pointer-events:none;}
 .screen-sort .inbox-card > .section-toggle .chev{display:none;}
@@ -1099,3 +1097,57 @@ body.is-dragging-task .empty-note{display:none;}
 .rail-label{display:block; line-height:1.1;}
 /* laid flat, the line under the wallets says what a click does; a corner hint would sit on the card's counts */
 .flip-track.is-spread .icard .go{display:none;}
+
+/* ==== The Board (#144) ====================================================================
+   Project pills, then Up next / In progress / Done this week as columns of paper cards (js/board-view.js).
+   A card is paper in both themes, so it and the folder frame take the light theme's tokens, as the
+   project folders do (#129): the chips on them are the contrast already proven. Narrowed to one
+   project, the columns sit in that project's folder frame. On a phone .board-switch picks one column;
+   from 1100px all three show and the switch is hidden. */
+.board-card, .board-frame{
+  --bg:#E4E8EF; --surface:#FBFAF7; --surface-2:#EEF1F6;
+  --ink:#1C2438; --ink-soft:#59627A; --ink-faint:#6E7790; --line:#C7CEDB;
+  --accent:#8F5A06; --accent-ink:#FFFFFF; --danger:#A83E3E;
+  --prio-urgent:#B42318; --prio-high:#AD4A0B; --prio-medium:#7A5A00; --prio-low:#3F6E53;
+  color-scheme:light; color:var(--ink);
+}
+.board-title{margin:0 0 10px; font:700 1.4rem var(--font-ui);}
+.board-pills{display:flex; gap:8px; overflow-x:auto; padding:2px 2px 8px; margin-bottom:8px; scrollbar-width:thin;}
+.board-pill{flex:none; display:inline-flex; align-items:center; gap:7px; max-width:200px; padding:6px 13px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
+.board-pill.is-on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink);}
+.board-pill:focus-visible, .board-switch-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.board-pill-dot{flex:none; width:10px; height:10px; border-radius:50%; background:var(--proj-color); box-shadow:0 0 0 1.5px var(--surface);}
+.board-pill-name{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.board-switch{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:12px; padding:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:14px;}
+.board-switch-btn{border:0; border-radius:10px; background:none; color:var(--ink-soft); font:600 var(--text-sm) var(--font-ui); padding:8px 4px; cursor:pointer;}
+.board-switch-btn.is-on{background:var(--surface); color:var(--accent); box-shadow:0 1px 3px var(--paper-shadow);}
+.board-count{font-variant-numeric:tabular-nums; font-weight:700;}
+.board-cols{display:grid; grid-template-columns:minmax(0,1fr); gap:16px;}
+.board-col{display:none; min-width:0;}
+.board-col.is-current{display:block;}
+.board-col-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:0 0 10px; padding:0 2px 6px; border-bottom:2px solid var(--line); font:700 var(--text-h) var(--font-ui);}
+.board-col-head .board-count{color:var(--ink-soft); font-size:var(--text-sm);}
+.board-cards{display:flex; flex-direction:column; gap:10px;}
+.board-card{position:relative; display:flex; align-items:flex-start; gap:10px; min-width:0; padding:11px 12px 11px 16px; background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--proj-color); border-radius:3px 8px 8px 3px; box-shadow:0 6px 12px -9px var(--paper-shadow);}
+.board-card input[type="checkbox"]{flex:none; width:17px; height:17px; margin-top:2px; accent-color:var(--accent);}
+.board-card-body{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:3px;}
+.board-card-title{overflow-wrap:anywhere; line-height:1.3; font-weight:600;}
+.board-card.is-done .board-card-title{text-decoration:line-through; color:var(--ink-soft); font-weight:500;}
+.board-card-meta{display:flex; gap:6px; min-width:0; color:var(--ink-soft); font-size:var(--text-sm);}
+.board-card-proj{flex:0 1 auto; max-width:55%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:700;}
+.board-card-cats{flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.board-card-proj + .board-card-cats::before{content:"\00b7\00a0";}
+.board-card .board-prio{flex:none; cursor:default;}
+.board-empty{margin:0; padding:14px 12px; border:1px dashed var(--line); border-radius:8px; color:var(--ink-soft); font-size:var(--text-sm); text-align:center;}
+.board-frame{position:relative; margin-top:36px; padding:14px 14px 16px; background:var(--surface-2); border:6px solid color-mix(in srgb, var(--proj-color) 45%, var(--folder)); border-radius:2px 12px 12px 12px; box-shadow:0 18px 30px -20px var(--paper-shadow);}
+.board-frame::before{content:""; position:absolute; left:-6px; top:-33px; width:min(200px, 55%); height:27px; border-radius:8px 12px 0 0; background:color-mix(in srgb, var(--proj-color) 45%, var(--folder));}
+.board-frame-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
+.board-frame-name{margin:0; min-width:0; overflow-wrap:anywhere; font:700 var(--text-h) var(--font-ui);}
+.board-back{color:var(--accent);}
+@media (min-width:1100px){
+  .board-switch{display:none;}
+  .board-cols{grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; align-items:start;}
+  .board-col{display:block;}
+  .board-pills{flex-wrap:wrap; overflow-x:visible;}
+}
+/* ==== end The Board ==== */

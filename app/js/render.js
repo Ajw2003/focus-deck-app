@@ -45,10 +45,8 @@ const SCREEN_INFO = {
   projects: { label: 'Projects', icon: '<path d="M3 7h7l2 2h9v10H3z"/>' },
 };
 export function normalizeScreen(value) { return SCREENS.includes(value) ? value : 'focus'; }
-// The Board screen (#142): a placeholder until the columns land (#140).
-export function renderBoard(st, ui) {
-  return '<h2 class="board-title">Board</h2><p class="board-soon">The Next, Doing and Done columns come next.</p>';
-}
+// The Board screen's markup is in js/board-view.js (#144).
+export { renderBoard } from './board-view.js';
 export function renderRail(screen, unsortedCount) {
   return '<nav class="rail" aria-label="What to do">' + SCREENS.map((key) => {
     const on = key === screen;

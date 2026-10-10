@@ -19,6 +19,7 @@ import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY } from './in-tray.js';
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
 import { renderOnboarding } from './onboarding-view.js';
+import { normalizeBoardCol } from './board-view.js';
 import { applyNoteFace } from './note-face.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
@@ -153,6 +154,7 @@ function setBoardProject(id) {
 export const ui = {
   screen: loadScreen(),
   boardProject: loadBoardProject(),
+  boardCol: 'next', // the phone's one visible Board column; memory only (#144)
   onboarding: loadOnboarding(),
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
@@ -420,6 +422,8 @@ function onAppClick(e) {
     window.scrollTo(0, 0);
     return;
   }
+  if (action === 'board-project') { setBoardProject(el.getAttribute('data-project-id')); paint(); return; }
+  if (action === 'board-col') { ui.boardCol = normalizeBoardCol(el.getAttribute('data-col')); paint(); return; }
   if (action === 'start-new-project') { openFirstProjectPanel(); return; }
   if (action === 'unsorted-file' || action === 'unsorted-save') {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
