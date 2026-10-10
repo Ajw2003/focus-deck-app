@@ -8,30 +8,29 @@ second phone ("Sorting the Unsorted in-tray") in the "Your pick" section of
 It reuses the #120 wallets (`js/wallet.js`, `docs/4-systems/wallets.md`) for "1. Which folder?" and
 "2. Stick on category flags", so both follow the "Choosing a card" setting.
 
-## Status (read this first)
+## Status
 
-**Built but not wired in.** `js/render.js`'s old Unsorted pills (`renderInbox`, `unsortedKindsAndLabels`,
-`unsortedProjectPills`) and `js/app.js`'s old actions are still the live code, because the edit that
-removes them was refused during the build (nobody was available to approve it). What exists:
+**Wired in (2026-10-10).** The tray is the live Unsorted card.
 
 - `js/in-tray.js` — pure decisions: `orderTray`, `sendToBack`, `toggleToken`, `toggleFolder`,
   `flagCards`, `folderCards`, `selectionToIds`, `fileSlip`.
-- `js/in-tray-view.js` — `renderInTrayCard(st, ui)`, the replacement for `renderInbox`.
-- `css/app.css`, the "In-tray (#121)" section at the end.
-- `js/wallet.js` — `data-verb` on a wallet's track (the in-tray says "use", not "draw").
-- `js/render.js` — `sleeve` (new `picked`), `walletInner` (new `verb`), `mutedChip` are now exported.
-- Tests: `js/in-tray.test.mjs`.
+- `js/in-tray-view.js` — `renderInTrayCard(st, ui)` (called from `renderApp` in `js/app.js`) and
+  `unsortedCurrent(st, u)`, the top slip in tray order, whose key resets the per-slip scratch.
+- `js/render.js` — `unsortedQueue` (unchanged); the old pills (`renderInbox`,
+  `unsortedKindsAndLabels`, `unsortedProjectPills`) are gone.
+- `js/app.js` — `ui.unsorted` is `{ later, projectId, selected, newLabels, facingFolder, facingFlag,
+  currentKey }`. `walletHooks.onFacing` remembers the facing card of `tray-folders` / `tray-flags` so
+  a repaint keeps it; `walletHooks.onChoose` toggles the folder or flag and repaints. `unsorted-file`
+  and `unsorted-save` both go through `fileSlip`; `unsorted-skip` is Later (`sendToBack`). The
+  wallets announce into `#tray-live` when the focus wallets' `#wallet-live` isn't on the page.
+- `css/app.css`, the "In-tray (#121)" section.
+- Tests: `js/in-tray.test.mjs` (the card and the decisions); `js/render.test.mjs` keeps the queue
+  order test. Browser check: `scripts/check-in-tray-browser.mjs` (46 checks, tap and tap-twice, dark
+  and light; filing, flags on and off, Later, a task slip, Already done, Bin it, the empty tray).
+  Screenshots in `docs/generated/pr121/`.
 
-To wire it: in `renderApp` call `renderInTrayCard` instead of `R.renderInbox`; delete the old pill code;
-in `js/app.js` rename `ui.unsorted.skipped` to `later` and add `facingFolder`/`facingFlag` to
-`freshUnsortedScratch`; `unsorted-skip` becomes `later = sendToBack(later, key)`; `unsorted-file` and
-`unsorted-save` call `fileSlip` (deps: `M.fileInboxItem`, `M.updateTaskFields`,
-`createIssueIfGithubProject`, `labelIdByName`); `walletHooks.onFacing` stores the facing key for
-`tray-folders` / `tray-flags`; `walletHooks.onChoose` toggles the folder (`toggleFolder`) or the flag
-(`toggleToken`) and repaints (returns true); `announceWallet` falls back to `#tray-live`; drop
-`sort-toggle`, `sort-more-labels`, `unsorted-more-projects`, `unsorted-project`,
-`unsorted-change-project`, `unsorted-restart`; update `js/render.test.mjs` (its Unsorted tests describe
-the pills).
+Known: the flag tabs on the slip's edge are 46px wide, so a long name is clipped ("Reminder" shows
+its end). The full name is in the tab's `title` and on the flag card.
 
 ## Old Unsorted flow: keep / change / drop
 

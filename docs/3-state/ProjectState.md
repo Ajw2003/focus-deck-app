@@ -26,11 +26,11 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 12 | Time-of-day suggestions | 0% | #48 open; the user decided 2026-09-26 to delete energy fully, so #48 (if built) builds on labels and time of day, not energy |
 | 13 | Pilot and public rollout | 0% | #44 open |
 | 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 built, pending merge) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; PRs 2-6 not started |
-| 15 | Consumer product: desk redesign, landing page, onboarding | ~40% (4 of 10 steps built) | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117 (app to `/app/`), #118 (landing page), #119 (desk look, focus area) built and merged on `ccr-a03de58c-0j19tb`, checked in Chromium, not yet deployed; #120 (wallets) built, checked in Chromium (44 of 44, 2026-10-09) and merged on `ccr-a03de58c-0j19tb`; #121 (Unsorted in-tray): logic, markup, styles and unit tests built on `AjsAgent/issue-121-in-tray`, NOT yet wired into `render.js`/`app.js` and not checked in Chromium (see `docs/4-systems/in-tray.md`) |
+| 15 | Consumer product: desk redesign, landing page, onboarding | ~60% (6 of 10 steps built) | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117-#122 built, checked in Chromium and merged on `ccr-1569909b-xe23b7` (2026-10-10), not yet deployed; #123-#126 not started; see `docs/plans/consumer-product-handoff.md` |
 
 ## What's built / not built, per milestone
 
-**15. Consumer product** — Not built yet. Agreed design: the "Your pick" section of
+**15. Consumer product** — Partly built (#117-#122). Agreed design: the "Your pick" section of
 `docs/plans/redesign-directions.html` (a lamp-lit desk of stationery: sticky note, index-card and
 folder wallets, jotter, paper checkbox, Unsorted in-tray), screenshots in
 `docs/generated/redesign-mockup/`. Plan and decisions: `docs/plans/consumer-product.md`. Ten child
@@ -46,13 +46,21 @@ themes, device-matched install tabs, forwarding cases); `beforeinstallprompt` di
 page, so Install scrolls to the instructions. #119, the desk look for the focus area: the Low light
 tokens and faces, the jotter, the sticky-note focus card, the paper checkbox with the biro cross-out
 (`app/js/focus-complete.js`), the ticket-stub "Not this one"; see `docs/4-systems/styling.md`. The
-due-now stage and light-mode High/Medium priority colours were darkened to keep contrast. #120 wallets, on
-branch `AjsAgent/issue-120-wallets` (not merged): the focus picker is a folder wallet and an index-card
+due-now stage and light-mode High/Medium priority colours were darkened to keep contrast. #120 wallets: the focus picker is a folder wallet and an index-card
 wallet (`app/js/wallet.js`, `docs/4-systems/wallets.md`), and "Choosing a card" (Swipe up / Tap / Tap
 twice, default Tap twice) is a synced setting on the Settings page (`state.choosingMode`, merged like
 `dueDefaults`). Dropped from the old picker: "+N more", "Show all N labels", and "1 urgent" (now
-"top: Urgent"). Unit tests pass (119); the real-Chromium check (`scripts/check-wallets-browser.mjs`) has
-not been run because starting a static server was refused. Resume from
+"top: Urgent"). Chromium check `scripts/check-wallets-browser.mjs`: 44/44. #121 the Unsorted in-tray:
+slips in a tray, filed with the folder and flag wallets (`app/js/in-tray.js`, `app/js/in-tray-view.js`,
+`docs/4-systems/in-tray.md`); dropped: "+N more"/"Show fewer", "N skipped for now" with "Go through
+them again" (Later now sends a slip to the back), and the "· change" project chip. Chromium check
+`scripts/check-in-tray-browser.mjs`: 46/46. #122 the note-writing setting (Handwriting / Print /
+OpenDyslexic, self-hosted): `app/js/note-face.js`; Chromium check `scripts/check-note-faces-browser.mjs`:
+64/64, OpenDyslexic loads offline; Kalam not seen on a real network (this sandbox blocks Google
+Fonts). Offline: `app/js/icons.js` was missing from the worker's cache list (fixed); the worker install
+and an offline reload are checked by `scripts/check-service-worker-browser.mjs` (run
+`python3 generate_icons.py` first: the icons are generated, not committed). All on branch
+`ccr-1569909b-xe23b7`; unit tests 134/134. Not started: #123-#126. Resume from
 `docs/plans/consumer-product-handoff.md`.
 
 **14. Due dates, repeats and reminders** — Built, pending merge (PR 1 of #106, branch

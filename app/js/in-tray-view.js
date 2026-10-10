@@ -77,6 +77,12 @@ function renderTray(st, u, ordered, mode) {
     + '<button type="button" data-action="unsorted-delete" ' + ids + '>Bin it</button></div></div>';
 }
 
+// The top slip: the queue in tray order (slips sent to the back by "Later" come last), or null
+// when the tray is empty. app.js uses its key to reset the per-slip scratch.
+export function unsortedCurrent(st, u) {
+  return orderTray(unsortedQueue(st), u.later)[0] || null;
+}
+
 // The whole Unsorted card (the replacement for render.js's renderInbox). `ui.unsorted.later` is the
 // list of slips sent to the back.
 export function renderInTrayCard(st, ui) {

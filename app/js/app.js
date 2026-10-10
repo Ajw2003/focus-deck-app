@@ -1,5 +1,5 @@
 // focus-deck-app/js/app.js
-import { state, findTaskWithProject, findProjectIdForTask, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, TASK_KINDS } from './state.js';
+import { state, findTaskWithProject, findProjectIdForTask, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage } from './state.js';
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle } from './sync.js';
@@ -15,6 +15,8 @@ import { confirmMove } from './move-dialog.js';
 import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
 import { mountWallets } from './wallet.js';
+import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
+import { sendToBack, toggleToken, toggleFolder, fileSlip } from './in-tray.js';
 import { applyNoteFace } from './note-face.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
@@ -88,11 +90,11 @@ function saveProjectSort() {
   catch (e) { console.error('Could not save the project sort:', e); }
 }
 
-// Per-item scratch for the Unsorted flow (chosen project, ticked labels, typed new labels, "show
-// all" toggles) plus this session's skip list and which queue item it belongs to. Reset whenever
-// the current item changes -- see renderApp below.
-function freshUnsortedScratch(skipped) {
-  return { skipped: skipped || [], projectId: null, selected: [], newLabels: '', showAllLabels: false, showAllProjects: false, currentKey: null };
+// Per-slip scratch for the Unsorted in-tray (chosen folder, flags stuck on, typed new labels, the
+// card facing in each wallet) plus this session's "Later" list and which slip it belongs to. Reset
+// whenever the top slip changes -- see renderApp below. See docs/4-systems/in-tray.md
+function freshUnsortedScratch(later) {
+  return { later: later || [], projectId: null, selected: [], newLabels: '', facingFolder: null, facingFlag: null, currentKey: null };
 }
 
 export const ui = {
@@ -113,7 +115,8 @@ export const ui = {
 // pills) and re-renders only the category wallet, so the project wallet's scroll animation is not
 // cut off by a whole repaint. Choosing a card draws a task from it.
 function announceWallet(text) {
-  const live = document.getElementById('wallet-live');
+  // the in-tray's wallets have their own live region, for when the focus wallets aren't on screen
+  const live = document.getElementById('wallet-live') || document.getElementById('tray-live');
   if (live) live.textContent = text;
 }
 
@@ -127,10 +130,28 @@ const walletHooks = {
       if (slot) { slot.innerHTML = R.renderCategoryWalletInner(state, ui); mountWallets(slot, walletHooks); }
     } else if (name === 'categories') {
       ui.focusCategory = key;
+    } else if (name === 'tray-folders') {
+      ui.unsorted.facingFolder = key;
+    } else if (name === 'tray-flags') {
+      ui.unsorted.facingFlag = key;
     }
   },
   // Returns false when nothing could be drawn (the card goes back down).
   onChoose(name, key) {
+    // the in-tray's wallets don't draw a task: choosing puts a folder or a flag on the slip, and
+    // choosing it again takes it off
+    if (name === 'tray-folders') {
+      ui.unsorted.projectId = toggleFolder(ui.unsorted.projectId, key);
+      ui.unsorted.facingFolder = key;
+      paint();
+      return true;
+    }
+    if (name === 'tray-flags') {
+      ui.unsorted.selected = toggleToken(ui.unsorted.selected, key);
+      ui.unsorted.facingFlag = key;
+      paint();
+      return true;
+    }
     const projectId = name === 'projects'
       ? (key === R.ALL_PROJECTS_KEY ? null : key)
       : R.focusProjectId(state, ui);
@@ -146,11 +167,11 @@ export function renderApp(st) {
   applyNoteFace(st.noteFace && st.noteFace.face); // also after a sync brings in another device's choice
   st._ui = ui; // the sync button reads sync UI state off the state object it's already passed
   if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
-  // a new current Unsorted item (someone filed/skipped/completed the last one, or the queue itself
+  // a new current Unsorted item (someone filed/sent to the back/completed the last one, or the queue itself
   // changed under us -- a new capture, a task labelled elsewhere) starts with clean scratch
-  const currentUnsorted = R.unsortedCurrent(st, ui.unsorted);
+  const currentUnsorted = unsortedCurrent(st, ui.unsorted);
   const currentKey = currentUnsorted ? currentUnsorted.key : null;
-  if (currentKey !== ui.unsorted.currentKey) ui.unsorted = Object.assign(freshUnsortedScratch(ui.unsorted.skipped), { currentKey });
+  if (currentKey !== ui.unsorted.currentKey) ui.unsorted = Object.assign(freshUnsortedScratch(ui.unsorted.later), { currentKey });
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   // Resolved against every project, not just the filtered/searched list -- the selected project
   // stays selected in the "One" view even if a search or category filter hides it from the list.
@@ -158,7 +179,7 @@ export function renderApp(st) {
   const hasToken = !!getToken();
   return R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
     + '<div class="main-col view-' + ui.projectView + '">'
-      + R.renderFocus(st, findTaskWithProject, ui) + R.renderInbox(st, ui)
+      + R.renderFocus(st, findTaskWithProject, ui) + renderInTrayCard(st, ui)
       + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken)
     + '</div>'
     + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
@@ -309,37 +330,29 @@ function onAppClick(e) {
     if (form) form.querySelector('input[name="deadline"]').focus();
     return;
   }
-  if (action === 'sort-toggle') {
-    const token = el.getAttribute('data-token');
-    const sel = ui.unsorted.selected;
-    ui.unsorted.selected = sel.includes(token) ? sel.filter((x) => x !== token) : sel.concat(token);
-    paint();
-  }
-  else if (action === 'sort-more-labels') { ui.unsorted.showAllLabels = !ui.unsorted.showAllLabels; paint(); }
-  else if (action === 'unsorted-more-projects') { ui.unsorted.showAllProjects = !ui.unsorted.showAllProjects; paint(); }
-  else if (action === 'unsorted-project') { ui.unsorted.projectId = el.getAttribute('data-project'); paint(); }
-  else if (action === 'unsorted-change-project') { ui.unsorted.projectId = null; paint(); }
-  else if (action === 'unsorted-file') {
-    // read the project first: filing repaints, and the repaint resets ui.unsorted for the next item
-    const targetId = ui.unsorted.projectId;
-    const ids = unsortedSelectionToIds();
-    const task = M.fileInboxItem(el.getAttribute('data-inbox'), targetId, ids);
-    createIssueIfGithubProject(task, targetId);
-    const project = state.projects.find((p) => p.id === targetId);
-    ui.notice = 'Filed to ' + (project ? project.name : 'project') + '.';
-    paint();
-  }
-  else if (action === 'unsorted-save') {
-    const ids = unsortedSelectionToIds();
-    if (ids.length) M.updateTaskFields(taskId, { categoryIds: ids });
-    else { ui.unsorted.skipped = ui.unsorted.skipped.concat('t:' + taskId); paint(); }
+  if (action === 'unsorted-file' || action === 'unsorted-save') {
+    // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
+    const cur = unsortedCurrent(state, ui.unsorted);
+    if (!cur) return;
+    const pick = { projectId: ui.unsorted.projectId, selected: ui.unsorted.selected, newLabels: ui.unsorted.newLabels };
+    const done = fileSlip(cur, pick, {
+      fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields,
+      createIssue: createIssueIfGithubProject, labelIdByName,
+    });
+    if (done.outcome === 'filed') {
+      const project = state.projects.find((p) => p.id === done.projectId);
+      ui.notice = 'Filed to ' + (project ? project.name : 'project') + '.';
+      paint();
+    } else if (done.outcome === 'later') {
+      ui.unsorted.later = sendToBack(ui.unsorted.later, cur.key);
+      paint();
+    }
   }
   else if (action === 'unsorted-skip') {
-    const cur = R.unsortedCurrent(state, ui.unsorted);
-    if (cur) ui.unsorted.skipped = ui.unsorted.skipped.concat(cur.key);
+    const cur = unsortedCurrent(state, ui.unsorted);
+    if (cur) ui.unsorted.later = sendToBack(ui.unsorted.later, cur.key);
     paint();
   }
-  else if (action === 'unsorted-restart') { ui.unsorted.skipped = []; paint(); }
   else if (action === 'unsorted-complete') {
     const inboxId = el.getAttribute('data-inbox');
     if (inboxId) M.completeInboxItem(inboxId);
@@ -607,19 +620,6 @@ function labelsFromForm(fd) {
     const id = labelIdByName(name);
     if (!ids.includes(id)) ids.push(id);
   });
-  return ids;
-}
-
-// The Unsorted flow's picks as label ids: chosen labels, the #42 kinds (a kind's label is created
-// on first use), and anything typed into its "New labels" field.
-function unsortedSelectionToIds() {
-  const ids = [];
-  const add = (id) => { if (!ids.includes(id)) ids.push(id); };
-  ui.unsorted.selected.forEach((token) => {
-    const kind = token.startsWith('kind:') && TASK_KINDS.find((k) => 'kind:' + k.key === token);
-    add(kind ? labelIdByName(kind.key, kind.color) : token);
-  });
-  String(ui.unsorted.newLabels || '').split(',').map((s) => s.trim()).filter(Boolean).forEach((name) => add(labelIdByName(name)));
   return ids;
 }
 
