@@ -1050,8 +1050,8 @@ body.is-dragging-task .empty-note{display:none;}
   .toast{bottom:calc(16px + env(safe-area-inset-bottom, 0px));}
   #app:has(> .screen){display:block;}
   .screen-focus,.screen-board{padding-top:28px;}
-  /* the work area uses the screen: the cards fill it in an even grid */
-  .screen{max-width:1320px;}
+  /* the work area uses the screen: every screen spans the same width as the header and Projects */
+  .screen{max-width:none;}
   /* Sort, laid out like its mockup: the slip (and its quiet links) on the left, the choices on the right */
   .screen-sort .unsorted-body{display:grid; grid-template-columns:minmax(360px, 440px) minmax(0, 1fr); column-gap:48px; align-items:start;}
   .screen-sort .tray-side{display:block; position:sticky; top:calc(var(--topbar-h, 64px) + 20px);}

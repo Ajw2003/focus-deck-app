@@ -4,6 +4,15 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-11 — Screens span the whole work area on a wide screen
+
+The user: "fix desktop ui still not filling the space and looking wrong". Focus, Sort and Board
+were capped at 1320px and centred, so at 1920 wide they started 350px right of the header and
+logo. The cap is gone (`.screen{max-width:none}` in the 1100px+ block of `app/css/app.css`); the
+whole app keeps its existing 1800px limit. Replaces the 1320px width from #135's "fuller screens"
+fix. Not changed, waiting on the user: the empty space below Focus on a tall screen, the margins
+beside the 1800px desk on a 2560 monitor, and the Projects folders' half-screen height (#82).
+
 ## 2026-10-11 — A task is yellow by the day before it is due (#114)
 
 The user, asked what was wrong with one-day due dates: "Should go yellow sooner". Under the
