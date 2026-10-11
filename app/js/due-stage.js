@@ -49,6 +49,13 @@ function spanStart(task, now) {
   return Math.min(t === undefined ? now : t, now);
 }
 
+// Midnight starting the day before the due day, local time: the latest a task may turn yellow (#114),
+// so a task due tomorrow is already yellow. Built from date parts, like dueMoment.
+export function dayBeforeStart(dueAt) {
+  const d = new Date(dueAt);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1).getTime();
+}
+
 // How much of the span must be left at or below which `spec` applies, in ms.
 function cutoffMs(spec, span, fallbackPct) {
   if (spec && typeof spec.leadHours === 'number' && spec.leadHours > 0) return spec.leadHours * HOUR;
@@ -68,6 +75,9 @@ export function dueStage(task, now, defaults) {
   const stages = task.dueStages || {};
   if (left <= cutoffMs(stages.red, span, d.redPct)) return 'red';
   if (left <= cutoffMs(stages.yellow, span, d.yellowPct)) return 'yellow';
+  // a lead time the person chose for this task wins over the day-before floor
+  const chosenYellow = stages.yellow && stages.yellow.leadHours > 0;
+  if (!chosenYellow && now >= dayBeforeStart(due)) return 'yellow';
   return 'white';
 }
 
@@ -90,7 +100,7 @@ export function suggestLead(spanMs, pct, maxHours) {
 export function stageMoments(dueAt, spanMs, defaults) {
   const d = normalizeDueDefaults(defaults);
   return {
-    yellowAt: dueAt - spanMs * d.yellowPct / 100,
+    yellowAt: Math.min(dueAt - spanMs * d.yellowPct / 100, dayBeforeStart(dueAt)),
     redAt: dueAt - spanMs * d.redPct / 100,
   };
 }

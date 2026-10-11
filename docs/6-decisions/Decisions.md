@@ -4,6 +4,33 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-11 — No separate topbar on a wide screen; sync and Settings in the rail
+
+The user: "lets get rid of the top piece being separate and move the settings and sync into the side
+bar, keep the jot down a stray thought the same and move the focus deck to the top left corner
+making it slightly larger as well". On a wide screen the topbar has no fill or rule and scrolls with
+the page; the brand is in the corner above the rail at 1.7rem; sync and Settings are at the foot of
+the rail. Calls made without asking: the phone is unchanged (its rail is a bottom bar of four, and
+the topbar keeps the tools), and the topbar is no longer sticky on a wide screen, so the jotter
+scrolls away on a long page while the rail stays put. Detail: `docs/4-systems/styling.md`.
+
+## 2026-10-11 — Screens span the whole work area on a wide screen
+
+The user: "fix desktop ui still not filling the space and looking wrong". Focus, Sort and Board
+were capped at 1320px and centred, so at 1920 wide they started 350px right of the header and
+logo. The cap is gone (`.screen{max-width:none}` in the 1100px+ block of `app/css/app.css`); the
+whole app keeps its existing 1800px limit. Replaces the 1320px width from #135's "fuller screens"
+fix. Not changed, waiting on the user: the empty space below Focus on a tall screen, the margins
+beside the 1800px desk on a 2560 monitor, and the Projects folders' half-screen height (#82).
+
+## 2026-10-11 — A task is yellow by the day before it is due (#114)
+
+The user, asked what was wrong with one-day due dates: "Should go yellow sooner". Under the
+percentages alone a task set at 9am and due tomorrow stayed white until about 11am on its due day.
+Now a task is yellow from the midnight before its due day whatever the percentage says; a yellow
+lead time picked for that task still wins, and red is unchanged. Adds to the 2026-09-30 stage
+rules rather than replacing them. Detail: `docs/4-systems/due-dates.md`.
+
 ## 2026-10-10 — The Board, a fourth screen (#140): calls made
 
 The user asked for the Board after all ("Bring the board to life, I want it after all"). Three

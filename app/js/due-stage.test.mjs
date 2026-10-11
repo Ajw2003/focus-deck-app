@@ -57,12 +57,21 @@ test('3-day span: yellow with about a day left, red with about 7 hours left', ()
   assert.strictEqual(dueStage(t, due - 7 * H, undefined), 'red');
 });
 
-test('1-day span: yellow with about 8 hours left, red with about 2', () => {
+test('1-day span: yellow all of its last day (the day-before floor), red with about 2 hours left', () => {
   const t = taskDueIn('2026-10-05', 1 * D);
   const due = dueOf('2026-10-05');
-  assert.strictEqual(dueStage(t, due - 9 * H, undefined), 'white');
+  assert.strictEqual(dueStage(t, due - 9 * H, undefined), 'yellow');
   assert.strictEqual(dueStage(t, due - 7 * H, undefined), 'yellow');
   assert.strictEqual(dueStage(t, due - 2 * H, undefined), 'red');
+});
+
+test('day-before floor (#114): a task is yellow from the midnight before its due day, unless a lead time was chosen', () => {
+  const t = taskDueIn('2026-10-05', 2 * D);
+  assert.strictEqual(dueStage(t, new Date(2026, 9, 3, 23, 59, 0).getTime(), undefined), 'white', 'two days out');
+  assert.strictEqual(dueStage(t, new Date(2026, 9, 4, 0, 0, 0).getTime(), undefined), 'yellow', 'due tomorrow');
+  const chosen = taskDueIn('2026-10-05', 2 * D, { dueStages: { yellow: { leadHours: 4 }, red: { leadHours: 1 } } });
+  assert.strictEqual(dueStage(chosen, new Date(2026, 9, 4, 9, 0, 0).getTime(), undefined), 'white', 'a chosen 4 hours wins');
+  assert.strictEqual(stageMoments(dueOf('2026-10-05'), 2 * D, { yellowPct: 5, redPct: 1 }).yellowAt, new Date(2026, 9, 4).getTime(), 'the preview uses the floor too');
 });
 
 test('overdue is always red, whatever the span or overrides', () => {
@@ -71,10 +80,10 @@ test('overdue is always red, whatever the span or overrides', () => {
   assert.strictEqual(dueStage(t, dueOf('2026-10-05') + 40 * D, undefined), 'red');
 });
 
-test('a 5-minute span: the percentages still produce three bands', () => {
+test('a 5-minute span: yellow from the start (it is the due day), then red', () => {
   const due = dueOf('2026-10-05');
   const t = { status: 'next', deadline: '2026-10-05', dueSetAt: due - 5 * 60000 };
-  assert.strictEqual(dueStage(t, due - 4 * 60000, undefined), 'white');
+  assert.strictEqual(dueStage(t, due - 4 * 60000, undefined), 'yellow');
   assert.strictEqual(dueStage(t, due - 90 * 1000, undefined), 'yellow');
   assert.strictEqual(dueStage(t, due - 20 * 1000, undefined), 'red');
 });
@@ -166,15 +175,15 @@ test('daylight-saving change: the due moment is built from the date, so the day 
     assert.strictEqual(dueMoment(t), new Date(2026, 2, 8, 23, 59, 59).getTime());
     const span = dueMoment(t) - setAt;
     assert.strictEqual(span, 47 * H - 1000, 'two calendar days to the last second, one of them 23 hours');
-    assert.strictEqual(dueStage(t, new Date(2026, 2, 7, 12, 0, 0).getTime(), undefined), 'white');
+    assert.strictEqual(dueStage(t, new Date(2026, 2, 7, 12, 0, 0).getTime(), undefined), 'yellow'); // the day before
     assert.strictEqual(dueStage(t, new Date(2026, 2, 8, 12, 0, 0).getTime(), undefined), 'yellow'); // after the jump
     assert.strictEqual(dueStage(t, new Date(2026, 2, 8, 20, 0, 0).getTime(), undefined), 'red');
     assert.strictEqual(dueStage(t, new Date(2026, 2, 9, 0, 0, 1).getTime(), undefined), 'red'); // overdue
-    // and fall-back, 2026-11-01: a 25-hour day
-    const fallSet = new Date(2026, 10, 1, 0, 0, 0).getTime();
-    const f = { status: 'next', deadline: '2026-11-01', dueSetAt: fallSet };
-    assert.strictEqual(dueStage(f, new Date(2026, 10, 1, 1, 0, 0).getTime(), undefined), 'white');
-    assert.strictEqual(dueStage(f, new Date(2026, 10, 1, 20, 0, 0).getTime(), undefined), 'yellow');
+    // and fall-back, 2026-11-01: a 25-hour day. Due the 2nd, the day-before floor starts at the 1st's midnight.
+    const fallSet = new Date(2026, 9, 31, 12, 0, 0).getTime();
+    const f = { status: 'next', deadline: '2026-11-02', dueSetAt: fallSet };
+    assert.strictEqual(dueStage(f, new Date(2026, 9, 31, 23, 59, 0).getTime(), undefined), 'white');
+    assert.strictEqual(dueStage(f, new Date(2026, 10, 1, 0, 0, 0).getTime(), undefined), 'yellow');
   } finally {
     if (prev === undefined) delete process.env.TZ; else process.env.TZ = prev;
   }

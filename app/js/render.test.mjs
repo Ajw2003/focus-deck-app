@@ -452,6 +452,7 @@ assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds:
   assert.ok(/data-screen="sort" aria-current="page"/.test(rail), 'the current screen is marked');
   assert.ok(rail.includes('>2</b>'), 'Sort shows how many are waiting');
   assert.ok(!renderRail('focus', 0).includes('rail-count'), 'no count when the tray is empty');
+  assert.ok(renderRail('focus', 0, '<button class="sync-btn"></button>').includes('<div class="rail-tools"><button class="sync-btn"></button><a href="settings.html"'), 'sync then Settings at the foot of the rail');
   assert.strictEqual(normalizeScreen('nonsense'), 'focus');
   assert.strictEqual(normalizeScreen('board'), 'board');
   assert.strictEqual(normalizeScreen('projects'), 'projects');

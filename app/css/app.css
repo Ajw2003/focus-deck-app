@@ -1044,14 +1044,23 @@ body.is-dragging-task .empty-note{display:none;}
 .screen-sort .inbox-card > .section-toggle{pointer-events:none;}
 .screen-sort .inbox-card > .section-toggle .chev{display:none;}
 .desk-empty .btn{margin-top:12px;}
+.rail-tools{display:none;}
 @media (min-width:1100px){
   .rail{top:calc(var(--topbar-h, 64px) + 16px); bottom:auto; right:auto; left:max(12px, calc((100vw - 1800px) / 2 + 12px)); width:84px; grid-template-columns:1fr; gap:6px; padding:8px 6px; border:1px solid var(--line); border-radius:18px;}
   .wrap{padding-left:116px; padding-bottom:64px;}
+  /* the topbar is part of the desk, not a band of its own: no rule under it, the jotter centred, the
+     brand in the corner above the rail, and sync and Settings at the foot of the rail (.rail-tools) */
+  .topbar{position:relative; background:none; border-bottom:0; justify-content:center;}
+  .topbar .brand{position:absolute; left:-104px; top:50%; transform:translateY(-50%);}
+  .topbar .brand h1{font-size:1.7rem;}
+  .topbar .lamp{width:12px; height:12px;}
+  .topbar-tools{display:none;}
+  .rail-tools{display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:4px; padding-top:10px; border-top:1px solid var(--line);}
   .toast{bottom:calc(16px + env(safe-area-inset-bottom, 0px));}
   #app:has(> .screen){display:block;}
   .screen-focus,.screen-board{padding-top:28px;}
-  /* the work area uses the screen: the cards fill it in an even grid */
-  .screen{max-width:1320px;}
+  /* the work area uses the screen: every screen spans the same width as the header and Projects */
+  .screen{max-width:none;}
   /* Sort, laid out like its mockup: the slip (and its quiet links) on the left, the choices on the right */
   .screen-sort .unsorted-body{display:grid; grid-template-columns:minmax(360px, 440px) minmax(0, 1fr); column-gap:48px; align-items:start;}
   .screen-sort .tray-side{display:block; position:sticky; top:calc(var(--topbar-h, 64px) + 20px);}

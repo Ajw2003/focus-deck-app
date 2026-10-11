@@ -277,7 +277,7 @@ function frame(opts) {
   let bottom = window.innerHeight;
   if (d.scroller) { const r = d.scroller.getBoundingClientRect(); top = Math.max(top, r.top); bottom = Math.min(bottom, r.bottom); }
   const topbar = document.querySelector('.topbar');
-  if (!d.scroller && topbar) top = topbar.getBoundingClientRect().bottom;
+  if (!d.scroller && topbar) top = Math.max(0, topbar.getBoundingClientRect().bottom); // wide screens scroll the topbar away
   // A dragged task over a tile's own scroll area (.project-body) scrolls that first, when it is near
   // its top or bottom edge and has room to move that way; otherwise the page scrolls as usual.
   if (d.group.kind === 'task') {

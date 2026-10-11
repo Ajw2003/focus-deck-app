@@ -250,7 +250,7 @@ export function renderApp(st) {
   ui.selectedProjectId = resolveSelectedProject(st.projects, ui.selectedProjectId);
   const hasToken = !!getToken();
   // one activity at a time (#135): the rail, then only the chosen screen
-  const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length);
+  const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, R.renderSyncButton(st));
   const toast = R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
   if (ui.screen === 'focus') return rail + '<div class="screen screen-focus">' + R.renderFocus(st, findTaskWithProject, ui) + '</div>' + toast;
   // the Sort screen is the tray, always open (its header can't fold it away here)
@@ -1038,7 +1038,8 @@ function setProjectsDrawerOpen(open) {
 // width), not underneath it.
 function scrollProjectIntoView(target) {
   const header = document.querySelector('.topbar');
-  const top = target.getBoundingClientRect().top + window.scrollY - (header ? header.offsetHeight : 0) - 12;
+  const sticky = header && getComputedStyle(header).position === 'sticky'; // a wide screen's topbar scrolls away
+  const top = target.getBoundingClientRect().top + window.scrollY - (sticky ? header.offsetHeight : 0) - 12;
   window.scrollTo({ top: Math.max(0, top), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
 

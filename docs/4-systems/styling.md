@@ -559,7 +559,17 @@ Since #135 (2026-10-10), the app shows one activity at a time (Focus, Sort, Boar
 
 - **Focus:** the picker or the sticky note, alone, in a centred column (`.screen-focus`).
 - **Sort:** the in-tray, always open (`.screen-sort`). On a wide screen it splits in two: the slip and its buttons (`.tray-side`, sticky) on the left, the folder and flag cards on the right. On a phone `.tray-side` is `display: contents`, so the buttons come after the choices.
-- **Width:** the Focus and Sort screens are up to 1320px wide, so the even card grids fill it.
+- **Width:** on a wide screen every screen (Focus, Sort, Board) spans the whole work area, the same
+  width as the header and Projects; the 1320px cap was lifted on 2026-10-11 (the user: "desktop ui
+  still not filling the space").
+- **The topbar on a wide screen (1100px+)** is part of the desk, not a band: no fill and no rule,
+  and it scrolls with the page (not sticky) so the lamp glow runs to the top. The jotter is centred
+  in it as before; the brand sits larger (1.7rem) in the corner above the rail; sync and Settings sit
+  at the foot of the rail (`.rail-tools`, drawn by `renderRail` from `renderSyncButton`), and the
+  topbar's own `.topbar-tools` are hidden. On a phone none of this applies: the topbar keeps its
+  tools and stays sticky. Because it can scroll away, `scrollProjectIntoView` (`app/js/app.js`) only
+  allows for it when it is sticky, and the drag auto-scroll (`app/js/project-drag.js`) clamps its
+  bottom edge at 0.
 - **Projects:** the project list and the paper folders, laid out as before. Each folder's next,
   in-progress and done tasks are the tracking.
 
