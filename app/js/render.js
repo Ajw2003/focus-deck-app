@@ -1,6 +1,6 @@
 // focus-deck-app/js/render.js
 import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED } from './state.js';
-import { ICON_SYNC, ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
+import { ICON_SYNC, ICON_SETTINGS, ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
 import { sortTasks } from './task-move.js';
 import { leadChoices, suggestLead, normalizeDueDefaults } from './due-stage.js';
 import { phaseClasses } from './focus-complete.js';
@@ -47,14 +47,16 @@ const SCREEN_INFO = {
 export function normalizeScreen(value) { return SCREENS.includes(value) ? value : 'focus'; }
 // The Board screen's markup is in js/board-view.js (#144).
 export { renderBoard } from './board-view.js';
-export function renderRail(screen, unsortedCount) {
+// syncHTML is the sync button (renderSyncButton): on a wide screen it and Settings sit at the foot of
+// the rail instead of the topbar; .rail-tools is hidden on a phone, where the topbar keeps them.
+export function renderRail(screen, unsortedCount, syncHTML = '') {
   return '<nav class="rail" aria-label="What to do">' + SCREENS.map((key) => {
     const on = key === screen;
     const count = key === 'sort' && unsortedCount ? '<b class="rail-count" aria-label="' + unsortedCount + ' to sort">' + unsortedCount + '</b>' : '';
     return '<button type="button" class="rail-item' + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
       + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[key].icon + '</svg>' + count + '</span>'
       + '<span class="rail-label">' + SCREEN_INFO[key].label + '</span></button>';
-  }).join('') + '</nav>';
+  }).join('') + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '</a></div></nav>';
 }
 
 export function renderToast(text, kind) {

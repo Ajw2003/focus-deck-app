@@ -464,3 +464,9 @@ the desktop layout not filling the space.
 Focus, Sort and Board no longer stop at 1320px; they span the work area in line with the header.
 Seen in Chromium at 1366, 1920 and 2560 wide; desktop 34, board 52, desk-screens 60, focus-doing 12
 and wallets 42 checks all pass. Open with the user: space below Focus, margins at 2560, folder height.
+
+## No separate topbar on a wide screen
+
+At the user's request the wide-screen topbar is part of the desk: brand larger in the corner above
+the rail, sync and Settings at the foot of the rail, jotter unchanged, no band or rule. Phone
+unchanged. Seen in Chromium at 1366, 1440 (light), 1920 and 2560 wide and 390 (phone).

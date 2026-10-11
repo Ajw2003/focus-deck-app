@@ -4,6 +4,16 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-11 — No separate topbar on a wide screen; sync and Settings in the rail
+
+The user: "lets get rid of the top piece being separate and move the settings and sync into the side
+bar, keep the jot down a stray thought the same and move the focus deck to the top left corner
+making it slightly larger as well". On a wide screen the topbar has no fill or rule and scrolls with
+the page; the brand is in the corner above the rail at 1.7rem; sync and Settings are at the foot of
+the rail. Calls made without asking: the phone is unchanged (its rail is a bottom bar of four, and
+the topbar keeps the tools), and the topbar is no longer sticky on a wide screen, so the jotter
+scrolls away on a long page while the rail stays put. Detail: `docs/4-systems/styling.md`.
+
 ## 2026-10-11 — Screens span the whole work area on a wide screen
 
 The user: "fix desktop ui still not filling the space and looking wrong". Focus, Sort and Board
