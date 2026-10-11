@@ -17,6 +17,10 @@ PRs and are not here.
   end of the due day in local time (`dueMoment`, `js/due-stage.js:38`). Left runs from now to the
   due moment. Overdue is always red; otherwise red when left/span is at or under the red cut-off,
   yellow at or under the yellow cut-off. Defaults 33% and 10% (`DEFAULT_DUE_DEFAULTS`).
+- **The day-before floor (#114).** Whatever the percentage says, a task is yellow from the midnight
+  that starts the day before its due day (`dayBeforeStart`), so "due tomorrow" is never white. A
+  yellow lead time chosen in the step for that task wins over the floor. Red is unchanged.
+  `stageMoments` takes the same floor, so the Settings preview cannot drift.
 - **Per-task lead times.** `task.dueStages = { yellow, red }`, each `{ pct }` or `{ leadHours }`; a
   missing stage uses the defaults. The skippable step only ever writes `{ leadHours }`.
 - **Stamping.** `addTask` and `updateTaskFields` (`js/mutations.js:74`, `:101`) set `dueSetAt` when a

@@ -447,3 +447,14 @@ longer re-imports a moved task, and the Gist merge keeps one copy of it. 61 unit
 screenshots in `docs/generated/pr11/` (fonts fall back in the sandbox). Not run against real GitHub:
 the `transferIssue` mutation. Judgement calls are in Decisions, 2026-09-28 ("Calls made while building
 task dragging"). Next: PR 12, selecting several items.
+
+# Today — 2026-10-11
+
+## #114 fixed (one-day due dates)
+
+The user's answer on what was wrong: a task due tomorrow should go yellow sooner. `dueStage` now
+returns yellow from the midnight before the due day (`dayBeforeStart`, `app/js/due-stage.js`)
+unless a yellow lead time was chosen for that task; the Settings preview follows. Unit 176/176
+(due-stage also under America/Denver, Pacific/Auckland, Europe/London); in Chromium a task added due
+tomorrow shows `due-yellow`; `check-settings-browser.mjs` 26/26. #102 the user reports fixed. Next:
+the desktop layout not filling the space.

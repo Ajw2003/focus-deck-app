@@ -4,6 +4,14 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-11 — A task is yellow by the day before it is due (#114)
+
+The user, asked what was wrong with one-day due dates: "Should go yellow sooner". Under the
+percentages alone a task set at 9am and due tomorrow stayed white until about 11am on its due day.
+Now a task is yellow from the midnight before its due day whatever the percentage says; a yellow
+lead time picked for that task still wins, and red is unchanged. Adds to the 2026-09-30 stage
+rules rather than replacing them. Detail: `docs/4-systems/due-dates.md`.
+
 ## 2026-10-10 — The Board, a fourth screen (#140): calls made
 
 The user asked for the Board after all ("Bring the board to life, I want it after all"). Three
