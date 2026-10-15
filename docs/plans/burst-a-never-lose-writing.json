@@ -1,0 +1,37 @@
+{
+  "title": "Never Lose Writing",
+  "eyebrow": "Burst A design (#163) · for approval · nothing built yet",
+  "replyPrefix": "Burst A",
+  "reply": "",
+  "short": {
+    "lead": "Text you are typing disappears because each time the app redraws the screen (a \"repaint\"), it rebuilds it from saved data, and half-typed text is not saved anywhere. A sync finishing, or a click that changes something else, wipes the form. The fix keeps every open form's text as a draft that a repaint puts straight back.",
+    "hint": "Tap a step to see what it changes and what it needs from you.",
+    "key": [["I do it", ""], ["You act on it", "you"], ["Already in the app", "done"]],
+    "items": [
+      ["search", "Cause", "Why the text goes", "done", "The whole app area is rebuilt from saved data on every repaint (app/js/app.js:286). A GitHub sync (line 1087 of the same file) and a pull from your other devices (app/js/sync.js:157) both repaint when they land. The add-task form stays open, but its boxes come back empty.", "Nothing from you."],
+      ["lock", "Approve", "You pick the answers and approve", "you", "The three choices under Choices set how drafts behave.", "Pick your answers, then send them with the words \"Burst A approved\"."],
+      ["hammer", "Build", "I build drafts for every open form", "", "Typing copies each box into a draft. A repaint fills the boxes back in from it. The draft is also kept on this device, so a reload or a closed app keeps it too.", "Nothing from you."],
+      ["flask", "Check", "I prove it in a real browser", "", "A test types into a new task with steps, triggers a sync and a click elsewhere, then checks that every character is still there, at phone width and on a wide screen.", "Nothing from you."],
+      ["eye", "Test", "You try it", "you", "Start a task with steps, wait for a sync or switch apps and come back, then click elsewhere.", "About two minutes in the app."]
+    ]
+  },
+  "changes": [
+    ["keep", "Repaints that wait for a drag", "A drag in progress already holds back repaints until it ends.", null, "The same idea protects the Board and project dragging today (app/js/app.js:276). Drafts use the same idea of protecting your work, but they do not hold repaints back, so sync results still show straight away.", null, null],
+    ["keep", "The project search box", "Already keeps its place and cursor across a repaint.", null, "The search box puts its cursor back after a repaint (app/js/app.js:283). Drafts extend that to every box in an open form.", null, null],
+    ["new", "Drafts for open forms", "Every box in an open form is copied as you type and filled back in after a repaint.", null, "This covers the add-task form, the task editor (title, steps, due date, priority, labels) and the project editor, plus the Sort screen's note editor if you pick option A (every form) in the third choice. A draft ends only when you save or cancel it.", ["A repaint empties any form you are typing in.", "A draft per open form, refilled on every repaint and kept on this device.", "Nothing you type is lost to a sync or a stray click."], [["app/js/app.js", 40, 4, [["Copy typing into drafts, refill after a repaint, end on save or cancel", 40, 4]]], ["app/js/drafts.js", 50, 0, [["The draft store, kept on this device", 50, 0]]], ["app/js/drafts.test.mjs", 60, 0, [["Tests for keeping, refilling and ending drafts", 60, 0]]]]],
+    ["chg", "Clicking away from a new task", "Your answer to the first choice below (\"What should clicking away from a half-made task do?\") decides what happens.", ["The text is lost", "The text is kept"], "Today a click that repaints anything else wipes the new task's boxes. This is the issue \"Clicking off a task being created discards it\" (#157).", null, null],
+    ["chg", "Saving after a sync changed the same task", "Your save wins.", ["A sync could land on top of what you are editing", "What you typed is saved over the sync's change"], "When you save, your version is the newest. So when devices combine their data one record at a time, yours is kept on every device. A sync never edits a draft. This follows the issue \"Syncing must not overwrite a thought mid-write\" (#155).", null, null]
+  ],
+  "choices": [
+    ["clickaway", "What should clicking away from a half-made task do?", [["A", "Keep it open as a draft", 1, "The form stays where it is with your text and steps, marked Draft, until you save or cancel it."], ["B", "Save it as a task straight away", 0, "If it has a title, it becomes a real task with its steps. Without a title it stays a draft."], ["C", "Keep it as a draft, but fold it away", 0, "The form closes, and \"+ Add task\" shows a Draft mark; opening it brings your text back."]], "Option A (keep it open as a draft) is the least surprising: nothing is created that you did not mean to create, and nothing is hidden."],
+    ["escape", "What should Escape do in the add-task form?", [["A", "Close it, keep the draft", 1, "Reopening \"+ Add task\" brings the text back. Cancel still throws it away."], ["B", "Close it and throw the text away, as now", 0, ""]], "Option A (close it, keep the draft) is safer: Escape is easy to press by accident, while Cancel is a deliberate tap."],
+    ["where", "Which forms get drafts?", [["A", "Every form: add task, edit task, edit project, and the Sort screen's note editor", 1, "One rule everywhere."], ["B", "Only adding and editing tasks", 0, "Adding a task and editing a task, the two places the Burst A issues describe."]], "Option A: one rule is easier to trust than a list of places where it applies."]
+  ],
+  "wrapup": {
+    "summary": "A design to stop syncs and stray clicks wiping text you are typing, by keeping every open form's text as a draft.",
+    "changing": "Two new files (the draft store and its tests) and changes to the app's input, save and cancel handling. Nothing changes in sync or GitHub code.",
+    "blocking": "Your answers to the three choices and the words \"Burst A approved\".",
+    "next": "I build it on a new branch, prove it in a real browser at phone and wide-screen widths, and open a pull request that refers to Burst A (#163).",
+    "todo": ["Pick your answers under Choices.", "Tap <b>Copy my reply</b>.", "Send it with \"Burst A approved\", or say what to change."]
+  }
+}
