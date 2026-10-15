@@ -20,12 +20,14 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 6 | Handcrafted redesign | ~93% (PRs 1-7 merged; PRs 8-9 built, pending merge) | PR 8 task rows (#97, #92) and PR 9 drag projects into order (project half of #73) built, pending merge; PR 11 drag tasks built, pending merge, next PR 12 select several; #95 (colour without right-click) fixed by PR 10, pending merge; also open: #90, #87 |
 | 7 | Unsorted and focus flow polish | 0% | #70 #72 #74 #75 #76 #77 #89 #96 #69 open; #72, #75, #77 may be covered by PR #78 |
 | 8 | Reordering and task status | ~50% | #73 (project half PR 9, task half PR 11) and #7 (task into another project, PR 11) built, pending merge, checked in real Chromium with mouse, touch and keyboard; selecting several is PR 12; #6 open |
-| 9 | Usability and accessibility audit | 0% | #27 #46 open |
+| 9 | Usability and accessibility audit | 0% | #27 open; #46 closed |
 | 10 | GitHub depth and progress visuals | 0% | #36 #35 #39 open |
 | 11 | Teams and shared repos | 0% | #51 #4 open |
 | 12 | Time-of-day suggestions | 0% | #48 open; the user decided 2026-09-26 to delete energy fully, so #48 (if built) builds on labels and time of day, not energy |
 | 13 | Pilot and public rollout | 0% | #44 open |
 | 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 merged) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; #114 fixed 2026-10-11 (yellow by the day before it is due); PRs 2-6 not started |
+| 16 | The Board | 100% built, merged to `main` (PR #148) | #140 and #142-#147 waiting on aj's test to close |
+| 17 | Triage bursts (2026-10-15) | 0% | Bursts A-G grouped under parents #163-#168 (F reuses #106); #150 closed as not planned; next: Burst A (#163) |
 | 15 | Consumer product: desk redesign, landing page, onboarding | 100% built (10 of 10), not deployed | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117-#126 built, checked in Chromium and merged on `ccr-1569909b-xe23b7` (2026-10-10), not yet deployed; nothing merged to `main` yet; see `docs/plans/consumer-product-handoff.md` |
 
 **After the merge (2026-10-10), on `ccr-1569909b-xe23b7`:** #131 and #132 (wallets let the page

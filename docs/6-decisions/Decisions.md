@@ -4,6 +4,18 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-15 — Open issues grouped into bursts A to G (#162)
+
+aj approved the triage proposal (`docs/plans/issue-triage-2026-10-15.md`) with "Triage: 1A 2A 3B
+4B 5A". The open issues are grouped into seven bursts, each one branch and one pull request, worked
+in this order: A never lose what you're writing (#163), B GitHub sync bugs (#164), C phone fixes
+(#165), D adding and editing tasks (#166), E Focus and Sort polish (#167), F the rest of due dates
+(the existing parent #106), G look and feel (#168). Roadmap milestone 17 holds the list; milestones
+2, 6, 7 and 14 keep their own history but their open issues are now worked through the bursts.
+"Fix focus deck ui not being proper" (#150) was closed as not planned on aj's say-so. The Board
+(#140, #142-#147), #107 and #114 close as completed, and #69 as a duplicate of #111, once aj has
+tested. The warmer-notebook issue (#87) stays open: the desk redesign did not fully answer it.
+
 ## 2026-10-11 — No separate topbar on a wide screen; sync and Settings in the rail
 
 The user: "lets get rid of the top piece being separate and move the settings and sync into the side

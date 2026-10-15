@@ -172,7 +172,8 @@ deck.
 
 **Contains:**
 - #27 — audit the usability and accessibility of Focus Deck
-- #46 — question the user on usability and readability, using their current deck
+- #46 — question the user on usability and readability, using their current deck (closed; found
+  closed in the 2026-10-15 triage)
 
 **Acceptance:** findings written up under `docs/` and each one either fixed or filed as an issue.
 The 2026-09-26 design Q&A (`docs/plans/handcrafted-redesign.md`) covered visual design, not this.
@@ -266,3 +267,34 @@ area) built and merged, not yet deployed; #120 (wallets) being built.
 **Acceptance:** #117 to #126 closed; a fresh visitor reaches a first picked task in under a minute
 from the landing page; an existing install keeps its data after the move to `/app/`; GitHub sync
 can be set up by following the app alone, with no README.
+
+## 16. The Board — 100% built, waiting on aj's test to close
+
+One-line: a fourth rail screen with Up next, In progress and Done this week across every project.
+
+**Contains:** #140 (the parent) and its steps #142 to #147, all merged to `main` in PR #148 on
+2026-10-10.
+
+**Acceptance:** aj has tried the Board on a phone and a wide screen; then #140 and #142 to #147 close
+as completed.
+
+## 17. Triage bursts (from the 2026-10-15 triage) — 0%
+
+One-line: every open issue that is ready to build, grouped into bursts of one branch and one pull
+request each, in the order agreed on 2026-10-15 (`docs/plans/issue-triage-2026-10-15.md`).
+
+**Contains, in order:**
+- Burst A, never lose what you're writing (#163): #155, #157
+- Burst B, GitHub sync bugs (#164): #93, #94 (both from milestone 2), #102
+- Burst C, phone layout and touch fixes (#165): #160, #152, #153, #154
+- Burst D, adding and editing tasks (#166): #158, #156, #161, #103
+- Burst E, Focus and Sort polish (#167): #74, #76, #89, #96 (all from milestone 7), #151, #159
+- Burst F, the rest of due dates: the existing parent #106 and #108 to #112 (milestone 14)
+- Burst G, look and feel (#168): #90, #87 (both from milestone 6)
+
+**Closed in the triage:** #150 ("Fix focus deck ui not being proper"), as not planned: no
+description, and the bursts above cover the specific problems. Waiting on aj's test to close as
+completed: #107 and #114 (milestone 14) and the Board (milestone 16). Waiting to close as a
+duplicate of #111: #69.
+
+**Acceptance:** each burst's parent issue closed, each with its own "Done when" met.
