@@ -1,3 +1,28 @@
+# Today — 2026-10-16
+
+## Where things stand (handoff)
+
+- **Issue triage (#162) done.** Write-up `docs/plans/issue-triage-2026-10-15.md`, page
+  `docs/plans/issue-triage-2026-10-15.html`. Bursts A-G are parent issues #163-#168 (Burst F reuses
+  #106); roadmap milestone 17 and the 2026-10-15 decisions entry match. "Fix focus deck ui not being
+  proper" (#150) closed as not planned.
+- **Waiting on aj's test, then close as completed:** the Board (#140, #142-#147), "Due dates: colour
+  stages" (#107), "Fix due dates not quite working" (#114); and "Make reminder tasks schedulable"
+  (#69) as a duplicate of in-app reminders (#111).
+- **Burst A (#163) design agreed, not built.** Page `docs/plans/burst-a-never-lose-writing.html`;
+  aj's answers 1A 2A 3A (keep a half-made task open as a draft; Escape closes but keeps the draft;
+  drafts for every form). The design-loop lock is still at Design: aj's "Build plan approved" was
+  typed in the wrong stage and, because the session folder had become `/home/user`, was dropped
+  silently (plugin bug Ajw2003/AjsClaudeCodeTools#296). Next session, started on this repo: aj
+  types "Design approved: Burst A"; then create the plan issues (one per build step, sub-issues of
+  #163, labelled `AjsAgent created this` and `in progress`) and log the plan here and in
+  `docs/6-decisions/Decisions.md`; then aj types "Build plan approved: Burst A". Build notes from
+  the first attempt: add `drafts.js` to `SHELL_ASSETS` in `app/service-worker.js` and bump
+  `CACHE_NAME` (v14); a refill must rebuild the due-date step (`syncDueStageStep`) before setting
+  its selects; model the browser check on `scripts/check-in-tray-browser.mjs`.
+- **Issue-triage skill:** pull request Ajw2003/AjsClaudeCodeTools#294, without the version bump to
+  2.68.0, which waits on aj's approval in that repo.
+
 # Today — 2026-09-27
 
 ## What today was
