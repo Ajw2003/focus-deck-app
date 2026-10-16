@@ -1,0 +1,27 @@
+{
+  "title": "Unlocking Burst A",
+  "eyebrow": "Choice for aj · nothing changed yet",
+  "replyPrefix": "Unlock",
+  "reply": "",
+  "short": {
+    "lead": "Your approvals for Burst A never reached the Focus Deck lock. This session now starts each of your messages in the /home/user folder, which is not a git repo, so the plugin drops them without a word. The lock also refuses any hand edit, so I cannot record them for you.",
+    "hint": "Tap a step to see what it changes and what it needs from you.",
+    "key": [["I do it", ""], ["You act on it", "you"], ["Already done", "done"]],
+    "items": [
+      ["file", "Handoff", "Handoff note written", "done", "docs/5-today/Today.md on the triage branch says where everything stands, for a fresh session.", "Nothing from you."],
+      ["stop", "Bug", "Plugin bug filed", "done", "The plugin issue \"Design-loop approvals are dropped silently\" (Ajw2003/AjsClaudeCodeTools#296).", "Nothing from you."],
+      ["hand", "Choose", "You pick how to unlock", "you", "One of the two routes under Choices.", "Your pick."]
+    ]
+  },
+  "changes": [],
+  "choices": [
+    ["route", "How should Burst A get unlocked?", [["A", "A new session started on the Focus Deck repo", 1, "There you type \"Design approved: Burst A\"; I create the build-step issues and log the plan; then you type \"Build plan approved: Burst A\"."], ["B", "Turn the lock off in this session", 0, "You set HOUSE_RULES_LOOP=off in the environment settings. Code edits open straight away, with no stage checks."]], "The new session keeps the lock working as designed and costs only a fresh start, since the handoff note carries everything over."]
+  ],
+  "wrapup": {
+    "summary": "A choice of how to unlock Burst A after this session's approvals were dropped.",
+    "changing": "Nothing until you pick.",
+    "blocking": "Your pick of route.",
+    "next": "With the new session, Burst A is built there. With the lock off, I restart the builder here.",
+    "todo": ["Pick a route under Choices.", "Tap <b>Copy my reply</b> and send it."]
+  }
+}
