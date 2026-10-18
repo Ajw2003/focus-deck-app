@@ -1,9 +1,10 @@
 # Task links: subtasks, "waits on", notes, and the blocker-first focus pick
 
 What this system owns: three task fields (`notes`, `parentId`, `waitsOn`), the rules that keep them
-consistent, the three-step Unsorted card that sets them, and how the focus pick uses them. Approved
+consistent, the three-part Sort screen (the in-tray) that sets them, and how the focus pick uses them. Approved
 2026-10-18 on the proposal page `docs/plans/sort-flow-asap.html` (issues #180, #181, #182; answers
-1A 2A 3A 4A 5A 6A). The Unsorted card's look is in [styling.md#unsorted](./styling.md#unsorted).
+1A 2A 3A 4A 5A 6A), then redrawn on the current Sort screen in `docs/plans/sort-steps.html` (awaiting
+aj's confirmation). The tray itself is in [in-tray.md](./in-tray.md); its wallets in [wallets.md](./wallets.md).
 
 ## The fields
 
@@ -54,5 +55,5 @@ that subtask.
 ## GitHub
 
 Nothing here is written to GitHub (answer 6A); GitHub's own sub-issues and "blocked by" links are a
-separate follow-up. A GitHub-linked task's title is read-only in the Unsorted card, because the next
+separate follow-up. A GitHub-linked task's title is read-only on the slip, because the next
 issue sync overwrites the title from the issue (`js/github-sync.js:530`).
