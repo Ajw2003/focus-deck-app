@@ -1,0 +1,320 @@
+{
+  "title": "Ties Everywhere",
+  "eyebrow": "Design for approval · makes the sort-steps ties usable · nothing built yet",
+  "approval": "Design approved: ties everywhere",
+  "short": {
+    "lead": "Ties made while sorting (subtask, waits on, holds up) are saved, but today you can only see them on the Sort screen and the focus note. This proposal shows them on the Board and in Projects, and keeps them matched with GitHub's sub-issues and 'blocked by' links for tasks that are linked to GitHub issues. The sort-steps pull request waits until this is in, as you asked.",
+    "hint": "The pictures are the real app with sample ties, plus the proposed lines drawn on top.",
+    "key": [
+      [
+        "Built by me",
+        ""
+      ],
+      [
+        "You decide",
+        "you"
+      ]
+    ],
+    "items": [
+      [
+        "bulb",
+        "Today",
+        "Ties are invisible outside Sort",
+        "",
+        "On the Board, 'Book boiler service' and its two subtasks look like three unrelated cards, and nothing shows that 'Read chapter 4' is waiting on 'Pay council tax'.",
+        "Nothing from you.",
+        {
+          "src": "../generated/ties/before-board.png",
+          "alt": "Today's Board with no sign of ties",
+          "caption": "Today's Board."
+        }
+      ],
+      [
+        "list",
+        "Board",
+        "Board cards get one quiet line",
+        "",
+        "A card with ties gets one small line under its flags: 'in Book boiler service', 'waits on Pay council tax', '2 subtasks · 0 done' or 'holds up 2'. A card still waiting on something has a softer title. Cards without ties look exactly as they do now.",
+        "Nothing from you.",
+        {
+          "src": "../generated/ties/after-board.png",
+          "alt": "Board cards with tie lines under their flags",
+          "caption": "Only cards with ties change."
+        }
+      ],
+      [
+        "eye",
+        "Projects",
+        "Subtasks sit under their parent",
+        "",
+        "In a project folder, subtasks move directly under their parent, indented with a small connector, and the parent says '2 subtasks · 0 done'. 'Waits on' shows on its own line under the title.",
+        "Nothing from you.",
+        {
+          "src": "../generated/ties/after-projects.png",
+          "alt": "The Home folder with two subtasks indented under Book boiler service",
+          "caption": "Subtasks tucked under their parent."
+        }
+      ],
+      [
+        "swap",
+        "GitHub",
+        "Ties match GitHub",
+        "",
+        "For tasks linked to issues, a subtask is a GitHub sub-issue and 'waits on' is GitHub's 'blocked by'. Ties are written to GitHub when you save, and read back on each sync. GitHub already tells us whether each issue has ties, so issues without ties need no extra requests.",
+        "Nothing from you."
+      ],
+      [
+        "lock",
+        "Approve",
+        "You choose",
+        "you",
+        "Your answers set the layout and how GitHub sync behaves.",
+        "Answer the five choices below, then tap Copy my reply and send what it gives you."
+      ]
+    ]
+  },
+  "changes": [
+    [
+      "keep",
+      "Cards and rows without ties",
+      "No change at all.",
+      null,
+      "Most tasks have no ties, so most of the Board and Projects look exactly as they do now."
+    ],
+    [
+      "chg",
+      "Board cards and project rows",
+      "One tie line on tasks that have ties; subtasks nested in Projects.",
+      [
+        "No sign of ties",
+        "One quiet line, subtasks under their parent"
+      ],
+      "Tapping a task name in a tie line scrolls the page to that task. Drag-and-drop still works on every card and row; dragging a parent does not drag its subtasks.",
+      null,
+      [
+        [
+          "app/js/board-view.js",
+          20,
+          1,
+          [
+            [
+              "Tie line on cards",
+              20,
+              1
+            ]
+          ]
+        ],
+        [
+          "app/js/render.js",
+          45,
+          4,
+          [
+            [
+              "Tie line on rows; subtasks after their parent",
+              45,
+              4
+            ]
+          ]
+        ],
+        [
+          "app/js/task-links.js",
+          15,
+          0,
+          [
+            [
+              "A tie-line summary helper",
+              15,
+              0
+            ]
+          ]
+        ],
+        [
+          "app/css/app.css",
+          14,
+          0,
+          [
+            [
+              "Tie line, nesting, softer waiting title",
+              14,
+              0
+            ]
+          ]
+        ]
+      ],
+      {
+        "before": {
+          "src": "../generated/ties/before-projects.png",
+          "alt": "Today's Projects screen"
+        },
+        "after": {
+          "src": "../generated/ties/after-projects.png",
+          "alt": "Projects with subtasks nested"
+        },
+        "caption": "Left: Projects today. Right: Home with its subtasks nested."
+      }
+    ],
+    [
+      "chg",
+      "GitHub sync",
+      "Also matches sub-issues and 'blocked by' for linked tasks.",
+      [
+        "Labels, priority, open/closed",
+        "Plus subtask and waits-on ties"
+      ],
+      "I checked this against GitHub's live service, using read-only requests on issue #188. Both kinds of tie can be read with the access token you already use, and every issue reports how many ties it has. I decided the following without asking, so tell me if you disagree: a sub-issue nested more than one level deep stays a plain task, because Focus Deck allows only one level of subtasks; a sub-issue in a different one of your repositories is read as 'waits on', because subtasks must share a folder; ties to tasks not on GitHub stay in Focus Deck only.",
+      null,
+      [
+        [
+          "app/js/github.js",
+          30,
+          2,
+          [
+            [
+              "Keep each issue's internal GitHub id and its tie counts; add the requests for sub-issues and for 'blocked by'",
+              30,
+              2
+            ]
+          ]
+        ],
+        [
+          "app/js/github-sync.js",
+          90,
+          5,
+          [
+            [
+              "Push ties on save; read them on sync",
+              90,
+              5
+            ]
+          ]
+        ],
+        [
+          "app/js/github-sync.test.mjs",
+          80,
+          0,
+          [
+            [
+              "Tests for both directions and the rules",
+              80,
+              0
+            ]
+          ]
+        ]
+      ]
+    ]
+  ],
+  "choices": [
+    [
+      "proj",
+      "In Projects, where should subtasks go?",
+      [
+        [
+          "A",
+          "Under their parent, indented",
+          1,
+          "As in the picture: a parent and its subtasks read as one job."
+        ],
+        [
+          "B",
+          "Where they are, with an 'in <parent>' line",
+          0,
+          "Nothing moves, and the line says which job it belongs to."
+        ]
+      ],
+      "Nesting is the clearest way to see a job and its parts together, and it removes the repeated 'in <parent>' text."
+    ],
+    [
+      "board",
+      "On the Board, how should subtasks show?",
+      [
+        [
+          "A",
+          "Their own cards, with a tie line",
+          1,
+          "Each subtask can sit in its own column (Up next, In progress, Done)."
+        ],
+        [
+          "B",
+          "Folded inside the parent's card",
+          0,
+          "Fewer cards, but a subtask can't be in a different column from its parent."
+        ]
+      ],
+      "Board columns are about each task's own progress, so subtasks need their own cards to move between columns."
+    ],
+    [
+      "wait",
+      "Should a task that is waiting on something look different?",
+      [
+        [
+          "A",
+          "Yes, a softer title",
+          1,
+          "You can skim past what you can't start yet."
+        ],
+        [
+          "B",
+          "No, it looks the same",
+          0,
+          "Only the 'waits on' line says so."
+        ]
+      ],
+      "It matches the focus pick, which already skips waiting tasks."
+    ],
+    [
+      "dir",
+      "Which way should ties sync with GitHub?",
+      [
+        [
+          "A",
+          "Both ways",
+          1,
+          "A tie made in either place appears in the other; on a clash GitHub wins at the next sync, as with labels."
+        ],
+        [
+          "B",
+          "Only Focus Deck to GitHub",
+          0,
+          "Ties made on GitHub are ignored."
+        ],
+        [
+          "C",
+          "Only GitHub to Focus Deck",
+          0,
+          "Ties made while sorting stay local."
+        ]
+      ],
+      "Labels already work both ways with GitHub winning, so ties follow the same rule."
+    ],
+    [
+      "newsub",
+      "What should happen to a GitHub sub-issue that isn't a task in Focus Deck yet, for example because it has no labels?",
+      [
+        [
+          "A",
+          "Bring it in as a subtask",
+          1,
+          "It lands under its parent and in the Sort tray, like any unlabelled task."
+        ],
+        [
+          "B",
+          "Leave it out",
+          0,
+          "Only issues that are already tasks get tied."
+        ]
+      ],
+      "Repo sync only imports labelled issues, so sub-issues made on GitHub would otherwise never show up."
+    ]
+  ],
+  "wrapup": {
+    "summary": "This shows ties on the Board and in Projects, and keeps them matched with GitHub, so the sort-steps work is usable before its pull request.",
+    "changing": "Changed: Board cards, project rows and GitHub sync. New: a tie line, nested subtasks, a softer title for waiting tasks, and each linked task's GitHub issue id. Kept: everything about tasks without ties.",
+    "blocking": "Your five answers under Choices. Nothing is built until you approve, and the sort-steps pull request waits too.",
+    "next": "After approval: the systems docs, a parent GitHub issue with one issue per step (tie display, issue ids, sending ties to GitHub, reading ties from GitHub), then the build on AjsAgent/sort-steps, so one pull request carries everything.",
+    "todo": [
+      "Look at the three pictures.",
+      "Pick your answers under Choices.",
+      "Tap <b>Copy my reply</b> and send it, or say what to change."
+    ]
+  }
+}

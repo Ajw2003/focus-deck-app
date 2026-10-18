@@ -6,7 +6,9 @@
 // "before" screenshots. Overwrites this browser profile's Focus Deck data on 127.0.0.1 only.
 import { seedState } from './seed.js';
 localStorage.setItem('focusdeck-onboarding', 'done');
-localStorage.setItem('focusdeck-screen', 'sort');
-localStorage.setItem('focusdeck-state-v1', JSON.stringify(seedState()));
+// seed.html#board?ties opens another screen, with sample ties when ?ties is present
+const [screen, flag] = (location.hash.slice(1) || 'sort').split('?');
+localStorage.setItem('focusdeck-screen', screen);
+localStorage.setItem('focusdeck-state-v1', JSON.stringify(seedState({ ties: flag === 'ties' })));
 location.replace('../../../app/index.html');
 </script></body></html>
