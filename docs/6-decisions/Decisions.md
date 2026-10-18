@@ -4,6 +4,14 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-18 — Build plan for ties everywhere (#192)
+
+Four steps, each its own issue under #192, built on `AjsAgent/sort-steps` so one pull request carries
+the sort steps (#188) and this: #193 tie lines on the Board and in Projects; #194 keep GitHub issue
+ids and tie counts; #195 write ties to GitHub when they change; #196 read ties from GitHub on sync.
+#195 and #196 both depend on #194; #193 depends only on #188. Detail:
+`docs/4-systems/task-links.md`, sections "Seeing ties on the Board and in Projects" and "GitHub".
+
 ## 2026-10-18 — Ties shown everywhere and kept matched with GitHub
 
 The user, before any pull request for the sort steps: "it isn't useable without a way to see sub

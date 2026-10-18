@@ -53,8 +53,45 @@ The focus card's "Random pick" text becomes **Unblocks N tasks** (or "Everything
 something" when `focus.allBlocked`); a task with open subtasks also gets a **Next step: <subtask> ·
 N subtasks left** line whose **Start it** button focuses that subtask. Both can show on one card.
 
-## GitHub
+## Seeing ties on the Board and in Projects (planned)
 
-Nothing here is written to GitHub (answer 6A); GitHub's own sub-issues and "blocked by" links are a
-separate follow-up. A GitHub-linked task's title is read-only on the slip, because the next
-issue sync overwrites the title from the issue (`app/js/github-sync.js:530`).
+Approved 2026-10-18 on `docs/plans/ties-everywhere.html` (1A 2A 3A 4A 5A).
+
+- **One tie line.** A task with ties gets one quiet line, built by one helper in
+  `app/js/task-links.js` so the Board and Projects say the same thing: "in <parent>" (Board only),
+  "N subtasks · M done", "waits on <task>" (with the other folder's name when it differs) and
+  "holds up N". Tapping a task name scrolls to that task. Tasks without ties are unchanged.
+- **Projects** (`renderTaskRow`, `app/js/render.js`): a subtask is drawn straight after its parent,
+  indented with a connector, and does not repeat "in <parent>". Sort orders still apply among
+  siblings. Dragging a parent does not carry its subtasks.
+- **Board** (`card`, `app/js/board-view.js`): each subtask keeps its own card, so it can sit in its
+  own column.
+- **Waiting tasks** (open "waits on" or open subtasks) have a softer title in both views, matching
+  the focus pick, which skips them.
+
+## GitHub (planned)
+
+A tie is mirrored on GitHub only when both tasks are linked to issues:
+
+| Focus Deck | GitHub | API |
+|---|---|---|
+| `parentId` | sub-issue | `POST/DELETE /repos/{o}/{r}/issues/{n}/sub_issues` (body `sub_issue_id`) |
+| `waitsOn` | blocked by | `POST /repos/{o}/{r}/issues/{n}/dependencies/blocked_by` (body `issue_id`), `DELETE .../blocked_by/{issue_id}` |
+| holds up | blocking | read only; it is "blocked by" seen from the other side |
+
+- **Issue ids.** Both calls take the issue's internal `id`, not its `#number` (issue #188 is id
+  5908483975). `mapIssue` (`app/js/github.js`) keeps `id`, `sub_issues_summary.total` and
+  `issue_dependencies_summary.total_blocked_by`; a linked task stores `issueId`.
+- **Writing** happens when a task's ties change (filing or saving a slip, deleting, moving), like
+  label pushes: best-effort, errors in the toast, never rolled back.
+- **Reading** happens in each GitHub sync, only for issues whose summaries say they have ties. GitHub
+  wins on a clash, as with labels (4A).
+- **A sub-issue that is not yet a task** comes in as a subtask in its parent's folder (5A), and lands
+  in the Sort tray if it has no labels.
+- **Set without asking:** a sub-issue more than one level deep stays a plain task; a sub-issue in
+  another of the user's repositories is read as "waits on"; ties to tasks not on GitHub stay local.
+- A GitHub-linked task's title is read-only on the slip, because the next issue sync overwrites the
+  title from the issue (`app/js/github-sync.js:530`).
+- Checked on 2026-10-18 with read-only calls: both endpoints answer with the token the app already
+  uses, and issue lists carry the summaries. Limits on depth, count and cross-repository ties are not
+  stated in GitHub's docs; a refused write shows in the toast.
