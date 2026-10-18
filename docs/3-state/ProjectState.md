@@ -27,6 +27,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 13 | Pilot and public rollout | 0% | #44 open |
 | 14 | Due dates, repeats and reminders | ~15% (PR 1 of 6 merged) | PR 1 of #106: stage colours, `dueSetAt`, skippable step, Settings defaults; #114 fixed 2026-10-11 (yellow by the day before it is due); PRs 2-6 not started |
 | 15 | Consumer product: desk redesign, landing page, onboarding | 100% built (10 of 10), not deployed | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117-#126 built, checked in Chromium and merged on `ccr-1569909b-xe23b7` (2026-10-10), not yet deployed; nothing merged to `main` yet; see `docs/plans/consumer-product-handoff.md` |
+| 16 | Sort in three parts, task ties, blockers-first focus (#180, #181, #182) | 100% built, in QA | #188 (#189, #190, #191) built on `AjsAgent/sort-steps` 2026-10-18; unit 195/196 on Windows (the one failure is the Windows-only service-worker path test); driven by hand in a real browser: search, new flag, notes, title edit, task moved between folders, subtask and waits-on saved, focus pick 20/20 to the only unblocker, Next step line and Start it. Not yet: the repo's Playwright browser checks (not installed here), deploy |
 
 **After the merge (2026-10-10), on `ccr-1569909b-xe23b7`:** #131 and #132 (wallets let the page
 scroll, and take a tap and a push-up in every mode; Swipe up mode retired), #133 (Category choices),
