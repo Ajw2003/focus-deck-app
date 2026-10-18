@@ -20,7 +20,7 @@ holds this id). Storing both would let the two copies disagree after a merge.
 All three ride along with the task record, so they sync between devices through the Gist with no
 merge changes: the newest copy of a task wins whole (see [gist-sync.md](./gist-sync.md)).
 
-## The rules (enforced in `js/task-links.js`)
+## The rules (enforced in `app/js/task-links.js`)
 
 - **Parent is in the same project.** A subtask lives in its parent's project. "Waits on" is the
   cross-project link.
@@ -40,7 +40,7 @@ merge changes: the newest copy of a task wins whole (see [gist-sync.md](./gist-s
 A task is **blocked** while any task it waits on is open, or while any of its own subtasks is open.
 A task **unblocks** each open task that waits on it, plus its parent when that parent is open.
 
-## The focus pick (`pickFocus`, `js/mutations.js`)
+## The focus pick (`pickFocus`, `app/js/mutations.js`)
 
 1. Build the pool as before: open tasks matching the chosen label and project.
 2. Keep only the tasks that aren't blocked. If none are left, keep the whole pool and set
@@ -56,4 +56,4 @@ that subtask.
 
 Nothing here is written to GitHub (answer 6A); GitHub's own sub-issues and "blocked by" links are a
 separate follow-up. A GitHub-linked task's title is read-only on the slip, because the next
-issue sync overwrites the title from the issue (`js/github-sync.js:530`).
+issue sync overwrites the title from the issue (`app/js/github-sync.js:530`).

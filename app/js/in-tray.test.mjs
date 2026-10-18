@@ -199,7 +199,7 @@ test('step bar: three tabs, later ones off, finished ones tappable, summaries', 
   assert.ok(p1.includes('<small>Home</small>'), 'part 1 summary is the folder');
   const p3 = card({ step: 3, projectId: 'pB', selected: ['c_art', 'c_chore'] });
   assert.ok(p3.includes('class="step-tab done" data-action="sort-step" data-step="1"') && !p3.includes('data-step="2" disabled'));
-  assert.ok(p3.includes('<small>Art, Chore</small>') && p3.includes('<small>optional</small>') && p3.includes('Links arrive in the next update.'));
+  assert.ok(p3.includes('<small>Art, Chore</small>') && p3.includes('<small>optional</small>') && p3.includes('>Across all folders<'));
   assert.ok(!p3.includes('data-wallet=') && p3.includes('File it in Home →') && p3.includes('data-action="sort-back"'));
 });
 
@@ -258,4 +258,45 @@ test('saving a task: moves it, sets title and notes, and a linked task keeps its
   moved.issueNumber = 3;
   fileSlip({ kind: 'task', task: moved, project: state.projects[1] }, { projectId: 'pB', selected: [], title: 'y', notes: null }, deps);
   assert.strictEqual(moved.title, 'x', 'a GitHub-linked title is not changed');
+});
+
+test('part 3: Inside / Across groups, tags, and the search limited to the folder or not', () => {
+  seed();
+  state.projects[0].tasks.push({ id: 'a4', title: 'Essay', status: 'next', categoryIds: [] });
+  state.projects[1].tasks[0].waitsOn = ['a1'];
+  const part3 = (over) => renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3, projectId: 'pA', parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '' }, over) });
+  let html = part3({});
+  assert.ok(html.includes('>Inside School<') && html.includes('>Across all folders<'));
+  ['Part of', 'Subtasks', 'Waits on', 'Holds up'].forEach((l) => assert.ok(html.includes('>' + l + '<'), l));
+  assert.strictEqual((html.match(/data-action="tie-open"/g) || []).length, 4);
+  html = part3({ waitsOn: ['b1'], picking: 'parent' });
+  assert.ok(/link-tag[^>]*>Bins <small>· Home<\/small><button[^>]*data-action="tie-remove" data-field="waitsOn" data-id="b1"/.test(html), 'a tag from another folder names it');
+  assert.ok(html.includes('data-tie-find') && html.includes('data-field="parent" data-id="a4"') && !html.includes('data-field="parent" data-id="b2"'), 'Part of searches this folder only');
+  html = part3({ picking: 'waitsOn', pickQuery: 'home' });
+  assert.ok(html.includes('data-field="waitsOn" data-id="b2"') && !html.includes('data-field="waitsOn" data-id="a4"'), 'Waits on searches every folder, by folder name too');
+  html = part3({ picking: 'subtasks', pickQuery: 'Esx' });
+  assert.ok(html.includes('data-action="tie-new-sub"') && html.includes('“Esx”'), 'new subtask from the typed text');
+  assert.ok(!part3({ picking: 'subtasks', pickQuery: '' }).includes('tie-new-sub'));
+});
+
+test('saving ties through fileSlip: parent, waits-on, holds-up, new subtask; refused ones skipped', () => {
+  seed();
+  const deps = { labelIdByName: (n) => n, fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove, addTask: M.addTask, projects: state.projects, createIssue: () => {} };
+  const find = (id) => state.projects.flatMap((p) => p.tasks).find((x) => x.id === id);
+  const out = fileSlip(unsortedQueue(state)[0], { projectId: 'pA', selected: [], parent: 'a1', waitsOn: ['b1', 'nope'], holdsUp: ['b2'], subtasks: [], newSubtasks: [] }, deps);
+  const t = out.task;
+  assert.strictEqual(out.outcome, 'filed');
+  assert.strictEqual(t.parentId, 'a1');
+  assert.deepStrictEqual(t.waitsOn, ['b1'], 'a task that does not exist is skipped');
+  assert.deepStrictEqual(find('b2').waitsOn, [t.id], 'holds up is stored on the other task');
+  state.projects[0].tasks.push({ id: 'a3', title: 'Plan', status: 'next', categoryIds: [] });
+  // a task slip: its subtask and a new subtask are tied; itself and a loop are refused
+  const cur = unsortedQueue(state).find((x) => x.kind === 'task' && x.task.id === 'a2');
+  fileSlip(cur, { projectId: 'pA', selected: [], parent: null, subtasks: ['a3'], waitsOn: ['a2', t.id], holdsUp: [], newSubtasks: ['Draft'] }, deps);
+  assert.strictEqual(find('a3').parentId, 'a2', 'a3 becomes its subtask');
+  const draft = state.projects[0].tasks.find((x) => x.title === 'Draft');
+  assert.ok(draft && draft.parentId === 'a2', 'the new subtask is created in the same folder');
+  assert.deepStrictEqual(find('a2').waitsOn, [t.id], 'waiting on itself is refused');
+  M.deleteTask('a1', 'pA');
+  assert.ok(!find(t.id).parentId, 'deleting a task removes it from every tie');
 });
