@@ -83,3 +83,5 @@ did, as a setting:
 | "1 of N" position | change: "N in the tray" |
 | "Thought · 3m ago" chip, `#issue` chip on a task | keep, on the slip |
 | "change" project chip | drop (choose the folder again) |
+
+Part 3 ("Tie to tasks", #190): an "Inside <folder>" group (Part of, Subtasks) and an "Across all folders" group (Waits on, Holds up). Each row has tags with an x and "+ Add", which opens a task search (up to 6 open tasks, by title or folder name; Part of and Subtasks search the chosen folder only). Subtasks can also add a new subtask from the typed text. Ties are held in the slip's scratch (`parent`, `subtasks`, `waitsOn`, `holdsUp`, `newSubtasks`, seeded from a task slip's existing ties) and saved by `fileSlip` through `updateTaskFields`, skipping what `app/js/task-links.js` refuses. Rules: [task-links.md](./task-links.md).
