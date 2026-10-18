@@ -1,3 +1,15 @@
+# Today — 2026-10-18
+
+## Sort flow Asap proposal (design only, nothing built)
+
+Issues #180, #181 and #182 (all labelled Asap) are proposed together, because all three change the
+Unsorted card. The proposal page is `docs/plans/sort-flow-asap.html`, built from
+`docs/plans/sort-flow-asap.json`. The clickable prototype is
+`docs/generated/sort-flow-asap/prototype.html`, and `before.html` beside it draws today's card
+with the real `renderInbox` (`js/render.js:230`). It is waiting on aj's six answers. Found while
+prototyping: the kind cards are Reminder, Build and Fix (`js/state.js:300`), and a separate
+"New labels, comma-separated…" box already exists (`js/render.js:208`).
+
 # Today — 2026-09-27
 
 ## What today was
