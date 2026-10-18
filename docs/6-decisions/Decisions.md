@@ -4,6 +4,24 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-18 — Ties shown everywhere and kept matched with GitHub
+
+The user, before any pull request for the sort steps: "it isn't useable without a way to see sub
+tasks, part of, waits on or holds up in all the board and project views". The GitHub-sync follow-up
+(answer 6A of the sort design) was widened to cover that. Decided on
+`docs/plans/ties-everywhere.html` (answers 1A 2A 3A 4A 5A):
+
+- Projects: subtasks sit directly under their parent, indented (1A).
+- Board: subtasks keep their own cards, each with one quiet tie line (2A).
+- A task still waiting on something has a softer title (3A).
+- Ties sync both ways with GitHub sub-issues and "blocked by"; GitHub wins on a clash at the next
+  sync, as labels do (4A).
+- A GitHub sub-issue that is not yet a task comes in as a subtask (5A).
+
+Set without asking and stated on the page: a sub-issue more than one level deep stays a plain task;
+a sub-issue in another of the user's repositories is read as "waits on"; ties to tasks not on GitHub
+stay local. The sort-steps pull request waits until this is built, so one pull request carries both.
+
 ## 2026-10-18 — Sorting in three parts, task ties, blockers first (#180, #181, #182)
 
 The user asked for the three Asap issues together, then: "a bit too busy currently ... I want sort to
