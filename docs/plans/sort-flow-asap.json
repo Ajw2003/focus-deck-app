@@ -155,7 +155,7 @@
     [
       "new",
       "A search box on steps 1 and 2",
-      "Step 1 finds a project; step 2 finds or makes a label (#182).",
+      "Step 1 finds a project; step 2 finds or makes a label (issue #182).",
       null,
       "It matches any part of the name and ignores capital letters. If the text doesn't exactly match an existing label, a '+ New label' pill creates it.",
       [
@@ -205,7 +205,7 @@
     [
       "new",
       "Subtasks and dependencies",
-      "Each task gets a parent, plus 'waits on' links to tasks in any project (#180, #181).",
+      "Each task gets a parent, plus 'waits on' links to tasks in any project (issues #180 and #181).",
       null,
       "This adds two fields to a task. The first is its parent: one task in the same project. The second is its 'waits on' list: tasks from any project that must be done first. 'Holds up' is the same link seen from the other side, so it is not stored twice. A link to a deleted task is dropped. The new fields sync between your devices, like every other task field.",
       [
@@ -237,7 +237,7 @@
           0,
           [
             [
-              "The four 'How does it connect?' rows and task search",
+              "The four link rows (Part of, Subtasks, Waits on, Holds up) and task search",
               60,
               0
             ]
@@ -272,7 +272,7 @@
     [
       "chg",
       "Focus picker order",
-      "Picks unblocked tasks first, and among those, the ones that unblock the most (#180).",
+      "Picks unblocked tasks first, and among those, the ones that unblock the most (issue #180).",
       [
         "Random pick from the pool",
         "Unblocked first, ranked by how much each clears, then random"
@@ -298,7 +298,7 @@
           2,
           [
             [
-              "'Clears the way for' chip and subtask list on the focus card",
+              "'Unblocks' chip and next-subtask line on the focus card",
               30,
               2
             ]
@@ -327,7 +327,7 @@
           "B",
           "Reuse the existing 'steps' checklist",
           0,
-          "This is smaller to build, but a step can't be focused, labelled or linked, so most of #180 can't work."
+          "This is smaller to build, but a step can't be focused, labelled or linked, so most of what issue #180 asks for can't be done."
         ]
       ],
       "Issue #180 asks for subtasks that can block their parent and be suggested first. Only a real task can be suggested by the focus picker. Existing steps stay as they are."
@@ -365,7 +365,7 @@
           "B",
           "Title only",
           0,
-          "Smallest change, but issue #181 asks for more."
+          "Smallest change, but issue #181 asks for more than the title."
         ]
       ],
       "Tasks have no notes field today, so 'body' needs one. Hiding it behind a link keeps step 1 short."
@@ -384,7 +384,7 @@
           "B",
           "Tasks that have subtasks come first",
           0,
-          "This is a literal reading of the issue title, but it would point you at a parent you can't finish yet."
+          "This is a literal reading of the title of issue #180, but it would point you at a parent you can't finish yet."
         ],
         [
           "C",
@@ -428,7 +428,7 @@
           "B",
           "Yes: write them as GitHub sub-issues and 'blocked by' links now",
           0,
-          "This adds GitHub API work and makes the Asap fix take longer."
+          "This adds GitHub API work and makes this fix take longer."
         ]
       ],
       "You asked for this as soon as possible. Every task field already syncs between your devices, so local links work everywhere you use the app. GitHub's sub-issue and dependency links are a separate job."

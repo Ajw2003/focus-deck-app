@@ -13,6 +13,8 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
   local backups, and multi-tab safety (`js/state.js`).
 - [gist-sync.md](./gist-sync.md) — merging local state with the remote Gist copy, including
   deletion tombstones (`js/sync.js`).
+- [task-links.md](./task-links.md) — subtasks, "waits on" links, task notes, the three-step Unsorted
+  card that sets them, and the blocker-first focus pick (`js/task-links.js`, `js/mutations.js`).
 - [styling.md](./styling.md) — the stylesheet and its contract with the markup that references it
   (`css/app.css`, `js/render.js`), plus the guardrails against it silently breaking
   (`js/style-contract.test.mjs`, `scripts/guard-file-churn.mjs`).
