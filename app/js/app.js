@@ -426,6 +426,12 @@ function onAppClick(e) {
     return;
   }
   if (action === 'board-project') { setBoardProject(el.getAttribute('data-project-id')); paint(); return; }
+  if (action === 'scroll-to-task') {
+    const id = el.getAttribute('data-task'), q = (window.CSS && CSS.escape) ? CSS.escape(id) : id;
+    const to = document.querySelector('[data-task-id="' + q + '"]') || document.querySelector('.task-row[data-task="' + q + '"]');
+    if (to) { to.scrollIntoView({ block: 'center' }); const f = to.querySelector('button, input, [tabindex]'); if (f) f.focus({ preventScroll: true }); }
+    return;
+  }
   if (action === 'board-col') { ui.boardCol = normalizeBoardCol(el.getAttribute('data-col')); paint(); return; }
   if (action === 'start-new-project') { openFirstProjectPanel(); return; }
   if (action === 'unsorted-file' || action === 'unsorted-save') {

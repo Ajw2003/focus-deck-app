@@ -53,3 +53,26 @@ const count = (h, re) => (h.match(re) || []).length;
   assert.strictEqual(normalizeBoardCol(undefined), 'next');
 }
 console.log('board-view tests passed');
+
+{
+  const mkSt = (ties) => ({ categories: [], projects: [
+    { id: 'pa', name: 'Home', color: '#3E8E5E', tasks: [
+      { id: 'a', title: 'Parent', status: 'next', categoryIds: [] },
+      { id: 'b', title: 'Child <i>', status: 'next', categoryIds: [], ...(ties ? { parentId: 'a' } : {}) },
+      { id: 'c', title: 'Later', status: 'next', categoryIds: [], ...(ties ? { waitsOn: ['d'] } : {}) },
+    ] },
+    { id: 'pb', name: 'Work', color: '#4D6FB8', tasks: [{ id: 'd', title: 'Other', status: 'next', categoryIds: [] }] },
+  ] });
+  const h = renderBoard(mkSt(true), { boardProject: null, boardCol: 'next' }, now);
+  assert.ok(h.includes('1 subtask \u00b7 0 done'), 'parent counts its subtask');
+  assert.ok(h.includes('\u21b3 in <button type="button" class="tie-name" data-action="scroll-to-task" data-task="a">Parent</button>'), 'child says which parent');
+  assert.ok(h.includes('waits on <button type="button" class="tie-name" data-action="scroll-to-task" data-task="d">Other</button> \u00b7 Work'), 'other folder named');
+  assert.ok(h.includes('holds up 1'), 'holds up');
+  assert.strictEqual(count(h, /board-card is-waiting/g), 2, 'parent (open subtask) and waiter are soft');
+  assert.ok(h.includes('Child &lt;i&gt;'), 'escaped');
+  const plain = renderBoard(mkSt(false), { boardProject: null, boardCol: 'next' }, now);
+  assert.ok(!plain.includes('tie-line') && !plain.includes('is-waiting'), 'no ties, nothing added');
+  const strip = (x) => x.replace(/<span class="tie-line">(?:<span class="tie[^"]*">.*?<\/span>)+<\/span>/g, '').replace(/ is-waiting/g, '');
+  // same render with the tie fields removed from the data: the ties-on render minus its tie lines differs only by nothing
+  assert.strictEqual(strip(h), plain, 'stripping the tie lines gives the no-ties render');
+}

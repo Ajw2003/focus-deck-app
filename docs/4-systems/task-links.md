@@ -53,7 +53,7 @@ The focus card's "Random pick" text becomes **Unblocks N tasks** (or "Everything
 something" when `focus.allBlocked`); a task with open subtasks also gets a **Next step: <subtask> ·
 N subtasks left** line whose **Start it** button focuses that subtask. Both can show on one card.
 
-## Seeing ties on the Board and in Projects (planned)
+## Seeing ties on the Board and in Projects (built, #193)
 
 Approved 2026-10-18 on `docs/plans/ties-everywhere.html` (1A 2A 3A 4A 5A).
 
@@ -63,7 +63,8 @@ Approved 2026-10-18 on `docs/plans/ties-everywhere.html` (1A 2A 3A 4A 5A).
   "holds up N". Tapping a task name scrolls to that task. Tasks without ties are unchanged.
 - **Projects** (`renderTaskRow`, `app/js/render.js`): a subtask is drawn straight after its parent,
   indented with a connector, and does not repeat "in <parent>". Sort orders still apply among
-  siblings. Dragging a parent does not carry its subtasks.
+  siblings (nesting is within the In progress or Up next group the parent is in; a subtask in the
+  other group stays in its own). Dragging a parent does not carry its subtasks.
 - **Board** (`card`, `app/js/board-view.js`): each subtask keeps its own card, so it can sit in its
   own column.
 - **Waiting tasks** (open "waits on" or open subtasks) have a softer title in both views, matching
