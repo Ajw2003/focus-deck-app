@@ -233,6 +233,7 @@ export async function linkTaskToIssue(taskId, input, ui) {
     task.source = 'github';
     task.repoFullName = repoFullName;
     task.issueNumber = iss.number;
+    task.issueId = iss.id;
     task.url = iss.html_url;
     task.title = iss.title;
     task.status = iss.state === 'closed' ? 'done' : statusFromLabels(iss.labels);
@@ -271,6 +272,7 @@ export function unlinkTask(taskId) {
   task.source = 'manual';
   delete task.repoFullName;
   delete task.issueNumber;
+  delete task.issueId;
   delete task.url;
   delete task.priorityLabel;
   persist();
@@ -301,6 +303,7 @@ export async function transferTaskIssue(taskId, targetRepoFullName, ui, projectN
     const moved = await transferIssue(owner, name, number, tOwner, tName);
     task.repoFullName = targetRepoFullName;
     task.issueNumber = moved.number;
+    task.issueId = moved.id;
     task.url = moved.url;
     task.updatedAt = Date.now();
     ui.syncing = false;
@@ -363,6 +366,7 @@ export async function createGithubIssueFromTask(taskId, repoInput, ui) {
     task.source = 'github';
     task.repoFullName = fullName;
     task.issueNumber = iss.number;
+    task.issueId = iss.id;
     task.url = iss.html_url;
     ui.syncing = false;
     persist();
@@ -529,6 +533,7 @@ export function upsertRepoProject(repo, issues, ui) {
     const existing = holder && holder.tasks.find((t) => isThisRepos(t) && t.issueNumber === iss.number);
     if (existing) {
       existing.title = iss.title;
+      existing.issueId = iss.id;
       existing.url = repo.html_url + '/issues/' + iss.number;
       existing.repoFullName = repo.full_name;
       // it was marked done locally by an earlier sync (issue closed) but the issue is back in
@@ -537,7 +542,7 @@ export function upsertRepoProject(repo, issues, ui) {
       applyLabels(existing, iss.labels, iss.labelColors);
       dropStaleCompletedLabel(existing, iss.labels);
     } else if (project && iss.labels && iss.labels.length > 0) {
-      const task = { id: uid('t'), title: iss.title, status: statusFromLabels(iss.labels), deadline: null, categoryIds: [], source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
+      const task = { id: uid('t'), title: iss.title, status: statusFromLabels(iss.labels), deadline: null, categoryIds: [], source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, issueId: iss.id, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
       applyLabels(task, iss.labels, iss.labelColors);
       project.tasks.push(task);
       ensureTaskSortOrder([project]); // a task new from GitHub goes to the end of its group
@@ -597,6 +602,7 @@ export async function syncGithub(ui) {
         const [owner, name] = t.repoFullName.split('/');
         const iss = await getIssue(owner, name, t.issueNumber);
         t.title = iss.title;
+        t.issueId = iss.id;
         t.url = iss.html_url;
         const wasDone = t.status === 'done';
         if (iss.state === 'closed' && !wasDone) {
