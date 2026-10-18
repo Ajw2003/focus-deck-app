@@ -6,6 +6,7 @@
 // See docs/4-systems/in-tray.md
 import { TASK_KINDS, formatLabelName } from './state.js';
 import { splitCategories } from './category-filter.js';
+import { canSetParent, canWaitOn, subtasksOf, holdsUp } from './task-links.js';
 
 // The last flag card while Settings > Category choices hides some (#133): choosing it shows the rest.
 export const MORE_FLAGS_KEY = '__more__';
@@ -92,12 +93,40 @@ export function selectionToIds(selected, labelIdByName) {
 //   { outcome: 'saved', taskId }            a task got its flags
 //   { outcome: 'later' }                    a task with no flags: to the back of the tray (its folder, title and notes are still saved)
 //   { outcome: 'none' }                     a thought with no folder chosen: nothing happens
+// The ties picked in part 3 ({ parent, subtasks, waitsOn, holdsUp, newSubtasks } on `pick`), saved on
+// the task once it exists. Each change goes through updateTaskFields (so it persists and syncs) and
+// anything js/task-links.js refuses is skipped. `deps.projects` is the live projects array.
+function applyTies(task, projectId, pick, deps) {
+  if (!pick.parent && !pick.subtasks && !pick.waitsOn && !pick.holdsUp && !(pick.newSubtasks || []).length) return;
+  const ps = deps.projects, set = (id, f) => deps.updateTaskFields(id, f);
+  const parent = pick.parent && canSetParent(ps, task.id, pick.parent) ? pick.parent : null;
+  if ((task.parentId || null) !== parent && (parent || task.parentId)) set(task.id, { parentId: parent || undefined });
+  const subs = (pick.subtasks || []);
+  subtasksOf(ps, task.id).filter((s) => !subs.includes(s.id)).forEach((s) => set(s.id, { parentId: undefined }));
+  subs.forEach((id) => { if (canSetParent(ps, id, task.id)) set(id, { parentId: task.id }); });
+  (pick.newSubtasks || []).forEach((title) => {
+    const sub = deps.addTask(projectId, title);
+    if (sub && canSetParent(ps, sub.id, task.id)) set(sub.id, { parentId: task.id });
+  });
+  const waits = [];
+  (pick.waitsOn || []).forEach((id) => { if (!waits.includes(id) && canWaitOn(ps, task.id, id)) waits.push(id); });
+  if (JSON.stringify(waits) !== JSON.stringify(task.waitsOn || [])) set(task.id, { waitsOn: waits.length ? waits : undefined });
+  const held = pick.holdsUp || [];
+  holdsUp(ps, task.id).filter((x) => !held.includes(x.id))
+    .forEach((x) => set(x.id, { waitsOn: x.waitsOn.filter((id) => id !== task.id) }));
+  held.forEach((id) => {
+    const other = ps.flatMap((p) => p.tasks).find((x) => x.id === id);
+    if (other && !(other.waitsOn || []).includes(task.id) && canWaitOn(ps, id, task.id)) set(id, { waitsOn: (other.waitsOn || []).concat(task.id) });
+  });
+}
+
 export function fileSlip(cur, pick, deps) {
   if (cur.kind === 'thought' && !pick.projectId) return { outcome: 'none' };
   const ids = selectionToIds(pick.selected, deps.labelIdByName);
   if (cur.kind === 'thought') {
     const task = deps.fileInboxItem(cur.item.id, pick.projectId, ids, { title: pick.title, notes: pick.notes });
     deps.createIssue(task, pick.projectId);
+    if (task) applyTies(task, pick.projectId, pick, deps);
     return { outcome: 'filed', task, projectId: pick.projectId };
   }
   const { task } = cur;
@@ -108,5 +137,6 @@ export function fileSlip(cur, pick, deps) {
   if (pick.notes != null) fields.notes = pick.notes.trim() || undefined;
   if (ids.length) fields.categoryIds = ids;
   if (Object.keys(fields).length) deps.updateTaskFields(task.id, fields);
+  applyTies(task, pick.projectId || cur.project.id, pick, deps);
   return ids.length ? { outcome: 'saved', taskId: task.id } : { outcome: 'later' };
 }

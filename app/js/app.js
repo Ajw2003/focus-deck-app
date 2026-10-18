@@ -16,6 +16,7 @@ import { confirmMove } from './move-dialog.js';
 import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
 import { mountWallets, onSpreadChange } from './wallet.js';
+import { tiesOf } from './task-links.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY } from './in-tray.js';
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
@@ -98,7 +99,8 @@ function saveProjectSort() {
 // card facing in each wallet) plus this session's "Later" list and which slip it belongs to. Reset
 // whenever the top slip changes -- see renderApp below. See docs/4-systems/in-tray.md
 function freshUnsortedScratch(later) {
-  return { later: later || [], projectId: null, selected: [], step: 1, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null };
+  return { later: later || [], projectId: null, selected: [], step: 1, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null,
+    parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '' };
 }
 
 // First-run onboarding (#124): shown once per device to someone with nothing here yet, or on
@@ -235,7 +237,7 @@ export function renderApp(st) {
   // changed under us -- a new capture, a task labelled elsewhere) starts with clean scratch
   const currentUnsorted = unsortedCurrent(st, ui.unsorted);
   const currentKey = currentUnsorted ? currentUnsorted.key : null;
-  if (currentKey !== ui.unsorted.currentKey) ui.unsorted = Object.assign(freshUnsortedScratch(ui.unsorted.later), { currentKey });
+  if (currentKey !== ui.unsorted.currentKey) ui.unsorted = Object.assign(freshUnsortedScratch(ui.unsorted.later), { currentKey }, currentUnsorted && currentUnsorted.kind === 'task' ? tiesOf(st.projects, currentUnsorted.task.id) : {});
   // A sync that brings projects in while the welcome is still on its first screen means this device
   // already has a life elsewhere: step aside (not when replayed on purpose).
   if (ui.onboarding && ui.onboarding.step === 'welcome' && !ui.onboarding.forced && st.projects.length) ui.onboarding = null;
@@ -430,9 +432,10 @@ function onAppClick(e) {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
     const cur = unsortedCurrent(state, ui.unsorted);
     if (!cur) return;
-    const pick = { projectId: ui.unsorted.projectId, selected: ui.unsorted.selected, title: ui.unsorted.title, notes: ui.unsorted.notes };
+    const pick = { projectId: ui.unsorted.projectId, selected: ui.unsorted.selected, title: ui.unsorted.title, notes: ui.unsorted.notes,
+      parent: ui.unsorted.parent, subtasks: ui.unsorted.subtasks, waitsOn: ui.unsorted.waitsOn, holdsUp: ui.unsorted.holdsUp, newSubtasks: ui.unsorted.newSubtasks };
     const done = fileSlip(cur, pick, {
-      fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove,
+      fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove, addTask: M.addTask, projects: state.projects,
       createIssue: createIssueIfGithubProject, labelIdByName,
     });
     if (done.outcome === 'filed') {
@@ -462,6 +465,23 @@ function onAppClick(e) {
       if (!ui.unsorted.selected.includes(id)) ui.unsorted.selected = ui.unsorted.selected.concat(id);
       ui.unsorted.find = '';
     }
+    paint();
+  }
+  else if (action === 'tie-open') {
+    const f = el.getAttribute('data-field');
+    ui.unsorted.picking = ui.unsorted.picking === f ? null : f;
+    ui.unsorted.pickQuery = '';
+    paint();
+    const box = document.querySelector('[data-tie-find]');
+    if (box) box.focus();
+  }
+  else if (action === 'tie-add' || action === 'tie-remove' || action === 'tie-new-sub') {
+    const u = ui.unsorted, f = el.getAttribute('data-field'), id = el.getAttribute('data-id');
+    if (action === 'tie-new-sub') { if (u.pickQuery.trim()) u.newSubtasks = u.newSubtasks.concat(u.pickQuery.trim()); }
+    else if (f === 'parent') u.parent = action === 'tie-add' ? id : null;
+    else if (f === 'newSubtasks') u.newSubtasks = u.newSubtasks.filter((_, i) => i !== +id);
+    else u[f] = action === 'tie-add' ? u[f].concat(id) : u[f].filter((x) => x !== id);
+    u.picking = null; u.pickQuery = '';
     paint();
   }
   else if (action === 'unsorted-skip') {
@@ -725,6 +745,13 @@ function onAppInput(e) {
   // the slip's title and notes are kept in the scratch without a repaint (it would lose the caret)
   if (e.target.matches && e.target.matches('[data-slip-title]')) { ui.unsorted.title = e.target.textContent; return; }
   if (e.target.matches && e.target.matches('.slip-notes')) { ui.unsorted.notes = e.target.value; return; }
+  if (e.target.matches && e.target.matches('[data-tie-find]')) {
+    ui.unsorted.pickQuery = e.target.value;
+    paint();
+    const box = document.querySelector('[data-tie-find]');
+    if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
+    return;
+  }
   if (e.target.matches && e.target.matches('.sort-find')) {
     ui.unsorted.find = e.target.value;
     paint();

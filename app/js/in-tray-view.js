@@ -7,11 +7,55 @@
 import { esc, relTime } from './state.js';
 import { CHOOSING_MODE_INFO, wording } from './wallet.js';
 import { orderTray, flagCards, folderCards } from './in-tray.js';
+import { canWaitOn, subtasksOf } from './task-links.js';
 import { sleeve, walletInner, mutedChip, focusChoosingMode, unsortedQueue } from './render.js';
 
 function slipFlags(cards, selected) {
   return selected.map((token) => cards.find((c) => c.token === token)).filter(Boolean)
     .map((c) => '<span class="slip-flag" title="' + esc(c.name) + '" style="--c:' + mutedChip(c.color) + '">' + esc(c.name) + '</span>').join('');
+}
+
+// Part 3 (see docs/4-systems/task-links.md): the ties as small folder-coloured tags, "+ Add" opens a task search.
+const allTasks = (st) => st.projects.flatMap((p) => p.tasks.map((t) => ({ t, p })));
+function linkStep(st, u, project, tid) {
+  const f = (k) => u[k] || [];
+  const find = (id) => allTasks(st).find((x) => x.t.id === id);
+  const tag = (id, field) => {
+    const x = find(id);
+    return x ? '<span class="link-tag" style="--c:' + x.p.color + '">' + esc(x.t.title) + (x.p.id !== project.id ? ' <small>· ' + esc(x.p.name) + '</small>' : '')
+      + '<button type="button" data-action="tie-remove" data-field="' + field + '" data-id="' + id + '" aria-label="Untie">×</button></span>' : '';
+  };
+  const newTag = (title, i) => '<span class="link-tag" style="--c:' + project.color + '">' + esc(title) + ' <small>· new</small>'
+    + '<button type="button" data-action="tie-remove" data-field="newSubtasks" data-id="' + i + '" aria-label="Remove">×</button></span>';
+  const taskFind = (field) => {
+    const inFolder = field === 'parent' || field === 'subtasks';
+    const taken = [u.parent].concat(f('subtasks'), f('waitsOn'), f('holdsUp'));
+    const q = (u.pickQuery || '').toLowerCase();
+    const ok = ({ t, p }) => {
+      if (t.status === 'done' || t.id === tid || taken.includes(t.id)) return false;
+      if (inFolder && p.id !== project.id) return false;
+      const live = !!t.parentId && !!find(t.parentId);
+      if (field === 'parent') return !live && !f('subtasks').length && !(u.newSubtasks || []).length;
+      if (field === 'subtasks') return !live && !u.parent && !subtasksOf(st.projects, t.id).length;
+      if (!tid) return true; // a thought has no id yet, so nothing can loop back to it
+      return field === 'waitsOn' ? canWaitOn(st.projects, tid, t.id) : canWaitOn(st.projects, t.id, tid);
+    };
+    const hits = allTasks(st).filter(ok).filter(({ t, p }) => !q || t.title.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)).slice(0, 6);
+    return '<div class="task-find"><input class="sort-find" data-tie-find value="' + esc(u.pickQuery || '') + '" placeholder="Find a task ' + (inFolder ? 'in ' + esc(project.name) : 'in any folder') + '…" aria-label="Find a task">'
+      + hits.map(({ t, p }) => '<button type="button" class="task-hit" data-action="tie-add" data-field="' + field + '" data-id="' + t.id + '"><span class="dot" style="--c:' + p.color + '"></span>' + esc(t.title) + '<span class="muted small">' + esc(p.name) + '</span></button>').join('')
+      + (!hits.length ? '<p class="muted small">No task matches.</p>' : '')
+      + (field === 'subtasks' && (u.pickQuery || '').trim() ? '<button type="button" class="task-hit" data-action="tie-new-sub"><b>+ New subtask</b>&nbsp;“' + esc(u.pickQuery.trim()) + '”</button>' : '')
+      + '</div>';
+  };
+  const row = (label, field) => {
+    const tags = field === 'parent' ? (u.parent ? [tag(u.parent, 'parent')] : []) : f(field).map((id) => tag(id, field));
+    if (field === 'subtasks') (u.newSubtasks || []).forEach((s, i) => tags.push(newTag(s, i)));
+    return '<div class="link-row"><span class="muted small">' + label + '</span>' + tags.join('')
+      + (field !== 'parent' || !u.parent ? '<button type="button" class="link-add" data-action="tie-open" data-field="' + field + '">+ Add</button>' : '') + '</div>'
+      + (u.picking === field ? taskFind(field) : '');
+  };
+  return '<div class="links-step"><h4>Inside ' + esc(project.name) + '</h4>' + row('Part of', 'parent') + row('Subtasks', 'subtasks')
+    + '<h4>Across all folders</h4>' + row('Waits on', 'waitsOn') + row('Holds up', 'holdsUp') + '</div>';
 }
 
 const has = (name, q) => !q || name.toLowerCase().includes(q.toLowerCase());
@@ -22,7 +66,7 @@ function stepBar(step, folder, flagNames) {
   return '<div class="step-bar">' + tab(1, 'Which folder?', folder ? folder.name : '') + tab(2, 'Stick on flags', flagNames.join(', ')) + tab(3, 'Tie to tasks', 'optional') + '</div>';
 }
 
-function trayWallets(st, u, project, step, allCards, mode) {
+function trayWallets(st, u, project, step, allCards, mode, tid) {
   const hint = wording(CHOOSING_MODE_INFO[mode].hint, 'use');
   const q = u.find || '';
   let html = '';
@@ -60,7 +104,7 @@ function trayWallets(st, u, project, step, allCards, mode) {
       html += '<div class="wallet" id="tray-flag-wallet">' + walletInner({ wallet: 'tray-flags', label: '', aria: 'Category flags. Arrow keys flip, Enter adds or removes.', items, facing, mode, verb: 'use' }) + '</div>';
     }
   } else {
-    html += '<p class="muted small">Links arrive in the next update.</p>';
+    html += linkStep(st, u, project, tid);
   }
   return '<div class="wallet-root tray-wallets">' + stepBar(step, project, u.selected.map((t) => (allCards.find((c) => c.token === t) || {}).name).filter(Boolean)) + html + (html.includes('flip-track') ? '<div class="flip-hint">' + hint + '</div>' : '') + '<div class="sr-only" id="tray-live" aria-live="polite"></div></div>';
 }
@@ -108,7 +152,7 @@ function renderTray(st, u, ordered, mode) {
     + '<button type="button" data-action="unsorted-complete" ' + ids + '>Already done</button>'
     + '<button type="button" data-action="unsorted-skip">Later</button>'
     + '<button type="button" data-action="unsorted-delete" ' + ids + '>Bin it</button></div></div></div>'
-    + trayWallets(st, u, project, step, allCards, mode);
+    + trayWallets(st, u, project, step, allCards, mode, isThought ? null : cur.task.id);
 }
 
 // The top slip: the queue in tray order (slips sent to the back by "Later" come last), or null

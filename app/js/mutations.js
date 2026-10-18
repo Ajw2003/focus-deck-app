@@ -9,6 +9,7 @@ import { ensureSortOrder } from './project-filter.js';
 import { ensureTaskSortOrder } from './task-move.js';
 import { DEFAULT_DUE_DEFAULTS } from './due-stage.js';
 import { CHOOSING_MODES } from './wallet.js';
+import { dropLinksTo, detachForMove } from './task-links.js';
 import { NOTE_FACES, applyNoteFace } from './note-face.js';
 export { persist };
 
@@ -57,6 +58,7 @@ export function applyTaskMove({ taskId, toProjectId, status, changes }) {
   const crossing = from.id !== to.id;
   if (!crossing && status && task.status !== status) setTaskStatus(taskId, status);
   if (crossing) {
+    detachForMove(state.projects, taskId); // a subtask can't stay in another folder than its parent
     from.tasks = from.tasks.filter((t) => t.id !== taskId);
     to.tasks.push(task);
     if (status) task.status = status;
@@ -168,6 +170,7 @@ export function deleteTask(taskId, projectId) {
     if (!state.excludedIssues.includes(key)) state.excludedIssues.push(key);
   }
   project.tasks = project.tasks.filter((t) => t.id !== taskId);
+  dropLinksTo(state.projects, taskId);
   if (!state.deletedTaskIds) state.deletedTaskIds = {};
   state.deletedTaskIds[taskId] = Date.now(); // tombstone — see mergeStates in sync.js
   if (state.focus && state.focus.taskId === taskId) state.focus = null;
