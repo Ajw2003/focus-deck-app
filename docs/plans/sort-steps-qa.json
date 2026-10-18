@@ -1,0 +1,104 @@
+{
+  "title": "Sort Steps QA",
+  "eyebrow": "Built and checked by hand · ready for you to test · issues #188 to #191",
+  "short": {
+    "lead": "The Sort screen now goes one part at a time: folder, then flags, then ties to other tasks, with a search box on each part. The slip is the paper card showing the thought or task you are sorting. The focus pick offers blockers first, starting with the task that unblocks the most. It runs on your machine at the address in step 1, with its own sample data, so your real tasks are not touched.",
+    "hint": "Tap a step to see what to try and what you should see.",
+    "key": [
+      [
+        "Built",
+        ""
+      ],
+      [
+        "You test it",
+        "you"
+      ]
+    ],
+    "items": [
+      [
+        "eye",
+        "Open",
+        "Open the test copy",
+        "you",
+        "A test copy of the app from branch AjsAgent/sort-steps, loaded with 19 sample folders and 45 sample flags.",
+        "Open http://127.0.0.1:8765/docs/generated/sort-steps/seed.html in your browser. It loads sample data on that address only, then opens the Sort screen.",
+        {
+          "src": "../generated/sort-steps/built-1440-part1.png",
+          "alt": "The built Sort screen on part 1",
+          "caption": "Part 1 in the built app."
+        }
+      ],
+      [
+        "search",
+        "Part 1",
+        "Find and choose a folder",
+        "you",
+        "The list of folders narrows as you type, and the folder you choose appears on the slip.",
+        "Type 'shed' in 'Find a folder…', choose Shed rebuild, and press 'Next: flags →'."
+      ],
+      [
+        "list",
+        "Part 2",
+        "Find, make and stick on flags",
+        "you",
+        "The flags narrow as you type; '+ New flag' makes one that doesn't exist.",
+        "Type 'rep', choose Repair, then type a made-up word and press '+ New flag'. Both flags appear on the edge of the slip.",
+        {
+          "src": "../generated/sort-steps/built-1440-part2.png",
+          "alt": "Part 2 with the search 'rep' showing two flag cards and a New flag button",
+          "caption": "Part 2 in the built app."
+        }
+      ],
+      [
+        "loop",
+        "Part 3",
+        "Tie it to other tasks, then file",
+        "you",
+        "Ties are saved with the task when you file it.",
+        "Press '+ Add' next to Subtasks and add a new subtask. Press '+ Add' next to Waits on and pick a task from another folder. Then press 'File it in Shed rebuild →'. Before filing, also try '+ Add notes' and editing the slip's title.",
+        {
+          "src": "../generated/sort-steps/built-1440-part3.png",
+          "alt": "Part 3 with a new subtask, a waits-on tie and the Holds up search",
+          "caption": "Part 3 in the built app."
+        }
+      ],
+      [
+        "next",
+        "Focus",
+        "See blockers come first",
+        "you",
+        "A pick from Shed rebuild offers the new subtask first, because it unblocks the task you filed.",
+        "On the Focus screen, draw from the Shed rebuild folder. The note should say 'Unblocks 1 task'."
+      ],
+      [
+        "check",
+        "Reply",
+        "Tell me how it went",
+        "you",
+        "Your reply moves the issues on.",
+        "Reply 'QA passed: sort steps fitted 1A', or say what's wrong."
+      ]
+    ]
+  },
+  "changes": [],
+  "qa": {
+    "feature": "sort steps fitted 1A",
+    "base": "origin/main",
+    "unverified": [
+      "The repo's Playwright browser checks (scripts/check-*-browser.mjs) were not run, because Playwright isn't installed on this machine",
+      "The pull request isn't open yet: its permission prompt timed out, so GitHub's CI hasn't run the tests on Linux",
+      "Nothing is deployed; it runs only from the local server on 127.0.0.1:8765, which stops when this session ends",
+      "On a phone-sized screen, I checked only that parts 1 to 3 display correctly, not every tap"
+    ]
+  },
+  "wrapup": {
+    "summary": "The three-part Sort screen, task ties and blocker-first focus are built and checked by hand in a real browser.",
+    "changing": "Changed: the Sort screen, the focus pick and the focus note. New: search per part, notes, title editing, subtasks and waits-on ties.",
+    "blocking": "Your test, and opening the pull request (the permission prompt for opening it timed out).",
+    "next": "After 'QA passed', you close the issues when you're happy, and the pull request goes to main.",
+    "todo": [
+      "Do the six steps under 'In short', ending with the reply.",
+      "Reply 'QA passed: sort steps fitted 1A', or say what's wrong."
+    ]
+  }
+}
