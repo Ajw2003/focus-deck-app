@@ -25,7 +25,7 @@ export function canSetParent(projects, childId, parentId) {
 
 // "taskId waits on otherId": not itself, and otherId doesn't already wait (through any chain) on taskId
 export function canWaitOn(projects, taskId, otherId) {
-  if (taskId === otherId) return false;
+  if (taskId === otherId || !find(projects, otherId)) return false;
   const seen = new Set(), todo = [otherId];
   while (todo.length) {
     const id = todo.pop();
