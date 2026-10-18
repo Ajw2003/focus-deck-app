@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Seed Sort Screen</title></head>
+<body><p>Seeding sample data, then opening the real app on the Sort screen…</p>
+<script type="module">
+// Loads the real app (app/index.html) on the Sort screen with realistic sample data, for the
+// "before" screenshots. Overwrites this browser profile's Focus Deck data on 127.0.0.1 only.
+import { seedState } from './seed.js';
+localStorage.setItem('focusdeck-onboarding', 'done');
+localStorage.setItem('focusdeck-screen', 'sort');
+localStorage.setItem('focusdeck-state-v1', JSON.stringify(seedState()));
+location.replace('../../../app/index.html');
+</script></body></html>

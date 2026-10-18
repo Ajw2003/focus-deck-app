@@ -1,0 +1,205 @@
+{
+  "title": "Sort Steps Fitted",
+  "eyebrow": "Same approved design, fitted to the app you use now · issues #180, #181, #182",
+  "approval": "Design approved: sort steps fitted",
+  "short": {
+    "lead": "I built the first two drafts on an out-of-date copy of the app, 105 changes behind what is on GitHub, so they showed the old Unsorted card instead of your Sort screen. This page puts the same approved design onto the real Sort screen. The jotter slip is on the left. On the right, one part shows at a time: first the folder, then the flags, then the tasks to tie the slip to. Your six answers carry over unchanged.",
+    "hint": "Tap a step to see it. Every picture is the real app's styles and cards, with realistic data: 19 projects and 45 categories.",
+    "key": [
+      [
+        "We build it",
+        ""
+      ],
+      [
+        "You decide",
+        "you"
+      ]
+    ],
+    "items": [
+      [
+        "bulb",
+        "Today",
+        "Today's Sort screen",
+        "",
+        "On a wide screen, both wallets show at once: all 19 folders, then all 45 flag cards below them, plus a comma-separated box for new labels. That is the crowded screen you described.",
+        "Nothing from you.",
+        {
+          "src": "../generated/sort-steps/before-1440.png",
+          "alt": "Today's Sort screen with 19 folders and the start of 45 flag cards",
+          "caption": "Today, drawn by the real app."
+        }
+      ],
+      [
+        "list",
+        "1. Folder",
+        "Part 1: Which folder?",
+        "",
+        "Only the folder wallet shows, under a three-part step bar, with a 'Find a folder…' box above it. The button under the slip says 'Next: flags →' once a folder is chosen. You can tap the slip's text to edit it, and '+ Add notes' lets you write notes on the slip.",
+        "Nothing from you.",
+        {
+          "src": "../generated/sort-steps/after-1440-step1.png",
+          "alt": "Part 1 with the search showing 'sh' and Shed rebuild chosen",
+          "caption": "Typing 'sh' leaves one folder."
+        }
+      ],
+      [
+        "search",
+        "2. Flags",
+        "Part 2: Stick on flags",
+        "",
+        "Only the flag wallet shows. 'Find a flag, or type a new one…' narrows the 45 cards and offers '+ New flag' when nothing matches exactly. The flags appear on the slip's edge as they do today.",
+        "Nothing from you.",
+        {
+          "src": "../generated/sort-steps/after-1440-step2.png",
+          "alt": "Part 2 with 're' typed, seven matching flag cards and a New flag button",
+          "caption": "45 flags narrowed to 7 by typing 're'."
+        }
+      ],
+      [
+        "loop",
+        "3. Tasks",
+        "Part 3: Tie to tasks (optional)",
+        "",
+        "Two short groups. 'Inside Shed rebuild' holds the 'Part of' and 'Subtasks' ties. 'Across all folders' holds the 'Waits on' and 'Holds up' ties. Each '+ Add' opens a small task search. The button under the slip becomes 'File it in Shed rebuild →'.",
+        "Nothing from you.",
+        {
+          "src": "../generated/sort-steps/after-1440-step3.png",
+          "alt": "Part 3 with a parent task, a waits-on task and the Holds up search open",
+          "caption": "Ties shown as small folder-coloured tags."
+        }
+      ],
+      [
+        "next",
+        "Focus",
+        "The focus note afterwards",
+        "",
+        "A task that unblocks others says 'Unblocks 2 tasks' where it now says 'Random pick'. A task with open subtasks gets one line, 'Next step: Order the timber · 2 subtasks left'. Nothing else on the note changes.",
+        "Nothing from you.",
+        {
+          "src": "../generated/sort-steps/after-1440-focus.png",
+          "alt": "The yellow focus note showing Unblocks 2 tasks in its top line",
+          "caption": "One word swap on the note's top line."
+        }
+      ],
+      [
+        "lock",
+        "Approve",
+        "You confirm the fit",
+        "you",
+        "Building starts on a branch cut from the current app.",
+        "You confirm, or say what to change."
+      ]
+    ]
+  },
+  "changes": [
+    [
+      "keep",
+      "The slip, the tray and the wallets",
+      "Jotter slip, folder and index-card wallets, 'Already done', 'Later' and 'Bin it'.",
+      null,
+      "These keep their look and behaviour, including the 'Choosing a card' setting and the 'Category choices' setting. The flag ranking is unchanged. While you are typing a search, every matching flag shows, even ones that setting would hide."
+    ],
+    [
+      "chg",
+      "The Sort screen's right side",
+      "One part at a time behind a step bar, instead of both wallets at once.",
+      [
+        "Folders and flags together, then a New labels box",
+        "1 folder, 2 flags, 3 tasks, one at a time"
+      ],
+      "The slip's main button walks through the parts ('Next: flags →', 'Next: tie to tasks →', 'File it in X →'), and A '← Back' link is added to the small links under the button. A task slip starts on part 1 with its own folder already chosen, so you can move it to another folder. On a phone the same parts stack under the slip.",
+      null,
+      null,
+      {
+        "before": {
+          "src": "../generated/sort-steps/before-1440.png",
+          "alt": "Today's Sort screen"
+        },
+        "after": {
+          "src": "../generated/sort-steps/after-1440-step2.png",
+          "alt": "Part 2 of the stepped Sort screen"
+        },
+        "caption": "Left: today. Right: part 2 of the stepped screen."
+      }
+    ],
+    [
+      "new",
+      "Search on each part",
+      "'Find a folder…' and 'Find a flag, or type a new one…' (issue #182).",
+      null,
+      "Search matches any part of a name, whatever the capital letters. '+ New flag' replaces the comma-separated 'New labels' box (your answer 2A).",
+      [
+        "Scroll or scan 19 folders and 45 flags.",
+        "A box that narrows each wallet as you type.",
+        "A few letters find it, with no hunting."
+      ]
+    ],
+    [
+      "new",
+      "Edit the slip, and tie it to tasks",
+      "Editable title, notes, subtasks and waits-on links (issues #180 and #181).",
+      null,
+      "These rules are the same as in the approved design: a subtask lives in its parent's folder, one level deep, no circular waits, and ties to a deleted task are dropped. A GitHub-linked task's title stays read-only, because GitHub sync would overwrite an edit.",
+      [
+        "No notes, no subtasks, no links.",
+        "Notes on the slip, and four kinds of tie.",
+        "A big job can be broken into tasks you can focus on."
+      ],
+      null,
+      {
+        "src": "../generated/sort-steps/after-phone-step3.png",
+        "alt": "Part 3 on a phone",
+        "caption": "Part 3 on a phone."
+      }
+    ],
+    [
+      "chg",
+      "Focus pick order",
+      "Blockers first, then whichever task unblocks the most (your answer 4A).",
+      [
+        "Random pick",
+        "Unblocked tasks first, biggest unblocker first"
+      ],
+      "'Not this one' still works. If every task is waiting on something, it picks at random and says so on the note.",
+      null,
+      null,
+      {
+        "src": "../generated/sort-steps/after-1440-focus2.png",
+        "alt": "The focus note with a Next step line under the title",
+        "caption": "A task with subtasks names the next one."
+      }
+    ]
+  ],
+  "choices": [
+    [
+      "fit",
+      "Is this the right fit for your current Sort screen?",
+      [
+        [
+          "A",
+          "Yes, build it",
+          1,
+          "The build follows these pictures, on a branch cut from today's GitHub main."
+        ],
+        [
+          "B",
+          "Change something first",
+          0,
+          "Say what, and I redo the pictures before any code."
+        ]
+      ],
+      "It keeps everything you already have on the Sort screen and only splits it into parts, adds search, and adds Part 3, where you tie a task to other tasks."
+    ]
+  ],
+  "wrapup": {
+    "summary": "This is the approved three-step sort design, redrawn on your current Sort screen, because the earlier drafts were built on an out-of-date copy.",
+    "changing": "Changed: the Sort screen shows one part at a time, and the focus pick puts blockers first. New: search on each part, slip notes and title editing, and tying a task to other tasks. Dropped: the 'New labels' box, replaced by '+ New flag'.",
+    "blocking": "Your confirmation that the design fits, under Choices. Nothing is built until then.",
+    "next": "After you confirm, the three build issues (#185, #186, #187) are updated to match the current app, and building starts on branch AjsAgent/sort-steps.",
+    "todo": [
+      "Look through the steps above.",
+      "Pick an answer under Choices.",
+      "Tap <b>Copy my reply</b> and send it."
+    ]
+  }
+}
