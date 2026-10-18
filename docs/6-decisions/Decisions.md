@@ -4,6 +4,27 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-18 — Sorting in three parts, task ties, blockers first (#180, #181, #182)
+
+The user asked for the three Asap issues together, then: "a bit too busy currently ... I want sort to
+be in steps, first choose project, then categories, then subtasks and dependencies". Decided, with
+the user's answers on `docs/plans/sort-flow-asap.html` (1A 2A 3A 4A 5A 6A):
+
+- Subtasks are real tasks with a `parentId` in the same project, one level deep; "waits on" links
+  (`waitsOn`) cross projects; "holds up" is read from them, never stored (1A).
+- One search box per part replaces the comma-separated "New labels" box, with "+ New flag" (2A).
+- Editing covers the title and a new `notes` field; steps stay in the task editor (3A).
+- The focus pick leaves out blocked tasks and picks the biggest unblocker first (4A).
+- Filing happens on part 3 only; part 3 is optional (5A).
+- Nothing is written to GitHub sub-issues or "blocked by" links yet; that is a follow-up (6A).
+
+Replaced: the first two drafts were drawn on a local `main` 105 commits behind GitHub, so they showed
+the old Unsorted card. The design was redrawn on the current Sort screen (`docs/plans/sort-steps.html`,
+approved as "sort steps fitted 1A") and the build moved to branch `AjsAgent/sort-steps`. The plan's
+issues were reopened as #188 (#189, #190, #191) because the approval gate counts only issues made
+after the design approval; #184 to #187 were closed as replaced at the user's request. Detail:
+`docs/4-systems/task-links.md`, `docs/4-systems/in-tray.md`.
+
 ## 2026-10-11 — No separate topbar on a wide screen; sync and Settings in the rail
 
 The user: "lets get rid of the top piece being separate and move the settings and sync into the side
