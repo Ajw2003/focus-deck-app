@@ -2,7 +2,7 @@
 // One test per rule in docs/4-systems/task-links.md
 import test from 'node:test';
 import assert from 'node:assert';
-import { canSetParent, canWaitOn, holdsUp, subtasksOf, dropLinksTo, detachForMove, tiesOf, isBlocked, unblockCount, rankFocusPool } from './task-links.js';
+import { canSetParent, canWaitOn, holdsUp, subtasksOf, dropLinksTo, detachForMove, tiesOf, isBlocked, unblockCount, rankFocusPool, tieSummary, tieLineHtml } from './task-links.js';
 
 const mk = () => [
   { id: 'pA', tasks: [{ id: 'a1', status: 'next' }, { id: 'a2', status: 'next', parentId: 'a1' }, { id: 'a3', status: 'next' }] },
@@ -65,4 +65,28 @@ test('the focus ranking drops blocked tasks and picks the biggest unblocker', ()
 
 test('when every task is blocked the whole pool comes back marked allBlocked', () => {
   assert.deepStrictEqual(rankFocusPool(mk(), ['a1', 'b1']), { candidates: ['a1', 'b1'], allBlocked: true });
+});
+
+test('tieSummary: parent only when asked, subtask counts, open waits-on with other folder, holds-up, isWaiting', () => {
+  const ps = mk();
+  ps[0].name = 'Home'; ps[1].name = 'Work';
+  ps[0].tasks.forEach((t) => { t.title = t.id.toUpperCase(); });
+  assert.deepStrictEqual(tieSummary(ps, 'a2', { showParent: true }).parent, { id: 'a1', title: 'A1' });
+  assert.strictEqual(tieSummary(ps, 'a2').parent, null);
+  const a1 = tieSummary(ps, 'a1');
+  assert.deepStrictEqual(a1.subs, { total: 1, done: 0 });
+  assert.ok(a1.isWaiting, 'an open subtask makes the parent wait');
+  const b1 = tieSummary(ps, 'b1');
+  assert.deepStrictEqual(b1.waits, [{ id: 'a3', title: 'A3', folder: 'Home' }]);
+  assert.ok(b1.isWaiting);
+  assert.strictEqual(tieSummary(ps, 'a3').holds, 1, 'only the open waiter counts');
+  assert.ok(!tieSummary(ps, 'b2').isWaiting, 'a done task never waits');
+  assert.strictEqual(tieLineHtml(tieSummary(ps, 'nope')), '', 'no ties, no line');
+});
+
+test('tieLineHtml: text, escaped names, same-folder waits show no folder', () => {
+  const ps = [{ id: 'p', name: 'P', tasks: [{ id: 'x', title: 'Do <it>', status: 'next', waitsOn: ['y'] }, { id: 'y', title: 'Y & Z', status: 'next' }] }];
+  const h = tieLineHtml(tieSummary(ps, 'x'));
+  assert.ok(h.includes('waits on <button type="button" class="tie-name" data-action="scroll-to-task" data-task="y">Y &amp; Z</button></span>'), h);
+  assert.ok(tieLineHtml(tieSummary(ps, 'y')).includes('holds up 1'));
 });

@@ -2,6 +2,7 @@
 // The rules for a task's ties to other tasks (parentId, waitsOn), with no DOM and no state: every
 // function takes the projects array. Links to ids that no longer exist are ignored when read.
 // See docs/4-systems/task-links.md
+import { esc } from './state.js';
 const all = (projects) => projects.flatMap((p) => p.tasks.map((t) => ({ t, p })));
 const find = (projects, id) => all(projects).find((x) => x.t.id === id);
 const live = (projects, ids) => (ids || []).filter((id) => find(projects, id));
@@ -92,4 +93,32 @@ export function rankFocusPool(projects, ids) {
   if (!free.length) return { candidates: ids, allBlocked: true };
   const n = free.map((id) => unblockCount(projects, id)), top = Math.max(...n);
   return { candidates: free.filter((_, i) => n[i] === top), allBlocked: false };
+}
+
+// the parts of a task's tie line: parent (Board only), subtask counts, open waits-on (with the other
+// folder's name when it differs), holds-up count; isWaiting = open and blocked. Empty parts = no line.
+export function tieSummary(projects, taskId, { showParent = false } = {}) {
+  const x = find(projects, taskId);
+  if (!x) return { parent: null, subs: null, waits: [], holds: 0, isWaiting: false };
+  const par = showParent ? find(projects, x.t.parentId) : null;
+  const subs = subtasksOf(projects, taskId);
+  const waits = live(projects, x.t.waitsOn).map((id) => find(projects, id)).filter(isOpen)
+    .map((w) => ({ id: w.t.id, title: w.t.title, folder: w.p.id !== x.p.id ? w.p.name : null }));
+  return {
+    parent: par ? { id: par.t.id, title: par.t.title } : null,
+    subs: subs.length ? { total: subs.length, done: subs.filter((s) => s.status === 'done').length } : null,
+    waits, holds: holdsUp(projects, taskId).length,
+    isWaiting: isOpen(x) && isBlocked(projects, taskId),
+  };
+}
+
+// the .tie-line markup for a summary ('' when there is nothing to say); task names are buttons
+export function tieLineHtml(s) {
+  const name = (id, title) => '<button type="button" class="tie-name" data-action="scroll-to-task" data-task="' + esc(id) + '">' + esc(title) + '</button>';
+  const parts = [];
+  if (s.parent) parts.push('<span class="tie">\u21b3 in ' + name(s.parent.id, s.parent.title) + '</span>');
+  if (s.subs) parts.push('<span class="tie">' + s.subs.total + (s.subs.total === 1 ? ' subtask' : ' subtasks') + ' \u00b7 ' + s.subs.done + ' done</span>');
+  s.waits.forEach((w) => parts.push('<span class="tie wait">waits on ' + name(w.id, w.title) + (w.folder ? ' \u00b7 ' + esc(w.folder) : '') + '</span>'));
+  if (s.holds) parts.push('<span class="tie hold">holds up ' + s.holds + '</span>');
+  return parts.length ? '<span class="tie-line">' + parts.join('') + '</span>' : '';
 }

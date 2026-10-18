@@ -7,6 +7,7 @@
 import { esc, formatLabelName, PRIORITY } from './state.js';
 import { boardColumns } from './board.js';
 import { ICON_GRIP } from './icons.js';
+import { tieSummary, tieLineHtml } from './task-links.js';
 
 export const BOARD_COLS = ['next', 'doing', 'done'];
 const COL_INFO = {
@@ -34,11 +35,12 @@ function card(t, p, st, narrowed) {
     + (cats.length ? '<span class="board-card-cats">' + esc(cats.join(' · ')) + '</span>' : '');
   const prio = t.priority && PRIORITY[t.priority]
     ? '<span class="chip priority-chip small board-prio" style="--chip-color:var(--prio-' + t.priority + ')">' + esc(PRIORITY[t.priority].label) + '</span>' : '';
-  return '<article class="board-card' + (done ? ' is-done' : '') + '" data-task-id="' + esc(t.id) + '" data-project="' + esc(p.id) + '" data-status="' + esc(t.status) + '" style="--proj-color:' + esc(p.color) + '">'
+  const ties = tieSummary(st.projects, t.id, { showParent: true });
+  return '<article class="board-card' + (done ? ' is-done' : '') + (ties.isWaiting ? ' is-waiting' : '') + '" data-task-id="' + esc(t.id) + '" data-project="' + esc(p.id) + '" data-status="' + esc(t.status) + '" style="--proj-color:' + esc(p.color) + '">'
     + '<button type="button" class="task-grip board-grip" data-task="' + esc(t.id) + '" data-project="' + esc(p.id) + '" aria-label="Move ' + esc(t.title) + '" title="Drag to another column, or use the left and right arrow keys">' + ICON_GRIP + '</button>'
     + '<input type="checkbox" data-action="toggle-task" data-task="' + esc(t.id) + '" data-project="' + esc(p.id) + '"' + (done ? ' checked' : '') + ' aria-label="' + esc(t.title) + '">'
     + '<div class="board-card-body"><span class="board-card-title">' + esc(t.title) + '</span>'
-    + (meta ? '<span class="board-card-meta">' + meta + '</span>' : '') + '</div>'
+    + (meta ? '<span class="board-card-meta">' + meta + '</span>' : '') + tieLineHtml(ties) + '</div>'
     + prio + '</article>';
 }
 
