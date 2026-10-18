@@ -6,7 +6,7 @@ Issues #180, #181 and #182 (all labelled Asap) are proposed together, because al
 Unsorted card. The proposal page is `docs/plans/sort-flow-asap.html`, built from
 `docs/plans/sort-flow-asap.json`. The clickable prototype is
 `docs/generated/sort-flow-asap/prototype.html`, and `before.html` beside it draws today's card
-with the real `renderInbox` (`js/render.js:230`). It is waiting on aj's six answers. Found while
+with the real `renderInbox` (`js/render.js:230`). It is waiting on aj's six answers. Second draft, same day: aj found the one-card version too busy, so sorting became three steps (project, then kind and labels, then links) in `docs/generated/sort-flow-asap/prototype-steps.html`, and the focus card got at most one extra chip or line. Found while
 prototyping: the kind cards are Reminder, Build and Fix (`js/state.js:300`), and a separate
 "New labels, comma-separated…" box already exists (`js/render.js:208`).
 
