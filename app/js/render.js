@@ -1,6 +1,7 @@
 // focus-deck-app/js/render.js
 import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED } from './state.js';
 import { ICON_SYNC, ICON_SETTINGS, ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
+import { unblockCount, subtasksOf } from './task-links.js';
 import { sortTasks } from './task-move.js';
 import { leadChoices, suggestLead, normalizeDueDefaults } from './due-stage.js';
 import { phaseClasses } from './focus-complete.js';
@@ -191,6 +192,7 @@ export function renderFocus(st, findTaskWithProject, ui) {
         + deadlineHTML
       + '</div>'
       + '<h2 class="focus-title"><span class="ink">' + esc(t.title) + '</span></h2>'
+      + nextSubLine(st, t)
     + '</div></div>'
     + (t.status === 'next' ? '<div class="focus-doing"><button type="button" class="btn-text focus-doing-btn" data-action="focus-doing">Mark in progress</button></div>'
       : t.status === 'doing' ? '<div class="focus-doing"><span class="focus-doing-mark">In progress</span></div>' : '')
@@ -213,9 +215,23 @@ function focusMetaParts(st, t) {
   const labels = (t.categoryIds || []).map((id) => (st.categories || []).find((c) => c.id === id)).filter(Boolean);
   if (focus.filter && focus.filter.categoryId === UNLABELLED) parts.push('Unlabelled');
   labels.forEach((c) => parts.push(formatLabelName(c.name)));
-  if (focus.pool && !(focus.filter && focus.filter.categoryId)) parts.push('Random pick');
+  const n = unblockCount(st.projects || [], t.id);
+  let reason = '';
+  if (focus.pool && !(focus.filter && focus.filter.categoryId)) {
+    if (focus.allBlocked) parts.push('Everything here is waiting on something');
+    else if (n > 0) reason = '<span><b class="unblocks">Unblocks ' + n + (n === 1 ? ' task' : ' tasks') + '</b></span>';
+    else parts.push('Random pick');
+  }
   if (t.priority && PRIORITY[t.priority]) parts.push(PRIORITY[t.priority].label);
-  return parts.map((x) => '<span>' + esc(x) + '</span>').join('');
+  return reason + parts.map((x) => '<span>' + esc(x) + '</span>').join('');
+}
+
+// "Next step: <first open subtask> · N subtasks left" with a button that focuses it
+function nextSubLine(st, t) {
+  const open = subtasksOf(st.projects || [], t.id).filter((s) => s.status !== 'done');
+  if (!open.length) return '';
+  return '<p class="next-sub">Next step: <b>' + esc(open[0].title) + '</b> · ' + open.length + (open.length === 1 ? ' subtask' : ' subtasks') + ' left '
+    + '<button type="button" class="btn-text" data-action="focus-subtask" data-task="' + open[0].id + '">Start it</button></p>';
 }
 
 // The Unsorted queue: captured thoughts (oldest first), then every open task with no labels, in

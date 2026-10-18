@@ -45,12 +45,13 @@ A task **unblocks** each open task that waits on it, plus its parent when that p
 1. Build the pool as before: open tasks matching the chosen label and project.
 2. Keep only the tasks that aren't blocked. If none are left, keep the whole pool and set
    `focus.allBlocked`, which the focus card states in words.
-3. Pick at random among the tasks that unblock the most. "Not this one" picks at random from the
-   rest of the step-2 pool, as before.
+3. Pick at random among the tasks that unblock the most (open tasks waiting on it, plus its open
+   parent). "Not this one" picks at random from the pool minus the current task, preferring tasks
+   that aren't blocked.
 
-The focus card shows at most one extra thing: an **Unblocks N tasks** chip, or, for a task with
-open subtasks, a **Next step: <subtask> · N subtasks left** line whose **Start it** button focuses
-that subtask.
+The focus card's "Random pick" text becomes **Unblocks N tasks** (or "Everything here is waiting on
+something" when `focus.allBlocked`); a task with open subtasks also gets a **Next step: <subtask> ·
+N subtasks left** line whose **Start it** button focuses that subtask. Both can show on one card.
 
 ## GitHub
 

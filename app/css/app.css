@@ -263,6 +263,10 @@ a{color:inherit;}
   -webkit-box-decoration-break:clone; box-decoration-break:clone; transition:background-size .38s ease-out;
 }
 .note.is-crossed .focus-title .ink{background-size:100% 3px;}
+.unblocks{font-weight:700; color:var(--note-ink);}
+.next-sub{margin:8px 0 0; font:var(--text-sm) var(--font-paper-small); color:var(--note-soft);}
+.next-sub b{color:var(--note-ink);}
+.next-sub .btn-text{margin-left:6px; padding:2px 8px; color:var(--note-ink); font:inherit; font-weight:700; text-decoration:underline;}
 .note.is-peeling{transform:translate(130px, -40px) rotate(20deg); opacity:0; transition:transform .38s ease-in, opacity .38s ease-in;}
 
 /* Paper checkbox and ticket stub: the two things you can do with the note */

@@ -154,6 +154,22 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
 
 // The in-tray card itself is tested in in-tray.test.mjs.
 
+// the focus note says what the pick frees, or the next subtask (#191)
+{
+  const projects = [{ id: 'pZ', name: 'H', tasks: [
+    { id: 'u', title: 'Blocker', status: 'next' }, { id: 'w1', title: 'W1', status: 'next', waitsOn: ['u'] }, { id: 'w2', title: 'W2', status: 'next', waitsOn: ['u'] },
+    { id: 'par', title: 'Parent', status: 'next' }, { id: 's1', title: 'Order <it>', status: 'next', parentId: 'par' }, { id: 's2', title: 'S2', status: 'next', parentId: 'par' },
+  ] }];
+  const find = (id) => ({ task: projects[0].tasks.find((t) => t.id === id), project: projects[0] });
+  const draw = (focus) => renderFocus({ focus, categories: [], projects }, find, { focusFilter: {} });
+  const a = draw({ taskId: 'u', pool: ['u', 'par'] });
+  assert.ok(a.includes('<b class="unblocks">Unblocks 2 tasks</b>') && !a.includes('Random pick'), 'Unblocks N replaces Random pick');
+  assert.ok(draw({ taskId: 's1', pool: ['s1', 'u'] }).includes('Unblocks 1 task</b>'), 'singular for one');
+  const b = draw({ taskId: 'par', pool: ['par', 'u'] });
+  assert.ok(b.includes('<p class="next-sub">Next step: <b>Order &lt;it&gt;</b> · 2 subtasks left') && b.includes('data-action="focus-subtask" data-task="s1"'), 'next step line with a Start it button');
+  assert.ok(draw({ taskId: 'w1', pool: ['w1'], allBlocked: true }).includes('Everything here is waiting on something'), 'all-blocked is said in words');
+}
+
 // a picked task's project chip jumps to that project
 {
   const st = { focus: { taskId: 'x1', pool: ['x1'] }, categories: [], projects: [{ id: 'pZ', name: 'PlunderSpell', color: 'red', tasks: [{ id: 'x1', title: 'Pick me', status: 'next', categoryIds: [] }] }] };

@@ -1,4 +1,5 @@
 // focus-deck-app/js/mutations.js
+import { rankFocusPool, isBlocked } from './task-links.js';
 import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER } from './state.js';
 import { syncIssueCompletion, pushCategoriesToIssue, pushPriorityToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
 // The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
@@ -272,7 +273,9 @@ export function pickFocus(filter) {
   const f = { categoryId: (filter && filter.categoryId) || null, projectId: (filter && filter.projectId) || null };
   const pool = openTasksMatching(f);
   if (!pool.length) return false;
-  state.focus = { taskId: pool[Math.floor(Math.random() * pool.length)], pool, filter: f, startedAt: Date.now() };
+  const { candidates, allBlocked } = rankFocusPool(state.projects, pool);
+  state.focus = { taskId: candidates[Math.floor(Math.random() * candidates.length)], pool, filter: f, startedAt: Date.now() };
+  if (allBlocked) state.focus.allBlocked = true;
   persist();
   return true;
 }
@@ -287,7 +290,9 @@ export function reroll() {
     return found && found.task.status !== 'done'; // skip tasks finished since the pick
   });
   if (!others.length) return;
-  state.focus.taskId = others[Math.floor(Math.random() * others.length)];
+  const free = others.filter((id) => !isBlocked(state.projects, id)); // prefer a task that can be started
+  const from = free.length ? free : others;
+  state.focus.taskId = from[Math.floor(Math.random() * from.length)];
   persist();
 }
 

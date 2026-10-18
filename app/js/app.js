@@ -521,6 +521,7 @@ function onAppClick(e) {
   // M.setFocusTask doesn't exist -- the correct exported function is setFocus.
   // "Focus on this" lives in the edit form now (Q14a, Q12f) -- picking a task closes the form.
   else if (action === 'focus-task') { ui.editingTask = null; M.setFocus(taskId); }
+  else if (action === 'focus-subtask') M.setFocus(taskId);
   else if (action === 'cycle-priority') M.cyclePriority(taskId);
   else if (action === 'delete-task') {
     if (confirmDeleteTask(taskId, projectId)) { ui.editingTask = null; M.deleteTask(taskId, projectId); }

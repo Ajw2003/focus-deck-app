@@ -2,7 +2,7 @@
 // One test per rule in docs/4-systems/task-links.md
 import test from 'node:test';
 import assert from 'node:assert';
-import { canSetParent, canWaitOn, holdsUp, subtasksOf, dropLinksTo, detachForMove, tiesOf } from './task-links.js';
+import { canSetParent, canWaitOn, holdsUp, subtasksOf, dropLinksTo, detachForMove, tiesOf, isBlocked, unblockCount, rankFocusPool } from './task-links.js';
 
 const mk = () => [
   { id: 'pA', tasks: [{ id: 'a1', status: 'next' }, { id: 'a2', status: 'next', parentId: 'a1' }, { id: 'a3', status: 'next' }] },
@@ -49,4 +49,20 @@ test('links to ids that no longer exist are ignored when read', () => {
   const ps = [{ id: 'p', tasks: [{ id: 'k', parentId: 'gone', waitsOn: ['gone', 'k2'] }, { id: 'k2' }] }];
   assert.deepStrictEqual(tiesOf(ps, 'k'), { parent: null, subtasks: [], waitsOn: ['k2'], holdsUp: [] });
   assert.ok(canSetParent(ps, 'k2', 'k'), 'a dangling parent does not make k a subtask');
+});
+
+test('the focus ranking drops blocked tasks and picks the biggest unblocker', () => {
+  const ps = mk(); // a1 has open subtask a2; b1 waits on a3; a3 holds up b1 (b2 is done)
+  assert.ok(isBlocked(ps, 'a1') && isBlocked(ps, 'b1') && !isBlocked(ps, 'a3') && !isBlocked(ps, 'a2'));
+  assert.strictEqual(unblockCount(ps, 'a3'), 1);
+  assert.strictEqual(unblockCount(ps, 'a2'), 1, 'a subtask frees its open parent');
+  assert.strictEqual(unblockCount(ps, 'b1'), 0);
+  assert.deepStrictEqual(rankFocusPool(ps, ['a1', 'a2', 'a3', 'b1']), { candidates: ['a2', 'a3'], allBlocked: false });
+  assert.deepStrictEqual(rankFocusPool(ps, ['a1', 'b1', 'a3']).candidates, ['a3'], 'blocked ones are left out');
+  ps[1].tasks.push({ id: 'b3', status: 'next' });
+  assert.deepStrictEqual(rankFocusPool(ps, ['b3', 'b1', 'a1']).candidates, ['b3'], 'all zero: every unblocked id');
+});
+
+test('when every task is blocked the whole pool comes back marked allBlocked', () => {
+  assert.deepStrictEqual(rankFocusPool(mk(), ['a1', 'b1']), { candidates: ['a1', 'b1'], allBlocked: true });
 });

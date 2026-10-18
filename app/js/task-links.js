@@ -69,3 +69,27 @@ export function tiesOf(projects, taskId) {
   const parent = find(projects, x.t.parentId) ? x.t.parentId : null;
   return { parent, subtasks: subtasksOf(projects, taskId).map((t) => t.id), waitsOn: live(projects, x.t.waitsOn), holdsUp: holdsUp(projects, taskId).map((t) => t.id) };
 }
+
+const isOpen = (x) => x && x.t.status !== 'done';
+
+// can't start yet: waits on an existing open task, or has an open subtask
+export function isBlocked(projects, taskId) {
+  const x = find(projects, taskId);
+  return live(projects, x && x.t.waitsOn).some((id) => isOpen(find(projects, id)))
+    || subtasksOf(projects, taskId).some((s) => s.status !== 'done');
+}
+
+// how many open tasks finishing this one frees: those waiting on it, plus its parent if it has one
+export function unblockCount(projects, taskId) {
+  const x = find(projects, taskId);
+  return holdsUp(projects, taskId).length + (x && isOpen(find(projects, x.t.parentId)) ? 1 : 0);
+}
+
+// the ids the focus pick may start from: unblocked ones with the most unblocked, or all of them
+// (allBlocked) when every one is waiting on something
+export function rankFocusPool(projects, ids) {
+  const free = ids.filter((id) => !isBlocked(projects, id));
+  if (!free.length) return { candidates: ids, allBlocked: true };
+  const n = free.map((id) => unblockCount(projects, id)), top = Math.max(...n);
+  return { candidates: free.filter((_, i) => n[i] === top), allBlocked: false };
+}
