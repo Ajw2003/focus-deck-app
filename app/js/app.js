@@ -94,11 +94,11 @@ function saveProjectSort() {
   catch (e) { console.error('Could not save the project sort:', e); }
 }
 
-// Per-slip scratch for the Unsorted in-tray (chosen folder, flags stuck on, typed new labels, the
+// Per-slip scratch for the Unsorted in-tray (step, search text, chosen folder, flags stuck on, edited title and notes, the
 // card facing in each wallet) plus this session's "Later" list and which slip it belongs to. Reset
 // whenever the top slip changes -- see renderApp below. See docs/4-systems/in-tray.md
 function freshUnsortedScratch(later) {
-  return { later: later || [], projectId: null, selected: [], newLabels: '', facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null };
+  return { later: later || [], projectId: null, selected: [], step: 1, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null };
 }
 
 // First-run onboarding (#124): shown once per device to someone with nothing here yet, or on
@@ -430,9 +430,9 @@ function onAppClick(e) {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
     const cur = unsortedCurrent(state, ui.unsorted);
     if (!cur) return;
-    const pick = { projectId: ui.unsorted.projectId, selected: ui.unsorted.selected, newLabels: ui.unsorted.newLabels };
+    const pick = { projectId: ui.unsorted.projectId, selected: ui.unsorted.selected, title: ui.unsorted.title, notes: ui.unsorted.notes };
     const done = fileSlip(cur, pick, {
-      fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields,
+      fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove,
       createIssue: createIssueIfGithubProject, labelIdByName,
     });
     if (done.outcome === 'filed') {
@@ -443,6 +443,26 @@ function onAppClick(e) {
       ui.unsorted.later = sendToBack(ui.unsorted.later, cur.key);
       paint();
     }
+  }
+  else if (action === 'sort-step' || action === 'sort-next' || action === 'sort-back') {
+    const to = action === 'sort-step' ? +el.getAttribute('data-step') : ui.unsorted.step + (action === 'sort-next' ? 1 : -1);
+    if (to >= 1 && to <= 3) { ui.unsorted.step = to; ui.unsorted.find = ''; }
+    paint();
+  }
+  else if (action === 'sort-add-notes') {
+    ui.unsorted.notesOpen = true;
+    paint();
+    const box = document.querySelector('.slip-notes');
+    if (box) box.focus();
+  }
+  else if (action === 'sort-new-flag') {
+    const name = ui.unsorted.find.trim();
+    if (name) {
+      const id = labelIdByName(name);
+      if (!ui.unsorted.selected.includes(id)) ui.unsorted.selected = ui.unsorted.selected.concat(id);
+      ui.unsorted.find = '';
+    }
+    paint();
   }
   else if (action === 'unsorted-skip') {
     const cur = unsortedCurrent(state, ui.unsorted);
@@ -702,8 +722,16 @@ function onAppChange(e) {
 function onAppInput(e) {
   const colorEl = colorInputTarget(e);
   if (colorEl) { onColorInput(colorEl); return; }
-  // keep typed-in new labels across the repaints that toggling a pick causes
-  if (e.target.matches && e.target.matches('.sort-new')) { ui.unsorted.newLabels = e.target.value; return; }
+  // the slip's title and notes are kept in the scratch without a repaint (it would lose the caret)
+  if (e.target.matches && e.target.matches('[data-slip-title]')) { ui.unsorted.title = e.target.textContent; return; }
+  if (e.target.matches && e.target.matches('.slip-notes')) { ui.unsorted.notes = e.target.value; return; }
+  if (e.target.matches && e.target.matches('.sort-find')) {
+    ui.unsorted.find = e.target.value;
+    paint();
+    const box = document.querySelector('.sort-find');
+    if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
+    return;
+  }
   if (e.target.matches && e.target.matches('[data-action="set-project-query"]')) {
     ui.projectQuery = e.target.value;
     paint();

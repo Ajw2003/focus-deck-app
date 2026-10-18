@@ -71,35 +71,42 @@ export function folderCards(st) {
     .sort((a, b) => b.open - a.open || a.name.localeCompare(b.name));
 }
 
-// The picks as label ids: chosen flags, kind tokens (their label is created on first use, through
-// `labelIdByName(name, color)`), and anything typed in "New labels" (comma-separated).
-export function selectionToIds(selected, newLabels, labelIdByName) {
+// The picks as label ids: chosen flags and kind tokens (their label is created on first use, through
+// `labelIdByName(name, color)`).
+export function selectionToIds(selected, labelIdByName) {
   const ids = [];
   const add = (id) => { if (!ids.includes(id)) ids.push(id); };
   selected.forEach((token) => {
     const kind = token.startsWith('kind:') && TASK_KINDS.find((k) => 'kind:' + k.key === token);
     add(kind ? labelIdByName(kind.key, kind.color) : token);
   });
-  String(newLabels || '').split(',').map((s) => s.trim()).filter(Boolean).forEach((name) => add(labelIdByName(name)));
   return ids;
 }
 
 // "File it in <folder> →" for a thought, and "Save" for a task that is already in a project.
-// `cur` is the top of the tray; `pick` is { projectId, selected, newLabels }; `deps` are the
-// mutations (M.fileInboxItem, M.updateTaskFields), createIssue(task, projectId) (the GitHub issue
-// for a repo-linked project) and labelIdByName. Returns what happened:
+// `cur` is the top of the tray; `pick` is { projectId, selected, title, notes } (title/notes null =
+// untouched); `deps` are the mutations (M.fileInboxItem, M.updateTaskFields, M.applyTaskMove),
+// createIssue(task, projectId) (the GitHub issue for a repo-linked project) and labelIdByName.
+// Returns what happened:
 //   { outcome: 'filed', task, projectId }   a thought became a task in the chosen project
 //   { outcome: 'saved', taskId }            a task got its flags
-//   { outcome: 'later' }                    a task with no flags: nothing to save, to the back of the tray
+//   { outcome: 'later' }                    a task with no flags: to the back of the tray (its folder, title and notes are still saved)
 //   { outcome: 'none' }                     a thought with no folder chosen: nothing happens
 export function fileSlip(cur, pick, deps) {
   if (cur.kind === 'thought' && !pick.projectId) return { outcome: 'none' };
-  const ids = selectionToIds(pick.selected, pick.newLabels, deps.labelIdByName);
+  const ids = selectionToIds(pick.selected, deps.labelIdByName);
   if (cur.kind === 'thought') {
-    const task = deps.fileInboxItem(cur.item.id, pick.projectId, ids);
+    const task = deps.fileInboxItem(cur.item.id, pick.projectId, ids, { title: pick.title, notes: pick.notes });
     deps.createIssue(task, pick.projectId);
     return { outcome: 'filed', task, projectId: pick.projectId };
   }
-  if (ids.length) { deps.updateTaskFields(cur.task.id, { categoryIds: ids }); return { outcome: 'saved', taskId: cur.task.id }; }
-  return { outcome: 'later' };
+  const { task } = cur;
+  if (pick.projectId && pick.projectId !== cur.project.id) deps.applyTaskMove({ taskId: task.id, toProjectId: pick.projectId });
+  const fields = {};
+  const title = (pick.title || '').trim();
+  if (task.issueNumber == null && title && title !== task.title) fields.title = title;
+  if (pick.notes != null) fields.notes = pick.notes.trim() || undefined;
+  if (ids.length) fields.categoryIds = ids;
+  if (Object.keys(fields).length) deps.updateTaskFields(task.id, fields);
+  return ids.length ? { outcome: 'saved', taskId: task.id } : { outcome: 'later' };
 }

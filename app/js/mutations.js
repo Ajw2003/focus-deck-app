@@ -109,6 +109,7 @@ export function updateTaskFields(taskId, fields) {
     if (!('dueStages' in fields)) delete task.dueStages;
   }
   Object.assign(task, fields);
+  if ('notes' in fields && !task.notes) delete task.notes;
   if (!task.deadline) delete task.dueStages;
   task.updatedAt = Date.now();
   persist();
@@ -226,11 +227,15 @@ export function addCapture(text) {
 // Was previously called (as M.fileInboxItem) but never exported -- filing an inbox item into a
 // project has been silently broken since it was added.
 // categoryIds: the labels ticked on the Unsorted item. Returns the new task.
-export function fileInboxItem(inboxId, projectId, categoryIds) {
+// extra: { title, notes } typed on the slip; a non-empty trimmed title replaces the text, notes become task.notes.
+export function fileInboxItem(inboxId, projectId, categoryIds, extra) {
   const item = state.inbox.find((i) => i.id === inboxId);
   const project = state.projects.find((p) => p.id === projectId);
   if (!item || !project) return;
   const task = { id: uid('t'), title: item.text, status: 'next', deadline: null, categoryIds: categoryIds || [], priority: null, source: 'manual', updatedAt: Date.now() };
+  const { title, notes } = extra || {};
+  if (title && title.trim()) task.title = title.trim();
+  if (notes && notes.trim()) task.notes = notes.trim();
   project.tasks.push(task);
   ensureTaskSortOrder([project]); // a new task goes to the end of its group
   state.inbox = state.inbox.filter((i) => i.id !== inboxId);
