@@ -1,7 +1,7 @@
 // focus-deck-app/js/render.js
 import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED } from './state.js';
 import { ICON_SYNC, ICON_SETTINGS, ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
-import { unblockCount, subtasksOf } from './task-links.js';
+import { unblockCount, subtasksOf, tieSummary, tieLineHtml } from './task-links.js';
 import { sortTasks } from './task-move.js';
 import { leadChoices, suggestLead, normalizeDueDefaults } from './due-stage.js';
 import { phaseClasses } from './focus-complete.js';
@@ -368,9 +368,10 @@ function claudeMarks(t) {
     + (t.claudeCompleted && t.status === 'done' ? mark(ICON_CLAUDE_COMPLETED, 'Completed by Claude') : '');
 }
 
-export function renderTaskRow(t, p, categories, ui) {
+export function renderTaskRow(t, p, categories, ui, projects = [], isSub = false) {
   if (ui.editingTask && ui.editingTask.taskId === t.id) return renderTaskEditForm(t, p, categories);
   const isDone = t.status === 'done';
+  const ties = tieSummary(projects, t.id);
   // Tapping the title always opens the editor now, linked or not (Q14a) -- the row itself carries
   // no GitHub badge, Edit link, Focus → or delete button any more; those moved into the editor's
   // own action row. See docs/4-systems/github-sync.md#where-the-github-controls-live
@@ -387,12 +388,12 @@ export function renderTaskRow(t, p, categories, ui) {
   // Open rows carry a drag grip before the checkbox (PR 11); done rows don't drag. The grip is a real
   // button so the arrow keys work on it (js/project-drag.js). See docs/4-systems/styling.md#dragging-tasks
   const grip = isDone ? '' : '<button type="button" class="task-grip" data-task="' + t.id + '" data-project="' + p.id + '" aria-label="Move ' + esc(t.title) + '" title="Drag to move, or use the arrow keys">' + ICON_GRIP + '</button>';
-  return '<div class="task-row' + (isDone ? ' is-done' : ' has-grip') + '" data-task="' + t.id + '" data-project="' + p.id + '" style="--chips-max:' + chipsMaxPct(t.title) + '%">'
+  return '<div class="task-row' + (isDone ? ' is-done' : ' has-grip') + (ties.isWaiting ? ' is-waiting' : '') + (isSub ? ' is-sub' : '') + '" data-task="' + t.id + '" data-project="' + p.id + '" style="--chips-max:' + chipsMaxPct(t.title) + '%">'
     + grip
     + '<input type="checkbox" data-action="toggle-task" data-task="' + t.id + '" data-project="' + p.id + '"' + (isDone ? ' checked' : '') + '>'
     // two zones beside the checkbox: the title in the left 75%, the chips right-anchored in the
     // right 25% (kept even when there are no chips, so the title never grows into it) -- #97, #92
-    + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + claudeMarks(t) + '</span>'
+    + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + claudeMarks(t) + tieLineHtml(ties) + '</span>'
     + '<div class="task-chips">' + priorityChip + catChips + claudeChip
     + (t.deadline ? deadlineChip(t.deadline, t) : '')
     + '</div>'
@@ -586,8 +587,11 @@ function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
 // One of a project's two open-task groups. Both always render, so a task can be dropped into either
 // (PR 11): an empty one stays hidden (CSS) until a task is being dragged, then shows a "Drop here"
 // zone. Rows are in ascending sortOrder. See docs/4-systems/styling.md#dragging-tasks
-function taskGroup(p, status, label, tasks, ui, categories) {
-  const rows = sortTasks(tasks).map((t) => renderTaskRow(t, p, categories, ui)).join('');
+function taskGroup(p, status, label, tasks, ui, categories, projects) {
+  // a task whose parent is an open task in this group is drawn right after it (after earlier siblings)
+  const sorted = sortTasks(tasks), ids = new Set(sorted.map((t) => t.id));
+  const rows = sorted.filter((t) => !(t.parentId && ids.has(t.parentId))).map((t) => [t].concat(sorted.filter((c) => c.parentId === t.id))
+    .map((r) => renderTaskRow(r, p, categories, ui, projects, r !== t)).join('')).join('');
   return '<div class="task-group' + (tasks.length ? '' : ' is-empty') + '" data-group="' + status + '" data-project="' + p.id + '">'
     + '<h4 class="group-label">' + label + '</h4>' + rows
     + (tasks.length ? '' : '<div class="drop-zone">Drop here</div>')
@@ -606,7 +610,7 @@ export function renderMoveDialog(message) {
     + '</div></div></div>';
 }
 
-export function renderProjectCard(p, ui, categories, projectCategories, hasToken) {
+export function renderProjectCard(p, ui, categories, projectCategories, hasToken, projects = []) {
   const doing = p.tasks.filter((t) => t.status === 'doing');
   const next = p.tasks.filter((t) => t.status === 'next');
   const done = p.tasks.filter((t) => t.status === 'done');
@@ -663,12 +667,12 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
     // and named for a screen reader. See docs/4-systems/styling.md.
     + (collapsed ? '' : (
       '<div class="project-body" tabindex="0" role="region" aria-label="' + esc(p.name) + ' tasks">'
-      + taskGroup(p, 'doing', 'In progress', doing, ui, categories)
-      + taskGroup(p, 'next', 'Up next', next, ui, categories)
+      + taskGroup(p, 'doing', 'In progress', doing, ui, categories, projects)
+      + taskGroup(p, 'next', 'Up next', next, ui, categories, projects)
       + (!doing.length && !next.length ? '<p class="muted small empty-note">Nothing open — add a task below.</p>' : '')
       + (done.length ? (
           '<button type="button" class="section-toggle small" data-action="toggle-done" data-project="' + p.id + '">' + (doneOpen ? '−' : '+') + ' ' + done.length + ' done</button>'
-          + (doneOpen ? '<div class="task-group done-group">' + done.map((t) => renderTaskRow(t, p, categories, ui)).join('') + '</div>' : '')
+          + (doneOpen ? '<div class="task-group done-group">' + done.map((t) => renderTaskRow(t, p, categories, ui, projects)).join('') + '</div>' : '')
         ) : '')
       + addTaskBlock
       + '</div>'
@@ -686,7 +690,7 @@ export function renderProjectsMain(st, ui, visibleProjects, isWide, hasToken) {
     return '<div class="desk-empty projects-empty"><p><strong>No folders yet.</strong> A folder holds one project&rsquo;s tasks: a subject, a room, a side project.</p>'
       + (ui.newPanelOpen ? renderNewPanel(ui, hasToken) : '<button type="button" class="btn primary" data-action="start-new-project">+ New project</button>') + '</div>';
   }
-  const card = (p) => renderProjectCard(p, ui, st.categories, st.projectCategories, hasToken);
+  const card = (p) => renderProjectCard(p, ui, st.categories, st.projectCategories, hasToken, st.projects);
   if (ui.projectView === 'one') {
     const selected = visibleProjects.find((p) => p.id === ui.selectedProjectId);
     return '<div class="projects-grid">' + (selected ? card(selected) : noMatch) + '</div>';
