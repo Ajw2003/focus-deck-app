@@ -70,7 +70,7 @@ Approved 2026-10-18 on `docs/plans/ties-everywhere.html` (1A 2A 3A 4A 5A).
 - **Waiting tasks** (open "waits on" or open subtasks) have a softer title in both views, matching
   the focus pick, which skips them.
 
-## GitHub (writing built in #195; reading planned)
+## GitHub (writing built in #195; reading built in #196)
 
 A tie is mirrored on GitHub only when both tasks are linked to issues:
 
@@ -89,8 +89,13 @@ A tie is mirrored on GitHub only when both tasks are linked to issues:
   Moving or deleting also pushes the other tasks whose ties it cut. Changing a parent sends DELETE
   on the old parent's issue and POST (`replace_parent: true`) on the new one; a parent in another
   repo is never written (subtasks share a folder, a folder is one repo).
-- **Reading** happens in each GitHub sync, only for issues whose summaries say they have ties. GitHub
-  wins on a clash, as with labels (4A).
+- **Reading** (built, #196: `readTiesForRepo` in `app/js/github-sync.js`, called by `syncGithub` after
+  each repo's upsert) happens only for open issues whose summaries say they have ties: sub-issues if
+  `subIssueCount > 0`, blocked-by if `blockedByCount > 0`; no ties, no extra requests. GitHub wins on a
+  clash, as with labels (4A): a task's linked `waitsOn` entries are replaced by its blockers (and
+  other-repo sub-issues); `waitsOn` entries pointing at tasks not on GitHub are kept. A sub-issue
+  removed on GitHub clears `parentId` on that child, only if the child is linked to an issue. Reads
+  write fields directly and never call `pushTiesToIssue`; ties `task-links.js` refuses are skipped.
 - **A sub-issue that is not yet a task** comes in as a subtask in its parent's folder (5A), and lands
   in the Sort tray if it has no labels.
 - **Set without asking:** a sub-issue more than one level deep stays a plain task; a sub-issue in

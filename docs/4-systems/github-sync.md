@@ -284,6 +284,14 @@ on 404), `listBlockedBy`, `addBlockedBy`, `removeBlockedBy`. Each result is `map
 `repoFullName` from `repository_url`, so a tie into another repo is usable. Lists read one page of
 100. Tests: `js/github-ties.test.mjs`.
 
+## Reading ties (#196)
+
+After each repo's issues are upserted, `readTiesForRepo` (`app/js/github-sync.js`) reads sub-issues and
+blocked-by for open issues whose counts are above zero and sets `parentId` / `waitsOn` on the linked
+tasks. A same-repo sub-issue with no task is imported (same helper as any issue, `importIssueAsTask`)
+into the parent's folder. Per-issue errors go to `reportSyncError` and the sync carries on. Details:
+`docs/4-systems/task-links.md#github`.
+
 ## Invariants
 
 - A category first seen as a GitHub label takes that label's colour. From then on the
