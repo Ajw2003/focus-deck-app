@@ -179,3 +179,28 @@ in grey): colours stay, softened, never removed. Test site: `docs/generated/calm
 Limits of this evidence: the strongest sources are guidance (W3C, Home Office, NN/g) and qualitative
 studies; controlled studies with autistic or ADHD adults on specific layouts, colours or motion are
 scarce, and two of the studies are about children. Where the evidence is thin, aj's testing decides.
+
+### 9. Category colour, a labelled move, and nothing selected by default
+
+aj, after trying the test site (2026-10-19): moving a task from Up next to In progress needs an
+easier way than "Focus on this", which doesn't say the task moves; a project's name shouldn't show
+on cards when you are already in that project; a task's colour should come from its category, not
+its project, and replace the glance row's chips, with the other labels in the task panel; and a
+task should be deselectable so nothing is highlighted.
+
+What the test site now does (`docs/generated/calm-test/index.html`, pictures
+`docs/generated/calm-test/feedback/`):
+
+- Every Up next card has a "→ In progress" button, and every In progress card has "← Up next". The
+  task panel has "Move to In progress" (or "Move back to Up next") on its own row above Save.
+- A task's category is its first label. It sets the card's edge colour and is the only label chip on
+  the card, with a coloured square beside its name; a task with no labels shows a grey
+  "No category". Every label, the category first, is in the panel under "Category and labels".
+- The project's name is plain text after the category, and is hidden when the Project menu is set to
+  one project.
+- Nothing is selected when the Board opens. Clicking the selected card again, pressing Escape, or
+  "Close ×" on the panel deselects it, and the panel says how to choose one.
+
+Open question for aj: "category" here means the task's own first label (Chore, Bug, Study), which
+is what the app's Sort screen calls a category. The other reading is the project's category (Work,
+Home life, Learning), which would give every task in a project the same colour.
