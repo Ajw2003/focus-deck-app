@@ -3,7 +3,7 @@
   "eyebrow": "Research and proposal · for ADHD, autistic and other neurodivergent users · nothing built yet",
   "approval": "Design approved: calm by default",
   "short": {
-    "lead": "I read the main guidance and research on designing for ADHD and autistic people, and checked Focus Deck against it. Seven findings came out of it, including the space audit you asked for. The biggest is to show less at once and reveal detail when asked. The full write-up with every source is in docs/plans/calm-by-default.md. This page shows what it would change, starting with the Board you found too busy.",
+    "lead": "I read the main guidance and research on designing for ADHD and autistic people, and checked Focus Deck against it. I found eight things, including the space audit and the rule you asked for: easy to understand quickly, deeper reading only when needed. The biggest finding is to show less at once and reveal detail when asked. The full write-up with every source is in docs/plans/calm-by-default.md. This page shows what it would change, starting with the Board you found too busy.",
     "hint": "Tap a step for the finding, its sources and what it changes.",
     "key": [
       [
@@ -55,7 +55,7 @@
         "Colour",
         "Calm colour and motion you control",
         "",
-        "The Home Office poster says 'use simple colours'. WCAG 2.2 and W3C say people should be able to stop motion. Focus Deck gives every project and all 45 labels a colour, and follows only the computer's 'reduce motion' setting.",
+        "The Home Office poster says 'use simple colours'. The eye takes in colour and simple shapes in about a quarter of a second, before any words (Healey and Enns, 2012). So colour stays for projects and labels, softened, with a small icon beside the word for each task state and subtask progress shown as '1/2 done'. WCAG 2.2 (the web accessibility standard) and W3C say people should be able to stop motion, so Comfort settings include a way to stop it.",
         "Nothing from you."
       ],
       [
@@ -233,22 +233,27 @@
     ],
     [
       "colour",
-      "How should colour work?",
+      "How should colour and icons work on cards?",
       [
         [
           "A",
-          "One colour per card, softer shades",
+          "Colour and icons that are quick to read, with words beside them",
           1,
-          "A card's edge shows its project category; labels are plain text until you open the task."
+          "The project's colour on the card edge and dot, label chips in their colours (two shown, then '+N' with the number of others), an icon for each task state such as waiting or past its date, and subtask progress as '1/2 done' with a filling bar. Softened, never removed.",
+          {
+            "src": "../generated/calm-test/glance-board-1440.png",
+            "alt": "Board cards with project colour, coloured label chips, a 1/2 done progress bar and a Past its date icon",
+            "caption": "Colour, label chips and icons on the test site."
+          }
         ],
         [
           "B",
-          "Keep project and label colours as they are",
+          "One colour per card, labels in grey",
           0,
-          "Every project and label keeps its own bright colour."
+          "The first calm draft: quieter, but you have to read to tell labels apart."
         ]
       ],
-      "The Home Office poster asks for simple colours, not bright contrasting ones."
+      "The eye takes in colour and simple shapes in about a quarter of a second, before reading any words (Healey and Enns, 2012). That matches your feedback: quick to understand first, deeper reading only when needed."
     ],
     [
       "comfort",

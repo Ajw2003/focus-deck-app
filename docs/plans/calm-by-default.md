@@ -106,6 +106,25 @@ Settings, 48px from the content, and starts the content column with the jotter a
 (both 356px to 996px). Layout B (`#calm-wide-b`) keeps the narrow menu at 112px with 30px icons,
 48px from the content at 1920 wide. The phone layout is unchanged in both.
 
+### 8. Glance first, read deeper only when needed
+
+aj, after trying the test site: show "1/2 subtasks completed" at a glance and keep "colors for
+projects and labels, colors and / or icons allow users to read at a glance and infer quickly ...
+make quick inference easy and deep inference with proper pondering only when required".
+
+- Colour (hue) and simple shape are "preattentive": the eye picks them out in under about 200–250 ms,
+  within a single glance and without focused attention, while reading words needs attention
+  [Healey & Enns 2012].
+- W3C COGA: "Use Icons that Help the User", and "Use a Consistent Visual Design" [W3C COGA, §4
+  objective 1].
+
+So each card has two layers. The glance layer is the project's colour (card edge and dot), label
+chips in their own colours (up to two, then "+N"), a small icon per state (subtasks, waiting, holds
+up, past its date), and subtask progress as "1/2 done" with a bar that fills from the left. The read
+layer is the task panel: notes, every link and every label. Every icon sits beside its word, never
+alone. This reverses the first version of answer 3 on the decision page (one colour per card, labels
+in grey): colours stay, softened, never removed. Test site: `docs/generated/calm-test/index.html`.
+
 ## Where Focus Deck stands (checked against the code, 2026-10-18)
 
 | Finding | Focus Deck today | Gap |
@@ -145,6 +164,9 @@ Settings, 48px from the content, and starts the content column with the jotter a
   https://www.autism.org.uk/advice-and-guidance/professional-practice/what-is-monotropism
 - [RBIE 2026 mapping study] Systematic mapping of accessible interfaces for autistic children, Revista
   Brasileira de Informática na Educação. https://journals-sol.sbc.org.br/index.php/rbie/article/view/7245
+- [Healey & Enns 2012] C. G. Healey, J. T. Enns, *Attention and Visual Memory in Visualization and
+  Computer Graphics*, IEEE Transactions on Visualization and Computer Graphics 18(7), 2012.
+  https://www.csc2.ncsu.edu/faculty/healey/download/tvcg.11.pdf
 - [NN/g proximity] Nielsen Norman Group, *Proximity Principle in Visual Design*.
   https://www.nngroup.com/articles/gestalt-proximity/
 - [Android list-detail] Android Developers, *Canonical layouts: list-detail*.

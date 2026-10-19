@@ -33,8 +33,7 @@
 
 /* --- Comfort settings applied to the whole page --- */
 body.no-motion *, body.no-motion *::before, body.no-motion *::after{transition:none !important; animation:none !important;}
-body.calm-colours .chip.cat-chip{background:var(--surface-2) !important; color:var(--ink-soft) !important;}
-body.calm-colours .icard{filter:saturate(.6);} /* softer card colours, same hue */
+body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, body.calm-colours .calm-card{filter:saturate(.75);} /* softer, same hues: colour still tells things apart */
 
 /* --- Board, calm: list beside the selected task --- */
 .cw{display:grid; grid-template-columns:minmax(420px, 640px) minmax(380px, 1fr); gap:28px; align-items:start;}
@@ -82,6 +81,35 @@ body.calm-colours .icard{filter:saturate(.6);} /* softer card colours, same hue 
 .cw-foot{display:flex; gap:10px; align-items:center; padding-top:10px; border-top:1px solid var(--line);}
 .cw-foot .sp{flex:1;}
 .saved{font-size:var(--text-sm); color:var(--ink-soft);}
+
+/* --- Glance layer on cards: colour, icon, progress; words alongside --- */
+.gl-row{display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; margin-top:4px; font-size:var(--text-sm); color:var(--ink-soft);}
+.pname{display:inline-flex; align-items:center; gap:6px; font-weight:600; color:var(--ink-soft);}
+.pdot{width:10px; height:10px; border-radius:50%; background:var(--c); display:inline-block;}
+.lchip{display:inline-block; padding:1px 8px; border-radius:999px; font-size:.75rem; font-weight:700; background:color-mix(in srgb, var(--c) 22%, transparent); color:color-mix(in srgb, var(--c) 60%, var(--ink));}
+.lchip.more{background:var(--surface-2); color:var(--ink-soft);}
+.gl{display:inline-flex; align-items:center; gap:5px;}
+.gl svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; flex:none;}
+.gl b{color:var(--ink); font-weight:700;}
+.segs{display:inline-flex; gap:2px; margin-left:4px;}
+.segs i{width:14px; height:6px; border-radius:2px; background:var(--line);}
+.segs i.on{background:#3E8E5E;}
+.gl-wait{color:color-mix(in srgb, #b9770e 80%, var(--ink));}
+.gl-hold{color:color-mix(in srgb, var(--accent) 80%, var(--ink));}
+.gl-date.overdue-amber{color:color-mix(in srgb, #c98a12 85%, var(--ink)); font-weight:700;}
+.gl-date.overdue-red{color:color-mix(in srgb, #b42318 85%, var(--ink)); font-weight:700;}
+/* cards are light paper on a dark page: their text mixes toward dark ink, not the page's light ink */
+.calm-card .gl-row{color:#4a5560;}
+.calm-card .pname{color:#3a4450;}
+.calm-card .lchip{color:color-mix(in srgb, var(--c) 55%, #1D2733);}
+.calm-card .lchip.more{background:#e7e3da; color:#4a5560;}
+.calm-card .gl b{color:#1D2733;}
+.calm-card .segs i{background:#d8d3c8;}
+.calm-card .segs i.on{background:#3E8E5E;}
+.calm-card .gl-wait{color:#8a5a06;}
+.calm-card .gl-hold{color:#2f4f86;}
+.calm-card .gl-date.overdue-amber{color:#8a5a06;}
+.calm-card .gl-date.overdue-red{color:#a3241b;}
 
 /* --- Sort, with plain words and the three fixes --- */
 .screen-sort .jot-slip{padding-bottom:34px;}
@@ -157,6 +185,8 @@ st.projects.forEach((p, i) => { p.categoryId = PCATS[i % 3].id; });
 // one in progress, one overdue, so every tab and the overdue colour have something to show
 const homeTasks = st.projects[0].tasks.filter((t) => t.status !== 'done');
 homeTasks.find((t) => t.title === 'Mop the kitchen').status = 'doing';
+// one of the two subtasks of 'Book boiler service' is done, so its card shows 1/2
+const firstSubDone = st.projects[0].tasks.find((t) => t.parentId && !(t.waitsOn || []).length); if (firstSubDone) firstSubDone.status = 'done';
 homeTasks.find((t) => t.title === 'Renew passport before the Lisbon trip').deadline = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);
 const all = () => st.projects.flatMap((p) => p.tasks.map((t) => ({ t, p })));
 const byId = (id) => all().find((x) => x.t.id === id);
@@ -220,18 +250,44 @@ function boardList() {
 function overdueChip(t) {
   if (!t.deadline || t.status === 'done') return '';
   if (new Date(t.deadline + 'T23:59') >= new Date()) return '';
-  return ' · <span class="chip small overdue-' + comfort.overdue + '">' + (comfort.overdue === 'amber' ? 'Past its date' : 'Overdue') + '</span>';
+  return '<span class="gl gl-date overdue-' + comfort.overdue + '">' + IC.date + (comfort.overdue === 'amber' ? 'Past its date' : 'Overdue') + '</span>';
+}
+// Small line icons, one per state, always beside their word: the shape is read at a glance, the
+// word confirms it (docs/plans/calm-by-default.md, "Glance first").
+const IC = {
+  subs: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5 2.5-2.5"/><circle cx="5" cy="18" r="1.2"/></svg>',
+  wait: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M10 9v6M14 9v6"/></svg>',
+  hold: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h12M12 7l5 5-5 5"/><path d="M20 6v12"/></svg>',
+  date: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+};
+function progress(subs) {
+  const done = subs.filter((s) => s.t.status === 'done').length;
+  return '<span class="gl gl-subs" title="' + done + ' of ' + subs.length + ' subtasks done">' + IC.subs + '<b>' + done + '/' + subs.length + '</b> done'
+    + '<span class="segs">' + subs.slice().sort((a, z) => (z.t.status === 'done') - (a.t.status === 'done')).map((s) => '<i class="' + (s.t.status === 'done' ? 'on' : '') + '"></i>').join('') + '</span></span>';
+}
+function labelChips(t, max) {
+  const cats = (t.categoryIds || []).map((id) => st.categories.find((c) => c.id === id)).filter(Boolean);
+  return cats.slice(0, max).map((c) => '<span class="lchip" style="--c:' + c.color + '">' + esc(c.name) + '</span>').join('')
+    + (cats.length > max ? '<span class="lchip more">+' + (cats.length - max) + '</span>' : '');
 }
 function card(x) {
   const subs = subsOf(x.t.id);
-  const notes = [];
-  if (blocked(x.t.id)) notes.push('waiting');
-  if (subs.length) notes.push(subs.length + ' subtask' + (subs.length > 1 ? 's' : ''));
-  const edge = comfort.calm ? pcat(x.p).color : x.p.color;
+  const edge = x.p.color;
   return '<article class="board-card calm-card' + (ui.board.selected === x.t.id ? ' on' : '') + (blocked(x.t.id) ? ' is-waiting' : '') + (x.t.status === 'done' ? ' is-done' : '') + '" data-open="' + x.t.id + '" style="--proj-color:' + edge + '">'
     + '<input type="checkbox" data-tick="' + x.t.id + '"' + (x.t.status === 'done' ? ' checked' : '') + ' aria-label="Done: ' + esc(x.t.title) + '">'
     + '<div class="board-card-body"><span class="board-card-title">' + esc(x.t.title) + '</span>'
-    + '<span class="calm-meta">' + esc(x.p.name) + (notes.length ? ' · ' + notes.join(' · ') : '') + overdueChip(x.t) + '</span></div></article>';
+    + '<span class="gl-row"><span class="pname"><i class="pdot" style="--c:' + x.p.color + '"></i>' + esc(x.p.name) + '</span>' + labelChips(x.t, 2) + '</span>'
+    + glanceRow(x, subs) + '</div></article>';
+}
+function glanceRow(x, subs) {
+  const bits = [];
+  if (subs.length) bits.push(progress(subs));
+  if (blocked(x.t.id) && (x.t.waitsOn || []).some((id) => isOpen(byId(id)))) bits.push('<span class="gl gl-wait">' + IC.wait + 'waiting</span>');
+  const h = TL.holdsUp(st.projects, x.t.id).length;
+  if (h) bits.push('<span class="gl gl-hold">' + IC.hold + 'holds up ' + h + '</span>');
+  const od = overdueChip(x.t);
+  if (od) bits.push(od);
+  return bits.length ? '<span class="gl-row">' + bits.join('') + '</span>' : '';
 }
 function detail(id) {
   const x = byId(id);
@@ -248,7 +304,7 @@ function detail(id) {
     + '<textarea data-edit-notes="' + id + '" placeholder="Notes…">' + esc(x.t.notes || '') + '</textarea>'
     + '<div class="grid"><select aria-label="Priority"><option>No priority</option><option>Low</option><option>Medium</option><option>High</option><option>Urgent</option></select><input type="date" aria-label="Due date" value="' + esc(x.t.deadline || '') + '"></div>'
     + (parent ? '<div class="bm-sec"><h4>Part of</h4><div class="bm-tags">' + tag(parent) + '</div></div>' : '')
-    + '<div class="bm-sec"><h4>Subtasks</h4>' + (subRows || '<p class="calm-meta">None yet.</p>') + '<button class="bm-add" data-note="Adding subtasks works as in Sort part 3.">+ Add a subtask</button></div>'
+    + '<div class="bm-sec"><h4>Subtasks</h4>' + (subs.length ? '<p class="gl-row">' + progress(subs) + '</p>' : '') + (subRows || '<p class="calm-meta">None yet.</p>') + '<button class="bm-add" data-note="Adding subtasks works as in Sort part 3.">+ Add a subtask</button></div>'
     + '<div class="bm-sec"><h4>Waits on</h4><div class="bm-tags">' + (waits.map(tag).join('') || '<span class="calm-meta">Nothing.</span>') + '</div></div>'
     + '<div class="bm-sec"><h4>Holds up</h4><div class="bm-tags">' + (holds.map(tag).join('') || '<span class="calm-meta">Nothing.</span>') + '</div></div>'
     + '<div class="bm-sec"><h4>Labels</h4><div class="bm-tags">' + (x.t.categoryIds || []).map((cid) => '<span class="chip cat-chip small" style="--chip-color:' + R.mutedChip((st.categories.find((c) => c.id === cid) || {}).color || '#888') + '">' + esc(catName(cid)) + '</span>').join('') + '<button class="bm-add" data-note="Changing labels opens the full list.">Change</button></div></div>'
@@ -355,7 +411,7 @@ function comfortScreen() {
   const r = (name, val, label, now) => '<label><input type="radio" name="' + name + '" value="' + val + '"' + (now ? ' checked' : '') + '> ' + label + '</label>';
   return '<div class="comfort"><h2>Settings: Comfort</h2>'
     + '<fieldset><legend>Movement</legend>' + r('motion', 'system', 'Follow my computer’s setting', comfort.motion === 'system') + r('motion', 'off', 'No movement', comfort.motion === 'off') + r('motion', 'on', 'Allow movement', comfort.motion === 'on') + '<p>Turns off card tilts, flips and sliding.</p></fieldset>'
-    + '<fieldset><legend>Colour</legend><label><input type="checkbox" data-calm' + (comfort.calm ? ' checked' : '') + '> Calm colours</label><p>One soft colour per card, from its project’s category; labels in plain grey.</p></fieldset>'
+    + '<fieldset><legend>Colour</legend><label><input type="checkbox" data-calm' + (comfort.calm ? ' checked' : '') + '> Softer colours</label><p>Every project and label keeps its own colour, slightly toned down.</p></fieldset>'
     + '<fieldset><legend>How many cards at once</legend>' + [5, 7, 10].map((n) => r('chunk', n, n + ' cards, then “Show more”', comfort.chunk === n)).join('') + '</fieldset>'
     + '<fieldset><legend>Tasks past their date</legend>' + r('overdue', 'amber', 'Amber, “Past its date”', comfort.overdue === 'amber') + r('overdue', 'red', 'Red, “Overdue”', comfort.overdue === 'red') + '<p>“Renew passport before the Lisbon trip” on the Board is past its date, so you can see the difference.</p></fieldset></div>';
 }
