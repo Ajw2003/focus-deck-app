@@ -17,7 +17,7 @@ import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
 import { mountWallets, onSpreadChange } from './wallet.js';
 import { tiesOf } from './task-links.js';
-import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
+import { renderInTrayCard, unsortedCurrent, STEP_LOCKED_WHY } from './in-tray-view.js';
 import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY } from './in-tray.js';
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
 import { renderOnboarding } from './onboarding-view.js';
@@ -100,7 +100,7 @@ function saveProjectSort() {
 // whenever the top slip changes -- see renderApp below. See docs/4-systems/in-tray.md
 function freshUnsortedScratch(later) {
   return { later: later || [], projectId: null, selected: [], step: 1, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null,
-    parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '' };
+    parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '', why: '' };
 }
 
 // First-run onboarding (#124): shown once per device to someone with nothing here yet, or on
@@ -455,7 +455,11 @@ function onAppClick(e) {
   }
   else if (action === 'sort-step' || action === 'sort-next' || action === 'sort-back') {
     const to = action === 'sort-step' ? +el.getAttribute('data-step') : ui.unsorted.step + (action === 'sort-next' ? 1 : -1);
-    if (to >= 1 && to <= 3) { ui.unsorted.step = to; ui.unsorted.find = ''; }
+    const u = ui.unsorted;
+    const cur = unsortedCurrent(state, u);
+    const hasProject = !!u.projectId || !!(cur && cur.kind === 'task');
+    if (action === 'sort-step' && to > 1 && !hasProject) u.why = STEP_LOCKED_WHY;
+    else if (to >= 1 && to <= 3) { u.step = to; u.find = ''; u.why = ''; }
     paint();
   }
   else if (action === 'sort-add-notes') {
@@ -672,6 +676,20 @@ function onAppContextMenu(e) {
     openColorPicker(e, cssColorToHex(project.color),
       (hex) => { if (card) card.style.setProperty('--proj-color', hex); },
       (hex) => M.setProjectColor(projectId, hex));
+    return;
+  }
+
+  // Sort's project and label cards (inside the in-tray's wallets): same picker, committed on change.
+  const sleeveEl = e.target.closest('.tray-wallets .sleeve');
+  if (sleeveEl) {
+    const key = sleeveEl.getAttribute('data-key');
+    const project = state.projects.find((p) => p.id === key);
+    const cat = project ? null : state.categories.find((c) => c.id === key);
+    const target = project || cat;
+    if (!target) return;
+    e.preventDefault();
+    openColorPicker(e, cssColorToHex(target.color), () => {},
+      (hex) => { if (project) M.setProjectColor(key, hex); else M.setCategoryColor(key, hex); });
     return;
   }
 

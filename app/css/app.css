@@ -817,7 +817,7 @@ body.is-dragging-task .empty-note{display:none;}
 .tray-stack{position:relative; min-height:150px;}
 .slip-behind{position:absolute; left:10px; right:26px; top:10px; height:118px; border-radius:3px; background:var(--paper); opacity:.75; transform:rotate(2.5deg); box-shadow:0 8px 14px -10px var(--paper-shadow);}
 .slip-behind.two{transform:rotate(-3deg); top:16px; opacity:.55;}
-.jot-slip{position:relative; margin-right:20px; min-height:124px; border-radius:2px 2px 4px 4px; padding:18px 34px 12px 14px; color:var(--paper-ink); transform:rotate(-1deg);
+.jot-slip{position:relative; margin-right:20px; min-height:124px; border-radius:2px 2px 4px 4px; padding:18px 34px 34px 14px; color:var(--paper-ink); transform:rotate(-1deg);
   background-color:var(--paper); box-shadow:0 12px 18px -12px var(--paper-shadow);
   background-image:radial-gradient(circle, var(--hole) 2.2px, transparent 2.7px), repeating-linear-gradient(transparent 0 25px, var(--rule) 25px 26px);
   background-size:12px 8px, 100% 100%; background-repeat:repeat-x, no-repeat; background-position:4px 3px, 0 14px;}
@@ -857,7 +857,8 @@ body.is-dragging-task .empty-note{display:none;}
 .step-tab small{display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-height:1.3em;}
 .step-tab.done{color:var(--ink-soft); border-bottom-color:color-mix(in srgb, var(--accent) 45%, var(--line));}
 .step-tab.now{color:var(--ink); border-bottom-color:var(--accent);}
-.step-tab:disabled{cursor:default;}
+.step-tab.locked{opacity:.6;}
+.step-why{margin:-8px 0 12px; font-size:var(--text-sm); color:var(--ink-soft);}
 .sort-find{width:100%; padding:10px 12px 10px 36px; margin:4px 0 6px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 11px center / 16px;}
 .find-empty{margin:10px 0;}
 .new-flag{border:1.5px dashed var(--line); background:none; color:var(--ink-soft); border-radius:var(--r-control); padding:8px 12px; font:inherit; font-size:var(--text-sm); cursor:pointer; margin:8px 0;}

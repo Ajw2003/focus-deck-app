@@ -61,9 +61,12 @@ function linkStep(st, u, project, tid) {
 const has = (name, q) => !q || name.toLowerCase().includes(q.toLowerCase());
 
 // The step bar: three tabs, the finished ones can be tapped to go back, later ones are off.
-function stepBar(step, folder, flagNames) {
-  const tab = (n, label, summary) => '<button type="button" class="step-tab' + (n === step ? ' now' : n < step ? ' done' : '') + '" data-action="sort-step" data-step="' + n + '"' + (n > step ? ' disabled' : '') + '><b>' + n + '. ' + label + '</b><small>' + (n <= step ? esc(summary) : '') + '</small></button>';
-  return '<div class="step-bar">' + tab(1, 'Which folder?', folder ? folder.name : '') + tab(2, 'Stick on flags', flagNames.join(', ')) + tab(3, 'Tie to tasks', 'optional') + '</div>';
+// Every tab can be tapped while its step is allowed; with no folder yet, steps 2 and 3 stay locked
+// (aria-disabled, not disabled, so a tap can say why).
+export const STEP_LOCKED_WHY = 'Choose a project first. Labels and links open once the thought has a project.';
+function stepBar(step, folder, flagNames, why) {
+  const tab = (n, label, summary) => '<button type="button" class="step-tab' + (n === step ? ' now' : n < step ? ' done' : '') + (n > 1 && !folder ? ' locked' : '') + '" data-action="sort-step" data-step="' + n + '"' + (n > 1 && !folder ? ' aria-disabled="true"' : '') + '><b>' + n + '. ' + label + '</b><small>' + (n <= step ? esc(summary) : '') + '</small></button>';
+  return '<div class="step-bar">' + tab(1, 'Which folder?', folder ? folder.name : '') + tab(2, 'Stick on flags', flagNames.join(', ')) + tab(3, 'Tie to tasks', 'optional') + '</div>' + (why ? '<p class="step-why" role="status">' + esc(why) + '</p>' : '');
 }
 
 function trayWallets(st, u, project, step, allCards, mode, tid) {
@@ -106,7 +109,7 @@ function trayWallets(st, u, project, step, allCards, mode, tid) {
   } else {
     html += linkStep(st, u, project, tid);
   }
-  return '<div class="wallet-root tray-wallets">' + stepBar(step, project, u.selected.map((t) => (allCards.find((c) => c.token === t) || {}).name).filter(Boolean)) + html + (html.includes('flip-track') ? '<div class="flip-hint">' + hint + '</div>' : '') + '<div class="sr-only" id="tray-live" aria-live="polite"></div></div>';
+  return '<div class="wallet-root tray-wallets">' + stepBar(step, project, u.selected.map((t) => (allCards.find((c) => c.token === t) || {}).name).filter(Boolean), u.why) + html + (html.includes('flip-track') ? '<div class="flip-hint">' + hint + '</div>' : '') + '<div class="sr-only" id="tray-live" aria-live="polite"></div></div>';
 }
 
 function renderTray(st, u, ordered, mode) {

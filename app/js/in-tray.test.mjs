@@ -195,10 +195,12 @@ const card = (u) => renderInTrayCard(state, { inboxOpen: true, unsorted: Object.
 test('step bar: three tabs, later ones off, finished ones tappable, summaries', () => {
   seed();
   const p1 = card({ projectId: 'pB' });
-  assert.ok(p1.includes('class="step-tab now" data-action="sort-step" data-step="1"') && p1.includes('data-step="2" disabled') && p1.includes('data-step="3" disabled'));
+  assert.ok(p1.includes('class="step-tab now" data-action="sort-step" data-step="1"') && !p1.includes('locked') && !p1.includes('aria-disabled'), 'with a folder every step is open');
+  const lk = card({ why: 'x' });
+  assert.ok(lk.includes('step-tab locked" data-action="sort-step" data-step="2" aria-disabled="true"') && lk.includes('class="step-why"'), 'no folder: 2 and 3 are locked and say why');
   assert.ok(p1.includes('<small>Home</small>'), 'part 1 summary is the folder');
   const p3 = card({ step: 3, projectId: 'pB', selected: ['c_art', 'c_chore'] });
-  assert.ok(p3.includes('class="step-tab done" data-action="sort-step" data-step="1"') && !p3.includes('data-step="2" disabled'));
+  assert.ok(p3.includes('class="step-tab done" data-action="sort-step" data-step="1"') && !p3.includes('data-step="2" aria-disabled'));
   assert.ok(p3.includes('<small>Art, Chore</small>') && p3.includes('<small>optional</small>') && p3.includes('>Across all folders<'));
   assert.ok(!p3.includes('data-wallet=') && p3.includes('File it in Home →') && p3.includes('data-action="sort-back"'));
 });
