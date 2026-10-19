@@ -54,8 +54,16 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .calm-tab.on{color:var(--ink); border-bottom-color:var(--accent);}
 .calm-tab b{font-weight:600; color:var(--ink-faint); margin-left:4px;}
 .calm-cards{display:flex; flex-direction:column; gap:10px;}
-.calm-card{padding:13px 16px; border-left-width:5px; border-left-color:color-mix(in srgb, var(--proj-color) 70%, var(--surface)); cursor:pointer;}
+.calm-card{padding:13px 16px; border-left-width:5px; border-left-color:color-mix(in srgb, var(--proj-color) 70%, var(--surface)); cursor:pointer;} /* --proj-color is the app's card-edge variable; here it holds the category's colour */
 .calm-card.on{box-shadow:0 0 0 3px var(--accent);}
+/* the move button says where the task goes, so "start" is never confused with Focus */
+.calm-move{flex:none; align-self:center; margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border:1.5px solid #9aa3ad; border-radius:var(--r-control); background:#fff; color:#1D2733; font:700 var(--text-sm) var(--font-ui); cursor:pointer; white-space:nowrap;}
+.calm-move:hover, .calm-move:focus-visible{border-color:#2f4f86; color:#2f4f86;}
+.calm-move svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+.cchip{display:inline-flex; align-items:center; gap:6px; padding:1px 9px 1px 7px; border-radius:999px; font-size:.75rem; font-weight:700; background:color-mix(in srgb, var(--c) 22%, transparent);}
+.cchip i{width:9px; height:9px; border-radius:2px; background:var(--c);}
+.calm-card .cchip{color:color-mix(in srgb, var(--c) 55%, #1D2733);}
+.calm-card .cchip.none{background:#e7e3da; color:#4a5560;}
 .calm-card.is-waiting .board-card-title{color:var(--ink-soft);}
 .calm-card.is-done .board-card-title{text-decoration:line-through; color:var(--ink-faint);}
 .calm-meta{font-size:var(--text-sm); color:var(--ink-soft);}
@@ -63,8 +71,8 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .calm-empty{padding:18px; border:1px dashed var(--line); border-radius:10px; color:var(--ink-soft); font-size:var(--text-sm);}
 .cw-detail{position:sticky; top:20px; display:flex; flex-direction:column; gap:14px; padding:20px 22px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; max-height:calc(100vh - 40px); overflow:auto;}
 .cw-detail .top{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft);}
-.cw-detail .top .x{margin-left:auto; border:0; background:none; color:var(--ink-soft); font-size:1.3rem; cursor:pointer; display:none;}
-@media (max-width:1099px){ .cw-detail .top .x{display:block;} }
+.cw-detail .top .x{margin-left:auto; border:0; background:none; color:var(--ink-soft); font:600 var(--text-sm) var(--font-ui); cursor:pointer; padding:4px 6px; border-radius:8px;}
+.cw-detail .top .x:hover{color:var(--ink);}
 .cw-detail .dot{width:10px; height:10px; border-radius:50%; background:var(--c);}
 .cw-detail h3{margin:0; font:600 1.4rem 'Fraunces', Georgia, serif; outline:none;}
 .cw-detail h3:focus{box-shadow:0 0 0 2px var(--accent);}
@@ -78,6 +86,7 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .bm-sub input{width:16px; height:16px; accent-color:var(--accent);}
 .bm-sub .st{margin-left:auto; font-size:.75rem; color:var(--ink-faint);}
 .bm-add{border:0; background:none; color:var(--accent); font:700 var(--text-sm) var(--font-ui); cursor:pointer;}
+.cw-move .btn{width:100%;}
 .cw-foot{display:flex; gap:10px; align-items:center; padding-top:10px; border-top:1px solid var(--line);}
 .cw-foot .sp{flex:1;}
 .saved{font-size:var(--text-sm); color:var(--ink-soft);}
@@ -265,19 +274,31 @@ function progress(subs) {
   return '<span class="gl gl-subs" title="' + done + ' of ' + subs.length + ' subtasks done">' + IC.subs + '<b>' + done + '/' + subs.length + '</b> done'
     + '<span class="segs">' + subs.slice().sort((a, z) => (z.t.status === 'done') - (a.t.status === 'done')).map((s) => '<i class="' + (s.t.status === 'done' ? 'on' : '') + '"></i>').join('') + '</span></span>';
 }
-function labelChips(t, max) {
-  const cats = (t.categoryIds || []).map((id) => st.categories.find((c) => c.id === id)).filter(Boolean);
-  return cats.slice(0, max).map((c) => '<span class="lchip" style="--c:' + c.color + '">' + esc(c.name) + '</span>').join('')
-    + (cats.length > max ? '<span class="lchip more">+' + (cats.length - max) + '</span>' : '');
+// A task's category is its first label: it sets the card's colour and is the only label on the card.
+// The rest of its labels are in the task panel.
+const NO_CATEGORY = { name: 'No category', color: '#9aa3ad' };
+function categoryOf(t) {
+  return st.categories.find((c) => c.id === (t.categoryIds || [])[0]) || null;
+}
+function categoryChip(t) {
+  const c = categoryOf(t);
+  return c ? '<span class="cchip" style="--c:' + c.color + '"><i></i>' + esc(c.name) + '</span>' : '<span class="cchip none">' + NO_CATEGORY.name + '</span>';
+}
+function moveButton(x) {
+  if (x.t.status === 'next') return '<button type="button" class="calm-move" data-move="' + x.t.id + '" data-to="doing" aria-label="Move to In progress: ' + esc(x.t.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h12M13 7l5 5-5 5"/></svg>In progress</button>';
+  if (x.t.status === 'doing') return '<button type="button" class="calm-move" data-move="' + x.t.id + '" data-to="next" aria-label="Move back to Up next: ' + esc(x.t.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H7M11 7l-5 5 5 5"/></svg>Up next</button>';
+  return '';
 }
 function card(x) {
   const subs = subsOf(x.t.id);
-  const edge = x.p.color;
+  const edge = (categoryOf(x.t) || NO_CATEGORY).color;
+  // Inside one project every card would repeat its name, so the name only shows on "Project: All".
+  const projectName = ui.board.project ? '' : '<span class="pname">' + esc(x.p.name) + '</span>';
   return '<article class="board-card calm-card' + (ui.board.selected === x.t.id ? ' on' : '') + (blocked(x.t.id) ? ' is-waiting' : '') + (x.t.status === 'done' ? ' is-done' : '') + '" data-open="' + x.t.id + '" style="--proj-color:' + edge + '">'
     + '<input type="checkbox" data-tick="' + x.t.id + '"' + (x.t.status === 'done' ? ' checked' : '') + ' aria-label="Done: ' + esc(x.t.title) + '">'
     + '<div class="board-card-body"><span class="board-card-title">' + esc(x.t.title) + '</span>'
-    + '<span class="gl-row"><span class="pname"><i class="pdot" style="--c:' + x.p.color + '"></i>' + esc(x.p.name) + '</span>' + labelChips(x.t, 2) + '</span>'
-    + glanceRow(x, subs) + '</div></article>';
+    + '<span class="gl-row">' + categoryChip(x.t) + projectName + '</span>'
+    + glanceRow(x, subs) + '</div>' + moveButton(x) + '</article>';
 }
 function glanceRow(x, subs) {
   const bits = [];
@@ -291,15 +312,17 @@ function glanceRow(x, subs) {
 }
 function detail(id) {
   const x = byId(id);
-  if (!x) return '<aside class="cw-detail"><p class="calm-meta">Choose a task on the left to see everything about it here.</p></aside>';
+  if (!x) return '<aside class="cw-detail"><p class="calm-meta">No task selected. Choose a task on the left to see its notes, every label and its links here. Click it again, or press Escape, to put it back.</p></aside>';
   const tag = (y) => '<button type="button" class="bm-tag" data-select="' + y.t.id + '" style="--c:' + y.p.color + '">' + esc(y.t.title) + (y.p.id !== x.p.id ? ' <small>· ' + esc(y.p.name) + '</small>' : '') + '</button>';
   const parent = x.t.parentId && byId(x.t.parentId);
   const subs = subsOf(id);
   const waits = (x.t.waitsOn || []).map(byId).filter(Boolean);
   const holds = TL.holdsUp(st.projects, id).map((t) => byId(t.id || t)).filter(Boolean);
   const subRows = subs.map((s) => '<label class="bm-sub"><input type="checkbox" data-tick="' + s.t.id + '"' + (s.t.status === 'done' ? ' checked' : '') + '><button type="button" class="bm-add" style="color:var(--ink);font-weight:600" data-select="' + s.t.id + '">' + esc(s.t.title) + '</button><span class="st">' + (s.t.status === 'done' ? 'done' : blocked(s.t.id) ? 'waiting' : s.t.status === 'doing' ? 'in progress' : 'up next') + '</span></label>').join('');
+  const cat = categoryOf(x.t) || NO_CATEGORY;
+  const moveTo = x.t.status === 'next' ? '<button class="btn ghost" data-move="' + id + '" data-to="doing">Move to In progress</button>' : x.t.status === 'doing' ? '<button class="btn ghost" data-move="' + id + '" data-to="next">Move back to Up next</button>' : '';
   return '<aside class="cw-detail' + (ui.board.phoneOpen ? ' phone-open' : '') + '" aria-label="Selected task">'
-    + '<div class="top"><span class="dot" style="--c:' + x.p.color + '"></span>' + esc(x.p.name) + ' · ' + (x.t.status === 'doing' ? 'In progress' : x.t.status === 'done' ? 'Done' : 'Up next') + '<button class="x" data-close aria-label="Close">×</button></div>'
+    + '<div class="top"><span class="dot" style="--c:' + cat.color + '"></span>' + esc(cat.name) + ' · ' + esc(x.p.name) + ' · ' + (x.t.status === 'doing' ? 'In progress' : x.t.status === 'done' ? 'Done' : 'Up next') + '<button class="x" data-close aria-label="Close the task panel">Close ×</button></div>'
     + '<h3 contenteditable="true" data-edit-title="' + id + '">' + esc(x.t.title) + '</h3>'
     + '<textarea data-edit-notes="' + id + '" placeholder="Notes…">' + esc(x.t.notes || '') + '</textarea>'
     + '<div class="grid"><select aria-label="Priority"><option>No priority</option><option>Low</option><option>Medium</option><option>High</option><option>Urgent</option></select><input type="date" aria-label="Due date" value="' + esc(x.t.deadline || '') + '"></div>'
@@ -307,13 +330,14 @@ function detail(id) {
     + '<div class="bm-sec"><h4>Subtasks</h4>' + (subs.length ? '<p class="gl-row">' + progress(subs) + '</p>' : '') + (subRows || '<p class="calm-meta">None yet.</p>') + '<button class="bm-add" data-note="Adding subtasks works as in Sort part 3.">+ Add a subtask</button></div>'
     + '<div class="bm-sec"><h4>Waits on</h4><div class="bm-tags">' + (waits.map(tag).join('') || '<span class="calm-meta">Nothing.</span>') + '</div></div>'
     + '<div class="bm-sec"><h4>Holds up</h4><div class="bm-tags">' + (holds.map(tag).join('') || '<span class="calm-meta">Nothing.</span>') + '</div></div>'
-    + '<div class="bm-sec"><h4>Labels</h4><div class="bm-tags">' + (x.t.categoryIds || []).map((cid) => '<span class="chip cat-chip small" style="--chip-color:' + R.mutedChip((st.categories.find((c) => c.id === cid) || {}).color || '#888') + '">' + esc(catName(cid)) + '</span>').join('') + '<button class="bm-add" data-note="Changing labels opens the full list.">Change</button></div></div>'
+    + '<div class="bm-sec"><h4>Category and labels</h4><div class="bm-tags">' + (x.t.categoryIds || []).map((cid) => '<span class="chip cat-chip small" style="--chip-color:' + R.mutedChip((st.categories.find((c) => c.id === cid) || {}).color || '#888') + '">' + esc(catName(cid)) + '</span>').join('') + '<button class="bm-add" data-note="Changing labels opens the full list.">Change</button></div></div>'
+    + (moveTo ? '<div class="cw-move">' + moveTo + '</div>' : '')
     + '<div class="cw-foot"><button class="btn primary" data-save="' + id + '">Save</button>' + (ui.board.savedAt && Date.now() - ui.board.savedAt < 4000 ? '<span class="saved">Saved.</span>' : '') + '<span class="sp"></span><button class="btn-text" data-focus-on="' + id + '">Focus on this</button><button class="btn-text" data-note="Delete asks first, then removes the task.">Delete</button></div></aside>';
 }
 function boardScreen() {
   const b = ui.board; const list = boardList();
   const count = (tab) => all().filter((x) => !x.t.parentId && (tab === 'next' ? x.t.status === 'next' : tab === 'doing' ? x.t.status === 'doing' : x.t.status === 'done' && x.t.doneHere)).length;
-  if (!b.selected || !byId(b.selected)) b.selected = list[0] ? list[0].t.id : null;
+  if (b.selected && !byId(b.selected)) b.selected = null;
   const chip = (on, attr, val, label, c) => '<button type="button" class="bm-chip' + (on ? ' on' : '') + '" ' + attr + '="' + val + '">' + (c ? '<span class="sw" style="--c:' + c + '"></span>' : '') + label + '</button>';
   const drawer = b.filterOpen ? '<div class="calm-drawer"><p class="calm-h">Category</p><div class="bm-row">' + chip(!b.pcat, 'data-pcat', '', 'All') + PCATS.map((c) => chip(b.pcat === c.id, 'data-pcat', c.id, esc(c.name), c.color)).join('') + '</div>'
     + '<p class="calm-h">Show</p><div class="bm-row">' + chip(b.show === 'all', 'data-show', 'all', 'Everything') + chip(b.show === 'subs', 'data-show', 'subs', 'Has subtasks') + chip(b.show === 'waits', 'data-show', 'waits', 'Waiting on something') + chip(b.show === 'holds', 'data-show', 'holds', 'Holding others up') + '</div>'
@@ -321,7 +345,7 @@ function boardScreen() {
   const active = (b.pcat ? 1 : 0) + (b.show !== 'all' ? 1 : 0);
   const tabs = [['next', 'Up next'], ['doing', 'In progress'], ['done', 'Done this week']].map(([k, l]) => '<button class="calm-tab' + (b.tab === k ? ' on' : '') + '" data-tab="' + k + '">' + l + ' <b>' + count(k) + '</b></button>').join('');
   const shown = list.slice(0, b.shown);
-  const cards = shown.length ? shown.map(card).join('') : '<p class="calm-empty">' + (b.find || active || b.project ? 'Nothing matches. Clear the search or filters to see more.' : b.tab === 'doing' ? 'Nothing in progress. Tick a task’s panel to start one.' : b.tab === 'done' ? 'Nothing finished yet this week.' : 'Nothing up next.') + '</p>';
+  const cards = shown.length ? shown.map(card).join('') : '<p class="calm-empty">' + (b.find || active || b.project ? 'Nothing matches. Clear the search or filters to see more.' : b.tab === 'doing' ? 'Nothing in progress. Press “In progress” on an Up next card to start one.' : b.tab === 'done' ? 'Nothing finished yet this week.' : 'Nothing up next.') + '</p>';
   return '<h2 class="board-title">Board</h2><div class="cw"><section class="cw-list">'
     + '<div class="calm-tools"><input class="bm-find" data-board-find value="' + esc(b.find) + '" placeholder="Find…" aria-label="Find a task, project or label">'
     + '<select data-project aria-label="Project"><option value="">Project: All</option>' + st.projects.map((p) => '<option value="' + p.id + '"' + (b.project === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>').join('') + '</select>'
@@ -455,7 +479,9 @@ app.addEventListener('click', (e) => {
   if (d.note) { say(d.note); return; }
   // Board
   if (d.tick) { const x = byId(d.tick); x.t.status = x.t.status === 'done' ? 'next' : 'done'; x.t.doneHere = x.t.status === 'done'; say(x.t.status === 'done' ? 'Marked done: ' + x.t.title : 'Back to Up next: ' + x.t.title); return; }
-  if (d.open) { b.selected = d.open; b.phoneOpen = innerWidth < 1100; paint(); return; }
+  if (d.move) { const x = byId(d.move); x.t.status = d.to; say(d.to === 'doing' ? 'Moved to In progress: ' + x.t.title : 'Moved back to Up next: ' + x.t.title); return; }
+  // Clicking the selected card again puts it back, so nothing is highlighted.
+  if (d.open) { const again = b.selected === d.open && !b.phoneOpen; b.selected = again ? null : d.open; b.phoneOpen = !again && innerWidth < 1100; paint(); return; }
   if (d.select) {
     // Tapping a task in the panel selects it: its card (or, for a subtask, its parent's card) is ringed
     // and scrolled to, on the tab it belongs to, with search and filters cleared so it can be seen.
@@ -463,7 +489,7 @@ app.addEventListener('click', (e) => {
     b.tab = topTask.status === 'doing' ? 'doing' : topTask.status === 'done' ? 'done' : 'next'; b.find = ''; b.project = ''; b.pcat = ''; b.show = 'all';
     b.selected = y.t.id; const idx = boardList().findIndex((x) => x.t.id === top); if (idx >= b.shown) b.shown = idx + 1;
     paint(); const c = document.querySelector('[data-open="' + top + '"]'); if (c) { c.classList.add('on'); c.scrollIntoView({ block: 'center' }); } return; }
-  if (d.close !== undefined) { b.phoneOpen = false; paint(); return; }
+  if (d.close !== undefined) { b.phoneOpen = false; b.selected = null; paint(); return; }
   if ('tab' in d) { b.tab = d.tab; b.shown = comfort.chunk; b.selected = null; paint(); return; }
   if ('filterToggle' in d) { b.filterOpen = !b.filterOpen; paint(); return; }
   if ('filterDone' in d) { b.filterOpen = false; paint(); return; }
@@ -531,6 +557,10 @@ app.addEventListener('contextmenu', (e) => {
   document.body.appendChild(m);
   m.addEventListener('click', (ev) => { const c = ev.target.dataset.colour; if (c) { target.color = c; m.remove(); paint(); } });
   setTimeout(() => document.addEventListener('click', function off(ev) { if (!m.contains(ev.target)) { m.remove(); document.removeEventListener('click', off); } }), 0);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || ui.screen !== 'board' || !ui.board.selected) return;
+  ui.board.selected = null; ui.board.phoneOpen = false; paint();
 });
 document.getElementById('capture-form').addEventListener('submit', (e) => {
   e.preventDefault(); const i = document.getElementById('capture-input'); const text = i.value.trim(); if (!text) return;
