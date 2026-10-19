@@ -4,6 +4,33 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-19 — Design approved: calm by default
+
+aj, after five rounds on the test site (`docs/generated/calm-test/index.html`): "yes I approve these
+changes lets merge it and build it". The test site is the approved design; pull request #197 merged
+it, the sort steps (#188) and ties everywhere (#192) into `main`. What it settles, with the reasons
+in `docs/plans/calm-by-default.md` sections 1 to 11:
+
+- The Board shows one tab at a time (Up next, In progress, Done this week), one toolbar (Find,
+  Project, Filter), cards in groups of seven with "Show more", and the selected task's details
+  beside the list on a wide screen (full screen on a phone). Nothing is selected until a card is
+  tapped; tapping it again, Escape or "Close ×" deselects it.
+- Up next cards carry "→ In progress" and In progress cards "← Up next".
+- A card's colour and its one chip come from the first item in Settings' "Card colour" list that the
+  task has: Category (its first label) by default, then Priority, then Due date, plus any label the
+  person adds at the top. "Make category" in a task's details moves a label to the front. A
+  project's name shows on cards only on "Project: All".
+- The task panel is "Task details": title and status menu always shown, then Notes, Priority and due
+  date, Labels, Subtasks and Linked tasks as folded rows, one open at a time. Changes apply as they
+  are made, so there is no Save button.
+- Every setting is one folded row showing its current value, one open at a time.
+- Layout A for the side menu and header; literal words ("Delete", "Add labels", "Link to other
+  tasks", "pick another task"); softer colours on by default; past-its-date amber by default, with
+  red as a setting, which reverses "overdue is always red" (`docs/4-systems/due-dates.md:18`).
+
+Open: the test site took the Projects screen out of the menu but drew nowhere for its project tools
+(new project, edit, GitHub repo, reorder, delete). The build plan asks aj where they go.
+
 ## 2026-10-18 — QA failed: Sort fixes, task panel, Board takes over from Projects
 
 aj's QA of the sort steps (#188) and ties (#192), in their words: right-click colour on folders and
