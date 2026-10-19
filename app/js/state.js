@@ -5,6 +5,7 @@ import { ensureTaskSortOrder } from './task-move.js';
 import { dueStage, DEFAULT_DUE_DEFAULTS } from './due-stage.js';
 import { DEFAULT_CHOOSING_MODE, normalizeChoosingMode } from './wallet.js';
 import { DEFAULT_NOTE_FACE, normalizeNoteFace } from './note-face.js';
+import { defaultComfort, normalizeComfort, getOverdue } from './comfort.js';
 import { normalizeCategoryFilter } from './category-filter.js';
 import { ICON_DUE_RED } from './icons.js';
 
@@ -54,6 +55,8 @@ function defaultState() {
     choosingMode: { mode: DEFAULT_CHOOSING_MODE, updatedAt: 0 },
     // Settings > Note writing: the face for writing on paper notes (hand / print / dyslexic). Stamped likewise.
     noteFace: { face: DEFAULT_NOTE_FACE, updatedAt: 0 },
+    // Settings > Comfort (#203): five values, each { value, updatedAt } with its own stamp.
+    comfort: defaultComfort(),
     // Settings > Category choices (#133): offer only a project's own categories when sorting. Stamped likewise.
     categoryFilter: normalizeCategoryFilter(null),
   };
@@ -143,6 +146,7 @@ function withDefaults(parsed) {
     noteFace: parsed.noteFace && typeof parsed.noteFace === 'object'
       ? { face: normalizeNoteFace(parsed.noteFace.face), updatedAt: Number(parsed.noteFace.updatedAt) || 0 }
       : d.noteFace,
+    comfort: normalizeComfort(parsed.comfort),
     categoryFilter: normalizeCategoryFilter(parsed.categoryFilter),
   });
 }
@@ -371,10 +375,12 @@ export function deadlineChip(iso, task) {
   const now = new Date();
   const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const days = Math.round((d - startToday) / 86400000);
-  const label = days < 0 ? Math.abs(days) + 'd overdue' : days === 0 ? 'due today' : 'due in ' + days + 'd';
   const stage = task ? dueStage(task, now.getTime(), state.dueDefaults) : 'done';
-  const stageClass = stage === 'done' ? '' : ' due-' + stage;
-  return '<span class="chip deadline-chip' + stageClass + '">' + (stage === 'red' ? ICON_DUE_RED : '') + label + '</span>';
+  // Tasks past their date (Settings > Comfort): amber "past its date" by default, red "overdue" when chosen.
+  const amber = days < 0 && stage === 'red' && getOverdue(state) === 'amber';
+  const label = days < 0 ? Math.abs(days) + (amber ? 'd past its date' : 'd overdue') : days === 0 ? 'due today' : 'due in ' + days + 'd';
+  const stageClass = stage === 'done' ? '' : amber ? ' due-amber' : ' due-' + stage;
+  return '<span class="chip deadline-chip' + stageClass + '">' + (stage === 'red' || amber ? ICON_DUE_RED : '') + label + '</span>';
 }
 
 export function shortName(name) { return name.length > 14 ? name.slice(0, 13) + '…' : name; }

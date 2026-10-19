@@ -67,9 +67,11 @@ async function open(size, scheme, storage = {}, path = 'settings.html') {
   page.on('dialog', (d) => d.accept());
   await page.addInitScript((entries) => { for (const [k, v] of entries) if (localStorage.getItem(k) === null) localStorage.setItem(k, v); }, Object.entries(storage));
   await page.goto(BASE + path);
-  await page.waitForSelector('#checklist-items li');
+  await page.waitForSelector('#checklist-items li', { state: 'attached' });
   return { ctx, page };
 }
+// Rows are folded (#203): open the row holding a control before clicking it; opening one closes the others.
+const openRow = async (page, sel) => { const row = page.locator('.set', { has: page.locator(sel) }); if (!(await row.evaluate((e) => e.classList.contains('open')))) await row.locator('.set-head').click(); };
 const items = (page) => page.$$eval('#checklist-items li', (els) => els.map((e) => ({ id: e.dataset.item, done: e.classList.contains('is-done'), href: (e.querySelector('a') || {}).getAttribute ? e.querySelector('a').getAttribute('href') : null })));
 const stored = (page) => page.evaluate((k) => JSON.parse(localStorage.getItem(k)), STATE_KEY);
 
@@ -78,12 +80,16 @@ for (const size of ['phone', 'desktop']) for (const scheme of ['dark', 'light'])
   const tag = `[${size}/${scheme}]`;
   const { ctx, page } = await open(size, scheme);
   const groups = await page.$$eval('.settings-group', (els) => els.map((e) => e.textContent));
-  check(`${tag} groups in order`, groups.join('|') === 'How it looks|How it works|Sync and GitHub|Help', groups.join('|'));
+  check(`${tag} groups in order`, groups.join('|') === 'How it looks|Comfort|How it works|Sync and GitHub|Help', groups.join('|'));
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
   if (size === 'phone' && scheme === 'dark') {
     const list = await items(page);
-    check('fresh: the checklist starts at 0 of 3', (await page.textContent('#checklist-title')) === 'Getting set up: 0 of 3 done');
+    check('fresh: the checklist row says 0 of 3 done', (await page.textContent('#checklist-title')) === '0 of 3 done');
+    const heads = await page.$$eval('.set-head', (els) => els.length);
+    check('fresh: every setting is one folded row, all closed', heads === 13 && (await page.$$('.set.open')).length === 0 && !(await page.isVisible('#due-yellow-pct')), 'rows ' + heads);
+    await openRow(page, '#due-yellow-pct'); await openRow(page, '.choosing-modes input');
+    check('fresh: opening a row closes the other', (await page.$$('.set.open')).length === 1 && !(await page.isVisible('#due-yellow-pct')) && (await page.isVisible('#choosing-section input')));
     check('fresh: each item links to its step', JSON.stringify(list.map((i) => i.href)) === JSON.stringify(['./?welcome', './?welcome', 'setup.html', 'setup.html']), JSON.stringify(list));
     check('fresh: the long token instructions are gone, the guided setup is the way in', !((await page.textContent('body')) || '').includes('Create a fine-grained token') && (await page.$eval('#sync-section .setup-callout a', (a) => a.getAttribute('href'))) === 'setup.html');
   }
@@ -94,7 +100,7 @@ for (const size of ['phone', 'desktop']) for (const scheme of ['dark', 'light'])
 // 2. A set-up device: saved values show, and still save
 {
   const { ctx, page } = await open('phone', 'dark', { [STATE_KEY]: JSON.stringify(setUp), 'focusdeck-github-token': KEY, 'focusdeck-gist-id': 'gOLD' });
-  check('set up: the checklist says All set up', (await page.textContent('#checklist-title')) === 'All set up');
+  check('set up: the checklist row says All set up', (await page.textContent('#checklist-title')) === 'All set up');
   const list = await items(page);
   check('set up: only the optional repo item is left, linking to the repo panel', list.filter((i) => !i.done).map((i) => i.id + '=' + i.href).join() === 'issues=index.html?new=repo', JSON.stringify(list));
   await page.screenshot({ path: OUT + 'phone-dark-set-up.png', fullPage: true });
@@ -104,10 +110,10 @@ for (const size of ['phone', 'desktop']) for (const scheme of ['dark', 'light'])
   check('set up: category colours list both kinds', (await page.$$('#task-cat-list .cat-color-row')).length === 1 && (await page.$$('#proj-cat-list .cat-color-row')).length === 1);
   check('set up: the sync status names the Gist', ((await page.textContent('#gist-status')) || '').includes('gOLD'));
 
-  await page.check('input[value="print"]');
-  await page.check('#choosing-section input[value="twice"]');
-  await page.fill('#due-yellow-pct', '50'); await page.dispatchEvent('#due-yellow-pct', 'change');
-  await page.fill('#task-cat-list ~ form input[name="name"]', 'Errand'); await page.press('#task-cat-list ~ form input[name="name"]', 'Enter');
+  await openRow(page, 'input[value="print"]'); await page.check('input[value="print"]');
+  await openRow(page, '.choosing-modes input'); await page.check('#choosing-section input[value="twice"]');
+  await openRow(page, '#due-yellow-pct'); await page.fill('#due-yellow-pct', '50'); await page.dispatchEvent('#due-yellow-pct', 'change');
+  await openRow(page, '#task-cat-list'); await page.fill('#task-cat-list ~ form input[name="name"]', 'Errand'); await page.press('#task-cat-list ~ form input[name="name"]', 'Enter');
   await page.waitForTimeout(200);
   const st = await stored(page);
   check('set up: changes still save (note face, choosing, due, a new category)', st.noteFace.face === 'print' && st.choosingMode.mode === 'twice' && st.dueDefaults.yellowPct === 50 && st.categories.some((c) => c.name === 'Errand'), JSON.stringify({ n: st.noteFace, c: st.choosingMode, d: st.dueDefaults }));
@@ -118,7 +124,7 @@ for (const size of ['phone', 'desktop']) for (const scheme of ['dark', 'light'])
 {
   const { ctx, page } = await open('phone', 'light', { [STATE_KEY]: JSON.stringify({ ...setUp, gistId: null }) });
   check('direct: the key and Gist controls are tucked away', !(await page.isVisible('#token-input')));
-  await page.click('.settings-advanced summary');
+  await openRow(page, '.settings-advanced'); await page.click('.settings-advanced summary');
   await page.fill('#token-input', KEY);
   await page.click('#save-token');
   await page.waitForFunction(() => /Connected as @aj/.test(document.getElementById('toast-root').textContent));
@@ -139,12 +145,32 @@ for (const size of ['phone', 'desktop']) for (const scheme of ['dark', 'light'])
 // 4. "Link a repo" opens the + New panel on its repo tab
 {
   const { ctx, page } = await open('phone', 'dark', { [STATE_KEY]: JSON.stringify(setUp), 'focusdeck-github-token': KEY, 'focusdeck-gist-id': 'gOLD' });
-  await page.click('[data-item="issues"] a');
+  await openRow(page, '#checklist-items'); await page.click('[data-item="issues"] a');
   await page.waitForSelector('#new-panel');
   await page.waitForTimeout(300);
   check('repo link: the drawer opens on the repo tab', !!(await page.$('.project-sidebar.is-open')) && ((await page.textContent('#new-panel')) || '').includes('aj/site'));
   check('repo link: the address is tidied', !page.url().includes('new=repo'));
   await page.screenshot({ path: OUT + 'phone-dark-repo-link.png' });
+  await ctx.close();
+}
+
+// 5. Comfort: the five rows, each value saved and back after a reload, and the three that change the app
+{
+  const { ctx, page } = await open('desktop', 'light', { [STATE_KEY]: JSON.stringify(setUp) });
+  check('comfort: defaults show on the rows', (await page.textContent('#val-chunk')).startsWith('7 cards') && (await page.textContent('#val-overdue')).startsWith('Amber') && (await page.textContent('#val-colour')) === 'Softer colours' && (await page.textContent('#val-cardcolour')) === 'Category, then Priority, then Due date');
+  check('comfort: softer colours is on the body by default', await page.evaluate(() => document.body.classList.contains('calm-colours')));
+  await openRow(page, '#comfort-motion'); await page.check('#comfort-motion input[value="off"]');
+  check('comfort: Movement off sets no-motion and updates its value at once', (await page.evaluate(() => document.body.classList.contains('no-motion'))) && (await page.textContent('#val-motion')) === 'No movement');
+  await openRow(page, '#comfort-calm'); await page.uncheck('#comfort-calm');
+  await openRow(page, '#comfort-chunk'); await page.check('#comfort-chunk input[value="10"]');
+  await openRow(page, '#comfort-overdue'); await page.check('#comfort-overdue input[value="red"]');
+  await openRow(page, '#comfort-colourby'); await page.click('[data-cb-move="2"][data-dir="-1"]');
+  await page.selectOption('[data-cb-add]', 'c_chore');
+  await page.waitForTimeout(200);
+  check('comfort: the card-colour list moves and takes a label at the top', (await page.textContent('#val-cardcolour')) === 'Chore, then Category, then Due date, then Priority', await page.textContent('#val-cardcolour'));
+  await page.reload(); await page.waitForSelector('#checklist-items li', { state: 'attached' });
+  const st = await stored(page);
+  check('comfort: every value survives a reload', st.comfort.motion.value === 'off' && st.comfort.calm.value === false && st.comfort.chunk.value === 10 && st.comfort.overdue.value === 'red' && st.comfort.colourBy.value[0] === 'label:c_chore' && (await page.textContent('#val-overdue')).startsWith('Red') && (await page.evaluate(() => document.body.classList.contains('no-motion') && !document.body.classList.contains('calm-colours'))), JSON.stringify(st.comfort));
   await ctx.close();
 }
 

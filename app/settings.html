@@ -8,23 +8,28 @@
 </head><body>
 <div class="wrap">
   <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true"><span class="lamp"></span></span><h1>Settings</h1></div><a href="index.html" class="link-btn">← Back</a></header>
-  <section class="card settings-section" id="setup-checklist" aria-labelledby="checklist-title">
-    <h2 class="settings-h" id="checklist-title">Getting set up</h2>
-    <ul class="checklist" id="checklist-items"></ul>
+  <section class="set" id="setup-checklist">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-checklist"><span class="set-title">Getting set up</span><span class="set-value" id="checklist-title"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-checklist">
+      <ul class="checklist" id="checklist-items"></ul>
+    </div>
   </section>
   <h2 class="settings-group" id="looks">How it looks</h2>
   <p class="muted small settings-group-note">Light or dark follows your device&rsquo;s own setting.</p>
-  <section class="card settings-section" id="note-face-section">
-    <h3 class="settings-h">Note writing</h3>
+  <section class="set" id="note-face-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-note-face"><span class="set-title">Note writing</span><span class="set-value" id="val-note-face"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-note-face">
     <p class="muted small" style="margin-bottom:6px;">
       The writing on your paper notes: the sticky note, the jotter and the in-tray slips. The rest of the app does not change. Remembered on this device and synced.
     </p>
     <fieldset class="note-faces">
       <legend class="sr-only">Note writing</legend>
     </fieldset>
+    </div>
   </section>
-  <section class="card settings-section">
-    <h3 class="settings-h">Category colors</h3>
+  <section class="set" id="category-colors-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-category-colors"><span class="set-title">Category colors</span><span class="set-value" id="val-category-colors"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-category-colors">
     <p class="muted small" style="margin-bottom:6px;">
       Pick a color for each category. It updates everywhere that category's chip appears, and syncs to your other devices like any other change.
     </p>
@@ -40,10 +45,48 @@
       <input type="text" name="name" placeholder="New task category…" maxlength="40" required>
       <button type="submit">+ Add</button>
     </form>
+    </div>
+  </section>
+  <h2 class="settings-group" id="comfort">Comfort</h2>
+  <p class="muted small settings-group-note">Calmer ways to use the app. Remembered on this device and synced.</p>
+  <section class="set" id="comfort-motion-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-comfort-motion-row"><span class="set-title">Movement</span><span class="set-value" id="val-motion"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-comfort-motion-row">
+      <fieldset class="comfort-choice" id="comfort-motion"><legend class="sr-only">Movement</legend></fieldset>
+      <p class="muted small">Turns off card tilts, flips and sliding.</p>
+    </div>
+  </section>
+  <section class="set" id="comfort-colour-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-comfort-colour-row"><span class="set-title">Colour</span><span class="set-value" id="val-colour"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-comfort-colour-row">
+      <label><input type="checkbox" id="comfort-calm"> Softer colours</label>
+      <p class="muted small">Every project and label keeps its own colour, slightly toned down.</p>
+    </div>
+  </section>
+  <section class="set" id="comfort-cardcolour-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-comfort-cardcolour-row"><span class="set-title">Card colour</span><span class="set-value" id="val-cardcolour"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-comfort-cardcolour-row">
+      <div id="comfort-colourby"></div>
+    </div>
+  </section>
+  <section class="set" id="comfort-chunk-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-comfort-chunk-row"><span class="set-title">Cards at once</span><span class="set-value" id="val-chunk"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-comfort-chunk-row">
+      <fieldset class="comfort-choice" id="comfort-chunk"><legend class="sr-only">Cards at once</legend></fieldset>
+      <p class="muted small">How many cards a list shows before &ldquo;Show more&rdquo;.</p>
+    </div>
+  </section>
+  <section class="set" id="comfort-overdue-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-comfort-overdue-row"><span class="set-title">Tasks past their date</span><span class="set-value" id="val-overdue"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-comfort-overdue-row">
+      <fieldset class="comfort-choice" id="comfort-overdue"><legend class="sr-only">Tasks past their date</legend></fieldset>
+      <p class="muted small">Amber says &ldquo;Past its date&rdquo;; red says &ldquo;Overdue&rdquo;. It shows wherever a task is marked as late.</p>
+    </div>
   </section>
   <h2 class="settings-group" id="works">How it works</h2>
-  <section class="card settings-section" id="choosing-section">
-    <h3 class="settings-h">Choosing a card</h3>
+  <section class="set" id="choosing-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-choosing"><span class="set-title">Choosing a card</span><span class="set-value" id="val-choosing"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-choosing">
     <p class="muted small" style="margin-bottom:6px;">
       How you pick a card from the folder and index-card wallets on the focus screen. Every wallet in the app follows this. Arrow keys and Enter always work on a computer.
     </p>
@@ -51,11 +94,13 @@
       <legend class="sr-only">Choosing a card</legend>
     </fieldset>
     <p id="choosing-help" class="muted small" aria-live="polite"></p>
+    </div>
   </section>
-  <section class="card settings-section" id="due-dates-section">
-    <h3 class="settings-h">Due dates</h3>
+  <section class="set" id="due-dates-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-due-dates"><span class="set-title">Due dates</span><span class="set-value" id="val-due"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-due-dates">
     <p class="muted small" style="margin-bottom:6px;">
-      A task's due chip turns <b>yellow</b>, then <b>red</b>, as its time runs down. The cut-offs are a share of the time between setting the due date and the due date itself, so a task due in three months and a task due in three days both turn at a fitting moment. An overdue task is always red. A task can still pick its own lead times when you set its date.
+      A task's due chip turns <b>yellow</b>, then <b>red</b>, as its time runs down. The cut-offs are a share of the time between setting the due date and the due date itself, so a task due in three months and a task due in three days both turn at a fitting moment. A task past its date shows amber &ldquo;Past its date&rdquo; unless you choose red &ldquo;Overdue&rdquo; under Comfort. A task can still pick its own lead times when you set its date.
     </p>
     <div class="due-defaults-form">
       <label for="due-yellow-pct">Turn yellow with <input type="number" id="due-yellow-pct" min="2" max="99" step="1" inputmode="numeric"> % of the time left</label>
@@ -64,15 +109,19 @@
     </div>
     <p id="due-preview" class="muted small" aria-live="polite"></p>
     <p id="due-error" class="muted small" role="alert"></p>
+    </div>
   </section>
-  <section class="card settings-section" id="category-filter-section">
-    <h3 class="settings-h">Category choices</h3>
+  <section class="set" id="category-filter-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-category-filter"><span class="set-title">Category choices</span><span class="set-value" id="val-category-filter"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-category-filter">
     <label class="setting-toggle"><input type="checkbox" id="category-filter-on"> Offer only the categories a project already uses</label>
     <p class="muted small" style="margin-top:6px;">When you sort a slip into a folder or edit a task, you see that project&rsquo;s own categories first. The rest stay one tap away (&ldquo;More categories&rdquo;, &ldquo;Show all&rdquo;), and a project with none yet shows them all. Synced.</p>
+    </div>
   </section>
   <h2 class="settings-group" id="github">Sync and GitHub</h2>
-  <section class="card settings-section" id="sync-section">
-    <h3 class="settings-h">Sync between devices</h3>
+  <section class="set" id="sync-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-sync"><span class="set-title">Sync between devices</span><span class="set-value" id="val-sync"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-sync">
     <p id="gist-status" class="muted small" style="margin-bottom:14px;"></p>
     <p class="setup-callout"><a class="btn primary" href="setup.html">Set up sync step by step</a> <span class="muted small">It checks your key and tells you exactly what&rsquo;s missing.</span></p>
     <p class="muted small">Issue sync: tasks in a project linked to a GitHub repo become its issues. If completing a task never reaches its issue, the key&rsquo;s <b>Issues</b> permission is still Read-only: change it to Read and write on GitHub (no new key needed).</p>
@@ -89,13 +138,16 @@
         <button type="button" id="connect-gist">Connect</button>
       </div>
     </details>
+    </div>
   </section>
   <h2 class="settings-group" id="help">Help</h2>
-  <section class="card settings-section" id="help-section">
-    <h3 class="settings-h">The welcome, and installing</h3>
+  <section class="set" id="help-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-help"><span class="set-title">The welcome, and installing</span><span class="set-value" id="val-help"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-help">
     <p class="muted small">New here, or showing someone else? The welcome walks through making a folder, adding a few tasks and your first pick. Your tasks stay as they are.</p>
     <a class="btn" href="./?welcome">Replay the welcome</a>
     <p class="muted small" style="margin-top:14px;">To put Focus Deck on your home screen or desktop, the install steps for each device are on <a href="../?about#install">the Focus Deck page</a>.</p>
+    </div>
   </section>
   <div id="toast-root"></div>
 </div>
@@ -118,7 +170,7 @@
   function renderChecklist() {
     const items = checklistItems({ st: state, hasToken: !!getToken() });
     const { done, of } = checklistProgress(items);
-    document.getElementById('checklist-title').textContent = done === of ? 'All set up' : 'Getting set up: ' + done + ' of ' + of + ' done';
+    document.getElementById('checklist-title').textContent = done === of ? 'All set up' : done + ' of ' + of + ' done';
     document.getElementById('checklist-items').innerHTML = items.map((i) => '<li class="check-item' + (i.done ? ' is-done' : '') + '" data-item="' + i.id + '">'
       + '<span class="check-box" aria-hidden="true">' + (i.done ? '✓' : '') + '</span>'
       + '<span class="check-label">' + esc(i.label) + (i.optional ? ' <span class="muted small">(optional)</span>' : '') + (i.done ? '<span class="sr-only"> (done)</span>' : '') + '</span>'
@@ -420,5 +472,121 @@
   });
   function paint() { group.querySelectorAll('input').forEach((i) => { i.checked = i.value === current(); }); }
   paint();
+</script>
+<script type="module">
+  // Folded rows and Comfort (#203). Every setting is one row: name, current value, arrow. Tapping a row
+  // opens its choices and closes any other open row. The bodies stay in the page, hidden by CSS, so
+  // the scripts above and below find their controls by id as before. Comfort values go through the
+  // shared `state` and the mutations.js setters, so they are stamped, saved and synced.
+  import { state, esc, onExternalStateChange } from './js/state.js';
+  import { setMotion, setCalmColours, setChunk, setOverdueStyle, setColourBy } from './js/mutations.js';
+  import { getMotion, getCalm, getChunk, getOverdue, getColourBy, applyComfort, MOTIONS, CHUNKS, OVERDUE_STYLES } from './js/comfort.js';
+  import { NOTE_FACE_INFO, normalizeNoteFace } from './js/note-face.js';
+  import { CHOOSING_MODE_INFO, normalizeChoosingMode } from './js/wallet.js';
+  import { normalizeDueDefaults } from './js/due-stage.js';
+
+  const $ = (id) => document.getElementById(id);
+  const MOTION = { system: 'Follow my computer’s setting', off: 'No movement', on: 'Allow movement' };
+  const OVERDUE = { amber: 'Amber, “Past its date”', red: 'Red, “Overdue”' };
+  const chunkText = (n) => n + ' cards, then “Show more”';
+  const sourceName = (src) => src === 'category' ? 'Category' : src === 'priority' ? 'Priority' : src === 'due' ? 'Due date'
+    : ((state.categories.find((c) => c.id === src.slice(6)) || {}).name || 'deleted label');
+
+  // --- fold: one open row at a time ---
+  function fold(row, open) {
+    row.classList.toggle('open', open);
+    const head = row.querySelector('.set-head');
+    head.setAttribute('aria-expanded', String(open));
+    head.querySelector('.set-arrow').textContent = open ? '‸' : '⌵';
+  }
+  document.addEventListener('click', (e) => {
+    const head = e.target.closest('.set-head');
+    if (!head) return;
+    const row = head.closest('.set');
+    const opening = !row.classList.contains('open');
+    document.querySelectorAll('.set.open').forEach((r) => fold(r, false));
+    if (opening) fold(row, true);
+  });
+
+  // --- Comfort controls ---
+  function radios(host, name, items, current, onPick) {
+    items.forEach(([val, label]) => {
+      const l = document.createElement('label');
+      const i = document.createElement('input');
+      i.type = 'radio'; i.name = name; i.value = String(val);
+      i.addEventListener('change', () => { onPick(val); refresh(); });
+      l.append(i, ' ' + label);
+      host.append(l);
+    });
+  }
+  radios($('comfort-motion'), 'comfort-motion', MOTIONS.map((m) => [m, MOTION[m]]), null, setMotion);
+  radios($('comfort-chunk'), 'comfort-chunk', CHUNKS.map((n) => [n, chunkText(n)]), null, setChunk);
+  radios($('comfort-overdue'), 'comfort-overdue', OVERDUE_STYLES.map((o) => [o, OVERDUE[o]]), null, setOverdueStyle);
+  $('comfort-calm').addEventListener('change', (e) => { setCalmColours(e.target.checked); refresh(); });
+
+  // Card colour: the ordered list with Up / Down / Remove and an "Add a label" menu.
+  const cb = $('comfort-colourby');
+  cb.addEventListener('click', (e) => {
+    const list = getColourBy(state).slice();
+    const mv = e.target.closest('[data-cb-move]');
+    const rm = e.target.closest('[data-cb-remove]');
+    if (mv) {
+      const i = Number(mv.dataset.cbMove), j = i + Number(mv.dataset.dir);
+      if (j < 0 || j >= list.length) return;
+      [list[i], list[j]] = [list[j], list[i]];
+    } else if (rm) list.splice(Number(rm.dataset.cbRemove), 1);
+    else return;
+    setColourBy(list); refresh();
+  });
+  cb.addEventListener('change', (e) => {
+    if (!e.target.matches('[data-cb-add]') || !e.target.value) return;
+    setColourBy(['label:' + e.target.value].concat(getColourBy(state)));
+    refresh();
+  });
+  function renderColourBy() {
+    const list = getColourBy(state);
+    const rows = list.map((source, i) => '<li class="cb-row"><span class="cb-n">' + (i + 1) + '.</span><span class="cb-name">' + esc(sourceName(source)) + '</span>'
+      + '<button type="button" class="btn-text" data-cb-move="' + i + '" data-dir="-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move ' + esc(sourceName(source)) + ' up">↑ Up</button>'
+      + '<button type="button" class="btn-text" data-cb-move="' + i + '" data-dir="1"' + (i === list.length - 1 ? ' disabled' : '') + ' aria-label="Move ' + esc(sourceName(source)) + ' down">↓ Down</button>'
+      + (source.startsWith('label:') ? '<button type="button" class="btn-text" data-cb-remove="' + i + '" aria-label="Remove ' + esc(sourceName(source)) + '">Remove</button>' : '') + '</li>').join('');
+    const addable = state.categories.filter((c) => !list.includes('label:' + c.id));
+    const html = '<p class="muted small">Each card takes its colour, and its one label, from the first item on this list that the task has. Move an item up to put it first.</p><ol class="cb-list">' + rows + '</ol>'
+      + '<label>Add a label to the list <select data-cb-add><option value="">Choose a label…</option>' + addable.map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('') + '</select></label>'
+      + '<p class="muted small">An added label goes to the top, so a task with it always shows it.</p>';
+    if (cb.dataset.painted !== html) { cb.innerHTML = html; cb.dataset.painted = html; }
+    return list.map(sourceName).join(', then ');
+  }
+
+  // --- the value on every row ---
+  const setText = (id, text) => { const el = $(id); if (el.textContent !== text) el.textContent = text; };
+  function refresh() {
+    applyComfort(state);
+    document.querySelectorAll('#comfort-motion input').forEach((i) => { i.checked = i.value === getMotion(state); });
+    document.querySelectorAll('#comfort-chunk input').forEach((i) => { i.checked = Number(i.value) === getChunk(state); });
+    document.querySelectorAll('#comfort-overdue input').forEach((i) => { i.checked = i.value === getOverdue(state); });
+    $('comfort-calm').checked = getCalm(state);
+    setText('val-motion', MOTION[getMotion(state)]);
+    setText('val-colour', getCalm(state) ? 'Softer colours' : 'Full colours');
+    setText('val-cardcolour', renderColourBy());
+    setText('val-chunk', chunkText(getChunk(state)));
+    setText('val-overdue', OVERDUE[getOverdue(state)]);
+    setText('val-note-face', NOTE_FACE_INFO[normalizeNoteFace(state.noteFace && state.noteFace.face)].label);
+    const n = state.categories.length + state.projectCategories.length;
+    setText('val-category-colors', n + (n === 1 ? ' category' : ' categories'));
+    setText('val-choosing', CHOOSING_MODE_INFO[normalizeChoosingMode(state.choosingMode && state.choosingMode.mode)].label);
+    const d = normalizeDueDefaults(state.dueDefaults);
+    setText('val-due', 'Yellow at ' + d.yellowPct + '%, red at ' + d.redPct + '%');
+    setText('val-category-filter', !state.categoryFilter || state.categoryFilter.on !== false ? 'Own categories first' : 'Show all');
+    setText('val-sync', state.gistId ? 'Connected' : 'Off');
+    setText('val-help', 'Welcome and install');
+  }
+  refresh();
+  onExternalStateChange(refresh);
+  // other scripts on the page change things without an event of ours: inputs, the colour lists, the Gist status
+  document.addEventListener('change', () => setTimeout(refresh, 0));
+  document.addEventListener('input', () => setTimeout(refresh, 0));
+  document.addEventListener('submit', () => setTimeout(refresh, 0));
+  new MutationObserver(refresh).observe($('proj-cat-list').parentNode.parentNode, { childList: true, subtree: true });
+  new MutationObserver(refresh).observe($('gist-status'), { childList: true, characterData: true, subtree: true });
 </script>
 </body></html>

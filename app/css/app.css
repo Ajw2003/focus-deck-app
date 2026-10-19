@@ -22,6 +22,7 @@
      --due-now a crimson, apart from the gold --prio-medium, orange --prio-high and red --prio-urgent. */
   --due-soon:#4F5A00;
   --due-now:#9F0C3D;
+  --due-amber:#7A4D00;
   --proj-sat:58%;
   --proj-light:40%;
   /* The lamp: a glow on the desk behind the focus area, and the brand dot */
@@ -46,6 +47,7 @@
   /* Stage colours on paper, for the deadline chip's border and icon on the sticky note (its words stay ink) */
   --paper-due-soon:#5E6B00;
   --paper-due-now:#A30D40;
+  --paper-due-amber:#7A4D00;
   /* The writing on paper notes: the default face (Handwriting). Print and OpenDyslexic override
      these in the "Note faces" section at the end (#122) */
   --note-font:'Kalam', 'Comic Sans MS', cursive;
@@ -86,6 +88,7 @@
     --prio-low:#8FBF9F;
     --due-soon:#D9E66B;
     --due-now:#FF96B9;
+    --due-amber:#F2C063;
     --proj-sat:55%;
     --proj-light:68%;
     --lamp:rgba(242,180,90,.17);
@@ -116,6 +119,7 @@
   --prio-low:#8FBF9F;
   --due-soon:#D9E66B;
   --due-now:#FF96B9;
+  --due-amber:#F2C063;
   --proj-sat:55%;
   --proj-light:68%;
   --lamp:rgba(242,180,90,.17);
@@ -250,6 +254,8 @@ a{color:inherit;}
 .note-meta{display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; font:var(--text-sm) var(--font-paper-small); color:var(--note-soft); letter-spacing:.02em;}
 .note-meta > span:not(.chip)::before{content:"\00B7" / ""; margin-right:6px;}
 .note-project{padding:6px 0; border:0; background:none; color:var(--note-ink); font:inherit; font-weight:700; text-decoration:underline dotted; text-underline-offset:3px;}
+.note .chip.deadline-chip.due-amber{border-color:var(--paper-due-amber); font-weight:700;}
+.note .chip.deadline-chip.due-amber svg{color:var(--paper-due-amber);}
 .note .chip.deadline-chip{background:var(--paper); color:var(--paper-ink); border:1.5px solid var(--paper-soft); font-family:var(--font-paper-small);}
 .note .chip.deadline-chip.due-yellow{border-color:var(--paper-due-soon); font-weight:700;}
 .note .chip.deadline-chip.due-red{border-color:var(--paper-due-now); font-weight:700;}
@@ -332,6 +338,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 .chip.deadline-chip.due-white{background:var(--surface-2); color:var(--ink-soft);}
 .chip.deadline-chip.due-yellow{background:color-mix(in srgb, var(--due-soon) 18%, transparent); color:var(--due-soon); border-color:color-mix(in srgb, var(--due-soon) 60%, transparent); font-weight:700;}
 .chip.deadline-chip.due-red{background:color-mix(in srgb, var(--due-now) 18%, transparent); color:var(--due-now); border-color:color-mix(in srgb, var(--due-now) 60%, transparent); font-weight:700;}
+.chip.deadline-chip.due-amber{background:color-mix(in srgb, var(--due-amber) 18%, transparent); color:var(--due-amber); border-color:color-mix(in srgb, var(--due-amber) 60%, transparent); font-weight:700;} /* past its date, the Comfort default (#203) */
 .chip.gh-chip{border-color:transparent; background:var(--surface-2); color:var(--ink-soft); text-decoration:none;}
 .chip.gh-chip.small{font-size:var(--text-sm); padding:3px 8px;}
 .chip.gh-chip:hover{color:var(--accent);}
@@ -1226,3 +1233,32 @@ body.is-dragging-task .empty-note{display:none;}
 .board-card.is-waiting .board-card-title, .task-row.is-waiting .task-title{color:var(--ink-soft);}
 .task-row.is-sub{margin-left:22px; position:relative;}
 .task-row.is-sub::before{content:''; position:absolute; left:-12px; top:0; bottom:50%; width:8px; border-left:1.5px solid var(--line); border-bottom:1.5px solid var(--line); border-bottom-left-radius:4px;}
+
+/* ==== Settings as folded rows, and Comfort (#203) ========================================
+   One row per setting: name left, current value right, an arrow. The body stays in the page (the
+   page scripts find their controls by id) and is only shown while its row is open. Spec: the
+   calm test site, docs/generated/calm-test/index.html. */
+.set{border:1px solid var(--line); border-radius:12px; background:var(--surface-2); margin:0 0 8px;}
+.set-head{display:flex; align-items:center; gap:12px; width:100%; padding:14px 16px; border:0; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer; border-radius:12px;}
+.set-head:hover{background:color-mix(in srgb, var(--ink) 5%, transparent);}
+.set-title{font-weight:700; flex:none;}
+.set-value{margin-left:auto; color:var(--ink-soft); font-size:var(--text-sm); text-align:right; min-width:0; overflow-wrap:anywhere;}
+.set-arrow{flex:none; color:var(--ink-soft); width:1em; text-align:center;}
+.set-body{padding:0 16px 14px;}
+.set:not(.open) > .set-body{display:none;}
+.set.open{border-color:color-mix(in srgb, var(--accent) 55%, var(--line));}
+.set-body label{display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:6px 0;}
+.set-body .setting-toggle, .set-body .note-faces label, .set-body .choosing-modes label{align-items:flex-start;}
+.set-body .note-faces label{flex-wrap:wrap;}
+.set-body select{padding:6px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:inherit; max-width:100%; min-width:0;}
+.cb-list{list-style:none; margin:8px 0; padding:0; display:flex; flex-direction:column; gap:4px;}
+.cb-row{display:flex; align-items:center; flex-wrap:wrap; gap:10px; padding:6px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface);}
+.cb-n{font-weight:700; color:var(--ink-soft); width:1.5em;}
+.cb-name{flex:1; font-weight:600; min-width:6em;}
+.cb-row .btn-text:disabled{opacity:.35; cursor:default;}
+
+/* Comfort settings applied to the whole page */
+body.no-motion *, body.no-motion *::before, body.no-motion *::after{transition:none !important; animation:none !important; scroll-behavior:auto !important;}
+body.no-motion .icard{transform:none !important;}
+body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, body.calm-colours .chip, body.calm-colours .project-card{filter:saturate(.75);} /* softer, same hues: colour still tells things apart */
+.comfort-choice{border:0; padding:0; margin:0; min-width:0;}

@@ -23,6 +23,7 @@ import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js'
 import { renderOnboarding } from './onboarding-view.js';
 import { normalizeBoardCol } from './board-view.js';
 import { applyNoteFace } from './note-face.js';
+import { applyComfort } from './comfort.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
@@ -231,6 +232,7 @@ const walletHooks = {
 
 export function renderApp(st) {
   applyNoteFace(st.noteFace && st.noteFace.face); // also after a sync brings in another device's choice
+  applyComfort(st);
   st._ui = ui; // the sync button reads sync UI state off the state object it's already passed
   if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
   // a new current Unsorted item (someone filed/sent to the back/completed the last one, or the queue itself

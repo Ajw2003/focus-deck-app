@@ -15,8 +15,12 @@ PRs and are not here.
   unit-tested in `js/due-stage.test.mjs`.
 - **Span and left.** Span runs from `task.dueSetAt` (else `createdAt`, else now) to the due moment, the
   end of the due day in local time (`dueMoment`, `js/due-stage.js:38`). Left runs from now to the
-  due moment. Overdue is always red; otherwise red when left/span is at or under the red cut-off,
+  due moment. Overdue is always the last stage (`'red'`); otherwise red when left/span is at or under the red cut-off,
   yellow at or under the yellow cut-off. Defaults 33% and 10% (`DEFAULT_DUE_DEFAULTS`).
+- **How an overdue task shows (Comfort, #203).** The stage stays `'red'`, but `deadlineChip` (`js/state.js`)
+  words and colours it by the Comfort setting "Tasks past their date": by default amber "Nd past its date"
+  (class `due-amber`), or red "Nd overdue" (`due-red`) when chosen. The flame icon stays either way. See
+  `docs/6-decisions/Decisions.md` (the 2026-10-19 calm-by-default entries).
 - **The day-before floor (#114).** Whatever the percentage says, a task is yellow from the midnight
   that starts the day before its due day (`dayBeforeStart`), so "due tomorrow" is never white. A
   yellow lead time chosen in the step for that task wins over the floor. Red is unchanged.
@@ -43,7 +47,7 @@ PRs and are not here.
 
 ## Invariants
 
-- No deadline is white; a done task is `'done'`; overdue is red whatever the span or lead times.
+- No deadline is white; a done task is `'done'`; overdue is the red stage whatever the span or lead times (shown amber by default, see above).
 - `dueSetAt` is clamped to now inside `dueStage`, so clock skew cannot make left exceed span.
 - The due moment is built from the date parts, so a daylight-saving day is 23 or 25 hours and the
   stage still follows (tested with America/New_York).

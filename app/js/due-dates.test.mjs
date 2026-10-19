@@ -150,7 +150,11 @@ test('deadline chip: task stage classes, words unchanged, red gets the icon, pro
   const red = deadlineChip(isoDay(0), mk(isoDay(0), 30));
   assert.ok(red.includes('due-red') && red.includes('due today') && red.includes('<svg'), 'red carries the flame');
   const overdue = deadlineChip(isoDay(-2), mk(isoDay(-2), 30));
-  assert.ok(overdue.includes('due-red') && overdue.includes('2d overdue'));
+  assert.ok(overdue.includes('due-amber') && overdue.includes('2d past its date') && !overdue.includes('due-red'), 'past its date is amber by default (Comfort)');
+  M.setOverdueStyle('red');
+  const overdueRed = deadlineChip(isoDay(-2), mk(isoDay(-2), 30));
+  assert.ok(overdueRed.includes('due-red') && overdueRed.includes('2d overdue'), 'red "Overdue" when chosen');
+  M.setOverdueStyle('amber');
   const done = deadlineChip(isoDay(-2), mk(isoDay(-2), 30, { status: 'done' }));
   assert.ok(!/due-(white|yellow|red)/.test(done) && done.includes('2d overdue'), 'a done task has no stage colour');
   const project = deadlineChip(isoDay(0));

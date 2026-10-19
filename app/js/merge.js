@@ -118,6 +118,12 @@ export function mergeStates(local, remote) {
   if (r.choosingMode && (!l.choosingMode || stamp(r.choosingMode) > stamp(l.choosingMode))) merged.choosingMode = r.choosingMode;
   // noteFace (Settings > Note writing) likewise.
   if (r.noteFace && (!l.noteFace || stamp(r.noteFace) > stamp(l.noteFace))) merged.noteFace = r.noteFace;
+  // comfort (Settings > Comfort, #203): five separately stamped values, each newest-wins on its own.
+  if (r.comfort && typeof r.comfort === 'object') {
+    const mc = Object.assign({}, l.comfort);
+    Object.keys(r.comfort).forEach((k) => { if (!mc[k] || stamp(r.comfort[k]) > stamp(mc[k])) mc[k] = r.comfort[k]; });
+    merged.comfort = mc;
+  }
   // categoryFilter (Settings > Category choices, #133) likewise.
   if (r.categoryFilter && (!l.categoryFilter || stamp(r.categoryFilter) > stamp(l.categoryFilter))) merged.categoryFilter = r.categoryFilter;
 
