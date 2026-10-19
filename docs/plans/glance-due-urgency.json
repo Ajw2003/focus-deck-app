@@ -12,7 +12,7 @@
        "Nothing from you.",
        {"src": "docs/generated/glance/today-1440.png", "alt": "Today's Board cards with no priority or due date shown", "caption": "Today's built Board, with the same sample tasks."}],
       ["list", "Option A", "Always show both", "you",
-       "Every card with a priority or due date gets a quiet line under its label: a small flag and the priority word in its colour, then the due date in a small chip coloured by how close it is (white, yellow or red).",
+       "Every card with a priority or due date gets a quiet line under its label. The line shows a small flag and the priority word in its colour, then the due date in a small chip coloured by how close it is (white, yellow or red).",
        "Look at the picture. Every card with a priority or a due date has the line, including Low priorities and far-off dates.",
        {"src": "docs/generated/glance/a-1440.png", "alt": "Board cards each with a flag, the priority word and a due chip", "caption": "Option A: every priority and every due date."}],
       ["list", "Option B", "Show them only when they matter", "you",
