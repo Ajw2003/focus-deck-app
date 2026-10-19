@@ -1,3 +1,27 @@
+# Today — 2026-10-18
+
+## Sort steps: the drafts were built on a stale copy (2026-10-18)
+
+The local `main` was 105 commits behind `origin/main` (17d67b0 against f231bfd), so both sort-flow drafts
+showed the old Unsorted card, not the current Sort screen (the in-tray, `app/js/in-tray-view.js`). The
+first builder stopped on that mismatch before editing anything. The work moved to branch
+`AjsAgent/sort-steps`, cut from `origin/main`, and the approved design was redrawn on the real screen:
+`docs/plans/sort-steps.html`, prototype `docs/generated/sort-steps/prototype.html` (it imports the
+app's own `sleeve`, `walletInner` and `mountWallets`). It is waiting on aj's confirmation. Local tests:
+a stray `package.json` in the home folder (no `type`) makes a plain `node --test` fail 28 of 30 on this
+machine, so they were run from a scratch copy with its own `{"type":"module"}`; CI is unaffected.
+
+
+## Sort flow Asap proposal (design only, nothing built)
+
+Issues #180, #181 and #182 (all labelled Asap) are proposed together, because all three change the
+Unsorted card. The proposal page is `docs/plans/sort-flow-asap.html`, built from
+`docs/plans/sort-flow-asap.json`. The clickable prototype is
+`docs/generated/sort-flow-asap/prototype.html`, and `before.html` beside it draws today's card
+with the real `renderInbox` (`js/render.js:230`). It is waiting on aj's six answers. Second draft, same day: aj found the one-card version too busy, so sorting became three steps (project, then kind and labels, then links) in `docs/generated/sort-flow-asap/prototype-steps.html`, and the focus card got at most one extra chip or line. Found while
+prototyping: the kind cards are Reminder, Build and Fix (`js/state.js:300`), and a separate
+"New labels, comma-separated…" box already exists (`js/render.js:208`).
+
 # Today — 2026-09-27
 
 ## What today was

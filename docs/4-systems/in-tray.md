@@ -18,8 +18,8 @@ It reuses the #120 wallets (`js/wallet.js`, `docs/4-systems/wallets.md`) for "1.
   `unsortedCurrent(st, u)`, the top slip in tray order, whose key resets the per-slip scratch.
 - `js/render.js` — `unsortedQueue` (unchanged); the old pills (`renderInbox`,
   `unsortedKindsAndLabels`, `unsortedProjectPills`) are gone.
-- `js/app.js` — `ui.unsorted` is `{ later, projectId, selected, newLabels, facingFolder, facingFlag,
-  currentKey }`. `walletHooks.onFacing` remembers the facing card of `tray-folders` / `tray-flags` so
+- `js/app.js` — `ui.unsorted` is `{ later, projectId, selected, step, find, title, notes, notesOpen,
+  facingFolder, facingFlag, showAllFlags, currentKey }` (three parts, #189: see below). `walletHooks.onFacing` remembers the facing card of `tray-folders` / `tray-flags` so
   a repaint keeps it; `walletHooks.onChoose` toggles the folder or flag and repaints. `unsorted-file`
   and `unsorted-save` both go through `fileSlip`; `unsorted-skip` is Later (`sendToBack`). The
   wallets announce into `#tray-live` when the focus wallets' `#wallet-live` isn't on the page.
@@ -31,6 +31,19 @@ It reuses the #120 wallets (`js/wallet.js`, `docs/4-systems/wallets.md`) for "1.
 
 Known: the flag tabs on the slip's edge are 46px wide, so a long name is clipped ("Reminder" shows
 its end). The full name is in the tab's `title` and on the flag card.
+
+## Three parts (#189)
+
+Part of feature #188 (prototype `docs/generated/sort-steps/prototype.html`). The wallets show one
+part at a time under a step bar (`.step-bar`, `data-action="sort-step"`): 1 folder, 2 flags, 3 tie to
+tasks (part 3 is a placeholder until a later issue). Both thought and task slips start on part 1; a
+task's folder is its own project until another is chosen, and saving moves it
+(`applyTaskMove`). Each of parts 1 and 2 has a `.sort-find` search (case-insensitive substring,
+`ui.unsorted.find`, cleared on a part change); a non-empty search shows all flags and hides "More
+categories", and offers "+ New flag" when no category name matches exactly. The slip text is editable
+unless the task is GitHub-linked (`issueNumber`), and a `.slip-notes` box holds notes; both are kept
+in the scratch without repainting and saved by `fileSlip` (`fileInboxItem(..., { title, notes })` for a
+thought, `updateTaskFields` for a task). The main button is Next on parts 1 and 2 and File/Save on 3.
 
 ## Category choices
 
@@ -63,10 +76,12 @@ did, as a setting:
 | Kind cards (Reminder / Build / Fix, label created on first use) | keep, as the first flag cards |
 | "Other labels" ranked for the project | keep, same ranking, as flag cards |
 | "+N more" / "Show fewer" for labels and projects | drop (the wallets scroll; every card is in them) |
-| "New labels, comma-separated" field | keep |
+| "New labels, comma-separated" field | drop (#189, answer 2A): type in the flag search and choose "+ New flag" |
 | Done ✓ (`completeInboxItem` / `setTaskStatus done`) | keep as "Already done" |
 | Delete (`discardInbox` + notice / `deleteTask` after confirm) | keep as "Bin it" |
 | Skip hides the item until "Go through them again"; "N skipped for now" | change: Later puts it at the back; the tray always shows its next slip. "Go through them again" and "N skipped for now" are dropped |
 | "1 of N" position | change: "N in the tray" |
 | "Thought · 3m ago" chip, `#issue` chip on a task | keep, on the slip |
 | "change" project chip | drop (choose the folder again) |
+
+Part 3 ("Tie to tasks", #190): an "Inside <folder>" group (Part of, Subtasks) and an "Across all folders" group (Waits on, Holds up). Each row has tags with an x and "+ Add", which opens a task search (up to 6 open tasks, by title or folder name; Part of and Subtasks search the chosen folder only). Subtasks can also add a new subtask from the typed text. Ties are held in the slip's scratch (`parent`, `subtasks`, `waitsOn`, `holdsUp`, `newSubtasks`, seeded from a task slip's existing ties) and saved by `fileSlip` through `updateTaskFields`, skipping what `app/js/task-links.js` refuses. Rules: [task-links.md](./task-links.md).

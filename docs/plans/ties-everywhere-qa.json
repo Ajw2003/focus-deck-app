@@ -1,0 +1,91 @@
+{
+  "title": "Ties Everywhere QA",
+  "eyebrow": "Built and checked · ready for you to test · issues #192 to #196",
+  "short": {
+    "lead": "Ties now show on the Board and in Projects, and they are kept matched with GitHub for tasks linked to issues. It runs on your machine at the address in step 1, with its own sample data, so your real tasks are not touched. The sort steps it builds on have their own test page: Sort Steps QA.",
+    "hint": "Tap a step to see what to try and what you should see.",
+    "key": [
+      [
+        "Built",
+        ""
+      ],
+      [
+        "You test it",
+        "you"
+      ]
+    ],
+    "items": [
+      [
+        "eye",
+        "Board",
+        "See ties on the Board",
+        "you",
+        "Cards with ties get one quiet line; the task still waiting on something has a softer title.",
+        "Open http://127.0.0.1:8765/docs/generated/sort-steps/seed.html#board?ties in your browser. The card 'Read chapter 4' should show 'in Book boiler service' and 'waits on Pay council tax'.",
+        {
+          "src": "../generated/ties/built-board.png",
+          "alt": "The built Board with tie lines on three cards",
+          "caption": "The built Board with sample ties."
+        }
+      ],
+      [
+        "list",
+        "Projects",
+        "See subtasks under their parent",
+        "you",
+        "Subtasks sit indented under 'Book boiler service', and that parent row says '2 subtasks · 0 done'.",
+        "Open http://127.0.0.1:8765/docs/generated/sort-steps/seed.html#projects?ties and look at the Home folder.",
+        {
+          "src": "../generated/ties/built-projects.png",
+          "alt": "The built Home folder with two subtasks nested",
+          "caption": "The built Projects screen."
+        }
+      ],
+      [
+        "search",
+        "Tap",
+        "Tap a name in a tie line",
+        "you",
+        "The page scrolls to that task.",
+        "On the Board, tap 'Pay council tax' in the 'waits on' line of the 'Read chapter 4' card. I could not check this one by hand, so tell me if the page doesn't scroll."
+      ],
+      [
+        "swap",
+        "GitHub",
+        "Ties on GitHub (optional, real issues)",
+        "you",
+        "A tie between two issue-linked tasks appears on GitHub as a sub-issue or 'blocked by', and ties made on GitHub come back on the next sync.",
+        "This writes to your real GitHub issues, so it is optional. Try it after the pull request is deployed, or tell me to wait until then. Tests with stand-in GitHub replies cover it in the meantime."
+      ],
+      [
+        "check",
+        "Reply",
+        "Tell me how it went",
+        "you",
+        "Your reply moves the issues on.",
+        "Reply 'QA passed: ties everywhere 1A 2A 3A 4A 5A', or say what's wrong."
+      ]
+    ]
+  },
+  "changes": [],
+  "qa": {
+    "feature": "ties everywhere 1A 2A 3A 4A 5A",
+    "base": "origin/main",
+    "unverified": [
+      "No real GitHub call was made: writing and reading ties were tested only with stand-in GitHub replies",
+      "Tapping a task name in a tie line was not checked by hand, because the test browser kept old copies of the app's files",
+      "The repo's Playwright browser checks were not run, because Playwright isn't installed on this machine",
+      "The pull request isn't open, as you asked, so GitHub's Linux tests haven't run on this branch"
+    ]
+  },
+  "wrapup": {
+    "summary": "Ties show on the Board and in Projects, and are kept matched with GitHub for linked tasks.",
+    "changing": "Changed: Board cards, project rows and GitHub sync. New: tie lines, nested subtasks, a softer title for waiting tasks, GitHub's internal issue id, kept on linked tasks.",
+    "blocking": "Your test of this page and of Sort Steps QA. The pull request waits for both.",
+    "next": "After both QA replies, I open one pull request for the sort steps and the ties, and you close the issues once you're happy.",
+    "todo": [
+      "Do the five steps under 'In short', ending with the reply.",
+      "Do the same on the Sort Steps QA page if you haven't yet."
+    ]
+  }
+}

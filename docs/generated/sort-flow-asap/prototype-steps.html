@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sort Steps Prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../../../css/app.css">
+<style>
+/* Prototype-only additions. Everything else is the app's real css/app.css. */
+.proto-note{font-size:var(--text-sm); color:var(--ink-faint); margin:14px 0 4px;}
+/* The three-step bar: one segment per step, the current one underlined in the accent. */
+.steps{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:2px 0 16px;}
+.step{background:none; border:none; border-bottom:3px solid var(--line); padding:6px 2px 7px; text-align:left; color:var(--ink-faint); font-size:var(--text-sm); font-weight:600; min-width:0;}
+.step b{display:block; color:inherit;}
+.step small{display:block; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-height:1.3em;}
+.step.done{color:var(--ink-soft); border-bottom-color:color-mix(in srgb, var(--accent) 45%, var(--line));}
+.step.now{color:var(--ink); border-bottom-color:var(--accent);}
+.sort-title-input{width:100%; font-family:'Fraunces',Georgia,serif; font-size:var(--text-h); font-weight:600; border:1px solid transparent; border-radius:var(--r-control); padding:4px 8px; margin:0 -8px 4px; background:none; color:var(--ink);}
+.sort-title-input:hover,.sort-title-input:focus{border-color:var(--line); background:var(--surface);}
+.sort-notes{width:100%; min-height:64px; padding:9px 12px; margin:6px 0 14px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit; font-size:var(--text-sm);}
+.notes-link{margin-bottom:12px;}
+.sort-find{width:100%; padding:9px 12px 9px 34px; margin-bottom:12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 10px center / 16px; color:var(--ink);}
+.filter-pill.chosen{box-shadow:inset 0 0 0 2px var(--accent); color:var(--ink);}
+.link-group{margin-bottom:14px;}
+.link-group h4{font-size:var(--text-sm); font-weight:600; color:var(--ink-soft); margin:0 0 6px;}
+.link-row{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:8px;}
+.link-row > .muted{min-width:84px;}
+.link-chip{display:inline-flex; align-items:center; gap:6px;}
+.link-chip .mini-x{width:18px; height:18px; font-size:12px;}
+.task-search{border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); padding:8px; margin:-2px 0 10px;}
+.task-search input{width:100%; padding:7px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); margin-bottom:6px;}
+.task-hit{display:flex; align-items:center; gap:8px; width:100%; text-align:left; background:none; border:none; padding:6px; border-radius:var(--r-control); font-size:var(--text-sm); color:var(--ink);}
+.task-hit:hover{background:var(--surface-2);}
+.task-hit .muted{margin-left:auto;}
+.empty-hit{font-size:var(--text-sm); color:var(--ink-faint); padding:4px 6px;}
+.sort-foot{display:flex; align-items:center; gap:10px; margin-top:8px;}
+.sort-foot .spacer{flex:1;}
+.chip.clear-chip{background:color-mix(in srgb, var(--accent) 14%, transparent); border-color:transparent; color:var(--accent);}
+.next-line{font-size:var(--text-sm); color:var(--ink-soft); margin:-6px 0 16px;}
+.next-line b{color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="wrap" style="padding-top:20px">
+  <div id="app"></div>
+</div>
+<script>
+// Sample data: 7 projects and 55 labels, so the search in #182 has something to search.
+const PROJECTS = [
+  { id: 'p1', name: 'Focus Deck', color: '#3D5A80' },
+  { id: 'p2', name: 'Plunderspell', color: '#B5651D' },
+  { id: 'p3', name: 'House move', color: '#2E8B57' },
+  { id: 'p4', name: 'Portfolio site', color: '#8E44AD' },
+  { id: 'p5', name: 'Taxes 2026', color: '#C0392B' },
+  { id: 'p6', name: 'Art pipeline', color: '#16A085' },
+  { id: 'p7', name: 'Reading list', color: '#7F8C8D' },
+];
+const LABEL_NAMES = ['UI','Sync','Search','Mobile','Desktop','Docs','Refactor','Perf','A11y','Drag','Focus','Unsorted','GitHub','Gist','Offline','PWA','Settings','Colours','Onboarding','Due dates','Priority','Combat','Inventory','Dialogue','Save system','Audio','Shaders','Levels','Boss','Pixel art','Packing','Utilities','Bank','Landlord','Paperwork','Receipts','Pension','Deadlines','Blender','Rigging','Textures','Animation','Export','Fiction','Non-fiction','Papers','Hosting','Domain','Blog','Contact form','Case studies','Testing','CI','Release','Bugbash'];
+const LABELS = LABEL_NAMES.map((n, i) => ({ id: 'l' + i, name: n, color: 'hsl(' + (i * 47 % 360) + ' 45% 50%)' }));
+// The real kinds, from TASK_KINDS in js/state.js.
+const KINDS = [
+  { key: 'reminder', label: 'Reminder', desc: 'Something to schedule or remember', color: '#1d76db' },
+  { key: 'build', label: 'Build', desc: 'Something new to make', color: '#0e8a16' },
+  { key: 'fix', label: 'Fix', desc: 'Something broken, or an existing issue', color: '#d93f0b' },
+];
+const TASKS = [
+  { id: 't1', p: 'p1', title: 'Sort flow: search projects and labels' },
+  { id: 't2', p: 'p1', title: 'Sort flow: subtasks and dependencies' },
+  { id: 't4', p: 'p2', title: 'Boss fight: phase two' },
+  { id: 't6', p: 'p3', title: 'Book the van' },
+  { id: 't7', p: 'p3', title: 'Pack the kitchen' },
+  { id: 't8', p: 'p3', title: 'Give notice to the landlord' },
+  { id: 't9', p: 'p5', title: 'Collect receipts' },
+  { id: 't10', p: 'p4', title: 'Write the Focus Deck case study' },
+];
+const proj = (id) => PROJECTS.find((p) => p.id === id);
+const task = (id) => TASKS.find((t) => t.id === id);
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+const dot = (c) => '<span class="proj-dot" style="--dot:' + c + '"></span>';
+
+// The item being sorted: a captured thought.
+const ui = {
+  step: 1,
+  title: 'Move the bank account to the new address', notes: '', notesOpen: false,
+  projectId: null, kind: null, selected: [], find: '',
+  parent: null, subtasks: [], waitsOn: [], holdsUp: [],
+  picking: null, pickQuery: '',
+};
+const SHOWN = 8;
+const hit = (name) => !ui.find || name.toLowerCase().includes(ui.find.toLowerCase());
+
+// The step bar: each finished step shows what was chosen, so the earlier answers stay in view
+// without their pickers. Tapping a finished step goes back to it.
+function stepBar() {
+  const p = proj(ui.projectId);
+  const labels = ui.selected.map((id) => LABELS.find((l) => l.id === id).name);
+  const kind = ui.kind ? KINDS.find((k) => k.key === ui.kind).label : null;
+  const links = [ui.parent].filter(Boolean).length + ui.subtasks.length + ui.waitsOn.length + ui.holdsUp.length;
+  const seg = (n, name, summary) => {
+    const cls = n === ui.step ? 'now' : n < ui.step ? 'done' : '';
+    return '<button type="button" class="step ' + cls + '" data-act="go" data-step="' + n + '"' + (n > ui.step ? ' disabled' : '') + '><b>' + n + ' · ' + name + '</b><small>' + (n <= ui.step ? esc(summary || '') : '') + '</small></button>';
+  };
+  return '<div class="steps">'
+    + seg(1, 'Project', p ? p.name : '')
+    + seg(2, 'Labels', [kind].concat(labels).filter(Boolean).join(', '))
+    + seg(3, 'Links', links ? links + ' linked' : 'Optional')
+    + '</div>';
+}
+
+function stepProject() {
+  const list = PROJECTS.filter((p) => hit(p.name));
+  return '<input class="sort-find" data-in="find" value="' + esc(ui.find) + '" placeholder="Find a project…" aria-label="Find a project">'
+    + (list.length ? '<div class="filter-pills sort-labels">' + list.map((p) =>
+      '<button type="button" class="filter-pill' + (p.id === ui.projectId ? ' chosen' : '') + '" data-act="pick-project" data-id="' + p.id + '">' + dot(p.color) + esc(p.name) + '</button>').join('') + '</div>'
+      : '<p class="muted small">No project matches “' + esc(ui.find) + '”.</p>');
+}
+
+function stepLabels() {
+  const kinds = KINDS.map((k) => '<button type="button" class="energy-btn' + (ui.kind === k.key ? ' selected' : '') + '" data-act="kind" data-id="' + k.key + '" style="--chip-color:' + k.color + '"><span class="energy-label">' + k.label + '</span><span class="energy-desc">' + k.desc + '</span></button>').join('');
+  const hits = LABELS.filter((l) => hit(l.name));
+  const shown = ui.find ? hits : hits.filter((l, i) => i < SHOWN || ui.selected.includes(l.id));
+  const more = !ui.find && hits.length > shown.length ? '<button type="button" class="filter-pill focus-more-pill">+' + (hits.length - shown.length) + ' more</button>' : '';
+  const create = ui.find && !LABELS.some((l) => l.name.toLowerCase() === ui.find.toLowerCase())
+    ? '<button type="button" class="filter-pill focus-more-pill">+ New label “' + esc(ui.find) + '”</button>' : '';
+  const pills = shown.map((l) => {
+    const on = ui.selected.includes(l.id);
+    return '<button type="button" class="filter-pill tint-pill' + (on ? ' active' : '') + '" data-act="toggle-label" data-id="' + l.id + '" style="--chip-color:' + l.color + '">' + esc(l.name) + '</button>';
+  }).join('');
+  return '<div class="energy-grid focus-grid sort-kinds">' + kinds + '</div>'
+    + '<input class="sort-find" data-in="find" value="' + esc(ui.find) + '" placeholder="Find a label, or type a new one…" aria-label="Find a label">'
+    + '<div class="filter-pills sort-labels">' + pills + more + create + '</div>';
+}
+
+function linkChip(id, field) {
+  const t = task(id), p = proj(t.p);
+  return '<span class="chip proj-chip link-chip">' + dot(p.color) + esc(t.title) + (t.p !== ui.projectId ? ' <span class="muted">· ' + esc(p.name) + '</span>' : '')
+    + '<button type="button" class="mini-x" data-act="unlink" data-field="' + field + '" data-id="' + id + '" aria-label="Remove">×</button></span>';
+}
+
+// "Part of" and "Subtasks" search this project only; "Waits on" and "Holds up" search every project.
+function taskSearch(field) {
+  const q = ui.pickQuery.toLowerCase();
+  const inProject = field === 'parent' || field === 'subtasks';
+  const taken = new Set([ui.parent].concat(ui.subtasks, ui.waitsOn, ui.holdsUp));
+  const hits = TASKS.filter((t) => (!inProject || t.p === ui.projectId) && !taken.has(t.id))
+    .filter((t) => !q || t.title.toLowerCase().includes(q) || proj(t.p).name.toLowerCase().includes(q)).slice(0, 5);
+  const where = inProject ? 'in ' + proj(ui.projectId).name : 'in any project';
+  return '<div class="task-search"><input type="text" data-in="pick" value="' + esc(ui.pickQuery) + '" placeholder="Find a task ' + where + '…" autofocus>'
+    + (hits.length ? hits.map((t) => '<button type="button" class="task-hit" data-act="link" data-field="' + field + '" data-id="' + t.id + '">' + dot(proj(t.p).color) + esc(t.title) + '<span class="muted small">' + esc(proj(t.p).name) + '</span></button>').join('')
+      : '<div class="empty-hit">No task matches.</div>')
+    + (field === 'subtasks' && ui.pickQuery ? '<button type="button" class="task-hit" data-act="new-sub"><b>+ New subtask</b> “' + esc(ui.pickQuery) + '”</button>' : '')
+    + '</div>';
+}
+
+function linkRow(label, field) {
+  const ids = field === 'parent' ? (ui.parent ? [ui.parent] : []) : ui[field];
+  const canAdd = field !== 'parent' || !ui.parent;
+  return '<div class="link-row"><span class="muted small">' + label + '</span>'
+    + ids.map((id) => linkChip(id, field)).join('')
+    + (canAdd ? '<button type="button" class="link-btn small" data-act="open-pick" data-field="' + field + '">+ Add</button>' : '')
+    + '</div>' + (ui.picking === field ? taskSearch(field) : '');
+}
+
+function stepLinks() {
+  return '<div class="link-group"><h4>Inside ' + esc(proj(ui.projectId).name) + '</h4>'
+    + linkRow('Part of', 'parent') + linkRow('Subtasks', 'subtasks') + '</div>'
+    + '<div class="link-group"><h4>Across all projects</h4>'
+    + linkRow('Waits on', 'waitsOn') + linkRow('Holds up', 'holdsUp') + '</div>';
+}
+
+const QUESTIONS = { 1: 'Which project?', 2: 'What kind of task, and which labels?', 3: 'Does it connect to other tasks?' };
+
+function render() {
+  const head = '<div class="sort-head"><span class="muted small">1 of 12</span><span class="chip">Thought · 2h ago</span>'
+    + '<span class="unsorted-delete"></span>'
+    + '<button type="button" class="btn-text">Done ✓</button>'
+    + '<button type="button" class="btn-text">Delete</button></div>';
+  const title = '<input class="sort-title-input" data-in="title" value="' + esc(ui.title) + '" aria-label="Title">'
+    + (ui.notesOpen || ui.notes
+      ? '<textarea class="sort-notes" data-in="notes" placeholder="Notes: anything this task needs to remember…">' + esc(ui.notes) + '</textarea>'
+      : '<div class="notes-link"><button type="button" class="link-btn small" data-act="notes">+ Add notes</button></div>');
+  const body = ui.step === 1 ? stepProject() : ui.step === 2 ? stepLabels() : stepLinks();
+  const canNext = ui.step === 1 ? !!ui.projectId : true;
+  const foot = '<div class="sort-foot">'
+    + (ui.step > 1 ? '<button type="button" class="btn ghost" data-act="back">← Back</button>' : '')
+    + '<span class="spacer"></span>'
+    + '<button type="button" class="btn-text">Skip for now</button>'
+    + (ui.step < 3
+      ? '<button type="button" class="btn primary" data-act="next"' + (canNext ? '' : ' disabled style="opacity:.45"') + '>Next →</button>'
+      : '<button type="button" class="btn primary">File →</button>')
+    + '</div>';
+  document.getElementById('app').innerHTML = '<section class="card inbox-card"><button type="button" class="section-toggle">Unsorted <span class="count">12</span><span class="chev">−</span></button><div class="unsorted-body">'
+    + head + title + stepBar()
+    + '<p class="muted small sort-q">' + QUESTIONS[ui.step] + '</p>' + body + foot + '</div></section>'
+    + '<p class="proto-note">Prototype: nothing is saved. Pick a project, press Next, and so on. Tap a finished step in the bar to go back to it.</p>';
+  const a = document.querySelector('[autofocus]'); if (a) { a.focus(); a.setSelectionRange(a.value.length, a.value.length); }
+}
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const id = b.dataset.id, f = b.dataset.field;
+  switch (b.dataset.act) {
+    case 'pick-project': ui.projectId = id; ui.parent = null; ui.subtasks = []; break;
+    case 'kind': ui.kind = ui.kind === id ? null : id; break;
+    case 'toggle-label': ui.selected = ui.selected.includes(id) ? ui.selected.filter((x) => x !== id) : ui.selected.concat(id); break;
+    case 'next': ui.step++; ui.find = ''; ui.picking = null; break;
+    case 'back': ui.step--; ui.find = ''; ui.picking = null; break;
+    case 'go': ui.step = +b.dataset.step; ui.find = ''; ui.picking = null; break;
+    case 'notes': ui.notesOpen = true; break;
+    case 'open-pick': ui.picking = ui.picking === f ? null : f; ui.pickQuery = ''; break;
+    case 'link': if (f === 'parent') ui.parent = id; else ui[f] = ui[f].concat(id); ui.picking = null; break;
+    case 'unlink': if (f === 'parent') ui.parent = null; else ui[f] = ui[f].filter((x) => x !== id); break;
+    case 'new-sub': { const nid = 'n' + TASKS.length; TASKS.push({ id: nid, p: ui.projectId, title: ui.pickQuery }); ui.subtasks = ui.subtasks.concat(nid); ui.picking = null; break; }
+    default: return;
+  }
+  render();
+});
+document.addEventListener('input', (e) => {
+  const k = e.target.dataset.in; if (!k) return;
+  if (k === 'pick') { ui.pickQuery = e.target.value; render(); return; }
+  ui[k] = e.target.value;
+  if (k === 'find') { render(); const f = document.querySelector('.sort-find'); f.focus(); f.setSelectionRange(f.value.length, f.value.length); }
+});
+
+// Preset states for the proposal's screenshots: #step1, #step2, #step3, #focus.
+const preset = location.hash.slice(1);
+if (preset === 'step1') { ui.find = 'ho'; ui.projectId = 'p3'; }
+if (preset === 'step2') { ui.step = 2; ui.projectId = 'p3'; ui.kind = 'reminder'; ui.find = 'pa'; ui.selected = ['l34']; }
+if (preset === 'step3') { ui.step = 3; ui.projectId = 'p3'; ui.kind = 'reminder'; ui.selected = ['l32', 'l34']; ui.subtasks = ['t7']; ui.waitsOn = ['t8']; ui.picking = 'holdsUp'; ui.pickQuery = 'case'; }
+if (preset === 'focus') {
+  // Calmer than the first draft: one reason chip, and for a parent task one "next" line instead of a list.
+  document.getElementById('app').innerHTML =
+    '<section class="card focus-card focus-active"><div class="focus-tags">'
+    + '<button type="button" class="chip proj-chip">' + dot('#2E8B57') + 'House move ↓</button>'
+    + '<span class="chip clear-chip">Unblocks 2 tasks</span></div>'
+    + '<h2 class="focus-title">Give notice to the landlord</h2>'
+    + '<div class="focus-actions"><button type="button" class="btn primary">Done ✓</button><button type="button" class="btn ghost">Not this one</button><button type="button" class="btn ghost">Clear</button></div></section>'
+    + '<p class="proto-note" style="margin-top:22px">When the pick has subtasks, one line names the next one:</p>'
+    + '<section class="card focus-card focus-active"><div class="focus-tags">'
+    + '<button type="button" class="chip proj-chip">' + dot('#2E8B57') + 'House move ↓</button></div>'
+    + '<h2 class="focus-title">Move the bank account to the new address</h2>'
+    + '<p class="next-line">Next step: <b>Pack the kitchen</b> · 2 subtasks left</p>'
+    + '<div class="focus-actions"><button type="button" class="btn primary">Start it</button><button type="button" class="btn ghost">Not this one</button><button type="button" class="btn ghost">Clear</button></div></section>';
+} else render();
+</script>
+</body>
+</html>

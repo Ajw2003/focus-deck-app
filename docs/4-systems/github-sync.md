@@ -268,6 +268,30 @@ naming it in the message. The network half (`linkProjectToRepoOnGithub`) pins th
 linking never creates a second project for the same repo — this was already true of the sync path
 and PR 7 added a regression test for it (`js/github-sync.test.mjs`).
 
+## Issue ids and tie counts (#194)
+
+`mapIssue` (`js/github.js`) keeps the issue's internal `id` (what the sub-issue and blocked-by writes
+take, unlike the issue `number`), `subIssueCount` (`sub_issues_summary.total`) and `blockedByCount`
+(`issue_dependencies_summary.total_blocked_by`), both 0 when absent.
+
+A linked task stores `task.issueId` wherever it gets its issue: repo-sync import and refresh (so
+existing linked tasks fill it in on their next sync), the per-task refresh of linked tasks in other
+repos, `linkTaskToIssue`, `createGithubIssueFromTask`, and `transferTaskIssue` (a transfer gives the
+issue a new id, read as `databaseId` from the GraphQL mutation). `unlinkTask` clears it.
+
+Helpers in `js/github.js`: `listSubIssues`, `addSubIssue`, `removeSubIssue`, `getParentIssue` (null
+on 404), `listBlockedBy`, `addBlockedBy`, `removeBlockedBy`. Each result is `mapIssue` plus
+`repoFullName` from `repository_url`, so a tie into another repo is usable. Lists read one page of
+100. Tests: `js/github-ties.test.mjs`.
+
+## Reading ties (#196)
+
+After each repo's issues are upserted, `readTiesForRepo` (`app/js/github-sync.js`) reads sub-issues and
+blocked-by for open issues whose counts are above zero and sets `parentId` / `waitsOn` on the linked
+tasks. A same-repo sub-issue with no task is imported (same helper as any issue, `importIssueAsTask`)
+into the parent's folder. Per-issue errors go to `reportSyncError` and the sync carries on. Details:
+`docs/4-systems/task-links.md#github`.
+
 ## Invariants
 
 - A category first seen as a GitHub label takes that label's colour. From then on the

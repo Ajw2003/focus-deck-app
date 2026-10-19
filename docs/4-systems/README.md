@@ -17,6 +17,8 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
   step under the date field, and the Settings defaults (`js/due-stage.js`).
 - [wallets.md](./wallets.md) — the focus picker's folder and index-card wallets, the "Choosing a card"
   setting (`js/wallet.js`, `js/render.js`, `js/app.js`).
+- [task-links.md](./task-links.md) — subtasks, "waits on" links, task notes, the three-step Sort
+  screen that sets them, and the blocker-first focus pick (`js/task-links.js`, `js/mutations.js`).
 - [styling.md](./styling.md) — the stylesheet and its contract with the markup that references it
   (`css/app.css`, `js/render.js`), plus the guardrails against it silently breaking
   (`js/style-contract.test.mjs`, `scripts/guard-file-churn.mjs`).

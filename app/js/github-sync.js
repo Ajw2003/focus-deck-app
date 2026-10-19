@@ -2,11 +2,12 @@
 import { state, uid, nextHue, findTaskWithProject, cssColorToHex, PRIORITY, PRIORITY_ORDER } from './state.js';
 import {
   validateToken, listRepos, listYourRepos, createRepo, listIssues, getIssue, createIssue, ghFetch,
-  setIssueState, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists, transferIssue,
+  setIssueState, listSubIssues, listBlockedBy, addSubIssue, removeSubIssue, addBlockedBy, removeBlockedBy, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists, transferIssue,
 } from './github.js';
 import { persist } from './sync.js';
 import { ensureSortOrder } from './project-filter.js';
 import { ensureTaskSortOrder } from './task-move.js';
+import { canSetParent, canWaitOn } from './task-links.js';
 
 function normLabel(s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); }
 
@@ -126,6 +127,29 @@ export async function pushCategoriesToIssue(task, oldCategoryIds) {
   }
 }
 
+// Mirrors a task's changed ties onto GitHub (#195): parent -> sub-issue, waitsOn -> blocked by. Only
+// between linked tasks; best-effort, errors in the toast, never rolled back.
+// before = { parentId, waitsOn } as they were. See docs/4-systems/task-links.md#github
+export async function pushTiesToIssue(task, before) {
+  if (!isLinked(task) || task.issueId == null) return;
+  const [owner, name] = task.repoFullName.split('/');
+  const other = (id) => { const f = id && findTaskWithProject(id); const t = f && f.task; return t && isLinked(t) && t.issueId != null ? t : null; };
+  const ids = (a) => a || [];
+  const jobs = [];
+  if ((before.parentId || null) !== (task.parentId || null)) {
+    const oldP = other(before.parentId), newP = other(task.parentId);
+    if (oldP && oldP.repoFullName === task.repoFullName) jobs.push(() => removeSubIssue(owner, name, oldP.issueNumber, task.issueId));
+    if (newP && newP.repoFullName === task.repoFullName) jobs.push(() => addSubIssue(owner, name, newP.issueNumber, task.issueId, true));
+  }
+  ids(task.waitsOn).filter((id) => !ids(before.waitsOn).includes(id)).map(other).filter(Boolean)
+    .forEach((t) => jobs.push(() => addBlockedBy(owner, name, task.issueNumber, t.issueId)));
+  ids(before.waitsOn).filter((id) => !ids(task.waitsOn).includes(id)).map(other).filter(Boolean)
+    .forEach((t) => jobs.push(() => removeBlockedBy(owner, name, task.issueNumber, t.issueId)));
+  for (const job of jobs) {
+    try { await job(); } catch (e) { reportSyncError('Couldn’t update the linked issue’s ties: ' + e.message); }
+  }
+}
+
 // Swaps the issue's priority label: removes the one it had (whatever its exact name) and adds the
 // canonical "priority: <level>" label, or none. See docs/4-systems/github-sync.md#priority--priorityfromlabels-pushprioritytoissue-jsgithub-syncjs
 export async function pushPriorityToIssue(task) {
@@ -233,6 +257,7 @@ export async function linkTaskToIssue(taskId, input, ui) {
     task.source = 'github';
     task.repoFullName = repoFullName;
     task.issueNumber = iss.number;
+    task.issueId = iss.id;
     task.url = iss.html_url;
     task.title = iss.title;
     task.status = iss.state === 'closed' ? 'done' : statusFromLabels(iss.labels);
@@ -271,6 +296,7 @@ export function unlinkTask(taskId) {
   task.source = 'manual';
   delete task.repoFullName;
   delete task.issueNumber;
+  delete task.issueId;
   delete task.url;
   delete task.priorityLabel;
   persist();
@@ -301,6 +327,7 @@ export async function transferTaskIssue(taskId, targetRepoFullName, ui, projectN
     const moved = await transferIssue(owner, name, number, tOwner, tName);
     task.repoFullName = targetRepoFullName;
     task.issueNumber = moved.number;
+    task.issueId = moved.id;
     task.url = moved.url;
     task.updatedAt = Date.now();
     ui.syncing = false;
@@ -363,6 +390,7 @@ export async function createGithubIssueFromTask(taskId, repoInput, ui) {
     task.source = 'github';
     task.repoFullName = fullName;
     task.issueNumber = iss.number;
+    task.issueId = iss.id;
     task.url = iss.html_url;
     ui.syncing = false;
     persist();
@@ -529,6 +557,7 @@ export function upsertRepoProject(repo, issues, ui) {
     const existing = holder && holder.tasks.find((t) => isThisRepos(t) && t.issueNumber === iss.number);
     if (existing) {
       existing.title = iss.title;
+      existing.issueId = iss.id;
       existing.url = repo.html_url + '/issues/' + iss.number;
       existing.repoFullName = repo.full_name;
       // it was marked done locally by an earlier sync (issue closed) but the issue is back in
@@ -537,13 +566,63 @@ export function upsertRepoProject(repo, issues, ui) {
       applyLabels(existing, iss.labels, iss.labelColors);
       dropStaleCompletedLabel(existing, iss.labels);
     } else if (project && iss.labels && iss.labels.length > 0) {
-      const task = { id: uid('t'), title: iss.title, status: statusFromLabels(iss.labels), deadline: null, categoryIds: [], source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
-      applyLabels(task, iss.labels, iss.labelColors);
-      project.tasks.push(task);
-      ensureTaskSortOrder([project]); // a task new from GitHub goes to the end of its group
+      importIssueAsTask(repo, iss, project);
     }
   });
   return newlyClosed;
+}
+
+function importIssueAsTask(repo, iss, project) {
+  const task = { id: uid('t'), title: iss.title, status: statusFromLabels(iss.labels), deadline: null, categoryIds: [], source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, issueId: iss.id, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
+  applyLabels(task, iss.labels, iss.labelColors);
+  project.tasks.push(task);
+  ensureTaskSortOrder([project]); // a task new from GitHub goes to the end of its group
+  return task;
+}
+
+// Reading ties (#196): GitHub wins for issue-linked tasks. Writes fields directly (never through
+// pushTiesToIssue, so a read is not echoed back). Returns the number of failed issues.
+// See docs/4-systems/github-sync.md#reading-ties-196
+export async function readTiesForRepo(repo, issues) {
+  const [owner, name] = repo.full_name.split('/');
+  let failed = 0;
+  const holderOf = (t) => state.projects.find((p) => p.tasks.includes(t));
+  for (const iss of issues) {
+    if (state.excludedIssues.includes(repo.full_name + '#' + iss.number)) continue;
+    const task = findTaskByIssue(repo.full_name, iss.number);
+    if (!task || task.status === 'done') continue;
+    try {
+      const subs = iss.subIssueCount > 0 ? await listSubIssues(owner, name, iss.number) : [];
+      const blockers = iss.blockedByCount > 0 ? await listBlockedBy(owner, name, iss.number) : [];
+      const wanted = []; // linked tasks this task waits on: its blockers and its other-repo sub-issues
+      const childIds = new Set();
+      for (const sub of subs) {
+        if (sub.repoFullName === repo.full_name) {
+          if (state.excludedIssues.includes(sub.repoFullName + '#' + sub.number)) continue;
+          let child = findTaskByIssue(sub.repoFullName, sub.number);
+          if (!child) child = importIssueAsTask(repo, { ...sub, labels: sub.labels || [] }, holderOf(task));
+          if (canSetParent(state.projects, child.id, task.id)) { child.parentId = task.id; childIds.add(child.id); }
+        } else {
+          const other = findTaskByIssue(sub.repoFullName, sub.number);
+          if (other) wanted.push(other.id);
+        }
+      }
+      blockers.forEach((b) => { const other = findTaskByIssue(b.repoFullName, b.number); if (other) wanted.push(other.id); });
+      // a sub-issue removed on GitHub: clear the tie, only between two linked tasks
+      state.projects.forEach((p) => p.tasks.forEach((c) => {
+        if (c.parentId === task.id && c.issueId && !childIds.has(c.id)) delete c.parentId;
+      }));
+      const linked = (id) => { const o = state.projects.flatMap((p) => p.tasks).find((x) => x.id === id); return !o || !!o.issueId; };
+      const local = (task.waitsOn || []).filter((id) => !linked(id)); // local-only ties stay
+      task.waitsOn = local;
+      wanted.forEach((id) => { if (!task.waitsOn.includes(id) && canWaitOn(state.projects, task.id, id)) task.waitsOn.push(id); });
+      if (!task.waitsOn.length) delete task.waitsOn;
+    } catch (e) {
+      failed++;
+      reportSyncError('Couldn’t read the ties of ' + repo.full_name + '#' + iss.number + ': ' + e.message);
+    }
+  }
+  return failed;
 }
 
 export async function syncGithub(ui) {
@@ -575,11 +654,13 @@ export async function syncGithub(ui) {
     const candidates = Object.values(byName).filter((r) => !state.excludedRepos.includes(r.full_name)).slice(0, 20);
     const skipped = [];
     const closedNow = [];
+    let tieFailures = 0;
     for (const repo of candidates) {
       try {
         const [owner, name] = repo.full_name.split('/');
         const issues = await listIssues(owner, name);
         closedNow.push(...upsertRepoProject(repo, issues, ui));
+        tieFailures += await readTiesForRepo(repo, issues);
       } catch (e) {
         skipped.push(repo.name);
       }
@@ -597,6 +678,7 @@ export async function syncGithub(ui) {
         const [owner, name] = t.repoFullName.split('/');
         const iss = await getIssue(owner, name, t.issueNumber);
         t.title = iss.title;
+        t.issueId = iss.id;
         t.url = iss.html_url;
         const wasDone = t.status === 'done';
         if (iss.state === 'closed' && !wasDone) {
@@ -619,7 +701,7 @@ export async function syncGithub(ui) {
     await refreshClosedTaskLabels(closedNow);
     state.githubSync = { user: username, lastSyncedAt: Date.now() };
     ui.syncing = false;
-    ui.syncError = skipped.length ? ('Synced, but couldn’t reach: ' + skipped.join(', ') + '.') : null;
+    ui.syncError = skipped.length ? ('Synced, but couldn’t reach: ' + skipped.join(', ') + '.') : (tieFailures ? ui.syncError : null);
     persist();
   } catch (err) {
     ui.syncing = false;

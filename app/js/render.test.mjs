@@ -154,6 +154,22 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
 
 // The in-tray card itself is tested in in-tray.test.mjs.
 
+// the focus note says what the pick frees, or the next subtask (#191)
+{
+  const projects = [{ id: 'pZ', name: 'H', tasks: [
+    { id: 'u', title: 'Blocker', status: 'next' }, { id: 'w1', title: 'W1', status: 'next', waitsOn: ['u'] }, { id: 'w2', title: 'W2', status: 'next', waitsOn: ['u'] },
+    { id: 'par', title: 'Parent', status: 'next' }, { id: 's1', title: 'Order <it>', status: 'next', parentId: 'par' }, { id: 's2', title: 'S2', status: 'next', parentId: 'par' },
+  ] }];
+  const find = (id) => ({ task: projects[0].tasks.find((t) => t.id === id), project: projects[0] });
+  const draw = (focus) => renderFocus({ focus, categories: [], projects }, find, { focusFilter: {} });
+  const a = draw({ taskId: 'u', pool: ['u', 'par'] });
+  assert.ok(a.includes('<b class="unblocks">Unblocks 2 tasks</b>') && !a.includes('Random pick'), 'Unblocks N replaces Random pick');
+  assert.ok(draw({ taskId: 's1', pool: ['s1', 'u'] }).includes('Unblocks 1 task</b>'), 'singular for one');
+  const b = draw({ taskId: 'par', pool: ['par', 'u'] });
+  assert.ok(b.includes('<p class="next-sub">Next step: <b>Order &lt;it&gt;</b> · 2 subtasks left') && b.includes('data-action="focus-subtask" data-task="s1"'), 'next step line with a Start it button');
+  assert.ok(draw({ taskId: 'w1', pool: ['w1'], allBlocked: true }).includes('Everything here is waiting on something'), 'all-blocked is said in words');
+}
+
 // a picked task's project chip jumps to that project
 {
   const st = { focus: { taskId: 'x1', pool: ['x1'] }, categories: [], projects: [{ id: 'pZ', name: 'PlunderSpell', color: 'red', tasks: [{ id: 'x1', title: 'Pick me', status: 'next', categoryIds: [] }] }] };
@@ -470,4 +486,28 @@ assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds:
   assert.ok(!b.includes('data-action="focus-doing"') && b.includes('focus-doing-mark') && b.includes('In progress'), 'a doing task shows the marker, not a button');
   const c = renderFocus({ focus: null, categories: [], projects: [] }, () => null, { focusFilter: {} });
   assert.ok(!c.includes('focus-doing'), 'no focus, no Mark in progress');
+}
+
+// #193: ties on Project rows
+{
+  const proj = (ties) => ({ id: 'p1', name: 'P', color: '#3E8E5E', tasks: [
+    { id: 'a', title: 'Parent', status: 'next', sortOrder: 1, categoryIds: [] },
+    { id: 'z', title: 'Zed', status: 'next', sortOrder: 2, categoryIds: [] },
+    { id: 'b', title: 'Child <i>', status: 'next', sortOrder: 0, categoryIds: [], ...(ties ? { parentId: 'a' } : {}) },
+    { id: 'c', title: 'Waiter', status: 'next', sortOrder: 3, categoryIds: [], ...(ties ? { waitsOn: ['z'] } : {}) },
+  ] });
+  const card = (pr) => renderProjectCard(pr, { editingTask: null, doneOpen: {}, projectCollapsed: {}, editingProject: {}, addingTask: {}, pendingRemove: {} }, [], [], false, [pr]);
+  const rowIds = (h) => [...h.matchAll(/class="task-row[^"]*" data-task="(\w+)"/g)].map((m) => m[1]);
+  const h = card(proj(true));
+  assert.deepStrictEqual(rowIds(h), ['a', 'b', 'z', 'c'], 'the subtask sits straight after its parent; others keep sort order');
+  assert.ok(/class="task-row has-grip is-waiting is-sub" data-task="b"|class="task-row has-grip is-sub" data-task="b"/.test(h) && !/is-sub" data-task="a"/.test(h), 'is-sub on the child only');
+  assert.ok(h.includes('1 subtask \u00b7 0 done') && h.includes('waits on <button') && h.includes('holds up 1'), 'tie lines');
+  assert.ok(!h.includes('\u21b3 in'), 'Projects never repeats "in <parent>"');
+  assert.strictEqual((h.match(/task-row has-grip is-waiting/g) || []).length, 2, 'parent and waiter are soft');
+  assert.ok(h.includes('Child &lt;i&gt;'), 'escaped');
+  const plain = card(proj(false));
+  assert.ok(!plain.includes('tie-line') && !plain.includes('is-waiting') && !plain.includes('is-sub'), 'no ties, nothing added');
+  assert.deepStrictEqual(rowIds(plain), ['b', 'a', 'z', 'c'], 'no ties: plain sort order');
+  const q = { id: 'q', title: 'Q', status: 'next' };
+  assert.strictEqual(renderTaskRow(q, p, [], ui), renderTaskRow(q, p, [], ui, [{ id: 'p1', tasks: [q] }]), 'a tie-less row is byte-identical');
 }

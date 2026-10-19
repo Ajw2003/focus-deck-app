@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Unsorted Today</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../../../css/app.css"></head>
+<body><div class="wrap" style="padding-top:20px"><div id="app"></div></div>
+<script type="module">
+// The real, unchanged renderInbox from js/render.js, fed the prototype's sample data, so the
+// proposal's "before" picture is the app as it is today. Nothing here is saved.
+import { renderInbox } from '../../../js/render.js';
+const names = ['UI','Sync','Search','Mobile','Desktop','Docs','Refactor','Perf','A11y','Drag','Focus','Unsorted','GitHub','Gist','Offline','PWA','Settings','Colours','Onboarding','Due dates','Priority','Combat','Inventory','Dialogue','Save system','Audio','Shaders','Levels','Boss','Pixel art','Packing','Utilities','Bank','Landlord','Paperwork','Receipts','Pension','Deadlines','Blender','Rigging','Textures','Animation','Export','Fiction','Non-fiction','Papers','Hosting','Domain','Blog','Contact form','Case studies','Testing','CI','Release','Bugbash'];
+const st = {
+  inbox: [{ id: 'i1', text: 'Move the bank account to the new address', createdAt: Date.now() - 2 * 3600e3 }],
+  projects: ['Focus Deck','Plunderspell','House move','Portfolio site','Taxes 2026','Art pipeline','Reading list'].map((n, i) => ({ id: 'p' + i, name: n, color: ['#3D5A80','#B5651D','#2E8B57','#8E44AD','#C0392B','#16A085','#7F8C8D'][i], tasks: [] })),
+  categories: [{ id: 'cat_bug', name: 'Bug', color: 'hsl(4 70% 55%)' }, { id: 'cat_feature', name: 'Feature', color: 'hsl(150 55% 40%)' }, { id: 'cat_chore', name: 'Chore', color: 'hsl(210 15% 55%)' }]
+    .concat(names.map((n, i) => ({ id: 'l' + i, name: n, color: 'hsl(' + (i * 47 % 360) + ' 45% 50%)' }))),
+};
+const step = location.hash.slice(1);
+const u = { skipped: [], selected: [], newLabels: '', projectId: step === 'labels' ? 'p2' : null, showAllLabels: false, showAllProjects: false };
+document.getElementById('app').innerHTML = renderInbox(st, { inboxOpen: true, unsorted: u });
+</script></body></html>

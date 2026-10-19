@@ -77,7 +77,10 @@ export async function listIssues(owner, repo) {
 
 function mapIssue(i) {
   return {
+    id: i.id,
     number: i.number,
+    subIssueCount: i.sub_issues_summary?.total || 0,
+    blockedByCount: i.issue_dependencies_summary?.total_blocked_by || 0,
     title: i.title,
     labels: i.labels.map((l) => (typeof l === 'string' ? l : l.name)),
     // name -> GitHub's hex colour (no #), so a label first seen on GitHub keeps its colour here
@@ -154,7 +157,7 @@ export async function transferIssue(owner, repo, number, targetOwner, targetRepo
   const result = await ghFetch('/graphql', {
     method: 'POST',
     body: JSON.stringify({
-      query: 'mutation TransferIssue($issueId: ID!, $repositoryId: ID!) { transferIssue(input: {issueId: $issueId, repositoryId: $repositoryId}) { issue { number url } } }',
+      query: 'mutation TransferIssue($issueId: ID!, $repositoryId: ID!) { transferIssue(input: {issueId: $issueId, repositoryId: $repositoryId}) { issue { number url databaseId } } }',
       variables: { issueId: issue.node_id, repositoryId: target.node_id },
     }),
   });
@@ -165,5 +168,19 @@ export async function transferIssue(owner, repo, number, targetOwner, targetRepo
   }
   const moved = result && result.data && result.data.transferIssue && result.data.transferIssue.issue;
   if (!moved) throw new GithubError('GitHub did not say where the issue went.', 422);
-  return { number: moved.number, url: moved.url };
+  return { number: moved.number, url: moved.url, id: moved.databaseId };
 }
+
+// Ties (#194): sub-issues and blocked-by. Results carry repoFullName (from repository_url) because
+// a tie can point at an issue in another repo. Writes take the other issue's internal `id`.
+const tieIssue = (i) => ({ ...mapIssue(i), repoFullName: String(i.repository_url || '').split('/repos/')[1] || null });
+const issuePath = (o, r, n) => '/repos/' + o + '/' + r + '/issues/' + n;
+const tieList = async (path) => (await ghFetch(path + '?per_page=100')).map(tieIssue);
+
+export const listSubIssues = (o, r, n) => tieList(issuePath(o, r, n) + '/sub_issues');
+export const addSubIssue = async (o, r, n, subIssueId, replaceParent) => tieIssue(await ghFetch(issuePath(o, r, n) + '/sub_issues', { method: 'POST', body: JSON.stringify(replaceParent ? { sub_issue_id: subIssueId, replace_parent: true } : { sub_issue_id: subIssueId }) }));
+export const removeSubIssue = async (o, r, n, subIssueId) => tieIssue(await ghFetch(issuePath(o, r, n) + '/sub_issue', { method: 'DELETE', body: JSON.stringify({ sub_issue_id: subIssueId }) }));
+export const getParentIssue = (o, r, n) => ghFetch(issuePath(o, r, n) + '/parent').then(tieIssue, (e) => { if (e.status === 404) return null; throw e; }); // 404 = no parent
+export const listBlockedBy = (o, r, n) => tieList(issuePath(o, r, n) + '/dependencies/blocked_by');
+export const addBlockedBy = async (o, r, n, issueId) => tieIssue(await ghFetch(issuePath(o, r, n) + '/dependencies/blocked_by', { method: 'POST', body: JSON.stringify({ issue_id: issueId }) }));
+export const removeBlockedBy = async (o, r, n, issueId) => tieIssue(await ghFetch(issuePath(o, r, n) + '/dependencies/blocked_by/' + issueId, { method: 'DELETE' }));

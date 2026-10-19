@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Sort Steps QA Shots</title>
+<style>html,body{margin:0;height:100%;background:#000;} iframe{border:0;width:100%;height:100%;display:block;}</style></head>
+<body><iframe id="f"></iframe>
+<script type="module">
+// QA screenshots of the real built app (not the prototype): seeds sample data, loads app/index.html
+// in a full-size frame, then drives the Sort screen with real input/keyboard/click events to the
+// part named in the hash: #part1, #part2, #part3, #focus. Overwrites Focus Deck data on 127.0.0.1 only.
+import { seedState } from './seed.js';
+const part = location.hash.slice(1) || 'part1';
+localStorage.setItem('focusdeck-onboarding', 'done');
+localStorage.setItem('focusdeck-screen', 'sort');
+localStorage.setItem('focusdeck-state-v1', JSON.stringify(seedState()));
+const f = document.getElementById('f');
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+f.src = '../../../app/index.html';
+await new Promise((r) => f.addEventListener('load', r, { once: true }));
+await wait(400);
+const d = f.contentDocument;
+const q = (s) => d.querySelector(s);
+const type = async (sel, text) => { const el = q(sel); el.focus(); el.value = text; el.dispatchEvent(new Event('input', { bubbles: true })); await wait(150); };
+const enter = async (wallet) => { const t = q('.flip-track[data-wallet="' + wallet + '"]'); t.focus(); t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await wait(250); };
+const click = async (sel) => { q(sel).click(); await wait(200); };
+await type('.sort-find', 'shed'); await enter('tray-folders');
+if (part === 'part2' || part === 'part3') {
+  await click('[data-action="sort-next"]');
+  await type('.sort-find', 'call'); await enter('tray-flags');
+  await type('.sort-find', 'rep'); await enter('tray-flags');
+}
+if (part === 'part3') {
+  await click('[data-action="sort-next"]');
+  d.querySelectorAll('[data-action="tie-open"]')[1].click(); await wait(200);
+  await type('[data-tie-find]', 'Order the timber'); await click('[data-action="tie-new-sub"]');
+  d.querySelectorAll('[data-action="tie-open"]')[2].click(); await wait(200);
+  await type('[data-tie-find]', 'council'); await click('[data-action="tie-add"]');
+  d.querySelectorAll('[data-action="tie-open"]')[3].click(); await wait(200);
+  await type('[data-tie-find]', 'tyre');
+}
+document.title = 'ready ' + part;
+</script></body></html>

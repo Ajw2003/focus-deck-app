@@ -4,6 +4,66 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-18 — QA failed: Sort fixes, task panel, Board takes over from Projects
+
+aj's QA of the sort steps (#188) and ties (#192), in their words: right-click colour on folders and
+flags "should be brought back"; notes "don't let you scroll far enough"; step headers should always
+be clickable when allowed, and when not "it should be named clearly"; the Board "should highlight
+selected task", "a sub task should sit inside of its main task", tapping a task should show its
+subtasks, dependencies, dependants and notes "replacing the current ui"; and "board should replace
+projects" with search, category pills and colour by category. Both features went back to
+`in progress`. Found while prototyping: the notes slid under the tray lip, which overlaps the slip's
+foot by 22px (`app/css/app.css:833`); right-click colour never covered wallet cards
+(`app/js/app.js:664`). Proposal: `docs/plans/board-takes-over.html`, awaiting answers. It reverses
+answer 2A of the ties design (subtasks as separate Board cards).
+
+## 2026-10-18 — Build plan for ties everywhere (#192)
+
+Four steps, each its own issue under #192, built on `AjsAgent/sort-steps` so one pull request carries
+the sort steps (#188) and this: #193 tie lines on the Board and in Projects; #194 keep GitHub issue
+ids and tie counts; #195 write ties to GitHub when they change; #196 read ties from GitHub on sync.
+#195 and #196 both depend on #194; #193 depends only on #188. Detail:
+`docs/4-systems/task-links.md`, sections "Seeing ties on the Board and in Projects" and "GitHub".
+
+## 2026-10-18 — Ties shown everywhere and kept matched with GitHub
+
+The user, before any pull request for the sort steps: "it isn't useable without a way to see sub
+tasks, part of, waits on or holds up in all the board and project views". The GitHub-sync follow-up
+(answer 6A of the sort design) was widened to cover that. Decided on
+`docs/plans/ties-everywhere.html` (answers 1A 2A 3A 4A 5A):
+
+- Projects: subtasks sit directly under their parent, indented (1A).
+- Board: subtasks keep their own cards, each with one quiet tie line (2A).
+- A task still waiting on something has a softer title (3A).
+- Ties sync both ways with GitHub sub-issues and "blocked by"; GitHub wins on a clash at the next
+  sync, as labels do (4A).
+- A GitHub sub-issue that is not yet a task comes in as a subtask (5A).
+
+Set without asking and stated on the page: a sub-issue more than one level deep stays a plain task;
+a sub-issue in another of the user's repositories is read as "waits on"; ties to tasks not on GitHub
+stay local. The sort-steps pull request waits until this is built, so one pull request carries both.
+
+## 2026-10-18 — Sorting in three parts, task ties, blockers first (#180, #181, #182)
+
+The user asked for the three Asap issues together, then: "a bit too busy currently ... I want sort to
+be in steps, first choose project, then categories, then subtasks and dependencies". Decided, with
+the user's answers on `docs/plans/sort-flow-asap.html` (1A 2A 3A 4A 5A 6A):
+
+- Subtasks are real tasks with a `parentId` in the same project, one level deep; "waits on" links
+  (`waitsOn`) cross projects; "holds up" is read from them, never stored (1A).
+- One search box per part replaces the comma-separated "New labels" box, with "+ New flag" (2A).
+- Editing covers the title and a new `notes` field; steps stay in the task editor (3A).
+- The focus pick leaves out blocked tasks and picks the biggest unblocker first (4A).
+- Filing happens on part 3 only; part 3 is optional (5A).
+- Nothing is written to GitHub sub-issues or "blocked by" links yet; that is a follow-up (6A).
+
+Replaced: the first two drafts were drawn on a local `main` 105 commits behind GitHub, so they showed
+the old Unsorted card. The design was redrawn on the current Sort screen (`docs/plans/sort-steps.html`,
+approved as "sort steps fitted 1A") and the build moved to branch `AjsAgent/sort-steps`. The plan's
+issues were reopened as #188 (#189, #190, #191) because the approval gate counts only issues made
+after the design approval; #184 to #187 were closed as replaced at the user's request. Detail:
+`docs/4-systems/task-links.md`, `docs/4-systems/in-tray.md`.
+
 ## 2026-10-11 — No separate topbar on a wide screen; sync and Settings in the rail
 
 The user: "lets get rid of the top piece being separate and move the settings and sync into the side

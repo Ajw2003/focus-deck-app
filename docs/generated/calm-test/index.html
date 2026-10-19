@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calm Test Site</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat+Brush&family=Kalam:wght@400;700&display=swap">
+<link rel="stylesheet" href="../../../app/css/app.css">
+<style>
+/* Test site for "Calm by default" (docs/plans/calm-by-default.html) with the "Board takes over"
+   pieces it includes. Everything here is a clickable prototype on the app's own stylesheet, cards
+   and sample data; nothing is saved and the real app is untouched. */
+
+/* --- Frame: layout A (wide screens only) --- */
+.rail-brand{display:none;}
+@media (min-width:1100px){
+  .rail{top:20px; bottom:20px; left:max(16px, calc((100vw - 1800px) / 2 + 16px)); width:232px; display:flex; flex-direction:column; gap:4px; padding:22px 14px 16px; border-radius:20px;}
+  .rail-brand{display:flex; align-items:center; gap:12px; padding:0 10px 22px; margin-bottom:6px; border-bottom:1px solid var(--line);}
+  .rail-brand h1{margin:0; font-size:1.5rem;}
+  .rail-item{position:relative; flex-direction:row; justify-content:flex-start; gap:14px; padding:12px 14px; font:600 1rem var(--font-ui); border-radius:12px;}
+  .rail-icon{position:static; width:24px; height:24px;}
+  .rail-icon svg{width:24px; height:24px;}
+  .rail-count{left:auto; right:14px; top:50%; transform:translateY(-50%);}
+  .rail-tools{margin-top:auto; flex-direction:row; justify-content:flex-start; gap:10px; padding:12px 10px 0;}
+  .wrap{padding-left:296px;}
+  .topbar .brand{display:none;}
+  .topbar{justify-content:flex-start !important; padding-top:20px;}
+  .topbar .capture-form{margin-left:0 !important; width:640px; max-width:640px;}
+}
+.rail-settings{border:0; background:none; color:var(--ink-soft); display:flex; align-items:center; gap:10px; font:600 .95rem var(--font-ui); padding:8px 4px; border-radius:10px; cursor:pointer;}
+.rail-settings:hover, .rail-settings.is-on{color:var(--ink);}
+.rail-settings svg{width:22px; height:22px;}
+
+/* --- Comfort settings applied to the whole page --- */
+body.no-motion *, body.no-motion *::before, body.no-motion *::after{transition:none !important; animation:none !important;}
+body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, body.calm-colours .calm-card{filter:saturate(.75);} /* softer, same hues: colour still tells things apart */
+
+/* --- Board, calm: list beside the selected task --- */
+.cw{display:grid; grid-template-columns:minmax(420px, 640px) minmax(380px, 1fr); gap:28px; align-items:start;}
+@media (max-width:1099px){ .cw{grid-template-columns:minmax(0,1fr);} .cw-detail{display:none !important;} .cw-detail.phone-open{display:flex !important; position:fixed; inset:0; z-index:60; border-radius:0; max-height:none;} }
+.calm-tools{display:flex; gap:8px; margin:0 0 12px; align-items:center; flex-wrap:wrap;}
+.calm-tools .bm-find{flex:1 1 180px; min-width:0; padding:9px 12px 9px 34px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 10px center / 16px;}
+.calm-tools select{flex:0 0 auto; max-width:220px; padding:8px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:600 var(--text-sm) var(--font-ui);}
+.calm-btn{padding:8px 12px;}
+.calm-btn.on{box-shadow:inset 0 0 0 2px var(--accent);}
+.calm-drawer{padding:14px 16px; margin:0 0 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2);}
+.calm-h{margin:0 0 6px; font-size:var(--text-sm); color:var(--ink-soft); font-weight:700;}
+.bm-row{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px;}
+.bm-chip{border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); border-radius:999px; padding:5px 11px; font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
+.bm-chip.on{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
+.bm-chip .sw{display:inline-block; width:9px; height:9px; border-radius:2px; background:var(--c); margin-right:6px;}
+.calm-tabs{display:flex; gap:22px; border-bottom:1px solid var(--line); margin-bottom:12px;}
+.calm-tab{border:0; background:none; padding:8px 2px; color:var(--ink-soft); font:600 var(--text-body) var(--font-ui); border-bottom:3px solid transparent; margin-bottom:-1px; cursor:pointer;}
+.calm-tab.on{color:var(--ink); border-bottom-color:var(--accent);}
+.calm-tab b{font-weight:600; color:var(--ink-faint); margin-left:4px;}
+.calm-cards{display:flex; flex-direction:column; gap:10px;}
+.calm-card{padding:13px 16px; border-left-width:5px; border-left-color:color-mix(in srgb, var(--proj-color) 70%, var(--surface)); cursor:pointer;} /* --proj-color is the app's card-edge variable; here it holds the category's colour */
+.calm-card.on{box-shadow:0 0 0 3px var(--accent);}
+/* the move button says where the task goes, so "start" is never confused with Focus */
+.calm-move{flex:none; align-self:center; margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border:1.5px solid #9aa3ad; border-radius:var(--r-control); background:#fff; color:#1D2733; font:700 var(--text-sm) var(--font-ui); cursor:pointer; white-space:nowrap;}
+.calm-move:hover, .calm-move:focus-visible{border-color:#2f4f86; color:#2f4f86;}
+.calm-move svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+.cchip{display:inline-flex; align-items:center; gap:6px; padding:1px 9px 1px 7px; border-radius:999px; font-size:.75rem; font-weight:700; background:color-mix(in srgb, var(--c) 22%, transparent);}
+.cchip i{width:9px; height:9px; border-radius:2px; background:var(--c);}
+.calm-card .cchip{color:color-mix(in srgb, var(--c) 55%, #1D2733);}
+.calm-card .cchip.none{background:#e7e3da; color:#4a5560;}
+.calm-card.is-waiting .board-card-title{color:var(--ink-soft);}
+.calm-card.is-done .board-card-title{text-decoration:line-through; color:var(--ink-faint);}
+.calm-meta{font-size:var(--text-sm); color:var(--ink-soft);}
+.calm-more{margin-top:12px;}
+.calm-empty{padding:18px; border:1px dashed var(--line); border-radius:10px; color:var(--ink-soft); font-size:var(--text-sm);}
+.cw-detail{position:sticky; top:20px; display:flex; flex-direction:column; gap:14px; padding:20px 22px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; max-height:calc(100vh - 40px); overflow:auto;}
+.cw-detail .top{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft);}
+.cw-name{font:700 var(--text-sm) var(--font-ui); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;}
+.cw-where{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft); margin-top:-6px;}
+.cw-where .cw-status{width:auto; min-height:0; padding:5px 8px; font-weight:700;}
+.cw-rows{display:flex; flex-direction:column; gap:6px;}
+.cw-rows .set{background:var(--surface);}
+.cw-rows .set-head{padding:11px 14px;}
+.cw-rows .set-body{padding:0 14px 12px;}
+.cw-rows .bm-sec h4{margin-top:4px;}
+.cw-detail .top .x{margin-left:auto; border:0; background:none; color:var(--ink-soft); font:600 var(--text-sm) var(--font-ui); cursor:pointer; padding:4px 6px; border-radius:8px;}
+.cw-detail .top .x:hover{color:var(--ink);}
+.cw-detail .dot{width:10px; height:10px; border-radius:50%; background:var(--c);}
+.cw-detail h3{margin:0; font:600 1.4rem 'Fraunces', Georgia, serif; outline:none;}
+.cw-detail h3:focus{box-shadow:0 0 0 2px var(--accent);}
+.cw-detail textarea, .cw-detail select, .cw-detail input[type=date]{width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit; font-size:var(--text-sm); field-sizing:content; min-height:40px;}
+.cw-detail .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.bm-sec h4{margin:0 0 6px; font:700 var(--text-sm) var(--font-ui); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em;}
+.bm-tags{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+.bm-tag{display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border:0; border-radius:2px 6px 6px 6px; background:color-mix(in srgb, var(--c) 30%, var(--surface)); color:var(--ink); font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
+.bm-tag small{font-weight:500; color:var(--ink-soft);}
+.bm-sub{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); padding:4px 0;}
+.bm-sub input{width:16px; height:16px; accent-color:var(--accent);}
+.bm-sub .st{margin-left:auto; font-size:.75rem; color:var(--ink-faint);}
+.bm-add{border:0; background:none; color:var(--accent); font:700 var(--text-sm) var(--font-ui); cursor:pointer;}
+.cw-foot{display:flex; gap:10px; align-items:center; padding-top:10px; border-top:1px solid var(--line);}
+.cw-foot .sp{flex:1;}
+.cw-foot{flex-wrap:wrap;} .cw-foot .btn-text{white-space:nowrap;}
+@media (max-width:1099px){ .cw-foot .saved{flex-basis:100%;} }
+.saved{font-size:var(--text-sm); color:var(--ink-soft);}
+
+/* --- Glance layer on cards: colour, icon, progress; words alongside --- */
+.gl-row{display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; margin-top:4px; font-size:var(--text-sm); color:var(--ink-soft);}
+.pname{display:inline-flex; align-items:center; gap:6px; font-weight:600; color:var(--ink-soft);}
+.pdot{width:10px; height:10px; border-radius:50%; background:var(--c); display:inline-block;}
+.lchip{display:inline-block; padding:1px 8px; border-radius:999px; font-size:.75rem; font-weight:700; background:color-mix(in srgb, var(--c) 22%, transparent); color:color-mix(in srgb, var(--c) 60%, var(--ink));}
+.lchip.more{background:var(--surface-2); color:var(--ink-soft);}
+.gl{display:inline-flex; align-items:center; gap:5px;}
+.gl svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; flex:none;}
+.gl b{color:var(--ink); font-weight:700;}
+.segs{display:inline-flex; gap:2px; margin-left:4px;}
+.segs i{width:14px; height:6px; border-radius:2px; background:var(--line);}
+.segs i.on{background:#3E8E5E;}
+.gl-wait{color:color-mix(in srgb, #b9770e 80%, var(--ink));}
+.gl-hold{color:color-mix(in srgb, var(--accent) 80%, var(--ink));}
+.gl-date.overdue-amber{color:color-mix(in srgb, #c98a12 85%, var(--ink)); font-weight:700;}
+.gl-date.overdue-red{color:color-mix(in srgb, #b42318 85%, var(--ink)); font-weight:700;}
+/* cards are light paper on a dark page: their text mixes toward dark ink, not the page's light ink */
+.calm-card .gl-row{color:#4a5560;}
+.calm-card .pname{color:#3a4450;}
+.calm-card .lchip{color:color-mix(in srgb, var(--c) 55%, #1D2733);}
+.calm-card .lchip.more{background:#e7e3da; color:#4a5560;}
+.calm-card .gl b{color:#1D2733;}
+.calm-card .segs i{background:#d8d3c8;}
+.calm-card .segs i.on{background:#3E8E5E;}
+.calm-card .gl-wait{color:#8a5a06;}
+.calm-card .gl-hold{color:#2f4f86;}
+.calm-card .gl-date.overdue-amber{color:#8a5a06;}
+.calm-card .gl-date.overdue-red{color:#a3241b;}
+
+/* --- Sort, with plain words and the three fixes --- */
+.screen-sort .jot-slip{padding-bottom:34px;}
+.slip-notes{display:block; width:100%; margin-top:6px; min-height:48px; border:0; background:transparent; font:var(--text-body) var(--font-paper-small); color:#1D2733; line-height:24px; outline:none; field-sizing:content; resize:none;}
+.slip-notes-link{border:0; background:none; padding:0; margin-top:6px; font:var(--text-sm) var(--font-paper-small); color:var(--paper-soft); text-decoration:underline; cursor:pointer;}
+.slip-text[contenteditable]{outline:none;}
+.slip-text[contenteditable]:focus{box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent);}
+.step-bar{display:grid; grid-template-columns:repeat(3, minmax(0, 220px)); gap:8px; margin:0 0 6px;}
+.step-tab{border:0; background:none; text-align:left; padding:6px 2px 8px; border-bottom:3px solid var(--line); color:var(--ink-faint); font:inherit; font-size:var(--text-sm); cursor:pointer; min-width:0;}
+.step-tab b{display:block;}
+.step-tab small{display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-height:1.3em;}
+.step-tab.done{color:var(--ink-soft); border-bottom-color:color-mix(in srgb, var(--accent) 45%, var(--line));}
+.step-tab.now{color:var(--ink); border-bottom-color:var(--accent);}
+.step-why{margin:6px 0 10px; padding:8px 12px; border-radius:var(--r-control); background:color-mix(in srgb, var(--accent) 16%, transparent); color:var(--ink); font-size:var(--text-sm);}
+.sort-find{width:100%; max-width:680px; padding:10px 12px 10px 36px; margin:4px 0 6px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 11px center / 16px;}
+.new-flag{border:1.5px dashed var(--line); background:none; color:var(--ink-soft); border-radius:var(--r-control); padding:8px 12px; font:inherit; font-size:var(--text-sm); cursor:pointer; margin:8px 0;}
+.link-group h4{font-size:var(--text-sm); font-weight:700; color:var(--ink-soft); margin:14px 0 8px;}
+.link-row{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:10px;}
+.link-row > .muted{min-width:90px;}
+.task-find{margin:-2px 0 12px; padding:8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); max-width:680px;}
+.task-hit{display:flex; align-items:center; gap:8px; width:100%; border:0; background:none; text-align:left; padding:7px 6px; border-radius:var(--r-control); color:var(--ink); font:inherit; font-size:var(--text-sm); cursor:pointer;}
+.task-hit:hover{background:var(--surface-2);}
+.task-hit .dotc{width:9px; height:9px; border-radius:2px; background:var(--c); flex:none;}
+.task-hit .muted{margin-left:auto;}
+.ctx{position:fixed; z-index:70; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:10px; box-shadow:0 14px 30px -12px rgba(0,0,0,.6); font-size:var(--text-sm); color:var(--ink);}
+.ctx .sws{display:grid; grid-template-columns:repeat(6, 24px); gap:6px; margin-top:8px;}
+.ctx .sws button{width:24px; height:24px; border-radius:5px; border:0; background:var(--c); cursor:pointer;}
+.toastish{position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:80; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:12px; padding:10px 16px; box-shadow:0 14px 30px -12px rgba(0,0,0,.6); font-size:var(--text-sm);}
+
+/* --- Focus and Comfort --- */
+.unblocks{font-weight:700; color:#1D2733;}
+.next-sub{margin:8px 0 0; font:var(--text-sm) var(--font-paper-small); color:var(--paper-soft);}
+.next-sub b{color:#1D2733;}
+.focus-start{max-width:640px; display:flex; flex-direction:column; gap:12px; padding:24px; border:1px solid var(--line); border-radius:16px; background:var(--surface-2);}
+.focus-start h2{margin:0; font:600 1.6rem 'Fraunces', Georgia, serif;}
+.comfort{max-width:640px; display:flex; flex-direction:column; gap:18px;}
+.comfort h2{margin:0; font:700 1.4rem var(--font-ui);}
+.comfort{gap:8px;}
+.set{border:1px solid var(--line); border-radius:12px; background:var(--surface-2);}
+.set-head{display:flex; align-items:center; gap:12px; width:100%; padding:14px 16px; border:0; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer; border-radius:12px;}
+.set-head:hover{background:color-mix(in srgb, var(--ink) 5%, transparent);}
+.set-title{font-weight:700;}
+.set-value{margin-left:auto; color:var(--ink-soft); font-size:var(--text-sm); text-align:right;}
+.set-arrow{color:var(--ink-soft); width:1em; text-align:center;}
+.set-body{padding:0 16px 14px;}
+.set.open{border-color:color-mix(in srgb, var(--accent) 55%, var(--line));}
+.comfort label{display:flex; align-items:center; gap:10px; padding:6px 0; font-size:var(--text-body);}
+.comfort p{margin:4px 0 0; font-size:var(--text-sm); color:var(--ink-soft);}
+.chip.overdue-amber{background:color-mix(in srgb, #c98a12 22%, transparent); color:color-mix(in srgb, #c98a12 70%, var(--ink)); border-color:transparent;}
+.chip.overdue-red{background:color-mix(in srgb, #b42318 22%, transparent); color:color-mix(in srgb, #b42318 70%, var(--ink)); border-color:transparent;}
+.lb-row{display:flex; align-items:center; gap:10px; padding:3px 0;}
+.lb-row .st{margin-left:auto; font-size:.75rem; font-weight:700; color:var(--ink-soft);}
+.lb-row .bm-add{margin-left:auto;}
+.cb-list{list-style:none; margin:8px 0; padding:0; display:flex; flex-direction:column; gap:4px;}
+.cb-row{display:flex; align-items:center; gap:10px; padding:6px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface);}
+.cb-n{font-weight:700; color:var(--ink-soft); width:1.5em;}
+.cb-name{flex:1; font-weight:600;}
+.cb-row .btn-text:disabled{opacity:.35; cursor:default;}
+.comfort select{padding:6px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:inherit;}
+.proto-banner{max-width:640px; margin:0 0 14px; font-size:var(--text-sm); color:var(--ink-faint);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"><span class="lamp"></span></span><h1>Focus Deck</h1></div>
+    <form id="capture-form" class="capture-form jotter" autocomplete="off">
+      <input id="capture-input" type="text" placeholder="Jot down a stray thought…" aria-label="Capture a stray thought" maxlength="400">
+      <button type="submit" class="jot-add">Add</button>
+    </form>
+    <div class="topbar-tools"></div>
+  </header>
+  <div id="app"></div>
+</div>
+<script type="module">
+import { seedState } from '../sort-steps/seed.js';
+// state.js reads this key as it loads; seeding it keeps the imported modules consistent.
+localStorage.setItem('focusdeck-state-v1', JSON.stringify(seedState({ ties: true })));
+const { esc, relTime, PRIORITY, PRIORITY_ORDER } = await import('../../../app/js/state.js');
+const R = await import('../../../app/js/render.js');
+const { mountWallets } = await import('../../../app/js/wallet.js');
+const { folderCards, flagCards } = await import('../../../app/js/in-tray.js');
+const TL = await import('../../../app/js/task-links.js');
+
+// ---------- sample data (fresh on every load) ----------
+const st = seedState({ ties: true });
+const PCATS = [{ id: 'pc1', name: 'Home life', color: '#3E8E5E' }, { id: 'pc2', name: 'Work', color: '#4D6FB8' }, { id: 'pc3', name: 'Learning', color: '#C2731E' }];
+st.projects.forEach((p, i) => { p.categoryId = PCATS[i % 3].id; });
+// one in progress, one overdue, so every tab and the overdue colour have something to show
+const homeTasks = st.projects[0].tasks.filter((t) => t.status !== 'done');
+homeTasks.find((t) => t.title === 'Mop the kitchen').status = 'doing';
+// one of the two subtasks of 'Book boiler service' is done, so its card shows 1/2
+const firstSubDone = st.projects[0].tasks.find((t) => t.parentId && !(t.waitsOn || []).length); if (firstSubDone) firstSubDone.status = 'done';
+homeTasks.find((t) => t.title === 'Renew passport before the Lisbon trip').deadline = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);
+// a few priorities and one upcoming date, so moving Priority or Due date up in Settings changes cards
+const homeTask = (title) => homeTasks.find((t) => t.title === title);
+homeTask('Renew passport before the Lisbon trip').priority = 'urgent';
+homeTask('Contact form sends twice').priority = 'high';
+homeTask('Fix the gate latch').priority = 'low';
+homeTask('Book boiler service').deadline = new Date(Date.now() + 2 * 864e5).toISOString().slice(0, 10);
+const all = () => st.projects.flatMap((p) => p.tasks.map((t) => ({ t, p })));
+const byId = (id) => all().find((x) => x.t.id === id);
+const isOpen = (x) => x && x.t.status !== 'done';
+const subsOf = (id) => all().filter((x) => x.t.parentId === id);
+const blocked = (id) => TL.isBlocked(st.projects, id);
+const pcat = (p) => PCATS.find((c) => c.id === p.categoryId);
+const catName = (id) => (st.categories.find((c) => c.id === id) || {}).name;
+
+// ---------- comfort settings (kept for this browser only) ----------
+const comfort = Object.assign({ motion: 'system', calm: true, chunk: 7, overdue: 'amber', colourBy: ['category', 'priority', 'due'] }, JSON.parse(localStorage.getItem('calm-test-comfort') || '{}'));
+function applyComfort() {
+  const reduce = comfort.motion === 'off' || (comfort.motion === 'system' && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  document.body.classList.toggle('no-motion', reduce);
+  document.body.classList.toggle('calm-colours', !!comfort.calm);
+  localStorage.setItem('calm-test-comfort', JSON.stringify(comfort));
+}
+
+// ---------- ui state ----------
+const ui = {
+  screen: (location.hash.slice(1) || 'board').split('?')[0],
+  board: { tab: 'next', find: '', project: '', filterOpen: false, pcat: '', show: 'all', shown: comfort.chunk, selected: null, phoneOpen: false },
+  sort: null,
+  focusId: null, pool: [], allBlocked: false,
+  open: { settings: null, task: null }, // which folded row is open on each screen
+  toast: '',
+};
+function freshSort() {
+  return { step: 1, find: '', projectId: null, selected: [], notes: '', notesOpen: false, why: '', facing: {}, parent: null, subtasks: [], newSubs: [], waitsOn: [], holdsUp: [], picking: null, pickQuery: '' };
+}
+ui.sort = freshSort();
+
+// ---------- frame ----------
+const ICON_SETTINGS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h9.4"/><circle cx="16.3" cy="6.4" r="1.8"/><path d="M20 12.3H10.7"/><circle cx="7.6" cy="12.4" r="1.8"/><path d="M4 18.2h9.5"/><circle cx="16.6" cy="18.1" r="1.8"/></svg>';
+function frame(inner) {
+  const host = document.createElement('div');
+  host.innerHTML = R.renderRail(ui.screen === 'comfort' ? 'none' : ui.screen, st.inbox.length);
+  const nav = host.querySelector('.rail');
+  nav.querySelectorAll('.rail-item[data-screen="projects"]').forEach((b) => b.remove()); // the Board takes over from Projects
+  nav.querySelectorAll('.rail-item').forEach((b) => { b.dataset.go = b.dataset.screen; b.removeAttribute('data-action'); });
+  nav.insertAdjacentHTML('afterbegin', '<div class="rail-brand"><span class="brand-mark" aria-hidden="true"><span class="lamp"></span></span><h1>Focus Deck</h1></div>');
+  const tools = nav.querySelector('.rail-tools');
+  if (tools) tools.innerHTML = '<button type="button" class="rail-settings' + (ui.screen === 'comfort' ? ' is-on' : '') + '" data-go="comfort">' + ICON_SETTINGS + '<span>Settings</span></button>';
+  return host.innerHTML + '<div class="screen screen-' + (ui.screen === 'comfort' ? 'focus' : ui.screen) + '">' + inner + '</div>'
+    + (ui.toast ? '<div class="toastish" role="status">' + esc(ui.toast) + '</div>' : '');
+}
+
+// ---------- Board ----------
+function boardList() {
+  const b = ui.board; const q = b.find.trim().toLowerCase();
+  let list = all().filter((x) => !x.t.parentId);
+  list = list.filter((x) => (b.tab === 'next' ? x.t.status === 'next' : b.tab === 'doing' ? x.t.status === 'doing' : x.t.status === 'done' && x.t.doneHere));
+  if (b.project) list = list.filter((x) => x.p.id === b.project);
+  if (b.pcat) list = list.filter((x) => x.p.categoryId === b.pcat);
+  if (q) list = list.filter((x) => x.t.title.toLowerCase().includes(q) || x.p.name.toLowerCase().includes(q) || (x.t.categoryIds || []).some((id) => (catName(id) || '').toLowerCase().includes(q)));
+  if (b.show === 'subs') list = list.filter((x) => subsOf(x.t.id).length);
+  if (b.show === 'waits') list = list.filter((x) => blocked(x.t.id));
+  if (b.show === 'holds') list = list.filter((x) => TL.holdsUp(st.projects, x.t.id).length);
+  // just-filed tasks first, newest first, so a task you filed is never hidden behind 'Show more'
+  return list.filter((x) => x.t.createdAt).sort((a, z) => z.t.createdAt - a.t.createdAt).concat(list.filter((x) => !x.t.createdAt));
+}
+function overdueChip(t) {
+  if (!t.deadline || t.status === 'done') return '';
+  if (new Date(t.deadline + 'T23:59') >= new Date()) return '';
+  return '<span class="gl gl-date overdue-' + comfort.overdue + '">' + IC.date + (comfort.overdue === 'amber' ? 'Past its date' : 'Overdue') + '</span>';
+}
+// Small line icons, one per state, always beside their word: the shape is read at a glance, the
+// word confirms it (docs/plans/calm-by-default.md, "Glance first").
+const IC = {
+  subs: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5 2.5-2.5"/><circle cx="5" cy="18" r="1.2"/></svg>',
+  wait: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M10 9v6M14 9v6"/></svg>',
+  hold: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h12M12 7l5 5-5 5"/><path d="M20 6v12"/></svg>',
+  date: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+};
+function progress(subs) {
+  const done = subs.filter((s) => s.t.status === 'done').length;
+  return '<span class="gl gl-subs" title="' + done + ' of ' + subs.length + ' subtasks done">' + IC.subs + '<b>' + done + '/' + subs.length + '</b> done'
+    + '<span class="segs">' + subs.slice().sort((a, z) => (z.t.status === 'done') - (a.t.status === 'done')).map((s) => '<i class="' + (s.t.status === 'done' ? 'on' : '') + '"></i>').join('') + '</span></span>';
+}
+// What colours a card, and is the one label shown on it, is the first entry in Settings' "Card
+// colour" list that the task has. The default list starts with Category, the task's first label;
+// Priority, Due date and any label the person adds can be moved above it. Everything else is in
+// the task panel.
+const NO_CATEGORY = { name: 'No category', color: '#9aa3ad' };
+const PRIORITY_COLOURS = { urgent: '#b42318', high: '#C2731E', medium: '#4D6FB8', low: '#7F8C8D' };
+function categoryOf(t) {
+  return st.categories.find((c) => c.id === (t.categoryIds || [])[0]) || null;
+}
+function dueKey(t) {
+  if (!t.deadline || t.status === 'done') return null;
+  const days = Math.round((new Date(t.deadline + 'T00:00') - new Date(new Date().toDateString())) / 864e5);
+  if (days < 0) return comfort.overdue === 'amber' ? { name: 'Past its date', color: '#c98a12' } : { name: 'Overdue', color: '#b42318' };
+  if (days === 0) return { name: 'Due today', color: '#C2731E' };
+  if (days <= 3) return { name: 'Due in ' + days + ' day' + (days === 1 ? '' : 's'), color: '#C2731E' };
+  return { name: 'Due ' + new Date(t.deadline + 'T00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), color: '#4D6FB8' };
+}
+function sourceName(source) {
+  if (source === 'category') return 'Category (the task’s first label)';
+  if (source === 'priority') return 'Priority';
+  if (source === 'due') return 'Due date';
+  return 'Label: ' + (catName(source.slice(6)) || 'deleted label');
+}
+// Returns { name, color, source } for the card, or the grey "No category" when nothing applies.
+function cardKey(t) {
+  for (const source of comfort.colourBy) {
+    if (source === 'category') { const c = categoryOf(t); if (c) return { name: c.name, color: c.color, source }; }
+    else if (source === 'priority') { if (t.priority && PRIORITY[t.priority]) return { name: PRIORITY[t.priority].label + ' priority', color: PRIORITY_COLOURS[t.priority], source }; }
+    else if (source === 'due') { const d = dueKey(t); if (d) return Object.assign(d, { source }); }
+    else { const c = st.categories.find((x) => 'label:' + x.id === source); if (c && (t.categoryIds || []).includes(c.id)) return { name: c.name, color: c.color, source }; }
+  }
+  return Object.assign({ source: null }, NO_CATEGORY);
+}
+function keyChip(key) {
+  return key.source ? '<span class="cchip" style="--c:' + key.color + '"><i></i>' + esc(key.name) + '</span>' : '<span class="cchip none">' + NO_CATEGORY.name + '</span>';
+}
+function moveButton(x) {
+  if (x.t.status === 'next') return '<button type="button" class="calm-move" data-move="' + x.t.id + '" data-to="doing" aria-label="Move to In progress: ' + esc(x.t.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h12M13 7l5 5-5 5"/></svg>In progress</button>';
+  if (x.t.status === 'doing') return '<button type="button" class="calm-move" data-move="' + x.t.id + '" data-to="next" aria-label="Move back to Up next: ' + esc(x.t.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H7M11 7l-5 5 5 5"/></svg>Up next</button>';
+  return '';
+}
+function card(x) {
+  const subs = subsOf(x.t.id);
+  const key = cardKey(x.t);
+  // Inside one project every card would repeat its name, so the name only shows on "Project: All".
+  const projectName = ui.board.project ? '' : '<span class="pname">' + esc(x.p.name) + '</span>';
+  return '<article class="board-card calm-card' + (ui.board.selected === x.t.id ? ' on' : '') + (blocked(x.t.id) ? ' is-waiting' : '') + (x.t.status === 'done' ? ' is-done' : '') + '" data-open="' + x.t.id + '" style="--proj-color:' + key.color + '">'
+    + '<input type="checkbox" data-tick="' + x.t.id + '"' + (x.t.status === 'done' ? ' checked' : '') + ' aria-label="Done: ' + esc(x.t.title) + '">'
+    + '<div class="board-card-body"><span class="board-card-title">' + esc(x.t.title) + '</span>'
+    + '<span class="gl-row">' + keyChip(key) + projectName + '</span>'
+    + glanceRow(x, subs, key) + '</div>' + moveButton(x) + '</article>';
+}
+function glanceRow(x, subs, key) {
+  const bits = [];
+  if (subs.length) bits.push(progress(subs));
+  if (blocked(x.t.id) && (x.t.waitsOn || []).some((id) => isOpen(byId(id)))) bits.push('<span class="gl gl-wait">' + IC.wait + 'waiting</span>');
+  const h = TL.holdsUp(st.projects, x.t.id).length;
+  if (h) bits.push('<span class="gl gl-hold">' + IC.hold + 'holds up ' + h + '</span>');
+  const od = key.source === 'due' ? '' : overdueChip(x.t); // the card's key already says it
+  if (od) bits.push(od);
+  return bits.length ? '<span class="gl-row">' + bits.join('') + '</span>' : '';
+}
+// One folded row, used by Settings and the task panel alike: its name and its current value, with the
+// details opening on a tap. Opening another row in the same group closes it, so only one row's
+// details are on screen at a time.
+function foldRow(group, key, title, value, body) {
+  const open = ui.open[group] === key;
+  return '<section class="set' + (open ? ' open' : '') + '"><button type="button" class="set-head" data-fold="' + group + ':' + key + '" aria-expanded="' + open + '" aria-controls="fold-' + group + '-' + key + '">'
+    + '<span class="set-title">' + title + '</span><span class="set-value">' + esc(value) + '</span><span class="set-arrow" aria-hidden="true">' + (open ? '⌃' : '⌄') + '</span></button>'
+    + (open ? '<div class="set-body" id="fold-' + group + '-' + key + '">' + body + '</div>' : '') + '</section>';
+}
+function detail(id) {
+  const x = byId(id);
+  if (!x) return '<aside class="cw-detail"><p class="calm-meta">No task selected. Choose a task on the left to see its notes, every label and its links here. Click it again, or press Escape, to put it back.</p></aside>';
+  const tag = (y) => '<button type="button" class="bm-tag" data-select="' + y.t.id + '" style="--c:' + y.p.color + '">' + esc(y.t.title) + (y.p.id !== x.p.id ? ' <small>· ' + esc(y.p.name) + '</small>' : '') + '</button>';
+  const parent = x.t.parentId && byId(x.t.parentId);
+  const subs = subsOf(id);
+  const waits = (x.t.waitsOn || []).map(byId).filter(Boolean);
+  const holds = TL.holdsUp(st.projects, id).map((t) => byId(t.id || t)).filter(Boolean);
+  const subRows = subs.map((s) => '<label class="bm-sub"><input type="checkbox" data-tick="' + s.t.id + '"' + (s.t.status === 'done' ? ' checked' : '') + '><button type="button" class="bm-add" style="color:var(--ink);font-weight:600" data-select="' + s.t.id + '">' + esc(s.t.title) + '</button>' + (blocked(s.t.id) && s.t.status !== 'done' ? '<span class="st">waiting</span>' : '') + '</label>').join('');
+  const labelIds = x.t.categoryIds || [];
+  const chipFor = (cid) => '<span class="chip cat-chip small" style="--chip-color:' + R.mutedChip((st.categories.find((c) => c.id === cid) || {}).color || '#888') + '">' + esc(catName(cid)) + '</span>';
+  const labels = labelIds.map((cid, i) => '<div class="lb-row">' + chipFor(cid) + (i === 0 ? '<span class="st">Category</span>' : '<button class="bm-add" data-make-category="' + cid + '" data-task="' + id + '" aria-label="Make ' + esc(catName(cid)) + ' the category">Make category</button>') + '</div>').join('')
+    + '<button class="bm-add" data-note="Adding or removing labels opens the full list.">Add or remove labels</button>';
+  const linkSec = (title, body) => '<div class="bm-sec"><h4>' + title + '</h4>' + body + '</div>';
+  const links = (parent ? linkSec('Part of', '<div class="bm-tags">' + tag(parent) + '</div>') : '')
+    + (waits.length ? linkSec('Waits on', '<div class="bm-tags">' + waits.map(tag).join('') + '</div>') : '')
+    + (holds.length ? linkSec('Holds up', '<div class="bm-tags">' + holds.map(tag).join('') + '</div>') : '');
+  const doneSubs = subs.filter((s) => s.t.status === 'done').length;
+  const linkSummary = [parent ? 'part of 1' : '', waits.length ? 'waits on ' + waits.length : '', holds.length ? 'holds up ' + holds.length : ''].filter(Boolean).join(', ');
+  const due = dueKey(x.t);
+  const whenValue = [x.t.priority && PRIORITY[x.t.priority] ? PRIORITY[x.t.priority].label + ' priority' : '', due ? due.name : ''].filter(Boolean).join(' · ') || 'None set';
+  const status = '<select class="cw-status" data-edit-status="' + id + '" aria-label="Status">' + [['next', 'Up next'], ['doing', 'In progress'], ['done', 'Done']].map(([k, l]) => '<option value="' + k + '"' + (x.t.status === k ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>';
+  const row = (key, title, value, body) => foldRow('task', key, title, value, body);
+  // Like Settings: the title and status always show; every other part is one named row with a
+  // short summary, and its details open on a tap.
+  return '<aside class="cw-detail' + (ui.board.phoneOpen ? ' phone-open' : '') + '" aria-labelledby="cw-name">'
+    + '<div class="top"><span class="cw-name" id="cw-name">Task details</span><button class="x" data-close aria-label="Close task details">Close ×</button></div>'
+    + '<h3 contenteditable="true" data-edit-title="' + id + '">' + esc(x.t.title) + '</h3>'
+    + '<div class="cw-where">' + status + '<span>in ' + esc(x.p.name) + '</span></div>'
+    + '<div class="cw-rows">'
+    + row('notes', 'Notes', x.t.notes ? x.t.notes.split('\n')[0].slice(0, 40) + (x.t.notes.length > 40 ? '…' : '') : 'None', '<textarea data-edit-notes="' + id + '" placeholder="Notes…">' + esc(x.t.notes || '') + '</textarea>')
+    + row('when', 'Priority and due date', whenValue, '<div class="grid"><select aria-label="Priority" data-edit-priority="' + id + '"><option value="">No priority</option>' + PRIORITY_ORDER.slice().reverse().map((k) => '<option value="' + k + '"' + (x.t.priority === k ? ' selected' : '') + '>' + PRIORITY[k].label + '</option>').join('') + '</select><input type="date" aria-label="Due date" data-edit-due="' + id + '" value="' + esc(x.t.deadline || '') + '"></div>')
+    + row('labels', 'Labels', labelIds.map(catName).join(', ') || 'None', labels)
+    + row('subtasks', 'Subtasks', subs.length ? doneSubs + ' of ' + subs.length + ' done' : 'None', (subRows || '<p class="calm-meta">No subtasks yet.</p>') + '<button class="bm-add" data-note="Adding a subtask works as in Sort part 3.">+ Add a subtask</button>')
+    + row('links', 'Linked tasks', linkSummary ? linkSummary.charAt(0).toUpperCase() + linkSummary.slice(1) : 'None', (links || '<p class="calm-meta">Not linked to any task.</p>') + '<button class="bm-add" data-note="Linking a task works as in Sort part 3.">+ Link a task</button>')
+    + '</div>'
+    + '<div class="cw-foot"><span class="saved">Changes save as you make them.</span><span class="sp"></span><button class="btn-text" data-focus-on="' + id + '">Focus on this</button><button class="btn-text" data-note="Delete asks first, then removes the task.">Delete</button></div></aside>';
+}
+function boardScreen() {
+  const b = ui.board; const list = boardList();
+  const count = (tab) => all().filter((x) => !x.t.parentId && (tab === 'next' ? x.t.status === 'next' : tab === 'doing' ? x.t.status === 'doing' : x.t.status === 'done' && x.t.doneHere)).length;
+  if (b.selected && !byId(b.selected)) b.selected = null;
+  const chip = (on, attr, val, label, c) => '<button type="button" class="bm-chip' + (on ? ' on' : '') + '" ' + attr + '="' + val + '">' + (c ? '<span class="sw" style="--c:' + c + '"></span>' : '') + label + '</button>';
+  const drawer = b.filterOpen ? '<div class="calm-drawer"><p class="calm-h">Category</p><div class="bm-row">' + chip(!b.pcat, 'data-pcat', '', 'All') + PCATS.map((c) => chip(b.pcat === c.id, 'data-pcat', c.id, esc(c.name), c.color)).join('') + '</div>'
+    + '<p class="calm-h">Show</p><div class="bm-row">' + chip(b.show === 'all', 'data-show', 'all', 'Everything') + chip(b.show === 'subs', 'data-show', 'subs', 'Has subtasks') + chip(b.show === 'waits', 'data-show', 'waits', 'Waiting on something') + chip(b.show === 'holds', 'data-show', 'holds', 'Holding others up') + '</div>'
+    + '<button class="btn primary" data-filter-done>Show ' + list.length + ' task' + (list.length === 1 ? '' : 's') + '</button></div>' : '';
+  const active = (b.pcat ? 1 : 0) + (b.show !== 'all' ? 1 : 0);
+  const tabs = [['next', 'Up next'], ['doing', 'In progress'], ['done', 'Done this week']].map(([k, l]) => '<button class="calm-tab' + (b.tab === k ? ' on' : '') + '" data-tab="' + k + '">' + l + ' <b>' + count(k) + '</b></button>').join('');
+  const shown = list.slice(0, b.shown);
+  const cards = shown.length ? shown.map(card).join('') : '<p class="calm-empty">' + (b.find || active || b.project ? 'Nothing matches. Clear the search or filters to see more.' : b.tab === 'doing' ? 'Nothing in progress. Press “In progress” on an Up next card to start one.' : b.tab === 'done' ? 'Nothing finished yet this week.' : 'Nothing up next.') + '</p>';
+  return '<h2 class="board-title">Board</h2><div class="cw"><section class="cw-list">'
+    + '<div class="calm-tools"><input class="bm-find" data-board-find value="' + esc(b.find) + '" placeholder="Find…" aria-label="Find a task, project or label">'
+    + '<select data-project aria-label="Project"><option value="">Project: All</option>' + st.projects.map((p) => '<option value="' + p.id + '"' + (b.project === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>').join('') + '</select>'
+    + '<button class="btn ghost calm-btn' + (b.filterOpen ? ' on' : '') + '" data-filter-toggle>Filter' + (active ? ' (' + active + ')' : '') + '</button><button class="btn-text" data-note="New project and new task open their forms here.">+ New</button></div>'
+    + drawer + '<div class="calm-tabs" role="tablist">' + tabs + '</div>'
+    + '<div class="calm-cards">' + cards + '</div>'
+    + (list.length > b.shown ? '<button class="btn-text calm-more" data-more>Show ' + Math.min(comfort.chunk, list.length - b.shown) + ' more (' + (list.length - b.shown) + ' left)</button>' : '')
+    + '</section>' + detail(b.selected) + '</div>';
+}
+
+// ---------- Sort ----------
+const STEP_NAMES = ['Choose a project', 'Add labels', 'Link to other tasks'];
+function sortScreen() {
+  const u = ui.sort; const item = st.inbox[0];
+  if (!item) return '<section class="card inbox-card"><button class="section-toggle">Unsorted <span class="count">0</span></button><div class="unsorted-body"><p class="muted">Nothing left to sort. Jot a thought at the top and it lands here.</p></div></section>';
+  const p = st.projects.find((x) => x.id === u.projectId);
+  const cards = flagCards(st, p, { selected: u.selected, showAll: !!u.find });
+  const flagNames = u.selected.map((tok) => (cards.find((c) => c.token === tok) || {}).name).filter(Boolean);
+  const nLinks = (u.parent ? 1 : 0) + u.subtasks.length + u.newSubs.length + u.waitsOn.length + u.holdsUp.length;
+  const tab = (n, summary) => '<button type="button" class="step-tab ' + (n === u.step ? 'now' : n < u.step ? 'done' : '') + '" data-step="' + n + '"><b>' + n + '. ' + STEP_NAMES[n - 1] + '</b><small>' + (n <= u.step ? esc(summary || '') : '') + '</small></button>';
+  const bar = '<div class="step-bar">' + tab(1, p ? p.name : '') + tab(2, flagNames.join(', ')) + tab(3, nLinks ? nLinks + ' linked' : 'optional') + '</div>' + (u.why ? '<p class="step-why" role="status">' + esc(u.why) + '</p>' : '');
+  let right = '';
+  const has = (n) => !u.find || n.toLowerCase().includes(u.find.toLowerCase());
+  if (u.step === 1) {
+    const folders = folderCards(st).filter((f) => has(f.name));
+    const items = folders.map((f) => R.sleeve({ key: f.id, name: f.name, color: f.color, kind: 'project', picked: f.id === u.projectId, detail: f.id === u.projectId ? 'chosen' : f.open + ' open', speak: f.name }));
+    right = '<input class="sort-find" data-sort-find value="' + esc(u.find) + '" placeholder="Find a project…" aria-label="Find a project">'
+      + (items.length ? '<div class="wallet">' + R.walletInner({ wallet: 'tray-folders', label: '', aria: 'Projects', items, facing: u.facing.f || folders[0].id, mode: 'tap', verb: 'use' }) + '</div>' : '<p class="muted small">No project matches “' + esc(u.find) + '”.</p>');
+  } else if (u.step === 2) {
+    const fc = cards.filter((c) => c.more || has(c.name));
+    const items = fc.map((c) => c.more ? R.sleeve({ key: c.token, name: 'More labels', color: c.color, detail: c.more + ' more', speak: 'More labels' }) : R.sleeve({ key: c.token, name: c.name, color: R.mutedChip(c.color), picked: u.selected.includes(c.token), detail: u.selected.includes(c.token) ? 'added' : 'not added', speak: c.name }));
+    const exact = st.categories.some((c) => c.name.toLowerCase() === u.find.trim().toLowerCase());
+    right = '<input class="sort-find" data-sort-find value="' + esc(u.find) + '" placeholder="Find a label, or type a new one…" aria-label="Find a label">'
+      + (u.find.trim() && !exact ? '<button class="new-flag" data-new-label>+ New label “' + esc(u.find.trim()) + '”</button>' : '')
+      + (items.length ? '<div class="wallet">' + R.walletInner({ wallet: 'tray-flags', label: '', aria: 'Labels', items, facing: u.facing.l || fc[0].token, mode: 'tap', verb: 'use' }) + '</div>' : '');
+  } else {
+    const row = (label, field) => {
+      const ids = field === 'parent' ? (u.parent ? [u.parent] : []) : u[field];
+      const chips = ids.map((id) => { const y = byId(id); return '<span class="bm-tag" style="--c:' + y.p.color + '">' + esc(y.t.title) + (y.p.id !== u.projectId ? ' <small>· ' + esc(y.p.name) + '</small>' : '') + ' <button class="bm-add" data-unlink="' + field + '" data-id="' + id + '" aria-label="Remove">×</button></span>'; }).join('')
+        + (field === 'subtasks' ? u.newSubs.map((s, i) => '<span class="bm-tag" style="--c:' + p.color + '">' + esc(s) + ' <small>· new</small> <button class="bm-add" data-unnew="' + i + '" aria-label="Remove">×</button></span>').join('') : '');
+      return '<div class="link-row"><span class="muted small">' + label + '</span>' + chips + (field !== 'parent' || !u.parent ? '<button class="bm-add" data-pick="' + field + '">+ Add</button>' : '') + '</div>' + (u.picking === field ? taskFind(field) : '');
+    };
+    right = '<div class="link-group"><h4>Inside ' + esc(p.name) + '</h4>' + row('Part of', 'parent') + row('Subtasks', 'subtasks') + '</div><div class="link-group"><h4>In any project</h4>' + row('Waits on', 'waitsOn') + row('Holds up', 'holdsUp') + '</div>';
+  }
+  const main = u.step === 1 ? (p ? '<button class="file-btn" data-next>Next: add labels →</button>' : '<button class="file-btn" data-next>Choose a project first</button>')
+    : u.step === 2 ? '<button class="file-btn" data-next>Next: link to other tasks →</button>' : '<button class="file-btn" data-file>File it in ' + esc(p.name) + ' →</button>';
+  const slip = '<div class="tray-side"><p class="tray-count muted small">' + st.inbox.length + ' to sort</p><div class="tray"><div class="tray-stack">' + (st.inbox.length > 1 ? '<div class="slip-behind"></div>' : '')
+    + '<div class="jot-slip"><div class="slip-flags">' + u.selected.map((tok) => { const c = cards.find((x) => x.token === tok); return c ? '<span class="slip-flag" title="' + esc(c.name) + '" style="--c:' + R.mutedChip(c.color) + '">' + esc(c.name) + '</span>' : ''; }).join('') + '</div>'
+    + '<p class="slip-text" contenteditable="true" spellcheck="false" data-slip-title>' + esc(item.text) + '</p>'
+    + '<div class="slip-dest">' + (p ? 'Going in <span class="folder-chip" style="--c:' + p.color + '">' + esc(p.name) + '</span>' : 'No project yet') + '</div><div class="slip-when">Thought · ' + relTime(item.createdAt) + '</div>'
+    + (u.notesOpen || u.notes ? '<textarea class="slip-notes" data-slip-notes placeholder="Notes…">' + esc(u.notes) + '</textarea>' : '<button class="slip-notes-link" data-add-notes>+ Add notes</button>') + '</div>'
+    + '</div><div class="tray-lip"><span>To sort</span></div></div>'
+    + '<div class="sort-acts">' + main + '<div class="sort-small">' + (u.step > 1 ? '<button data-back>← Back</button>' : '') + '<button data-sort-done>Done already</button><button data-later>Later</button><button data-delete-slip>Delete</button></div></div></div>';
+  return '<section class="card inbox-card"><button class="section-toggle">Sort <span class="count">' + st.inbox.length + '</span></button><div class="unsorted-body">' + slip + '<div class="wallet-root tray-wallets">' + bar + right + '</div></div></section>';
+}
+function taskFind(field) {
+  const u = ui.sort; const inProject = field === 'parent' || field === 'subtasks';
+  const taken = new Set([u.parent].concat(u.subtasks, u.waitsOn, u.holdsUp));
+  const q = u.pickQuery.toLowerCase();
+  const hits = all().filter(({ t, p }) => isOpen({ t }) && (!inProject || p.id === u.projectId) && !taken.has(t.id) && (!q || t.title.toLowerCase().includes(q) || p.name.toLowerCase().includes(q))).slice(0, 6);
+  return '<div class="task-find"><input class="sort-find" data-pick-find value="' + esc(u.pickQuery) + '" placeholder="Find a task ' + (inProject ? 'in this project' : 'in any project') + '…" autofocus>'
+    + hits.map(({ t, p }) => '<button class="task-hit" data-link="' + field + '" data-id="' + t.id + '"><span class="dotc" style="--c:' + p.color + '"></span>' + esc(t.title) + '<span class="muted small">' + esc(p.name) + '</span></button>').join('')
+    + (!hits.length ? '<p class="muted small">No task matches.</p>' : '')
+    + (field === 'subtasks' && u.pickQuery.trim() ? '<button class="task-hit" data-new-sub><b>+ New subtask</b>&nbsp;“' + esc(u.pickQuery.trim()) + '”</button>' : '') + '</div>';
+}
+
+// ---------- Focus ----------
+function pickFocus() {
+  const pool = all().filter((x) => x.t.status !== 'done').map((x) => x.t.id);
+  const ranked = TL.rankFocusPool(st.projects, pool);
+  ui.pool = pool; ui.allBlocked = ranked.allBlocked;
+  ui.focusId = ranked.candidates[Math.floor(Math.random() * ranked.candidates.length)];
+}
+function focusScreen() {
+  if (!ui.focusId || !byId(ui.focusId) || byId(ui.focusId).t.status === 'done') {
+    return '<div class="focus-start"><h2>What’s your focus right now?</h2><p class="calm-meta">I’ll pick the task that unblocks the most, from everything that isn’t waiting on something.</p><div><button class="btn primary" data-pick-focus>Pick one for me</button></div>'
+      + '<p class="calm-meta">The full chooser (projects and labels) works as today; this test keeps it to one button.</p></div>';
+  }
+  st.focus = { taskId: ui.focusId, pool: ui.pool, allBlocked: ui.allBlocked, filter: {} };
+  let html = R.renderFocus(st, (id) => { const x = byId(id); return x ? { task: x.t, project: x.p } : null; }, {});
+  html = html.replace('slip it back in the deck', 'pick another task').replace('tick it off', 'mark it done');
+  return html;
+}
+
+// ---------- Comfort ----------
+function settingRow(key, title, value, body) { return foldRow('settings', key, title, value, body); }
+function comfortScreen() {
+  const r = (name, val, label, now) => '<label><input type="radio" name="' + name + '" value="' + val + '"' + (now ? ' checked' : '') + '> ' + label + '</label>';
+  const MOTION = { system: 'Follow my computer’s setting', off: 'No movement', on: 'Allow movement' };
+  const shortSource = (src) => src === 'category' ? 'Category' : src === 'priority' ? 'Priority' : src === 'due' ? 'Due date' : (catName(src.slice(6)) || 'deleted label');
+  return '<div class="comfort"><h2>Settings: Comfort</h2><p>Tap a setting to change it.</p>'
+    + settingRow('motion', 'Movement', MOTION[comfort.motion], Object.keys(MOTION).map((k) => r('motion', k, MOTION[k], comfort.motion === k)).join('') + '<p>Turns off card tilts, flips and sliding.</p>')
+    + settingRow('colour', 'Colour', comfort.calm ? 'Softer colours' : 'Full colours', '<label><input type="checkbox" data-calm' + (comfort.calm ? ' checked' : '') + '> Softer colours</label><p>Every project and label keeps its own colour, slightly toned down.</p>')
+    + settingRow('cardColour', 'Card colour', comfort.colourBy.map(shortSource).join(', then '), colourByFieldset())
+    + settingRow('chunk', 'Cards at once', comfort.chunk + ' cards, then “Show more”', [5, 7, 10].map((n) => r('chunk', n, n + ' cards, then “Show more”', comfort.chunk === n)).join(''))
+    + settingRow('overdue', 'Tasks past their date', comfort.overdue === 'amber' ? 'Amber, “Past its date”' : 'Red, “Overdue”', r('overdue', 'amber', 'Amber, “Past its date”', comfort.overdue === 'amber') + r('overdue', 'red', 'Red, “Overdue”', comfort.overdue === 'red') + '<p>“Renew passport before the Lisbon trip” on the Board is past its date, so you can see the difference.</p>')
+    + '</div>';
+}
+function colourByFieldset() {
+  const list = comfort.colourBy;
+  const rows = list.map((source, i) => '<li class="cb-row"><span class="cb-n">' + (i + 1) + '.</span><span class="cb-name">' + esc(sourceName(source)) + '</span>'
+    + '<button class="btn-text" data-cb-move="' + i + '" data-dir="-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move ' + esc(sourceName(source)) + ' up">↑ Up</button>'
+    + '<button class="btn-text" data-cb-move="' + i + '" data-dir="1"' + (i === list.length - 1 ? ' disabled' : '') + ' aria-label="Move ' + esc(sourceName(source)) + ' down">↓ Down</button>'
+    + (source.startsWith('label:') ? '<button class="btn-text" data-cb-remove="' + i + '" aria-label="Remove ' + esc(sourceName(source)) + '">Remove</button>' : '') + '</li>').join('');
+  const addable = st.categories.filter((c) => !list.includes('label:' + c.id));
+  return '<p>Each card takes its colour, and its one label, from the first item on this list that the task has. Move an item up to put it first.</p><ol class="cb-list">' + rows + '</ol>'
+    + '<label>Add a label to the list <select data-cb-add><option value="">Choose a label…</option>' + addable.map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('') + '</select></label>'
+    + '<p>An added label goes to the top, so a task with it always shows it. To change one task only, use “Make category” in its panel.</p>';
+}
+
+// ---------- paint ----------
+function paint() {
+  applyComfort();
+  const inner = ui.screen === 'board' ? boardScreen() : ui.screen === 'sort' ? sortScreen() : ui.screen === 'focus' ? focusScreen() : comfortScreen();
+  document.getElementById('app').innerHTML = frame('<p class="proto-banner">Test site: sample data, nothing is saved. Reloading starts fresh.</p>' + inner);
+  if (ui.screen === 'sort') mountWallets(document.getElementById('app'), hooks);
+  const af = document.querySelector('[autofocus]'); if (af) { af.focus(); af.setSelectionRange(af.value.length, af.value.length); }
+}
+let toastTimer;
+function say(text) { ui.toast = text; clearTimeout(toastTimer); toastTimer = setTimeout(() => { ui.toast = ''; paint(); }, 2600); paint(); }
+
+const hooks = {
+  announce() {},
+  onFacing(name, key) {
+    if (name === 'tray-folders') ui.sort.facing.f = key; else ui.sort.facing.l = key;
+    // On a wide screen the cards lie flat and the wallet treats a project click as "look at" first
+    // (the Focus screen's two-step rule). In Sort one click should choose, so a flat-lying click chooses.
+    const track = document.querySelector('.flip-track[data-wallet="' + name + '"]');
+    if (name === 'tray-folders' && track && track.classList.contains('is-spread')) hooks.onChoose(name, key);
+  },
+  onChoose(name, key) {
+    const u = ui.sort;
+    if (name === 'tray-folders') { u.projectId = u.projectId === key ? null : key; u.facing.f = key; u.why = ''; u.parent = null; u.subtasks = []; u.newSubs = []; }
+    else if (key === '__more__') { u.find = ' '; }
+    else { u.selected = u.selected.includes(key) ? u.selected.filter((x) => x !== key) : u.selected.concat(key); u.facing.l = key; }
+    paint(); return true;
+  },
+};
+
+// ---------- events ----------
+const app = document.getElementById('app');
+app.addEventListener('click', (e) => {
+  const t = e.target.closest('button, input[type=checkbox], article, label');
+  if (!t) return;
+  const d = t.dataset; const b = ui.board; const u = ui.sort;
+  if (d.go) { ui.screen = d.go; history.replaceState(null, '', '#' + d.go); paint(); return; }
+  if (d.note) { say(d.note); return; }
+  // Board
+  if (d.tick) { const x = byId(d.tick); x.t.status = x.t.status === 'done' ? 'next' : 'done'; x.t.doneHere = x.t.status === 'done'; say(x.t.status === 'done' ? 'Marked done: ' + x.t.title : 'Back to Up next: ' + x.t.title); return; }
+  if (d.makeCategory) { const x = byId(d.task); x.t.categoryIds = [d.makeCategory].concat(x.t.categoryIds.filter((c) => c !== d.makeCategory)); say(catName(d.makeCategory) + ' is now the category of ' + x.t.title + '.'); return; }
+  if (d.fold) { const [group, key] = d.fold.split(':'); ui.open[group] = ui.open[group] === key ? null : key; paint(); return; }
+  if (d.cbMove) { const i = +d.cbMove; const j = i + +d.dir; const l = comfort.colourBy; [l[i], l[j]] = [l[j], l[i]]; paint(); return; }
+  if (d.cbRemove) { comfort.colourBy.splice(+d.cbRemove, 1); paint(); return; }
+  if (d.move) { const x = byId(d.move); x.t.status = d.to; say(d.to === 'doing' ? 'Moved to In progress: ' + x.t.title : 'Moved back to Up next: ' + x.t.title); return; }
+  // Clicking the selected card again puts it back, so nothing is highlighted.
+  if (d.open) { const again = b.selected === d.open && !b.phoneOpen; b.selected = again ? null : d.open; b.phoneOpen = !again && innerWidth < 1100; paint(); return; }
+  if (d.select) {
+    // Tapping a task in the panel selects it: its card (or, for a subtask, its parent's card) is ringed
+    // and scrolled to, on the tab it belongs to, with search and filters cleared so it can be seen.
+    const y = byId(d.select); const top = y.t.parentId || y.t.id; const topTask = byId(top).t;
+    b.tab = topTask.status === 'doing' ? 'doing' : topTask.status === 'done' ? 'done' : 'next'; b.find = ''; b.project = ''; b.pcat = ''; b.show = 'all';
+    b.selected = y.t.id; const idx = boardList().findIndex((x) => x.t.id === top); if (idx >= b.shown) b.shown = idx + 1;
+    paint(); const c = document.querySelector('[data-open="' + top + '"]'); if (c) { c.classList.add('on'); c.scrollIntoView({ block: 'center' }); } return; }
+  if (d.close !== undefined) { b.phoneOpen = false; b.selected = null; paint(); return; }
+  if ('tab' in d) { b.tab = d.tab; b.shown = comfort.chunk; b.selected = null; paint(); return; }
+  if ('filterToggle' in d) { b.filterOpen = !b.filterOpen; paint(); return; }
+  if ('filterDone' in d) { b.filterOpen = false; paint(); return; }
+  if ('pcat' in d) { b.pcat = d.pcat; b.shown = comfort.chunk; paint(); return; }
+  if ('show' in d) { b.show = d.show; b.shown = comfort.chunk; paint(); return; }
+  if ('more' in d) { b.shown += comfort.chunk; paint(); return; }
+  if (d.focusOn) { ui.focusId = d.focusOn; ui.pool = [d.focusOn]; ui.allBlocked = false; ui.screen = 'focus'; history.replaceState(null, '', '#focus'); paint(); return; }
+  // Sort
+  if (d.step) { const n = +d.step;
+    if (n > 1 && !u.projectId) { u.why = 'Choose a project first. Labels and links open once the thought has a project.'; paint(); return; }
+    u.step = n; u.find = ''; u.picking = null; u.why = ''; paint(); return; }
+  if ('next' in d) { if (u.step === 1 && !u.projectId) { u.why = 'Choose a project first: tap a project card, then press Next.'; paint(); return; } u.step++; u.find = ''; u.why = ''; u.picking = null; paint(); return; }
+  if ('back' in d) { u.step--; u.find = ''; u.why = ''; u.picking = null; paint(); return; }
+  if ('addNotes' in d) { u.notesOpen = true; paint(); document.querySelector('[data-slip-notes]').focus(); return; }
+  if ('newLabel' in d) { const name = u.find.trim(); const id = 'c' + st.categories.length; st.categories.push({ id, name, color: '#7F8C8D' }); u.selected.push(id); u.find = ''; paint(); return; }
+  if (d.pick) { u.picking = u.picking === d.pick ? null : d.pick; u.pickQuery = ''; paint(); return; }
+  if (d.link) { if (d.link === 'parent') u.parent = d.id; else u[d.link].push(d.id); u.picking = null; paint(); return; }
+  if ('newSub' in d) { u.newSubs.push(u.pickQuery.trim()); u.picking = null; paint(); return; }
+  if (d.unlink) { if (d.unlink === 'parent') u.parent = null; else u[d.unlink] = u[d.unlink].filter((x) => x !== d.id); paint(); return; }
+  if ('unnew' in d) { u.newSubs.splice(+d.unnew, 1); paint(); return; }
+  if ('file' in d) { const item = st.inbox.shift(); const p = st.projects.find((x) => x.id === u.projectId);
+    const t = { id: 'n' + Date.now(), createdAt: Date.now(), title: item.text, status: 'next', categoryIds: u.selected.filter((x) => !x.startsWith('kind:')), notes: u.notes || undefined, parentId: u.parent || undefined, waitsOn: u.waitsOn.length ? u.waitsOn.slice() : undefined };
+    p.tasks.unshift(t); u.subtasks.forEach((id) => { byId(id).t.parentId = t.id; }); u.newSubs.forEach((s, i) => p.tasks.push({ id: t.id + 's' + i, title: s, status: 'next', categoryIds: [], parentId: t.id }));
+    u.holdsUp.forEach((id) => { const y = byId(id); y.t.waitsOn = (y.t.waitsOn || []).concat(t.id); });
+    ui.sort = freshSort(); Object.assign(ui.board, { tab: 'next', find: '', project: '', pcat: '', show: 'all', selected: t.id }); say('Filed in ' + p.name + '. It’s at the top of the Board’s Up next.'); return; }
+  if ('sortDone' in d) { const item = st.inbox.shift(); ui.sort = freshSort(); say('Marked done: ' + item.text); return; }
+  if ('later' in d) { st.inbox.push(st.inbox.shift()); ui.sort = freshSort(); say('Moved to the end of the list.'); return; }
+  if ('deleteSlip' in d) { if (confirm('Delete this thought? This can’t be undone.')) { st.inbox.shift(); ui.sort = freshSort(); say('Deleted.'); } return; }
+  // Focus
+  if ('pickFocus' in d) { pickFocus(); paint(); return; }
+  if (t.dataset.action === 'reroll') { const others = ui.pool.filter((id) => id !== ui.focusId && !blocked(id)); if (others.length) ui.focusId = others[Math.floor(Math.random() * others.length)]; paint(); return; }
+  if (t.dataset.action === 'complete-focus') { byId(ui.focusId).t.status = 'done'; byId(ui.focusId).t.doneHere = true; const done = byId(ui.focusId).t.title; ui.focusId = null; say('Done: ' + done + '. Nice.'); return; }
+  if (t.dataset.action === 'clear-focus') { ui.focusId = null; paint(); return; }
+  if (t.dataset.action === 'focus-subtask' || t.dataset.action === 'focus-doing') { if (t.dataset.task) ui.focusId = t.dataset.task; else byId(ui.focusId).t.status = 'doing'; paint(); return; }
+});
+app.addEventListener('input', (e) => {
+  const el = e.target; const d = el.dataset;
+  if ('boardFind' in d) { ui.board.find = el.value; ui.board.shown = comfort.chunk; paint(); const f = document.querySelector('[data-board-find]'); f.focus(); f.setSelectionRange(f.value.length, f.value.length); return; }
+  if ('sortFind' in d) { ui.sort.find = el.value; paint(); const f = document.querySelector('[data-sort-find]'); f.focus(); f.setSelectionRange(f.value.length, f.value.length); return; }
+  if ('pickFind' in d) { ui.sort.pickQuery = el.value; paint(); return; }
+  if ('slipNotes' in d) { ui.sort.notes = el.value; return; }
+  if ('slipTitle' in d) { st.inbox[0].text = el.textContent; return; }
+  if (d.editTitle) { byId(d.editTitle).t.title = el.textContent; return; }
+  if (d.editNotes) { byId(d.editNotes).t.notes = el.value; return; }
+});
+app.addEventListener('change', (e) => {
+  const el = e.target;
+  if (el.matches('[data-project]')) { ui.board.project = el.value; ui.board.shown = comfort.chunk; paint(); return; }
+  if (el.dataset.editStatus) { const x = byId(el.dataset.editStatus); x.t.status = el.value; x.t.doneHere = el.value === 'done'; paint(); return; }
+  if (el.dataset.editPriority) { byId(el.dataset.editPriority).t.priority = el.value || null; paint(); return; }
+  if (el.dataset.editDue) { byId(el.dataset.editDue).t.deadline = el.value || undefined; paint(); return; }
+  if (el.matches('[data-cb-add]') && el.value) { comfort.colourBy.unshift('label:' + el.value); paint(); return; }
+  if (el.name === 'motion') comfort.motion = el.value;
+  if (el.name === 'chunk') { comfort.chunk = +el.value; ui.board.shown = comfort.chunk; }
+  if (el.name === 'overdue') comfort.overdue = el.value;
+  if (el.matches('[data-calm]')) comfort.calm = el.checked;
+  if (['motion', 'chunk', 'overdue'].includes(el.name) || el.matches('[data-calm]')) paint();
+});
+// Right-click a project or label card in Sort to change its colour, as label chips already allow.
+app.addEventListener('contextmenu', (e) => {
+  const s = e.target.closest('.sleeve'); if (!s || ui.screen !== 'sort') return;
+  e.preventDefault();
+  const key = s.dataset.key; const proj = st.projects.find((p) => p.id === key); const cat = st.categories.find((c) => c.id === key);
+  const target = proj || cat; if (!target) return;
+  document.querySelectorAll('.ctx').forEach((m) => m.remove());
+  const m = document.createElement('div'); m.className = 'ctx'; m.style.left = e.clientX + 'px'; m.style.top = e.clientY + 'px';
+  m.innerHTML = 'Colour for <b>' + esc(target.name) + '</b><div class="sws">' + ['#3E8E5E', '#4D6FB8', '#C9584F', '#8A6FB8', '#2F8F8F', '#C2731E', '#B8527E', '#5B8C2A', '#6A6FD1', '#A8742B', '#7F8C8D', '#16A085'].map((c) => '<button style="--c:' + c + '" data-colour="' + c + '" aria-label="' + c + '"></button>').join('') + '</div>';
+  document.body.appendChild(m);
+  m.addEventListener('click', (ev) => { const c = ev.target.dataset.colour; if (c) { target.color = c; m.remove(); paint(); } });
+  setTimeout(() => document.addEventListener('click', function off(ev) { if (!m.contains(ev.target)) { m.remove(); document.removeEventListener('click', off); } }), 0);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || ui.screen !== 'board' || !ui.board.selected) return;
+  ui.board.selected = null; ui.board.phoneOpen = false; paint();
+});
+document.getElementById('capture-form').addEventListener('submit', (e) => {
+  e.preventDefault(); const i = document.getElementById('capture-input'); const text = i.value.trim(); if (!text) return;
+  st.inbox.push({ id: 'cap' + Date.now(), text, createdAt: Date.now() }); i.value = ''; say('Added to Sort: ' + text);
+});
+paint();
+</script>
+</body>
+</html>

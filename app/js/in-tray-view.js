@@ -7,6 +7,7 @@
 import { esc, relTime } from './state.js';
 import { CHOOSING_MODE_INFO, wording } from './wallet.js';
 import { orderTray, flagCards, folderCards } from './in-tray.js';
+import { canWaitOn, subtasksOf } from './task-links.js';
 import { sleeve, walletInner, mutedChip, focusChoosingMode, unsortedQueue } from './render.js';
 
 function slipFlags(cards, selected) {
@@ -14,34 +15,98 @@ function slipFlags(cards, selected) {
     .map((c) => '<span class="slip-flag" title="' + esc(c.name) + '" style="--c:' + mutedChip(c.color) + '">' + esc(c.name) + '</span>').join('');
 }
 
-function trayWallets(st, u, cur, cards, mode) {
-  const isThought = cur.kind === 'thought';
+// Part 3 (see docs/4-systems/task-links.md): the ties as small folder-coloured tags, "+ Add" opens a task search.
+const allTasks = (st) => st.projects.flatMap((p) => p.tasks.map((t) => ({ t, p })));
+function linkStep(st, u, project, tid) {
+  const f = (k) => u[k] || [];
+  const find = (id) => allTasks(st).find((x) => x.t.id === id);
+  const tag = (id, field) => {
+    const x = find(id);
+    return x ? '<span class="link-tag" style="--c:' + x.p.color + '">' + esc(x.t.title) + (x.p.id !== project.id ? ' <small>· ' + esc(x.p.name) + '</small>' : '')
+      + '<button type="button" data-action="tie-remove" data-field="' + field + '" data-id="' + id + '" aria-label="Untie">×</button></span>' : '';
+  };
+  const newTag = (title, i) => '<span class="link-tag" style="--c:' + project.color + '">' + esc(title) + ' <small>· new</small>'
+    + '<button type="button" data-action="tie-remove" data-field="newSubtasks" data-id="' + i + '" aria-label="Remove">×</button></span>';
+  const taskFind = (field) => {
+    const inFolder = field === 'parent' || field === 'subtasks';
+    const taken = [u.parent].concat(f('subtasks'), f('waitsOn'), f('holdsUp'));
+    const q = (u.pickQuery || '').toLowerCase();
+    const ok = ({ t, p }) => {
+      if (t.status === 'done' || t.id === tid || taken.includes(t.id)) return false;
+      if (inFolder && p.id !== project.id) return false;
+      const live = !!t.parentId && !!find(t.parentId);
+      if (field === 'parent') return !live && !f('subtasks').length && !(u.newSubtasks || []).length;
+      if (field === 'subtasks') return !live && !u.parent && !subtasksOf(st.projects, t.id).length;
+      if (!tid) return true; // a thought has no id yet, so nothing can loop back to it
+      return field === 'waitsOn' ? canWaitOn(st.projects, tid, t.id) : canWaitOn(st.projects, t.id, tid);
+    };
+    const hits = allTasks(st).filter(ok).filter(({ t, p }) => !q || t.title.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)).slice(0, 6);
+    return '<div class="task-find"><input class="sort-find" data-tie-find value="' + esc(u.pickQuery || '') + '" placeholder="Find a task ' + (inFolder ? 'in ' + esc(project.name) : 'in any folder') + '…" aria-label="Find a task">'
+      + hits.map(({ t, p }) => '<button type="button" class="task-hit" data-action="tie-add" data-field="' + field + '" data-id="' + t.id + '"><span class="dot" style="--c:' + p.color + '"></span>' + esc(t.title) + '<span class="muted small">' + esc(p.name) + '</span></button>').join('')
+      + (!hits.length ? '<p class="muted small">No task matches.</p>' : '')
+      + (field === 'subtasks' && (u.pickQuery || '').trim() ? '<button type="button" class="task-hit" data-action="tie-new-sub"><b>+ New subtask</b>&nbsp;“' + esc(u.pickQuery.trim()) + '”</button>' : '')
+      + '</div>';
+  };
+  const row = (label, field) => {
+    const tags = field === 'parent' ? (u.parent ? [tag(u.parent, 'parent')] : []) : f(field).map((id) => tag(id, field));
+    if (field === 'subtasks') (u.newSubtasks || []).forEach((s, i) => tags.push(newTag(s, i)));
+    return '<div class="link-row"><span class="muted small">' + label + '</span>' + tags.join('')
+      + (field !== 'parent' || !u.parent ? '<button type="button" class="link-add" data-action="tie-open" data-field="' + field + '">+ Add</button>' : '') + '</div>'
+      + (u.picking === field ? taskFind(field) : '');
+  };
+  return '<div class="links-step"><h4>Inside ' + esc(project.name) + '</h4>' + row('Part of', 'parent') + row('Subtasks', 'subtasks')
+    + '<h4>Across all folders</h4>' + row('Waits on', 'waitsOn') + row('Holds up', 'holdsUp') + '</div>';
+}
+
+const has = (name, q) => !q || name.toLowerCase().includes(q.toLowerCase());
+
+// The step bar: three tabs, the finished ones can be tapped to go back, later ones are off.
+function stepBar(step, folder, flagNames) {
+  const tab = (n, label, summary) => '<button type="button" class="step-tab' + (n === step ? ' now' : n < step ? ' done' : '') + '" data-action="sort-step" data-step="' + n + '"' + (n > step ? ' disabled' : '') + '><b>' + n + '. ' + label + '</b><small>' + (n <= step ? esc(summary) : '') + '</small></button>';
+  return '<div class="step-bar">' + tab(1, 'Which folder?', folder ? folder.name : '') + tab(2, 'Stick on flags', flagNames.join(', ')) + tab(3, 'Tie to tasks', 'optional') + '</div>';
+}
+
+function trayWallets(st, u, project, step, allCards, mode, tid) {
   const hint = wording(CHOOSING_MODE_INFO[mode].hint, 'use');
+  const q = u.find || '';
   let html = '';
-  if (isThought) {
-    const folders = folderCards(st);
-    if (folders.length) {
-      const items = folders.map((f) => {
-        const picked = f.id === u.projectId;
-        const detail = picked ? 'chosen' : f.open + ' open';
-        return sleeve({ key: f.id, name: f.name, color: f.color, kind: 'project', picked, detail, speak: f.name + ', ' + (picked ? 'chosen. Choose it again to clear.' : detail) });
-      });
-      const facing = folders.some((f) => f.id === u.facingFolder) ? u.facingFolder : (folders.some((f) => f.id === u.projectId) ? u.projectId : folders[0].id);
-      html += '<div class="wallet" id="tray-folder-wallet">' + walletInner({ wallet: 'tray-folders', label: '1. Which folder?', aria: 'Folders. Arrow keys flip, Enter chooses or clears.', items, facing, mode, verb: 'use' }) + '</div>';
-    } else {
+  if (step === 1) {
+    const folders = folderCards(st).filter((f) => has(f.name, q));
+    if (!st.projects.length) {
       html += '<p class="muted small">Add a project below to file this thought into.</p>';
+    } else {
+      html += '<input type="text" class="sort-find" value="' + esc(q) + '" placeholder="Find a folder…" aria-label="Find a folder">';
+      if (folders.length) {
+        const items = folders.map((f) => {
+          const picked = !!project && f.id === project.id;
+          const detail = picked ? 'chosen' : f.open + ' open';
+          return sleeve({ key: f.id, name: f.name, color: f.color, kind: 'project', picked, detail, speak: f.name + ', ' + (picked ? 'chosen. Choose it again to clear.' : detail) });
+        });
+        const facing = folders.some((f) => f.id === u.facingFolder) ? u.facingFolder : (project && folders.some((f) => f.id === project.id) ? project.id : folders[0].id);
+        html += '<div class="wallet" id="tray-folder-wallet">' + walletInner({ wallet: 'tray-folders', label: '', aria: 'Folders. Arrow keys flip, Enter chooses or clears.', items, facing, mode, verb: 'use' }) + '</div>';
+      } else {
+        html += '<p class="muted small find-empty">No folder matches “' + esc(q) + '”.</p>';
+      }
     }
+  } else if (step === 2) {
+    const cards = flagCards(st, project, { selected: u.selected, showAll: !!u.showAllFlags || !!q }).filter((c) => q ? !c.more && has(c.name, q) : true);
+    const exact = st.categories.some((c) => c.name.toLowerCase() === q.trim().toLowerCase());
+    html += '<input type="text" class="sort-find" value="' + esc(q) + '" placeholder="Find a flag, or type a new one…" aria-label="Find a flag">';
+    if (q.trim() && !exact) html += '<button type="button" class="new-flag" data-action="sort-new-flag">+ New flag “' + esc(q.trim()) + '”</button>';
+    if (cards.length) {
+      const items = cards.map((c) => {
+        if (c.more) return sleeve({ key: c.token, name: c.name, color: c.color, detail: c.more + ' more', speak: c.more + ' more categories. Choose to show them all.' });
+        const picked = u.selected.includes(c.token);
+        const detail = picked ? 'flag on the slip' : 'no flag yet';
+        return sleeve({ key: c.token, name: c.name, color: mutedChip(c.color), picked, detail, speak: c.name + ', ' + detail });
+      });
+      const facing = cards.some((c) => c.token === u.facingFlag) ? u.facingFlag : cards[0].token;
+      html += '<div class="wallet" id="tray-flag-wallet">' + walletInner({ wallet: 'tray-flags', label: '', aria: 'Category flags. Arrow keys flip, Enter adds or removes.', items, facing, mode, verb: 'use' }) + '</div>';
+    }
+  } else {
+    html += linkStep(st, u, project, tid);
   }
-  const items = cards.map((c) => {
-    if (c.more) return sleeve({ key: c.token, name: c.name, color: c.color, detail: c.more + ' more', speak: c.more + ' more categories. Choose to show them all.' });
-    const picked = u.selected.includes(c.token);
-    const detail = picked ? 'flag on the slip' : 'no flag yet';
-    return sleeve({ key: c.token, name: c.name, color: mutedChip(c.color), picked, detail, speak: c.name + ', ' + detail });
-  });
-  const facing = cards.some((c) => c.token === u.facingFlag) ? u.facingFlag : cards[0].token;
-  html += '<div class="wallet" id="tray-flag-wallet">' + walletInner({ wallet: 'tray-flags', label: (isThought ? '2. ' : '') + 'Stick on category flags', aria: 'Category flags. Arrow keys flip, Enter adds or removes.', items, facing, mode, verb: 'use' }) + '</div>';
-  html += '<input type="text" class="sort-new" name="sortNewLabels" value="' + esc(u.newLabels || '') + '" placeholder="New labels, comma-separated…" maxlength="120">';
-  return '<div class="wallet-root tray-wallets">' + html + '<div class="flip-hint">' + hint + '</div><div class="sr-only" id="tray-live" aria-live="polite"></div></div>';
+  return '<div class="wallet-root tray-wallets">' + stepBar(step, project, u.selected.map((t) => (allCards.find((c) => c.token === t) || {}).name).filter(Boolean)) + html + (html.includes('flip-track') ? '<div class="flip-hint">' + hint + '</div>' : '') + '<div class="sr-only" id="tray-live" aria-live="polite"></div></div>';
 }
 
 function renderTray(st, u, ordered, mode) {
@@ -52,32 +117,42 @@ function renderTray(st, u, ordered, mode) {
       + '<div class="tray"><div class="tray-stack"><div class="tray-empty"><p>The tray is empty. Everything has a home.</p><p class="muted small">Jot a thought above and it lands here.</p></div></div>' + lip + '</div>';
   }
   const isThought = cur.kind === 'thought';
-  const project = isThought ? (u.projectId ? st.projects.find((p) => p.id === u.projectId) : null) : cur.project;
-  const cards = flagCards(st, project, { selected: u.selected, showAll: !!u.showAllFlags });
-  const text = isThought ? cur.item.text : cur.task.title;
+  const step = u.step || 1;
+  // a task slip's folder is its own project until another is chosen
+  const project = u.projectId ? st.projects.find((p) => p.id === u.projectId) : (isThought ? null : cur.project);
+  const allCards = flagCards(st, project, { selected: u.selected, showAll: true });
+  const editable = isThought || cur.task.issueNumber == null;
+  const text = u.title != null ? u.title : (isThought ? cur.item.text : cur.task.title);
+  const notes = u.notes != null ? u.notes : (isThought ? '' : cur.task.notes || '');
   const chip = (p) => '<span class="folder-chip" style="--c:' + p.color + '">' + esc(p.name) + '</span>';
-  const dest = isThought
-    ? (project ? 'Going in ' + chip(project) : 'No folder yet')
-    : 'In ' + chip(project) + (cur.task.issueNumber != null ? ' <span class="slip-issue">#' + cur.task.issueNumber + '</span>' : '');
+  const dest = (project ? (isThought ? 'Going in ' : 'In ') + chip(project) : 'No folder yet')
+    + (!isThought && cur.task.issueNumber != null ? ' <span class="slip-issue">#' + cur.task.issueNumber + '</span>' : '');
   const when = isThought ? '<div class="slip-when">Thought · ' + relTime(cur.item.createdAt) + '</div>' : '';
+  const noteBox = u.notesOpen || notes
+    ? '<textarea class="slip-notes" name="slipNotes" placeholder="Notes…">' + esc(notes) + '</textarea>'
+    : '<button type="button" class="slip-notes-link" data-action="sort-add-notes">+ Add notes</button>';
   const n = ordered.length;
   const ids = isThought ? 'data-inbox="' + cur.item.id + '"' : 'data-task="' + cur.task.id + '" data-project="' + cur.project.id + '"';
-  const file = isThought
-    ? (project ? '<button type="button" class="file-btn" data-action="unsorted-file" data-inbox="' + cur.item.id + '">File it in ' + esc(project.name) + ' →</button>' : '<button type="button" class="file-btn" disabled>Choose a folder first</button>')
-    : '<button type="button" class="file-btn" data-action="unsorted-save" ' + ids + '>Save in ' + esc(project.name) + ' →</button>';
+  const main = step === 1
+    ? (project ? '<button type="button" class="file-btn" data-action="sort-next">Next: flags →</button>' : '<button type="button" class="file-btn" disabled>Choose a folder first</button>')
+    : step === 2 ? '<button type="button" class="file-btn" data-action="sort-next">Next: tie to tasks →</button>'
+    : isThought
+      ? '<button type="button" class="file-btn" data-action="unsorted-file" data-inbox="' + cur.item.id + '">File it in ' + esc(project.name) + ' →</button>'
+      : '<button type="button" class="file-btn" data-action="unsorted-save" ' + ids + '>Save in ' + esc(project.name) + ' →</button>';
   // .tray-side holds the slip and its buttons: on a wide Sort screen it stays in view beside the
   // choices; on a phone it dissolves (display:contents) so the buttons come after the choices
   return '<div class="tray-side"><p class="tray-count muted small">' + (n === 1 ? '1 in the tray' : n + ' in the tray') + '</p>'
     + '<div class="tray"><div class="tray-stack">'
     + (n >= 2 ? '<div class="slip-behind"></div>' : '') + (n >= 3 ? '<div class="slip-behind two"></div>' : '')
-    + '<div class="jot-slip"><div class="slip-flags">' + slipFlags(cards, u.selected) + '</div>'
-    + '<p class="slip-text">' + esc(text) + '</p><div class="slip-dest">' + dest + '</div>' + when + '</div>'
+    + '<div class="jot-slip"><div class="slip-flags">' + slipFlags(allCards, u.selected) + '</div>'
+    + '<p class="slip-text"' + (editable ? ' contenteditable="true" spellcheck="false" data-slip-title' : '') + '>' + esc(text) + '</p><div class="slip-dest">' + dest + '</div>' + when + noteBox + '</div>'
     + '</div>' + lip + '</div>'
-    + '<div class="sort-acts">' + file
-    + '<div class="sort-small"><button type="button" data-action="unsorted-complete" ' + ids + '>Already done</button>'
+    + '<div class="sort-acts">' + main
+    + '<div class="sort-small">' + (step > 1 ? '<button type="button" data-action="sort-back">← Back</button>' : '')
+    + '<button type="button" data-action="unsorted-complete" ' + ids + '>Already done</button>'
     + '<button type="button" data-action="unsorted-skip">Later</button>'
     + '<button type="button" data-action="unsorted-delete" ' + ids + '>Bin it</button></div></div></div>'
-    + trayWallets(st, u, cur, cards, mode);
+    + trayWallets(st, u, project, step, allCards, mode, isThought ? null : cur.task.id);
 }
 
 // The top slip: the queue in tray order (slips sent to the back by "Later" come last), or null

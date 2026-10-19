@@ -1,0 +1,263 @@
+{
+  "title": "Board Takes Over",
+  "eyebrow": "Design for approval · your QA feedback on the sort steps and ties · nothing built yet",
+  "approval": "Design approved: board takes over",
+  "short": {
+    "lead": "Your test turned up three things: fixes for the Sort screen, a clearer Board where subtasks live inside their parent and tapping a task opens a panel with everything about it, and the Board taking over from Projects. This page shows each one drawn on the real app, plus where every Projects feature would go.",
+    "hint": "Tap a step to see it. The pictures use the app's own styles and sample data.",
+    "key": [
+      [
+        "Built by me",
+        ""
+      ],
+      [
+        "You decide",
+        "you"
+      ]
+    ],
+    "items": [
+      [
+        "bulb",
+        "Today",
+        "The editor you sent",
+        "",
+        "Tapping a task opens the old inline editor: title, steps, priority, date, every label, GitHub links, Save. It has no notes and no ties.",
+        "Nothing from you.",
+        {
+          "src": "../generated/board-merge/before-editor-open.png",
+          "alt": "Today's inline task editor with all labels showing",
+          "caption": "Your screenshot of today's editor."
+        }
+      ],
+      [
+        "list",
+        "Sort",
+        "Sort fixes",
+        "",
+        "Notes no longer slide under the 'In-tray' lip: the slip gets room at its foot and the notes box grows with its text. Tapping a step you can't open yet says why ('Choose a folder first…') instead of doing nothing. Right-clicking a folder or flag card opens its colour, as label chips already do.",
+        "Nothing from you.",
+        {
+          "src": "../generated/board-merge/after-sort.png",
+          "alt": "The Sort screen with a why-message under the step bar, a colour picker on a folder, and notes clear of the lip",
+          "caption": "All three Sort fixes in one picture."
+        }
+      ],
+      [
+        "eye",
+        "Board",
+        "Subtasks inside their parent",
+        "",
+        "A parent card lists its subtasks inside it, each with its own tick and state ('up next', 'waiting'). Subtasks no longer get cards of their own. Search, category pills and three 'Show' filters (tasks that have subtasks, tasks waiting on something, and tasks holding others up) sit above the project pills.",
+        "Nothing from you.",
+        {
+          "src": "../generated/board-merge/after-board.png",
+          "alt": "The Board with search, category pills, Show filters and a parent card holding two subtasks",
+          "caption": "The Board with Projects' tools added."
+        }
+      ],
+      [
+        "search",
+        "Select",
+        "Tapping a tie selects that task",
+        "",
+        "Tapping a name in a tie line rings that card, labels it 'Selected', and scrolls the Board to it. Tapping a subtask's name selects its parent card.",
+        "Nothing from you.",
+        {
+          "src": "../generated/board-merge/after-select.png",
+          "alt": "History essay draft ringed and labelled Selected",
+          "caption": "The selected card stands out."
+        }
+      ],
+      [
+        "swap",
+        "Panel",
+        "One panel for everything about a task",
+        "",
+        "Tapping a card opens a panel at the side (full screen on a phone): title, notes, priority, date, labels (shown as chips with 'Change'), all four ties with '+ Add', steps, GitHub links, Focus on this, Delete, Save. It replaces the inline editor.",
+        "Nothing from you.",
+        {
+          "src": "../generated/board-merge/after-panel.png",
+          "alt": "The task panel open beside the Board",
+          "caption": "The new task panel."
+        }
+      ],
+      [
+        "lock",
+        "Approve",
+        "You choose",
+        "you",
+        "Your answers set how far the Board replaces Projects and how cards are coloured.",
+        "Answer the five choices below, then tap Copy my reply and send what it gives you."
+      ]
+    ]
+  },
+  "changes": [
+    [
+      "keep",
+      "Focus and Sort screens",
+      "Unchanged apart from the Sort fixes.",
+      null,
+      "The Focus note and the three-part Sort screen stay as built."
+    ],
+    [
+      "chg",
+      "Projects features, one by one",
+      "Where each one goes when the Board takes over.",
+      [
+        "A Projects screen",
+        "Everything on the Board"
+      ],
+      "Create a project, track an existing GitHub repo, or create a new repo: '+ New project' on the Board opens the same panel. Edit a project (name, colour, category, GitHub link, remove): right-click or long-press its pill to open the same edit panel. Drag projects into order: drag the pills. Search projects: the Board's search box, which also finds tasks and labels. Project category filter: the Category pills. All or one project: tap a pill to show only that project, as now. Add a task: '+ Add task' at the top of Up next, into the project you're viewing, or with a project picker when you're viewing all projects. Older done tasks: 'Show older' at the foot of Done this week. Move a task to another project: drag its card onto a project pill, or change it in the panel. Collapse and expand project tiles: dropped, because there are no tiles. The sort menu (name, open tasks): see choice 4.",
+      null,
+      null,
+      {
+        "before": {
+          "src": "../generated/board-merge/before-board.png",
+          "alt": "Today's Board"
+        },
+        "after": {
+          "src": "../generated/board-merge/after-board.png",
+          "alt": "The proposed Board"
+        },
+        "caption": "Left: the Board today. Right: with Projects' tools."
+      }
+    ],
+    [
+      "chg",
+      "Task editor",
+      "The inline editor becomes a side panel with notes and ties.",
+      [
+        "Inline editor, no notes, no ties",
+        "Side panel with notes, ties and everything else"
+      ],
+      "Every field of today's editor is kept. Labels show as chips with 'Change', which opens the full list, so the panel stays short.",
+      null,
+      null,
+      {
+        "src": "../generated/board-merge/after-panel.png",
+        "alt": "The proposed task panel",
+        "caption": "The panel."
+      }
+    ],
+    [
+      "chg",
+      "Board cards with subtasks",
+      "Subtasks fold inside the parent card.",
+      [
+        "Subtasks as separate cards (answer 2A)",
+        "Subtasks inside the parent card"
+      ],
+      "This reverses your earlier answer 2A (subtasks as separate cards) from the ties design, at your request. A subtask's progress shows as a word beside it; its tick works in place, and its own details open in the panel.",
+      null,
+      null
+    ]
+  ],
+  "choices": [
+    [
+      "replace",
+      "Should the Projects screen go once the Board has all its features?",
+      [
+        [
+          "A",
+          "Yes, remove Projects",
+          1,
+          "The rail becomes Focus, Sort, Board. Every feature moves as listed under Changes."
+        ],
+        [
+          "B",
+          "Keep Projects for now",
+          0,
+          "The Board gets the new tools, and Projects stays until you're sure."
+        ]
+      ],
+      "You asked for the Board to replace Projects, and every Projects feature has a home on the Board in the list above."
+    ],
+    [
+      "colour",
+      "What colour should a card's edge be?",
+      [
+        [
+          "A",
+          "Its project category's colour",
+          1,
+          "Home life, Work and Learning each have a colour, so a column shows at a glance which part of life it is."
+        ],
+        [
+          "B",
+          "Its project's own colour, as now",
+          0,
+          "Category colours only show on the Category pills."
+        ]
+      ],
+      "You asked for tasks colour-coordinated by category."
+    ],
+    [
+      "subs",
+      "Where should a subtask show on the Board?",
+      [
+        [
+          "A",
+          "Only inside its parent card",
+          1,
+          "One card per job; the subtask's state shows as a word."
+        ],
+        [
+          "B",
+          "Inside its parent, plus its own card while it is in progress",
+          0,
+          "While a subtask is in progress, it also appears as its own card in the In progress column."
+        ]
+      ],
+      "You asked for subtasks inside their parent, not beside or under it."
+    ],
+    [
+      "sort",
+      "Projects has a sort menu (by name, by open tasks, custom). What happens to it?",
+      [
+        [
+          "A",
+          "Drop it; pills keep your dragged order",
+          1,
+          "One order everywhere, set by dragging the pills."
+        ],
+        [
+          "B",
+          "Keep a sort menu beside the pills",
+          0,
+          "Pills can also be sorted by name or by open tasks."
+        ]
+      ],
+      "Search covers finding a project by name, so the order only needs to be the one you choose."
+    ],
+    [
+      "panel",
+      "How should the task panel open?",
+      [
+        [
+          "A",
+          "At the side on a wide screen, full screen on a phone",
+          1,
+          "The Board stays visible beside it on a computer."
+        ],
+        [
+          "B",
+          "Open in place inside the card",
+          0,
+          "Like today's editor, but with the new fields."
+        ]
+      ],
+      "A side panel has room for notes and ties without pushing the rest of the column down."
+    ]
+  ],
+  "wrapup": {
+    "summary": "This turns your QA feedback into three parts: Sort fixes, a clearer Board with a task panel, and the Board taking over from Projects.",
+    "changing": "Changed: the Sort screen (three fixes), Board cards, the task editor (now a panel), and the rail (Projects goes, choice 1). New: Board search, category pills, Show filters, selecting a card from a tie. Dropped: project tiles' collapse, and the sort menu (choice 4).",
+    "blocking": "Your five answers under Choices. Nothing is built until you approve, and the pull request waits.",
+    "next": "After approval: the systems docs, issues for each part (Sort fixes, Board cards and panel, Board takes over), then the build on AjsAgent/sort-steps.",
+    "todo": [
+      "Look through the steps above.",
+      "Pick your answers under Choices.",
+      "Tap <b>Copy my reply</b> and send it, or say what to change."
+    ]
+  }
+}

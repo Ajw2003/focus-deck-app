@@ -1,0 +1,448 @@
+{
+  "title": "Sort Flow Upgrade",
+  "eyebrow": "Design for approval · issues #180, #181 and #182 · second draft: sorting in three steps · nothing built yet",
+  "approval": "Design approved: sort flow asap",
+  "short": {
+    "lead": "Sorting becomes three short steps instead of one long card: first the project, then the kind and labels, then links to other tasks. Each step asks one question, and the bar at the top keeps your earlier answers in view. The focus card stays as calm as it is today, with at most one extra line.",
+    "hint": "Tap a step to see it. The pictures come from a clickable prototype that uses the app's own stylesheet.",
+    "key": [
+      [
+        "We build it",
+        ""
+      ],
+      [
+        "You decide",
+        "you"
+      ]
+    ],
+    "items": [
+      [
+        "bulb",
+        "Today",
+        "What the Unsorted card does today",
+        "",
+        "Today everything sits in one card: a project question for thoughts, then three kind cards, eight labels with '+50 more', and a comma-separated box for new labels. Tasks have no notes, no subtasks and no links, and the focus picker chooses at random.",
+        "Nothing from you.",
+        {
+          "src": "../generated/sort-flow-asap/before-labels.png",
+          "alt": "Today's Unsorted card with kind cards, eight labels, +50 more and a New labels box",
+          "caption": "Today's card, drawn by the app's own code with 55 labels."
+        }
+      ],
+      [
+        "list",
+        "Step 1",
+        "Step 1: Project",
+        "",
+        "One question: which project? A search box filters the projects as you type. The title can be edited in place, and '+ Add notes' opens a notes box only when you want one. Next stays greyed out until a project is chosen.",
+        "Nothing from you.",
+        {
+          "src": "../generated/sort-flow-asap/steps-step1.png",
+          "alt": "Step 1 with the search box showing 'ho' and House move chosen",
+          "caption": "Typing “ho” leaves only House move."
+        }
+      ],
+      [
+        "search",
+        "Step 2",
+        "Step 2: Kind and labels",
+        "",
+        "The Reminder, Build and Fix cards stay as they are. Below them, one box finds a label, or makes a new one when nothing matches. The step bar shows the project chosen in step 1.",
+        "Nothing from you.",
+        {
+          "src": "../generated/sort-flow-asap/steps-step2.png",
+          "alt": "Step 2 with Reminder chosen and the label search showing Packing, Paperwork, Papers and a New label pill",
+          "caption": "55 labels narrowed to 3 by typing “pa”."
+        }
+      ],
+      [
+        "loop",
+        "Step 3",
+        "Step 3: Links (optional)",
+        "",
+        "Two short groups. 'Inside House move' holds Part of and Subtasks. 'Across all projects' holds Waits on and Holds up. Each '+ Add' opens a small task search. You can press File without adding anything.",
+        "Nothing from you.",
+        {
+          "src": "../generated/sort-flow-asap/steps-step3.png",
+          "alt": "Step 3 with a subtask, a waits-on task, and the Holds up search finding a Portfolio site task",
+          "caption": "“Holds up” searches every project."
+        }
+      ],
+      [
+        "next",
+        "Focus",
+        "The focus card afterwards",
+        "",
+        "A task that unblocks others gets one chip, such as 'Unblocks 2 tasks'. A task with subtasks gets one line naming the next subtask, with a 'Start it' button. There are no lists of links on the card.",
+        "Nothing from you.",
+        {
+          "src": "../generated/sort-flow-asap/steps-focus.png",
+          "alt": "Two focus cards: one with an Unblocks 2 tasks chip, one with a Next step line",
+          "caption": "At most one extra chip or line per card."
+        }
+      ],
+      [
+        "lock",
+        "Approve",
+        "You pick the options and approve",
+        "you",
+        "Your answers set how each step behaves.",
+        "You answer the six choices below and send the reply that the Copy my reply button builds."
+      ]
+    ]
+  },
+  "changes": [
+    [
+      "keep",
+      "Kind cards and label ranking",
+      "Reminder, Build and Fix, plus the ranked 'Other labels' pills.",
+      null,
+      "These stay as they are, and the search box only filters them. The ranking (this project's labels first, then the busiest overall) is kept."
+    ],
+    [
+      "chg",
+      "Unsorted card becomes three steps",
+      "Project, then kind and labels, then links, with a step bar that keeps earlier answers in view.",
+      [
+        "One long card with every picker at once",
+        "One question per step; Back and Next; File on step 3"
+      ],
+      "The title is editable on every step, and notes sit behind '+ Add notes'. Done ✓ and Delete move to small text buttons at the top right, and Skip becomes 'Skip for now' beside Next. Issue #70 (edit an Unsorted entry's text before filing) is covered too. Moving a task to another project reuses the code that drag-and-drop already uses (js/task-move.js).",
+      null,
+      [
+        [
+          "js/render.js",
+          40,
+          10,
+          [
+            [
+              "Editable title and Notes box on the Unsorted card",
+              20,
+              6
+            ],
+            [
+              "Project change offered on tasks",
+              20,
+              4
+            ]
+          ]
+        ],
+        [
+          "js/app.js",
+          25,
+          4,
+          [
+            [
+              "Save the title, notes and project on File or Save",
+              25,
+              4
+            ]
+          ]
+        ]
+      ],
+      {
+        "before": {
+          "src": "../generated/sort-flow-asap/before-labels.png",
+          "alt": "Today's Unsorted card"
+        },
+        "after": {
+          "src": "../generated/sort-flow-asap/steps-step2.png",
+          "alt": "Step 2 of the proposed card"
+        },
+        "caption": "Left: the card today, drawn by the real code. Right: step 2 of the proposed card."
+      }
+    ],
+    [
+      "new",
+      "A search box on steps 1 and 2",
+      "Step 1 finds a project; step 2 finds or makes a label (issue #182).",
+      null,
+      "It matches any part of the name and ignores capital letters. If the text doesn't exactly match an existing label, a '+ New label' pill creates it.",
+      [
+        "Eight pills, then '+50 more', and a separate comma-separated box for new labels.",
+        "A box that cuts both lists to the matches.",
+        "You type three letters instead of hunting."
+      ],
+      [
+        [
+          "js/render.js",
+          25,
+          6,
+          [
+            [
+              "Filter the project pills and the kind and label pills",
+              25,
+              6
+            ]
+          ]
+        ],
+        [
+          "js/app.js",
+          6,
+          0,
+          [
+            [
+              "Keep the typed text across repaints",
+              6,
+              0
+            ]
+          ]
+        ],
+        [
+          "css/app.css",
+          2,
+          0,
+          [
+            [
+              "Search box style, matching .sort-new",
+              2,
+              0
+            ]
+          ]
+        ]
+      ]
+    ],
+    [
+      "new",
+      "Subtasks and dependencies",
+      "Each task gets a parent, plus 'waits on' links to tasks in any project (issues #180 and #181).",
+      null,
+      "This adds two fields to a task. The first is its parent: one task in the same project. The second is its 'waits on' list: tasks from any project that must be done first. 'Holds up' is the same link seen from the other side, so it is not stored twice. A link to a deleted task is dropped. The new fields sync between your devices, like every other task field.",
+      [
+        "Only a 'steps' checklist of plain text, which can't be picked for focus or linked.",
+        "Real tasks that point at a parent or at what they wait on.",
+        "Big jobs break into tasks you can focus on, and the app knows what is blocked."
+      ],
+      [
+        [
+          "js/mutations.js",
+          45,
+          0,
+          [
+            [
+              "Set and clear parent and waits-on links",
+              30,
+              0
+            ],
+            [
+              "Drop links to deleted tasks",
+              15,
+              0
+            ]
+          ]
+        ],
+        [
+          "js/render.js",
+          60,
+          0,
+          [
+            [
+              "The four link rows (Part of, Subtasks, Waits on, Holds up) and task search",
+              60,
+              0
+            ]
+          ]
+        ],
+        [
+          "js/merge.js",
+          4,
+          0,
+          [
+            [
+              "Merge the new fields",
+              4,
+              0
+            ]
+          ]
+        ],
+        [
+          "js/links.test.mjs",
+          60,
+          0,
+          [
+            [
+              "Tests for linking, circular links and deletion",
+              60,
+              0
+            ]
+          ]
+        ]
+      ]
+    ],
+    [
+      "chg",
+      "Focus picker order",
+      "Picks unblocked tasks first, and among those, the ones that unblock the most (issue #180).",
+      [
+        "Random pick from the pool",
+        "Unblocked first, ranked by how much each clears, then random"
+      ],
+      "The card gets at most one extra chip or line. 'Not this one' still works and still moves through the same pool. If every task in the pool is waiting on something, the picker chooses at random and says so on the card.",
+      null,
+      [
+        [
+          "js/mutations.js",
+          25,
+          3,
+          [
+            [
+              "Rank the focus pool before picking",
+              25,
+              3
+            ]
+          ]
+        ],
+        [
+          "js/render.js",
+          30,
+          2,
+          [
+            [
+              "'Unblocks' chip and next-subtask line on the focus card",
+              30,
+              2
+            ]
+          ]
+        ]
+      ],
+      {
+        "src": "../generated/sort-flow-asap/steps-focus.png",
+        "alt": "Proposed focus cards",
+        "caption": "The proposed focus card."
+      }
+    ]
+  ],
+  "choices": [
+    [
+      "subtasks",
+      "What should a subtask be?",
+      [
+        [
+          "A",
+          "A real task with a parent",
+          1,
+          "It shows in its project, can be focused, labelled and linked, and the parent lists it."
+        ],
+        [
+          "B",
+          "Reuse the existing 'steps' checklist",
+          0,
+          "This is smaller to build, but a step can't be focused, labelled or linked, so most of what issue #180 asks for can't be done."
+        ]
+      ],
+      "Issue #180 asks for subtasks that can block their parent and be suggested first. Only a real task can be suggested by the focus picker. Existing steps stay as they are."
+    ],
+    [
+      "newlabels",
+      "What happens to the 'New labels, comma-separated…' box?",
+      [
+        [
+          "A",
+          "The search box replaces it",
+          1,
+          "Type a name; if no label matches, tap '+ New label'. One box instead of two."
+        ],
+        [
+          "B",
+          "Keep both boxes",
+          0,
+          "Nothing you use today goes away, but the card has two text boxes that look alike."
+        ]
+      ],
+      "Both boxes are for typing a label name. Merging them means one place to type, and the search shows you an existing label before you make a duplicate."
+    ],
+    [
+      "body",
+      "What does 'edit the task body' cover?",
+      [
+        [
+          "A",
+          "Title, plus notes behind '+ Add notes'",
+          1,
+          "The notes box only appears when you tap the link."
+        ],
+        [
+          "B",
+          "Title only",
+          0,
+          "Smallest change, but issue #181 asks for more than the title."
+        ]
+      ],
+      "Tasks have no notes field today, so 'body' needs one. Hiding it behind a link keeps step 1 short."
+    ],
+    [
+      "focus",
+      "How should 'suggested first' work in the focus picker?",
+      [
+        [
+          "A",
+          "Unblocked first, then whichever clears the most",
+          1,
+          "A blocked task is skipped while anything else is free."
+        ],
+        [
+          "B",
+          "Tasks that have subtasks come first",
+          0,
+          "This is a literal reading of the title of issue #180, but it would point you at a parent you can't finish yet."
+        ],
+        [
+          "C",
+          "Keep it random and only show the chips",
+          0,
+          "No change to the order; the links are for information only."
+        ]
+      ],
+      "Issue #180 says tasks with subtasks 'name their blockers'. Read that way, the useful pick is the blocker, not the blocked parent. The card for a parent still shows up and points at its next subtask."
+    ],
+    [
+      "fileearly",
+      "Can you file before reaching step 3?",
+      [
+        [
+          "A",
+          "No: Next always leads to step 3, where File is",
+          1,
+          "Step 3 is marked Optional, so filing with no links is one extra tap."
+        ],
+        [
+          "B",
+          "Yes: step 2 also has a 'File now' button",
+          0,
+          "Saves a tap, but puts two main buttons on step 2."
+        ]
+      ],
+      "You asked for clearly defined steps. One main button per step keeps that, and step 3 costs a single tap when you have nothing to link."
+    ],
+    [
+      "github",
+      "Should the links sync to GitHub issues now?",
+      [
+        [
+          "A",
+          "Not yet: keep them in Focus Deck, and open a follow-up issue",
+          1,
+          "They still sync between your devices, the same way your other task data does."
+        ],
+        [
+          "B",
+          "Yes: write them as GitHub sub-issues and 'blocked by' links now",
+          0,
+          "This adds GitHub API work and makes this fix take longer."
+        ]
+      ],
+      "You asked for this as soon as possible. Every task field already syncs between your devices, so local links work everywhere you use the app. GitHub's sub-issue and dependency links are a separate job."
+    ]
+  ],
+  "wrapup": {
+    "summary": "This proposal turns the Unsorted card into three steps (project, kind and labels, links), adds search and notes, and has the focus picker offer blockers first.",
+    "changing": "Changed: the Unsorted card becomes three steps, the focus picker's order, and one line on the focus card. New: search boxes, a notes field, and parent and waits-on links. Kept: the kind cards, label ranking and steps.",
+    "blocking": "Your six answers under Choices. Nothing is built until you approve.",
+    "next": "After approval, I open one parent issue with three child issues (search, editing and links, focus order), build them on the AjsAgent/sort-flow-asap branch, and send you a QA page with a pull request.",
+    "todo": [
+      "Open the prototype (docs/generated/sort-flow-asap/prototype-steps.html) if you want to click through it.",
+      "Pick your answers under Choices.",
+      "Tap <b>Copy my reply</b> and send it, or tell me what to change."
+    ]
+  }
+}
