@@ -57,7 +57,7 @@ export function renderRail(screen, unsortedCount, syncHTML = '') {
     return '<button type="button" class="rail-item' + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
       + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[key].icon + '</svg>' + count + '</span>'
       + '<span class="rail-label">' + SCREEN_INFO[key].label + '</span></button>';
-  }).join('') + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '</a></div></nav>';
+  }).join('') + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn rail-settings" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '<span class="rail-settings-label" aria-hidden="true">Settings</span></a></div></nav>';
 }
 
 export function renderToast(text, kind) {

@@ -1079,16 +1079,24 @@ body.is-dragging-task .empty-note{display:none;}
 .desk-empty .btn{margin-top:12px;}
 .rail-tools{display:none;}
 @media (min-width:1100px){
-  .rail{top:calc(var(--topbar-h, 64px) + 16px); bottom:auto; right:auto; left:max(12px, calc((100vw - 1800px) / 2 + 12px)); width:84px; grid-template-columns:1fr; gap:6px; padding:8px 6px; border:1px solid var(--line); border-radius:18px;}
-  .wrap{padding-left:116px; padding-bottom:64px;}
-  /* the topbar is part of the desk, not a band of its own: no rule under it, the jotter centred, the
-     brand in the corner above the rail, and sync and Settings at the foot of the rail (.rail-tools) */
-  .topbar{position:relative; background:none; border-bottom:0; justify-content:center;}
-  .topbar .brand{position:absolute; left:-104px; top:50%; transform:translateY(-50%);}
+  .rail{top:calc(var(--topbar-h, 64px) + 16px); bottom:20px; right:auto; left:max(16px, calc((100vw - 1800px) / 2 + 16px)); width:232px; display:flex; flex-direction:column; gap:4px; padding:22px 14px 16px; border:1px solid var(--line); border-radius:20px; overflow-y:auto;}
+  .rail-item{position:relative; flex-direction:row; justify-content:flex-start; gap:14px; padding:12px 14px; font:600 1rem var(--font-ui); border-radius:12px;}
+  .rail-icon{position:static;}
+  .rail-count{left:auto; right:14px; top:50%; transform:translateY(-50%);}
+  .wrap{padding-left:296px; padding-bottom:64px;}
+  /* the topbar is sticky and opaque, spanning from the left edge of the side menu: the brand over the
+     menu column, the jotter centred over the content, no rule under it; sync and Settings sit at the
+     foot of the rail (.rail-tools). --topbar-h (js/app.js) places the rail just below it */
+  .topbar{display:grid; grid-template-columns:232px minmax(0, 1fr) 232px; column-gap:16px; align-items:center; margin-left:-280px; padding-left:14px; background:var(--bg); border-bottom:0;}
+  .topbar .capture-form{grid-column:2; width:100%; justify-self:center;}
+  .topbar .brand{padding-left:10px;}
   .topbar .brand h1{font-size:1.7rem;}
   .topbar .lamp{width:12px; height:12px;}
   .topbar-tools{display:none;}
-  .rail-tools{display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:4px; padding-top:10px; border-top:1px solid var(--line);}
+  .rail-tools{display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:10px; margin-top:auto; padding:12px 10px 0; border-top:1px solid var(--line);}
+  .rail-settings{width:auto; height:32px; padding:0 8px; gap:10px; border-radius:16px; font:600 .95rem var(--font-ui); text-decoration:none;}
+  .rail-settings svg{width:22px; height:22px;}
+  .rail-settings-label{color:var(--ink-soft);}
   .toast{bottom:calc(16px + env(safe-area-inset-bottom, 0px));}
   #app:has(> .screen){display:block;}
   .screen-focus,.screen-board{padding-top:28px;}
