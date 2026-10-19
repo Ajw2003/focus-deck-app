@@ -150,7 +150,7 @@ const wide = async (page, tag) => {
   check('second device: finds the existing Gist, makes no new one', (await ls(page, 'focusdeck-gist-id')) === 'g9' && !world.created);
   const st = JSON.parse(await ls(page, 'focusdeck-state-v1'));
   check('second device: the other device’s folders are here', ['Allotment', 'Band'].every((n) => st.projects.some((p) => p.name === n)));
-  check('second device: and it says so', ((await page.textContent('.setup')) || '').includes('2 folders'));
+  check('second device: and it says so', ((await page.textContent('.setup')) || '').includes('2 projects'));
   await page.screenshot({ path: OUT + 'dark-8-second-device.png' });
   await ctx.close();
 }

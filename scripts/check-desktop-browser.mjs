@@ -69,7 +69,7 @@ for (const scheme of ['dark', 'light']) {
   // one screen at a time (#135): the rail on the left, Focus alone on its screen
   const rail = await (await page.$('.rail')).boundingBox();
   const screen = await (await page.$('.screen-focus')).boundingBox();
-  check(`${tag} the rail sits on the left, beside the Focus screen`, rail.x + rail.width <= screen.x && rail.height < 400, JSON.stringify({ rail: Math.round(rail.x + rail.width), screen: Math.round(screen.x) }));
+  check(`${tag} the rail sits on the left, beside the Focus screen`, rail.x + rail.width <= screen.x && rail.width < 300, JSON.stringify({ rail: Math.round(rail.x + rail.width), screen: Math.round(screen.x) }));
   check(`${tag} the Focus screen shows only the picker: no tray, no folders`, !(await page.$('.inbox-card')) && !(await page.$('.project-card')));
   check(`${tag} the jotter is there`, await page.isVisible('#capture-input'));
   check(`${tag} Sort shows its count on the rail`, ((await page.$eval('.rail [data-screen="sort"]', (e) => e.textContent)) || '').includes('1'));
@@ -81,7 +81,7 @@ for (const scheme of ['dark', 'light']) {
   const catKeys = await keys(page, 'categories');
   check(`${tag} every folder shows at once`, (await visibleCards(page, 'projects')) === projKeys.length, projKeys.length + ' folders');
   check(`${tag} every category card shows at once`, (await visibleCards(page, 'categories')) === catKeys.length, catKeys.length + ' cards');
-  check(`${tag} the hint says click`, ((await page.$eval('.focus-empty .flip-hint', (e) => e.textContent)) || '') === 'Click a folder to pick it, then a card to draw');
+  check(`${tag} the hint says click`, ((await page.$eval('.focus-empty .flip-hint', (e) => e.textContent)) || '') === 'Click a project to pick it, then a card to draw');
   await page.screenshot({ path: OUT + `desktop-${scheme}.png` });
 
   // one click picks a folder: the categories narrow to it, nothing drawn yet
@@ -116,10 +116,14 @@ for (const scheme of ['dark', 'light']) {
   await page.waitForTimeout(300);
   check('Sort: its own screen, the tray alone', !!(await page.$('.screen-sort .inbox-card')) && !(await page.$('.focus-card')) && !(await page.$('.project-card')));
   await click(page, 'tray-folders', 'p1');
+  await page.click('.file-btn[data-action="sort-next"]');
+  await page.waitForSelector('[data-wallet="tray-flags"]');
+  await page.waitForTimeout(300);
   await click(page, 'tray-flags', 'c1');
   check('in-tray: a click picks the folder and one sticks a flag', ((await page.$eval('.slip-dest', (e) => e.textContent)) || '').includes('School') && (await page.$$('.slip-flag')).length === 1);
   await page.screenshot({ path: OUT + 'desktop-dark-tray.png' });
-  await page.click('.file-btn');
+  await page.click('.file-btn[data-action="sort-next"]');
+  await page.click('.file-btn[data-action="unsorted-file"]');
   await page.waitForTimeout(300);
   const st = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), STATE_KEY));
   const filed = st.projects.find((p) => p.id === 'p1').tasks.find((t) => t.title === 'Call the dentist');

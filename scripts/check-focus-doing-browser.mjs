@@ -55,6 +55,7 @@ for (const [tag, vp] of [['1440', { width: 1440, height: 900 }], ['390', { width
   check(order.join() === 'd1,n2', tag + ': lands at end of In progress (' + order + ')');
   await page.screenshot({ path: OUT + 'focus-doing-' + tag + '-marked.png' });
   await page.click('[data-screen="board"]:visible');
+  await page.click('[data-action="board-col"][data-col="doing"]');
   await page.waitForSelector('.board-card');
   check(await page.locator('.board-card[data-task-id="n2"]').evaluate((e) => e.dataset.status) === 'doing', tag + ': Board shows the task in In progress');
   await ctx.close();
