@@ -80,11 +80,24 @@
         }
       ],
       [
+        "eye",
+        "Frame",
+        "The side menu, name and jotter as one frame",
+        "",
+        "Today the side menu is 84px wide with small icons, 20px from the content, the name sits above it, outside the header, and the jotter is centred on the window, not lined up with the content. In layout A, one left column holds the name, the screens as full-size rows (icon and word side by side), and Settings at the bottom; the content starts 48px to its right, and the jotter sits at the top of the content column and is the same width as the list. On a phone, nothing changes.",
+        "Nothing from you.",
+        {
+          "src": "../generated/layout/layout-a-1920.png",
+          "alt": "Layout A at 1920 wide: a left column with the name and four screen rows, the jotter above the list, the selected task beside the list",
+          "caption": "Layout A: every part lines up with another part."
+        }
+      ],
+      [
         "lock",
         "Decide",
         "You choose what changes",
         "you",
-        "Six choices, each linked to a finding. The 'Board Takes Over' proposal has not been decided yet; your answers here change how it looks.",
+        "Seven choices, each linked to a finding. The 'Board Takes Over' proposal has not been decided yet; your answers here change how it looks.",
         "Answer the choices below, then tap Copy my reply and send what it gives you."
       ]
     ]
@@ -141,6 +154,29 @@
           "alt": "The reworked Board at 1920 wide"
         },
         "caption": "Left: the Board today at 1920 wide. Right: reworked."
+      }
+    ],
+    [
+      "chg",
+      "Side menu, name and jotter",
+      "One left column with the name, full-size screen rows and Settings; the jotter in line with the list.",
+      [
+        "84px menu with small icons, name above it, jotter centred on the window",
+        "232px column with the name and full-size rows; jotter above the list, same width"
+      ],
+      "Measured at 1920 wide: today the menu is 84px wide and 20px from the content (app/css/app.css:1082-1083), and the name is placed outside the header (app/css/app.css:1087). In layout A the gap to the content is 48px, the jotter and the list both run from 356px to 996px, and the screen rows are 48px tall with 16px text. Layout B keeps the narrow menu but makes it 112px wide with 30px icons, 48px from the content.",
+      null,
+      null,
+      {
+        "before": {
+          "src": "../generated/space-audit/calm-wide-1920.png",
+          "alt": "The calm Board with today's narrow side menu"
+        },
+        "after": {
+          "src": "../generated/layout/layout-a-1920.png",
+          "alt": "The calm Board with layout A"
+        },
+        "caption": "Left: today's side menu and header. Right: layout A."
       }
     ],
     [
@@ -270,12 +306,41 @@
         ]
       ],
       "It uses the space for the thing you are looking at, and keeps every control next to what it changes."
+    ],
+    [
+      "frame",
+      "How should the side menu, name and jotter be laid out?",
+      [
+        [
+          "A",
+          "One left column, full-size rows, jotter in line with the list",
+          1,
+          "The name, screens and Settings sit together; every screen row says its name next to its icon.",
+          {
+            "src": "../generated/layout/layout-a-1440.png",
+            "alt": "Layout A at 1440 wide",
+            "caption": "Layout A at 1440 wide."
+          }
+        ],
+        [
+          "B",
+          "Today's narrow menu, made larger and set further from the content",
+          0,
+          "Takes less width; labels stay under the icons.",
+          {
+            "src": "../generated/layout/layout-b-1920.png",
+            "alt": "Layout B at 1920 wide",
+            "caption": "Layout B at 1920 wide."
+          }
+        ]
+      ],
+      "In layout A every part of the frame lines up with another part, and the screen names are as large as the rest of the text."
     ]
   ],
   "wrapup": {
     "summary": "Research on designing for ADHD and autistic users, with sources, and five changes that would make Focus Deck calmer.",
-    "changing": "Changed: the Board (one column, one toolbar, short cards in small groups), the app's wording, colour use and overdue colour. New: Comfort settings, and the list beside the selected task on wide screens. Kept: Sort's three parts, the step bar, the focus note and the side menu of screens.",
-    "blocking": "Your six answers here, and your answers on the 'Board Takes Over' page. Nothing is built until you approve.",
+    "changing": "Changed: the Board (one column, one toolbar, short cards in small groups), the side menu and header, the app's wording, colour use and overdue colour. New: Comfort settings, and the list beside the selected task on wide screens. Kept: Sort's three parts, the step bar, the focus note and the side menu of screens.",
+    "blocking": "Your seven answers here, and your answers on the 'Board Takes Over' page. Nothing is built until you approve.",
     "next": "After approval, I combine both into one plan with issues, and build on AjsAgent/sort-steps.",
     "todo": [
       "Read the steps above; the sources are in docs/plans/calm-by-default.md.",

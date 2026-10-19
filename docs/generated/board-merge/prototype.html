@@ -210,12 +210,15 @@ function calmBoard(filterOpen) {
 // list keeps a reading width and the space beside it shows the selected task, so nothing is empty
 // for no reason; the toolbar sits directly above the list it filters; the jotter lines up with the
 // content instead of the window's centre.
-if (preset === 'calm-wide') {
+if (preset.startsWith('calm-wide')) {
   const css = document.createElement('style');
   css.textContent = `
 .topbar{justify-content:flex-start !important; gap:0;}
 .topbar .capture-form{margin-left:auto; width:min(640px, 42%); max-width:640px;} /* ends on the content's right edge, like the task panel below it */
 .cw{display:grid; grid-template-columns:minmax(420px, 640px) minmax(380px, 1fr); gap:28px; align-items:start;}
+@media (max-width:1099px){ .cw{grid-template-columns:minmax(0,1fr);} .cw-detail{display:none !important;} } /* on a phone the task opens full screen when tapped */
+.rail-brand{display:none;}
+@media (min-width:1100px){ .rail-brand{display:flex;} }
 .cw-list .calm-tools{display:flex; gap:8px; margin:0 0 12px;}
 .cw-list .calm-tools .bm-find{flex:1 1 auto;}
 .calm-btn{padding:8px 12px;}
@@ -254,6 +257,45 @@ if (preset === 'calm-wide') {
     + '<div class="calm-tools"><input class="bm-find" placeholder="Find…" aria-label="Find a task, project or label"><button class="btn ghost calm-btn">Project: All ▾</button><button class="btn ghost calm-btn">Filter</button><button class="btn-text">+ New</button></div>'
     + '<div class="calm-tabs"><button class="calm-tab on">Up next <b>58</b></button><button class="calm-tab">In progress <b>0</b></button><button class="calm-tab">Done this week <b>0</b></button></div>'
     + '<div class="calm-cards">' + list.slice(0, 7).map(cardW).join('') + '</div><button class="btn-text calm-more">Show ' + (list.length - 7) + ' more</button></section>' + detail + '</div></div>';
+  // Layout variants for the side menu, name and jotter (aj: the side bar is "too close and too small").
+  // A: one left column holding the name, the screens as full rows and the tools; the jotter starts the
+  //    content column, in line with the list. B: the same narrow menu, made larger and set further off.
+  const variant = preset.slice('calm-wide-'.length);
+  const lay = document.createElement('style');
+  if (variant === 'a') {
+    lay.textContent = `
+@media (min-width:1100px){
+  .rail{top:20px; bottom:20px; left:max(16px, calc((100vw - 1800px) / 2 + 16px)); width:232px; display:flex; flex-direction:column; gap:4px; padding:22px 14px 16px; border-radius:20px;}
+  .rail-brand{display:flex; align-items:center; gap:12px; padding:0 10px 22px; margin-bottom:6px; border-bottom:1px solid var(--line);}
+  .rail-brand h1{margin:0; font-size:1.5rem;}
+  .rail-item{flex-direction:row; justify-content:flex-start; gap:14px; padding:12px 14px; font:600 1rem var(--font-ui); border-radius:12px;}
+  .rail-icon{width:24px; height:24px;}
+  .rail-icon svg{width:24px; height:24px;}
+  .rail-item{position:relative;}
+  .rail-icon{position:static;}
+  .rail-count{left:auto; right:14px; top:50%; transform:translateY(-50%);} /* the count at the end of its row, not on the icon */
+  .rail-tools{margin-top:auto; flex-direction:row; justify-content:flex-start; gap:10px; padding:12px 10px 0;}
+  .wrap{padding-left:296px;}
+  .topbar .brand{display:none;}
+  .topbar{justify-content:flex-start !important; padding-top:20px;}
+  .topbar .capture-form{margin-left:0 !important; width:640px !important; max-width:640px;}
+}`;
+    const nav = document.querySelector('.rail');
+    nav.insertAdjacentHTML('afterbegin', '<div class="rail-brand"><span class="brand-mark" aria-hidden="true"><span class="lamp"></span></span><h1>Focus Deck</h1></div>');
+  } else if (variant === 'b') {
+    lay.textContent = `
+@media (min-width:1100px){
+  .rail{width:112px; gap:10px; padding:14px 10px; left:max(16px, calc((100vw - 1800px) / 2 + 16px)); border-radius:20px;}
+  .rail-item{gap:6px; padding:12px 0; font:600 .9rem var(--font-ui);}
+  .rail-icon, .rail-icon svg{width:30px; height:30px;}
+  .wrap{padding-left:176px;}
+  .topbar .brand{left:-160px;}
+  .topbar .brand h1{font-size:1.55rem;}
+  .topbar{justify-content:flex-start !important;}
+  .topbar .capture-form{margin-left:0 !important; width:640px !important; max-width:640px;}
+}`;
+  }
+  document.head.appendChild(lay);
 } else if (preset === 'calm' || preset === 'calm-filter') {
   const css = document.createElement('style');
   css.textContent = `

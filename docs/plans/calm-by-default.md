@@ -97,6 +97,15 @@ pictures `docs/generated/space-audit/calm-wide-*.png`): the list keeps a reading
 the list it filters; one column shows at a time, so there are no empty columns; the jotter ends on
 the content's right edge, the same edge as the task panel. On a phone the task opens full screen.
 
+Follow-up, same day (aj: the side bar is "too close and too small in comparison to other ui", and
+the name and jotter "still seem off"): measured at 1920 wide, the side menu is 84px wide, 20px from
+the content (`app/css/app.css:1082-1083`), with the name hung outside the header (`:1087`) and the
+jotter centred on the window. Layout A (`prototype.html#calm-wide-a`, pictures
+`docs/generated/layout/`) makes one 232px left column with the name, full-size screen rows and
+Settings, 48px from the content, and starts the content column with the jotter at the list's width
+(both 356px to 996px). Layout B (`#calm-wide-b`) keeps the narrow menu at 112px with 30px icons,
+48px from the content at 1920 wide. The phone layout is unchanged in both.
+
 ## Where Focus Deck stands (checked against the code, 2026-10-18)
 
 | Finding | Focus Deck today | Gap |
