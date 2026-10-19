@@ -1,15 +1,13 @@
 # Today — 2026-10-19
 
-## Calm build: approved, not started (handover)
+## Calm build: built, in QA
 
-aj approved the build plan with Projects kept (Decisions.md, 2026-10-19, "Build plan approved") and
-said usage was at 97%, so nothing in `app/` has been changed yet. Branch `AjsAgent/calm-build` is
-clean and pushed. To pick up: build #199 to #205 in order, one issue at a time, each copying the
-test site (`docs/generated/calm-test/index.html`) into the real files the issue names, then check it in
-Chromium at 1440 and 390 wide against `docs/generated/calm-build/*.png` and run the suite. When all
-seven are done, open one pull request (Refs #198) and a QA page, and set the issues to `needs review`.
-Screenshot scripts: `docs/generated/calm-build/ba.mjs`, `ba2.mjs`, `compose.mjs` (run with the repo served
-on port 8765 by `python3 -m http.server 8765`).
+All of #199 to #205 are built on `AjsAgent/calm-build`, with the docs (#208) and six out-of-date browser
+checks (#206) brought up to date. One gap found by comparing screenshots was fixed: Board cards now say
+"past its date" or "overdue". Unit tests 225/225; all 13 `scripts/check-*-browser.mjs` pass in Chromium;
+GitHub's `test` check is green on be10174. Pull request 209 is open (Refs #198 to #208), every issue is
+labelled `needs review`, and the QA page is `docs/plans/calm-build-qa.html`. Waiting on aj's QA reply.
+Regenerated old-PR screenshots from the check runs are in `git stash`, not committed.
 
 # Today — 2026-10-18
 
