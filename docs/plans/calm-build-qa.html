@@ -270,7 +270,7 @@ const PAGE = {
   "title": "Calm Build QA",
   "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #208",
   "short": {
-    "lead": "Calm by default is built into the real app. On a wide screen the Focus Deck name and the centred 'Jot down a stray thought…' box stay at the top, with the side menu below them. The Board shows one tab at a time and opens a Task details panel beside the list. Every setting is a row that opens and closes, and there is a new Comfort group. Projects is unchanged, as you chose in option 1A ('keep Projects as it is today'). You test a copy of branch AjsAgent/calm-build on your own computer with sample data, so your real tasks are not touched.",
+    "lead": "Calm by default is built into the real app. On a wide screen the Focus Deck name and the centred 'Jot down a stray thought…' box stay at the top, with the side menu below them. The Board shows one tab at a time and opens a Task details panel beside the list. Every setting is a row that opens and closes, and there is a new Comfort group. Projects is unchanged, as you chose in option 1A ('keep Projects as it is today'). You test a copy of branch AjsAgent/calm-build with sample data, on your phone or computer, so your real tasks are not touched.",
     "hint": "Tap a step to see what to try and what you should see.",
     "key": [
       [
@@ -286,10 +286,10 @@ const PAGE = {
       [
         "eye",
         "Open",
-        "Start the test copy",
+        "Open the test copy",
         "you",
-        "A local copy of the branch, served at http://127.0.0.1:8765, opening on the Board with sample data.",
-        "UNTESTED: these commands were not run in your shell; I assumed Windows PowerShell because the project notes record your tests running on Windows. Open PowerShell anywhere and run these two commands, on one line: git clone -b AjsAgent/calm-build https://github.com/Ajw2003/focus-deck-app \"$env:TEMP\\calm-qa\" ; python -m http.server 8765 -d \"$env:TEMP\\calm-qa\" (the full stop after it is not part of the command). The second command keeps running and prints 'Serving HTTP on'; leave that window open. Then open http://127.0.0.1:8765/docs/generated/sort-steps/seed.html#board?ties in your browser. Opening that address again reloads the sample data, so it also works as a reset.",
+        "A copy of branch AjsAgent/calm-build with sample data, served from GitHub by raw.githack, so it opens on your phone or computer with nothing to install.",
+        "Open https://raw.githack.com/Ajw2003/focus-deck-app/AjsAgent/calm-build/docs/generated/sort-steps/seed.html#board?ties in your browser. Change the end to #focus, #sort or #projects to open another screen. Opening the address again reloads the sample data, so it also works as a reset.",
         {
           "src": "calm-build-qa-pics/206-board-1440.png",
           "alt": "The built Board at 1440 wide with sample data",
@@ -368,7 +368,7 @@ const PAGE = {
     [
       "chg",
       "Files changed, counted from git against origin/main",
-      "154 files, +5584 −419",
+      "154 files, +5644 −419",
       null,
       "The added and removed counts come from git (git diff --numstat origin/main...HEAD); the estimates beside them come from the plan.",
       null,
@@ -2043,7 +2043,7 @@ const PAGE = {
         ],
         [
           "docs/plans/calm-build-qa.html",
-          2324,
+          2384,
           0,
           [
             [
@@ -2228,7 +2228,7 @@ const PAGE = {
       "Still unverified",
       "6 things not yet proven",
       null,
-      "The PowerShell commands in step 1 were not run on your computer, and Windows was inferred from the project notes rather than confirmed. Changes made in Task details on a GitHub-linked task were checked by reading the code only, not with a live GitHub call. Everything was checked in Chromium only, not in Safari or Firefox and not on a real phone. GitHub's automatic tests on pull request 209 had not reported a result when this page was built. One case in the category-filter check was dropped, because the labels step is now locked until a project is chosen, so a thought with no project can no longer reach the labels list. 'Surprise me' was left unchanged, because the plan gave no new wording for it.",
+      "The raw.githack address in step 1 was not opened from my sandbox, because the sandbox can't reach that site. Changes made in Task details on a GitHub-linked task were checked by reading the code only, not with a live GitHub call. Everything was checked in Chromium only, not in Safari or Firefox and not on a real phone. GitHub's automatic tests on pull request 209 had not reported a result when this page was built. One case in the category-filter check was dropped, because the labels step is now locked until a project is chosen, so a thought with no project can no longer reach the labels list. 'Surprise me' was left unchanged, because the plan gave no new wording for it.",
       null,
       null
     ]
@@ -2237,7 +2237,7 @@ const PAGE = {
     "feature": "calm by default",
     "base": "origin/main",
     "unverified": [
-      "The PowerShell commands in step 1 were not run on your computer, and Windows was inferred from the project notes rather than confirmed",
+      "The raw.githack address in step 1 was not opened from my sandbox, because the sandbox can't reach that site",
       "Changes made in Task details on a GitHub-linked task were checked by reading the code only, not with a live GitHub call",
       "Everything was checked in Chromium only, not in Safari or Firefox and not on a real phone",
       "GitHub's automatic tests on pull request 209 had not reported a result when this page was built",
