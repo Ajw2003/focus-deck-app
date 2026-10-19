@@ -2,7 +2,7 @@
 import { state, uid, nextHue, findTaskWithProject, cssColorToHex, PRIORITY, PRIORITY_ORDER } from './state.js';
 import {
   validateToken, listRepos, listYourRepos, createRepo, listIssues, getIssue, createIssue, ghFetch,
-  setIssueState, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists, transferIssue,
+  setIssueState, addSubIssue, removeSubIssue, addBlockedBy, removeBlockedBy, addLabelsToIssue, removeLabelFromIssue, ensureLabelExists, transferIssue,
 } from './github.js';
 import { persist } from './sync.js';
 import { ensureSortOrder } from './project-filter.js';
@@ -123,6 +123,29 @@ export async function pushCategoriesToIssue(task, oldCategoryIds) {
     for (const cat of removed) await removeLabelFromIssue(owner, name, task.issueNumber, cat.name);
   } catch (e) {
     reportSyncError('Couldn’t update the linked issue’s labels: ' + e.message);
+  }
+}
+
+// Mirrors a task's changed ties onto GitHub (#195): parent -> sub-issue, waitsOn -> blocked by. Only
+// between linked tasks; best-effort, errors in the toast, never rolled back.
+// before = { parentId, waitsOn } as they were. See docs/4-systems/task-links.md#github
+export async function pushTiesToIssue(task, before) {
+  if (!isLinked(task) || task.issueId == null) return;
+  const [owner, name] = task.repoFullName.split('/');
+  const other = (id) => { const f = id && findTaskWithProject(id); const t = f && f.task; return t && isLinked(t) && t.issueId != null ? t : null; };
+  const ids = (a) => a || [];
+  const jobs = [];
+  if ((before.parentId || null) !== (task.parentId || null)) {
+    const oldP = other(before.parentId), newP = other(task.parentId);
+    if (oldP && oldP.repoFullName === task.repoFullName) jobs.push(() => removeSubIssue(owner, name, oldP.issueNumber, task.issueId));
+    if (newP && newP.repoFullName === task.repoFullName) jobs.push(() => addSubIssue(owner, name, newP.issueNumber, task.issueId, true));
+  }
+  ids(task.waitsOn).filter((id) => !ids(before.waitsOn).includes(id)).map(other).filter(Boolean)
+    .forEach((t) => jobs.push(() => addBlockedBy(owner, name, task.issueNumber, t.issueId)));
+  ids(before.waitsOn).filter((id) => !ids(task.waitsOn).includes(id)).map(other).filter(Boolean)
+    .forEach((t) => jobs.push(() => removeBlockedBy(owner, name, task.issueNumber, t.issueId)));
+  for (const job of jobs) {
+    try { await job(); } catch (e) { reportSyncError('Couldn’t update the linked issue’s ties: ' + e.message); }
   }
 }
 
