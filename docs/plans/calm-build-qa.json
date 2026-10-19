@@ -20,7 +20,7 @@
         "Open",
         "Open the test copy",
         "you",
-        "A copy of branch AjsAgent/calm-build with sample data, served from GitHub by raw.githack, so it opens on your phone or computer with nothing to install.",
+        "This is a copy of branch AjsAgent/calm-build with sample data. A site called raw.githack serves it from GitHub, so it opens on your phone or computer with nothing to install.",
         "Open https://raw.githack.com/Ajw2003/focus-deck-app/AjsAgent/calm-build/docs/generated/sort-steps/seed.html#board?ties in your browser. Change the end to #focus, #sort or #projects to open another screen. Opening the address again reloads the sample data, so it also works as a reset.",
         {
           "src": "docs/generated/calm-build/built/206-board-1440.png",
@@ -101,7 +101,7 @@
     "feature": "calm by default",
     "base": "origin/main",
     "unverified": [
-      "The raw.githack address in step 1 was not opened from my sandbox, because the sandbox can't reach that site",
+      "I did not open the test copy's address from step 1 (on raw.githack), because my sandbox, the closed-off space I work in, can't reach that site",
       "Changes made in Task details on a GitHub-linked task were checked by reading the code only, not with a live GitHub call",
       "Everything was checked in Chromium only, not in Safari or Firefox and not on a real phone",
       "GitHub's automatic tests on pull request 209 had not reported a result when this page was built",
