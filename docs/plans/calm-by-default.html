@@ -271,7 +271,7 @@ const PAGE = {
   "eyebrow": "Research and proposal · for ADHD, autistic and other neurodivergent users · nothing built yet",
   "approval": "Design approved: calm by default",
   "short": {
-    "lead": "I read the main guidance and research on designing for ADHD and autistic people, and checked Focus Deck against it. Six findings came out of it. The biggest is to show less at once and reveal detail when asked. The full write-up with every source is in docs/plans/calm-by-default.md. This page shows what it would change, starting with the Board you found too busy.",
+    "lead": "I read the main guidance and research on designing for ADHD and autistic people, and checked Focus Deck against it. Seven findings came out of it, including the space audit you asked for. The biggest is to show less at once and reveal detail when asked. The full write-up with every source is in docs/plans/calm-by-default.md. This page shows what it would change, starting with the Board you found too busy.",
     "hint": "Tap a step for the finding, its sources and what it changes.",
     "key": [
       [
@@ -335,11 +335,24 @@ const PAGE = {
         "Nothing from you."
       ],
       [
+        "list",
+        "Space",
+        "Space with a purpose",
+        "",
+        "Nielsen Norman Group: things placed close together read as one group, so a control belongs next to what it changes. On a wide screen, Android's and Salesforce's guidance shows a list and the selected item side by side. Today the Board leaves two thirds of a 1920px-wide screen as empty columns that say 'Nothing…', and my first calm draft left 900px empty with its buttons about 650px from the list. The reworked Board keeps the list narrow enough to read comfortably and shows the selected task beside it.",
+        "Nothing from you.",
+        {
+          "src": "calm-by-default-pics/calm-wide-1920.png",
+          "alt": "The Board at 1920 wide: a list on the left, the selected task's details beside it, the toolbar above the list",
+          "caption": "No empty side, and every control sits next to what it changes."
+        }
+      ],
+      [
         "lock",
         "Decide",
         "You choose what changes",
         "you",
-        "Five choices, each linked to a finding. The 'Board Takes Over' proposal has not been decided yet; your answers here change how it looks.",
+        "Six choices, each linked to a finding. The 'Board Takes Over' proposal has not been decided yet; your answers here change how it looks.",
         "Answer the choices below, then tap Copy my reply and send what it gives you."
       ]
     ]
@@ -373,6 +386,29 @@ const PAGE = {
           "alt": "The calm Board"
         },
         "caption": "Left: the Board proposal you found busy. Right: calm by default."
+      }
+    ],
+    [
+      "chg",
+      "Space on wide screens",
+      "List and selected task side by side; controls next to what they change; everything sits in line with the list.",
+      [
+        "Empty columns, buttons far from the list, a jotter (the 'Jot down a stray thought' box) that sits in line with no other content",
+        "List plus selected task, toolbar on the list, jotter on the content's edge"
+      ],
+      "Audit at 1920 and 1440 wide, screen by screen. Every screen: the jotter is centred on the window, not lined up with the content. Sort: the step bar is about 1,180px wide with small text, and there is empty space under the slip (the card being sorted). Board today: two empty columns take two thirds of the width. My first calm draft: about 900px empty, with Project, Filter and + New about 650px from the list. Projects: label chips up to about 1,000px from the task name. The full table is in docs/plans/calm-by-default.md.",
+      null,
+      null,
+      {
+        "before": {
+          "src": "calm-by-default-pics/now-board-1920.png",
+          "alt": "Today's Board at 1920 wide with two empty columns"
+        },
+        "after": {
+          "src": "calm-by-default-pics/calm-wide-1920.png",
+          "alt": "The reworked Board at 1920 wide"
+        },
+        "caption": "Left: the Board today at 1920 wide. Right: reworked."
       }
     ],
     [
@@ -483,12 +519,31 @@ const PAGE = {
         ]
       ],
       "A 2026 study of adults with ADHD found punitive overdue displays add shame."
+    ],
+    [
+      "space",
+      "On a wide screen, should the selected task show beside the list?",
+      [
+        [
+          "A",
+          "Yes, list and task side by side",
+          1,
+          "The space beside the list always shows something useful; on a phone the task opens full screen."
+        ],
+        [
+          "B",
+          "No, centre the list and open tasks as a panel on top",
+          0,
+          "Less on screen at once, but the sides stay empty."
+        ]
+      ],
+      "It uses the space for the thing you are looking at, and keeps every control next to what it changes."
     ]
   ],
   "wrapup": {
     "summary": "Research on designing for ADHD and autistic users, with sources, and five changes that would make Focus Deck calmer.",
-    "changing": "Changed: the Board (one column, one toolbar, short cards in small groups), the app's wording, colour use and overdue colour. New: Comfort settings. Kept: Sort's three parts, the step bar, the focus note and the side menu of screens.",
-    "blocking": "Your five answers here, and your answers on the 'Board Takes Over' page. Nothing is built until you approve.",
+    "changing": "Changed: the Board (one column, one toolbar, short cards in small groups), the app's wording, colour use and overdue colour. New: Comfort settings, and the list beside the selected task on wide screens. Kept: Sort's three parts, the step bar, the focus note and the side menu of screens.",
+    "blocking": "Your six answers here, and your answers on the 'Board Takes Over' page. Nothing is built until you approve.",
     "next": "After approval, I combine both into one plan with issues, and build on AjsAgent/sort-steps.",
     "todo": [
       "Read the steps above; the sources are in docs/plans/calm-by-default.md.",

@@ -67,6 +67,36 @@ is `docs/plans/calm-by-default.html`; the prototype is
   to co-construct the technology [Spiel, Hornecker, Williams & Good, CHI 2022]. For Focus Deck this
   means aj's own testing (the QA loop) is the main method, and the defaults should follow it.
 
+### 7. Space with a purpose, controls next to what they act on
+
+Added 2026-10-18 at aj's request: "big empty space without reason and ui elements seemingly anchored
+without purpose makes me less inclined to like the design and to use it".
+
+- Proximity: "Items close together are likely to be perceived as part of the same group"; an action
+  placed far from the content it affects is hard to find and can be misread by its neighbours
+  [NN/g proximity].
+- On a wide screen, show a list and the selected item's detail side by side, and fall back to one pane
+  on narrow screens [Android list-detail; Salesforce Lightning, minimum 1024px].
+- W3C COGA: "Make the Relationship Clear Between Controls and the Content They Affect"
+  [W3C COGA, §4 objective 1].
+
+Space audit of the current app at 1920 and 1440 wide (`docs/generated/space-audit/now-*.png`):
+
+| Screen | Empty without reason | Placed without purpose |
+|---|---|---|
+| Every screen | none | The jotter is centred on the window while the content starts after the side menu, so it lines up with nothing |
+| Focus | little; folders and labels fill the width | none beyond the jotter |
+| Sort | a large empty area under the slip and its buttons | the step bar stretches about 1,180px with small text in it |
+| Board (today) | "In progress" and "Done this week" each take a third of the width to say "Nothing…" | none |
+| Board (calm draft) | about 900px right of the 760px list | "Project", "Filter" and "+ New" sit at the far right edge, about 650px from the list they control |
+| Projects | none | label chips sit at the far right of each row, up to about 1,000px from the task name |
+
+What the reworked calm Board does (`docs/generated/board-merge/prototype.html#calm-wide`,
+pictures `docs/generated/space-audit/calm-wide-*.png`): the list keeps a reading width (up to
+640px) and the space beside it shows the selected task's details; the toolbar sits directly above
+the list it filters; one column shows at a time, so there are no empty columns; the jotter ends on
+the content's right edge, the same edge as the task panel. On a phone the task opens full screen.
+
 ## Where Focus Deck stands (checked against the code, 2026-10-18)
 
 | Finding | Focus Deck today | Gap |
@@ -106,6 +136,12 @@ is `docs/plans/calm-by-default.html`; the prototype is
   https://www.autism.org.uk/advice-and-guidance/professional-practice/what-is-monotropism
 - [RBIE 2026 mapping study] Systematic mapping of accessible interfaces for autistic children, Revista
   Brasileira de Informática na Educação. https://journals-sol.sbc.org.br/index.php/rbie/article/view/7245
+- [NN/g proximity] Nielsen Norman Group, *Proximity Principle in Visual Design*.
+  https://www.nngroup.com/articles/gestalt-proximity/
+- [Android list-detail] Android Developers, *Canonical layouts: list-detail*.
+  https://developer.android.com/guide/topics/large-screens/large-screen-canonical-layouts
+- [Salesforce Lightning] Lightning Design System, *Layout guidelines* (master-detail on 1024px and up).
+  https://spring-20.lightningdesignsystem.com/guidelines/layout
 - [Benha University study] *Employing Inclusive UX Design Considerations in Color for Autistic
   Children*. https://bu.edu.eg/staff/Monamohamed15-publications/56165
 

@@ -206,7 +206,55 @@ function calmBoard(filterOpen) {
     + '<div class="calm-cards">' + list.slice(0, CHUNK).map(cardC).join('') + '</div>'
     + '<button class="btn-text calm-more">Show ' + (list.length - CHUNK) + ' more</button>';
 }
-if (preset === 'calm' || preset === 'calm-filter') {
+// #calm-wide: the space audit's answer (docs/plans/calm-by-default.md, "Space"): on a wide screen the
+// list keeps a reading width and the space beside it shows the selected task, so nothing is empty
+// for no reason; the toolbar sits directly above the list it filters; the jotter lines up with the
+// content instead of the window's centre.
+if (preset === 'calm-wide') {
+  const css = document.createElement('style');
+  css.textContent = `
+.topbar{justify-content:flex-start !important; gap:0;}
+.topbar .capture-form{margin-left:auto; width:min(640px, 42%); max-width:640px;} /* ends on the content's right edge, like the task panel below it */
+.cw{display:grid; grid-template-columns:minmax(420px, 640px) minmax(380px, 1fr); gap:28px; align-items:start;}
+.cw-list .calm-tools{display:flex; gap:8px; margin:0 0 12px;}
+.cw-list .calm-tools .bm-find{flex:1 1 auto;}
+.calm-btn{padding:8px 12px;}
+.calm-tabs{display:flex; gap:22px; border-bottom:1px solid var(--line); margin-bottom:12px;}
+.calm-tab{border:0; background:none; padding:8px 2px; color:var(--ink-soft); font:600 var(--text-body) var(--font-ui); border-bottom:3px solid transparent; margin-bottom:-1px;}
+.calm-tab.on{color:var(--ink); border-bottom-color:var(--accent);}
+.calm-tab b{font-weight:600; color:var(--ink-faint); margin-left:4px;}
+.calm-cards{display:flex; flex-direction:column; gap:10px;}
+.calm-card{padding:13px 16px; border-left-width:5px; border-left-color:color-mix(in srgb, var(--proj-color) 70%, var(--surface)); cursor:pointer;}
+.calm-card.on{box-shadow:0 0 0 3px var(--accent);}
+.calm-meta{font-size:var(--text-sm); color:var(--ink-soft);}
+.calm-more{margin-top:12px;}
+.cw-detail{position:sticky; top:20px; display:flex; flex-direction:column; gap:14px; padding:20px 22px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; max-height:calc(100vh - 40px); overflow:auto;}
+.cw-detail .top{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft);}
+.cw-detail .dot{width:10px; height:10px; border-radius:50%; background:var(--c);}
+.cw-detail h3{margin:0; font:600 1.4rem 'Fraunces', Georgia, serif;}
+.cw-detail textarea, .cw-detail select, .cw-detail input[type=date]{width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit; font-size:var(--text-sm);}
+.cw-detail .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.cw-foot{display:flex; gap:10px; align-items:center; padding-top:10px; border-top:1px solid var(--line);}
+.cw-foot .sp{flex:1;}`;
+  document.head.appendChild(css);
+  const list = all.filter((x) => open(x) && !x.t.parentId && x.t.status !== 'doing');
+  const sel = parent.id;
+  const cardW = (x) => { const subs = subsOf(x.t.id); const note = isWaiting(x) ? 'waiting' : subs.length ? subs.length + ' subtasks' : '';
+    return '<article class="board-card calm-card' + (x.t.id === sel ? ' on' : '') + '" style="--proj-color:' + pcat(x.p).color + '"><input type="checkbox" aria-label="' + esc(x.t.title) + '"><div class="board-card-body"><span class="board-card-title">' + esc(x.t.title) + '</span><span class="calm-meta">' + esc(x.p.name) + (note ? ' · ' + note : '') + '</span></div></article>'; };
+  const x = byId(sel); const subs = subsOf(sel);
+  const tag = (y) => '<span class="bm-tag" style="--c:' + y.p.color + '">' + esc(y.t.title) + '</span>';
+  const detail = '<aside class="cw-detail" aria-label="Selected task"><div class="top"><span class="dot" style="--c:' + x.p.color + '"></span>' + esc(x.p.name) + ' · Up next</div>'
+    + '<h3>' + esc(x.t.title) + '</h3><textarea rows="2" placeholder="Notes…">Ask the neighbour who did theirs</textarea>'
+    + '<div class="grid"><select><option>No priority</option></select><input type="date"></div>'
+    + '<div class="bm-sec"><h4>Subtasks</h4><div class="bm-tags">' + subs.map(tag).join('') + '<button class="bm-add">+ Add</button></div></div>'
+    + '<div class="bm-sec"><h4>Waits on · Holds up</h4><div class="bm-tags"><span class="calm-meta">None yet</span><button class="bm-add">+ Add</button></div></div>'
+    + '<div class="bm-sec"><h4>Labels</h4><div class="bm-tags">' + (x.t.categoryIds || []).map((id) => '<span class="chip cat-chip small">' + esc(catName(id)) + '</span>').join('') + '<button class="bm-add">Change</button></div></div>'
+    + '<div class="cw-foot"><button class="btn primary">Save</button><span class="sp"></span><button class="btn-text">Focus on this</button><button class="btn-text">Delete</button></div></aside>';
+  document.getElementById('app').innerHTML = R.renderRail('board', 2) + '<div class="screen screen-board"><h2 class="board-title">Board</h2><div class="cw"><section class="cw-list">'
+    + '<div class="calm-tools"><input class="bm-find" placeholder="Find…" aria-label="Find a task, project or label"><button class="btn ghost calm-btn">Project: All ▾</button><button class="btn ghost calm-btn">Filter</button><button class="btn-text">+ New</button></div>'
+    + '<div class="calm-tabs"><button class="calm-tab on">Up next <b>58</b></button><button class="calm-tab">In progress <b>0</b></button><button class="calm-tab">Done this week <b>0</b></button></div>'
+    + '<div class="calm-cards">' + list.slice(0, 7).map(cardW).join('') + '</div><button class="btn-text calm-more">Show ' + (list.length - 7) + ' more</button></section>' + detail + '</div></div>';
+} else if (preset === 'calm' || preset === 'calm-filter') {
   const css = document.createElement('style');
   css.textContent = `
 .calm-top{display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; margin-bottom:14px;}
