@@ -65,8 +65,11 @@ Approved 2026-10-18 on `docs/plans/ties-everywhere.html` (1A 2A 3A 4A 5A).
   indented with a connector, and does not repeat "in <parent>". Sort orders still apply among
   siblings (nesting is within the In progress or Up next group the parent is in; a subtask in the
   other group stays in its own). Dragging a parent does not carry its subtasks.
-- **Board** (`card`, `app/js/board-view.js`): each subtask keeps its own card, so it can sit in its
-  own column.
+- **Board** (`card`, `app/js/board-view.js:54-60`): since the calm Board (#200, 2026-10-19) a subtask
+  no longer gets its own card. It shows inside its parent as "1/2 done" with a bar of segments
+  (`subsLine`, `:37`), and the card's tie line drops the subtask count so it is not said twice. The
+  Board's Filter can show only tasks that have subtasks, wait on something, or hold others up
+  (`SHOW_INFO`, `:21`). Subtasks are edited in Task details (`docs/4-systems/calm-board.md`).
 - **Waiting tasks** (open "waits on" or open subtasks) have a softer title in both views, matching
   the focus pick, which skips them.
 

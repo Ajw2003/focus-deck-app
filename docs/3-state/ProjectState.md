@@ -29,6 +29,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 15 | Consumer product: desk redesign, landing page, onboarding | 100% built (10 of 10), not deployed | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117-#126 built, checked in Chromium and merged on `ccr-1569909b-xe23b7` (2026-10-10), not yet deployed; nothing merged to `main` yet; see `docs/plans/consumer-product-handoff.md` |
 | 16 | Sort in three parts, task ties, blockers-first focus (#180, #181, #182) | 100% built, in QA | #188 (#189, #190, #191) built on `AjsAgent/sort-steps` 2026-10-18; unit 195/196 on Windows (the one failure is the Windows-only service-worker path test); driven by hand in a real browser: search, new flag, notes, title edit, task moved between folders, subtask and waits-on saved, focus pick 20/20 to the only unblocker, Next step line and Start it. Not yet: the repo's Playwright browser checks (not installed here), deploy |
 | 17 | Ties everywhere: Board, Projects and GitHub (#192) | 100% built, in QA | #193 tie lines on Board cards and Project rows, subtasks nested; #194 issue ids; #195 write ties to GitHub; #196 read ties on sync. All on `AjsAgent/sort-steps` 2026-10-18; unit 210/211 on Windows (the Windows-only service-worker path test). Board and Projects screenshots of the built app match the approved pictures. Not yet: any live GitHub call (mocks only), the tie-name scroll by hand, the Playwright browser checks, the pull request (held until aj has tested) |
+| 18 | Calm by default (#198: #199 to #205) | 100% built, in QA | Built on `AjsAgent/calm-build` 2026-10-19; one pull request for Aj's QA; Projects kept as today (1A) |
 
 **After the merge (2026-10-10), on `ccr-1569909b-xe23b7`:** #131 and #132 (wallets let the page
 scroll, and take a tap and a push-up in every mode; Swipe up mode retired), #133 (Category choices),
@@ -40,7 +41,8 @@ green; unit 163/163.
 
 **The Board (#140, built 2026-10-10, same branch):** a fourth screen, between Sort and Projects. Up
 next, In progress and Done this week as columns of cards; tick, drag, ArrowLeft/Right and a phone
-swipe move a card; "Mark in progress" sits under the sticky note. Detail:
+swipe move a card; "Mark in progress" sits under the sticky note. (Replaced on 2026-10-19 by the
+calm Board, below.) Detail:
 `docs/4-systems/styling.md#the-board-144`. Checked by `scripts/check-board-browser.mjs` (52 checks)
 and `scripts/check-focus-doing-browser.mjs` (12). What is now true in the data:
 
@@ -54,7 +56,23 @@ and `scripts/check-focus-doing-browser.mjs` (12). What is now true in the data:
   per-field merge.
 - **`ui.boardProject`** is the project the Board is narrowed to (null is all). It is kept per device
   in localStorage `focusdeck-board-project` (`app/js/app.js:142-158`), and is not synced.
-- **`ui.boardCol`** is the phone's visible column, in memory only (`app/js/app.js:158`).
+- **`ui.boardCol`** was the phone's visible column; since the calm Board it is the open tab on every
+  screen width, still memory only (`app/js/app.js:164`).
+
+**Calm by default (#198, built 2026-10-19 on `AjsAgent/calm-build`, in QA):** the sticky header with the
+centred jotter and a 232px side menu at 1100px and wider (#199); the Board as one tab at a time with
+Find, Project and Filter (#200); Task details beside the Board (#201); one colour chip per card from a
+Card colour list (#202); every setting as a folded row, plus a Comfort group (#203); plainer wording
+(#204); fixes to small things that misbehaved (#205). Projects is unchanged (choice 1A). Detail:
+`docs/4-systems/calm-board.md`. What is new in the data:
+
+- **`state.comfort`** holds Movement, Softer colours, Card colour, Cards at once and Tasks past their
+  date, each stamped and synced like the other settings (`defaultComfort`, `normalizeComfort`,
+  `app/js/comfort.js`; read in `app/js/state.js:59`, `:149`).
+- **Tasks past their date** now show amber "Past its date" by default; red "Overdue" is the Comfort
+  option (`deadlineChip`, `app/js/state.js:373`).
+- **The Board's view state** (`boardFind`, `boardFilterOpen`, `boardPcat`, `boardShow`, `boardShown`,
+  `boardSelected`) is memory only (`app/js/app.js:164`); `ui.boardProject` is still kept per device.
 
 ## What's built / not built, per milestone
 

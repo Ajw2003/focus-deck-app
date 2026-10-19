@@ -45,6 +45,12 @@ unless the task is GitHub-linked (`issueNumber`), and a `.slip-notes` box holds 
 in the scratch without repainting and saved by `fileSlip` (`fileInboxItem(..., { title, notes })` for a
 thought, `updateTaskFields` for a task). The main button is Next on parts 1 and 2 and File/Save on 3.
 
+Since #205 (2026-10-19) every step tab can be tapped while its step is allowed. With no folder chosen
+yet, tabs 2 and 3 are `aria-disabled` rather than `disabled`, so a tap on one shows "Choose a project
+first. Labels and links open once the thought has a project." in a `.step-why` line (`STEP_LOCKED_WHY`
+and `stepBar`, `app/js/in-tray-view.js:66-69`). A long note ends above the tray's lip, because
+`.jot-slip` keeps 34px of padding at its foot (`app/css/app.css:827`).
+
 ## Category choices
 
 Settings > How it works > Category choices (#133, `state.categoryFilter = { on, updatedAt }`, on by
