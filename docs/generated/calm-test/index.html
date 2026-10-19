@@ -24,8 +24,12 @@
   .rail-tools{margin-top:auto; flex-direction:row; justify-content:flex-start; gap:10px; padding:12px 10px 0;}
   .wrap{padding-left:296px;}
   .topbar .brand{display:none;}
-  .topbar{justify-content:flex-start !important; padding-top:20px;}
-  .topbar .capture-form{margin-left:0 !important; width:640px; max-width:640px;}
+  /* The jotter spans the top of the page above the menu and the board, and stays in view while
+     scrolling; the menu (with the Focus Deck name) starts just below it. */
+  .topbar{position:sticky !important; top:0; z-index:20; margin-left:-280px; justify-content:center !important;
+    background:var(--bg); padding:18px 0 14px; border-bottom:1px solid var(--line);}
+  .topbar .capture-form{margin:0 !important; flex:1 1 auto; width:auto; max-width:none;}
+  .rail{top:calc(var(--jot-h, 84px) + 16px);}
 }
 .rail-settings{border:0; background:none; color:var(--ink-soft); display:flex; align-items:center; gap:10px; font:600 .95rem var(--font-ui); padding:8px 4px; border-radius:10px; cursor:pointer;}
 .rail-settings:hover, .rail-settings.is-on{color:var(--ink);}
@@ -666,6 +670,9 @@ document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape' || ui.screen !== 'board' || !ui.board.selected) return;
   ui.board.selected = null; ui.board.phoneOpen = false; paint();
 });
+// The menu starts just below the jotter bar, so it follows the bar's real height.
+const topbar = document.querySelector('.topbar');
+new ResizeObserver(() => document.documentElement.style.setProperty('--jot-h', topbar.offsetHeight + 'px')).observe(topbar);
 document.getElementById('capture-form').addEventListener('submit', (e) => {
   e.preventDefault(); const i = document.getElementById('capture-input'); const text = i.value.trim(); if (!text) return;
   st.inbox.push({ id: 'cap' + Date.now(), text, createdAt: Date.now() }); i.value = ''; say('Added to Sort: ' + text);

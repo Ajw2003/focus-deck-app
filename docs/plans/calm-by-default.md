@@ -259,3 +259,18 @@ shows, even when empty, so each part is always in the same place; opening one ro
 other open row, and each row's summary updates as soon as its details change. Inside Labels, each
 label has its own row with "Category" or "Make category"; inside Subtasks and Linked tasks are the
 add buttons. Pictures: `feedback/after-details-*.png`.
+
+### 12. The jotter spans the top and stays in view
+
+aj (2026-10-19): extend "Jot down a stray thought" across the empty space at the top, so the Focus
+Deck name and the side menu slide down beside the board, with the jotter "just slightly above
+everything, always in view when a stray idea comes".
+
+On wide screens (1100 pixels and wider) the jotter is now one bar across the whole top of the
+page, from the left edge of the side menu to the right edge of the task panel. It stays fixed at
+the top while the board scrolls. The side menu, with the Focus Deck name, starts just below the
+bar, so the name now lines up with the first line of the board. Phones are unchanged: the jotter
+was already at the top there and the menu stays along the bottom. Pictures:
+`feedback/before-jotter-1440.png`, `feedback/after-jotter-1440.png`,
+`feedback/after-jotter-scrolled-1440.png`, `feedback/after-jotter-1920.png`,
+`feedback/after-jotter-phone.png`.
