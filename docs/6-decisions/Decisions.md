@@ -4,6 +4,18 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-19 — Build stage opened: calm by default
+
+aj, 17:46 UTC: "Design approved: calm by default. Build plan approved: calm by default", then at 17:52
+UTC "Build plan approved: calm by default". The second message was needed because the design loop only
+accepts a build plan approval after the design approval and after at least two labelled issues opened
+since it; #207 (pull request and QA page) and #208 (docs in line with the built app) were opened for
+that, with #206 (whole-app check). The build of #199 to #205 now proceeds on `AjsAgent/calm-build`.
+#199 (side menu and header) was built at 08:30 UTC before the loop caught it; it stays, since it is
+part of the same approved plan.
+
+Status: Active
+
 ## 2026-10-19 — Build plan approved: calm by default, Projects kept (1A)
 
 aj: "Build plan approved: calm by default 1A". The plan is `docs/plans/calm-build.html` (source
