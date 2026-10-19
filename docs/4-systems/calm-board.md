@@ -26,7 +26,9 @@ Status: designed and approved (docs/6-decisions/Decisions.md, 2026-10-19) and bu
   `priority`, `due`, and `label:<id>`. A task with none shows "No category" in grey. The edge colour
   Built in `cardKey` (`app/js/card-key.js:22`), shown by `board-view.js`. The list is edited in Settings,
   Comfort, Card colour (`app/settings.html:67`; reorder and add a label at `:539` and `:543`, saved
-  through `setColourBy`, `app/js/mutations.js:393`). The edge colour
+  through `setColourBy`, `app/js/mutations.js:393`). A task past its date also gets a second line,
+  amber "Nd past its date" or red "Nd overdue" as Comfort chooses, unless its one chip is already the
+  due date (`pastDateChip`, `app/js/board-view.js`). The edge colour
   must be set through `--proj-color`, because `.board-card`'s `border-left` shorthand uses that
   variable and an undefined variable drops the whole border to zero width.
 - **Task details (#201).** Selecting a card opens a panel headed "Task details": the title and a status

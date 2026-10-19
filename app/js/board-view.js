@@ -5,7 +5,7 @@
 // A card shows its project's name only on "Project: All"; subtasks show inside their parent as "1/2 done".
 // The right-hand column is the empty-panel hint, or Task details (js/task-details.js, #201) for ui.boardSelected. The list comes from js/board.js. Ticking a card is the same `toggle-task` checkbox
 // the task rows use. See docs/4-systems/calm-board.md and docs/4-systems/styling.md#the-board-144
-import { esc } from './state.js';
+import { esc, deadlineChip } from './state.js';
 import { boardList } from './board.js';
 import { getChunk, getColourBy } from './comfort.js';
 import { cardKey, NO_CATEGORY } from './card-key.js';
@@ -47,6 +47,13 @@ function keyChip(key) {
   return key.source ? '<span class="cchip" style="--c:' + esc(key.color) + '"><i></i>' + esc(key.name) + '</span>' : '<span class="cchip none">' + esc(NO_CATEGORY.name) + '</span>';
 }
 
+// A task past its date says so on its card, amber or red as Settings > Comfort chooses, unless its
+// one chip already shows the due date (#203).
+function pastDateChip(t, key, now) {
+  if (!t.deadline || t.status === 'done' || key.source === 'due') return '';
+  return new Date(t.deadline + 'T23:59') < new Date(now) ? '<span class="board-card-due">' + deadlineChip(t.deadline, t) + '</span>' : '';
+}
+
 function card(t, p, st, narrowed, selected, now) {
   const done = t.status === 'done';
   const key = cardKey(t, st, getColourBy(st), now);
@@ -57,7 +64,7 @@ function card(t, p, st, narrowed, selected, now) {
     + '<input type="checkbox" data-action="toggle-task" data-task="' + esc(t.id) + '" data-project="' + esc(p.id) + '"' + (done ? ' checked' : '') + ' aria-label="' + esc(t.title) + '">'
     + '<div class="board-card-body"><span class="board-card-title">' + esc(t.title) + '</span>'
     + '<span class="board-card-meta">' + meta + '</span>'
-    + (subs.length ? subsLine(subs) : '') + tieLineHtml(Object.assign({}, ties, { subs: null })) + '</div>'
+    + (subs.length ? subsLine(subs) : '') + tieLineHtml(Object.assign({}, ties, { subs: null })) + pastDateChip(t, key, now) + '</div>'
     + moveButton(t) + '</article>';
 }
 

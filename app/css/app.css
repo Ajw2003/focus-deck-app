@@ -1215,6 +1215,8 @@ body.is-dragging-task .empty-note{display:none;}
 .calm-move:hover, .calm-move:focus-visible{border-color:#2f4f86; color:#2f4f86;}
 .calm-move svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
 .board-subs{display:inline-flex; align-items:center; gap:6px; font-size:var(--text-sm); color:#4a5560;}
+.board-card-due{display:block; margin-top:4px;}
+.board-card-due .deadline-chip{font-size:var(--text-xs, 0.75rem);}
 .board-subs b{color:#1D2733;}
 .board-segs{display:inline-flex; gap:2px;}
 .board-segs i{width:12px; height:5px; border-radius:2px; background:#d8d3c8;}

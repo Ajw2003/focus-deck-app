@@ -73,7 +73,6 @@ const UI = { boardProject: null, boardCol: 'next' };
   assert.strictEqual(ids(five).length, 5, 'the setting sets the group size');
   assert.ok(five.includes('Show 5 more (7 left)'));
 }
-console.log('board-view tests passed');
 
 {
   const mkSt = (ties) => ({ categories: [], projects: [
@@ -94,3 +93,16 @@ console.log('board-view tests passed');
   const plain = renderBoard(mkSt(false), { boardProject: null, boardCol: 'next' }, now);
   assert.ok(!plain.includes('tie-line') && !plain.includes('is-waiting'), 'no ties, nothing added');
 }
+{
+  // A task past its date says so on its card (#203), unless the card's one chip already is the date.
+  const late = { categories: st.categories, projects: [{ id: 'pa', name: 'Home', color: '#3E8E5E', tasks: [
+    { id: 'l1', title: 'Renew passport', status: 'next', deadline: '2020-01-01', categoryIds: ['c1'] },
+    { id: 'l2', title: 'Later', status: 'next', deadline: '2099-01-01', categoryIds: ['c1'] },
+  ] }] };
+  const h = renderBoard(late, UI, now);
+  assert.strictEqual(count(h, /board-card-due/g), 1, 'only the late task gets the past-its-date line');
+  assert.ok(h.includes('past its date'), 'amber "past its date" by default');
+  const dueKey = { ...late, comfort: { colourBy: { value: ['due'], updatedAt: 1 } } };
+  assert.ok(!renderBoard(dueKey, UI, now).includes('board-card-due'), 'no second date when the chip is the due date');
+}
+console.log('board-view tests passed');
