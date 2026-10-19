@@ -201,6 +201,17 @@ What the test site now does (`docs/generated/calm-test/index.html`, pictures
 - Nothing is selected when the Board opens. Clicking the selected card again, pressing Escape, or
   "Close ×" on the panel deselects it, and the panel says how to choose one.
 
-Open question for aj: "category" here means the task's own first label (Chore, Bug, Study), which
-is what the app's Sort screen calls a category. The other reading is the project's category (Work,
-Home life, Learning), which would give every task in a project the same colour.
+aj confirmed that "category" means the task's own first label (Chore, Bug, Study), and added that
+priority, due date and labels the person chooses should be able to take precedence over it. So:
+
+- Settings has a "Card colour" list, by default Category, then Priority, then Due date. Each card
+  takes its colour and its one chip from the first item on the list that the task has, with ↑ Up and
+  ↓ Down to reorder. "Add a label to the list" puts a chosen label at the top, so any task with it
+  shows it; added labels can be removed again.
+- Priority shows as "Urgent priority" and so on; Due date shows as "Past its date", "Due today",
+  "Due in 2 days" or "Due 24 Oct". When Due date is the card's chip, the separate past-its-date
+  glance chip is left out so it isn't said twice.
+- For one task, its panel lists each label on its own row, the first marked "Category" and the rest
+  with "Make category", which moves that label to the front. When something other than the category
+  sets the card, the panel says which Settings item did. The panel's priority and date now change
+  the card straight away.

@@ -162,6 +162,15 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .comfort p{margin:4px 0 0; font-size:var(--text-sm); color:var(--ink-soft);}
 .chip.overdue-amber{background:color-mix(in srgb, #c98a12 22%, transparent); color:color-mix(in srgb, #c98a12 70%, var(--ink)); border-color:transparent;}
 .chip.overdue-red{background:color-mix(in srgb, #b42318 22%, transparent); color:color-mix(in srgb, #b42318 70%, var(--ink)); border-color:transparent;}
+.lb-row{display:flex; align-items:center; gap:10px; padding:3px 0;}
+.lb-row .st{margin-left:auto; font-size:.75rem; font-weight:700; color:var(--ink-soft);}
+.lb-row .bm-add{margin-left:auto;}
+.cb-list{list-style:none; margin:8px 0; padding:0; display:flex; flex-direction:column; gap:4px;}
+.cb-row{display:flex; align-items:center; gap:10px; padding:6px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface);}
+.cb-n{font-weight:700; color:var(--ink-soft); width:1.5em;}
+.cb-name{flex:1; font-weight:600;}
+.cb-row .btn-text:disabled{opacity:.35; cursor:default;}
+.comfort select{padding:6px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:inherit;}
 .proto-banner{max-width:640px; margin:0 0 14px; font-size:var(--text-sm); color:var(--ink-faint);}
 </style>
 </head>
@@ -181,7 +190,7 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 import { seedState } from '../sort-steps/seed.js';
 // state.js reads this key as it loads; seeding it keeps the imported modules consistent.
 localStorage.setItem('focusdeck-state-v1', JSON.stringify(seedState({ ties: true })));
-const { esc, relTime } = await import('../../../app/js/state.js');
+const { esc, relTime, PRIORITY, PRIORITY_ORDER } = await import('../../../app/js/state.js');
 const R = await import('../../../app/js/render.js');
 const { mountWallets } = await import('../../../app/js/wallet.js');
 const { folderCards, flagCards } = await import('../../../app/js/in-tray.js');
@@ -197,6 +206,12 @@ homeTasks.find((t) => t.title === 'Mop the kitchen').status = 'doing';
 // one of the two subtasks of 'Book boiler service' is done, so its card shows 1/2
 const firstSubDone = st.projects[0].tasks.find((t) => t.parentId && !(t.waitsOn || []).length); if (firstSubDone) firstSubDone.status = 'done';
 homeTasks.find((t) => t.title === 'Renew passport before the Lisbon trip').deadline = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);
+// a few priorities and one upcoming date, so moving Priority or Due date up in Settings changes cards
+const homeTask = (title) => homeTasks.find((t) => t.title === title);
+homeTask('Renew passport before the Lisbon trip').priority = 'urgent';
+homeTask('Contact form sends twice').priority = 'high';
+homeTask('Fix the gate latch').priority = 'low';
+homeTask('Book boiler service').deadline = new Date(Date.now() + 2 * 864e5).toISOString().slice(0, 10);
 const all = () => st.projects.flatMap((p) => p.tasks.map((t) => ({ t, p })));
 const byId = (id) => all().find((x) => x.t.id === id);
 const isOpen = (x) => x && x.t.status !== 'done';
@@ -206,7 +221,7 @@ const pcat = (p) => PCATS.find((c) => c.id === p.categoryId);
 const catName = (id) => (st.categories.find((c) => c.id === id) || {}).name;
 
 // ---------- comfort settings (kept for this browser only) ----------
-const comfort = Object.assign({ motion: 'system', calm: true, chunk: 7, overdue: 'amber' }, JSON.parse(localStorage.getItem('calm-test-comfort') || '{}'));
+const comfort = Object.assign({ motion: 'system', calm: true, chunk: 7, overdue: 'amber', colourBy: ['category', 'priority', 'due'] }, JSON.parse(localStorage.getItem('calm-test-comfort') || '{}'));
 function applyComfort() {
   const reduce = comfort.motion === 'off' || (comfort.motion === 'system' && matchMedia('(prefers-reduced-motion: reduce)').matches);
   document.body.classList.toggle('no-motion', reduce);
@@ -274,15 +289,41 @@ function progress(subs) {
   return '<span class="gl gl-subs" title="' + done + ' of ' + subs.length + ' subtasks done">' + IC.subs + '<b>' + done + '/' + subs.length + '</b> done'
     + '<span class="segs">' + subs.slice().sort((a, z) => (z.t.status === 'done') - (a.t.status === 'done')).map((s) => '<i class="' + (s.t.status === 'done' ? 'on' : '') + '"></i>').join('') + '</span></span>';
 }
-// A task's category is its first label: it sets the card's colour and is the only label on the card.
-// The rest of its labels are in the task panel.
+// What colours a card, and is the one label shown on it, is the first entry in Settings' "Card
+// colour" list that the task has. The default list starts with Category, the task's first label;
+// Priority, Due date and any label the person adds can be moved above it. Everything else is in
+// the task panel.
 const NO_CATEGORY = { name: 'No category', color: '#9aa3ad' };
+const PRIORITY_COLOURS = { urgent: '#b42318', high: '#C2731E', medium: '#4D6FB8', low: '#7F8C8D' };
 function categoryOf(t) {
   return st.categories.find((c) => c.id === (t.categoryIds || [])[0]) || null;
 }
-function categoryChip(t) {
-  const c = categoryOf(t);
-  return c ? '<span class="cchip" style="--c:' + c.color + '"><i></i>' + esc(c.name) + '</span>' : '<span class="cchip none">' + NO_CATEGORY.name + '</span>';
+function dueKey(t) {
+  if (!t.deadline || t.status === 'done') return null;
+  const days = Math.round((new Date(t.deadline + 'T00:00') - new Date(new Date().toDateString())) / 864e5);
+  if (days < 0) return comfort.overdue === 'amber' ? { name: 'Past its date', color: '#c98a12' } : { name: 'Overdue', color: '#b42318' };
+  if (days === 0) return { name: 'Due today', color: '#C2731E' };
+  if (days <= 3) return { name: 'Due in ' + days + ' day' + (days === 1 ? '' : 's'), color: '#C2731E' };
+  return { name: 'Due ' + new Date(t.deadline + 'T00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), color: '#4D6FB8' };
+}
+function sourceName(source) {
+  if (source === 'category') return 'Category (the task’s first label)';
+  if (source === 'priority') return 'Priority';
+  if (source === 'due') return 'Due date';
+  return 'Label: ' + (catName(source.slice(6)) || 'deleted label');
+}
+// Returns { name, color, source } for the card, or the grey "No category" when nothing applies.
+function cardKey(t) {
+  for (const source of comfort.colourBy) {
+    if (source === 'category') { const c = categoryOf(t); if (c) return { name: c.name, color: c.color, source }; }
+    else if (source === 'priority') { if (t.priority && PRIORITY[t.priority]) return { name: PRIORITY[t.priority].label + ' priority', color: PRIORITY_COLOURS[t.priority], source }; }
+    else if (source === 'due') { const d = dueKey(t); if (d) return Object.assign(d, { source }); }
+    else { const c = st.categories.find((x) => 'label:' + x.id === source); if (c && (t.categoryIds || []).includes(c.id)) return { name: c.name, color: c.color, source }; }
+  }
+  return Object.assign({ source: null }, NO_CATEGORY);
+}
+function keyChip(key) {
+  return key.source ? '<span class="cchip" style="--c:' + key.color + '"><i></i>' + esc(key.name) + '</span>' : '<span class="cchip none">' + NO_CATEGORY.name + '</span>';
 }
 function moveButton(x) {
   if (x.t.status === 'next') return '<button type="button" class="calm-move" data-move="' + x.t.id + '" data-to="doing" aria-label="Move to In progress: ' + esc(x.t.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h12M13 7l5 5-5 5"/></svg>In progress</button>';
@@ -291,22 +332,22 @@ function moveButton(x) {
 }
 function card(x) {
   const subs = subsOf(x.t.id);
-  const edge = (categoryOf(x.t) || NO_CATEGORY).color;
+  const key = cardKey(x.t);
   // Inside one project every card would repeat its name, so the name only shows on "Project: All".
   const projectName = ui.board.project ? '' : '<span class="pname">' + esc(x.p.name) + '</span>';
-  return '<article class="board-card calm-card' + (ui.board.selected === x.t.id ? ' on' : '') + (blocked(x.t.id) ? ' is-waiting' : '') + (x.t.status === 'done' ? ' is-done' : '') + '" data-open="' + x.t.id + '" style="--proj-color:' + edge + '">'
+  return '<article class="board-card calm-card' + (ui.board.selected === x.t.id ? ' on' : '') + (blocked(x.t.id) ? ' is-waiting' : '') + (x.t.status === 'done' ? ' is-done' : '') + '" data-open="' + x.t.id + '" style="--proj-color:' + key.color + '">'
     + '<input type="checkbox" data-tick="' + x.t.id + '"' + (x.t.status === 'done' ? ' checked' : '') + ' aria-label="Done: ' + esc(x.t.title) + '">'
     + '<div class="board-card-body"><span class="board-card-title">' + esc(x.t.title) + '</span>'
-    + '<span class="gl-row">' + categoryChip(x.t) + projectName + '</span>'
-    + glanceRow(x, subs) + '</div>' + moveButton(x) + '</article>';
+    + '<span class="gl-row">' + keyChip(key) + projectName + '</span>'
+    + glanceRow(x, subs, key) + '</div>' + moveButton(x) + '</article>';
 }
-function glanceRow(x, subs) {
+function glanceRow(x, subs, key) {
   const bits = [];
   if (subs.length) bits.push(progress(subs));
   if (blocked(x.t.id) && (x.t.waitsOn || []).some((id) => isOpen(byId(id)))) bits.push('<span class="gl gl-wait">' + IC.wait + 'waiting</span>');
   const h = TL.holdsUp(st.projects, x.t.id).length;
   if (h) bits.push('<span class="gl gl-hold">' + IC.hold + 'holds up ' + h + '</span>');
-  const od = overdueChip(x.t);
+  const od = key.source === 'due' ? '' : overdueChip(x.t); // the card's key already says it
   if (od) bits.push(od);
   return bits.length ? '<span class="gl-row">' + bits.join('') + '</span>' : '';
 }
@@ -319,18 +360,22 @@ function detail(id) {
   const waits = (x.t.waitsOn || []).map(byId).filter(Boolean);
   const holds = TL.holdsUp(st.projects, id).map((t) => byId(t.id || t)).filter(Boolean);
   const subRows = subs.map((s) => '<label class="bm-sub"><input type="checkbox" data-tick="' + s.t.id + '"' + (s.t.status === 'done' ? ' checked' : '') + '><button type="button" class="bm-add" style="color:var(--ink);font-weight:600" data-select="' + s.t.id + '">' + esc(s.t.title) + '</button><span class="st">' + (s.t.status === 'done' ? 'done' : blocked(s.t.id) ? 'waiting' : s.t.status === 'doing' ? 'in progress' : 'up next') + '</span></label>').join('');
-  const cat = categoryOf(x.t) || NO_CATEGORY;
+  const cat = cardKey(x.t);
+  const labelIds = x.t.categoryIds || [];
+  const labelRows = labelIds.map((cid, i) => '<div class="lb-row"><span class="chip cat-chip small" style="--chip-color:' + R.mutedChip((st.categories.find((c) => c.id === cid) || {}).color || '#888') + '">' + esc(catName(cid)) + '</span>'
+    + (i === 0 ? '<span class="st">Category</span>' : '<button class="bm-add" data-make-category="' + cid + '" data-task="' + id + '" aria-label="Make ' + esc(catName(cid)) + ' the category">Make category</button>') + '</div>').join('');
   const moveTo = x.t.status === 'next' ? '<button class="btn ghost" data-move="' + id + '" data-to="doing">Move to In progress</button>' : x.t.status === 'doing' ? '<button class="btn ghost" data-move="' + id + '" data-to="next">Move back to Up next</button>' : '';
   return '<aside class="cw-detail' + (ui.board.phoneOpen ? ' phone-open' : '') + '" aria-label="Selected task">'
     + '<div class="top"><span class="dot" style="--c:' + cat.color + '"></span>' + esc(cat.name) + ' · ' + esc(x.p.name) + ' · ' + (x.t.status === 'doing' ? 'In progress' : x.t.status === 'done' ? 'Done' : 'Up next') + '<button class="x" data-close aria-label="Close the task panel">Close ×</button></div>'
     + '<h3 contenteditable="true" data-edit-title="' + id + '">' + esc(x.t.title) + '</h3>'
     + '<textarea data-edit-notes="' + id + '" placeholder="Notes…">' + esc(x.t.notes || '') + '</textarea>'
-    + '<div class="grid"><select aria-label="Priority"><option>No priority</option><option>Low</option><option>Medium</option><option>High</option><option>Urgent</option></select><input type="date" aria-label="Due date" value="' + esc(x.t.deadline || '') + '"></div>'
+    + '<div class="grid"><select aria-label="Priority" data-edit-priority="' + id + '"><option value="">No priority</option>' + PRIORITY_ORDER.slice().reverse().map((k) => '<option value="' + k + '"' + (x.t.priority === k ? ' selected' : '') + '>' + PRIORITY[k].label + '</option>').join('') + '</select><input type="date" aria-label="Due date" data-edit-due="' + id + '" value="' + esc(x.t.deadline || '') + '"></div>'
     + (parent ? '<div class="bm-sec"><h4>Part of</h4><div class="bm-tags">' + tag(parent) + '</div></div>' : '')
     + '<div class="bm-sec"><h4>Subtasks</h4>' + (subs.length ? '<p class="gl-row">' + progress(subs) + '</p>' : '') + (subRows || '<p class="calm-meta">None yet.</p>') + '<button class="bm-add" data-note="Adding subtasks works as in Sort part 3.">+ Add a subtask</button></div>'
     + '<div class="bm-sec"><h4>Waits on</h4><div class="bm-tags">' + (waits.map(tag).join('') || '<span class="calm-meta">Nothing.</span>') + '</div></div>'
     + '<div class="bm-sec"><h4>Holds up</h4><div class="bm-tags">' + (holds.map(tag).join('') || '<span class="calm-meta">Nothing.</span>') + '</div></div>'
-    + '<div class="bm-sec"><h4>Category and labels</h4><div class="bm-tags">' + (x.t.categoryIds || []).map((cid) => '<span class="chip cat-chip small" style="--chip-color:' + R.mutedChip((st.categories.find((c) => c.id === cid) || {}).color || '#888') + '">' + esc(catName(cid)) + '</span>').join('') + '<button class="bm-add" data-note="Changing labels opens the full list.">Change</button></div></div>'
+    + '<div class="bm-sec"><h4>Category and labels</h4>' + (labelRows || '<p class="calm-meta">No labels yet.</p>') + '<button class="bm-add" data-note="Changing labels opens the full list.">Change labels</button>'
+      + (cat.source && cat.source !== 'category' ? '<p class="calm-meta">The card shows “' + esc(cat.name) + '” because ' + esc(sourceName(cat.source)) + ' comes first in Settings, Card colour.</p>' : '') + '</div>'
     + (moveTo ? '<div class="cw-move">' + moveTo + '</div>' : '')
     + '<div class="cw-foot"><button class="btn primary" data-save="' + id + '">Save</button>' + (ui.board.savedAt && Date.now() - ui.board.savedAt < 4000 ? '<span class="saved">Saved.</span>' : '') + '<span class="sp"></span><button class="btn-text" data-focus-on="' + id + '">Focus on this</button><button class="btn-text" data-note="Delete asks first, then removes the task.">Delete</button></div></aside>';
 }
@@ -436,8 +481,21 @@ function comfortScreen() {
   return '<div class="comfort"><h2>Settings: Comfort</h2>'
     + '<fieldset><legend>Movement</legend>' + r('motion', 'system', 'Follow my computer’s setting', comfort.motion === 'system') + r('motion', 'off', 'No movement', comfort.motion === 'off') + r('motion', 'on', 'Allow movement', comfort.motion === 'on') + '<p>Turns off card tilts, flips and sliding.</p></fieldset>'
     + '<fieldset><legend>Colour</legend><label><input type="checkbox" data-calm' + (comfort.calm ? ' checked' : '') + '> Softer colours</label><p>Every project and label keeps its own colour, slightly toned down.</p></fieldset>'
+    + colourByFieldset()
     + '<fieldset><legend>How many cards at once</legend>' + [5, 7, 10].map((n) => r('chunk', n, n + ' cards, then “Show more”', comfort.chunk === n)).join('') + '</fieldset>'
     + '<fieldset><legend>Tasks past their date</legend>' + r('overdue', 'amber', 'Amber, “Past its date”', comfort.overdue === 'amber') + r('overdue', 'red', 'Red, “Overdue”', comfort.overdue === 'red') + '<p>“Renew passport before the Lisbon trip” on the Board is past its date, so you can see the difference.</p></fieldset></div>';
+}
+
+function colourByFieldset() {
+  const list = comfort.colourBy;
+  const rows = list.map((source, i) => '<li class="cb-row"><span class="cb-n">' + (i + 1) + '.</span><span class="cb-name">' + esc(sourceName(source)) + '</span>'
+    + '<button class="btn-text" data-cb-move="' + i + '" data-dir="-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move ' + esc(sourceName(source)) + ' up">↑ Up</button>'
+    + '<button class="btn-text" data-cb-move="' + i + '" data-dir="1"' + (i === list.length - 1 ? ' disabled' : '') + ' aria-label="Move ' + esc(sourceName(source)) + ' down">↓ Down</button>'
+    + (source.startsWith('label:') ? '<button class="btn-text" data-cb-remove="' + i + '" aria-label="Remove ' + esc(sourceName(source)) + '">Remove</button>' : '') + '</li>').join('');
+  const addable = st.categories.filter((c) => !list.includes('label:' + c.id));
+  return '<fieldset><legend>Card colour</legend><p>Each card takes its colour, and its one label, from the first item on this list that the task has. Move an item up to put it first.</p><ol class="cb-list">' + rows + '</ol>'
+    + '<label>Add a label to the list <select data-cb-add><option value="">Choose a label…</option>' + addable.map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('') + '</select></label>'
+    + '<p>An added label goes to the top, so a task with it always shows it. To change one task only, use “Make category” in its panel.</p></fieldset>';
 }
 
 // ---------- paint ----------
@@ -479,6 +537,9 @@ app.addEventListener('click', (e) => {
   if (d.note) { say(d.note); return; }
   // Board
   if (d.tick) { const x = byId(d.tick); x.t.status = x.t.status === 'done' ? 'next' : 'done'; x.t.doneHere = x.t.status === 'done'; say(x.t.status === 'done' ? 'Marked done: ' + x.t.title : 'Back to Up next: ' + x.t.title); return; }
+  if (d.makeCategory) { const x = byId(d.task); x.t.categoryIds = [d.makeCategory].concat(x.t.categoryIds.filter((c) => c !== d.makeCategory)); say(catName(d.makeCategory) + ' is now the category of ' + x.t.title + '.'); return; }
+  if (d.cbMove) { const i = +d.cbMove; const j = i + +d.dir; const l = comfort.colourBy; [l[i], l[j]] = [l[j], l[i]]; paint(); return; }
+  if (d.cbRemove) { comfort.colourBy.splice(+d.cbRemove, 1); paint(); return; }
   if (d.move) { const x = byId(d.move); x.t.status = d.to; say(d.to === 'doing' ? 'Moved to In progress: ' + x.t.title : 'Moved back to Up next: ' + x.t.title); return; }
   // Clicking the selected card again puts it back, so nothing is highlighted.
   if (d.open) { const again = b.selected === d.open && !b.phoneOpen; b.selected = again ? null : d.open; b.phoneOpen = !again && innerWidth < 1100; paint(); return; }
@@ -539,6 +600,9 @@ app.addEventListener('input', (e) => {
 app.addEventListener('change', (e) => {
   const el = e.target;
   if (el.matches('[data-project]')) { ui.board.project = el.value; ui.board.shown = comfort.chunk; paint(); return; }
+  if (el.dataset.editPriority) { byId(el.dataset.editPriority).t.priority = el.value || null; paint(); return; }
+  if (el.dataset.editDue) { byId(el.dataset.editDue).t.deadline = el.value || undefined; paint(); return; }
+  if (el.matches('[data-cb-add]') && el.value) { comfort.colourBy.unshift('label:' + el.value); paint(); return; }
   if (el.name === 'motion') comfort.motion = el.value;
   if (el.name === 'chunk') { comfort.chunk = +el.value; ui.board.shown = comfort.chunk; }
   if (el.name === 'overdue') comfort.overdue = el.value;
