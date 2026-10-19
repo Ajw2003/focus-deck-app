@@ -183,7 +183,53 @@ if (preset === 'select') {
 }
 if (preset === 'panel') { ui.panel = parent.id; ui.selected = parent.id; }
 if (preset === 'filter') { ui.tieFilter = 'subs'; }
-if (preset === 'sort') {
+// #calm and #calm-filter: the same Board after the neurodivergent-design research
+// (docs/plans/calm-by-default.md): one column at a time, one quiet toolbar, filters and project
+// choice behind buttons, cards with a title and one line, one colour per card, and the list in chunks.
+function calmBoard(filterOpen) {
+  const CHUNK = 7;
+  const list = all.filter((x) => open(x) && !x.t.parentId && x.t.status !== 'doing');
+  const cardC = (x) => {
+    const subs = subsOf(x.t.id);
+    const note = isWaiting(x) ? 'waiting' : subs.length ? subs.length + ' subtasks' : '';
+    return '<article class="board-card calm-card" style="--proj-color:' + pcat(x.p).color + '"><input type="checkbox" aria-label="' + esc(x.t.title) + '">'
+      + '<div class="board-card-body"><span class="board-card-title">' + esc(x.t.title) + '</span>'
+      + '<span class="calm-meta">' + esc(x.p.name) + (note ? ' · ' + note : '') + '</span></div></article>';
+  };
+  const filters = filterOpen ? '<div class="calm-drawer"><p class="calm-h">Category</p><div class="bm-row">' + ['All'].concat(PCATS.map((c) => c.name)).map((n, i) => '<button class="bm-chip' + (i ? '' : ' on') + '">' + esc(n) + '</button>').join('') + '</div>'
+    + '<p class="calm-h">Show</p><div class="bm-row"><button class="bm-chip on">Everything</button><button class="bm-chip">Has subtasks</button><button class="bm-chip">Waiting on something</button><button class="bm-chip">Holding others up</button></div>'
+    + '<div class="calm-drawer-foot"><button class="btn primary">Show 58 tasks</button><button class="btn-text">Clear</button></div></div>' : '';
+  return '<div class="calm-top"><h2 class="board-title">Board</h2>'
+    + '<div class="calm-tools"><input class="bm-find" placeholder="Find…" aria-label="Find a task, project or label">'
+    + '<button class="btn ghost calm-btn">Project: All ▾</button><button class="btn ghost calm-btn' + (filterOpen ? ' on' : '') + '">Filter</button><button class="btn-text">+ New</button></div></div>' + filters
+    + '<div class="calm-tabs" role="tablist"><button class="calm-tab on">Up next <b>58</b></button><button class="calm-tab">In progress <b>0</b></button><button class="calm-tab">Done this week <b>0</b></button></div>'
+    + '<div class="calm-cards">' + list.slice(0, CHUNK).map(cardC).join('') + '</div>'
+    + '<button class="btn-text calm-more">Show ' + (list.length - CHUNK) + ' more</button>';
+}
+if (preset === 'calm' || preset === 'calm-filter') {
+  const css = document.createElement('style');
+  css.textContent = `
+.calm-top{display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; margin-bottom:14px;}
+.calm-top .board-title{margin:0;}
+.calm-tools{display:flex; gap:8px; flex:1 1 420px; align-items:center;}
+.calm-tools .bm-find{flex:1 1 auto;}
+.calm-btn{padding:8px 14px;}
+.calm-btn.on{box-shadow:inset 0 0 0 2px var(--accent);}
+.calm-drawer{max-width:760px; padding:14px 16px; margin-bottom:14px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2);}
+.calm-h{margin:0 0 6px; font-size:var(--text-sm); color:var(--ink-soft); font-weight:700;}
+.calm-drawer-foot{display:flex; gap:12px; align-items:center; margin-top:6px;}
+.calm-tabs{display:flex; gap:22px; border-bottom:1px solid var(--line); margin-bottom:14px; max-width:760px;}
+.calm-tab{border:0; background:none; padding:8px 2px; color:var(--ink-soft); font:600 var(--text-body) var(--font-ui); border-bottom:3px solid transparent; margin-bottom:-1px; cursor:pointer;}
+.calm-tab.on{color:var(--ink); border-bottom-color:var(--accent);}
+.calm-tab b{font-weight:600; color:var(--ink-faint); margin-left:4px;}
+.calm-cards{display:flex; flex-direction:column; gap:10px; max-width:760px;}
+.calm-card{padding:14px 16px; border-left-width:5px; border-left-color:color-mix(in srgb, var(--proj-color) 70%, var(--surface));}
+.calm-card .board-card-title{font-size:1.05rem;}
+.calm-meta{font-size:var(--text-sm); color:var(--ink-soft);}
+.calm-more{margin-top:12px;}`;
+  document.head.appendChild(css);
+  document.getElementById('app').innerHTML = R.renderRail('board', 2) + '<div class="screen screen-board">' + calmBoard(preset === 'calm-filter') + '</div>';
+} else if (preset === 'sort') {
   // Sort fixes on the real tray markup: a tapped locked step says why; right-click on a card colours it.
   document.getElementById('app').innerHTML = R.renderRail('sort', 2) + '<div class="screen screen-sort"><section class="card inbox-card"><button class="section-toggle">Unsorted <span class="count">2</span></button><div class="unsorted-body">'
     + '<div class="tray-side"><p class="tray-count muted small">2 in the tray</p><div class="tray"><div class="tray-stack"><div class="jot-slip"><div class="slip-flags"></div><p class="slip-text">Get three quotes for fixing the shed door</p><div class="slip-dest">No folder yet</div><div class="slip-when">Thought · 3m ago</div>'

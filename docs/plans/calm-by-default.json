@@ -1,0 +1,231 @@
+{
+  "title": "Calm By Default",
+  "eyebrow": "Research and proposal · for ADHD, autistic and other neurodivergent users · nothing built yet",
+  "approval": "Design approved: calm by default",
+  "short": {
+    "lead": "I read the main guidance and research on designing for ADHD and autistic people, and checked Focus Deck against it. Six findings came out of it. The biggest is to show less at once and reveal detail when asked. The full write-up with every source is in docs/plans/calm-by-default.md. This page shows what it would change, starting with the Board you found too busy.",
+    "hint": "Tap a step for the finding, its sources and what it changes.",
+    "key": [
+      [
+        "What the research says",
+        ""
+      ],
+      [
+        "You decide",
+        "you"
+      ]
+    ],
+    "items": [
+      [
+        "eye",
+        "Less",
+        "Show fewer things at once",
+        "",
+        "W3C's cognitive-accessibility guidance says 'Avoid too much content'. Nielsen Norman Group says to show the core first and the rest on request, two levels at most. Monotropism (Murray, Lesser and Lawson, 2005) describes attention going deeply to a few things at a time. So the Board shows one column, one quiet toolbar, and seven cards with 'Show more'.",
+        "Nothing from you.",
+        {
+          "src": "../generated/calm/calm-1440.png",
+          "alt": "The calm Board: one column, a single toolbar, seven cards and Show 51 more",
+          "caption": "The Board, calm by default."
+        }
+      ],
+      [
+        "list",
+        "Request",
+        "Detail when you ask",
+        "",
+        "Filters and the project choice sit behind 'Filter' and 'Project: All'. A card shows its title and one line; everything else is in the task panel.",
+        "Nothing from you.",
+        {
+          "src": "../generated/calm/calm-filter-1440.png",
+          "alt": "The Filter drawer open above the cards",
+          "caption": "Filters appear only when you open them."
+        }
+      ],
+      [
+        "search",
+        "Words",
+        "Plain, literal words",
+        "",
+        "The UK Home Office autism poster says 'write in plain language' and not 'use figures of speech and idioms'. Focus Deck uses several: 'Bin it', 'slip it back in the deck', 'Stick on flags', 'Tie to tasks', 'In-tray'. The paper look can stay while the words become literal.",
+        "Nothing from you."
+      ],
+      [
+        "swap",
+        "Colour",
+        "Calm colour and motion you control",
+        "",
+        "The Home Office poster says 'use simple colours'. WCAG 2.2 and W3C say people should be able to stop motion. Focus Deck gives every project and all 45 labels a colour, and follows only the computer's 'reduce motion' setting.",
+        "Nothing from you."
+      ],
+      [
+        "next",
+        "Gentle",
+        "Few steps, no shame",
+        "",
+        "Adults with ADHD in a 2026 study said starting is the hardest part, extra steps raise anxiety, and punitive overdue lists add shame (Chen, Meng and Nie, CSCW 2026). Focus Deck shows overdue tasks in red.",
+        "Nothing from you."
+      ],
+      [
+        "lock",
+        "Decide",
+        "You choose what changes",
+        "you",
+        "Five choices, each linked to a finding. The 'Board Takes Over' proposal has not been decided yet; your answers here change how it looks.",
+        "Answer the choices below, then tap Copy my reply and send what it gives you."
+      ]
+    ]
+  },
+  "changes": [
+    [
+      "keep",
+      "What already fits",
+      "Sort's three parts (folder, labels, links), the step bar above them, the focus note, and the side menu of screens.",
+      null,
+      "These already show one thing at a time in a fixed place, which is what the sources ask for."
+    ],
+    [
+      "chg",
+      "The Board",
+      "One column at a time, one toolbar, filters on request, short cards in small groups.",
+      [
+        "Three columns, two rows of pills, filters and every card at once",
+        "One column, one toolbar, seven cards then 'Show more'"
+      ],
+      "Tabs switch between Up next, In progress and Done this week on every screen size. A card shows its title and one line (its project, plus 'waiting' if the task is waiting, or '2 subtasks' if it has two); labels, ties and notes are in the task panel. Source: W3C COGA objective 5; Nielsen Norman Group on progressive disclosure.",
+      null,
+      null,
+      {
+        "before": {
+          "src": "../generated/board-merge/after-board.png",
+          "alt": "The busy Board proposal"
+        },
+        "after": {
+          "src": "../generated/calm/calm-1440.png",
+          "alt": "The calm Board"
+        },
+        "caption": "Left: the Board proposal you found busy. Right: calm by default."
+      }
+    ],
+    [
+      "new",
+      "Comfort settings",
+      "A Settings group for calm colours, motion and how many cards show at once.",
+      null,
+      "Reduce motion (on, off, or follow the computer), calm colours (one colour per card, softer shades), and cards per chunk (5, 7 or 10). Source: W3C COGA objective 8, 'Support Adaptation and Personalization'; WCAG 2.2 criteria 2.2.2 and 2.3.3.",
+      [
+        "Only the computer's reduce-motion setting.",
+        "Three settings that change the whole app.",
+        "You set how much the app shows and moves."
+      ]
+    ]
+  ],
+  "choices": [
+    [
+      "board",
+      "Should the Board be calm by default?",
+      [
+        [
+          "A",
+          "Yes: one column, one toolbar, cards in chunks",
+          1,
+          "As in the pictures. The other columns open with one tap."
+        ],
+        [
+          "B",
+          "Calm on a phone, all three columns on a computer",
+          0,
+          "A wide screen still shows everything at once."
+        ]
+      ],
+      "Every source on attention agrees: fewer things on screen at once."
+    ],
+    [
+      "words",
+      "Should the app's words become literal?",
+      [
+        [
+          "A",
+          "Yes, plain words, same paper look",
+          1,
+          "'Bin it' becomes 'Delete', 'Stick on flags' becomes 'Add labels', 'Tie to tasks' becomes 'Link to other tasks', 'Not this one: slip it back in the deck' becomes 'Not this one: pick another'."
+        ],
+        [
+          "B",
+          "Keep the playful words",
+          0,
+          "The paper metaphor carries through the wording."
+        ]
+      ],
+      "The Home Office autism poster says to avoid figures of speech, and to make buttons say exactly what they do."
+    ],
+    [
+      "colour",
+      "How should colour work?",
+      [
+        [
+          "A",
+          "One colour per card, softer shades",
+          1,
+          "A card's edge shows its project category; labels are plain text until you open the task."
+        ],
+        [
+          "B",
+          "Keep project and label colours as they are",
+          0,
+          "Every project and label keeps its own bright colour."
+        ]
+      ],
+      "The Home Office poster asks for simple colours, not bright contrasting ones."
+    ],
+    [
+      "comfort",
+      "Add Comfort settings (motion, colour, cards per chunk)?",
+      [
+        [
+          "A",
+          "Yes, in Settings",
+          1,
+          "You can adjust the app on a difficult day without changing anything else."
+        ],
+        [
+          "B",
+          "No, follow the computer's settings only",
+          0,
+          "Fewer settings to look at."
+        ]
+      ],
+      "W3C lists personalization as its own objective for cognitive accessibility."
+    ],
+    [
+      "overdue",
+      "How should an overdue task look?",
+      [
+        [
+          "A",
+          "Amber, with 'past its date'",
+          1,
+          "Clear, but not bright red."
+        ],
+        [
+          "B",
+          "Red, as now",
+          0,
+          "The strongest warning colour."
+        ]
+      ],
+      "A 2026 study of adults with ADHD found punitive overdue displays add shame."
+    ]
+  ],
+  "wrapup": {
+    "summary": "Research on designing for ADHD and autistic users, with sources, and five changes that would make Focus Deck calmer.",
+    "changing": "Changed: the Board (one column, one toolbar, short cards in small groups), the app's wording, colour use and overdue colour. New: Comfort settings. Kept: Sort's three parts, the step bar, the focus note and the side menu of screens.",
+    "blocking": "Your five answers here, and your answers on the 'Board Takes Over' page. Nothing is built until you approve.",
+    "next": "After approval, I combine both into one plan with issues, and build on AjsAgent/sort-steps.",
+    "todo": [
+      "Read the steps above; the sources are in docs/plans/calm-by-default.md.",
+      "Pick your answers under Choices.",
+      "Tap <b>Copy my reply</b> and send it, or say what to change."
+    ]
+  }
+}
