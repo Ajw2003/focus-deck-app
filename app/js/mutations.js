@@ -1,7 +1,7 @@
 // focus-deck-app/js/mutations.js
 import { rankFocusPool, isBlocked } from './task-links.js';
 import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER } from './state.js';
-import { syncIssueCompletion, pushCategoriesToIssue, pushPriorityToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
+import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriorityToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
 // The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
 // used to have its own copy that saved locally but never pushed, so most edits never reached the
 // Gist. See doc-ref 2425 docs/4-systems/gist-sync.md
@@ -13,6 +13,16 @@ import { CHOOSING_MODES } from './wallet.js';
 import { dropLinksTo, detachForMove } from './task-links.js';
 import { NOTE_FACES, applyNoteFace } from './note-face.js';
 export { persist };
+
+// Runs fn (which changes other tasks' ties directly), then pushes every task whose parentId/waitsOn
+// changed to GitHub. The pushes are fire-and-forget.
+const tiesOfTask = (t) => ({ parentId: t.parentId, waitsOn: (t.waitsOn || []).slice() });
+const tiesChanged = (b, t) => b.parentId !== t.parentId || JSON.stringify(b.waitsOn) !== JSON.stringify(t.waitsOn || []);
+function withTiePush(fn) {
+  const snap = state.projects.flatMap((p) => p.tasks).map((t) => [t, tiesOfTask(t)]);
+  fn();
+  snap.forEach(([t, b]) => { if (tiesChanged(b, t)) pushTiesToIssue(t, b); });
+}
 
 // categoryId was previously discarded here (the add-project form's submit handler was calling
 // addProject(name, nextHue, categoryId) against this function's old (name, color) signature, so
@@ -59,7 +69,7 @@ export function applyTaskMove({ taskId, toProjectId, status, changes }) {
   const crossing = from.id !== to.id;
   if (!crossing && status && task.status !== status) setTaskStatus(taskId, status);
   if (crossing) {
-    detachForMove(state.projects, taskId); // a subtask can't stay in another folder than its parent
+    withTiePush(() => detachForMove(state.projects, taskId)); // a subtask can't stay in another folder than its parent
     from.tasks = from.tasks.filter((t) => t.id !== taskId);
     to.tasks.push(task);
     if (status) task.status = status;
@@ -104,6 +114,7 @@ export function updateTaskFields(taskId, fields) {
   const { task } = found;
   const oldCategoryIds = (task.categoryIds || []).slice();
   const oldPriority = task.priority || null;
+  const oldTies = tiesOfTask(task);
   // A changed deadline starts a new span: stamp it, and drop stage choices made for the old date
   // unless the caller brings new ones. The edit form sends the deadline on every save, so an
   // unchanged one must not restamp.
@@ -120,6 +131,7 @@ export function updateTaskFields(taskId, fields) {
     pushCategoriesToIssue(task, oldCategoryIds);
   }
   if ('priority' in fields && (task.priority || null) !== oldPriority) pushPriorityToIssue(task);
+  if (tiesChanged(oldTies, task)) pushTiesToIssue(task, oldTies);
 }
 
 // Adapter for the task-edit-form's raw field values (steps as a newline-separated textarea
@@ -170,8 +182,8 @@ export function deleteTask(taskId, projectId) {
     const key = task.repoFullName + '#' + task.issueNumber;
     if (!state.excludedIssues.includes(key)) state.excludedIssues.push(key);
   }
+  withTiePush(() => dropLinksTo(state.projects, taskId)); // before the filter: the pushes look the deleted task's issue up
   project.tasks = project.tasks.filter((t) => t.id !== taskId);
-  dropLinksTo(state.projects, taskId);
   if (!state.deletedTaskIds) state.deletedTaskIds = {};
   state.deletedTaskIds[taskId] = Date.now(); // tombstone — see mergeStates in sync.js
   if (state.focus && state.focus.taskId === taskId) state.focus = null;

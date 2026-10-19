@@ -178,7 +178,7 @@ const issuePath = (o, r, n) => '/repos/' + o + '/' + r + '/issues/' + n;
 const tieList = async (path) => (await ghFetch(path + '?per_page=100')).map(tieIssue);
 
 export const listSubIssues = (o, r, n) => tieList(issuePath(o, r, n) + '/sub_issues');
-export const addSubIssue = async (o, r, n, subIssueId) => tieIssue(await ghFetch(issuePath(o, r, n) + '/sub_issues', { method: 'POST', body: JSON.stringify({ sub_issue_id: subIssueId }) }));
+export const addSubIssue = async (o, r, n, subIssueId, replaceParent) => tieIssue(await ghFetch(issuePath(o, r, n) + '/sub_issues', { method: 'POST', body: JSON.stringify(replaceParent ? { sub_issue_id: subIssueId, replace_parent: true } : { sub_issue_id: subIssueId }) }));
 export const removeSubIssue = async (o, r, n, subIssueId) => tieIssue(await ghFetch(issuePath(o, r, n) + '/sub_issue', { method: 'DELETE', body: JSON.stringify({ sub_issue_id: subIssueId }) }));
 export const getParentIssue = (o, r, n) => ghFetch(issuePath(o, r, n) + '/parent').then(tieIssue, (e) => { if (e.status === 404) return null; throw e; }); // 404 = no parent
 export const listBlockedBy = (o, r, n) => tieList(issuePath(o, r, n) + '/dependencies/blocked_by');

@@ -70,7 +70,7 @@ Approved 2026-10-18 on `docs/plans/ties-everywhere.html` (1A 2A 3A 4A 5A).
 - **Waiting tasks** (open "waits on" or open subtasks) have a softer title in both views, matching
   the focus pick, which skips them.
 
-## GitHub (planned)
+## GitHub (writing built in #195; reading planned)
 
 A tie is mirrored on GitHub only when both tasks are linked to issues:
 
@@ -83,8 +83,12 @@ A tie is mirrored on GitHub only when both tasks are linked to issues:
 - **Issue ids.** Both calls take the issue's internal `id`, not its `#number` (issue #188 is id
   5908483975). `mapIssue` (`app/js/github.js`) keeps `id`, `sub_issues_summary.total` and
   `issue_dependencies_summary.total_blocked_by`; a linked task stores `issueId`.
-- **Writing** happens when a task's ties change (filing or saving a slip, deleting, moving), like
-  label pushes: best-effort, errors in the toast, never rolled back.
+- **Writing** (built, #195: `pushTiesToIssue` in `app/js/github-sync.js`, called from
+  `app/js/mutations.js`) happens when a task's ties change (saving or filing a slip, deleting,
+  moving to another folder), like label pushes: best-effort, errors in the toast, never rolled back.
+  Moving or deleting also pushes the other tasks whose ties it cut. Changing a parent sends DELETE
+  on the old parent's issue and POST (`replace_parent: true`) on the new one; a parent in another
+  repo is never written (subtasks share a folder, a folder is one repo).
 - **Reading** happens in each GitHub sync, only for issues whose summaries say they have ties. GitHub
   wins on a clash, as with labels (4A).
 - **A sub-issue that is not yet a task** comes in as a subtask in its parent's folder (5A), and lands
