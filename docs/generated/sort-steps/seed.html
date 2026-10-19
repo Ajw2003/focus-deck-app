@@ -10,5 +10,6 @@ localStorage.setItem('focusdeck-onboarding', 'done');
 const [screen, flag] = (location.hash.slice(1) || 'sort').split('?');
 localStorage.setItem('focusdeck-screen', screen);
 localStorage.setItem('focusdeck-state-v1', JSON.stringify(seedState({ ties: flag === 'ties' })));
+if (screen === 'projects') { localStorage.setItem('focusdeck-project-view', 'one'); localStorage.setItem('focusdeck-selected-project', 'p0'); }
 location.replace('../../../app/index.html');
 </script></body></html>
