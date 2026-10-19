@@ -1189,7 +1189,7 @@ body.is-dragging-task .empty-note{display:none;}
 /* Calm Board (#200): toolbar, tabs, one list of cards beside the (empty-for-now) Task details column.
    From the test site, docs/generated/calm-test/index.html. The edge colour stays on --proj-color. */
 .cw{display:grid; grid-template-columns:minmax(420px, 640px) minmax(380px, 1fr); gap:28px; align-items:start;}
-@media (max-width:1099.98px){ .cw{grid-template-columns:minmax(0,1fr);} .cw-detail{display:none;} }
+@media (max-width:1099.98px){ .cw{grid-template-columns:minmax(0,1fr);} .cw-detail{display:none;} .cw-detail.phone-open{display:flex; position:fixed; inset:0; z-index:60; border-radius:0; max-height:none; overflow:auto;} } /* Task details goes full screen over the list on phones (#201) */
 .cw-list{min-width:0;}
 .cw-detail{position:sticky; top:20px; padding:20px 22px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px;}
 .calm-tools{display:flex; gap:8px; margin:0 0 12px; align-items:center; flex-wrap:wrap;}
@@ -1222,6 +1222,47 @@ body.is-dragging-task .empty-note{display:none;}
 .calm-meta{margin:0; font-size:var(--text-sm); color:var(--ink-soft);}
 .calm-more{margin-top:12px;}
 .calm-empty{margin:0; padding:18px; border:1px dashed var(--line); border-radius:10px; color:var(--ink-soft); font-size:var(--text-sm);}
+/* Task details (#201): the right-hand panel; its rows are the Settings .set rows. From the test site. */
+.cw-detail:has(.top){display:flex; flex-direction:column; gap:14px; max-height:calc(100vh - 40px); overflow:auto;}
+.cw-detail .top{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft);}
+.cw-name{font:700 var(--text-sm) var(--font-ui); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;}
+.cw-where{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft); margin-top:-6px;}
+.cw-where .cw-status{width:auto; min-height:0; padding:5px 8px; font-weight:700;}
+.cw-rows{display:flex; flex-direction:column; gap:6px;}
+.cw-rows .set{background:var(--surface); margin:0;}
+.cw-rows .set-head{padding:11px 14px;}
+.cw-rows .set-body{padding:0 14px 12px;}
+.cw-detail .top .x{margin-left:auto; border:0; background:none; color:var(--ink-soft); font:600 var(--text-sm) var(--font-ui); cursor:pointer; padding:4px 6px; border-radius:8px;}
+.cw-detail .top .x:hover{color:var(--ink);}
+.cw-detail h3{margin:0; font:400 1.4rem var(--font-display); outline:none; overflow-wrap:anywhere;}
+.cw-detail h3:focus{box-shadow:0 0 0 2px var(--accent);}
+.cw-detail textarea, .cw-detail select, .cw-detail input[type=date], .cw-detail input[type=text]{width:100%; box-sizing:border-box; padding:9px 11px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit; font-size:var(--text-sm); min-height:40px;}
+.cw-detail textarea{min-height:90px; resize:vertical;}
+.cw-detail .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.bm-sec h4{margin:0 0 6px; font:700 var(--text-sm) var(--font-ui); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em;}
+.bm-sec{margin:0 0 10px;}
+.bm-tags{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+.bm-tied{display:inline-flex; align-items:center; gap:2px;}
+.bm-tag{display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border:0; border-radius:2px 6px 6px 6px; background:color-mix(in srgb, var(--c) 30%, var(--surface)); color:var(--ink); font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
+.bm-tag small{font-weight:500; color:var(--ink-soft);}
+.bm-sub{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); padding:4px 0;}
+.bm-sub input{width:16px; height:16px; accent-color:var(--accent);}
+.bm-sub .st, .lb-row .st{margin-left:auto; font-size:.75rem; font-weight:700; color:var(--ink-soft);}
+.bm-add{border:0; background:none; color:var(--accent); font:700 var(--text-sm) var(--font-ui); cursor:pointer; padding:4px 0;}
+.bm-add.bm-sub-name{color:var(--ink); font-weight:600; text-align:left;}
+.bm-addrow{display:flex; gap:8px; align-items:center; margin-top:6px;}
+.lb-row{display:flex; align-items:center; gap:10px; padding:3px 0;}
+.lb-row .bm-add{margin-left:auto;}
+.detail-labels{margin-top:8px;}
+.cw-detail .task-find{margin-top:8px; display:flex; flex-direction:column; gap:4px;}
+.cw-detail .task-hit{display:flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; font-size:var(--text-sm); text-align:left; cursor:pointer;}
+.cw-detail .task-hit .dot{width:10px; height:10px; border-radius:50%; background:var(--c); flex:none;}
+.cw-detail .task-hit .muted{margin-left:auto;}
+.cw-foot{display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding-top:10px; border-top:1px solid var(--line);}
+.cw-foot .sp{flex:1;}
+.cw-foot .btn-text{white-space:nowrap;}
+.cw-foot .saved{font-size:var(--text-sm); color:var(--ink-soft);}
+@media (max-width:1099.98px){ .cw-foot .saved{flex-basis:100%;} .cw-detail.phone-open:has(.top){max-height:none; box-sizing:border-box;} }
 /* ==== end The Board ==== */
 
 /* ties on Board cards and Project rows (#193) */

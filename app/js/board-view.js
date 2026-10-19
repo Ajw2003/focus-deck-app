@@ -3,13 +3,13 @@
 // In progress, Done this week, each with its count) and the tab's cards in groups of the "Cards at once"
 // setting. Up next cards carry "In progress", In progress cards "Up next" (data-action="board-move").
 // A card shows its project's name only on "Project: All"; subtasks show inside their parent as "1/2 done".
-// The right-hand column is the empty-panel hint until Task details (#201) renders into it from
-// ui.boardSelected. The list comes from js/board.js. Ticking a card is the same `toggle-task` checkbox
+// The right-hand column is the empty-panel hint, or Task details (js/task-details.js, #201) for ui.boardSelected. The list comes from js/board.js. Ticking a card is the same `toggle-task` checkbox
 // the task rows use. See docs/4-systems/calm-board.md and docs/4-systems/styling.md#the-board-144
 import { esc } from './state.js';
 import { boardList } from './board.js';
 import { getChunk, getColourBy } from './comfort.js';
 import { cardKey, NO_CATEGORY } from './card-key.js';
+import { renderTaskDetails } from './task-details.js';
 import { tieSummary, tieLineHtml, subtasksOf } from './task-links.js';
 
 export const BOARD_COLS = ['next', 'doing', 'done'];
@@ -95,5 +95,5 @@ export function renderBoard(st, ui, now = Date.now()) {
     + drawer + '<div class="calm-tabs" role="tablist">' + tabs + '</div>'
     + '<div class="calm-cards">' + (cards || empty) + '</div>'
     + (left > 0 ? '<button type="button" class="btn-text calm-more" data-action="board-more">Show ' + Math.min(chunk, left) + ' more (' + left + ' left)</button>' : '')
-    + '</section><aside class="cw-detail" data-selected="' + esc(selected || '') + '"><p class="calm-meta">' + EMPTY_PANEL + '</p></aside></div>';
+    + '</section>' + (selected ? renderTaskDetails(st, ui, selected, now) : '<aside class="cw-detail"><p class="calm-meta">' + EMPTY_PANEL + '</p></aside>') + '</div>';
 }

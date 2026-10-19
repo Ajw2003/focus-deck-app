@@ -30,6 +30,10 @@ sub-issues. The behaviour below is the contract the build copies from the test s
   menu always show, then five folded rows (Notes, Priority and due date, Labels, Subtasks, Linked
   tasks), one open at a time, each with a one-line summary. Changes save as they are made. The
   selected card again, Escape, or "Close ×" deselects; nothing is selected when the Board opens.
+  Built in `app/js/task-details.js` (markup and the pure row summaries), wired by `onDetailAction` /
+  `onDetailChange` in `app/js/app.js` through `updateTaskFields`, `editTask`, `setTaskStatus`, `addTask`, `setFocus`
+  and `deleteTask`, so GitHub-linked tasks push as they do from Projects. State: `ui.boardOpen`, `boardAddSub`,
+  `boardLink`, `boardPicker`. On phones (below 1100px) the panel is full screen over the list.
 - **Settings and Comfort (#203).** Every setting is one folded row showing its current value; one
   row is open at a time. The Comfort group holds Movement (`system`/`off`/`on`), Softer colours
   (on), Card colour (`['category','priority','due']`), Cards at once (5, 7 or 10; 7), and Tasks past

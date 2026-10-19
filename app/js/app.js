@@ -21,6 +21,8 @@ import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY } from 
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
 import { renderOnboarding } from './onboarding-view.js';
 import { normalizeBoardCol } from './board-view.js';
+import { notesSummary } from './task-details.js';
+import { canSetParent, canWaitOn } from './task-links.js';
 import { applyNoteFace } from './note-face.js';
 import { applyComfort, getChunk } from './comfort.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
@@ -160,6 +162,8 @@ export const ui = {
   // The Board's own state (#200), memory only: boardCol is the open tab; boardShown the cards shown so
   // far (null = one group); boardSelected the selected card's id, which Task details (#201) renders from.
   boardCol: 'next', boardFind: '', boardFilterOpen: false, boardPcat: '', boardShow: 'all', boardShown: null, boardSelected: null,
+  // Task details (#201): the open row, a subtask being typed, the link search, the label list open
+  boardOpen: null, boardAddSub: false, boardLink: null, boardPicker: false,
   onboarding: loadOnboarding(),
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
@@ -436,7 +440,8 @@ function onAppClick(e) {
     return;
   }
   if (action === 'board-col') { ui.boardCol = normalizeBoardCol(el.getAttribute('data-col')); ui.boardShown = null; paint(); return; }
-  if (action === 'board-select') { ui.boardSelected = ui.boardSelected === el.getAttribute('data-task-id') ? null : el.getAttribute('data-task-id'); paint(); return; }
+  if (action === 'board-select') { selectBoardTask(ui.boardSelected === el.getAttribute('data-task-id') ? null : el.getAttribute('data-task-id')); paint(); return; }
+  if (action.startsWith('detail-')) { onDetailAction(action, el); return; }
   if (action === 'board-move') {
     // the same path as a drop used to take: lands at the end of the other group, saves and syncs
     const f = findTaskWithProject(taskId);
@@ -750,9 +755,115 @@ function onColorChange(el) {
   else M.setCategoryColor(id, el.value);
 }
 
+// ---- Board > Task details (#201, js/task-details.js) -------------------------------------------
+// Selecting a card (or none) starts the panel afresh: no row open, no half-made subtask or link.
+function selectBoardTask(id) {
+  ui.boardSelected = id; ui.boardOpen = null; ui.boardAddSub = false; ui.boardLink = null; ui.boardPicker = false;
+}
+function detailTask() {
+  const found = ui.boardSelected && findTaskWithProject(ui.boardSelected);
+  return found ? { task: found.task, project: found.project } : null;
+}
+// Each change goes through the same mutations Projects' task editor uses, so it is stamped, synced and,
+// for a GitHub-linked task, pushed (updateTaskFields / setTaskStatus do the push).
+function addDetailTie(task, field, otherId) {
+  const ps = state.projects;
+  if (field === 'parent' && canSetParent(ps, task.id, otherId)) M.updateTaskFields(task.id, { parentId: otherId });
+  else if (field === 'waitsOn' && canWaitOn(ps, task.id, otherId)) M.updateTaskFields(task.id, { waitsOn: (task.waitsOn || []).concat(otherId) });
+  else if (field === 'holdsUp' && canWaitOn(ps, otherId, task.id)) {
+    const other = findTaskWithProject(otherId);
+    if (other) M.updateTaskFields(otherId, { waitsOn: (other.task.waitsOn || []).concat(task.id) });
+  }
+}
+function onDetailAction(action, el) {
+  const d = detailTask();
+  if (!d) return;
+  const { task, project } = d;
+  if (action === 'detail-close') { selectBoardTask(null); paint(); }
+  else if (action === 'detail-fold') {
+    const key = el.getAttribute('data-key');
+    ui.boardOpen = ui.boardOpen === key ? null : key; ui.boardAddSub = false; ui.boardLink = null; ui.boardPicker = false;
+    paint();
+  }
+  else if (action === 'detail-goto') { selectBoardTask(el.getAttribute('data-task-id')); paint(); }
+  else if (action === 'detail-make-cat') {
+    const id = el.getAttribute('data-cat');
+    M.updateTaskFields(task.id, { categoryIds: [id].concat((task.categoryIds || []).filter((c) => c !== id)) });
+  }
+  else if (action === 'detail-add-sub-open') {
+    ui.boardAddSub = true; paint();
+    const box = document.querySelector('[data-detail-newsub]');
+    if (box) box.focus();
+  }
+  else if (action === 'detail-add-sub') addDetailSubtask(task, project);
+  else if (action === 'detail-link-open') {
+    const f = el.getAttribute('data-field');
+    ui.boardLink = ui.boardLink && ui.boardLink.field === f ? null : { field: f, query: '' };
+    paint();
+    const box = document.querySelector('[data-detail-find]');
+    if (box) box.focus();
+  }
+  else if (action === 'detail-link-add') { addDetailTie(task, el.getAttribute('data-field'), el.getAttribute('data-id')); ui.boardLink = null; paint(); }
+  else if (action === 'detail-unlink') {
+    const f = el.getAttribute('data-field'), id = el.getAttribute('data-id');
+    if (f === 'parent') M.updateTaskFields(task.id, { parentId: undefined });
+    else if (f === 'waitsOn') { const w = (task.waitsOn || []).filter((x) => x !== id); M.updateTaskFields(task.id, { waitsOn: w.length ? w : undefined }); }
+    else if (f === 'holdsUp') { const o = findTaskWithProject(id); if (o) { const w = (o.task.waitsOn || []).filter((x) => x !== task.id); M.updateTaskFields(id, { waitsOn: w.length ? w : undefined }); } }
+  }
+  else if (action === 'detail-focus') { M.setFocus(task.id); ui.notice = 'Focus is now “' + task.title + '”.'; paint(); }
+  else if (action === 'detail-delete') {
+    if (confirmDeleteTask(task.id, project.id)) { selectBoardTask(null); M.deleteTask(task.id, project.id); }
+  }
+}
+function addDetailSubtask(task, project) {
+  const box = document.querySelector('[data-detail-newsub]');
+  const title = box ? box.value.trim() : '';
+  if (!title) { if (box) box.focus(); return; }
+  const sub = M.addTask(project.id, title);
+  if (!sub) return;
+  createIssueIfGithubProject(sub, project.id);
+  if (canSetParent(state.projects, sub.id, task.id)) M.updateTaskFields(sub.id, { parentId: task.id });
+  ui.boardAddSub = true; // ready for the next one
+  paint();
+  const next = document.querySelector('[data-detail-newsub]');
+  if (next) next.focus();
+}
+// Fields that save when they change or are left (the Notes summary follows each keystroke, see onAppInput).
+function onDetailChange(t) {
+  const d = detailTask();
+  if (!d) return false;
+  const { task, project } = d;
+  if (t.matches('[data-detail-status]')) M.setTaskStatus(task.id, t.value);
+  else if (t.matches('[data-detail-notes]')) M.updateTaskFields(task.id, { notes: t.value.trim() });
+  else if (t.matches('[data-detail-priority]')) M.editTask(task.id, project.id, { priority: t.value });
+  else if (t.matches('[data-detail-due]')) M.editTask(task.id, project.id, { deadline: t.value });
+  else if (t.matches('.detail-labels input[name="categoryIds"]')) {
+    const checked = Array.from(t.closest('.label-options').querySelectorAll('input[name="categoryIds"]:checked')).map((i) => i.value);
+    const kept = (task.categoryIds || []).filter((c) => checked.includes(c));
+    ui.boardPicker = true;
+    M.updateTaskFields(task.id, { categoryIds: kept.concat(checked.filter((c) => !kept.includes(c))) });
+  } else if (t.matches('.detail-labels input[name="newLabels"]')) {
+    const ids = (task.categoryIds || []).slice();
+    t.value.split(',').map((s) => s.trim()).filter(Boolean).forEach((name) => { const id = labelIdByName(name); if (!ids.includes(id)) ids.push(id); });
+    ui.boardPicker = true;
+    M.updateTaskFields(task.id, { categoryIds: ids });
+  } else return false;
+  return true;
+}
+// The title is edited in place and saved when it is left.
+function onDetailFocusOut(e) {
+  if (!e.target.matches || !e.target.matches('[data-detail-title]')) return;
+  const d = detailTask();
+  if (!d) return;
+  const title = e.target.textContent.trim();
+  if (title && title !== d.task.title) M.editTask(d.task.id, d.project.id, { title });
+  else if (!title) paint(); // an empty title is not saved; the old one comes back
+}
+
 function onAppChange(e) {
   const colorEl = colorInputTarget(e);
   if (colorEl) { onColorChange(colorEl); return; }
+  if (e.target.matches && onDetailChange(e.target)) return;
   if (e.target.matches && e.target.matches('.add-task-form input[name="deadline"], .task-edit-form input[name="deadline"]')) { syncDueStageStep(e.target); return; }
   if (e.target.matches && e.target.matches('[data-action="board-project-select"]')) { setBoardProject(e.target.value); ui.boardShown = null; paint(); return; }
   if (e.target.matches && e.target.matches('.due-step select')) {
@@ -787,6 +898,17 @@ function onAppChange(e) {
 function onAppInput(e) {
   const colorEl = colorInputTarget(e);
   if (colorEl) { onColorInput(colorEl); return; }
+  if (e.target.matches && e.target.matches('[data-detail-notes]')) {
+    const v = document.querySelector('[data-summary="notes"]');
+    if (v) v.textContent = notesSummary(e.target.value);
+    return;
+  }
+  if (e.target.matches && e.target.matches('[data-detail-find]')) {
+    ui.boardLink.query = e.target.value; paint();
+    const box = document.querySelector('[data-detail-find]');
+    if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
+    return;
+  }
   if (e.target.matches && e.target.matches('[data-board-find]')) { ui.boardFind = e.target.value; ui.boardShown = null; paint(); return; }
   // the slip's title and notes are kept in the scratch without a repaint (it would lose the caret)
   if (e.target.matches && e.target.matches('[data-slip-title]')) { ui.unsorted.title = e.target.textContent; return; }
@@ -1081,6 +1203,11 @@ function onAppSubmit(e) {
 }
 
 function onAppKeydown(e) {
+  // Task details: Enter finishes the title (saved on leaving it) or adds the typed subtask
+  if (e.key === 'Enter' && e.target.matches) {
+    if (e.target.matches('[data-detail-title]')) { e.preventDefault(); e.target.blur(); return; }
+    if (e.target.matches('[data-detail-newsub]')) { e.preventDefault(); const d = detailTask(); if (d) addDetailSubtask(d.task, d.project); return; }
+  }
   // Escape in the due-date step skips just the step; it must not also close the form around it.
   if (e.key === 'Escape' && e.target.closest && e.target.closest('.due-step')) {
     e.stopPropagation();
@@ -1236,6 +1363,7 @@ function init() {
   app.addEventListener('input', onAppInput);
   app.addEventListener('submit', onAppSubmit);
   app.addEventListener('keydown', onAppKeydown);
+  app.addEventListener('focusout', onDetailFocusOut);
   app.addEventListener('contextmenu', onAppContextMenu);
   initProjectDrag(app, {
     move: moveProjectTo,
@@ -1249,7 +1377,7 @@ function init() {
   if (topbar) topbar.addEventListener('click', onAppClick);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && ui.projectsDrawerOpen) setProjectsDrawerOpen(false);
-    else if (e.key === 'Escape' && ui.screen === 'board' && ui.boardSelected) { ui.boardSelected = null; paint(); }
+    else if (e.key === 'Escape' && ui.screen === 'board' && ui.boardSelected) { selectBoardTask(null); paint(); }
   });
   const captureForm = document.getElementById('capture-form');
   captureForm.addEventListener('submit', (e) => {
