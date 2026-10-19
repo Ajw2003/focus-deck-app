@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Board Merge Prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat+Brush&family=Kalam:wght@400;700&display=swap">
+<link rel="stylesheet" href="../../../app/css/app.css">
+<style>
+/* Prototype-only additions. The rest is the app's real app/css/app.css and Board classes. */
+.bm-tools{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0 0 10px;}
+.bm-find{flex:1 1 260px; min-width:0; padding:9px 12px 9px 34px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 10px center / 16px;}
+.bm-new{border:0; background:none; color:var(--accent); font:700 var(--text-sm) var(--font-ui); cursor:pointer;}
+.bm-row{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 8px; align-items:center;}
+.bm-row .lbl{font-size:var(--text-sm); color:var(--ink-soft); margin-right:4px;}
+.bm-chip{border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); border-radius:999px; padding:5px 11px; font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
+.bm-chip.on{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
+.bm-chip .sw{display:inline-block; width:9px; height:9px; border-radius:2px; background:var(--c); margin-right:6px;}
+.board-card .board-card-body{gap:4px;}
+.bm-subs{list-style:none; margin:6px 0 0; padding:6px 0 0 2px; border-top:1px dashed var(--line); display:flex; flex-direction:column; gap:4px;}
+.bm-subs li{display:flex; align-items:center; gap:8px; font-size:var(--text-sm);}
+.bm-subs li input{width:15px; height:15px; accent-color:var(--accent);}
+.bm-subs .st{margin-left:auto; color:var(--ink-faint); font-size:.75rem;}
+.bm-subs .wait{color:color-mix(in srgb, var(--prio-high) 75%, var(--ink));}
+.tie-line{display:flex; flex-wrap:wrap; gap:2px 10px; font-size:var(--text-sm); color:var(--ink-soft);}
+.tie b{font-weight:600;}
+.tie.wait{color:color-mix(in srgb, var(--prio-high) 75%, var(--ink));}
+.tie a{color:inherit; text-decoration:underline; text-underline-offset:2px; cursor:pointer;}
+.board-card.is-selected{box-shadow:0 0 0 3px var(--accent), 0 10px 22px -10px var(--paper-shadow); }
+.board-card.is-selected::after{content:'Selected'; position:absolute; top:-10px; right:10px; background:var(--accent); color:var(--accent-ink); font:700 .7rem var(--font-ui); padding:2px 8px; border-radius:999px;}
+.board-card.is-waiting .board-card-title{color:var(--ink-soft);}
+/* the task panel that replaces the inline editor */
+.bm-scrim{position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:50;}
+.bm-panel{z-index:51; position:fixed; top:0; right:0; bottom:0; width:min(440px, 100vw); background:var(--surface); color:var(--ink); border-left:1px solid var(--line); box-shadow:-20px 0 40px -20px rgba(0,0,0,.5); padding:20px 22px; overflow-y:auto; display:flex; flex-direction:column; gap:14px;}
+.bm-panel .top{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft);}
+.bm-panel .top .x{margin-left:auto; border:0; background:none; color:var(--ink-soft); font-size:1.3rem; cursor:pointer;}
+.bm-panel .dot{width:10px; height:10px; border-radius:50%; background:var(--c);}
+.bm-panel h3{margin:0; font:600 1.35rem 'Fraunces', Georgia, serif;}
+.bm-panel textarea, .bm-panel input[type=text], .bm-panel select, .bm-panel input[type=date]{width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:inherit; font-size:var(--text-sm);}
+.bm-panel .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.bm-sec h4{margin:0 0 6px; font:700 var(--text-sm) var(--font-ui); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em;}
+.bm-tags{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+.bm-tag{display:inline-flex; align-items:center; gap:6px; padding:3px 8px 3px 10px; border-radius:2px 6px 6px 6px; background:color-mix(in srgb, var(--c) 30%, var(--surface-2)); font-size:var(--text-sm); font-weight:600;}
+.bm-tag small{font-weight:500; color:var(--ink-soft);}
+.bm-add{border:0; background:none; color:var(--accent); font:700 var(--text-sm) var(--font-ui); cursor:pointer;}
+.bm-tierow{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:6px;}
+.bm-tierow > span:first-child{min-width:78px; font-size:var(--text-sm); color:var(--ink-soft);}
+.bm-foot{display:flex; gap:10px; align-items:center; margin-top:auto; padding-top:10px; border-top:1px solid var(--line);}
+.bm-foot .sp{flex:1;}
+.bm-gh{font-size:var(--text-sm); color:var(--ink-soft);}
+.bm-gh a{color:var(--accent); margin-left:8px;}
+/* Sort fixes */
+.screen-sort .jot-slip{padding-bottom:34px;} /* clears the tray lip, which overlaps the slip's foot by 22px */
+.step-bar{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:0 0 6px;}
+.step-tab{border:0; background:none; text-align:left; padding:6px 2px 8px; border-bottom:3px solid var(--line); color:var(--ink-faint); font:inherit; font-size:var(--text-sm);}
+.step-tab b{display:block;}
+.step-tab.done{color:var(--ink-soft); border-bottom-color:color-mix(in srgb, var(--accent) 45%, var(--line));}
+.step-tab.now{color:var(--ink); border-bottom-color:var(--accent);}
+.step-why{margin:6px 0 10px; padding:8px 12px; border-radius:var(--r-control); background:color-mix(in srgb, var(--accent) 16%, transparent); color:var(--ink); font-size:var(--text-sm);}
+.ctx{position:absolute; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:10px; box-shadow:0 14px 30px -12px rgba(0,0,0,.6); font-size:var(--text-sm); color:var(--ink);}
+.ctx .sws{display:grid; grid-template-columns:repeat(6, 22px); gap:6px; margin-top:8px;}
+.ctx .sws i{width:22px; height:22px; border-radius:5px; background:var(--c); display:block;}
+.proto-note{font-size:var(--text-sm); color:var(--ink-faint); margin-top:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"><span class="lamp"></span></span><h1>Focus Deck</h1></div>
+    <form id="capture-form" class="capture-form jotter" autocomplete="off" onsubmit="return false">
+      <input id="capture-input" type="text" placeholder="Jot down a stray thought…" aria-label="Capture a stray thought">
+      <button type="submit" class="jot-add">Add</button>
+    </form>
+    <div class="topbar-tools"></div>
+  </header>
+  <div id="app"></div>
+</div>
+<script type="module">
+// Prototype of the QA changes (2026-10-18): the Board takes over from Projects (search, category
+// pills, tie filters, + New project), subtasks fold inside their parent's card, a tapped tie selects
+// and highlights its card, and a task panel replaces the inline editor. #sort shows the Sort fixes.
+// Drawn with the app's own stylesheet and sample data; nothing in the app changes.
+import { seedState } from '../sort-steps/seed.js';
+localStorage.setItem('focusdeck-state-v1', JSON.stringify(seedState({ ties: true })));
+const { esc } = await import('../../../app/js/state.js');
+const R = await import('../../../app/js/render.js');
+const st = seedState({ ties: true });
+const PCATS = [{ id: 'pc1', name: 'Home life', color: '#3E8E5E' }, { id: 'pc2', name: 'Work', color: '#4D6FB8' }, { id: 'pc3', name: 'Learning', color: '#C2731E' }];
+st.projects.forEach((p, i) => { p.categoryId = PCATS[i % 3].id; });
+const all = st.projects.flatMap((p) => p.tasks.map((t) => ({ t, p })));
+const byId = (id) => all.find((x) => x.t.id === id);
+const open = (x) => x && x.t.status !== 'done';
+const subsOf = (id) => all.filter((x) => x.t.parentId === id);
+const isWaiting = (x) => (x.t.waitsOn || []).some((id) => open(byId(id))) || subsOf(x.t.id).some(open);
+const catName = (id) => (st.categories.find((c) => c.id === id) || {}).name;
+const pcat = (p) => PCATS.find((c) => c.id === p.categoryId);
+const preset = location.hash.slice(1) || 'board';
+const ui = { find: '', pcat: null, tieFilter: null, selected: null, panel: null, colourBy: 'project' };
+
+function tieLine(x) {
+  const parts = [];
+  (x.t.waitsOn || []).map(byId).filter(open).forEach((w) => parts.push('<span class="tie wait">waits on <a data-sel="' + w.t.id + '">' + esc(w.t.title) + '</a>' + (w.p.id !== x.p.id ? ' · ' + esc(w.p.name) : '') + '</span>'));
+  const h = all.filter((y) => open(y) && (y.t.waitsOn || []).includes(x.t.id));
+  if (h.length) parts.push('<span class="tie">holds up ' + h.map((y) => '<a data-sel="' + y.t.id + '">' + esc(y.t.title) + '</a>').join(', ') + '</span>');
+  return parts.length ? '<span class="tie-line">' + parts.join('') + '</span>' : '';
+}
+
+function card(x) {
+  const subs = subsOf(x.t.id);
+  const cats = (x.t.categoryIds || []).map(catName).filter(Boolean).join(' · ');
+  const edge = ui.colourBy === 'category' ? pcat(x.p).color : x.p.color;
+  const subList = subs.length ? '<ul class="bm-subs">' + subs.map((s) => '<li><input type="checkbox"' + (open(s) ? '' : ' checked') + '><span' + (isWaiting(s) ? ' class="wait"' : '') + '>' + esc(s.t.title) + '</span>'
+    + ((s.t.waitsOn || []).some((id) => open(byId(id))) ? '<span class="st wait">waiting</span>' : '<span class="st">' + (s.t.status === 'doing' ? 'in progress' : 'up next') + '</span>') + '</li>').join('') + '</ul>' : '';
+  return '<article class="board-card' + (isWaiting(x) ? ' is-waiting' : '') + (ui.selected === x.t.id ? ' is-selected' : '') + '" data-open="' + x.t.id + '" style="--proj-color:' + edge + '">'
+    + '<input type="checkbox" aria-label="' + esc(x.t.title) + '">'
+    + '<div class="board-card-body"><span class="board-card-title">' + esc(x.t.title) + '</span>'
+    + '<span class="board-card-meta"><span class="board-card-proj">' + esc(x.p.name) + '</span>' + (cats ? '<span class="board-card-cats">' + esc(cats) + '</span>' : '') + '</span>'
+    + (subs.length ? '<span class="tie-line"><span class="tie">' + subs.length + ' subtasks · ' + subs.filter((s) => !open(s)).length + ' done</span></span>' : '')
+    + tieLine(x) + subList + '</div></article>';
+}
+
+function board() {
+  const q = ui.find.toLowerCase();
+  let list = all.filter((x) => open(x) && !x.t.parentId);
+  if (ui.pcat) list = list.filter((x) => x.p.categoryId === ui.pcat);
+  if (q) list = list.filter((x) => x.t.title.toLowerCase().includes(q) || x.p.name.toLowerCase().includes(q) || (x.t.categoryIds || []).some((id) => (catName(id) || '').toLowerCase().includes(q)));
+  if (ui.tieFilter === 'subs') list = list.filter((x) => subsOf(x.t.id).length);
+  if (ui.tieFilter === 'waits') list = list.filter(isWaiting);
+  if (ui.tieFilter === 'holds') list = list.filter((x) => all.some((y) => open(y) && (y.t.waitsOn || []).includes(x.t.id)));
+  const chip = (on, act, val, label, c) => '<button type="button" class="bm-chip' + (on ? ' on' : '') + '" data-' + act + '="' + val + '">' + (c ? '<span class="sw" style="--c:' + c + '"></span>' : '') + label + '</button>';
+  const tools = '<div class="bm-tools"><input class="bm-find" data-find value="' + esc(ui.find) + '" placeholder="Find a task, project or label…" aria-label="Find"><button type="button" class="bm-new">+ New project</button></div>'
+    + '<div class="bm-row"><span class="lbl">Category</span>' + chip(!ui.pcat, 'pcat', '', 'All') + PCATS.map((c) => chip(ui.pcat === c.id, 'pcat', c.id, esc(c.name), c.color)).join('') + '</div>'
+    + '<div class="bm-row"><span class="lbl">Show</span>' + chip(!ui.tieFilter, 'tie', '', 'Everything') + chip(ui.tieFilter === 'subs', 'tie', 'subs', 'Has subtasks') + chip(ui.tieFilter === 'waits', 'tie', 'waits', 'Waiting on something') + chip(ui.tieFilter === 'holds', 'tie', 'holds', 'Holding others up') + '</div>';
+  const pills = '<div class="board-pills">' + '<button class="board-pill is-on"><span class="board-pill-name">All projects</span></button>' + st.projects.filter((p) => !ui.pcat || p.categoryId === ui.pcat).map((p) => '<button class="board-pill" style="--proj-color:' + p.color + '"><span class="board-pill-dot"></span><span class="board-pill-name">' + esc(p.name) + '</span></button>').join('') + '</div>';
+  const col = (title, items, empty) => '<section class="board-col is-current"><h3 class="board-col-head"><span>' + title + '</span><b class="board-count">' + items.length + '</b></h3><div class="board-cards">' + (items.length ? items.map(card).join('') : '<p class="board-empty">' + empty + '</p>') + '</div></section>';
+  return '<h2 class="board-title">Board</h2>' + tools + pills
+    + '<div class="board-cols">' + col('Up next', list.filter((x) => x.t.status !== 'doing'), 'Nothing up next.') + col('In progress', list.filter((x) => x.t.status === 'doing'), 'Nothing in progress.') + col('Done this week', [], 'Nothing finished yet this week.') + '</div>'
+    + '<p class="proto-note">Prototype: tap a card for its panel; tap a name in a tie line to select that task.</p>';
+}
+
+function panel(x) {
+  const subs = subsOf(x.t.id);
+  const tag = (y) => '<span class="bm-tag" style="--c:' + y.p.color + '">' + esc(y.t.title) + (y.p.id !== x.p.id ? ' <small>· ' + esc(y.p.name) + '</small>' : '') + '</span>';
+  const parent = x.t.parentId && byId(x.t.parentId);
+  const holds = all.filter((y) => open(y) && (y.t.waitsOn || []).includes(x.t.id));
+  return '<div class="bm-scrim" data-close></div><aside class="bm-panel" role="dialog" aria-label="Task">'
+    + '<div class="top"><span class="dot" style="--c:' + x.p.color + '"></span>' + esc(x.p.name) + ' · Up next<button class="x" data-close aria-label="Close">×</button></div>'
+    + '<h3 contenteditable="true">' + esc(x.t.title) + '</h3>'
+    + '<textarea rows="3" placeholder="Notes…">Ask the neighbour who did theirs</textarea>'
+    + '<div class="grid"><select><option>No priority</option></select><input type="date"></div>'
+    + '<div class="bm-sec"><h4>Labels</h4><div class="bm-tags">' + (x.t.categoryIds || []).map((id) => '<span class="chip cat-chip small" style="--chip-color:' + R.mutedChip((st.categories.find((c) => c.id === id) || {}).color || '#888') + '">' + esc(catName(id)) + '</span>').join('') + '<button class="bm-add">Change</button></div></div>'
+    + '<div class="bm-sec"><h4>Ties</h4>'
+      + '<div class="bm-tierow"><span>Part of</span>' + (parent ? tag(parent) : '') + '<button class="bm-add">+ Add</button></div>'
+      + '<div class="bm-tierow"><span>Subtasks</span>' + subs.map(tag).join('') + '<button class="bm-add">+ Add</button></div>'
+      + '<div class="bm-tierow"><span>Waits on</span>' + (x.t.waitsOn || []).map(byId).filter(Boolean).map(tag).join('') + '<button class="bm-add">+ Add</button></div>'
+      + '<div class="bm-tierow"><span>Holds up</span>' + holds.map(tag).join('') + '<button class="bm-add">+ Add</button></div></div>'
+    + '<div class="bm-sec"><h4>Steps</h4><textarea rows="2" placeholder="One per line…"></textarea></div>'
+    + '<div class="bm-gh">Not on GitHub <a>+ Create issue</a><a>Link to an existing issue</a></div>'
+    + '<div class="bm-foot"><button class="btn primary">Save</button><button class="btn ghost" data-close>Cancel</button><span class="sp"></span><button class="btn-text">Focus on this</button><button class="btn-text">Delete</button></div></aside>';
+}
+
+function paint() {
+  const sel = ui.selected;
+  document.getElementById('app').innerHTML = R.renderRail('board', 2) + '<div class="screen screen-board">' + board() + '</div>' + (ui.panel ? panel(byId(ui.panel)) : '');
+  if (sel && !ui.panel && preset !== 'select') { const c = document.querySelector('.is-selected'); if (c) c.scrollIntoView({ block: 'center' }); }
+}
+
+document.addEventListener('click', (e) => {
+  const s = e.target.closest('[data-sel]'); if (s) { e.stopPropagation(); ui.selected = s.dataset.sel; const y = byId(ui.selected); if (y && y.t.parentId) ui.selected = y.t.parentId; ui.panel = null; paint(); return; }
+  if (e.target.closest('[data-close]')) { ui.panel = null; paint(); return; }
+  const b = e.target.closest('[data-pcat],[data-tie]'); if (b) { if ('pcat' in b.dataset) ui.pcat = b.dataset.pcat || null; else ui.tieFilter = b.dataset.tie || null; paint(); return; }
+  const c = e.target.closest('[data-open]'); if (c && !e.target.matches('input')) { ui.panel = c.dataset.open; ui.selected = c.dataset.open; paint(); }
+});
+document.addEventListener('input', (e) => { if (e.target.hasAttribute('data-find')) { ui.find = e.target.value; paint(); const f = document.querySelector('[data-find]'); f.focus(); f.setSelectionRange(f.value.length, f.value.length); } });
+
+const home = st.projects[0].tasks;
+const parent = home.find((t) => subsOf(t.id).length);
+const waiting = all.find((x) => (x.t.waitsOn || []).length);
+if (preset === 'select') {
+  // for the picture: tie to a card near the top of Up next, as if 'History essay draft' was just tapped in a tie line
+  const near = all.find((x) => x.t.title === 'History essay draft' && x.p.id === st.projects[0].id);
+  waiting.t.waitsOn = [near.t.id]; ui.selected = near.t.id;
+}
+if (preset === 'panel') { ui.panel = parent.id; ui.selected = parent.id; }
+if (preset === 'filter') { ui.tieFilter = 'subs'; }
+if (preset === 'sort') {
+  // Sort fixes on the real tray markup: a tapped locked step says why; right-click on a card colours it.
+  document.getElementById('app').innerHTML = R.renderRail('sort', 2) + '<div class="screen screen-sort"><section class="card inbox-card"><button class="section-toggle">Unsorted <span class="count">2</span></button><div class="unsorted-body">'
+    + '<div class="tray-side"><p class="tray-count muted small">2 in the tray</p><div class="tray"><div class="tray-stack"><div class="jot-slip"><div class="slip-flags"></div><p class="slip-text">Get three quotes for fixing the shed door</p><div class="slip-dest">No folder yet</div><div class="slip-when">Thought · 3m ago</div>'
+    + '<textarea class="slip-notes" style="field-sizing:content">Ask the neighbour who did theirs\nThey used the place on Mill Road\nCheck it fits the van\nGet it in writing</textarea></div></div><div class="tray-lip"><span>In-tray</span></div></div>'
+    + '<div class="sort-acts"><button class="file-btn" disabled>Choose a folder first</button></div></div>'
+    + '<div class="wallet-root tray-wallets" style="position:relative"><div class="step-bar"><button class="step-tab now"><b>1. Which folder?</b><small>&nbsp;</small></button><button class="step-tab"><b>2. Stick on flags</b><small>&nbsp;</small></button><button class="step-tab"><b>3. Tie to tasks</b><small>&nbsp;</small></button></div>'
+    + '<p class="step-why">Choose a folder first. Flags and ties open once the slip has a folder.</p>'
+    + '<div class="wallet"><div class="flip-track is-spread" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:12px">'
+    + st.projects.slice(0, 8).map((p) => R.sleeve({ key: p.id, name: p.name, color: p.color, kind: 'project', detail: p.tasks.length + ' open', speak: p.name })).join('') + '</div></div>'
+    + '<div class="ctx" style="left:210px;top:230px">Colour for <b>Band</b><div class="sws">' + ['#3E8E5E', '#4D6FB8', '#C9584F', '#8A6FB8', '#2F8F8F', '#C2731E', '#B8527E', '#5B8C2A', '#6A6FD1', '#A8742B', '#7F8C8D', '#16A085'].map((c) => '<i style="--c:' + c + '"></i>').join('') + '</div></div>'
+    + '<p class="proto-note">Tapping "2. Stick on flags" before a folder is chosen shows the line above instead of doing nothing. Right-clicking a folder or flag card opens its colour, as label chips already do. The notes grow with their text.</p></div></div></section></div>';
+} else paint();
+</script>
+</body>
+</html>

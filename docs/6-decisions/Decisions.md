@@ -4,6 +4,19 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-18 — QA failed: Sort fixes, task panel, Board takes over from Projects
+
+aj's QA of the sort steps (#188) and ties (#192), in their words: right-click colour on folders and
+flags "should be brought back"; notes "don't let you scroll far enough"; step headers should always
+be clickable when allowed, and when not "it should be named clearly"; the Board "should highlight
+selected task", "a sub task should sit inside of its main task", tapping a task should show its
+subtasks, dependencies, dependants and notes "replacing the current ui"; and "board should replace
+projects" with search, category pills and colour by category. Both features went back to
+`in progress`. Found while prototyping: the notes slid under the tray lip, which overlaps the slip's
+foot by 22px (`app/css/app.css:833`); right-click colour never covered wallet cards
+(`app/js/app.js:664`). Proposal: `docs/plans/board-takes-over.html`, awaiting answers. It reverses
+answer 2A of the ties design (subtasks as separate Board cards).
+
 ## 2026-10-18 — Build plan for ties everywhere (#192)
 
 Four steps, each its own issue under #192, built on `AjsAgent/sort-steps` so one pull request carries
