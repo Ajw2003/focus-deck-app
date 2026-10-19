@@ -243,3 +243,19 @@ Task panel, what was cut or merged (pictures `feedback/before-panel-subtasks.png
 Settings: each setting is one row with its name, its current value on the right and an arrow.
 Tapping a row opens its choices and closes any other open row, so only one setting's details are
 on screen; changing a value updates the row's value straight away.
+
+### 11. The task panel becomes "Task details", folded like Settings
+
+aj (2026-10-19): Settings is good now; the task panel should "gain a name that encapsulates its
+functionality" and work "the same as settings, the thing named and then details hidden gracefully
+and able to be seen when wanted".
+
+The panel is now headed "Task details" (with "Close ×"), then the task's title and its status menu
+with "in <project>". Everything else is five folded rows built by the same helper as Settings, so
+they look and behave the same: Notes (first line, or "None"), Priority and due date ("High priority ·
+Due in 2 days", or "None set"), Labels (their names in order, the first being the category),
+Subtasks ("1 of 2 done"), and Linked tasks ("Waits on 1, holds up 2", or "None"). Every row always
+shows, even when empty, so each part is always in the same place; opening one row closes the
+other open row, and each row's summary updates as soon as its details change. Inside Labels, each
+label has its own row with "Category" or "Make category"; inside Subtasks and Linked tasks are the
+add buttons. Pictures: `feedback/after-details-*.png`.

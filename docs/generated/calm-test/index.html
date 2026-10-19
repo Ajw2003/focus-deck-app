@@ -71,7 +71,14 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .calm-empty{padding:18px; border:1px dashed var(--line); border-radius:10px; color:var(--ink-soft); font-size:var(--text-sm);}
 .cw-detail{position:sticky; top:20px; display:flex; flex-direction:column; gap:14px; padding:20px 22px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; max-height:calc(100vh - 40px); overflow:auto;}
 .cw-detail .top{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft);}
-.cw-detail .top .cw-status{width:auto; min-height:0; padding:5px 8px; font-weight:700;}
+.cw-name{font:700 var(--text-sm) var(--font-ui); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;}
+.cw-where{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft); margin-top:-6px;}
+.cw-where .cw-status{width:auto; min-height:0; padding:5px 8px; font-weight:700;}
+.cw-rows{display:flex; flex-direction:column; gap:6px;}
+.cw-rows .set{background:var(--surface);}
+.cw-rows .set-head{padding:11px 14px;}
+.cw-rows .set-body{padding:0 14px 12px;}
+.cw-rows .bm-sec h4{margin-top:4px;}
 .cw-detail .top .x{margin-left:auto; border:0; background:none; color:var(--ink-soft); font:600 var(--text-sm) var(--font-ui); cursor:pointer; padding:4px 6px; border-radius:8px;}
 .cw-detail .top .x:hover{color:var(--ink);}
 .cw-detail .dot{width:10px; height:10px; border-radius:50%; background:var(--c);}
@@ -87,7 +94,6 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .bm-sub input{width:16px; height:16px; accent-color:var(--accent);}
 .bm-sub .st{margin-left:auto; font-size:.75rem; color:var(--ink-faint);}
 .bm-add{border:0; background:none; color:var(--accent); font:700 var(--text-sm) var(--font-ui); cursor:pointer;}
-.cw-addlink{align-self:flex-start; padding:0;}
 .cw-foot{display:flex; gap:10px; align-items:center; padding-top:10px; border-top:1px solid var(--line);}
 .cw-foot .sp{flex:1;}
 .cw-foot{flex-wrap:wrap;} .cw-foot .btn-text{white-space:nowrap;}
@@ -242,10 +248,10 @@ function applyComfort() {
 // ---------- ui state ----------
 const ui = {
   screen: (location.hash.slice(1) || 'board').split('?')[0],
-  board: { tab: 'next', find: '', project: '', filterOpen: false, pcat: '', show: 'all', shown: comfort.chunk, selected: null, phoneOpen: false, labelsOpen: null },
+  board: { tab: 'next', find: '', project: '', filterOpen: false, pcat: '', show: 'all', shown: comfort.chunk, selected: null, phoneOpen: false },
   sort: null,
   focusId: null, pool: [], allBlocked: false,
-  comfortOpen: null,
+  open: { settings: null, task: null }, // which folded row is open on each screen
   toast: '',
 };
 function freshSort() {
@@ -362,6 +368,15 @@ function glanceRow(x, subs, key) {
   if (od) bits.push(od);
   return bits.length ? '<span class="gl-row">' + bits.join('') + '</span>' : '';
 }
+// One folded row, used by Settings and the task panel alike: its name and its current value, with the
+// details opening on a tap. Opening another row in the same group closes it, so only one row's
+// details are on screen at a time.
+function foldRow(group, key, title, value, body) {
+  const open = ui.open[group] === key;
+  return '<section class="set' + (open ? ' open' : '') + '"><button type="button" class="set-head" data-fold="' + group + ':' + key + '" aria-expanded="' + open + '" aria-controls="fold-' + group + '-' + key + '">'
+    + '<span class="set-title">' + title + '</span><span class="set-value">' + esc(value) + '</span><span class="set-arrow" aria-hidden="true">' + (open ? '⌃' : '⌄') + '</span></button>'
+    + (open ? '<div class="set-body" id="fold-' + group + '-' + key + '">' + body + '</div>' : '') + '</section>';
+}
 function detail(id) {
   const x = byId(id);
   if (!x) return '<aside class="cw-detail"><p class="calm-meta">No task selected. Choose a task on the left to see its notes, every label and its links here. Click it again, or press Escape, to put it back.</p></aside>';
@@ -373,26 +388,31 @@ function detail(id) {
   const subRows = subs.map((s) => '<label class="bm-sub"><input type="checkbox" data-tick="' + s.t.id + '"' + (s.t.status === 'done' ? ' checked' : '') + '><button type="button" class="bm-add" style="color:var(--ink);font-weight:600" data-select="' + s.t.id + '">' + esc(s.t.title) + '</button>' + (blocked(s.t.id) && s.t.status !== 'done' ? '<span class="st">waiting</span>' : '') + '</label>').join('');
   const labelIds = x.t.categoryIds || [];
   const chipFor = (cid) => '<span class="chip cat-chip small" style="--chip-color:' + R.mutedChip((st.categories.find((c) => c.id === cid) || {}).color || '#888') + '">' + esc(catName(cid)) + '</span>';
-  // Labels read as one line of chips; choosing the category is one click away, not always on show.
-  const labels = ui.board.labelsOpen === id
-    ? labelIds.map((cid, i) => '<div class="lb-row">' + chipFor(cid) + (i === 0 ? '<span class="st">Category</span>' : '<button class="bm-add" data-make-category="' + cid + '" data-task="' + id + '" aria-label="Make ' + esc(catName(cid)) + ' the category">Make category</button>') + '</div>').join('')
-      + '<button class="bm-add" data-labels-edit="' + id + '">Done</button> <button class="bm-add" data-note="Adding or removing labels opens the full list.">Add or remove labels</button>'
-    : '<div class="bm-tags">' + (labelIds.map(chipFor).join('') || '<span class="calm-meta">No labels.</span>') + '<button class="bm-add" data-labels-edit="' + id + '">Edit</button></div>';
-  // Links show only when there are some, so an unlinked task has no empty headings.
+  const labels = labelIds.map((cid, i) => '<div class="lb-row">' + chipFor(cid) + (i === 0 ? '<span class="st">Category</span>' : '<button class="bm-add" data-make-category="' + cid + '" data-task="' + id + '" aria-label="Make ' + esc(catName(cid)) + ' the category">Make category</button>') + '</div>').join('')
+    + '<button class="bm-add" data-note="Adding or removing labels opens the full list.">Add or remove labels</button>';
   const linkSec = (title, body) => '<div class="bm-sec"><h4>' + title + '</h4>' + body + '</div>';
   const links = (parent ? linkSec('Part of', '<div class="bm-tags">' + tag(parent) + '</div>') : '')
-    + (subs.length ? linkSec('Subtasks · ' + subs.filter((s) => s.t.status === 'done').length + ' of ' + subs.length + ' done', subRows) : '')
     + (waits.length ? linkSec('Waits on', '<div class="bm-tags">' + waits.map(tag).join('') + '</div>') : '')
     + (holds.length ? linkSec('Holds up', '<div class="bm-tags">' + holds.map(tag).join('') + '</div>') : '');
+  const doneSubs = subs.filter((s) => s.t.status === 'done').length;
+  const linkSummary = [parent ? 'part of 1' : '', waits.length ? 'waits on ' + waits.length : '', holds.length ? 'holds up ' + holds.length : ''].filter(Boolean).join(', ');
+  const due = dueKey(x.t);
+  const whenValue = [x.t.priority && PRIORITY[x.t.priority] ? PRIORITY[x.t.priority].label + ' priority' : '', due ? due.name : ''].filter(Boolean).join(' · ') || 'None set';
   const status = '<select class="cw-status" data-edit-status="' + id + '" aria-label="Status">' + [['next', 'Up next'], ['doing', 'In progress'], ['done', 'Done']].map(([k, l]) => '<option value="' + k + '"' + (x.t.status === k ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>';
-  return '<aside class="cw-detail' + (ui.board.phoneOpen ? ' phone-open' : '') + '" aria-label="Selected task">'
-    + '<div class="top">' + status + '<span>in ' + esc(x.p.name) + '</span><button class="x" data-close aria-label="Close the task panel">Close ×</button></div>'
+  const row = (key, title, value, body) => foldRow('task', key, title, value, body);
+  // Like Settings: the title and status always show; every other part is one named row with a
+  // short summary, and its details open on a tap.
+  return '<aside class="cw-detail' + (ui.board.phoneOpen ? ' phone-open' : '') + '" aria-labelledby="cw-name">'
+    + '<div class="top"><span class="cw-name" id="cw-name">Task details</span><button class="x" data-close aria-label="Close task details">Close ×</button></div>'
     + '<h3 contenteditable="true" data-edit-title="' + id + '">' + esc(x.t.title) + '</h3>'
-    + '<textarea data-edit-notes="' + id + '" placeholder="Notes…">' + esc(x.t.notes || '') + '</textarea>'
-    + '<div class="grid"><select aria-label="Priority" data-edit-priority="' + id + '"><option value="">No priority</option>' + PRIORITY_ORDER.slice().reverse().map((k) => '<option value="' + k + '"' + (x.t.priority === k ? ' selected' : '') + '>' + PRIORITY[k].label + '</option>').join('') + '</select><input type="date" aria-label="Due date" data-edit-due="' + id + '" value="' + esc(x.t.deadline || '') + '"></div>'
-    + linkSec('Labels', labels)
-    + links
-    + '<button class="bm-add cw-addlink" data-note="Adding a subtask or a link works as in Sort part 3.">+ Add a subtask or link</button>'
+    + '<div class="cw-where">' + status + '<span>in ' + esc(x.p.name) + '</span></div>'
+    + '<div class="cw-rows">'
+    + row('notes', 'Notes', x.t.notes ? x.t.notes.split('\n')[0].slice(0, 40) + (x.t.notes.length > 40 ? '…' : '') : 'None', '<textarea data-edit-notes="' + id + '" placeholder="Notes…">' + esc(x.t.notes || '') + '</textarea>')
+    + row('when', 'Priority and due date', whenValue, '<div class="grid"><select aria-label="Priority" data-edit-priority="' + id + '"><option value="">No priority</option>' + PRIORITY_ORDER.slice().reverse().map((k) => '<option value="' + k + '"' + (x.t.priority === k ? ' selected' : '') + '>' + PRIORITY[k].label + '</option>').join('') + '</select><input type="date" aria-label="Due date" data-edit-due="' + id + '" value="' + esc(x.t.deadline || '') + '"></div>')
+    + row('labels', 'Labels', labelIds.map(catName).join(', ') || 'None', labels)
+    + row('subtasks', 'Subtasks', subs.length ? doneSubs + ' of ' + subs.length + ' done' : 'None', (subRows || '<p class="calm-meta">No subtasks yet.</p>') + '<button class="bm-add" data-note="Adding a subtask works as in Sort part 3.">+ Add a subtask</button>')
+    + row('links', 'Linked tasks', linkSummary ? linkSummary.charAt(0).toUpperCase() + linkSummary.slice(1) : 'None', (links || '<p class="calm-meta">Not linked to any task.</p>') + '<button class="bm-add" data-note="Linking a task works as in Sort part 3.">+ Link a task</button>')
+    + '</div>'
     + '<div class="cw-foot"><span class="saved">Changes save as you make them.</span><span class="sp"></span><button class="btn-text" data-focus-on="' + id + '">Focus on this</button><button class="btn-text" data-note="Delete asks first, then removes the task.">Delete</button></div></aside>';
 }
 function boardScreen() {
@@ -492,14 +512,7 @@ function focusScreen() {
 }
 
 // ---------- Comfort ----------
-// Each setting is one row: its name and its current value. Tapping the row opens its choices, and
-// opening another row closes it, so only one setting's details are ever on screen.
-function settingRow(key, title, value, body) {
-  const open = ui.comfortOpen === key;
-  return '<section class="set' + (open ? ' open' : '') + '"><button type="button" class="set-head" data-set-toggle="' + key + '" aria-expanded="' + open + '" aria-controls="set-' + key + '">'
-    + '<span class="set-title">' + title + '</span><span class="set-value">' + esc(value) + '</span><span class="set-arrow" aria-hidden="true">' + (open ? '⌃' : '⌄') + '</span></button>'
-    + (open ? '<div class="set-body" id="set-' + key + '">' + body + '</div>' : '') + '</section>';
-}
+function settingRow(key, title, value, body) { return foldRow('settings', key, title, value, body); }
 function comfortScreen() {
   const r = (name, val, label, now) => '<label><input type="radio" name="' + name + '" value="' + val + '"' + (now ? ' checked' : '') + '> ' + label + '</label>';
   const MOTION = { system: 'Follow my computer’s setting', off: 'No movement', on: 'Allow movement' };
@@ -564,7 +577,7 @@ app.addEventListener('click', (e) => {
   // Board
   if (d.tick) { const x = byId(d.tick); x.t.status = x.t.status === 'done' ? 'next' : 'done'; x.t.doneHere = x.t.status === 'done'; say(x.t.status === 'done' ? 'Marked done: ' + x.t.title : 'Back to Up next: ' + x.t.title); return; }
   if (d.makeCategory) { const x = byId(d.task); x.t.categoryIds = [d.makeCategory].concat(x.t.categoryIds.filter((c) => c !== d.makeCategory)); say(catName(d.makeCategory) + ' is now the category of ' + x.t.title + '.'); return; }
-  if (d.setToggle) { ui.comfortOpen = ui.comfortOpen === d.setToggle ? null : d.setToggle; paint(); return; }
+  if (d.fold) { const [group, key] = d.fold.split(':'); ui.open[group] = ui.open[group] === key ? null : key; paint(); return; }
   if (d.cbMove) { const i = +d.cbMove; const j = i + +d.dir; const l = comfort.colourBy; [l[i], l[j]] = [l[j], l[i]]; paint(); return; }
   if (d.cbRemove) { comfort.colourBy.splice(+d.cbRemove, 1); paint(); return; }
   if (d.move) { const x = byId(d.move); x.t.status = d.to; say(d.to === 'doing' ? 'Moved to In progress: ' + x.t.title : 'Moved back to Up next: ' + x.t.title); return; }
@@ -584,7 +597,6 @@ app.addEventListener('click', (e) => {
   if ('pcat' in d) { b.pcat = d.pcat; b.shown = comfort.chunk; paint(); return; }
   if ('show' in d) { b.show = d.show; b.shown = comfort.chunk; paint(); return; }
   if ('more' in d) { b.shown += comfort.chunk; paint(); return; }
-  if (d.labelsEdit) { b.labelsOpen = b.labelsOpen === d.labelsEdit ? null : d.labelsEdit; paint(); return; }
   if (d.focusOn) { ui.focusId = d.focusOn; ui.pool = [d.focusOn]; ui.allBlocked = false; ui.screen = 'focus'; history.replaceState(null, '', '#focus'); paint(); return; }
   // Sort
   if (d.step) { const n = +d.step;
