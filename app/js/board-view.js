@@ -6,9 +6,10 @@
 // The right-hand column is the empty-panel hint until Task details (#201) renders into it from
 // ui.boardSelected. The list comes from js/board.js. Ticking a card is the same `toggle-task` checkbox
 // the task rows use. See docs/4-systems/calm-board.md and docs/4-systems/styling.md#the-board-144
-import { esc, formatLabelName, PRIORITY } from './state.js';
+import { esc } from './state.js';
 import { boardList } from './board.js';
-import { getChunk } from './comfort.js';
+import { getChunk, getColourBy } from './comfort.js';
+import { cardKey, NO_CATEGORY } from './card-key.js';
 import { tieSummary, tieLineHtml, subtasksOf } from './task-links.js';
 
 export const BOARD_COLS = ['next', 'doing', 'done'];
@@ -41,21 +42,23 @@ function chip(on, action, attr, val, label, color) {
     + (color ? '<span class="sw" style="--c:' + esc(color) + '"></span>' : '') + esc(label) + '</button>';
 }
 
-function card(t, p, st, narrowed, selected) {
-  const cats = (t.categoryIds || []).map((id) => (st.categories || []).find((c) => c.id === id)).filter(Boolean).map((c) => formatLabelName(c.name));
+// The card's one chip (#202); the other labels are in Task details.
+function keyChip(key) {
+  return key.source ? '<span class="cchip" style="--c:' + esc(key.color) + '"><i></i>' + esc(key.name) + '</span>' : '<span class="cchip none">' + esc(NO_CATEGORY.name) + '</span>';
+}
+
+function card(t, p, st, narrowed, selected, now) {
   const done = t.status === 'done';
-  const meta = (narrowed ? '' : '<span class="board-card-proj">' + esc(p.name) + '</span>')
-    + (cats.length ? '<span class="board-card-cats">' + esc(cats.join(' · ')) + '</span>' : '');
-  const prio = t.priority && PRIORITY[t.priority]
-    ? '<span class="chip priority-chip small board-prio" style="--chip-color:var(--prio-' + t.priority + ')">' + esc(PRIORITY[t.priority].label) + '</span>' : '';
+  const key = cardKey(t, st, getColourBy(st), now);
+  const meta = keyChip(key) + (narrowed ? '' : '<span class="board-card-proj">' + esc(p.name) + '</span>');
   const ties = tieSummary(st.projects, t.id);
   const subs = subtasksOf(st.projects, t.id);
-  return '<article class="board-card calm-card' + (selected ? ' on' : '') + (done ? ' is-done' : '') + (ties.isWaiting ? ' is-waiting' : '') + '" data-action="board-select" data-task-id="' + esc(t.id) + '" data-project="' + esc(p.id) + '" data-status="' + esc(t.status) + '" style="--proj-color:' + esc(p.color) + '">'
+  return '<article class="board-card calm-card' + (selected ? ' on' : '') + (done ? ' is-done' : '') + (ties.isWaiting ? ' is-waiting' : '') + '" data-action="board-select" data-task-id="' + esc(t.id) + '" data-project="' + esc(p.id) + '" data-status="' + esc(t.status) + '" style="--proj-color:' + esc(key.color) + '">'
     + '<input type="checkbox" data-action="toggle-task" data-task="' + esc(t.id) + '" data-project="' + esc(p.id) + '"' + (done ? ' checked' : '') + ' aria-label="' + esc(t.title) + '">'
     + '<div class="board-card-body"><span class="board-card-title">' + esc(t.title) + '</span>'
-    + (meta ? '<span class="board-card-meta">' + meta + '</span>' : '')
+    + '<span class="board-card-meta">' + meta + '</span>'
     + (subs.length ? subsLine(subs) : '') + tieLineHtml(Object.assign({}, ties, { subs: null })) + '</div>'
-    + prio + moveButton(t) + '</article>';
+    + moveButton(t) + '</article>';
 }
 
 export function renderBoard(st, ui, now = Date.now()) {
@@ -81,7 +84,7 @@ export function renderBoard(st, ui, now = Date.now()) {
   const tabs = BOARD_COLS.map((k) => '<button type="button" role="tab" aria-selected="' + (k === tab) + '" class="calm-tab' + (k === tab ? ' on' : '') + '" data-action="board-col" data-col="' + k + '">'
     + COL_INFO[k].title + ' <b>' + counts[k] + '</b></button>').join('');
   const selected = ui.boardSelected && owner.has(ui.boardSelected) ? ui.boardSelected : null;
-  const cards = tasks.slice(0, limit).map((t) => card(t, owner.get(t.id), st, !!narrowedTo, t.id === selected)).join('');
+  const cards = tasks.slice(0, limit).map((t) => card(t, owner.get(t.id), st, !!narrowedTo, t.id === selected, now)).join('');
   const empty = '<p class="calm-empty">' + (find || active || narrowedTo ? 'Nothing matches. Clear the search or filters to see more.' : COL_INFO[tab].empty) + '</p>';
   const left = tasks.length - limit;
   return '<h2 class="board-title">Board</h2><div class="cw"><section class="cw-list">'

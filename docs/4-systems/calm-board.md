@@ -23,6 +23,7 @@ sub-issues. The behaviour below is the contract the build copies from the test s
 - **Card colour (#202).** Each card shows one chip and takes its edge colour from it: the first entry
   in the Card colour list that the task has. Entries are `category` (the task's first label),
   `priority`, `due`, and `label:<id>`. A task with none shows "No category" in grey. The edge colour
+  Built in `app/js/card-key.js` (`cardKey`), shown by `board-view.js`. The Settings list editor is not built yet (only `setColourBy` in `mutations.js`). The edge colour
   must be set through `--proj-color`, because `.board-card`'s `border-left` shorthand uses that
   variable and an undefined variable drops the whole border to zero width.
 - **Task details (#201).** Selecting a card opens a panel headed "Task details": the title and a status

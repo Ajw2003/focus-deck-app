@@ -1208,7 +1208,7 @@ body.is-dragging-task .empty-note{display:none;}
 .calm-tab.on{color:var(--ink); border-bottom-color:var(--accent);}
 .calm-tab b{font-weight:600; color:var(--ink-faint); margin-left:4px;}
 .calm-cards{display:flex; flex-direction:column; gap:10px;}
-.calm-card{cursor:pointer;}
+.calm-card{cursor:pointer; border-left-width:6px; border-left-color:color-mix(in srgb, var(--proj-color) 70%, var(--surface));} /* a softer edge; --proj-color still sets it */
 .calm-card.on{box-shadow:0 0 0 3px var(--accent);}
 /* the move button says where the task goes, so "start" is never confused with Focus */
 .calm-move{flex:none; align-self:center; margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border:1.5px solid #9aa3ad; border-radius:var(--r-control); background:#fff; color:#1D2733; font:700 var(--text-sm) var(--font-ui); cursor:pointer; white-space:nowrap;}
@@ -1264,3 +1264,8 @@ body.no-motion *, body.no-motion *::before, body.no-motion *::after{transition:n
 body.no-motion .icard{transform:none !important;}
 body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, body.calm-colours .chip, body.calm-colours .project-card{filter:saturate(.75);} /* softer, same hues: colour still tells things apart */
 .comfort-choice{border:0; padding:0; margin:0; min-width:0;}
+/* Card colour (#202): the Board card one chip, from the test site .cchip. */
+.cchip{display:inline-flex; align-items:center; gap:6px; padding:1px 9px 1px 7px; border-radius:999px; font-size:.75rem; font-weight:700; background:color-mix(in srgb, var(--c) 22%, transparent);}
+.cchip i{width:9px; height:9px; border-radius:2px; background:var(--c);}
+.calm-card .cchip{color:color-mix(in srgb, var(--c) 55%, #1D2733);}
+.calm-card .cchip.none{background:#e7e3da; color:#4a5560;}
