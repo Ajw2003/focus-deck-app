@@ -1,4 +1,5 @@
-// scripts/check-board-browser.mjs -- the Board's actions in real Chromium (#145, part of #140), at 1440
+// scripts/check-board-browser.mjs -- the calm Board's actions in real Chromium (#145, #200: one tab at a
+// time, seven cards at once, Show more, the move buttons; drag and swipe are gone), at 1440
 // and 390 wide, dark and light: ticking, mouse drag between columns, keyboard moves (+ announcement,
 // focus kept), phone finger swipes (far = moves, short = snaps back, vertical = scrolls the page),
 // the moved state surviving a reload, and no sideways page scroll. Later Board steps can add to it.
@@ -9,7 +10,6 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
-import { swipe } from './lib/touch.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -59,117 +59,45 @@ for (const size of ['desk', 'phone']) for (const scheme of ['dark', 'light']) {
   await page.goto(BASE);
   await page.waitForSelector('.board-card');
   const status = (id) => page.$eval('.board-card[data-task-id="' + id + '"]', (e) => e.dataset.status).catch(() => 'gone');
-  const counts = () => page.$$eval('.board-col .board-count', (els) => els.map((e) => Number(e.textContent)));
+  const tabCount = (k) => page.$eval('.calm-tab[data-col="' + k + '"] b', (e) => Number(e.textContent));
   const noSideways = async (label) => check(!(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)), tag + 'no sideways scroll ' + label);
-  const showCol = async (c) => { if (phone) { await page.click('.board-switch-btn[data-col="' + c + '"]'); await page.waitForTimeout(100); } };
+  const ids = () => page.$$eval('.board-card', (els) => els.map((e) => e.dataset.taskId));
   await noSideways('at rest');
+  check((await page.$$('.board-grip, .board-col')).length === 0, tag + 'no drag grips or columns any more');
+
+  // tabs, groups of 7, Show more
+  check((await ids()).length === 7, tag + 'seven cards at once', (await ids()).length);
+  await page.click('.calm-more');
+  check((await ids()).length === 14, tag + 'Show more adds a group');
 
   // ticking
-  await showCol('next');
-  let before = await counts();
+  const before = [await tabCount('next'), await tabCount('done')];
   await page.click('.board-card[data-task-id="n1"] input[type="checkbox"]');
   await page.waitForTimeout(300);
-  let after = await counts();
-  check((await status('n1')) === 'done' && after[0] === before[0] - 1 && after[2] === before[2] + 1, tag + 'ticking moves a card to Done', before + ' -> ' + after);
+  check((await status('n1')) === 'gone' && (await tabCount('next')) === before[0] - 1 && (await tabCount('done')) === before[1] + 1, tag + 'ticking moves a card to Done', before + ' -> ' + [await tabCount('next'), await tabCount('done')]);
   const stamped = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).projects[0].tasks.find((x) => x.id === 'n1').completedAt);
   check(typeof stamped === 'number', tag + 'ticking stamps completedAt');
 
-  if (!phone) {
-    const grip = (id) => page.locator('.board-grip[data-task="' + id + '"]');
-    const dragTo = async (id, col, { shot } = {}) => {
-      const g = await grip(id).boundingBox();
-      const target = await page.locator('.board-col[data-col="' + col + '"] .board-cards').boundingBox();
-      await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2);
-      await page.mouse.down();
-      await page.mouse.move(g.x + 40, g.y + 10, { steps: 4 });
-      await page.mouse.move(target.x + target.width / 2, target.y + 70, { steps: 12 });
-      await page.waitForTimeout(150);
-      if (shot) await page.screenshot({ path: OUT + shot, fullPage: false });
-      await page.mouse.up();
-      await page.waitForTimeout(300);
-    };
-    before = await counts();
-    await dragTo('n2', 'doing', { shot: scheme === 'dark' ? 'board-action-1440-dark-mid-drag.png' : undefined });
-    after = await counts();
-    check((await status('n2')) === 'doing' && after[0] === before[0] - 1 && after[1] === before[1] + 1, tag + 'drag Up next -> In progress', before + ' -> ' + after);
-    before = after;
-    await dragTo('n2', 'done');
-    after = await counts();
-    check((await status('n2')) === 'done' && after[1] === before[1] - 1 && after[2] === before[2] + 1, tag + 'drag In progress -> Done', before + ' -> ' + after);
-    const doneAt = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).projects[0].tasks.find((x) => x.id === 'n2').completedAt);
-    check(typeof doneAt === 'number', tag + 'drop into Done stamps completedAt');
-    before = after;
-    await dragTo('n2', 'next');
-    after = await counts();
-    check((await status('n2')) === 'next' && after[2] === before[2] - 1 && after[0] === before[0] + 1, tag + 'drag Done -> Up next', before + ' -> ' + after);
-    const reopened = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).projects[0].tasks.find((x) => x.id === 'n2').completedAt);
-    check(reopened === undefined, tag + 'dragging out of Done clears completedAt');
-
-    // keyboard
-    await grip('n3').focus();
-    await page.keyboard.press('ArrowRight');
-    await page.waitForTimeout(250);
-    let live = await page.$eval('#drag-live', (e) => e.textContent);
-    let focused = await page.evaluate(() => document.activeElement && document.activeElement.getAttribute('data-task'));
-    check((await status('n3')) === 'doing' && live === 'Fix the gate latch moved to In progress' && focused === 'n3', tag + 'ArrowRight moves, announces, keeps focus', live + ' / focus ' + focused);
-    await page.keyboard.press('ArrowRight'); await page.waitForTimeout(250);
-    check((await status('n3')) === 'done', tag + 'ArrowRight again -> Done');
-    await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(250);
-    await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(250);
-    live = await page.$eval('#drag-live', (e) => e.textContent);
-    check((await status('n3')) === 'next' && live === 'Fix the gate latch moved to Up next', tag + 'ArrowLeft x2 -> Up next, announced', live);
-    await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(250);
-    live = await page.$eval('#drag-live', (e) => e.textContent);
-    check((await status('n3')) === 'next' && /already in Up next/.test(live), tag + 'ArrowLeft at the edge says so', live);
-  } else {
-    const centre = async (id) => { const b = await page.locator('.board-card[data-task-id="' + id + '"]').boundingBox(); return { b, x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
-    // far swipe right: Up next -> In progress
-    let c = await centre('n2');
-    before = await counts();
-    await swipe(page, { x: c.b.x + c.b.width * 0.35, y: c.y }, { x: c.b.x + c.b.width * 0.85, y: c.y });
-    after = await counts();
-    check((await status('n2')) === 'doing' && after[0] === before[0] - 1 && after[1] === before[1] + 1, tag + 'swipe right: Up next -> In progress', before + ' -> ' + after);
-    const left = await page.$$eval('.board-col.is-current .board-card', (els) => els.map((e) => e.dataset.taskId));
-    check(!left.includes('n2'), tag + 'the card leaves the visible column');
-    await page.screenshot({ path: OUT + 'board-action-390-' + scheme + '-after-swipe.png', fullPage: false });
-    // far swipe left from In progress back to Up next
-    await showCol('doing');
-    c = await centre('n2');
-    await swipe(page, { x: c.b.x + c.b.width * 0.65, y: c.y }, { x: c.b.x + c.b.width * 0.15, y: c.y });
-    check((await status('n2')) === 'next', tag + 'swipe left: In progress -> Up next');
-    // right twice -> Done, ticking-equivalent
-    await showCol('next');
-    c = await centre('n2');
-    await swipe(page, { x: c.b.x + c.b.width * 0.35, y: c.y }, { x: c.b.x + c.b.width * 0.85, y: c.y });
-    await showCol('doing');
-    c = await centre('n2');
-    await swipe(page, { x: c.b.x + c.b.width * 0.35, y: c.y }, { x: c.b.x + c.b.width * 0.85, y: c.y });
-    check((await status('n2')) === 'done', tag + 'two right swipes -> Done');
-    await noSideways('after swipes');
-    // short swipe snaps back
-    await showCol('next');
-    c = await centre('n3');
-    await swipe(page, { x: c.b.x + c.b.width * 0.4, y: c.y }, { x: c.b.x + c.b.width * 0.55, y: c.y });
-    const tr = await page.$eval('.board-card[data-task-id="n3"]', (e) => getComputedStyle(e).transform);
-    check((await status('n3')) === 'next' && (tr === 'none' || tr === 'matrix(1, 0, 0, 1, 0, 0)'), tag + 'a short swipe snaps back', tr);
-    // vertical drag over a card scrolls the page and moves nothing
-    await showCol('next');
-    const y0 = await page.evaluate(() => scrollY);
-    const snapshot = await page.$$eval('.board-card', (els) => els.map((e) => e.dataset.taskId + ':' + e.dataset.status).join());
-    c = await centre('l0');
-    await swipe(page, { x: c.x, y: Math.min(c.y + 200, 800) }, { x: c.x, y: Math.max(c.y - 150, 60) });
-    const y1 = await page.evaluate(() => scrollY);
-    const same = (await page.$$eval('.board-card', (els) => els.map((e) => e.dataset.taskId + ':' + e.dataset.status).join())) === snapshot;
-    check(y1 > y0 && same, tag + 'a vertical drag scrolls the page and moves nothing', 'scrollY ' + y0 + ' -> ' + y1);
-    await page.evaluate(() => scrollTo(0, 0));
-  }
+  // the move buttons
+  await page.click('.board-card[data-task-id="n2"] .calm-move');
+  await page.waitForTimeout(300);
+  check((await status('n2')) === 'gone' && (await tabCount('doing')) === 3, tag + 'In progress button moves a card out of Up next');
+  await page.click('.calm-tab[data-col="doing"]');
+  check((await status('n2')) === 'doing', tag + 'the card is in In progress');
+  await page.screenshot({ path: OUT + 'board-action-' + (phone ? '390' : '1440') + '-' + scheme + '-in-progress.png', fullPage: false });
+  await page.click('.board-card[data-task-id="n2"] .calm-move');
+  await page.waitForTimeout(300);
+  await page.click('.calm-tab[data-col="next"]');
+  check((await tabCount('doing')) === 2, tag + 'Up next button moves it back (it lands at the end of Up next)');
+  await page.click('.board-card[data-task-id="n3"] .calm-move');
+  await page.waitForTimeout(300);
 
   // survives a reload
-  const expect = await page.$$eval('.board-card', (els) => els.map((e) => e.dataset.taskId + ':' + e.dataset.status).sort().join());
-  await page.waitForTimeout(300);
-  await page.reload(); await page.waitForSelector('.board-card');
-  const got = await page.$$eval('.board-card', (els) => els.map((e) => e.dataset.taskId + ':' + e.dataset.status).sort().join());
-  check(got === expect, tag + 'the moved state survives a reload');
+  await page.reload(); await page.waitForSelector('.calm-tab');
+  await page.click('.calm-tab[data-col="doing"]');
+  check((await status('n3')) === 'doing' && (await status('d1')) === 'doing', tag + 'the moved state survives a reload');
+  await page.click('.calm-tab[data-col="done"]');
+  check((await status('n1')) === 'done', tag + 'the ticked card is still in Done after a reload');
   await noSideways('after reload');
   await ctx.close();
 }

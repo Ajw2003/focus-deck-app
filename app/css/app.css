@@ -1160,11 +1160,9 @@ body.is-dragging-task .empty-note{display:none;}
 .flip-track.is-spread .icard .go{display:none;}
 
 /* ==== The Board (#144) ====================================================================
-   Project pills, then Up next / In progress / Done this week as columns of paper cards (js/board-view.js).
+   A toolbar, tabs and one list of paper cards (js/board-view.js).
    A card is paper in both themes, so it and the folder frame take the light theme's tokens, as the
-   project folders do (#129): the chips on them are the contrast already proven. Narrowed to one
-   project, the columns sit in that project's folder frame. On a phone .board-switch picks one column;
-   from 1100px all three show and the switch is hidden. */
+   project folders do (#129): the chips on them are the contrast already proven. */
 .board-card, .board-frame{
   --bg:#E4E8EF; --surface:#FBFAF7; --surface-2:#EEF1F6;
   --ink:#1C2438; --ink-soft:#59627A; --ink-faint:#6E7790; --line:#C7CEDB;
@@ -1173,21 +1171,7 @@ body.is-dragging-task .empty-note{display:none;}
   color-scheme:light; color:var(--ink);
 }
 .board-title{margin:0 0 10px; font:700 1.4rem var(--font-ui);}
-.board-pills{display:flex; gap:8px; overflow-x:auto; padding:2px 2px 8px; margin-bottom:8px; scrollbar-width:thin;}
-.board-pill{flex:none; display:inline-flex; align-items:center; gap:7px; max-width:200px; padding:6px 13px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
-.board-pill.is-on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink);}
-.board-pill:focus-visible, .board-switch-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
-.board-pill-dot{flex:none; width:10px; height:10px; border-radius:50%; background:var(--proj-color); box-shadow:0 0 0 1.5px var(--surface);}
-.board-pill-name{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.board-switch{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:12px; padding:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:14px;}
-.board-switch-btn{border:0; border-radius:10px; background:none; color:var(--ink-soft); font:600 var(--text-sm) var(--font-ui); padding:8px 4px; cursor:pointer;}
-.board-switch-btn.is-on{background:var(--surface); color:var(--accent); box-shadow:0 1px 3px var(--paper-shadow);}
 .board-count{font-variant-numeric:tabular-nums; font-weight:700;}
-.board-cols{display:grid; grid-template-columns:minmax(0,1fr); gap:16px;}
-.board-col{display:none; min-width:0;}
-.board-col.is-current{display:block;}
-.board-col-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:0 0 10px; padding:0 2px 6px; border-bottom:2px solid var(--line); font:700 var(--text-h) var(--font-ui);}
-.board-col-head .board-count{color:var(--ink-soft); font-size:var(--text-sm);}
 .board-cards{display:flex; flex-direction:column; gap:10px;}
 .board-card{position:relative; display:flex; align-items:flex-start; gap:10px; min-width:0; padding:11px 12px 11px 16px; background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--proj-color); border-radius:3px 8px 8px 3px; box-shadow:0 6px 12px -9px var(--paper-shadow);}
 .board-card input[type="checkbox"]{flex:none; width:17px; height:17px; margin-top:2px; accent-color:var(--accent);}
@@ -1199,27 +1183,45 @@ body.is-dragging-task .empty-note{display:none;}
 .board-card-cats{flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .board-card-proj + .board-card-cats::before{content:"\00b7\00a0";}
 .board-card .board-prio{flex:none; cursor:default;}
-.board-card{touch-action:pan-y; -webkit-user-select:none; user-select:none;}
-.board-card.is-swiping{box-shadow:0 10px 18px -8px var(--paper-shadow); z-index:1;}
 /* the lifted copy of a dragged card: .board-card's position:relative (above) would otherwise beat .drag-ghost's fixed */
 .board-card.drag-ghost.is-task{position:fixed; border-left:6px solid var(--proj-color); padding:11px 12px 11px 16px; border-radius:3px 8px 8px 3px; box-sizing:border-box;}
 .board-card.drag-placeholder{border-radius:3px 8px 8px 3px;}
-.board-grip{display:none; margin:0 -4px 0 -8px;}
-.board-grip:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
-.board-empty{margin:0; padding:14px 12px; border:1px dashed var(--line); border-radius:8px; color:var(--ink-soft); font-size:var(--text-sm); text-align:center;}
-.board-frame{position:relative; margin-top:36px; padding:14px 14px 16px; background:var(--surface-2); border:6px solid color-mix(in srgb, var(--proj-color) 45%, var(--folder)); border-radius:2px 12px 12px 12px; box-shadow:0 18px 30px -20px var(--paper-shadow);}
-.board-frame::before{content:""; position:absolute; left:-6px; top:-33px; width:min(200px, 55%); height:27px; border-radius:8px 12px 0 0; background:color-mix(in srgb, var(--proj-color) 45%, var(--folder));}
-.board-frame-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
-.board-frame-name{margin:0; min-width:0; overflow-wrap:anywhere; font:700 var(--text-h) var(--font-ui);}
-.board-back{color:var(--accent);}
-@media (max-width:1099.98px){ .board-col{overflow-x:clip;} } /* a card swiped sideways never widens the page */
-@media (min-width:1100px){
-  .board-grip{display:inline-flex;}
-  .board-switch{display:none;}
-  .board-cols{grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; align-items:start;}
-  .board-col{display:block;}
-  .board-pills{flex-wrap:wrap; overflow-x:visible;}
-}
+/* Calm Board (#200): toolbar, tabs, one list of cards beside the (empty-for-now) Task details column.
+   From the test site, docs/generated/calm-test/index.html. The edge colour stays on --proj-color. */
+.cw{display:grid; grid-template-columns:minmax(420px, 640px) minmax(380px, 1fr); gap:28px; align-items:start;}
+@media (max-width:1099.98px){ .cw{grid-template-columns:minmax(0,1fr);} .cw-detail{display:none;} }
+.cw-list{min-width:0;}
+.cw-detail{position:sticky; top:20px; padding:20px 22px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px;}
+.calm-tools{display:flex; gap:8px; margin:0 0 12px; align-items:center; flex-wrap:wrap;}
+.calm-tools .bm-find, .board-find{flex:1 1 180px; min-width:0; padding:9px 12px 9px 34px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 10px center / 16px;}
+.calm-tools select{flex:0 0 auto; max-width:220px; padding:8px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:600 var(--text-sm) var(--font-ui);}
+.calm-btn{padding:8px 12px;}
+.calm-btn.on{box-shadow:inset 0 0 0 2px var(--accent);}
+.calm-drawer{padding:14px 16px; margin:0 0 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2);}
+.calm-h{margin:0 0 6px; font-size:var(--text-sm); color:var(--ink-soft); font-weight:700;}
+.bm-row{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px;}
+.bm-chip{border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); border-radius:999px; padding:5px 11px; font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
+.bm-chip.on{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
+.bm-chip .sw{display:inline-block; width:9px; height:9px; border-radius:2px; background:var(--c); margin-right:6px;}
+.calm-tabs{display:flex; gap:22px; border-bottom:1px solid var(--line); margin-bottom:12px; overflow-x:auto;}
+.calm-tab{flex:none; border:0; background:none; padding:8px 2px; color:var(--ink-soft); font:600 var(--text-body) var(--font-ui); border-bottom:3px solid transparent; margin-bottom:-1px; cursor:pointer;}
+.calm-tab.on{color:var(--ink); border-bottom-color:var(--accent);}
+.calm-tab b{font-weight:600; color:var(--ink-faint); margin-left:4px;}
+.calm-cards{display:flex; flex-direction:column; gap:10px;}
+.calm-card{cursor:pointer;}
+.calm-card.on{box-shadow:0 0 0 3px var(--accent);}
+/* the move button says where the task goes, so "start" is never confused with Focus */
+.calm-move{flex:none; align-self:center; margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border:1.5px solid #9aa3ad; border-radius:var(--r-control); background:#fff; color:#1D2733; font:700 var(--text-sm) var(--font-ui); cursor:pointer; white-space:nowrap;}
+.calm-move:hover, .calm-move:focus-visible{border-color:#2f4f86; color:#2f4f86;}
+.calm-move svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+.board-subs{display:inline-flex; align-items:center; gap:6px; font-size:var(--text-sm); color:#4a5560;}
+.board-subs b{color:#1D2733;}
+.board-segs{display:inline-flex; gap:2px;}
+.board-segs i{width:12px; height:5px; border-radius:2px; background:#d8d3c8;}
+.board-segs i.on{background:#3E8E5E;}
+.calm-meta{margin:0; font-size:var(--text-sm); color:var(--ink-soft);}
+.calm-more{margin-top:12px;}
+.calm-empty{margin:0; padding:18px; border:1px dashed var(--line); border-radius:10px; color:var(--ink-soft); font-size:var(--text-sm);}
 /* ==== end The Board ==== */
 
 /* ties on Board cards and Project rows (#193) */

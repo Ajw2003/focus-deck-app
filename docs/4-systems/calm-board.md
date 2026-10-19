@@ -14,6 +14,12 @@ sub-issues. The behaviour below is the contract the build copies from the test s
   Has subtasks, Waiting on something, Holding others up). Cards come in groups of "Cards at once"
   with "Show N more". Up next cards carry "→ In progress"; In progress cards carry "← Up next". A
   card shows its project's name only on "Project: All". Subtasks show inside their parent, not as cards.
+  Built: `boardList` (`app/js/board.js`) makes the list, `renderBoard` (`app/js/board-view.js`) the markup;
+  the Board's memory-only state is `ui.board*` in `app/js/app.js` (tab, find, filter, shown, and
+  `boardSelected`, which Task details renders from). The move buttons go through `moveTaskTo`, so they
+  save and sync like a drop did. There is no "+ New" on the Board (the real app adds tasks from a
+  project's "+ Add task" and the jotter). `board-swipe.js` is no longer called; `project-drag.js` still
+  serves Projects.
 - **Card colour (#202).** Each card shows one chip and takes its edge colour from it: the first entry
   in the Card colour list that the task has. Entries are `category` (the task's first label),
   `priority`, `due`, and `label:<id>`. A task with none shows "No category" in grey. The edge colour

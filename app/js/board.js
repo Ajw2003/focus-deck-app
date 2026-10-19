@@ -6,6 +6,7 @@
 // completedLog), so the finish time is task.completedAt when present, else task.updatedAt.
 // There are no archived projects in state; inbox items are not tasks, so they never appear.
 import { sortTasks } from './task-move.js';
+import { subtasksOf, holdsUp, isBlocked } from './task-links.js';
 
 export function weekStart(now) {
   const d = new Date(now);
@@ -35,4 +36,32 @@ export function boardColumns(st, projectId, now) {
   });
   done.sort((a, b) => finishedAt(b) - finishedAt(a));
   return { next, doing, done, counts: { next: next.length, doing: doing.length, done: done.length } };
+}
+
+export const SHOW_FILTERS = ['all', 'subs', 'waits', 'holds'];
+
+// The one visible list (#200): the tab's tasks, narrowed by project, project category, Find (task
+// title, project name or label name) and Show. Subtasks of a live parent are not cards of their own.
+// counts are per tab, before the narrowing, and also leave out subtasks. -> { tasks, counts }
+export function boardList(st, opts, now) {
+  const o = opts || {};
+  const cols = boardColumns(st, null, now);
+  const owner = new Map();
+  (st.projects || []).forEach((p) => (p.tasks || []).forEach((t) => owner.set(t.id, p)));
+  const top = (t) => !(t.parentId && owner.has(t.parentId));
+  const counts = { next: cols.next.filter(top).length, doing: cols.doing.filter(top).length, done: cols.done.filter(top).length };
+  const q = String(o.find || '').trim().toLowerCase();
+  const labelName = (id) => ((st.categories || []).find((c) => c.id === id) || {}).name || '';
+  const tasks = (cols[o.tab] || cols.next).filter(top).filter((t) => {
+    const p = owner.get(t.id);
+    if (o.project && p.id !== o.project) return false;
+    if (o.pcat && p.categoryId !== o.pcat) return false;
+    if (q && !(t.title.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)
+      || (t.categoryIds || []).some((id) => labelName(id).toLowerCase().includes(q)))) return false;
+    if (o.show === 'subs' && !subtasksOf(st.projects, t.id).length) return false;
+    if (o.show === 'waits' && !(t.status !== 'done' && isBlocked(st.projects, t.id))) return false;
+    if (o.show === 'holds' && !holdsUp(st.projects, t.id).length) return false;
+    return true;
+  });
+  return { tasks, counts };
 }
