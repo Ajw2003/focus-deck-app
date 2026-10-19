@@ -215,3 +215,31 @@ priority, due date and labels the person chooses should be able to take preceden
   with "Make category", which moves that label to the front. When something other than the category
   sets the card, the panel says which Settings item did. The panel's priority and date now change
   the card straight away.
+
+### 10. A calmer task panel and Settings behind one row each
+
+aj (2026-10-19): the Board is now good, but the task panel "is now too cluttered-looking and
+duplicates functionality in a way that is not needed", and each setting "needs to be put behind
+something so that it isn't just all out at once". The rationale for the whole app, in aj's words:
+"show only what is needed and benefit the user but make it easy to access and obvious where to
+access the information you need. out of sight, out of mind is something very hard to regulate when
+too much in sight and too much on mind is the alternative."
+
+Task panel, what was cut or merged (pictures `feedback/before-panel-subtasks.png` and
+`feedback/after-panel-*.png`):
+
+- The header line repeated the card's category, project and status. It is now a status menu
+  (Up next, In progress, Done) followed by "in <project>", which also replaces the separate
+  "Move to In progress" button.
+- Save is gone: every change already applies as it is made, so the footer says "Changes save as
+  you make them." beside Focus on this and Delete.
+- Subtasks, Waits on, Holds up and Part of show only when the task has some, so an unlinked task has
+  no "Nothing." headings; one "+ Add a subtask or link" replaces the per-section add buttons.
+- The subtask count moved into the Subtasks heading ("1 of 2 done") instead of a second progress
+  bar, and only a waiting subtask carries a word beside it.
+- Labels are one line of chips with "Edit"; "Make category" appears only after Edit.
+- The note saying which setting chose the card's colour is gone; the Settings row shows the order.
+
+Settings: each setting is one row with its name, its current value on the right and an arrow.
+Tapping a row opens its choices and closes any other open row, so only one setting's details are
+on screen; changing a value updates the row's value straight away.

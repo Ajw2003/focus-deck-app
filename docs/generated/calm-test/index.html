@@ -71,6 +71,7 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .calm-empty{padding:18px; border:1px dashed var(--line); border-radius:10px; color:var(--ink-soft); font-size:var(--text-sm);}
 .cw-detail{position:sticky; top:20px; display:flex; flex-direction:column; gap:14px; padding:20px 22px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; max-height:calc(100vh - 40px); overflow:auto;}
 .cw-detail .top{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft);}
+.cw-detail .top .cw-status{width:auto; min-height:0; padding:5px 8px; font-weight:700;}
 .cw-detail .top .x{margin-left:auto; border:0; background:none; color:var(--ink-soft); font:600 var(--text-sm) var(--font-ui); cursor:pointer; padding:4px 6px; border-radius:8px;}
 .cw-detail .top .x:hover{color:var(--ink);}
 .cw-detail .dot{width:10px; height:10px; border-radius:50%; background:var(--c);}
@@ -86,9 +87,11 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .bm-sub input{width:16px; height:16px; accent-color:var(--accent);}
 .bm-sub .st{margin-left:auto; font-size:.75rem; color:var(--ink-faint);}
 .bm-add{border:0; background:none; color:var(--accent); font:700 var(--text-sm) var(--font-ui); cursor:pointer;}
-.cw-move .btn{width:100%;}
+.cw-addlink{align-self:flex-start; padding:0;}
 .cw-foot{display:flex; gap:10px; align-items:center; padding-top:10px; border-top:1px solid var(--line);}
 .cw-foot .sp{flex:1;}
+.cw-foot{flex-wrap:wrap;} .cw-foot .btn-text{white-space:nowrap;}
+@media (max-width:1099px){ .cw-foot .saved{flex-basis:100%;} }
 .saved{font-size:var(--text-sm); color:var(--ink-soft);}
 
 /* --- Glance layer on cards: colour, icon, progress; words alongside --- */
@@ -156,8 +159,15 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .focus-start h2{margin:0; font:600 1.6rem 'Fraunces', Georgia, serif;}
 .comfort{max-width:640px; display:flex; flex-direction:column; gap:18px;}
 .comfort h2{margin:0; font:700 1.4rem var(--font-ui);}
-.comfort fieldset{border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin:0;}
-.comfort legend{font-weight:700; padding:0 6px;}
+.comfort{gap:8px;}
+.set{border:1px solid var(--line); border-radius:12px; background:var(--surface-2);}
+.set-head{display:flex; align-items:center; gap:12px; width:100%; padding:14px 16px; border:0; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer; border-radius:12px;}
+.set-head:hover{background:color-mix(in srgb, var(--ink) 5%, transparent);}
+.set-title{font-weight:700;}
+.set-value{margin-left:auto; color:var(--ink-soft); font-size:var(--text-sm); text-align:right;}
+.set-arrow{color:var(--ink-soft); width:1em; text-align:center;}
+.set-body{padding:0 16px 14px;}
+.set.open{border-color:color-mix(in srgb, var(--accent) 55%, var(--line));}
 .comfort label{display:flex; align-items:center; gap:10px; padding:6px 0; font-size:var(--text-body);}
 .comfort p{margin:4px 0 0; font-size:var(--text-sm); color:var(--ink-soft);}
 .chip.overdue-amber{background:color-mix(in srgb, #c98a12 22%, transparent); color:color-mix(in srgb, #c98a12 70%, var(--ink)); border-color:transparent;}
@@ -232,9 +242,10 @@ function applyComfort() {
 // ---------- ui state ----------
 const ui = {
   screen: (location.hash.slice(1) || 'board').split('?')[0],
-  board: { tab: 'next', find: '', project: '', filterOpen: false, pcat: '', show: 'all', shown: comfort.chunk, selected: null, phoneOpen: false, savedAt: 0 },
+  board: { tab: 'next', find: '', project: '', filterOpen: false, pcat: '', show: 'all', shown: comfort.chunk, selected: null, phoneOpen: false, labelsOpen: null },
   sort: null,
   focusId: null, pool: [], allBlocked: false,
+  comfortOpen: null,
   toast: '',
 };
 function freshSort() {
@@ -359,25 +370,30 @@ function detail(id) {
   const subs = subsOf(id);
   const waits = (x.t.waitsOn || []).map(byId).filter(Boolean);
   const holds = TL.holdsUp(st.projects, id).map((t) => byId(t.id || t)).filter(Boolean);
-  const subRows = subs.map((s) => '<label class="bm-sub"><input type="checkbox" data-tick="' + s.t.id + '"' + (s.t.status === 'done' ? ' checked' : '') + '><button type="button" class="bm-add" style="color:var(--ink);font-weight:600" data-select="' + s.t.id + '">' + esc(s.t.title) + '</button><span class="st">' + (s.t.status === 'done' ? 'done' : blocked(s.t.id) ? 'waiting' : s.t.status === 'doing' ? 'in progress' : 'up next') + '</span></label>').join('');
-  const cat = cardKey(x.t);
+  const subRows = subs.map((s) => '<label class="bm-sub"><input type="checkbox" data-tick="' + s.t.id + '"' + (s.t.status === 'done' ? ' checked' : '') + '><button type="button" class="bm-add" style="color:var(--ink);font-weight:600" data-select="' + s.t.id + '">' + esc(s.t.title) + '</button>' + (blocked(s.t.id) && s.t.status !== 'done' ? '<span class="st">waiting</span>' : '') + '</label>').join('');
   const labelIds = x.t.categoryIds || [];
-  const labelRows = labelIds.map((cid, i) => '<div class="lb-row"><span class="chip cat-chip small" style="--chip-color:' + R.mutedChip((st.categories.find((c) => c.id === cid) || {}).color || '#888') + '">' + esc(catName(cid)) + '</span>'
-    + (i === 0 ? '<span class="st">Category</span>' : '<button class="bm-add" data-make-category="' + cid + '" data-task="' + id + '" aria-label="Make ' + esc(catName(cid)) + ' the category">Make category</button>') + '</div>').join('');
-  const moveTo = x.t.status === 'next' ? '<button class="btn ghost" data-move="' + id + '" data-to="doing">Move to In progress</button>' : x.t.status === 'doing' ? '<button class="btn ghost" data-move="' + id + '" data-to="next">Move back to Up next</button>' : '';
+  const chipFor = (cid) => '<span class="chip cat-chip small" style="--chip-color:' + R.mutedChip((st.categories.find((c) => c.id === cid) || {}).color || '#888') + '">' + esc(catName(cid)) + '</span>';
+  // Labels read as one line of chips; choosing the category is one click away, not always on show.
+  const labels = ui.board.labelsOpen === id
+    ? labelIds.map((cid, i) => '<div class="lb-row">' + chipFor(cid) + (i === 0 ? '<span class="st">Category</span>' : '<button class="bm-add" data-make-category="' + cid + '" data-task="' + id + '" aria-label="Make ' + esc(catName(cid)) + ' the category">Make category</button>') + '</div>').join('')
+      + '<button class="bm-add" data-labels-edit="' + id + '">Done</button> <button class="bm-add" data-note="Adding or removing labels opens the full list.">Add or remove labels</button>'
+    : '<div class="bm-tags">' + (labelIds.map(chipFor).join('') || '<span class="calm-meta">No labels.</span>') + '<button class="bm-add" data-labels-edit="' + id + '">Edit</button></div>';
+  // Links show only when there are some, so an unlinked task has no empty headings.
+  const linkSec = (title, body) => '<div class="bm-sec"><h4>' + title + '</h4>' + body + '</div>';
+  const links = (parent ? linkSec('Part of', '<div class="bm-tags">' + tag(parent) + '</div>') : '')
+    + (subs.length ? linkSec('Subtasks · ' + subs.filter((s) => s.t.status === 'done').length + ' of ' + subs.length + ' done', subRows) : '')
+    + (waits.length ? linkSec('Waits on', '<div class="bm-tags">' + waits.map(tag).join('') + '</div>') : '')
+    + (holds.length ? linkSec('Holds up', '<div class="bm-tags">' + holds.map(tag).join('') + '</div>') : '');
+  const status = '<select class="cw-status" data-edit-status="' + id + '" aria-label="Status">' + [['next', 'Up next'], ['doing', 'In progress'], ['done', 'Done']].map(([k, l]) => '<option value="' + k + '"' + (x.t.status === k ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>';
   return '<aside class="cw-detail' + (ui.board.phoneOpen ? ' phone-open' : '') + '" aria-label="Selected task">'
-    + '<div class="top"><span class="dot" style="--c:' + cat.color + '"></span>' + esc(cat.name) + ' · ' + esc(x.p.name) + ' · ' + (x.t.status === 'doing' ? 'In progress' : x.t.status === 'done' ? 'Done' : 'Up next') + '<button class="x" data-close aria-label="Close the task panel">Close ×</button></div>'
+    + '<div class="top">' + status + '<span>in ' + esc(x.p.name) + '</span><button class="x" data-close aria-label="Close the task panel">Close ×</button></div>'
     + '<h3 contenteditable="true" data-edit-title="' + id + '">' + esc(x.t.title) + '</h3>'
     + '<textarea data-edit-notes="' + id + '" placeholder="Notes…">' + esc(x.t.notes || '') + '</textarea>'
     + '<div class="grid"><select aria-label="Priority" data-edit-priority="' + id + '"><option value="">No priority</option>' + PRIORITY_ORDER.slice().reverse().map((k) => '<option value="' + k + '"' + (x.t.priority === k ? ' selected' : '') + '>' + PRIORITY[k].label + '</option>').join('') + '</select><input type="date" aria-label="Due date" data-edit-due="' + id + '" value="' + esc(x.t.deadline || '') + '"></div>'
-    + (parent ? '<div class="bm-sec"><h4>Part of</h4><div class="bm-tags">' + tag(parent) + '</div></div>' : '')
-    + '<div class="bm-sec"><h4>Subtasks</h4>' + (subs.length ? '<p class="gl-row">' + progress(subs) + '</p>' : '') + (subRows || '<p class="calm-meta">None yet.</p>') + '<button class="bm-add" data-note="Adding subtasks works as in Sort part 3.">+ Add a subtask</button></div>'
-    + '<div class="bm-sec"><h4>Waits on</h4><div class="bm-tags">' + (waits.map(tag).join('') || '<span class="calm-meta">Nothing.</span>') + '</div></div>'
-    + '<div class="bm-sec"><h4>Holds up</h4><div class="bm-tags">' + (holds.map(tag).join('') || '<span class="calm-meta">Nothing.</span>') + '</div></div>'
-    + '<div class="bm-sec"><h4>Category and labels</h4>' + (labelRows || '<p class="calm-meta">No labels yet.</p>') + '<button class="bm-add" data-note="Changing labels opens the full list.">Change labels</button>'
-      + (cat.source && cat.source !== 'category' ? '<p class="calm-meta">The card shows “' + esc(cat.name) + '” because ' + esc(sourceName(cat.source)) + ' comes first in Settings, Card colour.</p>' : '') + '</div>'
-    + (moveTo ? '<div class="cw-move">' + moveTo + '</div>' : '')
-    + '<div class="cw-foot"><button class="btn primary" data-save="' + id + '">Save</button>' + (ui.board.savedAt && Date.now() - ui.board.savedAt < 4000 ? '<span class="saved">Saved.</span>' : '') + '<span class="sp"></span><button class="btn-text" data-focus-on="' + id + '">Focus on this</button><button class="btn-text" data-note="Delete asks first, then removes the task.">Delete</button></div></aside>';
+    + linkSec('Labels', labels)
+    + links
+    + '<button class="bm-add cw-addlink" data-note="Adding a subtask or a link works as in Sort part 3.">+ Add a subtask or link</button>'
+    + '<div class="cw-foot"><span class="saved">Changes save as you make them.</span><span class="sp"></span><button class="btn-text" data-focus-on="' + id + '">Focus on this</button><button class="btn-text" data-note="Delete asks first, then removes the task.">Delete</button></div></aside>';
 }
 function boardScreen() {
   const b = ui.board; const list = boardList();
@@ -476,16 +492,26 @@ function focusScreen() {
 }
 
 // ---------- Comfort ----------
+// Each setting is one row: its name and its current value. Tapping the row opens its choices, and
+// opening another row closes it, so only one setting's details are ever on screen.
+function settingRow(key, title, value, body) {
+  const open = ui.comfortOpen === key;
+  return '<section class="set' + (open ? ' open' : '') + '"><button type="button" class="set-head" data-set-toggle="' + key + '" aria-expanded="' + open + '" aria-controls="set-' + key + '">'
+    + '<span class="set-title">' + title + '</span><span class="set-value">' + esc(value) + '</span><span class="set-arrow" aria-hidden="true">' + (open ? '⌃' : '⌄') + '</span></button>'
+    + (open ? '<div class="set-body" id="set-' + key + '">' + body + '</div>' : '') + '</section>';
+}
 function comfortScreen() {
   const r = (name, val, label, now) => '<label><input type="radio" name="' + name + '" value="' + val + '"' + (now ? ' checked' : '') + '> ' + label + '</label>';
-  return '<div class="comfort"><h2>Settings: Comfort</h2>'
-    + '<fieldset><legend>Movement</legend>' + r('motion', 'system', 'Follow my computer’s setting', comfort.motion === 'system') + r('motion', 'off', 'No movement', comfort.motion === 'off') + r('motion', 'on', 'Allow movement', comfort.motion === 'on') + '<p>Turns off card tilts, flips and sliding.</p></fieldset>'
-    + '<fieldset><legend>Colour</legend><label><input type="checkbox" data-calm' + (comfort.calm ? ' checked' : '') + '> Softer colours</label><p>Every project and label keeps its own colour, slightly toned down.</p></fieldset>'
-    + colourByFieldset()
-    + '<fieldset><legend>How many cards at once</legend>' + [5, 7, 10].map((n) => r('chunk', n, n + ' cards, then “Show more”', comfort.chunk === n)).join('') + '</fieldset>'
-    + '<fieldset><legend>Tasks past their date</legend>' + r('overdue', 'amber', 'Amber, “Past its date”', comfort.overdue === 'amber') + r('overdue', 'red', 'Red, “Overdue”', comfort.overdue === 'red') + '<p>“Renew passport before the Lisbon trip” on the Board is past its date, so you can see the difference.</p></fieldset></div>';
+  const MOTION = { system: 'Follow my computer’s setting', off: 'No movement', on: 'Allow movement' };
+  const shortSource = (src) => src === 'category' ? 'Category' : src === 'priority' ? 'Priority' : src === 'due' ? 'Due date' : (catName(src.slice(6)) || 'deleted label');
+  return '<div class="comfort"><h2>Settings: Comfort</h2><p>Tap a setting to change it.</p>'
+    + settingRow('motion', 'Movement', MOTION[comfort.motion], Object.keys(MOTION).map((k) => r('motion', k, MOTION[k], comfort.motion === k)).join('') + '<p>Turns off card tilts, flips and sliding.</p>')
+    + settingRow('colour', 'Colour', comfort.calm ? 'Softer colours' : 'Full colours', '<label><input type="checkbox" data-calm' + (comfort.calm ? ' checked' : '') + '> Softer colours</label><p>Every project and label keeps its own colour, slightly toned down.</p>')
+    + settingRow('cardColour', 'Card colour', comfort.colourBy.map(shortSource).join(', then '), colourByFieldset())
+    + settingRow('chunk', 'Cards at once', comfort.chunk + ' cards, then “Show more”', [5, 7, 10].map((n) => r('chunk', n, n + ' cards, then “Show more”', comfort.chunk === n)).join(''))
+    + settingRow('overdue', 'Tasks past their date', comfort.overdue === 'amber' ? 'Amber, “Past its date”' : 'Red, “Overdue”', r('overdue', 'amber', 'Amber, “Past its date”', comfort.overdue === 'amber') + r('overdue', 'red', 'Red, “Overdue”', comfort.overdue === 'red') + '<p>“Renew passport before the Lisbon trip” on the Board is past its date, so you can see the difference.</p>')
+    + '</div>';
 }
-
 function colourByFieldset() {
   const list = comfort.colourBy;
   const rows = list.map((source, i) => '<li class="cb-row"><span class="cb-n">' + (i + 1) + '.</span><span class="cb-name">' + esc(sourceName(source)) + '</span>'
@@ -493,9 +519,9 @@ function colourByFieldset() {
     + '<button class="btn-text" data-cb-move="' + i + '" data-dir="1"' + (i === list.length - 1 ? ' disabled' : '') + ' aria-label="Move ' + esc(sourceName(source)) + ' down">↓ Down</button>'
     + (source.startsWith('label:') ? '<button class="btn-text" data-cb-remove="' + i + '" aria-label="Remove ' + esc(sourceName(source)) + '">Remove</button>' : '') + '</li>').join('');
   const addable = st.categories.filter((c) => !list.includes('label:' + c.id));
-  return '<fieldset><legend>Card colour</legend><p>Each card takes its colour, and its one label, from the first item on this list that the task has. Move an item up to put it first.</p><ol class="cb-list">' + rows + '</ol>'
+  return '<p>Each card takes its colour, and its one label, from the first item on this list that the task has. Move an item up to put it first.</p><ol class="cb-list">' + rows + '</ol>'
     + '<label>Add a label to the list <select data-cb-add><option value="">Choose a label…</option>' + addable.map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('') + '</select></label>'
-    + '<p>An added label goes to the top, so a task with it always shows it. To change one task only, use “Make category” in its panel.</p></fieldset>';
+    + '<p>An added label goes to the top, so a task with it always shows it. To change one task only, use “Make category” in its panel.</p>';
 }
 
 // ---------- paint ----------
@@ -538,6 +564,7 @@ app.addEventListener('click', (e) => {
   // Board
   if (d.tick) { const x = byId(d.tick); x.t.status = x.t.status === 'done' ? 'next' : 'done'; x.t.doneHere = x.t.status === 'done'; say(x.t.status === 'done' ? 'Marked done: ' + x.t.title : 'Back to Up next: ' + x.t.title); return; }
   if (d.makeCategory) { const x = byId(d.task); x.t.categoryIds = [d.makeCategory].concat(x.t.categoryIds.filter((c) => c !== d.makeCategory)); say(catName(d.makeCategory) + ' is now the category of ' + x.t.title + '.'); return; }
+  if (d.setToggle) { ui.comfortOpen = ui.comfortOpen === d.setToggle ? null : d.setToggle; paint(); return; }
   if (d.cbMove) { const i = +d.cbMove; const j = i + +d.dir; const l = comfort.colourBy; [l[i], l[j]] = [l[j], l[i]]; paint(); return; }
   if (d.cbRemove) { comfort.colourBy.splice(+d.cbRemove, 1); paint(); return; }
   if (d.move) { const x = byId(d.move); x.t.status = d.to; say(d.to === 'doing' ? 'Moved to In progress: ' + x.t.title : 'Moved back to Up next: ' + x.t.title); return; }
@@ -557,7 +584,7 @@ app.addEventListener('click', (e) => {
   if ('pcat' in d) { b.pcat = d.pcat; b.shown = comfort.chunk; paint(); return; }
   if ('show' in d) { b.show = d.show; b.shown = comfort.chunk; paint(); return; }
   if ('more' in d) { b.shown += comfort.chunk; paint(); return; }
-  if (d.save) { b.savedAt = Date.now(); paint(); setTimeout(paint, 4100); return; }
+  if (d.labelsEdit) { b.labelsOpen = b.labelsOpen === d.labelsEdit ? null : d.labelsEdit; paint(); return; }
   if (d.focusOn) { ui.focusId = d.focusOn; ui.pool = [d.focusOn]; ui.allBlocked = false; ui.screen = 'focus'; history.replaceState(null, '', '#focus'); paint(); return; }
   // Sort
   if (d.step) { const n = +d.step;
@@ -600,6 +627,7 @@ app.addEventListener('input', (e) => {
 app.addEventListener('change', (e) => {
   const el = e.target;
   if (el.matches('[data-project]')) { ui.board.project = el.value; ui.board.shown = comfort.chunk; paint(); return; }
+  if (el.dataset.editStatus) { const x = byId(el.dataset.editStatus); x.t.status = el.value; x.t.doneHere = el.value === 'done'; paint(); return; }
   if (el.dataset.editPriority) { byId(el.dataset.editPriority).t.priority = el.value || null; paint(); return; }
   if (el.dataset.editDue) { byId(el.dataset.editDue).t.deadline = el.value || undefined; paint(); return; }
   if (el.matches('[data-cb-add]') && el.value) { comfort.colourBy.unshift('label:' + el.value); paint(); return; }
