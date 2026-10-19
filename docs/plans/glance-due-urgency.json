@@ -1,0 +1,49 @@
+{
+  "title": "Due and Urgent at a Glance",
+  "eyebrow": "Design for approval · a change to the calm Board found in your QA · nothing built yet",
+  "approval": "Design approved: due and urgency on cards",
+  "short": {
+    "lead": "On the calm Board each card shows one coloured label, so a task's due date and how urgent it is stay hidden unless that label happens to be the date or the priority. Projects already shows both on every task row, so this changes Board cards only. The pictures are the real built app with six sample tasks given a priority and a due date. Each option is added to a separate copy of the app, not to the AjsAgent/calm-build branch.",
+    "hint": "Tap Today or an option to see its picture.",
+    "key": [["Built by me", ""], ["You decide", "you"]],
+    "items": [
+      ["bulb", "Today", "Only a late task says anything", "",
+       "'Learn the bridge' is urgent and due tomorrow, but its card shows only Cook and Home. The only date you can see is the passport's '3d past its date', which I added near the end of the build.",
+       "Nothing from you.",
+       {"src": "docs/generated/glance/today-1440.png", "alt": "Today's Board cards with no priority or due date shown", "caption": "Today's built Board, with the same sample tasks."}],
+      ["list", "Option A", "Always show both", "you",
+       "Every card with a priority or due date gets a quiet line under its label: a small flag and the priority word in its colour, then the due date in a small chip coloured by how close it is (white, yellow or red).",
+       "Look at the picture. Every card with a priority or a due date has the line, including Low priorities and far-off dates.",
+       {"src": "docs/generated/glance/a-1440.png", "alt": "Board cards each with a flag, the priority word and a due chip", "caption": "Option A: every priority and every due date."}],
+      ["list", "Option B", "Show them only when they matter", "you",
+       "The same line, but only for Urgent or High tasks and for dates in their yellow or red stage (soon, today or late). A Low task due in 25 days stays quiet.",
+       "Look at the picture. 'Mop the kitchen' (Low, due in 25 days) and 'Contact form sends twice' (Medium, no date) have no extra line.",
+       {"src": "docs/generated/glance/b-1440.png", "alt": "Board cards where only urgent, high and soon-due tasks carry the line", "caption": "Option B: only what needs attention."}],
+      ["list", "Option C", "Put the date and priority in the one label", "you",
+       "No new line. The Card colour setting's default order becomes Due date, then Priority, then Category, so the one label shows the most pressing thing. A task that has a date never shows its priority or its category.",
+       "Look at the picture. 'Learn the bridge' shows 'Due in 1 day' and nothing says it is urgent.",
+       {"src": "docs/generated/glance/c-1440.png", "alt": "Board cards whose one label shows the due date or priority", "caption": "Option C: the one label shows the date first."}]
+    ]
+  },
+  "changes": [
+    ["keep", "Projects", "No change.", null, "Project rows already show the priority chip and the due chip on every task."],
+    ["keep", "The one coloured label", "Stays as it is in options A and B.", null, "The label and the card's edge colour still come from the Card colour setting, and the new line skips whatever the label already says, so nothing shows twice."],
+    ["chg", "Board cards", "One extra line, or a new default order.", null, "Options A and B add the line under the label, reusing the due chip from Projects. Option C changes only the Card colour default; anyone who has already reordered that list keeps their order."]
+  ],
+  "choices": [
+    ["glance", "How should a Board card show its due date and urgency?",
+      [
+        ["A", "Always show both", 0, "Every priority and every due date, on every card that has one."],
+        ["B", "Show them only when they matter", 1, "Urgent and High, and dates that are soon, today or late; everything else stays quiet."],
+        ["C", "Put them in the one label", 0, "No new line; the label shows the date first, then the priority, so urgency hides when a date is set."]
+      ],
+      "B keeps the Board calm while still flagging what needs you today, which is what calm by default was for. A adds a line to every card that has a priority or a due date, and C still hides urgency on any task with a date."]
+  ],
+  "wrapup": {
+    "summary": "Board cards don't show due dates or urgency. These three options fix that; B is my suggestion.",
+    "changing": "Changed: Board cards only. Kept: Projects, the one coloured label and the Card colour setting (except under option C).",
+    "blocking": "Your choice under Choices. Nothing is built until you reply with \"Design approved: due and urgency on cards\".",
+    "next": "After approval: one new issue under issue #198, the change built on AjsAgent/calm-build with an automatic test and a check in a web browser, and pull request #209 updated so your test copy link shows it.",
+    "todo": ["Look at the four pictures.", "Pick an option under Choices.", "Tap <b>Copy my reply</b> and send it, or say what to change."]
+  }
+}
