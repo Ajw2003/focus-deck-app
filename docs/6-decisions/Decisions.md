@@ -4,6 +4,19 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-19 — Build plan approved: calm by default, Projects kept (1A)
+
+aj: "Build plan approved: calm by default 1A". The plan is `docs/plans/calm-build.html` (source
+`calm-build.json`), built in seven steps as issues #199 to #205 under #198. Choice 1A: the Projects
+screen stays as it is today and keeps its place in the side menu; only its words change. The header
+keeps today's large name and centred jotter but stays at the top while scrolling (plan notes
+sections 12 and 13 in `docs/plans/calm-by-default.md`). The one picture of the result is
+`docs/generated/calm-build/before-after.png`. Nothing is built yet; work goes on branch
+`AjsAgent/calm-build`, one step per issue, checked in Chromium at 1440 and 390 wide, then one pull
+request for QA.
+
+Status: Active
+
 ## 2026-10-19 — Design approved: calm by default
 
 aj, after five rounds on the test site (`docs/generated/calm-test/index.html`): "yes I approve these

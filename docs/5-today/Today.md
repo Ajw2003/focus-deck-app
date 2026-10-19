@@ -1,3 +1,16 @@
+# Today — 2026-10-19
+
+## Calm build: approved, not started (handover)
+
+aj approved the build plan with Projects kept (Decisions.md, 2026-10-19, "Build plan approved") and
+said usage was at 97%, so nothing in `app/` has been changed yet. Branch `AjsAgent/calm-build` is
+clean and pushed. To pick up: build #199 to #205 in order, one issue at a time, each copying the
+test site (`docs/generated/calm-test/index.html`) into the real files the issue names, then check it in
+Chromium at 1440 and 390 wide against `docs/generated/calm-build/*.png` and run the suite. When all
+seven are done, open one pull request (Refs #198) and a QA page, and set the issues to `needs review`.
+Screenshot scripts: `docs/generated/calm-build/ba.mjs`, `ba2.mjs`, `compose.mjs` (run with the repo served
+on port 8765 by `python3 -m http.server 8765`).
+
 # Today — 2026-10-18
 
 ## Sort steps: the drafts were built on a stale copy (2026-10-18)
