@@ -11,7 +11,7 @@ export function checklistItems({ st, hasToken }) {
   const syncing = !!st.gistId && hasToken;
   const linkedRepo = st.projects.some((p) => p.source === 'github' && p.repoFullName);
   return [
-    { id: 'project', label: 'Your first folder', done: hasProject, optional: false, href: './?welcome', cta: 'Make one' },
+    { id: 'project', label: 'Your first project', done: hasProject, optional: false, href: './?welcome', cta: 'Make one' },
     // with a folder already there, tasks are added on the desk itself, not by replaying the welcome
     { id: 'tasks', label: 'A few tasks', done: hasTask, optional: false, href: hasProject ? 'index.html' : './?welcome', cta: 'Add some' },
     { id: 'sync', label: 'Sync between your devices', done: syncing, optional: false, href: 'setup.html', cta: 'Set it up' },

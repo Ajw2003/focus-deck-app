@@ -3,7 +3,7 @@
 // Serves the repo root itself on 127.0.0.1:8126 for the length of the run (no separate server),
 // seeds localStorage, and checks the tray in dark and light: the top slip, choosing a folder and
 // flags (and choosing again to undo), filing into the right project with the right labels, Later,
-// a task slip (no folder wallet, Save, Save with nothing = to the back), Already done and Bin it.
+// a task slip (no folder wallet, Save, Save with nothing = to the back), Done already and Delete.
 // Screenshots: docs/generated/pr121/.
 import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
@@ -86,9 +86,9 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
   const { ctx, page } = await open(mode, scheme);
 
   check(`${tag} tray shows the oldest thought first`, (await slipText(page)).startsWith('Buy a birthday card'), await slipText(page));
-  check(`${tag} count reads "4 in the tray" (3 thoughts + 1 unlabelled task)`, (await trayCount(page)) === '4 in the tray', await trayCount(page));
+  check(`${tag} count reads "4 to sort" (3 thoughts + 1 unlabelled task)`, (await trayCount(page)) === '4 to sort', await trayCount(page));
   check(`${tag} a thought has a folder wallet and a flag wallet`, !!(await page.$('[data-wallet="tray-folders"]')) && !(await page.$('[data-wallet="tray-flags"]')));
-  check(`${tag} Next is off until a folder is chosen`, await page.$eval('.file-btn', (b) => b.disabled && b.textContent === 'Choose a folder first'));
+  check(`${tag} Next is off until a folder is chosen`, await page.$eval('.file-btn', (b) => b.disabled && b.textContent === 'Choose a project first'));
   await page.click('.step-tab[data-step="2"]', { force: true });
   check(`${tag} a locked step says why (#205)`, ((await page.textContent('.step-why')) || '').startsWith('Choose a project first. Labels and links open') && !!(await page.$('[data-wallet="tray-folders"]')));
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -98,9 +98,9 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
 
   await choose(page, 'tray-folders', 'pSchool', mode);
   check(`${tag} choosing a folder puts it on the slip`, (await page.$eval('.slip-dest', (e) => e.textContent)).includes('Going in School'), await page.$eval('.slip-dest', (e) => e.textContent));
-  check(`${tag} Next is on`, await page.$eval('.file-btn', (b) => !b.disabled && b.textContent === 'Next: flags →'));
+  check(`${tag} Next is on`, await page.$eval('.file-btn', (b) => !b.disabled && b.textContent === 'Next: labels →'));
   await choose(page, 'tray-folders', 'pSchool', mode);
-  check(`${tag} choosing the folder again clears it`, (await page.$eval('.slip-dest', (e) => e.textContent)) === 'No folder yet');
+  check(`${tag} choosing the folder again clears it`, (await page.$eval('.slip-dest', (e) => e.textContent)) === 'No project yet');
   await choose(page, 'tray-folders', 'pHome', mode);
 
   await page.click('.step-tab[data-step="2"]'); // every step header is tappable once there is a folder (#205)
@@ -123,21 +123,21 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
   const filed = st.projects.find((p) => p.id === 'pHome').tasks.find((t) => t.title.startsWith('Buy a birthday card'));
   const reminder = st.categories.find((c) => c.name === 'reminder');
   check(`${tag} File puts the thought in Home with its flags`, !!filed && !!reminder && filed.categoryIds.includes('c_chore') && filed.categoryIds.includes(reminder.id), JSON.stringify(filed && filed.categoryIds));
-  check(`${tag} the thought leaves the tray`, !st.inbox.some((i) => i.id === 'th1') && (await trayCount(page)) === '3 in the tray', await trayCount(page));
+  check(`${tag} the thought leaves the tray`, !st.inbox.some((i) => i.id === 'th1') && (await trayCount(page)) === '3 to sort', await trayCount(page));
   check(`${tag} a notice says where it went`, ((await page.textContent('body')) || '').includes('Filed to Home.'));
   check(`${tag} the next slip starts clean`, (await slipText(page)).startsWith('Email Ms Patel') && (await flagsOnSlip(page)).length === 0);
 
   await page.click('[data-action="unsorted-skip"]');
   await page.waitForTimeout(200);
-  check(`${tag} Later shows the next slip, the count is unchanged`, (await slipText(page)).startsWith('Old phone charger') && (await trayCount(page)) === '3 in the tray');
+  check(`${tag} Later shows the next slip, the count is unchanged`, (await slipText(page)).startsWith('Old phone charger') && (await trayCount(page)) === '3 to sort');
 
   await page.click('[data-action="unsorted-delete"]');
   await page.waitForTimeout(200);
   st = await stored(page);
-  check(`${tag} Bin it discards the thought`, !st.inbox.some((i) => i.id === 'th3') && (await trayCount(page)) === '2 in the tray');
+  check(`${tag} Delete discards the thought`, !st.inbox.some((i) => i.id === 'th3') && (await trayCount(page)) === '2 to sort');
 
   check(`${tag} next is the unlabelled task (Later sent the email to the back)`, (await slipText(page)) === 'Fix the gate latch', await slipText(page));
-  check(`${tag} a task slip starts in its own project`, (await page.$eval('.file-btn', (b) => b.textContent)) === 'Next: flags →');
+  check(`${tag} a task slip starts in its own project`, (await page.$eval('.file-btn', (b) => b.textContent)) === 'Next: labels →');
   await page.click('.step-tab[data-step="3"]');
   await page.waitForTimeout(200);
   check(`${tag} a task slip saves in its project`, (await page.$eval('.file-btn', (b) => b.textContent)) === 'Save in Home →');
@@ -165,8 +165,8 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
   await page.click('[data-action="unsorted-complete"]');
   await page.waitForTimeout(300);
   st = await stored(page);
-  check(`${tag} Already done clears the last thought`, !st.inbox.some((i) => i.id === 'th2'));
-  check(`${tag} the empty tray says so`, ((await page.$eval('.inbox-card', (e) => e.textContent)) || '').includes('The tray is empty') && (await trayCount(page)) === '0 in the tray');
+  check(`${tag} Done already clears the last thought`, !st.inbox.some((i) => i.id === 'th2'));
+  check(`${tag} the empty tray says so`, ((await page.$eval('.inbox-card', (e) => e.textContent)) || '').includes('Nothing left to sort') && (await trayCount(page)) === '0 to sort');
   await page.$eval('.inbox-card', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); }); // clear of the sticky jotter
   await page.screenshot({ path: OUT + `${scheme}-${mode}-empty.png` });
   await ctx.close();

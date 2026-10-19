@@ -16,21 +16,21 @@ function progress(step) {
 
 function welcome() {
   return '<h2 class="ob-title">One thing at a time.</h2>'
-    + '<p>Focus Deck keeps your tasks in folders, then deals you one to do now, so you never have to choose from the whole list.</p>'
+    + '<p>Focus Deck keeps your tasks in projects, then picks one for you to do now, so you never have to choose from the whole list.</p>'
     + '<p class="muted small">It takes about a minute to set up. Everything stays on this device unless you turn on sync.</p>'
     + '<div class="ob-acts"><button type="button" class="file-btn" data-action="ob-next">Let&rsquo;s start</button>' + skip + '</div>';
 }
 
 function folder() {
-  return '<h2 class="ob-title">Your first folder</h2>'
-    + '<p>A folder holds one project&rsquo;s tasks: a subject, a room, a side project.</p>'
+  return '<h2 class="ob-title">Your first project</h2>'
+    + '<p>A project holds one set of tasks: a subject, a room, a side project.</p>'
     + '<form class="ob-form" data-action="ob-folder">'
-      + '<label class="sr-only" for="ob-folder-name">Folder name</label>'
+      + '<label class="sr-only" for="ob-folder-name">Project name</label>'
       + '<input type="text" id="ob-folder-name" name="name" maxlength="60" placeholder="Name it…" autocomplete="off" required>'
       + '<div class="ob-chips" role="group" aria-label="Suggestions">'
         + FOLDER_SUGGESTIONS.map((n) => '<button type="button" class="chip chip-btn" data-action="ob-suggest" data-name="' + esc(n) + '">' + esc(n) + '</button>').join('')
       + '</div>'
-      + '<div class="ob-acts"><button type="submit" class="file-btn">Make the folder</button>' + skip + '</div>'
+      + '<div class="ob-acts"><button type="submit" class="file-btn">Make the project</button>' + skip + '</div>'
     + '</form>';
 }
 
@@ -61,8 +61,8 @@ function tasks(st, ob) {
 
 function pick(st, ob, renderFocus) {
   return '<h2 class="ob-title">Your first pick</h2>'
-    + '<p>That&rsquo;s the whole idea: one task, picked for you. Done it? Tick it off. Not this one? Slip it back.</p>'
-    + (st.focus ? renderFocus() : '<p class="muted">Ticked off already. Nice.</p>')
+    + '<p>That&rsquo;s the whole idea: one task, picked for you. Done it? Mark it done. Not this one? Pick another task.</p>'
+    + (st.focus ? renderFocus() : '<p class="muted">Marked done already. Nice.</p>')
     + '<div class="ob-acts"><button type="button" class="file-btn" data-action="ob-next">Next</button>' + skip + '</div>';
 }
 

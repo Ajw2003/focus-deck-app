@@ -126,10 +126,10 @@ for (const scheme of ['dark', 'light']) {
   const { ctx, page } = await open('dark');
   await page.click('[data-action="ob-skip"]');
   await page.waitForTimeout(200);
-  check('skip: the app shows its Focus screen, pointing to Projects', !(await onboardingShown(page)) && ((await page.$eval('.desk-empty', (e) => e.textContent)) || '').includes('Make your first folder on the Projects screen'));
+  check('skip: the app shows its Focus screen, pointing to Projects', !(await onboardingShown(page)) && ((await page.$eval('.desk-empty', (e) => e.textContent)) || '').includes('Make your first project on the Projects screen'));
   await page.click('.desk-empty [data-screen="projects"]');
   await page.waitForTimeout(200);
-  check('skip: Go to Projects shows the empty folders spot, saying what goes there', ((await page.$eval('.projects-empty', (e) => e.textContent)) || '').includes('No folders yet'));
+  check('skip: Go to Projects shows the empty folders spot, saying what goes there', ((await page.$eval('.projects-empty', (e) => e.textContent)) || '').includes('No projects yet'));
   await page.screenshot({ path: OUT + 'dark-7-skipped-empty.png' });
   await page.click('.rail [data-screen="focus"]');
   await page.waitForTimeout(200);
@@ -183,6 +183,7 @@ for (const [name, storage] of [
   const href = await page.$eval('#help-section a', (a) => a.getAttribute('href'));
   check('replay: Settings > Help links to the welcome', href === './?welcome', href);
   await page.screenshot({ path: OUT + 'dark-9-settings-help.png' });
+  await page.click('#help-section .set-head'); // Help is a folded row since #203: open it first
   await page.click('#help-section a');
   await page.waitForTimeout(400);
   check('replay: the welcome shows over existing data', (await step(page)) === 'welcome');

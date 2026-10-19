@@ -120,6 +120,6 @@ test('laid flat on a wide screen (#128): a folder click picks, a click on the pi
   assert.strictEqual(spreadCorner('projects', false), 'Click to pick');
   assert.strictEqual(spreadCorner('projects', true), 'Click to draw');
   assert.strictEqual(spreadCorner('tray-flags', false, 'use'), 'Click to use');
-  assert.strictEqual(spreadHint('projects'), 'Click a folder to pick it, then a card to draw');
+  assert.strictEqual(spreadHint('projects'), 'Click a project to pick it, then a card to draw');
   assert.strictEqual(spreadHint('tray-flags', 'use'), 'Click a card to use');
 });

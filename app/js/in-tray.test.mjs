@@ -149,20 +149,20 @@ test('the card: count, top slip, folder on it, flags on it, wallets, quiet links
   seed();
   const ui = { inboxOpen: true, unsorted: Object.assign(fresh(), { projectId: 'pB', selected: ['c_art'] }) };
   let html = renderInTrayCard(state, ui);
-  assert.ok(html.includes('>Unsorted <span class="count">3<'), 'header count is the whole queue');
-  assert.ok(html.includes('3 in the tray') && html.includes('slip-behind two'), 'a small stack with a count');
+  assert.ok(html.includes('>Sort <span class="count">3<'), 'header count is the whole queue');
+  assert.ok(html.includes('3 to sort') && html.includes('slip-behind two'), 'a small stack with a count');
   assert.ok(html.includes('Buy a card') && html.includes('Going in <span class="folder-chip"') && html.includes('>Home<'), 'the chosen folder shows on the slip');
   assert.ok(/class="slip-flag"[^>]*>Art</.test(html), 'the chosen flag is stuck on the slip');
-  assert.ok(html.includes('step-tab now') && html.includes('>Next: flags →<') && !html.includes('tray-flags'), 'part 1: the folder wallet and Next');
+  assert.ok(html.includes('step-tab now') && html.includes('>Next: labels →<') && !html.includes('tray-flags'), 'part 1: the folder wallet and Next');
   assert.ok(html.includes('data-wallet="tray-folders"') && html.includes('data-verb="use"'));
   const part2 = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 2, projectId: 'pB', selected: ['c_art'] }) });
-  assert.ok(part2.includes('data-wallet="tray-flags"') && !part2.includes('tray-folders') && part2.includes('>Next: tie to tasks →<') && part2.includes('data-action="sort-back">← Back<'));
+  assert.ok(part2.includes('data-wallet="tray-flags"') && !part2.includes('tray-folders') && part2.includes('>Next: link to other tasks →<') && part2.includes('data-action="sort-back">← Back<'));
   html = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3, projectId: 'pB', selected: ['c_art'] }) });
   assert.ok(/icard project is-picked/.test(renderInTrayCard(state, ui)) && /icard is-picked/.test(part2), 'chosen cards are marked');
   assert.ok(html.includes('data-action="unsorted-file" data-inbox="th1">File it in Home →<'));
-  assert.ok(html.includes('>Already done<') && html.includes('data-action="unsorted-skip">Later<') && html.includes('>Bin it<'));
+  assert.ok(html.includes('>Done already<') && html.includes('data-action="unsorted-skip">Later<') && html.includes('>Delete<'));
   const none = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() });
-  assert.ok(none.includes('No folder yet') && none.includes('disabled>Choose a folder first<') && !none.includes('unsorted-file'), 'no folder: File it is off');
+  assert.ok(none.includes('No project yet') && none.includes('disabled>Choose a project first<') && !none.includes('unsorted-file'), 'no folder: File it is off');
   assert.ok(!html.includes('sort-more-labels') && !html.includes('unsorted-more-projects'), 'the old pills are not in the in-tray');
 });
 
@@ -171,13 +171,13 @@ test('the card: a task slip starts in its own project (chosen on part 1), and th
   state.inbox.length = 0;
   const html = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3 }) });
   assert.ok(html.includes('Unlabelled A') && html.includes('In <span class="folder-chip"'), 'a task shows its own project');
-  assert.ok(renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() }).includes('icard project is-picked') && renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() }).includes('>Next: flags →<'), 'part 1 shows its folder as chosen');
-  assert.ok(html.includes('data-action="unsorted-save" data-task="a2" data-project="pA">Save in School →<') && html.includes('1 in the tray') && !html.includes('slip-behind'));
+  assert.ok(renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() }).includes('icard project is-picked') && renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() }).includes('>Next: labels →<'), 'part 1 shows its folder as chosen');
+  assert.ok(html.includes('data-action="unsorted-save" data-task="a2" data-project="pA">Save in School →<') && html.includes('1 to sort') && !html.includes('slip-behind'));
   state.projects[0].tasks.pop();
   const empty = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() });
-  assert.ok(empty.includes('The tray is empty. Everything has a home.') && empty.includes('0 in the tray') && !empty.includes('jot-slip'), 'an empty tray says so plainly');
+  assert.ok(empty.includes('Nothing left to sort. Everything has a project.') && empty.includes('0 to sort') && !empty.includes('jot-slip'), 'an empty tray says so plainly');
   const closed = renderInTrayCard(state, { inboxOpen: false, unsorted: fresh() });
-  assert.ok(!closed.includes('tray'.concat('-lip')) && closed.includes('Unsorted'), 'closed: just the header');
+  assert.ok(!closed.includes('tray'.concat('-lip')) && closed.includes('Sort'), 'closed: just the header');
   seed();
   state.projects.length = 0;
   const noProjects = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() });
@@ -201,7 +201,7 @@ test('step bar: three tabs, later ones off, finished ones tappable, summaries', 
   assert.ok(p1.includes('<small>Home</small>'), 'part 1 summary is the folder');
   const p3 = card({ step: 3, projectId: 'pB', selected: ['c_art', 'c_chore'] });
   assert.ok(p3.includes('class="step-tab done" data-action="sort-step" data-step="1"') && !p3.includes('data-step="2" aria-disabled'));
-  assert.ok(p3.includes('<small>Art, Chore</small>') && p3.includes('<small>optional</small>') && p3.includes('>Across all folders<'));
+  assert.ok(p3.includes('<small>Art, Chore</small>') && p3.includes('<small>optional</small>') && p3.includes('>Across all projects<'));
   assert.ok(!p3.includes('data-wallet=') && p3.includes('File it in Home →') && p3.includes('data-action="sort-back"'));
 });
 
@@ -209,16 +209,16 @@ test('folder search filters folders; flag search filters flags and shows all', (
   seed();
   const f = card({ find: 'hom' });
   assert.ok(f.includes('data-key="pB"') && !f.includes('data-key="pA"'), 'only Home is left in the wallet');
-  assert.ok(card({ find: 'zzz' }).includes('No folder matches “zzz”.'));
+  assert.ok(card({ find: 'zzz' }).includes('No project matches “zzz”.'));
   const g = card({ step: 2, projectId: 'pB', find: 'st' });
   assert.ok(g.includes('data-key="c_study"') && !g.includes('data-key="c_chore"') && !g.includes('More categories'), 'Study shows though Home never uses it; no More card while searching');
   assert.ok(card({ step: 2, projectId: 'pB' }).includes('More categories'), 'the More card stays when not searching');
 });
 
-test('+ New flag shows only with text and no exact (case-insensitive) match', () => {
+test('+ New label shows only with text and no exact (case-insensitive) match', () => {
   seed();
   assert.ok(!card({ step: 2, projectId: 'pB' }).includes('new-flag'));
-  assert.ok(card({ step: 2, projectId: 'pB', find: 'Garden' }).includes('data-action="sort-new-flag">+ New flag “Garden”<'));
+  assert.ok(card({ step: 2, projectId: 'pB', find: 'Garden' }).includes('data-action="sort-new-flag">+ New label “Garden”<'));
   assert.ok(card({ step: 2, projectId: 'pB', find: 'ar' }).includes('new-flag'), 'a partial match still offers it');
   assert.ok(!card({ step: 2, projectId: 'pB', find: 'ART' }).includes('new-flag'), 'exact match ignoring case: no button');
 });
@@ -268,7 +268,7 @@ test('part 3: Inside / Across groups, tags, and the search limited to the folder
   state.projects[1].tasks[0].waitsOn = ['a1'];
   const part3 = (over) => renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3, projectId: 'pA', parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '' }, over) });
   let html = part3({});
-  assert.ok(html.includes('>Inside School<') && html.includes('>Across all folders<'));
+  assert.ok(html.includes('>Inside School<') && html.includes('>Across all projects<'));
   ['Part of', 'Subtasks', 'Waits on', 'Holds up'].forEach((l) => assert.ok(html.includes('>' + l + '<'), l));
   assert.strictEqual((html.match(/data-action="tie-open"/g) || []).length, 4);
   html = part3({ waitsOn: ['b1'], picking: 'parent' });
