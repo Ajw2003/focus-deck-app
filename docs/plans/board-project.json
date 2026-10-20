@@ -1,0 +1,43 @@
+{
+ "title": "Board Project View",
+ "eyebrow": "Design for approval · two changes from your phone test · nothing built yet",
+ "approval": "Design approved: board project view",
+ "short": {
+  "lead": "You asked for two changes to the Board. First, the numbers on the Up next, In progress and Done this week tabs should count only the project you picked. Today they always count every project, so with Home picked the Up next tab says 58 while the list shows Home's 17. Second, the project you picked should be easier to see. Right now the only sign is the word 'Home' in the small menu. Options A, B and C all include the new counts, so they differ only in how the project shows. The pictures use the sample data, where Home has nothing in progress or done this week.",
+  "hint": "Tap Today, Option A, Option B or Option C to see its picture.",
+  "key": [["Built by me", ""], ["You decide", "you"]],
+  "items": [
+   ["bulb", "Today", "The project is only named in the menu", "", "With Home picked, the heading still says 'Board', the menu looks the same as when it says 'Project: All', and Up next says 58.", "Nothing from you.",
+    {"src": "docs/generated/board-project/now-390.png", "alt": "The Board with Home picked: heading Board, plain menu, Up next 58", "caption": "Today, with Home picked."}],
+   ["list", "Option A", "The heading names the project", "you", "The heading becomes the project's name with its colour dot and a coloured bar, and the menu gets a border in the same colour. With 'Project: All' picked, the heading stays 'Board'.", "Look at the heading and the menu, then the 17 on Up next.",
+    {"src": "docs/generated/board-project/a-390.png", "alt": "The Board with Home picked: heading Home with a green dot and bar, green-edged menu, Up next 17", "caption": "Option A."}],
+   ["list", "Option B", "A row of project buttons", "you", "The menu is replaced by a row of buttons, one per project plus All. The picked one is filled in its colour with a tick. With more projects than fit, the row scrolls sideways, so some projects are hidden off the edge.", "Look at the row of buttons, then the 17 on Up next.",
+    {"src": "docs/generated/board-project/b-390.png", "alt": "The Board with a row of project buttons and Home filled green, Up next 17", "caption": "Option B."}],
+   ["list", "Option C", "A banner above the tabs", "you", "The menu stays as it is, and a coloured banner above the tabs says 'Showing Home only', with a 'Show all' link that goes back to every project.", "Look at the banner, then the 17 on Up next.",
+    {"src": "docs/generated/board-project/c-390.png", "alt": "The Board with a green banner reading Showing Home only and Show all, Up next 17", "caption": "Option C."}]
+  ]
+ },
+ "changes": [
+  ["chg", "Tab numbers", "Count only the picked project.", null, "With 'Project: All' picked, they count every project, as today. Subtasks are still left out of the count."],
+  ["chg", "The picked project", "Shown the way you pick under \"How should the picked project show?\"", null, "The choice of project is still kept on this device, as today."],
+  ["keep", "Find and Filter", "No change.", null, "They still narrow the list, and under \"What should the tab numbers count?\" you decide whether they change the numbers too."]
+ ],
+ "choices": [
+  ["counts", "What should the tab numbers count?", [
+    ["A", "The picked project", 0, "Exactly what you asked. Find and Filter narrow the list but leave the numbers alone."],
+    ["B", "Everything you narrowed by", 1, "The project, Find and Filter all change the numbers, so a tab's number always matches the cards under it."]
+   ], "I suggest B because then the number on a tab never disagrees with the list you are looking at."],
+  ["show", "How should the picked project show?", [
+    ["A", "The heading names the project", 1, "No new row, and it reads at a glance from the top of the screen."],
+    ["B", "A row of project buttons", 0, "One tap to switch, but projects past the edge of a phone are hidden until you scroll."],
+    ["C", "A banner above the tabs", 0, "The plainest message, but it adds a row and repeats what the menu says."]
+   ], "I suggest A because it makes the project the first thing you read without adding anything to the screen."]
+ ],
+ "wrapup": {
+  "summary": "The tab numbers will follow the project you pick, and the picked project will be easier to see. My suggestions are \"Everything you narrowed by\" for the tab numbers, and \"The heading names the project\" for how the picked project shows.",
+  "changing": "Changed: the tab numbers and how the picked project shows on the Board. Kept: Find, Filter, the cards and every other screen.",
+  "blocking": "Waiting on your answers to the two questions in Choices. Nothing is built until you approve.",
+  "next": "After you approve, I will write a build plan and open new issues under issue #198 (Calm by default). I will then make the change, with tests, on the AjsAgent/calm-build branch and update pull request #209 (the calm build), so your test link shows it.",
+  "todo": ["Look at the four pictures.", "Pick one answer under each of the two questions in Choices.", "Tap <b>Copy my reply</b> and send it, or say what to change."]
+ }
+}
