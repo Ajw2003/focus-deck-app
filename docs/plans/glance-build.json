@@ -1,0 +1,33 @@
+{
+  "title": "Due and Urgent Build Plan",
+  "eyebrow": "Build plan for approval · option 1A, from your testing · issues #210, #211 and #212",
+  "approval": "Build plan approved: due and urgency on cards",
+  "short": {
+    "lead": "This builds option 1A: every Board card with a priority or a due date gets one quiet line under its label. It goes on the same branch as the calm build and into pull request #209, so your test link shows it once it is pushed. It replaces the 'past its date' line I added near the end of the build, because a late date now shows in the new line.",
+    "hint": "Tap a step to see what it does.",
+    "key": [["Built by me", ""], ["You decide", "you"]],
+    "items": [
+      ["list", "Step 1", "Add the line to Board cards (#211)", "",
+       "The line shows a flag and the priority word in that priority's colour, then the same due-date chip the Projects screen already uses. It leaves out anything the card's coloured label already shows, and a done task shows no date. Seven new automatic tests cover each case.",
+       "Nothing from you.",
+       {"src": "docs/generated/glance/a-1440.png", "alt": "Board cards with a flag, priority word and due chip", "caption": "What step 1 builds."}],
+      ["check", "Step 2", "Check it and hand it back (#212)", "",
+       "A browser check confirms the line at desktop and phone widths. I run all 13 browser checks and the automatic tests again, update the systems doc and the QA page, and move the issues back to 'needs review'.",
+       "Nothing from you."],
+      ["check", "Approve", "Say go", "you",
+       "Your reply starts the build.",
+       "Reply \"Build plan approved: due and urgency on cards\", or say what to change."]
+    ]
+  },
+  "changes": [
+    ["chg", "Board cards", "One new line on cards with a priority or a due date.", null, "Changed: `app/js/board-view.js`, `app/css/app.css` and their tests. Projects, Settings and the coloured label stay as they are."]
+  ],
+  "choices": [],
+  "wrapup": {
+    "summary": "Two steps add the priority and due date line to Board cards and hand the build back for your test.",
+    "changing": "Changed: Board cards only. Kept: Projects, Settings and each card's coloured label.",
+    "blocking": "Waiting on your reply: \"Build plan approved: due and urgency on cards\".",
+    "next": "After approval I build both steps, push them to pull request #209 and tell you when the test link shows the change.",
+    "todo": ["Read the two steps.", "Reply \"Build plan approved: due and urgency on cards\", or say what to change."]
+  }
+}
