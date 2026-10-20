@@ -131,7 +131,16 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
   await page.waitForTimeout(200);
   check(`${tag} Later shows the next slip, the count is unchanged`, (await slipText(page)).startsWith('Old phone charger') && (await trayCount(page)) === '3 to sort');
 
+  // Delete asks first (#220): Cancel keeps the thought, the card's Delete discards it
   await page.click('[data-action="unsorted-delete"]');
+  await page.waitForSelector('.move-dialog');
+  check(`${tag} Delete asks first`, (await page.textContent('.move-dialog-text')).startsWith('Delete "Old phone charger') && (await page.textContent('.move-dialog [data-dialog="move"]')) === 'Delete');
+  await page.click('.move-dialog [data-dialog="cancel"]');
+  await page.waitForTimeout(200);
+  st = await stored(page);
+  check(`${tag} Cancel keeps the thought`, !(await page.$('.move-dialog')) && st.inbox.some((i) => i.id === 'th3') && (await trayCount(page)) === '3 to sort');
+  await page.click('[data-action="unsorted-delete"]');
+  await page.click('.move-dialog [data-dialog="move"]');
   await page.waitForTimeout(200);
   st = await stored(page);
   check(`${tag} Delete discards the thought`, !st.inbox.some((i) => i.id === 'th3') && (await trayCount(page)) === '2 to sort');

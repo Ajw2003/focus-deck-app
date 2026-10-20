@@ -8,7 +8,8 @@
 import { renderMoveDialog } from './render.js';
 
 // Resolves true for the action button (Move, or `actionLabel`), false for Cancel. `returnTo` is a
-// selector for the element to give focus back to (a mouse drag leaves focus on <body>, so it can't be read from activeElement).
+// selector for the element to give focus back to (a mouse drag leaves focus on <body>, so it can't
+// be read from activeElement).
 export function confirmMove(message, returnTo, actionLabel) {
   return new Promise((resolve) => {
     const before = document.activeElement;

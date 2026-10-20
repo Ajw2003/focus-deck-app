@@ -14,7 +14,8 @@ deleting at once with Undo on the notice (1B).
 
 **Why.** aj asked to be asked, and it matches deleting a task.
 
-**Status.** Approved; planned under #219 (#220, #221), part of #198.
+**Status.** Built 2026-10-20 under #219 (#220, #221), part of #198, in aj's QA. See
+`docs/4-systems/in-tray.md`.
 
 ## 2026-10-20 — Design approved: board project view (1B 2A)
 

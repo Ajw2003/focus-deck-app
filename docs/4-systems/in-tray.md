@@ -25,21 +25,24 @@ It reuses the #120 wallets (`js/wallet.js`, `docs/4-systems/wallets.md`) for "1.
   wallets announce into `#tray-live` when the focus wallets' `#wallet-live` isn't on the page.
 - `css/app.css`, the "In-tray (#121)" section.
 - Tests: `js/in-tray.test.mjs` (the card and the decisions); `js/render.test.mjs` keeps the queue
-  order test. Browser check: `scripts/check-in-tray-browser.mjs` (46 checks, tap and tap-twice, dark
+  order test. Browser check: `scripts/check-in-tray-browser.mjs` (54 checks, tap and tap-twice, dark
   and light; filing, flags on and off, Later, a task slip, Already done, Bin it, the empty tray).
   Screenshots in `docs/generated/pr121/`.
 
 Known: the flag tabs on the slip's edge are 46px wide, so a long name is clipped ("Reminder" shows
 its end). The full name is in the tab's `title` and on the flag card.
 
-## Delete asks first (#219, #220, #221; approved 2026-10-20, design 1A on `docs/plans/tray-delete.html`; not built yet)
+## Delete asks first (#219, #220, #221; built 2026-10-20, design 1A on `docs/plans/tray-delete.html`)
 
 Delete under a thought used to discard it in one tap (`unsorted-delete` in `app/js/app.js:531`), while a
 task slip already asked through `confirmDeleteTask`. Now a thought asks too, with the app's own
 confirmation card (the one `confirmMove` in `app/js/move-dialog.js` shows before a GitHub-linked move):
 'Delete "<thought>"? It leaves the tray for good.' with Cancel and Delete. Cancel, Escape or the
 backdrop keeps the thought; Delete discards it and shows the "Deleted" notice as before. Done
-already and Later are unchanged.
+already and Later are unchanged. Built: the `unsorted-delete` branch awaits the card
+(`app/js/app.js:536`), and `renderMoveDialog` takes the button's label, "Move" by default
+(`app/js/render.js:604`). If the thought has gone by the time Delete is pressed, it only repaints.
+`scripts/check-in-tray-browser.mjs` presses Cancel, then Delete.
 
 ## Three parts (#189)
 
