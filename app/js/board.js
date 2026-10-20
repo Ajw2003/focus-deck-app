@@ -42,17 +42,17 @@ export const SHOW_FILTERS = ['all', 'subs', 'waits', 'holds'];
 
 // The one visible list (#200): the tab's tasks, narrowed by project, project category, Find (task
 // title, project name or label name) and Show. Subtasks of a live parent are not cards of their own.
-// counts are per tab, before the narrowing, and also leave out subtasks. -> { tasks, counts }
+// counts are per tab: how many cards that tab would show under the same narrowing, so they leave out
+// subtasks too (#217). -> { tasks, counts }
 export function boardList(st, opts, now) {
   const o = opts || {};
   const cols = boardColumns(st, null, now);
   const owner = new Map();
   (st.projects || []).forEach((p) => (p.tasks || []).forEach((t) => owner.set(t.id, p)));
   const top = (t) => !(t.parentId && owner.has(t.parentId));
-  const counts = { next: cols.next.filter(top).length, doing: cols.doing.filter(top).length, done: cols.done.filter(top).length };
   const q = String(o.find || '').trim().toLowerCase();
   const labelName = (id) => ((st.categories || []).find((c) => c.id === id) || {}).name || '';
-  const tasks = (cols[o.tab] || cols.next).filter(top).filter((t) => {
+  const shown = (t) => {
     const p = owner.get(t.id);
     if (o.project && p.id !== o.project) return false;
     if (o.pcat && p.categoryId !== o.pcat) return false;
@@ -62,6 +62,9 @@ export function boardList(st, opts, now) {
     if (o.show === 'waits' && !(t.status !== 'done' && isBlocked(st.projects, t.id))) return false;
     if (o.show === 'holds' && !holdsUp(st.projects, t.id).length) return false;
     return true;
-  });
+  };
+  const tab = (k) => cols[k].filter(top).filter(shown);
+  const counts = { next: tab('next').length, doing: tab('doing').length, done: tab('done').length };
+  const tasks = tab(cols[o.tab] ? o.tab : 'next');
   return { tasks, counts };
 }
