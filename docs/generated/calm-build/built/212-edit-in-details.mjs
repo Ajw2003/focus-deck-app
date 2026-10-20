@@ -1,0 +1,33 @@
+// #212 repro: set a priority and due date in Task details on a phone-sized Board and read the card's line back.
+// Usage: CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node docs/generated/calm-build/built/212-edit-in-details.mjs
+import { createRequire } from 'node:module';
+import { readFileSync, existsSync, statSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { join, extname, normalize } from 'node:path';
+const require = createRequire('/opt/node22/lib/node_modules/');
+const { chromium } = require('playwright');
+const ROOT = new URL('../../../../', import.meta.url).pathname;
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
+const server = createServer((req, res) => { const rel = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^[/\\]+/, ''); let f = join(ROOT, rel); if (existsSync(f) && statSync(f).isDirectory()) f = join(f, 'index.html'); if (!existsSync(f)) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': TYPES[extname(f)] || 'application/octet-stream' }); res.end(readFileSync(f)); });
+await new Promise((ok) => server.listen(8241, '127.0.0.1', ok));
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM, args: ['--no-sandbox'] });
+const page = await (await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' })).newPage();
+page.on('pageerror', (e) => console.log('PAGE ERROR', e.message));
+page.on('console', (m) => { if (m.type() === 'error') console.log('CONSOLE', m.text()); });
+await page.goto('http://127.0.0.1:8241/docs/generated/sort-steps/seed.html#board?ties');
+await page.waitForSelector('.board-card');
+await page.click('.board-card:has-text("Learn the bridge") .board-card-title');
+await page.waitForTimeout(500);
+console.log('panel heads:', await page.$$eval('button', (b) => b.map((x) => x.textContent.trim()).filter((t) => /Priority/.test(t))));
+await page.locator('button', { hasText: 'Priority and due date' }).first().click();
+await page.waitForSelector('[data-detail-priority]');
+await page.selectOption('[data-detail-priority]', 'urgent');
+await page.fill('[data-detail-due]', '2026-10-23');
+await page.dispatchEvent('[data-detail-due]', 'change');
+await page.waitForTimeout(400);
+console.log('saved:', await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('focusdeck-state-v1')); for (const p of s.projects) for (const t of p.tasks) if (t.title === 'Learn the bridge') return t.priority + ' ' + t.deadline; }));
+await page.keyboard.press('Escape');
+await page.waitForTimeout(300);
+console.log('card line:', await page.locator('.board-card:has-text("Learn the bridge") .gl-glance').textContent().catch(() => 'NONE'));
+await page.screenshot({ path: ROOT + 'docs/generated/calm-build/built/212-edit-in-details-390.png' });
+await browser.close(); server.close();
