@@ -9,7 +9,7 @@
   "items": [
    ["list", "Step 1", "Ask before deleting a thought (#220)", "", "The app already shows a confirmation card before it moves a task that is linked to GitHub. That card gets a 'Delete' button for deleting a thought. Only the Delete button removes the thought. Cancel, the Escape key and tapping outside the card all keep it. Deleting a task keeps the question it already asks.", "Nothing from you.",
     {"src": "docs/generated/tray-delete/a-390.png", "alt": "A card asking Delete Get three quotes for fixing the shed door, with Cancel and Delete buttons", "caption": "What step 1 builds."}],
-   ["list", "Step 2", "Check it and hand it back (#221)", "", "The tray's browser check presses Cancel first and confirms the thought is still there, then presses Delete and confirms the thought is gone. After that I rerun all the automatic checks, update the docs and the quality-check page, and move the tray delete issue (#219) and its two steps (#220 and #221) to 'needs review'.", "Nothing from you."],
+   ["list", "Step 2", "Check it and hand it back (#221)", "", "The tray's browser check presses Cancel first and expects the thought to stay in the tray, then presses Delete and expects it to be gone. After that I rerun all the automatic checks, update the docs and the quality-check page, and move the tray delete issue (#219) and its two steps (#220 and #221) to 'needs review'.", "Nothing from you."],
    ["check", "Approve", "Say go", "you", "The build starts once you send the reply below.", "Reply \"Build plan approved: tray delete\", or say what to change."]
   ]
  },
