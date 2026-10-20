@@ -3,7 +3,7 @@
  "eyebrow": "Design for approval · two changes from your phone test · nothing built yet",
  "approval": "Design approved: board project view",
  "short": {
-  "lead": "You asked for two changes to the Board. First, the numbers on the Up next, In progress and Done this week tabs should count only the project you picked. Today they always count every project, so with Home picked the Up next tab says 58 while the list shows Home's 17. Second, the project you picked should be easier to see. Right now the only sign is the word 'Home' in the small menu. Options A, B and C all include the new counts, so they differ only in how the project shows. The pictures use the sample data, where Home has nothing in progress or done this week.",
+  "lead": "You asked for two changes to the Board. First, the numbers on the Up next, In progress and Done this week tabs should count only the project you picked. Today they always count every project, so with Home picked the Up next tab says 58 while the list shows Home's 17. Second, that project should be easier to see. Right now the only sign is the word 'Home' in the small menu. Options A, B and C all include the new counts, so they differ only in how the project shows. The pictures use the sample data, where Home has nothing in progress or done this week.",
   "hint": "Tap Today, Option A, Option B or Option C to see its picture.",
   "key": [["Built by me", ""], ["You decide", "you"]],
   "items": [
