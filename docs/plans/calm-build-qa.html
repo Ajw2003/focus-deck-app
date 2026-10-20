@@ -359,7 +359,7 @@ const PAGE = {
         "Check that a task due today is red and the yellow chip is easy to see",
         "you",
         "A task due today always shows red. The yellow 'due soon' chip now has a stronger olive fill and a solid border, so you can see it on a bright white screen (added after your second look).",
-        "On the Board, open 'Mop the kitchen' in Task details and give it today's date; its card should show a red label. Give 'Fix the gate latch' a date 3 days away; its 'due in 3d' chip should be olive with a solid border. Switch your phone to dark mode and look at that chip again; it should still be olive with a solid border, because Board cards stay paper-coloured in both modes.",
+        "On the Board, open 'Mop the kitchen' in Task details and give it today's date; its card should show a red label. Give 'Fix the gate latch' a date 3 days away; its 'due in 3d' chip should have a strong olive fill and a dark outline. Then switch your phone to dark mode: that chip should look the same, because Board cards stay paper-coloured in both modes.",
         {
           "src": "calm-build-qa-pics/212-board-390-light.png",
           "alt": "Board cards on a phone: Mop the kitchen with a red Due today label, Fix the gate latch with an olive due in 3d chip",
@@ -396,7 +396,7 @@ const PAGE = {
     [
       "chg",
       "Files changed, counted from git against origin/main",
-      "200 files, +8473 −437",
+      "201 files, +8840 −437",
       null,
       "The added and removed counts come from git (git diff --numstat origin/main...HEAD); the estimates beside them come from the plan.",
       null,
@@ -2394,8 +2394,20 @@ const PAGE = {
           ]
         ],
         [
+          "docs/plans/calm-build-qa-pics/212-board-390-light.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
           "docs/plans/calm-build-qa.html",
-          2613,
+          2967,
           0,
           [
             [
@@ -2407,7 +2419,7 @@ const PAGE = {
         ],
         [
           "docs/plans/calm-build-qa.json",
-          135,
+          148,
           0,
           [
             [
@@ -2826,7 +2838,7 @@ const PAGE = {
     ]
   },
   "wrapup": {
-    "summary": "Calm by default is built. It has a header and side menu that stay in place, a Board that shows one tab at a time, Task details, one coloured label per card, settings that open and close with a new Comfort group, plainer wording, the Sort fixes, priority and due date on cards, and the new due colours. All 228 unit tests and all 13 browser checks pass.",
+    "summary": "Calm by default is built. The header and side menu stay in place, and the Board shows one tab at a time. You also get Task details, one coloured label per card, settings that open and close with a Comfort group, plainer wording and the Sort fixes. Cards show their priority and due date too, in the new due colours. All 228 unit tests and all 13 browser checks pass.",
     "changing": "Changed: the frame, the Board, Settings and some wording. New: Task details, Card colour and the Comfort group. Unchanged: Projects.",
     "blocking": "Waiting on your test.",
     "next": "After 'QA passed', you close the issues when you're happy, and the pull request is merged into main, the version of the app you use.",
