@@ -599,14 +599,15 @@ function taskGroup(p, status, label, tasks, ui, categories, projects) {
 }
 
 // The confirmation shown before a task move that touches GitHub (js/move-dialog.js puts it on the
-// page). A small modal card: the question, an accent Move, a quiet Cancel.
-export function renderMoveDialog(message) {
+// page). A small modal card: the question, an accent button (Move unless `actionLabel` says
+// otherwise, e.g. Delete for a tray thought), a quiet Cancel.
+export function renderMoveDialog(message, actionLabel = 'Move') {
   return '<div class="move-dialog-backdrop">'
     + '<div class="move-dialog" role="dialog" aria-modal="true" aria-labelledby="move-dialog-text">'
     + '<p class="move-dialog-text" id="move-dialog-text">' + esc(message) + '</p>'
     + '<div class="move-dialog-actions">'
     + '<button type="button" class="btn-text" data-dialog="cancel">Cancel</button>'
-    + '<button type="button" class="btn primary" data-dialog="move">Move</button>'
+    + '<button type="button" class="btn primary" data-dialog="move">' + esc(actionLabel) + '</button>'
     + '</div></div></div>';
 }
 

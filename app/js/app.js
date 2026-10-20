@@ -533,9 +533,14 @@ function onAppClick(e) {
     if (inboxId) {
       const item = state.inbox.find((i) => i.id === inboxId);
       const text = item ? item.text : 'this note';
-      M.discardInbox(inboxId);
-      ui.notice = 'Deleted "' + text + '".';
-      paint();
+      confirmMove('Delete "' + text + '"? It leaves the tray for good.', '[data-action="unsorted-delete"]', 'Delete').then((ok) => {
+        if (!ok) return;
+        // the thought may have gone while the question was open (another tab, a sync)
+        if (!state.inbox.some((i) => i.id === inboxId)) { paint(); return; }
+        M.discardInbox(inboxId);
+        ui.notice = 'Deleted "' + text + '".';
+        paint();
+      });
     } else if (confirmDeleteTask(taskId, projectId)) {
       M.deleteTask(taskId, projectId);
     }
