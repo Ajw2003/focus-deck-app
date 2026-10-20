@@ -1,0 +1,70 @@
+{
+  "title": "Due Colours Build Plan",
+  "eyebrow": "Build plan for approval · option 1C from your phone test · issues #213, #214 and #215",
+  "approval": "Build plan approved: due colours",
+  "short": {
+    "lead": "This builds option 1C. A task due today is always red, and in light mode the yellow chip keeps its olive colour with about twice as much fill and a solid border. I will put it on the build branch for pull request #209, and your test link will show it once I have pushed it.",
+    "hint": "Tap a step to see what it does.",
+    "key": [
+      [
+        "Built by me",
+        ""
+      ],
+      [
+        "You decide",
+        "you"
+      ]
+    ],
+    "items": [
+      [
+        "list",
+        "Step 1",
+        "Make due today red (#214)",
+        "",
+        "From the start of the due day the chip is red, even when the date was set that same day. Three new automatic tests cover this, including the evening before the due day, which stays yellow.",
+        "Nothing from you."
+      ],
+      [
+        "list",
+        "Step 2",
+        "Strengthen the yellow and hand it back (#215)",
+        "",
+        "The yellow chip gets the stronger olive shown in the picture below. A browser check confirms that a card due today is red. Then I run every check again, update the docs and the QA (quality check) page, and move the issues back to 'needs review'.",
+        "Nothing from you.",
+        {
+          "src": "docs/generated/due-colours/c-1440.png",
+          "alt": "Cards with a red due today chip and stronger olive due chips",
+          "caption": "What both steps build."
+        }
+      ],
+      [
+        "check",
+        "Approve",
+        "Say go",
+        "you",
+        "The build starts when you send your reply.",
+        "Reply \"Build plan approved: due colours\", or say what to change."
+      ]
+    ]
+  },
+  "changes": [
+    [
+      "chg",
+      "Due-date chips",
+      "Due today is red; the yellow is stronger in light mode.",
+      null,
+      "Changed: `app/js/due-stage.js`, `app/css/app.css` and their tests. These chips appear on the Board, on Projects and on the focus note."
+    ]
+  ],
+  "choices": [],
+  "wrapup": {
+    "summary": "Two steps make 'due today' red and the yellow chip easier to see, then hand the build back for your test.",
+    "changing": "What changes is the due-date chips. What stays the same is dark mode, the red chip and the 'past its date' chip.",
+    "blocking": "Waiting on your reply: \"Build plan approved: due colours\".",
+    "next": "Once you approve, I build both steps, push them to pull request #209 and tell you when your test link shows them.",
+    "todo": [
+      "Read the two steps.",
+      "If you are happy, send the approval phrase above. If not, say what to change."
+    ]
+  }
+}
