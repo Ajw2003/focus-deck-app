@@ -1217,6 +1217,9 @@ body.is-dragging-task .empty-note{display:none;}
 .board-subs{display:inline-flex; align-items:center; gap:6px; font-size:var(--text-sm); color:#4a5560;}
 .board-card-due{display:block; margin-top:4px;}
 .board-card-due .deadline-chip{font-size:var(--text-xs, 0.75rem);}
+.gl-glance{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+.gl-prio{display:inline-flex; align-items:center; gap:4px; font-size:var(--text-sm); font-weight:700; color:var(--c);}
+.gl-prio svg{width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2; stroke-linejoin:round;}
 .board-subs b{color:#1D2733;}
 .board-segs{display:inline-flex; gap:2px;}
 .board-segs i{width:12px; height:5px; border-radius:2px; background:#d8d3c8;}

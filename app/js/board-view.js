@@ -5,10 +5,10 @@
 // A card shows its project's name only on "Project: All"; subtasks show inside their parent as "1/2 done".
 // The right-hand column is the empty-panel hint, or Task details (js/task-details.js, #201) for ui.boardSelected. The list comes from js/board.js. Ticking a card is the same `toggle-task` checkbox
 // the task rows use. See docs/4-systems/calm-board.md and docs/4-systems/styling.md#the-board-144
-import { esc, deadlineChip } from './state.js';
+import { esc, deadlineChip, PRIORITY } from './state.js';
 import { boardList } from './board.js';
 import { getChunk, getColourBy } from './comfort.js';
-import { cardKey, NO_CATEGORY } from './card-key.js';
+import { cardKey, NO_CATEGORY, PRIORITY_COLOURS } from './card-key.js';
 import { renderTaskDetails } from './task-details.js';
 import { tieSummary, tieLineHtml, subtasksOf } from './task-links.js';
 
@@ -47,11 +47,13 @@ function keyChip(key) {
   return key.source ? '<span class="cchip" style="--c:' + esc(key.color) + '"><i></i>' + esc(key.name) + '</span>' : '<span class="cchip none">' + esc(NO_CATEGORY.name) + '</span>';
 }
 
-// A task past its date says so on its card, amber or red as Settings > Comfort chooses, unless its
-// one chip already shows the due date (#203).
-function pastDateChip(t, key, now) {
-  if (!t.deadline || t.status === 'done' || key.source === 'due') return '';
-  return new Date(t.deadline + 'T23:59') < new Date(now) ? '<span class="board-card-due">' + deadlineChip(t.deadline, t) + '</span>' : '';
+// Every card with a priority or a date says so on one line under its label; the chip's own
+// field is left out so nothing shows twice (#211).
+function glanceLine(t, key) {
+  const bits = [];
+  if (t.priority && PRIORITY[t.priority] && key.source !== 'priority') bits.push('<span class="gl-prio" style="--c:' + PRIORITY_COLOURS[t.priority] + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>' + PRIORITY[t.priority].label + '</span>');
+  if (t.deadline && t.status !== 'done' && key.source !== 'due') bits.push(deadlineChip(t.deadline, t));
+  return bits.length ? '<span class="board-card-due gl-glance">' + bits.join('') + '</span>' : '';
 }
 
 function card(t, p, st, narrowed, selected, now) {
@@ -64,7 +66,7 @@ function card(t, p, st, narrowed, selected, now) {
     + '<input type="checkbox" data-action="toggle-task" data-task="' + esc(t.id) + '" data-project="' + esc(p.id) + '"' + (done ? ' checked' : '') + ' aria-label="' + esc(t.title) + '">'
     + '<div class="board-card-body"><span class="board-card-title">' + esc(t.title) + '</span>'
     + '<span class="board-card-meta">' + meta + '</span>'
-    + (subs.length ? subsLine(subs) : '') + tieLineHtml(Object.assign({}, ties, { subs: null })) + pastDateChip(t, key, now) + '</div>'
+    + (subs.length ? subsLine(subs) : '') + tieLineHtml(Object.assign({}, ties, { subs: null })) + glanceLine(t, key) + '</div>'
     + moveButton(t) + '</article>';
 }
 

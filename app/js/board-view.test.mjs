@@ -94,15 +94,21 @@ const UI = { boardProject: null, boardCol: 'next' };
   assert.ok(!plain.includes('tie-line') && !plain.includes('is-waiting'), 'no ties, nothing added');
 }
 {
-  // A task past its date says so on its card (#203), unless the card's one chip already is the date.
-  const late = { categories: st.categories, projects: [{ id: 'pa', name: 'Home', color: '#3E8E5E', tasks: [
-    { id: 'l1', title: 'Renew passport', status: 'next', deadline: '2020-01-01', categoryIds: ['c1'] },
-    { id: 'l2', title: 'Later', status: 'next', deadline: '2099-01-01', categoryIds: ['c1'] },
-  ] }] };
-  const h = renderBoard(late, UI, now);
-  assert.strictEqual(count(h, /board-card-due/g), 1, 'only the late task gets the past-its-date line');
-  assert.ok(h.includes('past its date'), 'amber "past its date" by default');
-  const dueKey = { ...late, comfort: { colourBy: { value: ['due'], updatedAt: 1 } } };
-  assert.ok(!renderBoard(dueKey, UI, now).includes('board-card-due'), 'no second date when the chip is the due date');
+  // The priority and due date line (#211).
+  const mk = (extra, colourBy = ['category']) => ({ categories: st.categories, comfort: { colourBy: { value: colourBy, updatedAt: 1 } },
+    projects: [{ id: 'pa', name: 'Home', color: '#3E8E5E', tasks: [{ id: 'g1', title: 'Card', status: 'next', categoryIds: ['c1'], ...extra }] }] });
+  const both = renderBoard(mk({ priority: 'urgent', deadline: '2020-01-01' }), UI, now);
+  assert.ok(both.includes('gl-glance') && both.includes('gl-prio') && both.includes('Urgent') && both.includes('--c:#b42318') && both.includes('deadline-chip'), 'both shown');
+  const prio = renderBoard(mk({ priority: 'low' }), UI, now);
+  assert.ok(prio.includes('gl-prio') && prio.includes('Low') && !prio.includes('deadline-chip'), 'priority only');
+  const date = renderBoard(mk({ deadline: '2099-01-01' }), UI, now);
+  assert.ok(date.includes('gl-glance') && date.includes('deadline-chip') && !date.includes('gl-prio'), 'date only');
+  assert.ok(!renderBoard(mk({}), UI, now).includes('gl-glance'), 'neither: no line');
+  const pk = renderBoard(mk({ priority: 'high', deadline: '2099-01-01' }, ['priority']), UI, now);
+  assert.ok(!pk.includes('gl-prio') && pk.includes('deadline-chip'), 'priority key: no priority in the line, date stays');
+  const dk = renderBoard(mk({ priority: 'high', deadline: '2099-01-01' }, ['due']), UI, now);
+  assert.ok(dk.includes('gl-prio') && !dk.includes('deadline-chip'), 'due key: no date chip in the line');
+  const done = renderBoard(mk({ status: 'done', deadline: '2020-01-01', updatedAt: now - 3600e3 }), { ...UI, boardCol: 'done' }, now);
+  assert.ok(done.includes('data-task-id="g1"') && !done.includes('deadline-chip') && !done.includes('gl-glance'), 'done task: no date');
 }
 console.log('board-view tests passed');
