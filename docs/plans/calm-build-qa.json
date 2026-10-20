@@ -102,7 +102,7 @@
     "Check that the Board follows the project you pick",
     "you",
     "With a project picked, the tab numbers count only that project's tasks, and the heading shows its name in its colour (added after your third look).",
-    "On the Board, pick Home from the Project menu. The heading should say 'Home' with a coloured dot and bar, the menu should have a border in the same colour, and Up next should count only Home's tasks. Type a word in Find, and the numbers should drop to match the list. Then pick 'Project: All'; the heading should go back to 'Board'.",
+    "On the Board, pick Home from the Project menu. The heading should say 'Home' with a coloured dot and bar, the menu should have a border in the same colour, and Up next should count only Home's tasks. Type a word in Find, and the tab numbers should drop to match the list. Then pick 'Project: All'; the heading should go back to 'Board'.",
     {
      "src": "docs/generated/calm-build/built/218-board-project-390-light.png",
      "alt": "The Board on a phone with Home picked: heading Home with a green dot and bar, a green-edged menu, Up next 23",
@@ -130,7 +130,7 @@
     "Reply",
     "Tell me how it went",
     "you",
-    "Your reply tells me whether issues #198 to #208 and #210 to #218 (the issues for this build) can move forward.",
+    "Your reply tells me whether the issues for this build, #198 to #208 and #210 to #218, can move forward.",
     "Reply 'QA passed: calm by default', or say what's wrong."
    ]
   ]
@@ -149,7 +149,7 @@
   ]
  },
  "wrapup": {
-  "summary": "Calm by default is built. The header and side menu stay in place, and the Board shows one tab at a time. You also get Task details, one coloured label per card, settings that open and close with a Comfort group, plainer wording and the Sort fixes. Cards show their priority and due date too, in the new due colours, and the Board follows the project you pick. All 229 unit tests and all 13 browser checks pass.",
+  "summary": "Calm by default is built. The header and side menu stay in place, and the Board shows one tab at a time. You also get Task details, one coloured label per card, settings as rows that open and close, with a new Comfort group, plainer wording and the Sort fixes. Cards show their priority and due date too, in the new due colours (red for due today, a stronger olive for due soon), and the Board follows the project you pick. All 229 unit tests and all 13 browser checks pass.",
   "changing": "Changed: the frame, the Board, Settings and some wording. New: Task details, Card colour and the Comfort group. Unchanged: Projects.",
   "blocking": "Waiting on your test.",
   "next": "After 'QA passed', you close the issues when you're happy, and the pull request is merged into main, the version of the app you use.",
