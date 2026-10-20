@@ -15,7 +15,9 @@ a solid border in light mode (option C); dark mode is unchanged.
 **Why.** aj chose the smallest change from today (C) over solid yellow (A, which was suggested) and
 amber (B, too close to the "past its date" chip).
 
-**Status.** Approved; planned under #198.
+**Status.** Built 2026-10-20 under #213 (#214, #215), in aj's QA. One change from the design: the
+chip's words are a darker olive (`#3A4200`), because the design's olive failed the 4.5:1 text
+contrast check on the stronger fill. See `docs/4-systems/due-dates.md`.
 
 ## 2026-10-20 — Design approved: due and urgency on cards (1A)
 

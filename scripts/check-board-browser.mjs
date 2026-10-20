@@ -32,7 +32,7 @@ const t = (id, title, status, extra) => Object.assign({ id, title, status, updat
 const long = Array.from({ length: 22 }, (_, i) => t('l' + i, 'Garden job number ' + (i + 1), 'next', { order: i + 5 }));
 const seed = {
   projects: [
-    { id: 'p0', name: 'Home', color: '#3E8E5E', tasks: [t('n1', 'Bins out', 'next', { order: 1 }), t('n2', 'Mop the kitchen', 'next', { order: 2 }), t('n3', 'Fix the gate latch', 'next', { order: 3, priority: 'urgent', deadline: new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10), categoryIds: ['c1'] }),
+    { id: 'p0', name: 'Home', color: '#3E8E5E', tasks: [t('n1', 'Bins out', 'next', { order: 1 }), t('n2', 'Mop the kitchen', 'next', { order: 2, deadline: new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10) }), t('n3', 'Fix the gate latch', 'next', { order: 3, priority: 'urgent', deadline: new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10), dueSetAt: Date.now() - 15 * 864e5, categoryIds: ['c1'] }),
       t('d1', 'Book boiler service', 'doing'), t('x1', 'Paint the hall', 'done', { completedAt: Date.now() - 1000 })].concat(long) },
     { id: 'p1', name: 'Garden', color: '#4D6FB8', tasks: [t('g1', 'Plant the bulbs', 'next', { order: 1 }), t('g2', 'Order compost', 'doing')] },
   ],
@@ -69,6 +69,12 @@ for (const size of ['desk', 'phone']) for (const scheme of ['dark', 'light']) {
   const line = await page.$eval('.board-card[data-task-id="n3"]', (e) => (e.querySelector('.gl-glance') || {}).textContent || '');
   check(line.includes('Urgent') && /due in/.test(line), tag + 'a card shows its priority and due date', line);
   check(!(await page.$('.board-card[data-task-id="n1"] .gl-glance')), tag + 'a card with neither has no line');
+  // Due today is always red (#214): the card's "Due today" key label carries the red key colour.
+  const today = await page.$eval('.board-card[data-task-id="n2"] .board-card-meta', (e) => e.innerHTML);
+  check(/Due today/.test(today) && /--c:#b42318/i.test(today), tag + 'a card due today has a red label', today);
+  // The yellow chip (#215): a card is paper in both themes, so its chip has the light set's solid olive border.
+  const yellow = await page.$eval('.board-card[data-task-id="n3"] .deadline-chip', (e) => ({ cls: e.className, border: getComputedStyle(e).borderTopColor }));
+  check(/\bdue-yellow\b/.test(yellow.cls) && /^color\(srgb 0\.3098\d* 0\.3529\d* 0\)$/.test(yellow.border), tag + 'the yellow chip has a solid olive border', yellow.cls + ' ' + yellow.border);
   await page.screenshot({ path: ROOT + 'docs/generated/calm-build/built/212-board-' + (phone ? '390' : '1440') + '-' + scheme + '.png', fullPage: false });
 
   // tabs, groups of 7, Show more

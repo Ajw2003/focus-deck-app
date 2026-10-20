@@ -15,7 +15,7 @@ const ALL = T({ categoryIds: ['feat', 'bug'], priority: 'high', deadline: day(0)
 test('each source on its own', () => {
   assert.deepStrictEqual(cardKey(ALL, st(), ['category'], NOW), { name: 'Feature', color: '#3a3', source: 'category' });
   assert.deepStrictEqual(cardKey(ALL, st(), ['priority'], NOW), { name: 'High priority', color: '#C2731E', source: 'priority' });
-  assert.deepStrictEqual(cardKey(ALL, st(), ['due'], NOW), { name: 'Due today', color: '#C2731E', source: 'due' });
+  assert.deepStrictEqual(cardKey(ALL, st(), ['due'], NOW), { name: 'Due today', color: '#b42318', source: 'due' });
   assert.deepStrictEqual(cardKey(ALL, st(), ['label:bug'], NOW), { name: 'Bug', color: '#d33', source: 'label:bug' });
 });
 

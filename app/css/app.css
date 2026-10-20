@@ -21,6 +21,9 @@
   /* Deadline chip stages (#106). Borders + tint + words, never hue alone: --due-soon is an olive-lime and
      --due-now a crimson, apart from the gold --prio-medium, orange --prio-high and red --prio-urgent. */
   --due-soon:#4F5A00;
+  /* The yellow chip is stronger in light mode so it reads on a bright (HDR) white screen; dark mode
+     keeps the 18% tint and 60% border (design 1C, approved 2026-10-20, #215). */
+  --due-soon-fill:34%; --due-soon-edge:100%; --due-soon-ink:#3A4200; /* darker words keep 4.5:1 on that fill */
   --due-now:#9F0C3D;
   --due-amber:#7A4D00;
   --proj-sat:58%;
@@ -86,7 +89,7 @@
     --prio-high:#F5A867;
     --prio-medium:#E8C75E;
     --prio-low:#8FBF9F;
-    --due-soon:#D9E66B;
+    --due-soon:#D9E66B; --due-soon-fill:18%; --due-soon-edge:60%; --due-soon-ink:#D9E66B;
     --due-now:#FF96B9;
     --due-amber:#F2C063;
     --proj-sat:55%;
@@ -117,7 +120,7 @@
   --prio-high:#F5A867;
   --prio-medium:#E8C75E;
   --prio-low:#8FBF9F;
-  --due-soon:#D9E66B;
+  --due-soon:#D9E66B; --due-soon-fill:18%; --due-soon-edge:60%; --due-soon-ink:#D9E66B;
   --due-now:#FF96B9;
   --due-amber:#F2C063;
   --proj-sat:55%;
@@ -336,7 +339,7 @@ button.chip.proj-chip:hover{background:var(--line);}
    neutral chip; yellow and red add a tint and a border so they differ from the borderless priority
    chips even where a hue is close. A done task or a project deadline gets no stage class. */
 .chip.deadline-chip.due-white{background:var(--surface-2); color:var(--ink-soft);}
-.chip.deadline-chip.due-yellow{background:color-mix(in srgb, var(--due-soon) 18%, transparent); color:var(--due-soon); border-color:color-mix(in srgb, var(--due-soon) 60%, transparent); font-weight:700;}
+.chip.deadline-chip.due-yellow{background:color-mix(in srgb, var(--due-soon) var(--due-soon-fill), transparent); color:var(--due-soon-ink); border-color:color-mix(in srgb, var(--due-soon) var(--due-soon-edge), transparent); font-weight:700;}
 .chip.deadline-chip.due-red{background:color-mix(in srgb, var(--due-now) 18%, transparent); color:var(--due-now); border-color:color-mix(in srgb, var(--due-now) 60%, transparent); font-weight:700;}
 .chip.deadline-chip.due-amber{background:color-mix(in srgb, var(--due-amber) 18%, transparent); color:var(--due-amber); border-color:color-mix(in srgb, var(--due-amber) 60%, transparent); font-weight:700;} /* past its date, the Comfort default (#203) */
 .chip.gh-chip{border-color:transparent; background:var(--surface-2); color:var(--ink-soft); text-decoration:none;}
@@ -1134,7 +1137,7 @@ body.is-dragging-task .empty-note{display:none;}
   --ink:#1C2438; --ink-soft:#59627A; --ink-faint:#6E7790; --line:#C7CEDB;
   --accent:#8F5A06; --accent-ink:#FFFFFF; --danger:#A83E3E;
   --prio-urgent:#B42318; --prio-high:#AD4A0B; --prio-medium:#7A5A00; --prio-low:#3F6E53;
-  --due-soon:#4F5A00; --due-now:#9F0C3D;
+  --due-soon:#4F5A00; --due-soon-fill:34%; --due-soon-edge:100%; --due-soon-ink:#3A4200; --due-now:#9F0C3D;
   --index-rule:color-mix(in srgb, var(--rule) 45%, #FBFAF7);
   --folder-edge:color-mix(in srgb, var(--proj-color) 45%, var(--folder));
   color-scheme:light; color:var(--ink);
@@ -1168,6 +1171,7 @@ body.is-dragging-task .empty-note{display:none;}
   --ink:#1C2438; --ink-soft:#59627A; --ink-faint:#6E7790; --line:#C7CEDB;
   --accent:#8F5A06; --accent-ink:#FFFFFF; --danger:#A83E3E;
   --prio-urgent:#B42318; --prio-high:#AD4A0B; --prio-medium:#7A5A00; --prio-low:#3F6E53;
+  --due-soon:#4F5A00; --due-soon-fill:34%; --due-soon-edge:100%; --due-soon-ink:#3A4200; --due-now:#9F0C3D;
   color-scheme:light; color:var(--ink);
 }
 .board-title{margin:0 0 10px; font:700 1.4rem var(--font-ui);}

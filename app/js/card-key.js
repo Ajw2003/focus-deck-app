@@ -13,7 +13,7 @@ export function dueKey(t, overdue, now = Date.now()) {
   const due = new Date(t.deadline + 'T00:00');
   const days = Math.round((due - today) / 864e5);
   if (days < 0) return overdue === 'red' ? { name: 'Overdue', color: '#b42318' } : { name: 'Past its date', color: '#c98a12' };
-  if (days === 0) return { name: 'Due today', color: '#C2731E' };
+  if (days === 0) return { name: 'Due today', color: '#b42318' }; // always red, like the chip (#214)
   if (days <= 3) return { name: 'Due in ' + days + ' day' + (days === 1 ? '' : 's'), color: '#C2731E' };
   return { name: 'Due ' + due.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), color: '#4D6FB8' };
 }
