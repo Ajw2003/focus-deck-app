@@ -1,135 +1,148 @@
 {
-  "title": "Calm Build QA",
-  "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #212",
-  "short": {
-    "lead": "Calm by default is built into the real app. On a wide screen the Focus Deck name and the centred 'Jot down a stray thought…' box stay at the top, with the side menu below them. The Board shows one tab at a time, each card shows its priority and due date, and a Task details panel opens beside the list. Every setting is a row that opens and closes, and there is a new Comfort group. Projects is unchanged, as you chose in option 1A ('keep Projects as it is today'). You test a copy of branch AjsAgent/calm-build with sample data, on your phone or computer, so your real tasks are not touched.",
-    "hint": "Tap a step to see what to try and what you should see.",
-    "key": [
-      [
-        "Built",
-        ""
-      ],
-      [
-        "You test it",
-        "you"
-      ]
-    ],
-    "items": [
-      [
-        "eye",
-        "Open",
-        "Open the test copy",
-        "you",
-        "This is a copy of branch AjsAgent/calm-build with sample data. A site called raw.githack serves it from GitHub, so it opens on your phone or computer with nothing to install.",
-        "Open https://raw.githack.com/Ajw2003/focus-deck-app/AjsAgent/calm-build/docs/generated/sort-steps/seed.html#board?ties in your browser. Change the end to #focus, #sort or #projects to open another screen. Opening the address again reloads the sample data, so it also works as a reset.",
-        {
-          "src": "docs/generated/calm-build/built/206-board-1440.png",
-          "alt": "The built Board at 1440 wide with sample data",
-          "caption": "The Board you should see first."
-        }
-      ],
-      [
-        "list",
-        "Frame",
-        "Check the header and side menu",
-        "you",
-        "The name and jotter stay at the top while the page scrolls; the side menu sits below them with Settings and sync at its foot.",
-        "Scroll the Board down. Then type a thought into 'Jot down a stray thought…' and press Add; the Sort badge in the side menu goes up by one."
-      ],
-      [
-        "search",
-        "Board",
-        "Find, filter and show more",
-        "you",
-        "The list narrows as you type and filter, and 'Show 7 more' adds the next cards.",
-        "Type 'boiler' into Find. Clear it, press Filter and choose 'Has subtasks'. Clear the filter, then press 'Show 7 more (51 left)' under the list."
-      ],
-      [
-        "next",
-        "Details",
-        "Open and edit a task",
-        "you",
-        "Task details opens beside the list with only one row open at a time, and changes save as you make them.",
-        "Click the 'Book boiler service' card. Open Subtasks and press '+ Add a subtask'. Change the status menu from Up next to In progress. Press the Escape key to close the panel. Then press '→ In progress' on another card; it should move to the In progress tab.",
-        {
-          "src": "docs/generated/calm-build/built/201-subtasks-open-1440.png",
-          "alt": "Task details for Book boiler service with Subtasks open",
-          "caption": "Task details with Subtasks open."
-        }
-      ],
-      [
-        "loop",
-        "Settings",
-        "Change the card colour and late tasks",
-        "you",
-        "Each card shows one coloured label (a chip), taken from whichever item is first on the Card colour list. A task past its date shows amber 'past its date' by default, or red 'overdue' when you choose it.",
-        "Open Settings from the side menu. Under Comfort, open Card colour and press '↑ Up' on Priority, then press Back; the coloured labels on the Board now put Priority first. In Task details, give any task a due date in the past; its card should say 'past its date'. Then go to Settings and, under Comfort, set 'Tasks past their date' to Red; the same card should now say 'overdue'.",
-        {
-          "src": "docs/generated/calm-build/built/206-pastdate-amber-1440.png",
-          "alt": "A Board card showing 290d past its date in amber",
-          "caption": "A late task on the Board, amber by default."
-        }
-      ],
-      [
-        "eye",
-        "Glance",
-        "See priority and due date on cards",
-        "you",
-        "Every Board card with a priority, a due date or both shows them on one line under its coloured label (added after your first look).",
-        "On the Board, open a card's Task details, open 'Priority and due date', and set a priority and a due date 3 days away. Close the panel; the card should now show a flag with the priority word, then 'due in 3d'.",
-        {
-          "src": "docs/generated/calm-build/built/212-board-1440-light.png",
-          "alt": "A Board card showing Urgent and due in 3d under its Repair label",
-          "caption": "The line on a card with a priority and a due date."
-        }
-      ],
-      [
-        "check",
-        "Sort",
-        "Check the Sort fixes",
-        "you",
-        "A step you can't use yet says why, and right-clicking a project or label card opens its colour picker.",
-        "Open Sort. Before choosing a project, press '2. Stick on flags'; a line should say 'Choose a project first. Labels and links open once the thought has a project.' Then right-click a project card; its colour picker should open."
-      ],
-      [
-        "eye",
-        "Phone",
-        "Check a narrow window",
-        "you",
-        "Below 1100 pixels wide, the bottom bar returns and Task details fills the screen.",
-        "Make the browser window narrow, or open the same address on your phone if it is on the same network as your computer, and repeat the 'Open and edit a task' step."
-      ],
-      [
-        "check",
-        "Reply",
-        "Tell me how it went",
-        "you",
-        "Your reply tells me whether issues #198 to #208 can move forward.",
-        "Reply 'QA passed: calm by default', or say what's wrong."
-      ]
-    ]
-  },
-  "changes": [],
-  "qa": {
-    "feature": "calm by default",
-    "base": "origin/main",
-    "unverified": [
-      "I did not open the test copy's address from step 1 (on raw.githack), because my sandbox, the closed-off space I work in, can't reach that site",
-      "Changes made in Task details on a GitHub-linked task were checked by reading the code only, not with a live GitHub call",
-      "Everything was checked in Chromium only, not in Safari or Firefox and not on a real phone",
-      "GitHub's automatic tests on pull request 209 had not reported a result when this page was built",
-      "One case in the category-filter check was dropped, because the labels step is now locked until a project is chosen, so a thought with no project can no longer reach the labels list",
-      "'Surprise me' was left unchanged, because the plan gave no new wording for it"
-    ]
-  },
-  "wrapup": {
-    "summary": "Calm by default is built: the header and side menu that stay in place, the one-tab Board, Task details, one chip per card, folded settings with Comfort, plainer wording and the Sort fixes. all 225 unit tests and all 13 browser checks pass.",
-    "changing": "Changed: the frame, the Board, Settings and some wording. New: Task details, Card colour and the Comfort group. Unchanged: Projects.",
-    "blocking": "Waiting on your test.",
-    "next": "After 'QA passed', you close the issues when you're happy, and the pull request is merged into main, the version of the app you use.",
-    "todo": [
-      "Do the steps under 'In short', ending with the reply.",
-      "Reply 'QA passed: calm by default', or say what's wrong."
-    ]
-  }
+ "title": "Calm Build QA",
+ "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #215",
+ "short": {
+  "lead": "Calm by default is built into the real app. On a wide screen the Focus Deck name and the centred 'Jot down a stray thought…' box stay at the top, with the side menu below them. The Board shows one tab at a time, each card shows its priority and due date, and a Task details panel opens beside the list. Every setting is a row that opens and closes, and there is a new Comfort group. Projects is unchanged, as you chose in option 1A ('keep Projects as it is today'). You test a copy of branch AjsAgent/calm-build with sample data, on your phone or computer, so your real tasks are not touched.",
+  "hint": "Tap a step to see what to try and what you should see.",
+  "key": [
+   [
+    "Built",
+    ""
+   ],
+   [
+    "You test it",
+    "you"
+   ]
+  ],
+  "items": [
+   [
+    "eye",
+    "Open",
+    "Open the test copy",
+    "you",
+    "This is a copy of branch AjsAgent/calm-build with sample data. A site called raw.githack serves it from GitHub, so it opens on your phone or computer with nothing to install.",
+    "Open https://raw.githack.com/Ajw2003/focus-deck-app/5ae9a50899208092f0795300401dcedb4b6dc884/docs/generated/sort-steps/seed.html#board?ties in your browser. Change the end to #focus, #sort or #projects to open another screen. Opening the address again reloads the sample data, so it also works as a reset.",
+    {
+     "src": "docs/generated/calm-build/built/206-board-1440.png",
+     "alt": "The built Board at 1440 wide with sample data",
+     "caption": "The Board you should see first."
+    }
+   ],
+   [
+    "list",
+    "Frame",
+    "Check the header and side menu",
+    "you",
+    "The name and jotter stay at the top while the page scrolls; the side menu sits below them with Settings and sync at its foot.",
+    "Scroll the Board down. Then type a thought into 'Jot down a stray thought…' and press Add; the Sort badge in the side menu goes up by one."
+   ],
+   [
+    "search",
+    "Board",
+    "Find, filter and show more",
+    "you",
+    "The list narrows as you type and filter, and 'Show 7 more' adds the next cards.",
+    "Type 'boiler' into Find. Clear it, press Filter and choose 'Has subtasks'. Clear the filter, then press 'Show 7 more (51 left)' under the list."
+   ],
+   [
+    "next",
+    "Details",
+    "Open and edit a task",
+    "you",
+    "Task details opens beside the list with only one row open at a time, and changes save as you make them.",
+    "Click the 'Book boiler service' card. Open Subtasks and press '+ Add a subtask'. Change the status menu from Up next to In progress. Press the Escape key to close the panel. Then press '→ In progress' on another card; it should move to the In progress tab.",
+    {
+     "src": "docs/generated/calm-build/built/201-subtasks-open-1440.png",
+     "alt": "Task details for Book boiler service with Subtasks open",
+     "caption": "Task details with Subtasks open."
+    }
+   ],
+   [
+    "loop",
+    "Settings",
+    "Change the card colour and late tasks",
+    "you",
+    "Each card shows one coloured label (a chip), taken from whichever item is first on the Card colour list. A task past its date shows amber 'past its date' by default, or red 'overdue' when you choose it.",
+    "Open Settings from the side menu. Under Comfort, open Card colour and press '↑ Up' on Priority, then press Back; the coloured labels on the Board now put Priority first. In Task details, give any task a due date in the past; its card should say 'past its date'. Then go to Settings and, under Comfort, set 'Tasks past their date' to Red; the same card should now say 'overdue'.",
+    {
+     "src": "docs/generated/calm-build/built/206-pastdate-amber-1440.png",
+     "alt": "A Board card showing 290d past its date in amber",
+     "caption": "A late task on the Board, amber by default."
+    }
+   ],
+   [
+    "eye",
+    "Glance",
+    "See priority and due date on cards",
+    "you",
+    "Every Board card with a priority, a due date or both shows them on one line under its coloured label (added after your first look).",
+    "On the Board, open a card's Task details, open 'Priority and due date', and set a priority and a due date 3 days away. Close the panel; the card should now show a flag with the priority word, then 'due in 3d'.",
+    {
+     "src": "docs/generated/calm-build/built/212-board-1440-light.png",
+     "alt": "A Board card showing Urgent and due in 3d under its Repair label",
+     "caption": "The line on a card with a priority and a due date."
+    }
+   ],
+   [
+    "eye",
+    "Due colours",
+    "Check that a task due today is red and the yellow chip is easy to see",
+    "you",
+    "A task due today always shows red. The yellow 'due soon' chip now has a stronger olive fill and a solid border, so you can see it on a bright white screen (added after your second look).",
+    "On the Board, open 'Mop the kitchen' in Task details and give it today's date; its card should show a red label. Give 'Fix the gate latch' a date 3 days away; its 'due in 3d' chip should be olive with a solid border. Switch your phone to dark mode and look at that chip again; it should still be olive with a solid border, because Board cards stay paper-coloured in both modes.",
+    {
+     "src": "docs/generated/calm-build/built/212-board-390-light.png",
+     "alt": "Board cards on a phone: Mop the kitchen with a red Due today label, Fix the gate latch with an olive due in 3d chip",
+     "caption": "A red 'Due today' label and the stronger yellow chip."
+    }
+   ],
+   [
+    "check",
+    "Sort",
+    "Check the Sort fixes",
+    "you",
+    "A step you can't use yet says why, and right-clicking a project or label card opens its colour picker.",
+    "Open Sort. Before choosing a project, press '2. Stick on flags'; a line should say 'Choose a project first. Labels and links open once the thought has a project.' Then right-click a project card; its colour picker should open."
+   ],
+   [
+    "eye",
+    "Phone",
+    "Check a narrow window",
+    "you",
+    "Below 1100 pixels wide, the bottom bar returns and Task details fills the screen.",
+    "Make the browser window narrow, or open the same address on your phone if it is on the same network as your computer, and repeat the 'Open and edit a task' step."
+   ],
+   [
+    "check",
+    "Reply",
+    "Tell me how it went",
+    "you",
+    "Your reply tells me whether issues #198 to #208 and #210 to #215 (the issues for this build) can move forward.",
+    "Reply 'QA passed: calm by default', or say what's wrong."
+   ]
+  ]
+ },
+ "changes": [],
+ "qa": {
+  "feature": "calm by default",
+  "base": "origin/main",
+  "unverified": [
+   "I did not open the test copy's address from step 1 (on raw.githack), because my sandbox, the closed-off space I work in, can't reach that site",
+   "Changes made in Task details on a GitHub-linked task were checked by reading the code only, not with a live GitHub call",
+   "Everything was checked in Chromium only, not in Safari or Firefox and not on a real phone",
+   "One case in the category-filter check was dropped, because the labels step is now locked until a project is chosen, so a thought with no project can no longer reach the labels list",
+   "'Surprise me' was left unchanged, because the plan gave no new wording for it",
+   "The olive words on the yellow chip are a darker shade than the design showed (#3A4200 instead of #4F5A00), because the design's shade failed the 4.5:1 text contrast check on the stronger fill"
+  ]
+ },
+ "wrapup": {
+  "summary": "Calm by default is built. It has a header and side menu that stay in place, a Board that shows one tab at a time, Task details, one coloured label per card, settings that open and close with a new Comfort group, plainer wording, the Sort fixes, priority and due date on cards, and the new due colours. All 228 unit tests and all 13 browser checks pass.",
+  "changing": "Changed: the frame, the Board, Settings and some wording. New: Task details, Card colour and the Comfort group. Unchanged: Projects.",
+  "blocking": "Waiting on your test.",
+  "next": "After 'QA passed', you close the issues when you're happy, and the pull request is merged into main, the version of the app you use.",
+  "todo": [
+   "Do the steps under 'In short', ending with the reply.",
+   "Reply 'QA passed: calm by default', or say what's wrong."
+  ]
+ }
 }

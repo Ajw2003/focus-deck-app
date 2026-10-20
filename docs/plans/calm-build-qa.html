@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- house-rules make_page 2.68.5 -->
+<!-- house-rules make_page 2.69.0 -->
 <meta charset="utf-8">
 <title>Calm Build QA</title><!-- also set this to PAGE.title: galleries read this tag, not the script -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
@@ -62,7 +62,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .crh{display:flex;gap:6px;align-items:center;font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .crb.you .crh{color:var(--you)}
 .crh .ico{width:16px;height:16px}
-.crb p{font-size:.9rem}
+.crb p,.crb li{font-size:.9rem}
+.crb ul.cl{margin:0;padding-left:1.1em;display:grid;gap:4px}
 .g.done span.c{background:var(--ok-soft);color:var(--ok);border-radius:50%}
 .g[aria-pressed="true"] span.c{outline:3px solid var(--accent);outline-offset:2px}
 .g.you[aria-pressed="true"] span.c{outline-color:var(--you)}
@@ -110,6 +111,7 @@ details[open] > summary .more::after{content:" ▲"} details:not([open]) > summa
 .flow > span.mid{background:var(--accent-soft)}
 .flow > i{align-self:center;color:var(--muted);font-style:normal}
 .flow small{font-size:.66rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+@media (max-width:479px){.flow{grid-template-columns:minmax(0,1fr)}.flow > i{justify-self:center;transform:rotate(90deg)}}
 .files{display:grid;gap:6px;border-top:1px solid var(--line);padding-top:10px}
 .files h4{margin:0;font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .frow{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:.86rem;align-items:baseline}
@@ -178,7 +180,7 @@ details[open] > summary .more::after{content:" ▲"} details:not([open]) > summa
 .cmp{display:grid;gap:6px;min-width:0}
 .cmp-side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 body{overflow-wrap:anywhere}
-.crb p,.fromto span,.flow > span,.ci .detail p,.sd{overflow-wrap:anywhere;min-width:0}
+.crb p,.crb li,.fromto span,.flow > span,.ci .detail p,.sd{overflow-wrap:anywhere;min-width:0}
 @media (max-width:479px){.cr{grid-template-columns:minmax(0,1fr)}}
 .cmp-side > div{display:grid;gap:4px;align-content:start;min-width:0;border:1px solid var(--line);border-radius:10px;padding:6px;background:var(--card)}
 .cmp-side b,.cmp-slide label{font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
@@ -268,7 +270,7 @@ const EXAMPLE_PIC = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http
 const EXAMPLE_PIC_AFTER = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><rect width="320" height="180" fill="#dff3e8"/><rect x="100" y="50" width="120" height="80" rx="12" fill="#1f7a4d"/></svg>');
 const PAGE = {
   "title": "Calm Build QA",
-  "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #212",
+  "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #215",
   "short": {
     "lead": "Calm by default is built into the real app. On a wide screen the Focus Deck name and the centred 'Jot down a stray thought…' box stay at the top, with the side menu below them. The Board shows one tab at a time, each card shows its priority and due date, and a Task details panel opens beside the list. Every setting is a row that opens and closes, and there is a new Comfort group. Projects is unchanged, as you chose in option 1A ('keep Projects as it is today'). You test a copy of branch AjsAgent/calm-build with sample data, on your phone or computer, so your real tasks are not touched.",
     "hint": "Tap a step to see what to try and what you should see.",
@@ -289,7 +291,7 @@ const PAGE = {
         "Open the test copy",
         "you",
         "This is a copy of branch AjsAgent/calm-build with sample data. A site called raw.githack serves it from GitHub, so it opens on your phone or computer with nothing to install.",
-        "Open https://raw.githack.com/Ajw2003/focus-deck-app/AjsAgent/calm-build/docs/generated/sort-steps/seed.html#board?ties in your browser. Change the end to #focus, #sort or #projects to open another screen. Opening the address again reloads the sample data, so it also works as a reset.",
+        "Open https://raw.githack.com/Ajw2003/focus-deck-app/5ae9a50899208092f0795300401dcedb4b6dc884/docs/generated/sort-steps/seed.html#board?ties in your browser. Change the end to #focus, #sort or #projects to open another screen. Opening the address again reloads the sample data, so it also works as a reset.",
         {
           "src": "calm-build-qa-pics/206-board-1440.png",
           "alt": "The built Board at 1440 wide with sample data",
@@ -352,6 +354,19 @@ const PAGE = {
         }
       ],
       [
+        "eye",
+        "Due colours",
+        "Check that a task due today is red and the yellow chip is easy to see",
+        "you",
+        "A task due today always shows red. The yellow 'due soon' chip now has a stronger olive fill and a solid border, so you can see it on a bright white screen (added after your second look).",
+        "On the Board, open 'Mop the kitchen' in Task details and give it today's date; its card should show a red label. Give 'Fix the gate latch' a date 3 days away; its 'due in 3d' chip should be olive with a solid border. Switch your phone to dark mode and look at that chip again; it should still be olive with a solid border, because Board cards stay paper-coloured in both modes.",
+        {
+          "src": "calm-build-qa-pics/212-board-390-light.png",
+          "alt": "Board cards on a phone: Mop the kitchen with a red Due today label, Fix the gate latch with an olive due in 3d chip",
+          "caption": "A red 'Due today' label and the stronger yellow chip."
+        }
+      ],
+      [
         "check",
         "Sort",
         "Check the Sort fixes",
@@ -372,7 +387,7 @@ const PAGE = {
         "Reply",
         "Tell me how it went",
         "you",
-        "Your reply tells me whether issues #198 to #208 can move forward.",
+        "Your reply tells me whether issues #198 to #208 and #210 to #215 (the issues for this build) can move forward.",
         "Reply 'QA passed: calm by default', or say what's wrong."
       ]
     ]
@@ -381,7 +396,7 @@ const PAGE = {
     [
       "chg",
       "Files changed, counted from git against origin/main",
-      "172 files, +6859 −419",
+      "200 files, +8473 −437",
       null,
       "The added and removed counts come from git (git diff --numstat origin/main...HEAD); the estimates beside them come from the plan.",
       null,
@@ -436,8 +451,8 @@ const PAGE = {
         ],
         [
           "app/css/app.css",
-          143,
-          45,
+          151,
+          49,
           [
             [
               "Not in the plan",
@@ -558,6 +573,30 @@ const PAGE = {
           "app/js/due-dates.test.mjs",
           5,
           1,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "app/js/due-stage.js",
+          3,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "app/js/due-stage.test.mjs",
+          26,
+          8,
           [
             [
               "Not in the plan",
@@ -760,7 +799,7 @@ const PAGE = {
         ],
         [
           "docs/3-state/ProjectState.md",
-          20,
+          27,
           2,
           [
             [
@@ -784,7 +823,7 @@ const PAGE = {
         ],
         [
           "docs/4-systems/calm-board.md",
-          66,
+          64,
           0,
           [
             [
@@ -796,7 +835,7 @@ const PAGE = {
         ],
         [
           "docs/4-systems/due-dates.md",
-          6,
+          17,
           2,
           [
             [
@@ -856,7 +895,7 @@ const PAGE = {
         ],
         [
           "docs/6-decisions/Decisions.md",
-          68,
+          83,
           0,
           [
             [
@@ -1683,6 +1722,78 @@ const PAGE = {
           ]
         ],
         [
+          "docs/generated/calm-build/built/212-board-1440-dark.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/calm-build/built/212-board-1440-light.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/calm-build/built/212-board-390-dark.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/calm-build/built/212-board-390-light.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/calm-build/built/212-edit-in-details-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/calm-build/built/212-edit-in-details.mjs",
+          33,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
           "docs/generated/calm-build/compose.mjs",
           6,
           0,
@@ -1782,6 +1893,114 @@ const PAGE = {
           "docs/generated/calm-test/index.html",
           22,
           6,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/due-colours/a-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/due-colours/a-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/due-colours/b-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/due-colours/b-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/due-colours/c-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/due-colours/c-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/due-colours/now-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/due-colours/now-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/due-colours/shoot.mjs",
+          58,
+          0,
           [
             [
               "Not in the plan",
@@ -2163,8 +2382,20 @@ const PAGE = {
           ]
         ],
         [
+          "docs/plans/calm-build-qa-pics/212-board-1440-light.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
           "docs/plans/calm-build-qa.html",
-          2384,
+          2613,
           0,
           [
             [
@@ -2176,7 +2407,7 @@ const PAGE = {
         ],
         [
           "docs/plans/calm-build-qa.json",
-          122,
+          135,
           0,
           [
             [
@@ -2213,6 +2444,114 @@ const PAGE = {
         [
           "docs/plans/calm-by-default.md",
           34,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/due-colours-build-pics/c-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/due-colours-build.html",
+          462,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/due-colours-build.json",
+          70,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/due-colours-pics/a-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/due-colours-pics/b-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/due-colours-pics/c-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/due-colours-pics/now-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/due-colours.html",
+          526,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/due-colours.json",
+          134,
           0,
           [
             [
@@ -2332,8 +2671,8 @@ const PAGE = {
         ],
         [
           "scripts/check-board-browser.mjs",
-          30,
-          102,
+          44,
+          104,
           [
             [
               "Not in the plan",
@@ -2358,6 +2697,18 @@ const PAGE = {
           "scripts/check-desktop-browser.mjs",
           7,
           3,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "scripts/check-due-contrast.mjs",
+          7,
+          4,
           [
             [
               "Not in the plan",
@@ -2457,7 +2808,7 @@ const PAGE = {
       "Still unverified",
       "6 things not yet proven",
       null,
-      "I did not open the test copy's address from step 1 (on raw.githack), because my sandbox, the closed-off space I work in, can't reach that site. Changes made in Task details on a GitHub-linked task were checked by reading the code only, not with a live GitHub call. Everything was checked in Chromium only, not in Safari or Firefox and not on a real phone. GitHub's automatic tests on pull request 209 had not reported a result when this page was built. One case in the category-filter check was dropped, because the labels step is now locked until a project is chosen, so a thought with no project can no longer reach the labels list. 'Surprise me' was left unchanged, because the plan gave no new wording for it.",
+      "I did not open the test copy's address from step 1 (on raw.githack), because my sandbox, the closed-off space I work in, can't reach that site. Changes made in Task details on a GitHub-linked task were checked by reading the code only, not with a live GitHub call. Everything was checked in Chromium only, not in Safari or Firefox and not on a real phone. One case in the category-filter check was dropped, because the labels step is now locked until a project is chosen, so a thought with no project can no longer reach the labels list. 'Surprise me' was left unchanged, because the plan gave no new wording for it. The olive words on the yellow chip are a darker shade than the design showed (#3A4200 instead of #4F5A00), because the design's shade failed the 4.5:1 text contrast check on the stronger fill.",
       null,
       null
     ]
@@ -2469,13 +2820,13 @@ const PAGE = {
       "I did not open the test copy's address from step 1 (on raw.githack), because my sandbox, the closed-off space I work in, can't reach that site",
       "Changes made in Task details on a GitHub-linked task were checked by reading the code only, not with a live GitHub call",
       "Everything was checked in Chromium only, not in Safari or Firefox and not on a real phone",
-      "GitHub's automatic tests on pull request 209 had not reported a result when this page was built",
       "One case in the category-filter check was dropped, because the labels step is now locked until a project is chosen, so a thought with no project can no longer reach the labels list",
-      "'Surprise me' was left unchanged, because the plan gave no new wording for it"
+      "'Surprise me' was left unchanged, because the plan gave no new wording for it",
+      "The olive words on the yellow chip are a darker shade than the design showed (#3A4200 instead of #4F5A00), because the design's shade failed the 4.5:1 text contrast check on the stronger fill"
     ]
   },
   "wrapup": {
-    "summary": "Calm by default is built: the header and side menu that stay in place, the one-tab Board, Task details, one chip per card, folded settings with Comfort, plainer wording and the Sort fixes. all 225 unit tests and all 13 browser checks pass.",
+    "summary": "Calm by default is built. It has a header and side menu that stay in place, a Board that shows one tab at a time, Task details, one coloured label per card, settings that open and close with a new Comfort group, plainer wording, the Sort fixes, priority and due date on cards, and the new due colours. All 228 unit tests and all 13 browser checks pass.",
     "changing": "Changed: the frame, the Board, Settings and some wording. New: Task details, Card colour and the Comfort group. Unchanged: Projects.",
     "blocking": "Waiting on your test.",
     "next": "After 'QA passed', you close the issues when you're happy, and the pull request is merged into main, the version of the app you use.",
@@ -2528,15 +2879,19 @@ const PARTS = [["short", "In short"], ["changes", "Changes"], ["choices", "Choic
   .filter(([id]) => id === "short" || id === "wrapup" || (PAGE[id] && PAGE[id].length));
 document.querySelectorAll("[data-part]").forEach(p => { if (!PARTS.some(([id]) => id === p.dataset.part)) p.remove(); });
 
+const flow = fl => `<div class="flow"><span><small>What exists today</small>${esc(fl[0])}</span><i aria-hidden="true">→</i><span class="mid"><small>What this creates</small>${esc(fl[1])}</span><i aria-hidden="true">→</i><span><small>How it impacts you</small>${esc(fl[2])}</span></div>`;
+const lst = v => Array.isArray(v) ? `<ul class="cl">${v.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : `<p>${esc(v)}</p>`;
 const glance = document.getElementById("glance"), sd = document.getElementById("sd");
 glance.innerHTML = PAGE.short.items.map(([i, s, t, k], n) =>
   `${n ? '<span class="arrow" aria-hidden="true">›</span>' : ""}<button type="button" class="g${k === "you" ? " you" : k === "done" ? " done" : ""}" data-s="${n}" aria-pressed="false"><span class="c">${ic(i)}</span>${esc(s)}</button>`).join("");
 function showItem(n) {
   glance.querySelectorAll(".g").forEach(b => b.setAttribute("aria-pressed", +b.dataset.s === n));
   const [, , t, , creates, requires] = PAGE.short.items[n], pic = picOf(PAGE.short.items[n], 6);
-  const needsYou = !/^Nothing/.test(requires);
-  sd.innerHTML = `<h3>${esc(t)}</h3><div class="cr"><div class="crb"><span class="crh">${ic("swap")}Creates or changes</span><p>${esc(creates)}</p></div>
-    <div class="crb${needsYou ? " you" : ""}"><span class="crh">${ic("hand")}Requires</span><p>${esc(requires)}</p></div></div>${picHtml(pic)}`;
+  const row = PAGE.short.items[n], summary = PAGE.kind === "summary";
+  const strip = Array.isArray(row[6]) && row[6].length === 3 && row[6].every(x => typeof x === "string") ? row[6] : null;
+  const needsYou = !summary && !/^Nothing/.test(Array.isArray(requires) ? requires.join(" ") : requires);
+  sd.innerHTML = `<h3>${esc(t)}</h3>${strip ? flow(strip) : ""}<div class="cr"><div class="crb"><span class="crh">${ic("swap")}Creates or changes</span>${lst(creates)}</div>
+    <div class="crb${needsYou ? " you" : ""}"><span class="crh">${summary ? ic("check") + "Decided by" : ic("hand") + "Requires"}</span>${lst(requires)}</div></div>${picHtml(pic)}`;
 }
 glance.addEventListener("click", e => { const b = e.target.closest("[data-s]"); if (b) showItem(+b.dataset.s); });
 if (PAGE.short.items.length) showItem(0);
@@ -2546,7 +2901,6 @@ if (document.getElementById("cc")) {
   document.getElementById("cc-count").textContent =
     `${counts.new} new, ${counts.chg} changed, ${counts.keep} kept. Tap one for before and after.`;
   // A New item's picture (#241): what sets it off -> what it does -> what you get.
-  const flow = fl => `<div class="flow"><span><small>What exists today</small>${esc(fl[0])}</span><i aria-hidden="true">→</i><span class="mid"><small>What this creates</small>${esc(fl[1])}</span><i aria-hidden="true">→</i><span><small>How it impacts you</small>${esc(fl[2])}</span></div>`;
   // Every item's files (#241), shown only once it is opened: each file once, then its parts in plain words.
   const lineCounts = (a, r) => `+${a} \u2212${r}`;
   const files = fs => !fs || !fs.length ? "" : `<div class="files"><h4>${fs.length} ${fs.length === 1 ? "file" : "files"} \u00b7 ${lineCounts(fs.reduce((t, f) => t + f[1], 0), fs.reduce((t, f) => t + f[2], 0))}</h4>` +
