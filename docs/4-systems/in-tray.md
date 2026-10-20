@@ -32,6 +32,15 @@ It reuses the #120 wallets (`js/wallet.js`, `docs/4-systems/wallets.md`) for "1.
 Known: the flag tabs on the slip's edge are 46px wide, so a long name is clipped ("Reminder" shows
 its end). The full name is in the tab's `title` and on the flag card.
 
+## Delete asks first (#219, #220, #221; approved 2026-10-20, design 1A on `docs/plans/tray-delete.html`; not built yet)
+
+Delete under a thought used to discard it in one tap (`unsorted-delete` in `app/js/app.js:531`), while a
+task slip already asked through `confirmDeleteTask`. Now a thought asks too, with the app's own
+confirmation card (the one `confirmMove` in `app/js/move-dialog.js` shows before a GitHub-linked move):
+'Delete "<thought>"? It leaves the tray for good.' with Cancel and Delete. Cancel, Escape or the
+backdrop keeps the thought; Delete discards it and shows the "Deleted" notice as before. Done
+already and Later are unchanged.
+
 ## Three parts (#189)
 
 Part of feature #188 (prototype `docs/generated/sort-steps/prototype.html`). The wallets show one

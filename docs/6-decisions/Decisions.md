@@ -4,6 +4,18 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-20 — Design approved: tray delete (1A)
+
+**Context.** In aj's phone test, Delete under a thought in the tray removed it in one tap with no way
+back; deleting a task already asked first (`docs/plans/tray-delete.html`).
+
+**Decision.** Deleting a thought asks first, with the app's own Cancel/Delete card (1A), rather than
+deleting at once with Undo on the notice (1B).
+
+**Why.** aj asked to be asked, and it matches deleting a task.
+
+**Status.** Approved; planned under #219 (#220, #221), part of #198.
+
 ## 2026-10-20 — Design approved: board project view (1B 2A)
 
 **Context.** In aj's phone test, the Board's tab numbers counted every project even with one picked
