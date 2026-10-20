@@ -21,6 +21,14 @@ Status: designed and approved (docs/6-decisions/Decisions.md, 2026-10-19) and bu
   save and sync like a drop did (`moveTaskTo`, `app/js/app.js:326`). There is no "+ New" on the Board (the real app adds tasks from a
   project's "+ Add task" and the jotter). `board-swipe.js` is no longer called; `project-drag.js` still
   serves Projects.
+- **Board project view (#216, #217, #218; approved 2026-10-20, design 1B 2A on `docs/plans/board-project.html`; not
+  built yet).** Each tab's number counts the cards that tab would show under everything the list is
+  narrowed by: the Project menu, Find, Category and Show. Subtasks are still left out. So with Home
+  picked, Up next counts only Home's tasks. With a project picked, the heading above Find becomes
+  that project's name, after a dot in its colour, with a bar in its colour down its left edge and a
+  small "Board · one project" line under it. The Project menu gets a border in the same colour. With "Project: All" the heading stays "Board".
+  The counts change in `boardList` (`app/js/board.js:46`); the heading and menu in `renderBoard`
+  (`app/js/board-view.js`).
 - **Card colour (#202).** Each card shows one chip and takes its edge colour from it: the first entry
   in the Card colour list that the task has. Entries are `category` (the task's first label),
   `priority`, `due`, and `label:<id>`. A task with none shows "No category" in grey. The edge colour

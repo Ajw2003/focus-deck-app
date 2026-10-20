@@ -4,6 +4,21 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-20 — Design approved: board project view (1B 2A)
+
+**Context.** In aj's phone test, the Board's tab numbers counted every project even with one picked
+(Up next said 58 while Home showed 17), and the picked project was only named in the small menu
+(`docs/plans/board-project.html`).
+
+**Decision.** Each tab's number counts what that tab would show under every narrowing: project, Find
+and Filter (1B). With a project picked, the heading becomes its name with its colour dot and bar, and
+the menu takes its colour (2A).
+
+**Why.** aj took both suggestions: a number that always matches the list, and a heading that names
+the project without adding a row.
+
+**Status.** Approved; planned under #216 (#217, #218), part of #198.
+
 ## 2026-10-20 — Design approved: due colours (1C)
 
 **Context.** On aj's phone (an HDR screen) the yellow "due soon" chip was too faint to see on a white
