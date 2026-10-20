@@ -21,6 +21,11 @@ PRs and are not here.
   words and colours it by the Comfort setting "Tasks past their date": by default amber "Nd past its date"
   (class `due-amber`), or red "Nd overdue" (`due-red`) when chosen. The flame icon stays either way. See
   `docs/6-decisions/Decisions.md` (the 2026-10-19 calm-by-default entries).
+- **Due today is always red (approved 2026-10-20, design C on `docs/plans/due-colours.html`; not
+  built yet).** From the midnight that starts the due day, the stage is `'red'` whatever the span or
+  lead times, so a date set on the day itself never shows yellow. In light mode the yellow chip gets
+  about twice as much olive fill and a solid olive border (`.chip.deadline-chip.due-yellow`,
+  `app/css/app.css`); dark mode is unchanged.
 - **The day-before floor (#114).** Whatever the percentage says, a task is yellow from the midnight
   that starts the day before its due day (`dayBeforeStart`), so "due tomorrow" is never white. A
   yellow lead time chosen in the step for that task wins over the floor. Red is unchanged.

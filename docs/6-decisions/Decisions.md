@@ -4,6 +4,19 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-20 — Design approved: due colours (1C)
+
+**Context.** On aj's phone (an HDR screen) the yellow "due soon" chip was too faint to see on a white
+card, and a task due today could still show yellow (`docs/plans/due-colours.html`).
+
+**Decision.** A task due today is always red. The yellow stays olive but with about twice the fill and
+a solid border in light mode (option C); dark mode is unchanged.
+
+**Why.** aj chose the smallest change from today (C) over solid yellow (A, which was suggested) and
+amber (B, too close to the "past its date" chip).
+
+**Status.** Approved; planned under #198.
+
 ## 2026-10-20 — Design approved: due and urgency on cards (1A)
 
 **Context.** Testing the calm build on a phone, aj found that a Board card shows only its one
