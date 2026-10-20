@@ -17,7 +17,8 @@ the menu takes its colour (2A).
 **Why.** aj took both suggestions: a number that always matches the list, and a heading that names
 the project without adding a row.
 
-**Status.** Approved; planned under #216 (#217, #218), part of #198.
+**Status.** Built 2026-10-20 under #216 (#217, #218), part of #198, in aj's QA. See
+`docs/4-systems/calm-board.md`.
 
 ## 2026-10-20 — Design approved: due colours (1C)
 

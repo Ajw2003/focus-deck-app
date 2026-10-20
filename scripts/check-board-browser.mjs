@@ -93,14 +93,15 @@ for (const size of ['desk', 'phone']) for (const scheme of ['dark', 'light']) {
   // the move buttons
   await page.click('.board-card[data-task-id="n2"] .calm-move');
   await page.waitForTimeout(300);
-  check((await status('n2')) === 'gone' && (await tabCount('doing')) === 3, tag + 'In progress button moves a card out of Up next');
+  // Home is picked, so In progress counts Home's d1 plus the moved card, not Garden's g2 (#217)
+  check((await status('n2')) === 'gone' && (await tabCount('doing')) === 2, tag + 'In progress button moves a card out of Up next');
   await page.click('.calm-tab[data-col="doing"]');
   check((await status('n2')) === 'doing', tag + 'the card is in In progress');
   await page.screenshot({ path: OUT + 'board-action-' + (phone ? '390' : '1440') + '-' + scheme + '-in-progress.png', fullPage: false });
   await page.click('.board-card[data-task-id="n2"] .calm-move');
   await page.waitForTimeout(300);
   await page.click('.calm-tab[data-col="next"]');
-  check((await tabCount('doing')) === 2, tag + 'Up next button moves it back (it lands at the end of Up next)');
+  check((await tabCount('doing')) === 1, tag + 'Up next button moves it back (it lands at the end of Up next)');
   await page.click('.board-card[data-task-id="n3"] .calm-move');
   await page.waitForTimeout(300);
 
@@ -111,6 +112,21 @@ for (const size of ['desk', 'phone']) for (const scheme of ['dark', 'light']) {
   await page.click('.calm-tab[data-col="done"]');
   check((await status('n1')) === 'done', tag + 'the ticked card is still in Done after a reload');
   await noSideways('after reload');
+
+  // the picked project names the heading (#218): Home is picked from the seed; All puts "Board" back
+  const homeNext = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).projects[0].tasks.filter((x) => x.status === 'next').length);
+  await page.click('.calm-tab[data-col="next"]');
+  const head = () => page.$eval('.board-title', (e) => e.textContent);
+  await page.selectOption('.calm-tools select', ''); await page.waitForTimeout(200);
+  check((await head()) === 'Board' && !(await page.$('.calm-tools select.is-picked')), tag + 'with no project the heading is exactly Board', await head());
+  const allNext = await tabCount('next');
+  await page.selectOption('.calm-tools select', 'p0'); await page.waitForTimeout(200);
+  const picked = await head();
+  check(picked.includes('Home') && picked.includes('Board · one project'), tag + 'the heading names the picked project', picked);
+  check(await page.$eval('.calm-tools select', (e) => e.classList.contains('is-picked')), tag + 'the select is marked is-picked');
+  check((await tabCount('next')) === homeNext && allNext > homeNext, tag + 'Up next counts only Home when picked', homeNext + ' vs all ' + allNext);
+  await noSideways('with Home picked');
+  await page.screenshot({ path: ROOT + 'docs/generated/calm-build/built/218-board-project-' + (phone ? '390' : '1440') + '-' + scheme + '.png', fullPage: false });
   await ctx.close();
 }
 await browser.close(); server.close();

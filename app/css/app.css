@@ -1175,6 +1175,12 @@ body.is-dragging-task .empty-note{display:none;}
   color-scheme:light; color:var(--ink);
 }
 .board-title{margin:0 0 10px; font:700 1.4rem var(--font-ui);}
+/* the picked project names the Board heading and marks the select (#218) */
+.board-title.is-project{border-left:6px solid var(--proj-color); padding-left:10px;}
+.board-title-name{display:inline-flex; align-items:center; gap:10px; overflow-wrap:anywhere; min-width:0;}
+.board-title-name i{width:14px; height:14px; border-radius:50%; background:var(--proj-color); flex:none;}
+.board-title-sub{display:block; font:600 .85rem var(--font-ui); color:var(--ink-soft); margin-top:2px;}
+.calm-tools select.is-picked{border:2px solid var(--proj-color); background:color-mix(in srgb, var(--proj-color) 14%, var(--surface)); font-weight:700;}
 .board-count{font-variant-numeric:tabular-nums; font-weight:700;}
 .board-cards{display:flex; flex-direction:column; gap:10px;}
 .board-card{position:relative; display:flex; align-items:flex-start; gap:10px; min-width:0; padding:11px 12px 11px 16px; background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--proj-color); border-radius:3px 8px 8px 3px; box-shadow:0 6px 12px -9px var(--paper-shadow);}

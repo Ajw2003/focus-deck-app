@@ -29,7 +29,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 15 | Consumer product: desk redesign, landing page, onboarding | 100% built (10 of 10), not deployed | Design agreed 2026-10-09 (mockup `docs/plans/redesign-directions.html`); plan `docs/plans/consumer-product.md`; #117-#126 built, checked in Chromium and merged on `ccr-1569909b-xe23b7` (2026-10-10), not yet deployed; nothing merged to `main` yet; see `docs/plans/consumer-product-handoff.md` |
 | 16 | Sort in three parts, task ties, blockers-first focus (#180, #181, #182) | 100% built, in QA | #188 (#189, #190, #191) built on `AjsAgent/sort-steps` 2026-10-18; unit 195/196 on Windows (the one failure is the Windows-only service-worker path test); driven by hand in a real browser: search, new flag, notes, title edit, task moved between folders, subtask and waits-on saved, focus pick 20/20 to the only unblocker, Next step line and Start it. Not yet: the repo's Playwright browser checks (not installed here), deploy |
 | 17 | Ties everywhere: Board, Projects and GitHub (#192) | 100% built, in QA | #193 tie lines on Board cards and Project rows, subtasks nested; #194 issue ids; #195 write ties to GitHub; #196 read ties on sync. All on `AjsAgent/sort-steps` 2026-10-18; unit 210/211 on Windows (the Windows-only service-worker path test). Board and Projects screenshots of the built app match the approved pictures. Not yet: any live GitHub call (mocks only), the tie-name scroll by hand, the Playwright browser checks, the pull request (held until aj has tested) |
-| 18 | Calm by default (#198: #199 to #205, #210, #213) | 100% built, in QA | Built on `AjsAgent/calm-build` 2026-10-19; one pull request for Aj's QA; Projects kept as today (1A) |
+| 18 | Calm by default (#198: #199 to #205, #210, #213, #216) | 100% built, in QA | Built on `AjsAgent/calm-build` 2026-10-19; one pull request for Aj's QA; Projects kept as today (1A) |
 
 **After the merge (2026-10-10), on `ccr-1569909b-xe23b7`:** #131 and #132 (wallets let the page
 scroll, and take a tap and a push-up in every mode; Swipe up mode retired), #133 (Category choices),
@@ -78,6 +78,9 @@ Card colour list (#202); every setting as a folded row, plus a Comfort group (#2
   (`app/js/due-stage.js:74`, `app/js/card-key.js:16`), and the yellow chip is stronger in light mode
   and on Board cards in both themes (`app/css/app.css:26`). Unit 228/228, all 13 browser checks and
   the contrast check pass.
+- **Board project view (#216, #217, #218, 2026-10-20):** found in aj's QA; the tab numbers count what
+  the list is narrowed to (`app/js/board.js:46`), and a picked project names the heading in its
+  colour (`app/js/board-view.js:99`). Unit 229/229, all 13 browser checks pass.
 - **The Board's view state** (`boardFind`, `boardFilterOpen`, `boardPcat`, `boardShow`, `boardShown`,
   `boardSelected`) is memory only (`app/js/app.js:164`); `ui.boardProject` is still kept per device.
 

@@ -96,9 +96,13 @@ export function renderBoard(st, ui, now = Date.now()) {
   const cards = tasks.slice(0, limit).map((t) => card(t, owner.get(t.id), st, !!narrowedTo, t.id === selected, now)).join('');
   const empty = '<p class="calm-empty">' + (find || active || narrowedTo ? 'Nothing matches. Clear the search or filters to see more.' : COL_INFO[tab].empty) + '</p>';
   const left = tasks.length - limit;
-  return '<h2 class="board-title">Board</h2><div class="cw"><section class="cw-list">'
+  const projColor = narrowedTo ? esc(narrowedTo.color || 'var(--accent)') : '';
+  const heading = narrowedTo
+    ? '<h2 class="board-title is-project" style="--proj-color:' + projColor + '"><span class="board-title-name"><i aria-hidden="true"></i>' + esc(narrowedTo.name) + '</span><span class="board-title-sub">Board · one project</span></h2>'
+    : '<h2 class="board-title">Board</h2>';
+  return heading + '<div class="cw"><section class="cw-list">'
     + '<div class="calm-tools"><input type="search" class="bm-find board-find" data-board-find value="' + esc(find) + '" placeholder="Find…" aria-label="Find a task, project or label">'
-    + '<select data-action="board-project-select" aria-label="Project"><option value="">Project: All</option>'
+    + '<select data-action="board-project-select" aria-label="Project"' + (narrowedTo ? ' class="is-picked" style="--proj-color:' + projColor + '"' : '') + '><option value="">Project: All</option>'
     + projects.map((p) => '<option value="' + esc(p.id) + '"' + (narrowedTo && narrowedTo.id === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>').join('') + '</select>'
     + '<button type="button" class="btn ghost calm-btn' + (open ? ' on' : '') + '" data-action="board-filter" aria-expanded="' + open + '">Filter' + (active ? ' (' + active + ')' : '') + '</button></div>'
     + drawer + '<div class="calm-tabs" role="tablist">' + tabs + '</div>'
