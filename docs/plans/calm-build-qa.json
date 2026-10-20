@@ -1,8 +1,8 @@
 {
   "title": "Calm Build QA",
-  "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #208",
+  "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #212",
   "short": {
-    "lead": "Calm by default is built into the real app. On a wide screen the Focus Deck name and the centred 'Jot down a stray thought…' box stay at the top, with the side menu below them. The Board shows one tab at a time and opens a Task details panel beside the list. Every setting is a row that opens and closes, and there is a new Comfort group. Projects is unchanged, as you chose in option 1A ('keep Projects as it is today'). You test a copy of branch AjsAgent/calm-build with sample data, on your phone or computer, so your real tasks are not touched.",
+    "lead": "Calm by default is built into the real app. On a wide screen the Focus Deck name and the centred 'Jot down a stray thought…' box stay at the top, with the side menu below them. The Board shows one tab at a time, each card shows its priority and due date, and a Task details panel opens beside the list. Every setting is a row that opens and closes, and there is a new Comfort group. Projects is unchanged, as you chose in option 1A ('keep Projects as it is today'). You test a copy of branch AjsAgent/calm-build with sample data, on your phone or computer, so your real tasks are not touched.",
     "hint": "Tap a step to see what to try and what you should see.",
     "key": [
       [
@@ -68,6 +68,19 @@
           "src": "docs/generated/calm-build/built/206-pastdate-amber-1440.png",
           "alt": "A Board card showing 290d past its date in amber",
           "caption": "A late task on the Board, amber by default."
+        }
+      ],
+      [
+        "eye",
+        "Glance",
+        "See priority and due date on cards",
+        "you",
+        "Every Board card with a priority, a due date or both shows them on one line under its coloured label (added after your first look).",
+        "On the Board, open a card's Task details, open 'Priority and due date', and set a priority and a due date 3 days away. Close the panel; the card should now show a flag with the priority word, then 'due in 3d'.",
+        {
+          "src": "docs/generated/calm-build/built/212-board-1440-light.png",
+          "alt": "A Board card showing Urgent and due in 3d under its Repair label",
+          "caption": "The line on a card with a priority and a due date."
         }
       ],
       [

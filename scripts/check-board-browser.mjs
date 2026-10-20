@@ -32,11 +32,11 @@ const t = (id, title, status, extra) => Object.assign({ id, title, status, updat
 const long = Array.from({ length: 22 }, (_, i) => t('l' + i, 'Garden job number ' + (i + 1), 'next', { order: i + 5 }));
 const seed = {
   projects: [
-    { id: 'p0', name: 'Home', color: '#3E8E5E', tasks: [t('n1', 'Bins out', 'next', { order: 1 }), t('n2', 'Mop the kitchen', 'next', { order: 2 }), t('n3', 'Fix the gate latch', 'next', { order: 3 }),
+    { id: 'p0', name: 'Home', color: '#3E8E5E', tasks: [t('n1', 'Bins out', 'next', { order: 1 }), t('n2', 'Mop the kitchen', 'next', { order: 2 }), t('n3', 'Fix the gate latch', 'next', { order: 3, priority: 'urgent', deadline: new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10), categoryIds: ['c1'] }),
       t('d1', 'Book boiler service', 'doing'), t('x1', 'Paint the hall', 'done', { completedAt: Date.now() - 1000 })].concat(long) },
     { id: 'p1', name: 'Garden', color: '#4D6FB8', tasks: [t('g1', 'Plant the bulbs', 'next', { order: 1 }), t('g2', 'Order compost', 'doing')] },
   ],
-  categories: [], inbox: [], completedLog: [], deletedTaskIds: {}, choosingMode: { mode: 'twice', updatedAt: 1 },
+  categories: [{ id: 'c1', name: 'Repair', color: '#C2731E' }], inbox: [], completedLog: [], deletedTaskIds: {}, choosingMode: { mode: 'twice', updatedAt: 1 },
 };
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM, args: ['--no-sandbox'] });
@@ -64,6 +64,12 @@ for (const size of ['desk', 'phone']) for (const scheme of ['dark', 'light']) {
   const ids = () => page.$$eval('.board-card', (els) => els.map((e) => e.dataset.taskId));
   await noSideways('at rest');
   check((await page.$$('.board-grip, .board-col')).length === 0, tag + 'no drag grips or columns any more');
+
+  // the priority and due date line (#211): shown with both, absent on a card with neither
+  const line = await page.$eval('.board-card[data-task-id="n3"]', (e) => (e.querySelector('.gl-glance') || {}).textContent || '');
+  check(line.includes('Urgent') && /due in/.test(line), tag + 'a card shows its priority and due date', line);
+  check(!(await page.$('.board-card[data-task-id="n1"] .gl-glance')), tag + 'a card with neither has no line');
+  await page.screenshot({ path: ROOT + 'docs/generated/calm-build/built/212-board-' + (phone ? '390' : '1440') + '-' + scheme + '.png', fullPage: false });
 
   // tabs, groups of 7, Show more
   check((await ids()).length === 7, tag + 'seven cards at once', (await ids()).length);

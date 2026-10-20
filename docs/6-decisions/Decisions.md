@@ -18,7 +18,7 @@ its stage colour. The line skips whatever the card's one label already shows. It
 **Why.** aj chose seeing both every time over the quieter "only when it matters" option (B, which
 was suggested) and over moving the date into the one label (C).
 
-**Status.** Approved; planned under #198 as part of the calm build, before its QA continues.
+**Status.** Built on 2026-10-20 in #211 and #212 (under #210), on `AjsAgent/calm-build` in pull request #209; in QA.
 
 ## 2026-10-19 — Build stage opened: calm by default
 

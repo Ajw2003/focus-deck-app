@@ -268,9 +268,9 @@ const EXAMPLE_PIC = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http
 const EXAMPLE_PIC_AFTER = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><rect width="320" height="180" fill="#dff3e8"/><rect x="100" y="50" width="120" height="80" rx="12" fill="#1f7a4d"/></svg>');
 const PAGE = {
   "title": "Calm Build QA",
-  "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #208",
+  "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #212",
   "short": {
-    "lead": "Calm by default is built into the real app. On a wide screen the Focus Deck name and the centred 'Jot down a stray thought…' box stay at the top, with the side menu below them. The Board shows one tab at a time and opens a Task details panel beside the list. Every setting is a row that opens and closes, and there is a new Comfort group. Projects is unchanged, as you chose in option 1A ('keep Projects as it is today'). You test a copy of branch AjsAgent/calm-build with sample data, on your phone or computer, so your real tasks are not touched.",
+    "lead": "Calm by default is built into the real app. On a wide screen the Focus Deck name and the centred 'Jot down a stray thought…' box stay at the top, with the side menu below them. The Board shows one tab at a time, each card shows its priority and due date, and a Task details panel opens beside the list. Every setting is a row that opens and closes, and there is a new Comfort group. Projects is unchanged, as you chose in option 1A ('keep Projects as it is today'). You test a copy of branch AjsAgent/calm-build with sample data, on your phone or computer, so your real tasks are not touched.",
     "hint": "Tap a step to see what to try and what you should see.",
     "key": [
       [
@@ -339,6 +339,19 @@ const PAGE = {
         }
       ],
       [
+        "eye",
+        "Glance",
+        "See priority and due date on cards",
+        "you",
+        "Every Board card with a priority, a due date or both shows them on one line under its coloured label (added after your first look).",
+        "On the Board, open a card's Task details, open 'Priority and due date', and set a priority and a due date 3 days away. Close the panel; the card should now show a flag with the priority word, then 'due in 3d'.",
+        {
+          "src": "calm-build-qa-pics/212-board-1440-light.png",
+          "alt": "A Board card showing Urgent and due in 3d under its Repair label",
+          "caption": "The line on a card with a priority and a due date."
+        }
+      ],
+      [
         "check",
         "Sort",
         "Check the Sort fixes",
@@ -368,7 +381,7 @@ const PAGE = {
     [
       "chg",
       "Files changed, counted from git against origin/main",
-      "154 files, +5705 −419",
+      "172 files, +6859 −419",
       null,
       "The added and removed counts come from git (git diff --numstat origin/main...HEAD); the estimates beside them come from the plan.",
       null,
@@ -423,7 +436,7 @@ const PAGE = {
         ],
         [
           "app/css/app.css",
-          140,
+          143,
           45,
           [
             [
@@ -447,7 +460,7 @@ const PAGE = {
         ],
         [
           "app/js/board-view.js",
-          86,
+          88,
           56,
           [
             [
@@ -459,7 +472,7 @@ const PAGE = {
         ],
         [
           "app/js/board-view.test.mjs",
-          65,
+          71,
           35,
           [
             [
@@ -771,7 +784,7 @@ const PAGE = {
         ],
         [
           "docs/4-systems/calm-board.md",
-          62,
+          66,
           0,
           [
             [
@@ -843,7 +856,7 @@ const PAGE = {
         ],
         [
           "docs/6-decisions/Decisions.md",
-          52,
+          68,
           0,
           [
             [
@@ -1778,6 +1791,114 @@ const PAGE = {
           ]
         ],
         [
+          "docs/generated/glance/a-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/glance/a-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/glance/b-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/glance/b-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/glance/c-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/glance/c-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/glance/shoot.mjs",
+          53,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/glance/today-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/glance/today-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
           "docs/generated/pr140/board-action-1440-dark-in-progress.png",
           0,
           0,
@@ -2092,6 +2213,114 @@ const PAGE = {
         [
           "docs/plans/calm-by-default.md",
           34,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/glance-build-pics/a-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/glance-build.html",
+          462,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/glance-build.json",
+          33,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/glance-due-urgency-pics/a-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/glance-due-urgency-pics/b-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/glance-due-urgency-pics/c-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/glance-due-urgency-pics/today-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/glance-due-urgency.html",
+          526,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/glance-due-urgency.json",
+          49,
           0,
           [
             [
