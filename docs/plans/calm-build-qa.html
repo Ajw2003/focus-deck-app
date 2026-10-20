@@ -270,7 +270,7 @@ const EXAMPLE_PIC = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http
 const EXAMPLE_PIC_AFTER = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><rect width="320" height="180" fill="#dff3e8"/><rect x="100" y="50" width="120" height="80" rx="12" fill="#1f7a4d"/></svg>');
 const PAGE = {
   "title": "Calm Build QA",
-  "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #215",
+  "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #218",
   "short": {
     "lead": "Calm by default is built into the real app. On a wide screen the Focus Deck name and the centred 'Jot down a stray thought…' box stay at the top, with the side menu below them. The Board shows one tab at a time, each card shows its priority and due date, and a Task details panel opens beside the list. Every setting is a row that opens and closes, and there is a new Comfort group. Projects is unchanged, as you chose in option 1A ('keep Projects as it is today'). You test a copy of branch AjsAgent/calm-build with sample data, on your phone or computer, so your real tasks are not touched.",
     "hint": "Tap a step to see what to try and what you should see.",
@@ -291,7 +291,7 @@ const PAGE = {
         "Open the test copy",
         "you",
         "This is a copy of branch AjsAgent/calm-build with sample data. A site called raw.githack serves it from GitHub, so it opens on your phone or computer with nothing to install.",
-        "Open https://raw.githack.com/Ajw2003/focus-deck-app/5ae9a50899208092f0795300401dcedb4b6dc884/docs/generated/sort-steps/seed.html#board?ties in your browser. Change the end to #focus, #sort or #projects to open another screen. Opening the address again reloads the sample data, so it also works as a reset.",
+        "Open https://raw.githack.com/Ajw2003/focus-deck-app/22ba8b82e00a3336b788eedc58c9e10977fe1675/docs/generated/sort-steps/seed.html#board?ties in your browser. Change the end to #focus, #sort or #projects to open another screen. Opening the address again reloads the sample data, so it also works as a reset.",
         {
           "src": "calm-build-qa-pics/206-board-1440.png",
           "alt": "The built Board at 1440 wide with sample data",
@@ -367,6 +367,19 @@ const PAGE = {
         }
       ],
       [
+        "eye",
+        "Project view",
+        "Check that the Board follows the project you pick",
+        "you",
+        "With a project picked, the tab numbers count only that project's tasks, and the heading shows its name in its colour (added after your third look).",
+        "On the Board, pick Home from the Project menu. The heading should say 'Home' with a coloured dot and bar, the menu should have a border in the same colour, and Up next should count only Home's tasks. Type a word in Find, and the numbers should drop to match the list. Then pick 'Project: All'; the heading should go back to 'Board'.",
+        {
+          "src": "calm-build-qa-pics/218-board-project-390-light.png",
+          "alt": "The Board on a phone with Home picked: heading Home with a green dot and bar, a green-edged menu, Up next 23",
+          "caption": "The Board with Home picked."
+        }
+      ],
+      [
         "check",
         "Sort",
         "Check the Sort fixes",
@@ -387,7 +400,7 @@ const PAGE = {
         "Reply",
         "Tell me how it went",
         "you",
-        "Your reply tells me whether issues #198 to #208 and #210 to #215 (the issues for this build) can move forward.",
+        "Your reply tells me whether issues #198 to #208 and #210 to #218 (the issues for this build) can move forward.",
         "Reply 'QA passed: calm by default', or say what's wrong."
       ]
     ]
@@ -396,7 +409,7 @@ const PAGE = {
     [
       "chg",
       "Files changed, counted from git against origin/main",
-      "201 files, +8840 −437",
+      "223 files, +10115 −437",
       null,
       "The added and removed counts come from git (git diff --numstat origin/main...HEAD); the estimates beside them come from the plan.",
       null,
@@ -451,7 +464,7 @@ const PAGE = {
         ],
         [
           "app/css/app.css",
-          151,
+          157,
           49,
           [
             [
@@ -475,7 +488,7 @@ const PAGE = {
         ],
         [
           "app/js/board-view.js",
-          88,
+          92,
           56,
           [
             [
@@ -499,7 +512,7 @@ const PAGE = {
         ],
         [
           "app/js/board.js",
-          29,
+          32,
           0,
           [
             [
@@ -511,7 +524,7 @@ const PAGE = {
         ],
         [
           "app/js/board.test.mjs",
-          29,
+          50,
           1,
           [
             [
@@ -799,7 +812,7 @@ const PAGE = {
         ],
         [
           "docs/3-state/ProjectState.md",
-          27,
+          30,
           2,
           [
             [
@@ -823,7 +836,7 @@ const PAGE = {
         ],
         [
           "docs/4-systems/calm-board.md",
-          64,
+          73,
           0,
           [
             [
@@ -895,7 +908,115 @@ const PAGE = {
         ],
         [
           "docs/6-decisions/Decisions.md",
-          83,
+          99,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/board-project/a-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/board-project/a-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/board-project/b-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/board-project/b-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/board-project/c-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/board-project/c-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/board-project/now-1440.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/board-project/now-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/board-project/shoot.mjs",
+          90,
           0,
           [
             [
@@ -1794,6 +1915,54 @@ const PAGE = {
           ]
         ],
         [
+          "docs/generated/calm-build/built/218-board-project-1440-dark.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/calm-build/built/218-board-project-1440-light.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/calm-build/built/218-board-project-390-dark.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/generated/calm-build/built/218-board-project-390-light.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
           "docs/generated/calm-build/compose.mjs",
           6,
           0,
@@ -2166,6 +2335,114 @@ const PAGE = {
           ]
         ],
         [
+          "docs/plans/board-project-build-pics/a-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/board-project-build.html",
+          474,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/board-project-build.json",
+          28,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/board-project-pics/a-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/board-project-pics/b-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/board-project-pics/c-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/board-project-pics/now-390.png",
+          0,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/board-project.html",
+          550,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
+          "docs/plans/board-project.json",
+          43,
+          0,
+          [
+            [
+              "Not in the plan",
+              0,
+              0
+            ]
+          ]
+        ],
+        [
           "docs/plans/calm-build-pics/after-board-1440.png",
           0,
           0,
@@ -2407,7 +2684,7 @@ const PAGE = {
         ],
         [
           "docs/plans/calm-build-qa.html",
-          2967,
+          2979,
           0,
           [
             [
@@ -2683,7 +2960,7 @@ const PAGE = {
         ],
         [
           "scripts/check-board-browser.mjs",
-          44,
+          60,
           104,
           [
             [
@@ -2838,7 +3115,7 @@ const PAGE = {
     ]
   },
   "wrapup": {
-    "summary": "Calm by default is built. The header and side menu stay in place, and the Board shows one tab at a time. You also get Task details, one coloured label per card, settings that open and close with a Comfort group, plainer wording and the Sort fixes. Cards show their priority and due date too, in the new due colours. All 228 unit tests and all 13 browser checks pass.",
+    "summary": "Calm by default is built. The header and side menu stay in place, and the Board shows one tab at a time. You also get Task details, one coloured label per card, settings that open and close with a Comfort group, plainer wording and the Sort fixes. Cards show their priority and due date too, in the new due colours, and the Board follows the project you pick. All 229 unit tests and all 13 browser checks pass.",
     "changing": "Changed: the frame, the Board, Settings and some wording. New: Task details, Card colour and the Comfort group. Unchanged: Projects.",
     "blocking": "Waiting on your test.",
     "next": "After 'QA passed', you close the issues when you're happy, and the pull request is merged into main, the version of the app you use.",
