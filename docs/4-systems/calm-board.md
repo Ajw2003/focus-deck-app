@@ -28,7 +28,11 @@ Status: designed and approved (docs/6-decisions/Decisions.md, 2026-10-19) and bu
   Comfort, Card colour (`app/settings.html:67`; reorder and add a label at `:539` and `:543`, saved
   through `setColourBy`, `app/js/mutations.js:393`). A task past its date also gets a second line,
   amber "Nd past its date" or red "Nd overdue" as Comfort chooses, unless its one chip is already the
-  due date (`pastDateChip`, `app/js/board-view.js`). The edge colour
+  due date (`pastDateChip`, `app/js/board-view.js`). Approved on 2026-10-20 to replace that line
+  (option 1A, `docs/plans/glance-due-urgency.html`): every card with a priority or a due date shows
+  one line under its label, a flag and the priority word in `PRIORITY_COLOURS`, then the same
+  `deadlineChip` Projects uses, each skipped when the card's label already is that source. Not built
+  yet. The edge colour
   must be set through `--proj-color`, because `.board-card`'s `border-left` shorthand uses that
   variable and an undefined variable drops the whole border to zero width.
 - **Task details (#201).** Selecting a card opens a panel headed "Task details": the title and a status

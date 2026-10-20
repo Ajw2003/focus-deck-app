@@ -4,6 +4,22 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-20 — Design approved: due and urgency on cards (1A)
+
+**Context.** Testing the calm build on a phone, aj found that a Board card shows only its one
+coloured label, so a task's due date and urgency can't be seen at a glance
+(`docs/plans/glance-due-urgency.html` shows the three options on the real app).
+
+**Decision.** Option A: every Board card that has a priority or a due date gets one quiet line
+under its label, with a flag and the priority word in the priority's colour, then the due chip in
+its stage colour. The line skips whatever the card's one label already shows. It replaces the
+"past its date" line added in #206 (a late date still shows, in the line). Projects is unchanged.
+
+**Why.** aj chose seeing both every time over the quieter "only when it matters" option (B, which
+was suggested) and over moving the date into the one label (C).
+
+**Status.** Approved; planned under #198 as part of the calm build, before its QA continues.
+
 ## 2026-10-19 — Build stage opened: calm by default
 
 aj, 17:46 UTC: "Design approved: calm by default. Build plan approved: calm by default", then at 17:52
