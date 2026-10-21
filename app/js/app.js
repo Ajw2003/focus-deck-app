@@ -10,19 +10,21 @@ import {
 } from './github-sync.js';
 import { getToken } from './github.js';
 import { initProjectDrag, isDragging } from './project-drag.js';
-import { initBoardSwipe } from './board-swipe.js';
 import { taskOrderChanges, sortTasks, planTaskMove } from './task-move.js';
 import { confirmMove } from './move-dialog.js';
 import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
 import { mountWallets, onSpreadChange } from './wallet.js';
 import { tiesOf } from './task-links.js';
-import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
+import { renderInTrayCard, unsortedCurrent, STEP_LOCKED_WHY } from './in-tray-view.js';
 import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY } from './in-tray.js';
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
 import { renderOnboarding } from './onboarding-view.js';
 import { normalizeBoardCol } from './board-view.js';
+import { notesSummary } from './task-details.js';
+import { canSetParent, canWaitOn } from './task-links.js';
 import { applyNoteFace } from './note-face.js';
+import { applyComfort, getChunk } from './comfort.js';
 import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
@@ -100,7 +102,7 @@ function saveProjectSort() {
 // whenever the top slip changes -- see renderApp below. See docs/4-systems/in-tray.md
 function freshUnsortedScratch(later) {
   return { later: later || [], projectId: null, selected: [], step: 1, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null,
-    parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '' };
+    parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '', why: '' };
 }
 
 // First-run onboarding (#124): shown once per device to someone with nothing here yet, or on
@@ -157,7 +159,11 @@ function setBoardProject(id) {
 export const ui = {
   screen: loadScreen(),
   boardProject: loadBoardProject(),
-  boardCol: 'next', // the phone's one visible Board column; memory only (#144)
+  // The Board's own state (#200), memory only: boardCol is the open tab; boardShown the cards shown so
+  // far (null = one group); boardSelected the selected card's id, which Task details (#201) renders from.
+  boardCol: 'next', boardFind: '', boardFilterOpen: false, boardPcat: '', boardShow: 'all', boardShown: null, boardSelected: null,
+  // Task details (#201): the open row, a subtask being typed, the link search, the label list open
+  boardOpen: null, boardAddSub: false, boardLink: null, boardPicker: false,
   onboarding: loadOnboarding(),
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
@@ -231,6 +237,7 @@ const walletHooks = {
 
 export function renderApp(st) {
   applyNoteFace(st.noteFace && st.noteFace.face); // also after a sync brings in another device's choice
+  applyComfort(st);
   st._ui = ui; // the sync button reads sync UI state off the state object it's already passed
   if (storageProblem && !ui.syncError && !ui.storageProblemDismissed) ui.syncError = storageProblem;
   // a new current Unsorted item (someone filed/sent to the back/completed the last one, or the queue itself
@@ -282,7 +289,7 @@ export function paint() {
   const scrollY = window.scrollY;
   const active = document.activeElement;
   // the one project search box (the sidebar/drawer's)
-  const restoreSearch = active && active.matches && active.matches('.project-search')
+  const restoreSearch = active && active.matches && active.matches('.project-search, .board-find')
     ? { start: active.selectionStart, end: active.selectionEnd }
     : null;
   document.getElementById('app').innerHTML = renderApp(state);
@@ -290,7 +297,7 @@ export function paint() {
   mountWallets(document.getElementById('app'), walletHooks);
   window.scrollTo(0, scrollY);
   if (restoreSearch) {
-    const el = document.querySelector('.project-search');
+    const el = document.querySelector(active.matches('.board-find') ? '.board-find' : '.project-search');
     if (el) { el.focus(); el.setSelectionRange(restoreSearch.start, restoreSearch.end); }
   }
 }
@@ -432,7 +439,24 @@ function onAppClick(e) {
     if (to) { to.scrollIntoView({ block: 'center' }); const f = to.querySelector('button, input, [tabindex]'); if (f) f.focus({ preventScroll: true }); }
     return;
   }
-  if (action === 'board-col') { ui.boardCol = normalizeBoardCol(el.getAttribute('data-col')); paint(); return; }
+  if (action === 'board-col') { ui.boardCol = normalizeBoardCol(el.getAttribute('data-col')); ui.boardShown = null; paint(); return; }
+  if (action === 'board-select') { selectBoardTask(ui.boardSelected === el.getAttribute('data-task-id') ? null : el.getAttribute('data-task-id')); paint(); return; }
+  if (action.startsWith('detail-')) { onDetailAction(action, el); return; }
+  if (action === 'board-move') {
+    // the same path as a drop used to take: lands at the end of the other group, saves and syncs
+    const f = findTaskWithProject(taskId);
+    const to = el.getAttribute('data-to');
+    if (f && (to === 'doing' || to === 'next')) {
+      moveTaskTo({ taskId, toProjectId: f.project.id, status: to, toIndex: f.project.tasks.filter((t) => t.status === to).length });
+      ui.notice = 'Moved to ' + (to === 'doing' ? 'In progress' : 'Up next');
+    }
+    paint();
+    return;
+  }
+  if (action === 'board-filter') { ui.boardFilterOpen = !ui.boardFilterOpen; paint(); return; }
+  if (action === 'board-pcat') { ui.boardPcat = el.getAttribute('data-pcat'); ui.boardShown = null; paint(); return; }
+  if (action === 'board-show') { ui.boardShown = null; ui.boardShow = el.getAttribute('data-show'); paint(); return; }
+  if (action === 'board-more') { ui.boardShown = Math.max(getChunk(state), ui.boardShown || 0) + getChunk(state); paint(); return; }
   if (action === 'start-new-project') { openFirstProjectPanel(); return; }
   if (action === 'unsorted-file' || action === 'unsorted-save') {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
@@ -455,7 +479,11 @@ function onAppClick(e) {
   }
   else if (action === 'sort-step' || action === 'sort-next' || action === 'sort-back') {
     const to = action === 'sort-step' ? +el.getAttribute('data-step') : ui.unsorted.step + (action === 'sort-next' ? 1 : -1);
-    if (to >= 1 && to <= 3) { ui.unsorted.step = to; ui.unsorted.find = ''; }
+    const u = ui.unsorted;
+    const cur = unsortedCurrent(state, u);
+    const hasProject = !!u.projectId || !!(cur && cur.kind === 'task');
+    if (action === 'sort-step' && to > 1 && !hasProject) u.why = STEP_LOCKED_WHY;
+    else if (to >= 1 && to <= 3) { u.step = to; u.find = ''; u.why = ''; }
     paint();
   }
   else if (action === 'sort-add-notes') {
@@ -505,9 +533,14 @@ function onAppClick(e) {
     if (inboxId) {
       const item = state.inbox.find((i) => i.id === inboxId);
       const text = item ? item.text : 'this note';
-      M.discardInbox(inboxId);
-      ui.notice = 'Deleted "' + text + '".';
-      paint();
+      confirmMove('Delete "' + text + '"? It leaves the tray for good.', '[data-action="unsorted-delete"]', 'Delete').then((ok) => {
+        if (!ok) return;
+        // the thought may have gone while the question was open (another tab, a sync)
+        if (!state.inbox.some((i) => i.id === inboxId)) { paint(); return; }
+        M.discardInbox(inboxId);
+        ui.notice = 'Deleted "' + text + '".';
+        paint();
+      });
     } else if (confirmDeleteTask(taskId, projectId)) {
       M.deleteTask(taskId, projectId);
     }
@@ -675,6 +708,20 @@ function onAppContextMenu(e) {
     return;
   }
 
+  // Sort's project and label cards (inside the in-tray's wallets): same picker, committed on change.
+  const sleeveEl = e.target.closest('.tray-wallets .sleeve');
+  if (sleeveEl) {
+    const key = sleeveEl.getAttribute('data-key');
+    const project = state.projects.find((p) => p.id === key);
+    const cat = project ? null : state.categories.find((c) => c.id === key);
+    const target = project || cat;
+    if (!target) return;
+    e.preventDefault();
+    openColorPicker(e, cssColorToHex(target.color), () => {},
+      (hex) => { if (project) M.setProjectColor(key, hex); else M.setCategoryColor(key, hex); });
+    return;
+  }
+
   const chip = e.target.closest('[data-cat-id]');
   if (!chip) return;
   e.preventDefault();
@@ -713,10 +760,117 @@ function onColorChange(el) {
   else M.setCategoryColor(id, el.value);
 }
 
+// ---- Board > Task details (#201, js/task-details.js) -------------------------------------------
+// Selecting a card (or none) starts the panel afresh: no row open, no half-made subtask or link.
+function selectBoardTask(id) {
+  ui.boardSelected = id; ui.boardOpen = null; ui.boardAddSub = false; ui.boardLink = null; ui.boardPicker = false;
+}
+function detailTask() {
+  const found = ui.boardSelected && findTaskWithProject(ui.boardSelected);
+  return found ? { task: found.task, project: found.project } : null;
+}
+// Each change goes through the same mutations Projects' task editor uses, so it is stamped, synced and,
+// for a GitHub-linked task, pushed (updateTaskFields / setTaskStatus do the push).
+function addDetailTie(task, field, otherId) {
+  const ps = state.projects;
+  if (field === 'parent' && canSetParent(ps, task.id, otherId)) M.updateTaskFields(task.id, { parentId: otherId });
+  else if (field === 'waitsOn' && canWaitOn(ps, task.id, otherId)) M.updateTaskFields(task.id, { waitsOn: (task.waitsOn || []).concat(otherId) });
+  else if (field === 'holdsUp' && canWaitOn(ps, otherId, task.id)) {
+    const other = findTaskWithProject(otherId);
+    if (other) M.updateTaskFields(otherId, { waitsOn: (other.task.waitsOn || []).concat(task.id) });
+  }
+}
+function onDetailAction(action, el) {
+  const d = detailTask();
+  if (!d) return;
+  const { task, project } = d;
+  if (action === 'detail-close') { selectBoardTask(null); paint(); }
+  else if (action === 'detail-fold') {
+    const key = el.getAttribute('data-key');
+    ui.boardOpen = ui.boardOpen === key ? null : key; ui.boardAddSub = false; ui.boardLink = null; ui.boardPicker = false;
+    paint();
+  }
+  else if (action === 'detail-goto') { selectBoardTask(el.getAttribute('data-task-id')); paint(); }
+  else if (action === 'detail-make-cat') {
+    const id = el.getAttribute('data-cat');
+    M.updateTaskFields(task.id, { categoryIds: [id].concat((task.categoryIds || []).filter((c) => c !== id)) });
+  }
+  else if (action === 'detail-add-sub-open') {
+    ui.boardAddSub = true; paint();
+    const box = document.querySelector('[data-detail-newsub]');
+    if (box) box.focus();
+  }
+  else if (action === 'detail-add-sub') addDetailSubtask(task, project);
+  else if (action === 'detail-link-open') {
+    const f = el.getAttribute('data-field');
+    ui.boardLink = ui.boardLink && ui.boardLink.field === f ? null : { field: f, query: '' };
+    paint();
+    const box = document.querySelector('[data-detail-find]');
+    if (box) box.focus();
+  }
+  else if (action === 'detail-link-add') { addDetailTie(task, el.getAttribute('data-field'), el.getAttribute('data-id')); ui.boardLink = null; paint(); }
+  else if (action === 'detail-unlink') {
+    const f = el.getAttribute('data-field'), id = el.getAttribute('data-id');
+    if (f === 'parent') M.updateTaskFields(task.id, { parentId: undefined });
+    else if (f === 'waitsOn') { const w = (task.waitsOn || []).filter((x) => x !== id); M.updateTaskFields(task.id, { waitsOn: w.length ? w : undefined }); }
+    else if (f === 'holdsUp') { const o = findTaskWithProject(id); if (o) { const w = (o.task.waitsOn || []).filter((x) => x !== task.id); M.updateTaskFields(id, { waitsOn: w.length ? w : undefined }); } }
+  }
+  else if (action === 'detail-focus') { M.setFocus(task.id); ui.notice = 'Focus is now “' + task.title + '”.'; paint(); }
+  else if (action === 'detail-delete') {
+    if (confirmDeleteTask(task.id, project.id)) { selectBoardTask(null); M.deleteTask(task.id, project.id); }
+  }
+}
+function addDetailSubtask(task, project) {
+  const box = document.querySelector('[data-detail-newsub]');
+  const title = box ? box.value.trim() : '';
+  if (!title) { if (box) box.focus(); return; }
+  const sub = M.addTask(project.id, title);
+  if (!sub) return;
+  createIssueIfGithubProject(sub, project.id);
+  if (canSetParent(state.projects, sub.id, task.id)) M.updateTaskFields(sub.id, { parentId: task.id });
+  ui.boardAddSub = true; // ready for the next one
+  paint();
+  const next = document.querySelector('[data-detail-newsub]');
+  if (next) next.focus();
+}
+// Fields that save when they change or are left (the Notes summary follows each keystroke, see onAppInput).
+function onDetailChange(t) {
+  const d = detailTask();
+  if (!d) return false;
+  const { task, project } = d;
+  if (t.matches('[data-detail-status]')) M.setTaskStatus(task.id, t.value);
+  else if (t.matches('[data-detail-notes]')) M.updateTaskFields(task.id, { notes: t.value.trim() });
+  else if (t.matches('[data-detail-priority]')) M.editTask(task.id, project.id, { priority: t.value });
+  else if (t.matches('[data-detail-due]')) M.editTask(task.id, project.id, { deadline: t.value });
+  else if (t.matches('.detail-labels input[name="categoryIds"]')) {
+    const checked = Array.from(t.closest('.label-options').querySelectorAll('input[name="categoryIds"]:checked')).map((i) => i.value);
+    const kept = (task.categoryIds || []).filter((c) => checked.includes(c));
+    ui.boardPicker = true;
+    M.updateTaskFields(task.id, { categoryIds: kept.concat(checked.filter((c) => !kept.includes(c))) });
+  } else if (t.matches('.detail-labels input[name="newLabels"]')) {
+    const ids = (task.categoryIds || []).slice();
+    t.value.split(',').map((s) => s.trim()).filter(Boolean).forEach((name) => { const id = labelIdByName(name); if (!ids.includes(id)) ids.push(id); });
+    ui.boardPicker = true;
+    M.updateTaskFields(task.id, { categoryIds: ids });
+  } else return false;
+  return true;
+}
+// The title is edited in place and saved when it is left.
+function onDetailFocusOut(e) {
+  if (!e.target.matches || !e.target.matches('[data-detail-title]')) return;
+  const d = detailTask();
+  if (!d) return;
+  const title = e.target.textContent.trim();
+  if (title && title !== d.task.title) M.editTask(d.task.id, d.project.id, { title });
+  else if (!title) paint(); // an empty title is not saved; the old one comes back
+}
+
 function onAppChange(e) {
   const colorEl = colorInputTarget(e);
   if (colorEl) { onColorChange(colorEl); return; }
+  if (e.target.matches && onDetailChange(e.target)) return;
   if (e.target.matches && e.target.matches('.add-task-form input[name="deadline"], .task-edit-form input[name="deadline"]')) { syncDueStageStep(e.target); return; }
+  if (e.target.matches && e.target.matches('[data-action="board-project-select"]')) { setBoardProject(e.target.value); ui.boardShown = null; paint(); return; }
   if (e.target.matches && e.target.matches('.due-step select')) {
     const step = e.target.closest('.due-step');
     const yellow = step.querySelector('select[name="dueYellow"]'), red = step.querySelector('select[name="dueRed"]');
@@ -749,6 +903,18 @@ function onAppChange(e) {
 function onAppInput(e) {
   const colorEl = colorInputTarget(e);
   if (colorEl) { onColorInput(colorEl); return; }
+  if (e.target.matches && e.target.matches('[data-detail-notes]')) {
+    const v = document.querySelector('[data-summary="notes"]');
+    if (v) v.textContent = notesSummary(e.target.value);
+    return;
+  }
+  if (e.target.matches && e.target.matches('[data-detail-find]')) {
+    ui.boardLink.query = e.target.value; paint();
+    const box = document.querySelector('[data-detail-find]');
+    if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
+    return;
+  }
+  if (e.target.matches && e.target.matches('[data-board-find]')) { ui.boardFind = e.target.value; ui.boardShown = null; paint(); return; }
   // the slip's title and notes are kept in the scratch without a repaint (it would lose the caret)
   if (e.target.matches && e.target.matches('[data-slip-title]')) { ui.unsorted.title = e.target.textContent; return; }
   if (e.target.matches && e.target.matches('.slip-notes')) { ui.unsorted.notes = e.target.value; return; }
@@ -1042,6 +1208,11 @@ function onAppSubmit(e) {
 }
 
 function onAppKeydown(e) {
+  // Task details: Enter finishes the title (saved on leaving it) or adds the typed subtask
+  if (e.key === 'Enter' && e.target.matches) {
+    if (e.target.matches('[data-detail-title]')) { e.preventDefault(); e.target.blur(); return; }
+    if (e.target.matches('[data-detail-newsub]')) { e.preventDefault(); const d = detailTask(); if (d) addDetailSubtask(d.task, d.project); return; }
+  }
   // Escape in the due-date step skips just the step; it must not also close the form around it.
   if (e.key === 'Escape' && e.target.closest && e.target.closest('.due-step')) {
     e.stopPropagation();
@@ -1197,6 +1368,7 @@ function init() {
   app.addEventListener('input', onAppInput);
   app.addEventListener('submit', onAppSubmit);
   app.addEventListener('keydown', onAppKeydown);
+  app.addEventListener('focusout', onDetailFocusOut);
   app.addEventListener('contextmenu', onAppContextMenu);
   initProjectDrag(app, {
     move: moveProjectTo,
@@ -1204,13 +1376,13 @@ function init() {
     announce: announceDrag,
     onEnd: () => { if (paintWaitingOnDrag) { paintWaitingOnDrag = false; paint(); } },
   });
-  initBoardSwipe(app, { moveTask: moveTaskTo, announce: announceDrag });
   // the sync button and Projects toggle live in the topbar, outside #app -- same handler, since it
   // only acts on data-action values it recognizes
   const topbar = document.querySelector('.topbar');
   if (topbar) topbar.addEventListener('click', onAppClick);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && ui.projectsDrawerOpen) setProjectsDrawerOpen(false);
+    else if (e.key === 'Escape' && ui.screen === 'board' && ui.boardSelected) { selectBoardTask(null); paint(); }
   });
   const captureForm = document.getElementById('capture-form');
   captureForm.addEventListener('submit', (e) => {

@@ -73,14 +73,17 @@ async function chooseFlag(page, key) {
   await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
   await page.waitForTimeout(300);
 }
+// The Sort screen goes in steps (project, labels, links): Next moves on, and the last step's button files.
+const nextStep = async (page) => { await page.click('.file-btn[data-action="sort-next"]'); await page.waitForSelector('[data-wallet="tray-flags"], .links-step'); await page.waitForTimeout(300); };
 const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 
 // 1. In the in-tray: before a folder, all; Home's flags; More categories shows the rest
 {
   const { ctx, page } = await open();
-  await page.waitForSelector('[data-wallet="tray-flags"]');
-  check('in-tray, no folder yet: every category is offered', (await flagKeys(page)).length === kinds.length + 6);
+  // "No folder yet: every category is offered" can no longer be reached: the labels step is locked until a project is chosen.
+  await page.waitForSelector('[data-wallet="tray-folders"]');
   await chooseFolder(page, 'pHome');
+  await nextStep(page);
   const home = await flagKeys(page);
   check('in-tray, Home chosen: only Home’s categories, then More categories', JSON.stringify(home) === JSON.stringify([...kinds, 'c_chore', 'c_garden', '__more__']), home.join());
   check('More categories says how many', ((await page.$eval('[data-key="__more__"] .ct', (e) => e.textContent)) || '') === '4 more');
@@ -90,7 +93,8 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   const all = await flagKeys(page);
   check('choosing More categories shows them all', all.length === kinds.length + 6 && !all.includes('__more__'), all.join());
   await chooseFlag(page, 'c_music');
-  await page.click('.file-btn');
+  await nextStep(page);
+  await page.click('.file-btn[data-action="unsorted-file"]');
   await page.waitForTimeout(300);
   const st = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), STATE_KEY));
   const filed = st.projects.find((p) => p.id === 'pHome').tasks.find((x) => x.title === 'Plant the bulbs');
@@ -118,6 +122,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 // 3. Settings: turning it off shows everything, and it is stored
 {
   const { ctx, page } = await open({}, 'settings.html');
+  await page.click('[aria-controls="fold-category-filter"]');
   check('Settings: Category choices is on by default', await page.isChecked('#category-filter-on'));
   await page.$eval('#category-filter-section', (e) => e.scrollIntoView());
   await page.screenshot({ path: OUT + 'settings.png' });
@@ -127,6 +132,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   await page.goto(BASE);
   await page.waitForSelector('[data-wallet="tray-folders"]');
   await chooseFolder(page, 'pHome');
+  await nextStep(page);
   check('off: Home offers every category, no More card', (await flagKeys(page)).length === kinds.length + 6);
   await page.click('.rail [data-screen="projects"]');
   await page.click('.task-title[data-task="h1"]');

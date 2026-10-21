@@ -4,6 +4,118 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-20 — Design approved: tray delete (1A)
+
+**Context.** In aj's phone test, Delete under a thought in the tray removed it in one tap with no way
+back; deleting a task already asked first (`docs/plans/tray-delete.html`).
+
+**Decision.** Deleting a thought asks first, with the app's own Cancel/Delete card (1A), rather than
+deleting at once with Undo on the notice (1B).
+
+**Why.** aj asked to be asked, and it matches deleting a task.
+
+**Status.** Built 2026-10-20 under #219 (#220, #221), part of #198, in aj's QA. See
+`docs/4-systems/in-tray.md`.
+
+## 2026-10-20 — Design approved: board project view (1B 2A)
+
+**Context.** In aj's phone test, the Board's tab numbers counted every project even with one picked
+(Up next said 58 while Home showed 17), and the picked project was only named in the small menu
+(`docs/plans/board-project.html`).
+
+**Decision.** Each tab's number counts what that tab would show under every narrowing: project, Find
+and Filter (1B). With a project picked, the heading becomes its name with its colour dot and bar, and
+the menu takes its colour (2A).
+
+**Why.** aj took both suggestions: a number that always matches the list, and a heading that names
+the project without adding a row.
+
+**Status.** Built 2026-10-20 under #216 (#217, #218), part of #198, in aj's QA. See
+`docs/4-systems/calm-board.md`.
+
+## 2026-10-20 — Design approved: due colours (1C)
+
+**Context.** On aj's phone (an HDR screen) the yellow "due soon" chip was too faint to see on a white
+card, and a task due today could still show yellow (`docs/plans/due-colours.html`).
+
+**Decision.** A task due today is always red. The yellow stays olive but with about twice the fill and
+a solid border in light mode (option C); dark mode is unchanged.
+
+**Why.** aj chose the smallest change from today (C) over solid yellow (A, which was suggested) and
+amber (B, too close to the "past its date" chip).
+
+**Status.** Built 2026-10-20 under #213 (#214, #215), in aj's QA. One change from the design: the
+chip's words are a darker olive (`#3A4200`), because the design's olive failed the 4.5:1 text
+contrast check on the stronger fill. See `docs/4-systems/due-dates.md`.
+
+## 2026-10-20 — Design approved: due and urgency on cards (1A)
+
+**Context.** Testing the calm build on a phone, aj found that a Board card shows only its one
+coloured label, so a task's due date and urgency can't be seen at a glance
+(`docs/plans/glance-due-urgency.html` shows the three options on the real app).
+
+**Decision.** Option A: every Board card that has a priority or a due date gets one quiet line
+under its label, with a flag and the priority word in the priority's colour, then the due chip in
+its stage colour. The line skips whatever the card's one label already shows. It replaces the
+"past its date" line added in #206 (a late date still shows, in the line). Projects is unchanged.
+
+**Why.** aj chose seeing both every time over the quieter "only when it matters" option (B, which
+was suggested) and over moving the date into the one label (C).
+
+**Status.** Built on 2026-10-20 in #211 and #212 (under #210), on `AjsAgent/calm-build` in pull request #209; in QA.
+
+## 2026-10-19 — Build stage opened: calm by default
+
+aj, 17:46 UTC: "Design approved: calm by default. Build plan approved: calm by default", then at 17:52
+UTC "Build plan approved: calm by default". The second message was needed because the design loop only
+accepts a build plan approval after the design approval and after at least two labelled issues opened
+since it; #207 (pull request and QA page) and #208 (docs in line with the built app) were opened for
+that, with #206 (whole-app check). The build of #199 to #205 now proceeds on `AjsAgent/calm-build`.
+#199 (side menu and header) was built at 08:30 UTC before the loop caught it; it stays, since it is
+part of the same approved plan.
+
+Status: Active
+
+## 2026-10-19 — Build plan approved: calm by default, Projects kept (1A)
+
+aj: "Build plan approved: calm by default 1A". The plan is `docs/plans/calm-build.html` (source
+`calm-build.json`), built in seven steps as issues #199 to #205 under #198. Choice 1A: the Projects
+screen stays as it is today and keeps its place in the side menu; only its words change. The header
+keeps today's large name and centred jotter but stays at the top while scrolling (plan notes
+sections 12 and 13 in `docs/plans/calm-by-default.md`). The one picture of the result is
+`docs/generated/calm-build/before-after.png`. Nothing is built yet; work goes on branch
+`AjsAgent/calm-build`, one step per issue, checked in Chromium at 1440 and 390 wide, then one pull
+request for QA.
+
+Status: Active
+
+## 2026-10-19 — Design approved: calm by default
+
+aj, after five rounds on the test site (`docs/generated/calm-test/index.html`): "yes I approve these
+changes lets merge it and build it". The test site is the approved design; pull request #197 merged
+it, the sort steps (#188) and ties everywhere (#192) into `main`. What it settles, with the reasons
+in `docs/plans/calm-by-default.md` sections 1 to 11:
+
+- The Board shows one tab at a time (Up next, In progress, Done this week), one toolbar (Find,
+  Project, Filter), cards in groups of seven with "Show more", and the selected task's details
+  beside the list on a wide screen (full screen on a phone). Nothing is selected until a card is
+  tapped; tapping it again, Escape or "Close ×" deselects it.
+- Up next cards carry "→ In progress" and In progress cards "← Up next".
+- A card's colour and its one chip come from the first item in Settings' "Card colour" list that the
+  task has: Category (its first label) by default, then Priority, then Due date, plus any label the
+  person adds at the top. "Make category" in a task's details moves a label to the front. A
+  project's name shows on cards only on "Project: All".
+- The task panel is "Task details": title and status menu always shown, then Notes, Priority and due
+  date, Labels, Subtasks and Linked tasks as folded rows, one open at a time. Changes apply as they
+  are made, so there is no Save button.
+- Every setting is one folded row showing its current value, one open at a time.
+- Layout A for the side menu and header; literal words ("Delete", "Add labels", "Link to other
+  tasks", "pick another task"); softer colours on by default; past-its-date amber by default, with
+  red as a setting, which reverses "overdue is always red" (`docs/4-systems/due-dates.md:18`).
+
+Open: the test site took the Projects screen out of the menu but drew nowhere for its project tools
+(new project, edit, GitHub repo, reorder, delete). The build plan asks aj where they go.
+
 ## 2026-10-18 — QA failed: Sort fixes, task panel, Board takes over from Projects
 
 aj's QA of the sort steps (#188) and ties (#192), in their words: right-click colour on folders and

@@ -21,7 +21,11 @@
   /* Deadline chip stages (#106). Borders + tint + words, never hue alone: --due-soon is an olive-lime and
      --due-now a crimson, apart from the gold --prio-medium, orange --prio-high and red --prio-urgent. */
   --due-soon:#4F5A00;
+  /* The yellow chip is stronger in light mode so it reads on a bright (HDR) white screen; dark mode
+     keeps the 18% tint and 60% border (design 1C, approved 2026-10-20, #215). */
+  --due-soon-fill:34%; --due-soon-edge:100%; --due-soon-ink:#3A4200; /* darker words keep 4.5:1 on that fill */
   --due-now:#9F0C3D;
+  --due-amber:#7A4D00;
   --proj-sat:58%;
   --proj-light:40%;
   /* The lamp: a glow on the desk behind the focus area, and the brand dot */
@@ -46,6 +50,7 @@
   /* Stage colours on paper, for the deadline chip's border and icon on the sticky note (its words stay ink) */
   --paper-due-soon:#5E6B00;
   --paper-due-now:#A30D40;
+  --paper-due-amber:#7A4D00;
   /* The writing on paper notes: the default face (Handwriting). Print and OpenDyslexic override
      these in the "Note faces" section at the end (#122) */
   --note-font:'Kalam', 'Comic Sans MS', cursive;
@@ -84,8 +89,9 @@
     --prio-high:#F5A867;
     --prio-medium:#E8C75E;
     --prio-low:#8FBF9F;
-    --due-soon:#D9E66B;
+    --due-soon:#D9E66B; --due-soon-fill:18%; --due-soon-edge:60%; --due-soon-ink:#D9E66B;
     --due-now:#FF96B9;
+    --due-amber:#F2C063;
     --proj-sat:55%;
     --proj-light:68%;
     --lamp:rgba(242,180,90,.17);
@@ -114,8 +120,9 @@
   --prio-high:#F5A867;
   --prio-medium:#E8C75E;
   --prio-low:#8FBF9F;
-  --due-soon:#D9E66B;
+  --due-soon:#D9E66B; --due-soon-fill:18%; --due-soon-edge:60%; --due-soon-ink:#D9E66B;
   --due-now:#FF96B9;
+  --due-amber:#F2C063;
   --proj-sat:55%;
   --proj-light:68%;
   --lamp:rgba(242,180,90,.17);
@@ -250,6 +257,8 @@ a{color:inherit;}
 .note-meta{display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; font:var(--text-sm) var(--font-paper-small); color:var(--note-soft); letter-spacing:.02em;}
 .note-meta > span:not(.chip)::before{content:"\00B7" / ""; margin-right:6px;}
 .note-project{padding:6px 0; border:0; background:none; color:var(--note-ink); font:inherit; font-weight:700; text-decoration:underline dotted; text-underline-offset:3px;}
+.note .chip.deadline-chip.due-amber{border-color:var(--paper-due-amber); font-weight:700;}
+.note .chip.deadline-chip.due-amber svg{color:var(--paper-due-amber);}
 .note .chip.deadline-chip{background:var(--paper); color:var(--paper-ink); border:1.5px solid var(--paper-soft); font-family:var(--font-paper-small);}
 .note .chip.deadline-chip.due-yellow{border-color:var(--paper-due-soon); font-weight:700;}
 .note .chip.deadline-chip.due-red{border-color:var(--paper-due-now); font-weight:700;}
@@ -330,8 +339,9 @@ button.chip.proj-chip:hover{background:var(--line);}
    neutral chip; yellow and red add a tint and a border so they differ from the borderless priority
    chips even where a hue is close. A done task or a project deadline gets no stage class. */
 .chip.deadline-chip.due-white{background:var(--surface-2); color:var(--ink-soft);}
-.chip.deadline-chip.due-yellow{background:color-mix(in srgb, var(--due-soon) 18%, transparent); color:var(--due-soon); border-color:color-mix(in srgb, var(--due-soon) 60%, transparent); font-weight:700;}
+.chip.deadline-chip.due-yellow{background:color-mix(in srgb, var(--due-soon) var(--due-soon-fill), transparent); color:var(--due-soon-ink); border-color:color-mix(in srgb, var(--due-soon) var(--due-soon-edge), transparent); font-weight:700;}
 .chip.deadline-chip.due-red{background:color-mix(in srgb, var(--due-now) 18%, transparent); color:var(--due-now); border-color:color-mix(in srgb, var(--due-now) 60%, transparent); font-weight:700;}
+.chip.deadline-chip.due-amber{background:color-mix(in srgb, var(--due-amber) 18%, transparent); color:var(--due-amber); border-color:color-mix(in srgb, var(--due-amber) 60%, transparent); font-weight:700;} /* past its date, the Comfort default (#203) */
 .chip.gh-chip{border-color:transparent; background:var(--surface-2); color:var(--ink-soft); text-decoration:none;}
 .chip.gh-chip.small{font-size:var(--text-sm); padding:3px 8px;}
 .chip.gh-chip:hover{color:var(--accent);}
@@ -817,7 +827,7 @@ body.is-dragging-task .empty-note{display:none;}
 .tray-stack{position:relative; min-height:150px;}
 .slip-behind{position:absolute; left:10px; right:26px; top:10px; height:118px; border-radius:3px; background:var(--paper); opacity:.75; transform:rotate(2.5deg); box-shadow:0 8px 14px -10px var(--paper-shadow);}
 .slip-behind.two{transform:rotate(-3deg); top:16px; opacity:.55;}
-.jot-slip{position:relative; margin-right:20px; min-height:124px; border-radius:2px 2px 4px 4px; padding:18px 34px 12px 14px; color:var(--paper-ink); transform:rotate(-1deg);
+.jot-slip{position:relative; margin-right:20px; min-height:124px; border-radius:2px 2px 4px 4px; padding:18px 34px 34px 14px; color:var(--paper-ink); transform:rotate(-1deg);
   background-color:var(--paper); box-shadow:0 12px 18px -12px var(--paper-shadow);
   background-image:radial-gradient(circle, var(--hole) 2.2px, transparent 2.7px), repeating-linear-gradient(transparent 0 25px, var(--rule) 25px 26px);
   background-size:12px 8px, 100% 100%; background-repeat:repeat-x, no-repeat; background-position:4px 3px, 0 14px;}
@@ -857,7 +867,8 @@ body.is-dragging-task .empty-note{display:none;}
 .step-tab small{display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-height:1.3em;}
 .step-tab.done{color:var(--ink-soft); border-bottom-color:color-mix(in srgb, var(--accent) 45%, var(--line));}
 .step-tab.now{color:var(--ink); border-bottom-color:var(--accent);}
-.step-tab:disabled{cursor:default;}
+.step-tab.locked{opacity:.6;}
+.step-why{margin:-8px 0 12px; font-size:var(--text-sm); color:var(--ink-soft);}
 .sort-find{width:100%; padding:10px 12px 10px 36px; margin:4px 0 6px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 11px center / 16px;}
 .find-empty{margin:10px 0;}
 .new-flag{border:1.5px dashed var(--line); background:none; color:var(--ink-soft); border-radius:var(--r-control); padding:8px 12px; font:inherit; font-size:var(--text-sm); cursor:pointer; margin:8px 0;}
@@ -1079,16 +1090,24 @@ body.is-dragging-task .empty-note{display:none;}
 .desk-empty .btn{margin-top:12px;}
 .rail-tools{display:none;}
 @media (min-width:1100px){
-  .rail{top:calc(var(--topbar-h, 64px) + 16px); bottom:auto; right:auto; left:max(12px, calc((100vw - 1800px) / 2 + 12px)); width:84px; grid-template-columns:1fr; gap:6px; padding:8px 6px; border:1px solid var(--line); border-radius:18px;}
-  .wrap{padding-left:116px; padding-bottom:64px;}
-  /* the topbar is part of the desk, not a band of its own: no rule under it, the jotter centred, the
-     brand in the corner above the rail, and sync and Settings at the foot of the rail (.rail-tools) */
-  .topbar{position:relative; background:none; border-bottom:0; justify-content:center;}
-  .topbar .brand{position:absolute; left:-104px; top:50%; transform:translateY(-50%);}
+  .rail{top:calc(var(--topbar-h, 64px) + 16px); bottom:20px; right:auto; left:max(16px, calc((100vw - 1800px) / 2 + 16px)); width:232px; display:flex; flex-direction:column; gap:4px; padding:22px 14px 16px; border:1px solid var(--line); border-radius:20px; overflow-y:auto;}
+  .rail-item{position:relative; flex-direction:row; justify-content:flex-start; gap:14px; padding:12px 14px; font:600 1rem var(--font-ui); border-radius:12px;}
+  .rail-icon{position:static;}
+  .rail-count{left:auto; right:14px; top:50%; transform:translateY(-50%);}
+  .wrap{padding-left:296px; padding-bottom:64px;}
+  /* the topbar is sticky and opaque, spanning from the left edge of the side menu: the brand over the
+     menu column, the jotter centred over the content, no rule under it; sync and Settings sit at the
+     foot of the rail (.rail-tools). --topbar-h (js/app.js) places the rail just below it */
+  .topbar{display:grid; grid-template-columns:232px minmax(0, 1fr) 232px; column-gap:16px; align-items:center; margin-left:-280px; padding-left:14px; background:var(--bg); border-bottom:0;}
+  .topbar .capture-form{grid-column:2; width:100%; justify-self:center;}
+  .topbar .brand{padding-left:10px;}
   .topbar .brand h1{font-size:1.7rem;}
   .topbar .lamp{width:12px; height:12px;}
   .topbar-tools{display:none;}
-  .rail-tools{display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:4px; padding-top:10px; border-top:1px solid var(--line);}
+  .rail-tools{display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:10px; margin-top:auto; padding:12px 10px 0; border-top:1px solid var(--line);}
+  .rail-settings{width:auto; height:32px; padding:0 8px; gap:10px; border-radius:16px; font:600 .95rem var(--font-ui); text-decoration:none;}
+  .rail-settings svg{width:22px; height:22px;}
+  .rail-settings-label{color:var(--ink-soft);}
   .toast{bottom:calc(16px + env(safe-area-inset-bottom, 0px));}
   #app:has(> .screen){display:block;}
   .screen-focus,.screen-board{padding-top:28px;}
@@ -1118,7 +1137,7 @@ body.is-dragging-task .empty-note{display:none;}
   --ink:#1C2438; --ink-soft:#59627A; --ink-faint:#6E7790; --line:#C7CEDB;
   --accent:#8F5A06; --accent-ink:#FFFFFF; --danger:#A83E3E;
   --prio-urgent:#B42318; --prio-high:#AD4A0B; --prio-medium:#7A5A00; --prio-low:#3F6E53;
-  --due-soon:#4F5A00; --due-now:#9F0C3D;
+  --due-soon:#4F5A00; --due-soon-fill:34%; --due-soon-edge:100%; --due-soon-ink:#3A4200; --due-now:#9F0C3D;
   --index-rule:color-mix(in srgb, var(--rule) 45%, #FBFAF7);
   --folder-edge:color-mix(in srgb, var(--proj-color) 45%, var(--folder));
   color-scheme:light; color:var(--ink);
@@ -1144,34 +1163,25 @@ body.is-dragging-task .empty-note{display:none;}
 .flip-track.is-spread .icard .go{display:none;}
 
 /* ==== The Board (#144) ====================================================================
-   Project pills, then Up next / In progress / Done this week as columns of paper cards (js/board-view.js).
+   A toolbar, tabs and one list of paper cards (js/board-view.js).
    A card is paper in both themes, so it and the folder frame take the light theme's tokens, as the
-   project folders do (#129): the chips on them are the contrast already proven. Narrowed to one
-   project, the columns sit in that project's folder frame. On a phone .board-switch picks one column;
-   from 1100px all three show and the switch is hidden. */
+   project folders do (#129): the chips on them are the contrast already proven. */
 .board-card, .board-frame{
   --bg:#E4E8EF; --surface:#FBFAF7; --surface-2:#EEF1F6;
   --ink:#1C2438; --ink-soft:#59627A; --ink-faint:#6E7790; --line:#C7CEDB;
   --accent:#8F5A06; --accent-ink:#FFFFFF; --danger:#A83E3E;
   --prio-urgent:#B42318; --prio-high:#AD4A0B; --prio-medium:#7A5A00; --prio-low:#3F6E53;
+  --due-soon:#4F5A00; --due-soon-fill:34%; --due-soon-edge:100%; --due-soon-ink:#3A4200; --due-now:#9F0C3D;
   color-scheme:light; color:var(--ink);
 }
 .board-title{margin:0 0 10px; font:700 1.4rem var(--font-ui);}
-.board-pills{display:flex; gap:8px; overflow-x:auto; padding:2px 2px 8px; margin-bottom:8px; scrollbar-width:thin;}
-.board-pill{flex:none; display:inline-flex; align-items:center; gap:7px; max-width:200px; padding:6px 13px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--ink); font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
-.board-pill.is-on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink);}
-.board-pill:focus-visible, .board-switch-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
-.board-pill-dot{flex:none; width:10px; height:10px; border-radius:50%; background:var(--proj-color); box-shadow:0 0 0 1.5px var(--surface);}
-.board-pill-name{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.board-switch{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:12px; padding:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:14px;}
-.board-switch-btn{border:0; border-radius:10px; background:none; color:var(--ink-soft); font:600 var(--text-sm) var(--font-ui); padding:8px 4px; cursor:pointer;}
-.board-switch-btn.is-on{background:var(--surface); color:var(--accent); box-shadow:0 1px 3px var(--paper-shadow);}
+/* the picked project names the Board heading and marks the select (#218) */
+.board-title.is-project{border-left:6px solid var(--proj-color); padding-left:10px;}
+.board-title-name{display:inline-flex; align-items:center; gap:10px; overflow-wrap:anywhere; min-width:0;}
+.board-title-name i{width:14px; height:14px; border-radius:50%; background:var(--proj-color); flex:none;}
+.board-title-sub{display:block; font:600 .85rem var(--font-ui); color:var(--ink-soft); margin-top:2px;}
+.calm-tools select.is-picked{border:2px solid var(--proj-color); background:color-mix(in srgb, var(--proj-color) 14%, var(--surface)); font-weight:700;}
 .board-count{font-variant-numeric:tabular-nums; font-weight:700;}
-.board-cols{display:grid; grid-template-columns:minmax(0,1fr); gap:16px;}
-.board-col{display:none; min-width:0;}
-.board-col.is-current{display:block;}
-.board-col-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:0 0 10px; padding:0 2px 6px; border-bottom:2px solid var(--line); font:700 var(--text-h) var(--font-ui);}
-.board-col-head .board-count{color:var(--ink-soft); font-size:var(--text-sm);}
 .board-cards{display:flex; flex-direction:column; gap:10px;}
 .board-card{position:relative; display:flex; align-items:flex-start; gap:10px; min-width:0; padding:11px 12px 11px 16px; background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--proj-color); border-radius:3px 8px 8px 3px; box-shadow:0 6px 12px -9px var(--paper-shadow);}
 .board-card input[type="checkbox"]{flex:none; width:17px; height:17px; margin-top:2px; accent-color:var(--accent);}
@@ -1183,27 +1193,91 @@ body.is-dragging-task .empty-note{display:none;}
 .board-card-cats{flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .board-card-proj + .board-card-cats::before{content:"\00b7\00a0";}
 .board-card .board-prio{flex:none; cursor:default;}
-.board-card{touch-action:pan-y; -webkit-user-select:none; user-select:none;}
-.board-card.is-swiping{box-shadow:0 10px 18px -8px var(--paper-shadow); z-index:1;}
 /* the lifted copy of a dragged card: .board-card's position:relative (above) would otherwise beat .drag-ghost's fixed */
 .board-card.drag-ghost.is-task{position:fixed; border-left:6px solid var(--proj-color); padding:11px 12px 11px 16px; border-radius:3px 8px 8px 3px; box-sizing:border-box;}
 .board-card.drag-placeholder{border-radius:3px 8px 8px 3px;}
-.board-grip{display:none; margin:0 -4px 0 -8px;}
-.board-grip:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
-.board-empty{margin:0; padding:14px 12px; border:1px dashed var(--line); border-radius:8px; color:var(--ink-soft); font-size:var(--text-sm); text-align:center;}
-.board-frame{position:relative; margin-top:36px; padding:14px 14px 16px; background:var(--surface-2); border:6px solid color-mix(in srgb, var(--proj-color) 45%, var(--folder)); border-radius:2px 12px 12px 12px; box-shadow:0 18px 30px -20px var(--paper-shadow);}
-.board-frame::before{content:""; position:absolute; left:-6px; top:-33px; width:min(200px, 55%); height:27px; border-radius:8px 12px 0 0; background:color-mix(in srgb, var(--proj-color) 45%, var(--folder));}
-.board-frame-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
-.board-frame-name{margin:0; min-width:0; overflow-wrap:anywhere; font:700 var(--text-h) var(--font-ui);}
-.board-back{color:var(--accent);}
-@media (max-width:1099.98px){ .board-col{overflow-x:clip;} } /* a card swiped sideways never widens the page */
-@media (min-width:1100px){
-  .board-grip{display:inline-flex;}
-  .board-switch{display:none;}
-  .board-cols{grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; align-items:start;}
-  .board-col{display:block;}
-  .board-pills{flex-wrap:wrap; overflow-x:visible;}
-}
+/* Calm Board (#200): toolbar, tabs, one list of cards beside the (empty-for-now) Task details column.
+   From the test site, docs/generated/calm-test/index.html. The edge colour stays on --proj-color. */
+.cw{display:grid; grid-template-columns:minmax(420px, 640px) minmax(380px, 1fr); gap:28px; align-items:start;}
+@media (max-width:1099.98px){ .cw{grid-template-columns:minmax(0,1fr);} .cw-detail{display:none;} .cw-detail.phone-open{display:flex; position:fixed; inset:0; z-index:60; border-radius:0; max-height:none; overflow:auto;} } /* Task details goes full screen over the list on phones (#201) */
+.cw-list{min-width:0;}
+.cw-detail{position:sticky; top:20px; padding:20px 22px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px;}
+.calm-tools{display:flex; gap:8px; margin:0 0 12px; align-items:center; flex-wrap:wrap;}
+.calm-tools .bm-find, .board-find{flex:1 1 180px; min-width:0; padding:9px 12px 9px 34px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 10px center / 16px;}
+.calm-tools select{flex:0 0 auto; max-width:220px; padding:8px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:600 var(--text-sm) var(--font-ui);}
+.calm-btn{padding:8px 12px;}
+.calm-btn.on{box-shadow:inset 0 0 0 2px var(--accent);}
+.calm-drawer{padding:14px 16px; margin:0 0 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2);}
+.calm-h{margin:0 0 6px; font-size:var(--text-sm); color:var(--ink-soft); font-weight:700;}
+.bm-row{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px;}
+.bm-chip{border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); border-radius:999px; padding:5px 11px; font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
+.bm-chip.on{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
+.bm-chip .sw{display:inline-block; width:9px; height:9px; border-radius:2px; background:var(--c); margin-right:6px;}
+.calm-tabs{display:flex; gap:22px; border-bottom:1px solid var(--line); margin-bottom:12px; overflow-x:auto;}
+.calm-tab{flex:none; border:0; background:none; padding:8px 2px; color:var(--ink-soft); font:600 var(--text-body) var(--font-ui); border-bottom:3px solid transparent; margin-bottom:-1px; cursor:pointer;}
+.calm-tab.on{color:var(--ink); border-bottom-color:var(--accent);}
+.calm-tab b{font-weight:600; color:var(--ink-faint); margin-left:4px;}
+.calm-cards{display:flex; flex-direction:column; gap:10px;}
+.calm-card{cursor:pointer; border-left-width:6px; border-left-color:color-mix(in srgb, var(--proj-color) 70%, var(--surface));} /* a softer edge; --proj-color still sets it */
+.calm-card.on{box-shadow:0 0 0 3px var(--accent);}
+/* the move button says where the task goes, so "start" is never confused with Focus */
+.calm-move{flex:none; align-self:center; margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border:1.5px solid #9aa3ad; border-radius:var(--r-control); background:#fff; color:#1D2733; font:700 var(--text-sm) var(--font-ui); cursor:pointer; white-space:nowrap;}
+.calm-move:hover, .calm-move:focus-visible{border-color:#2f4f86; color:#2f4f86;}
+.calm-move svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+.board-subs{display:inline-flex; align-items:center; gap:6px; font-size:var(--text-sm); color:#4a5560;}
+.board-card-due{display:block; margin-top:4px;}
+.board-card-due .deadline-chip{font-size:var(--text-xs, 0.75rem);}
+.gl-glance{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+.gl-prio{display:inline-flex; align-items:center; gap:4px; font-size:var(--text-sm); font-weight:700; color:var(--c);}
+.gl-prio svg{width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2; stroke-linejoin:round;}
+.board-subs b{color:#1D2733;}
+.board-segs{display:inline-flex; gap:2px;}
+.board-segs i{width:12px; height:5px; border-radius:2px; background:#d8d3c8;}
+.board-segs i.on{background:#3E8E5E;}
+.calm-meta{margin:0; font-size:var(--text-sm); color:var(--ink-soft);}
+.calm-more{margin-top:12px;}
+.calm-empty{margin:0; padding:18px; border:1px dashed var(--line); border-radius:10px; color:var(--ink-soft); font-size:var(--text-sm);}
+/* Task details (#201): the right-hand panel; its rows are the Settings .set rows. From the test site. */
+.cw-detail:has(.top){display:flex; flex-direction:column; gap:14px; max-height:calc(100vh - 40px); overflow:auto;}
+.cw-detail .top{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft);}
+.cw-name{font:700 var(--text-sm) var(--font-ui); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;}
+.cw-where{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); color:var(--ink-soft); margin-top:-6px;}
+.cw-where .cw-status{width:auto; min-height:0; padding:5px 8px; font-weight:700;}
+.cw-rows{display:flex; flex-direction:column; gap:6px;}
+.cw-rows .set{background:var(--surface); margin:0;}
+.cw-rows .set-head{padding:11px 14px;}
+.cw-rows .set-body{padding:0 14px 12px;}
+.cw-detail .top .x{margin-left:auto; border:0; background:none; color:var(--ink-soft); font:600 var(--text-sm) var(--font-ui); cursor:pointer; padding:4px 6px; border-radius:8px;}
+.cw-detail .top .x:hover{color:var(--ink);}
+.cw-detail h3{margin:0; font:400 1.4rem var(--font-display); outline:none; overflow-wrap:anywhere;}
+.cw-detail h3:focus{box-shadow:0 0 0 2px var(--accent);}
+.cw-detail textarea, .cw-detail select, .cw-detail input[type=date], .cw-detail input[type=text]{width:100%; box-sizing:border-box; padding:9px 11px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit; font-size:var(--text-sm); min-height:40px;}
+.cw-detail textarea{min-height:90px; resize:vertical;}
+.cw-detail .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.bm-sec h4{margin:0 0 6px; font:700 var(--text-sm) var(--font-ui); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em;}
+.bm-sec{margin:0 0 10px;}
+.bm-tags{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+.bm-tied{display:inline-flex; align-items:center; gap:2px;}
+.bm-tag{display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border:0; border-radius:2px 6px 6px 6px; background:color-mix(in srgb, var(--c) 30%, var(--surface)); color:var(--ink); font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
+.bm-tag small{font-weight:500; color:var(--ink-soft);}
+.bm-sub{display:flex; align-items:center; gap:8px; font-size:var(--text-sm); padding:4px 0;}
+.bm-sub input{width:16px; height:16px; accent-color:var(--accent);}
+.bm-sub .st, .lb-row .st{margin-left:auto; font-size:.75rem; font-weight:700; color:var(--ink-soft);}
+.bm-add{border:0; background:none; color:var(--accent); font:700 var(--text-sm) var(--font-ui); cursor:pointer; padding:4px 0;}
+.bm-add.bm-sub-name{color:var(--ink); font-weight:600; text-align:left;}
+.bm-addrow{display:flex; gap:8px; align-items:center; margin-top:6px;}
+.lb-row{display:flex; align-items:center; gap:10px; padding:3px 0;}
+.lb-row .bm-add{margin-left:auto;}
+.detail-labels{margin-top:8px;}
+.cw-detail .task-find{margin-top:8px; display:flex; flex-direction:column; gap:4px;}
+.cw-detail .task-hit{display:flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; font-size:var(--text-sm); text-align:left; cursor:pointer;}
+.cw-detail .task-hit .dot{width:10px; height:10px; border-radius:50%; background:var(--c); flex:none;}
+.cw-detail .task-hit .muted{margin-left:auto;}
+.cw-foot{display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding-top:10px; border-top:1px solid var(--line);}
+.cw-foot .sp{flex:1;}
+.cw-foot .btn-text{white-space:nowrap;}
+.cw-foot .saved{font-size:var(--text-sm); color:var(--ink-soft);}
+@media (max-width:1099.98px){ .cw-foot .saved{flex-basis:100%;} .cw-detail.phone-open:has(.top){max-height:none; box-sizing:border-box;} }
 /* ==== end The Board ==== */
 
 /* ties on Board cards and Project rows (#193) */
@@ -1217,3 +1291,37 @@ body.is-dragging-task .empty-note{display:none;}
 .board-card.is-waiting .board-card-title, .task-row.is-waiting .task-title{color:var(--ink-soft);}
 .task-row.is-sub{margin-left:22px; position:relative;}
 .task-row.is-sub::before{content:''; position:absolute; left:-12px; top:0; bottom:50%; width:8px; border-left:1.5px solid var(--line); border-bottom:1.5px solid var(--line); border-bottom-left-radius:4px;}
+
+/* ==== Settings as folded rows, and Comfort (#203) ========================================
+   One row per setting: name left, current value right, an arrow. The body stays in the page (the
+   page scripts find their controls by id) and is only shown while its row is open. Spec: the
+   calm test site, docs/generated/calm-test/index.html. */
+.set{border:1px solid var(--line); border-radius:12px; background:var(--surface-2); margin:0 0 8px;}
+.set-head{display:flex; align-items:center; gap:12px; width:100%; padding:14px 16px; border:0; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer; border-radius:12px;}
+.set-head:hover{background:color-mix(in srgb, var(--ink) 5%, transparent);}
+.set-title{font-weight:700; flex:none;}
+.set-value{margin-left:auto; color:var(--ink-soft); font-size:var(--text-sm); text-align:right; min-width:0; overflow-wrap:anywhere;}
+.set-arrow{flex:none; color:var(--ink-soft); width:1em; text-align:center;}
+.set-body{padding:0 16px 14px;}
+.set:not(.open) > .set-body{display:none;}
+.set.open{border-color:color-mix(in srgb, var(--accent) 55%, var(--line));}
+.set-body label{display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:6px 0;}
+.set-body .setting-toggle, .set-body .note-faces label, .set-body .choosing-modes label{align-items:flex-start;}
+.set-body .note-faces label{flex-wrap:wrap;}
+.set-body select{padding:6px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:inherit; max-width:100%; min-width:0;}
+.cb-list{list-style:none; margin:8px 0; padding:0; display:flex; flex-direction:column; gap:4px;}
+.cb-row{display:flex; align-items:center; flex-wrap:wrap; gap:10px; padding:6px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface);}
+.cb-n{font-weight:700; color:var(--ink-soft); width:1.5em;}
+.cb-name{flex:1; font-weight:600; min-width:6em;}
+.cb-row .btn-text:disabled{opacity:.35; cursor:default;}
+
+/* Comfort settings applied to the whole page */
+body.no-motion *, body.no-motion *::before, body.no-motion *::after{transition:none !important; animation:none !important; scroll-behavior:auto !important;}
+body.no-motion .icard{transform:none !important;}
+body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, body.calm-colours .chip, body.calm-colours .project-card{filter:saturate(.75);} /* softer, same hues: colour still tells things apart */
+.comfort-choice{border:0; padding:0; margin:0; min-width:0;}
+/* Card colour (#202): the Board card one chip, from the test site .cchip. */
+.cchip{display:inline-flex; align-items:center; gap:6px; padding:1px 9px 1px 7px; border-radius:999px; font-size:.75rem; font-weight:700; background:color-mix(in srgb, var(--c) 22%, transparent);}
+.cchip i{width:9px; height:9px; border-radius:2px; background:var(--c);}
+.calm-card .cchip{color:color-mix(in srgb, var(--c) 55%, #1D2733);}
+.calm-card .cchip.none{background:#e7e3da; color:#4a5560;}

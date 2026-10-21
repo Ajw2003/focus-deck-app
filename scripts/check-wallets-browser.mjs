@@ -159,7 +159,8 @@ await ctx.close();
 // 5. Settings page: change the mode, it is stored, and the wallet follows
 ({ ctx, page } = await open('twice', 'dark'));
 await page.goto(BASE.replace('/app/', '/app/settings.html'));
-await page.waitForSelector('.choosing-modes input');
+await page.click('#choosing-section .set-head');
+await page.waitForSelector('.choosing-modes input', { state: 'visible' });
 const labels = await page.$$eval('.choosing-modes label', (l) => l.map((x) => x.textContent.trim()));
 check('Settings lists the two modes', labels.join('|') === 'Tap|Tap twice', labels.join('|'));
 check('Settings shows Tap twice selected by default', await page.$eval('.choosing-modes input[value="twice"]', (i) => i.checked));

@@ -26,7 +26,7 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
 const mix = (fg, pct, bg) => fg.map((v, i) => v * pct / 100 + bg[i] * (1 - pct / 100));
 // the tint the chip CSS uses, read from the stylesheet so this cannot drift from it
 const tintPct = (token) => {
-  const m = css.match(new RegExp('\\.due-(?:yellow|red)[^{]*\\{[^}]*background:color-mix\\(in srgb, var\\(--' + token + '\\) (\\d+)%'));
+  const m = css.match(new RegExp('\\.due-(?:yellow|red)[^{]*\\{[^}]*background:color-mix\\(in srgb, var\\(--' + token + '\\) (?:var\\(--' + token + '-fill\\)|(\\d+)%)'));
   if (!m) throw new Error('no chip rule tinting --' + token + ' found in app/css/app.css');
   return Number(m[1]);
 };
@@ -44,13 +44,16 @@ for (const [theme, block] of Object.entries(themes)) {
   const surfaces = { surface: rgb(tok(block, 'surface')), 'surface-2': rgb(tok(block, 'surface-2')), bg: rgb(tok(block, 'bg')) };
   console.log('\n' + theme);
   for (const [token, stage] of [['due-soon', 'yellow'], ['due-now', 'red']]) {
-    const fg = rgb(tok(block, token));
+    const tint = rgb(tok(block, token));
+    // the words may use a darker -ink token than the tint (#215); the tint still comes from the token
+    const fg = block.includes('--' + token + '-ink:') ? rgb(tok(block, token + '-ink')) : tint;
     for (const [sname, surf] of Object.entries(surfaces)) {
-      const bg = mix(fg, tintPct(token), surf);
+      const fill = block.match(new RegExp('--' + token + '-fill:\\s*(\\d+)%'));
+      const bg = mix(tint, fill ? Number(fill[1]) : tintPct(token), surf);
       const r = ratio(fg, bg);
       const ok = r >= 4.5;
       if (!ok) failed = true;
-      console.log('  ' + (ok ? 'ok  ' : 'FAIL') + ' ' + stage + ' chip text ' + tok(block, token) + ' on its tint over ' + sname + ': ' + r.toFixed(2) + ':1 (need 4.5)');
+      console.log('  ' + (ok ? 'ok  ' : 'FAIL') + ' ' + stage + ' chip text ' + (block.includes('--' + token + '-ink:') ? tok(block, token + '-ink') : tok(block, token)) + ' on its tint over ' + sname + ': ' + r.toFixed(2) + ':1 (need 4.5)');
     }
     const near = ['prio-high', 'prio-urgent', 'prio-medium'].map((p) => p + ' ' + tok(block, p) + ' hue gap ' + hueGap(fg, rgb(tok(block, p))).toFixed(0) + ' deg').join(', ');
     console.log('       ' + stage + ' vs priority chips: ' + near);

@@ -58,7 +58,7 @@ function screen() {
   switch (flow.step) {
     case 'why':
       return '<h2 class="ob-title">Your desk on every device</h2>'
-        + '<p>Sync keeps your folders, tasks and settings the same on your phone, laptop and anything else you use. Add a task on one and it’s on the others.</p>'
+        + '<p>Sync keeps your projects, tasks and settings the same on your phone, laptop and anything else you use. Add a task on one and it’s on the others.</p>'
         + '<p>It works through your own GitHub account, which is free. Your data is kept in a private file there that only you can see, and Focus Deck talks only to GitHub.</p>'
         + (getToken() ? '<p class="muted small">This device already has a key saved. Setting up again replaces it.</p>' : '')
         + '<div class="ob-acts">' + btn('go:account', 'Let’s do it') + '<a class="btn-text" href="index.html">Not now</a></div>';
@@ -97,7 +97,7 @@ function screen() {
       const already = flow.outcome === 'already';
       return '<h2 class="ob-title">Sync is on</h2>'
         + (already ? '<p>This device was already syncing. Its key is updated.</p>'
-          : found ? '<p>Found the sync data from your other device and brought it in: ' + state.projects.length + (state.projects.length === 1 ? ' folder' : ' folders') + ' on this desk now.</p>'
+          : found ? '<p>Found the sync data from your other device and brought it in: ' + state.projects.length + (state.projects.length === 1 ? ' project' : ' projects') + ' on this desk now.</p>'
             : '<p>Your desk is saved to your GitHub account and will stay up to date as you work.</p>')
         + '<p><strong>On your other phone or laptop:</strong> open Focus Deck, go to Settings → Set up sync, and paste the same key. Its data is found automatically.</p>'
         + '<div class="ob-acts"><a class="file-btn" href="index.html">Back to my desk</a></div>';

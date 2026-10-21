@@ -112,7 +112,7 @@ export function spreadCorner(name, isFacing, verb) {
 }
 
 export function spreadHint(name, verb) {
-  if (name === 'projects') return 'Click a folder to pick it, then a card to draw';
+  if (name === 'projects') return 'Click a project to pick it, then a card to draw';
   return wording('Click a card to draw', verb);
 }
 

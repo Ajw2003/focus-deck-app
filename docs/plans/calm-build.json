@@ -1,0 +1,327 @@
+{
+ "title": "Calm Build Plan",
+ "eyebrow": "Build plan for approval · calm by default · nothing built yet",
+ "approval": "Build plan approved: calm by default",
+ "short": {
+  "lead": "You approved the Calm test site and it is merged (pull request #197). This plan builds it into the real app in seven steps, each its own GitHub issue under #198. One thing the test site never drew: where the Projects screen's tools go. That is the one choice below.",
+  "hint": "Tap a step for what it builds and what it replaces.",
+  "key": [
+   [
+    "Built by me",
+    ""
+   ],
+   [
+    "You decide",
+    "you"
+   ]
+  ],
+  "items": [
+   [
+    "eye",
+    "Frame",
+    "Side menu and header (#199)",
+    "",
+    "The header keeps today's large Focus Deck name and the centred 'Jot down a stray thought' box, and now stays at the top while you scroll. The side menu becomes one wide column with a row for each screen, Projects included, and Settings at the bottom; it starts just below the header. Phones keep today's layout.",
+    "Nothing from you.",
+    {
+     "src": "../generated/calm-build/after-board.png",
+     "alt": "The header with the large Focus Deck name and the centred jotter, the wide side menu below it, and the Board",
+     "caption": "The frame from the test site."
+    }
+   ],
+   [
+    "list",
+    "Board",
+    "One tab, one toolbar, cards in groups (#200)",
+    "",
+    "Up next, In progress and Done this week become tabs. Find, Project and Filter sit above the tabs. The list shows seven cards, then a Show more button. Move buttons replace dragging cards between columns.",
+    "Nothing from you.",
+    {
+     "before": {
+      "src": "../generated/calm-build/before-board.png",
+      "alt": "Today's Board with three columns"
+     },
+     "after": {
+      "src": "../generated/calm-build/after-board.png",
+      "alt": "The calm Board with one tab"
+     },
+     "caption": "Left: the Board today. Right: the approved Board."
+    }
+   ],
+   [
+    "list",
+    "Details",
+    "Task details beside the list (#201)",
+    "",
+    "Title and status always show; Notes, Priority and due date, Labels, Subtasks and Linked tasks fold into rows. Changes save as they are made.",
+    "Nothing from you.",
+    {
+     "src": "../generated/calm-build/after-details-closed.png",
+     "alt": "Task details with five folded rows",
+     "caption": "Task details, every row closed."
+    }
+   ],
+   [
+    "bulb",
+    "Colour",
+    "Card colour by category, priority, date or label (#202)",
+    "",
+    "Each card shows one coloured label (a chip). Its colour comes from the first item in the Card colour list that the task has.",
+    "Nothing from you.",
+    {
+     "src": "../generated/calm-build/after-reordered.png",
+     "alt": "Cards coloured by priority and date after reordering",
+     "caption": "Cards after moving Due date and Priority up."
+    }
+   ],
+   [
+    "eye",
+    "Settings",
+    "Every setting in a folded row, plus Comfort (#203)",
+    "",
+    "Every setting on the Settings page shows its name and value and opens on a tap. A new Comfort group adds settings for movement, softer colours, card colour, how many cards show at once, and the colour of tasks past their due date.",
+    "Nothing from you.",
+    {
+     "src": "../generated/calm-build/after-settings.png",
+     "alt": "Settings as folded rows",
+     "caption": "Settings with every row closed."
+    }
+   ],
+   [
+    "swap",
+    "Words",
+    "Literal words (#204) and the Sort fixes (#205)",
+    "",
+    "'Bin it' becomes 'Delete', 'Stick on flags' becomes 'Add labels', and the other figures of speech change the same way. Sort gets three fixes: right-click colour on cards returns, notes scroll clear of the tray's bottom edge, and step headers say why they are locked.",
+    "Nothing from you."
+   ],
+   [
+    "lock",
+    "Approve",
+    "You choose",
+    "you",
+    "Choose where the Projects screen's tools go, then approve the plan.",
+    "Answer the choice below, then tap Copy my reply and send what it gives you."
+   ]
+  ]
+ },
+ "changes": [
+  [
+   "chg",
+   "Everything at once",
+   "One picture: today's app on the left, the build on the right.",
+   [
+    "Today's app",
+    "The app after the build"
+   ],
+   "Both sides are real screens at 1440 pixels wide with the same sample tasks. The right side is the test site, and the build copies the test site into the app. The numbered list under the picture names each change.",
+   null,
+   null,
+   {
+    "src": "../generated/calm-build/before-after.png",
+    "alt": "Today's Board and Settings beside the same screens after the build, with a numbered list of the changes",
+    "caption": "Left: today. Right: after the build."
+   }
+  ],
+  [
+   "keep",
+   "Focus, Sort's three steps, task links and GitHub sync",
+   "No change beyond the words and the three Sort fixes.",
+   null,
+   "These were built and merged in pull request #197 and earlier pull requests. This plan changes only their wording and the three Sort fixes."
+  ],
+  [
+   "chg",
+   "The Board",
+   "Three columns become one tab at a time, with Task details beside the list.",
+   [
+    "Three columns, drag and swipe between them",
+    "One tab, move buttons and a status menu"
+   ],
+   "Dragging a card between columns is removed because the columns are removed. The '→ In progress' and '← Up next' buttons and the status menu in Task details do the same job. The tick that finishes a task stays.",
+   null,
+   [
+    [
+     "app/js/board-view.js",
+     180,
+     90,
+     [
+      [
+       "Tabs, toolbar, chunks, cards with one chip",
+       120,
+       60
+      ],
+      [
+       "Task details",
+       60,
+       30
+      ]
+     ]
+    ],
+    [
+     "app/js/board-swipe.js",
+     0,
+     60,
+     [
+      [
+       "Removed: swiping a card between columns, replaced by the move buttons and the status menu",
+       0,
+       60
+      ]
+     ]
+    ],
+    [
+     "app/js/card-key.js",
+     70,
+     0,
+     [
+      [
+       "Which chip and colour a card shows",
+       70,
+       0
+      ]
+     ]
+    ],
+    [
+     "app/js/app.js",
+     120,
+     40,
+     [
+      [
+       "Board and Task details events",
+       120,
+       40
+      ]
+     ]
+    ],
+    [
+     "app/css/app.css",
+     160,
+     30,
+     [
+      [
+       "Frame, Board, Task details, folded rows",
+       160,
+       30
+      ]
+     ]
+    ]
+   ],
+   {
+    "before": {
+     "src": "../generated/calm-build/before-board.png",
+     "alt": "Today's Board"
+    },
+    "after": {
+     "src": "../generated/calm-build/after-task-open.png",
+     "alt": "The calm Board with a task selected"
+    },
+    "caption": "Left: today. Right: a task selected."
+   }
+  ],
+  [
+   "chg",
+   "Settings page",
+   "Every setting folds into one row; a Comfort group is added.",
+   [
+    "Every option on show, one long page",
+    "One row per setting, one open at a time"
+   ],
+   "No existing setting is removed. Overdue tasks become amber by default, with red as an option. This changes the rule 'Overdue is always red' in docs/4-systems/due-dates.md.",
+   null,
+   [
+    [
+     "app/settings.html",
+     90,
+     60,
+     [
+      [
+       "Folded rows and the Comfort group",
+       90,
+       60
+      ]
+     ]
+    ],
+    [
+     "app/js/state.js",
+     40,
+     2,
+     [
+      [
+       "Comfort and Card colour settings, saved and synced like the other settings",
+       40,
+       2
+      ]
+     ]
+    ],
+    [
+     "app/js/merge.js",
+     10,
+     0,
+     [
+      [
+       "Merge the new settings on sync",
+       10,
+       0
+      ]
+     ]
+    ]
+   ]
+  ],
+  [
+   "chg",
+   "Projects screen",
+   "Stays as it is for now (my suggestion, choice below).",
+   [
+    "Its own screen in the side menu",
+    "Unchanged, until its tools have a calm design of their own"
+   ],
+   "The Projects screen holds tools the test site never drew a place for: new project, the GitHub repo link, rename, colour, category, reorder and delete. Taking it out now would drop them.",
+   null,
+   null,
+   {
+    "src": "../generated/calm-build/now-projects-1440.png",
+    "alt": "Today's Projects screen",
+    "caption": "Today's Projects screen and its tools."
+   }
+  ]
+ ],
+ "choices": [
+  [
+   "projects",
+   "What should happen to the Projects screen in this build?",
+   [
+    [
+     "A",
+     "Keep it as it is for now",
+     1,
+     "Nothing is lost. A calm 'Project details' gets its own test site next, and the Board replaces the Projects screen once you approve that design."
+    ],
+    [
+     "B",
+     "The Board replaces the Projects screen now, and project tools go in a Project details panel",
+     0,
+     "Picking a project in the Board's Project menu opens Project details beside the list. I would design it while building, without a test site first."
+    ],
+    [
+     "C",
+     "The Board replaces the Projects screen now, and project tools move into Settings",
+     0,
+     "Settings gets a Projects row listing every project with its tools. Quick to build, but far from the tasks those tools affect."
+    ]
+   ],
+   "The test site took Projects out of the menu but showed nowhere for its tools, so building that part now would mean designing it without your review."
+  ]
+ ],
+ "wrapup": {
+  "summary": "Seven steps that turn the approved Calm test site into the real app.",
+  "changing": "Changed: the side menu, the Board, the task panel (now Task details), card colours, the Settings page and the app's wording. New: Comfort settings and the Card colour list. Kept: Focus, Sort's three parts, ties, GitHub sync, and for now the Projects screen.",
+  "blocking": "Your answer on what happens to the Projects screen, and your approval of this plan. No app code changes until you approve.",
+  "next": "After approval I build the steps in order (#199 to #205) on the branch AjsAgent/calm-build, check each in a browser at desktop and phone width, and open one pull request for your QA.",
+  "todo": [
+   "Tap through the steps above.",
+   "Pick your answer under Choices.",
+   "Tap <b>Copy my reply</b> and send it, or say what to change."
+  ]
+ }
+}

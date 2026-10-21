@@ -15,8 +15,23 @@ PRs and are not here.
   unit-tested in `js/due-stage.test.mjs`.
 - **Span and left.** Span runs from `task.dueSetAt` (else `createdAt`, else now) to the due moment, the
   end of the due day in local time (`dueMoment`, `js/due-stage.js:38`). Left runs from now to the
-  due moment. Overdue is always red; otherwise red when left/span is at or under the red cut-off,
+  due moment. Overdue is always the last stage (`'red'`); otherwise red when left/span is at or under the red cut-off,
   yellow at or under the yellow cut-off. Defaults 33% and 10% (`DEFAULT_DUE_DEFAULTS`).
+- **How an overdue task shows (Comfort, #203).** The stage stays `'red'`, but `deadlineChip` (`js/state.js`)
+  words and colours it by the Comfort setting "Tasks past their date": by default amber "Nd past its date"
+  (class `due-amber`), or red "Nd overdue" (`due-red`) when chosen. The flame icon stays either way. See
+  `docs/6-decisions/Decisions.md` (the 2026-10-19 calm-by-default entries).
+- **Due today is always red (#214, #215, built 2026-10-20, design C on `docs/plans/due-colours.html`).**
+  From the midnight that starts the due day, the stage is `'red'` whatever the span or lead times
+  (`app/js/due-stage.js:74`), so a date set on the day itself never shows yellow. The Board's
+  "Due today" key label is red too (`app/js/card-key.js:16`). In light mode the yellow chip has a
+  34% olive fill and a solid olive border, set by `--due-soon-fill` and `--due-soon-edge`
+  (`app/css/app.css:26`, used at `app/css/app.css:342`). Its words use the darker `--due-soon-ink`
+  (`#3A4200`), because the approved olive `#4F5A00` on that fill reached only 3.65:1, under the
+  4.5:1 that `scripts/check-due-contrast.mjs` requires; `#3A4200` reaches 5.21:1 or better. Dark mode
+  keeps the 18% fill and 60% border (`app/css/app.css:92`, `:123`). Board cards are paper in both
+  themes, so they take the light set (`app/css/app.css:1174`); before this they took the dark
+  yellow, which was nearly invisible on a cream card.
 - **The day-before floor (#114).** Whatever the percentage says, a task is yellow from the midnight
   that starts the day before its due day (`dayBeforeStart`), so "due tomorrow" is never white. A
   yellow lead time chosen in the step for that task wins over the floor. Red is unchanged.
@@ -43,7 +58,7 @@ PRs and are not here.
 
 ## Invariants
 
-- No deadline is white; a done task is `'done'`; overdue is red whatever the span or lead times.
+- No deadline is white; a done task is `'done'`; overdue is the red stage whatever the span or lead times (shown amber by default, see above).
 - `dueSetAt` is clamped to now inside `dueStage`, so clock skew cannot make left exceed span.
 - The due moment is built from the date parts, so a daylight-saving day is 23 or 25 hours and the
   stage still follows (tested with America/New_York).

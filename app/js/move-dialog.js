@@ -2,17 +2,19 @@
 // The in-app confirmation before a task move that touches GitHub (PR 11). Not `confirm()`: a small
 // modal card in the app's own look. It is added to <body>, outside #app, so a repaint mid-question
 // can't wipe it. Focus is trapped inside (Tab cycles Cancel/Move), Escape or the backdrop is Cancel,
-// and focus goes back to where it was. The markup comes from render.js renderMoveDialog.
+// and focus goes back to where it was. It also asks before a tray thought is deleted (#220), with a
+// Delete button in place of Move. The markup comes from render.js renderMoveDialog.
 // See docs/4-systems/styling.md#dragging-tasks.
 import { renderMoveDialog } from './render.js';
 
-// Resolves true for Move, false for Cancel. `returnTo` is a selector for the element to give focus
-// back to (a mouse drag leaves focus on <body>, so it can't be read from activeElement).
-export function confirmMove(message, returnTo) {
+// Resolves true for the action button (Move, or `actionLabel`), false for Cancel. `returnTo` is a
+// selector for the element to give focus back to (a mouse drag leaves focus on <body>, so it can't
+// be read from activeElement).
+export function confirmMove(message, returnTo, actionLabel) {
   return new Promise((resolve) => {
     const before = document.activeElement;
     const host = document.createElement('div');
-    host.innerHTML = renderMoveDialog(message);
+    host.innerHTML = renderMoveDialog(message, actionLabel);
     const backdrop = host.firstElementChild;
     document.body.appendChild(backdrop);
     const buttons = Array.from(backdrop.querySelectorAll('button'));

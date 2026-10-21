@@ -1,0 +1,134 @@
+{
+  "title": "Due Chip Colours",
+  "eyebrow": "Design for approval · two changes from your phone test · nothing built yet",
+  "approval": "Design approved: due colours",
+  "short": {
+    "lead": "You asked for two changes to the due-date chips. First, 'due today' is always red. At the moment, a task whose date is set on the day it is due can still show yellow. Second, the yellow is too pale on a white card. Options A, B and C also show 'due today' in red, so they differ only in the yellow. The chips are shared, so both changes apply on Projects and on the focus note.",
+    "hint": "Tap Today, Option A, Option B or Option C to see its picture.",
+    "key": [
+      [
+        "Built by me",
+        ""
+      ],
+      [
+        "You decide",
+        "you"
+      ]
+    ],
+    "items": [
+      [
+        "bulb",
+        "Today",
+        "Pale olive yellow",
+        "",
+        "'due in 6d' and 'due in 4d' use a light olive tint with olive text, which you found hard to see on a white card.",
+        "Nothing from you.",
+        {
+          "src": "docs/generated/due-colours/now-1440.png",
+          "alt": "Cards with pale olive due chips",
+          "caption": "Today's yellow chips."
+        }
+      ],
+      [
+        "list",
+        "Option A",
+        "Solid yellow, dark text",
+        "you",
+        "A bright yellow fill with dark brown text and a darker yellow border, like a highlighter. It is the strongest of the three.",
+        "Look at 'due in 6d' and 'due in 4d'.",
+        {
+          "src": "docs/generated/due-colours/a-1440.png",
+          "alt": "Cards with solid yellow due chips",
+          "caption": "Option A."
+        }
+      ],
+      [
+        "list",
+        "Option B",
+        "Amber",
+        "you",
+        "A warmer amber tint with brown text. It is easier to see than today's, but it is close to the amber 'past its date' chip, so 'soon' and 'late' look alike.",
+        "Compare the same two chips, 'due in 6d' and 'due in 4d'.",
+        {
+          "src": "docs/generated/due-colours/b-1440.png",
+          "alt": "Cards with amber due chips",
+          "caption": "Option B."
+        }
+      ],
+      [
+        "list",
+        "Option C",
+        "Stronger olive",
+        "you",
+        "Today's olive with about twice as much colour, and a solid border. It is the smallest change from today.",
+        "Check those two chips once more.",
+        {
+          "src": "docs/generated/due-colours/c-1440.png",
+          "alt": "Cards with darker olive due chips",
+          "caption": "Option C."
+        }
+      ]
+    ]
+  },
+  "changes": [
+    [
+      "chg",
+      "Due today",
+      "Always red.",
+      null,
+      "A task due today shows the red chip from the start of that day, including when its date was set that same day. Chips for days before the due date keep the yellow and red stages set under Settings, Due dates."
+    ],
+    [
+      "chg",
+      "Yellow chip",
+      "The option you pick, in light mode.",
+      null,
+      "Dark mode keeps its current yellow, because you only reported the light one."
+    ],
+    [
+      "keep",
+      "Red and 'past its date' chips",
+      "No change.",
+      null,
+      "Both stay exactly as they are."
+    ]
+  ],
+  "choices": [
+    [
+      "yellow",
+      "Which yellow should the 'due soon' chip use?",
+      [
+        [
+          "A",
+          "Solid yellow, dark text",
+          1,
+          "The easiest to see on any screen, and clearly different from red and from 'past its date'."
+        ],
+        [
+          "B",
+          "Amber",
+          0,
+          "Easier to see than today's, but close to the 'past its date' chip."
+        ],
+        [
+          "C",
+          "Stronger olive",
+          0,
+          "The smallest change; still the faintest of the three."
+        ]
+      ],
+      "I suggest A because it is the only one that never looks like the 'past its date' chip."
+    ]
+  ],
+  "wrapup": {
+    "summary": "'Due today' becomes red everywhere, and the yellow chip gets stronger. A is my suggestion for the yellow.",
+    "changing": "Changed: the due-date chips on the Board, on Projects and on the focus note. Kept: the red and 'past its date' chips, and dark mode.",
+    "blocking": "Waiting on your pick under Choices. Nothing is built until you approve.",
+    "next": "After approval: one new issue under issue #198 (Calm by default), the change on the AjsAgent/calm-build branch with tests, and pull request #209 (the calm build) updated so your test link shows it.",
+    "todo": [
+      "Look at the four pictures.",
+      "Pick an option under Choices.",
+      "Tap <b>Copy my reply</b> and send it, or say what to change."
+    ]
+  }
+}

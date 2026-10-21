@@ -12,6 +12,7 @@ import { DEFAULT_DUE_DEFAULTS } from './due-stage.js';
 import { CHOOSING_MODES } from './wallet.js';
 import { dropLinksTo, detachForMove } from './task-links.js';
 import { NOTE_FACES, applyNoteFace } from './note-face.js';
+import { MOTIONS, CHUNKS, OVERDUE_STYLES, applyComfort, normalizeColourBy } from './comfort.js';
 export { persist };
 
 // Runs fn (which changes other tasks' ties directly), then pushes every task whose parentId/waitsOn
@@ -376,6 +377,20 @@ export function setNoteFace(face) {
   persist();
   return true;
 }
+
+// Settings > Comfort (#203). Each value is stamped on its own, like noteFace (js/merge.js picks the
+// newer stamp per value); each returns false for a value we do not know and changes nothing.
+function setComfort(key, value) {
+  state.comfort = Object.assign({}, state.comfort, { [key]: { value, updatedAt: Date.now() } });
+  applyComfort(state);
+  persist();
+  return true;
+}
+export function setMotion(v) { return MOTIONS.includes(v) && setComfort('motion', v); }
+export function setCalmColours(on) { return typeof on === 'boolean' && setComfort('calm', on); }
+export function setChunk(n) { return CHUNKS.includes(Number(n)) && setComfort('chunk', Number(n)); }
+export function setOverdueStyle(v) { return OVERDUE_STYLES.includes(v) && setComfort('overdue', v); }
+export function setColourBy(list) { return Array.isArray(list) && setComfort('colourBy', normalizeColourBy(list)); }
 
 export function resetDueDefaults() {
   state.dueDefaults = { yellowPct: DEFAULT_DUE_DEFAULTS.yellowPct, redPct: DEFAULT_DUE_DEFAULTS.redPct, updatedAt: Date.now() };

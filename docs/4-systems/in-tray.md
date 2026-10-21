@@ -25,12 +25,24 @@ It reuses the #120 wallets (`js/wallet.js`, `docs/4-systems/wallets.md`) for "1.
   wallets announce into `#tray-live` when the focus wallets' `#wallet-live` isn't on the page.
 - `css/app.css`, the "In-tray (#121)" section.
 - Tests: `js/in-tray.test.mjs` (the card and the decisions); `js/render.test.mjs` keeps the queue
-  order test. Browser check: `scripts/check-in-tray-browser.mjs` (46 checks, tap and tap-twice, dark
+  order test. Browser check: `scripts/check-in-tray-browser.mjs` (54 checks, tap and tap-twice, dark
   and light; filing, flags on and off, Later, a task slip, Already done, Bin it, the empty tray).
   Screenshots in `docs/generated/pr121/`.
 
 Known: the flag tabs on the slip's edge are 46px wide, so a long name is clipped ("Reminder" shows
 its end). The full name is in the tab's `title` and on the flag card.
+
+## Delete asks first (#219, #220, #221; built 2026-10-20, design 1A on `docs/plans/tray-delete.html`)
+
+Delete under a thought used to discard it in one tap (`unsorted-delete` in `app/js/app.js:531`), while a
+task slip already asked through `confirmDeleteTask`. Now a thought asks too, with the app's own
+confirmation card (the one `confirmMove` in `app/js/move-dialog.js` shows before a GitHub-linked move):
+'Delete "<thought>"? It leaves the tray for good.' with Cancel and Delete. Cancel, Escape or the
+backdrop keeps the thought; Delete discards it and shows the "Deleted" notice as before. Done
+already and Later are unchanged. Built: the `unsorted-delete` branch awaits the card
+(`app/js/app.js:536`), and `renderMoveDialog` takes the button's label, "Move" by default
+(`app/js/render.js:604`). If the thought has gone by the time Delete is pressed, it only repaints.
+`scripts/check-in-tray-browser.mjs` presses Cancel, then Delete.
 
 ## Three parts (#189)
 
@@ -44,6 +56,12 @@ categories", and offers "+ New flag" when no category name matches exactly. The 
 unless the task is GitHub-linked (`issueNumber`), and a `.slip-notes` box holds notes; both are kept
 in the scratch without repainting and saved by `fileSlip` (`fileInboxItem(..., { title, notes })` for a
 thought, `updateTaskFields` for a task). The main button is Next on parts 1 and 2 and File/Save on 3.
+
+Since #205 (2026-10-19) every step tab can be tapped while its step is allowed. With no folder chosen
+yet, tabs 2 and 3 are `aria-disabled` rather than `disabled`, so a tap on one shows "Choose a project
+first. Labels and links open once the thought has a project." in a `.step-why` line (`STEP_LOCKED_WHY`
+and `stepBar`, `app/js/in-tray-view.js:66-69`). A long note ends above the tray's lip, because
+`.jot-slip` keeps 34px of padding at its foot (`app/css/app.css:827`).
 
 ## Category choices
 

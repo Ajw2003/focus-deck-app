@@ -69,6 +69,9 @@ export function dueStage(task, now, defaults) {
   const due = dueMoment(task);
   if (due === null) return 'white';
   if (now > due) return 'red';
+  // due today is always red, approved 2026-10-20, #214
+  const dueDate = new Date(due);
+  if (now >= new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate()).getTime()) return 'red';
   const d = normalizeDueDefaults(defaults);
   const span = due - spanStart(task, now);
   const left = due - now;

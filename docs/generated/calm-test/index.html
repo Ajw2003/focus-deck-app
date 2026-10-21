@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calm Test Site</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Caveat+Brush&family=Kalam:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=Kalam:wght@400;700&display=swap">
 <link rel="stylesheet" href="../../../app/css/app.css">
 <style>
 /* Test site for "Calm by default" (docs/plans/calm-by-default.html) with the "Board takes over"
@@ -23,9 +23,16 @@
   .rail-count{left:auto; right:14px; top:50%; transform:translateY(-50%);}
   .rail-tools{margin-top:auto; flex-direction:row; justify-content:flex-start; gap:10px; padding:12px 10px 0;}
   .wrap{padding-left:296px;}
-  .topbar .brand{display:none;}
-  .topbar{justify-content:flex-start !important; padding-top:20px;}
-  .topbar .capture-form{margin-left:0 !important; width:640px; max-width:640px;}
+  /* The header is today's: the Focus Deck name large in the left corner and the jotter centred.
+     It stays at the top while the page scrolls, and the side menu starts just below it. */
+  .topbar{position:sticky !important; top:0; z-index:20; margin-left:-280px; background:var(--bg); border-bottom:0;
+    display:grid !important; grid-template-columns:1fr minmax(0,560px) 1fr; align-items:center; padding:16px 0 12px;}
+  .topbar .brand{display:flex; position:static; transform:none; padding-left:10px;}
+  .topbar .brand h1{font-size:1.7rem;}
+  .topbar .lamp{width:12px; height:12px;}
+  .topbar .capture-form{margin:0 !important; width:100%; max-width:560px;}
+  .rail{top:calc(var(--jot-h, 84px) + 16px);}
+  .rail-brand{display:none !important;}
 }
 .rail-settings{border:0; background:none; color:var(--ink-soft); display:flex; align-items:center; gap:10px; font:600 .95rem var(--font-ui); padding:8px 4px; border-radius:10px; cursor:pointer;}
 .rail-settings:hover, .rail-settings.is-on{color:var(--ink);}
@@ -265,13 +272,19 @@ function frame(inner) {
   const host = document.createElement('div');
   host.innerHTML = R.renderRail(ui.screen === 'comfort' ? 'none' : ui.screen, st.inbox.length);
   const nav = host.querySelector('.rail');
-  nav.querySelectorAll('.rail-item[data-screen="projects"]').forEach((b) => b.remove()); // the Board takes over from Projects
   nav.querySelectorAll('.rail-item').forEach((b) => { b.dataset.go = b.dataset.screen; b.removeAttribute('data-action'); });
   nav.insertAdjacentHTML('afterbegin', '<div class="rail-brand"><span class="brand-mark" aria-hidden="true"><span class="lamp"></span></span><h1>Focus Deck</h1></div>');
   const tools = nav.querySelector('.rail-tools');
   if (tools) tools.innerHTML = '<button type="button" class="rail-settings' + (ui.screen === 'comfort' ? ' is-on' : '') + '" data-go="comfort">' + ICON_SETTINGS + '<span>Settings</span></button>';
   return host.innerHTML + '<div class="screen screen-' + (ui.screen === 'comfort' ? 'focus' : ui.screen) + '">' + inner + '</div>'
     + (ui.toast ? '<div class="toastish" role="status">' + esc(ui.toast) + '</div>' : '');
+}
+
+// ---------- Projects ----------
+// The build plan's recommended choice keeps today's Projects screen as it is, so the test site only
+// points at it rather than copying it.
+function projectsScreen() {
+  return '<h2>Projects</h2><p class="proto-banner">Projects stays as it is today: the build plan\'s suggested choice keeps it unchanged, so this test site does not copy it. In the built app this opens today\'s Projects screen.</p>';
 }
 
 // ---------- Board ----------
@@ -540,7 +553,7 @@ function colourByFieldset() {
 // ---------- paint ----------
 function paint() {
   applyComfort();
-  const inner = ui.screen === 'board' ? boardScreen() : ui.screen === 'sort' ? sortScreen() : ui.screen === 'focus' ? focusScreen() : comfortScreen();
+  const inner = ui.screen === 'board' ? boardScreen() : ui.screen === 'sort' ? sortScreen() : ui.screen === 'focus' ? focusScreen() : ui.screen === 'projects' ? projectsScreen() : comfortScreen();
   document.getElementById('app').innerHTML = frame('<p class="proto-banner">Test site: sample data, nothing is saved. Reloading starts fresh.</p>' + inner);
   if (ui.screen === 'sort') mountWallets(document.getElementById('app'), hooks);
   const af = document.querySelector('[autofocus]'); if (af) { af.focus(); af.setSelectionRange(af.value.length, af.value.length); }
@@ -666,6 +679,9 @@ document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape' || ui.screen !== 'board' || !ui.board.selected) return;
   ui.board.selected = null; ui.board.phoneOpen = false; paint();
 });
+// The menu starts just below the jotter bar, so it follows the bar's real height.
+const topbar = document.querySelector('.topbar');
+new ResizeObserver(() => document.documentElement.style.setProperty('--jot-h', topbar.offsetHeight + 'px')).observe(topbar);
 document.getElementById('capture-form').addEventListener('submit', (e) => {
   e.preventDefault(); const i = document.getElementById('capture-input'); const text = i.value.trim(); if (!text) return;
   st.inbox.push({ id: 'cap' + Date.now(), text, createdAt: Date.now() }); i.value = ''; say('Added to Sort: ' + text);

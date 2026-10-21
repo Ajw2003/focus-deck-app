@@ -1,0 +1,27 @@
+{
+ "title": "Tray Delete Build Plan",
+ "eyebrow": "Build plan for approval · design 1A from your phone test · issue #219 (tray delete) and its two steps, #220 (ask before deleting) and #221 (check and hand back)",
+ "approval": "Build plan approved: tray delete",
+ "short": {
+  "lead": "This builds the design you approved (answer 1A, \"Ask first\"). Delete under a thought in the tray opens a card that asks before anything is removed. I will put it on the build branch for pull request #209 (the calm build), and your phone test link will show the change once I have pushed it there.",
+  "hint": "Tap a step to see what it does.",
+  "key": [["Built by me", ""], ["You decide", "you"]],
+  "items": [
+   ["list", "Step 1", "Ask before deleting a thought (#220)", "", "The app already shows a confirmation card before it moves a task that is linked to GitHub. That card gets a 'Delete' button for deleting a thought. Only the Delete button removes the thought. Cancel, the Escape key and tapping outside the card all keep it. Deleting a task keeps the question it already asks.", "Nothing from you.",
+    {"src": "docs/generated/tray-delete/a-390.png", "alt": "A card asking Delete Get three quotes for fixing the shed door, with Cancel and Delete buttons", "caption": "What step 1 builds."}],
+   ["list", "Step 2", "Check it and hand it back (#221)", "", "The tray's browser check presses Cancel first and expects the thought to stay in the tray, then presses Delete and expects it to be gone. After that I rerun all the automatic checks, update the docs and the quality-check page, and move the tray delete issue (#219) and its two steps (#220 and #221) to 'needs review'.", "Nothing from you."],
+   ["check", "Approve", "Say go", "you", "The build starts once you send the reply below.", "Reply \"Build plan approved: tray delete\", or say what to change."]
+  ]
+ },
+ "changes": [
+  ["chg", "Delete under a thought", "Delete now asks before it removes the thought.", null, "Files changed: `app/js/app.js`, `app/js/move-dialog.js` and `app/js/render.js`, their tests, and the browser check in `scripts/check-in-tray-browser.mjs`."]
+ ],
+ "choices": [],
+ "wrapup": {
+  "summary": "Two steps make Delete under a thought ask before it removes anything. After that, I hand the build back to you to test.",
+  "changing": "Only the Delete button under a thought in the tray changes. Every other screen stays the same.",
+  "blocking": "I am waiting for your reply: \"Build plan approved: tray delete\".",
+  "next": "Once you approve, I will build both steps, push them to the same pull request, #209, and tell you when your phone test link shows them.",
+  "todo": ["Read the two steps above.", "If you are happy, send the approval phrase above. If not, say what to change."]
+ }
+}

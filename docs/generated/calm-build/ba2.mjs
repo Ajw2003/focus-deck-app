@@ -1,0 +1,18 @@
+import { createRequire } from 'node:module';
+const require = createRequire('/opt/node22/lib/node_modules/');
+const { chromium } = require('playwright');
+const O = process.argv[2]; const b = await chromium.launch(); const errs = [];
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } }); p.on('pageerror', (e) => errs.push(e.message));
+const T = 'http://localhost:8765/docs/generated/calm-test/index.html';
+await p.goto(T + '#board'); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(1200);
+await p.locator('.calm-card', { hasText: 'Book boiler service' }).click(); await p.waitForTimeout(200);
+await p.locator('.cw-detail').screenshot({ path: O + '/after-details-closed.png' });
+await p.locator('[data-go=comfort]').click(); await p.waitForTimeout(200);
+await p.locator('[data-fold="settings:cardColour"]').click(); await p.waitForTimeout(100);
+await p.locator('[data-cb-move="2"][data-dir="-1"]').click(); await p.locator('[data-cb-move="1"][data-dir="-1"]').click(); await p.waitForTimeout(100);
+await p.locator('[data-cb-move="2"][data-dir="-1"]').click(); await p.waitForTimeout(100);
+console.log('order', await p.$$eval('.cb-name', (n) => n.map((x) => x.textContent)));
+await p.screenshot({ path: O + '/after-card-colour-setting.png' });
+await p.locator('[data-go=board]').click(); await p.waitForTimeout(300);
+await p.screenshot({ path: O + '/after-reordered.png' });
+console.log('errors', JSON.stringify(errs)); await b.close();

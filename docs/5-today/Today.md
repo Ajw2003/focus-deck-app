@@ -1,3 +1,24 @@
+# Today — 2026-10-21
+
+## Calm build: QA passed
+
+aj replied "QA passed: calm by default" on 2026-10-21, after four rounds of fixes found on the phone:
+due and urgency on cards (#210), due colours (#213), the Board project view (#216) and asking before a
+tray thought is deleted (#219). Unit tests 230/230; all 13 browser checks pass; GitHub's `test` check is
+green on b72de80. Pull request 209 is open and mergeable into `main`; merging waits on aj's word. The
+issues stay labelled `needs review` until aj closes them.
+
+# Today — 2026-10-19
+
+## Calm build: built, in QA
+
+All of #199 to #205 are built on `AjsAgent/calm-build`, with the docs (#208) and six out-of-date browser
+checks (#206) brought up to date. One gap found by comparing screenshots was fixed: Board cards now say
+"past its date" or "overdue". Unit tests 225/225; all 13 `scripts/check-*-browser.mjs` pass in Chromium;
+GitHub's `test` check is green on be10174. Pull request 209 is open (Refs #198 to #208), every issue is
+labelled `needs review`, and the QA page is `docs/plans/calm-build-qa.html`. Waiting on aj's QA reply.
+Regenerated old-PR screenshots from the check runs are in `git stash`, not committed.
+
 # Today — 2026-10-18
 
 ## Sort steps: the drafts were built on a stale copy (2026-10-18)

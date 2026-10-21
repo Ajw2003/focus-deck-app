@@ -259,3 +259,37 @@ shows, even when empty, so each part is always in the same place; opening one ro
 other open row, and each row's summary updates as soon as its details change. Inside Labels, each
 label has its own row with "Category" or "Make category"; inside Subtasks and Linked tasks are the
 add buttons. Pictures: `feedback/after-details-*.png`.
+
+### 12. The jotter spans the top and stays in view
+
+aj (2026-10-19): extend "Jot down a stray thought" across the empty space at the top, so the Focus
+Deck name and the side menu slide down beside the board, with the jotter "just slightly above
+everything, always in view when a stray idea comes".
+
+On wide screens (1100 pixels and wider) the jotter is now one bar across the whole top of the
+page, from the left edge of the side menu to the right edge of the task panel. It stays fixed at
+the top while the board scrolls. The side menu, with the Focus Deck name, starts just below the
+bar, so the name now lines up with the first line of the board. Phones are unchanged: the jotter
+was already at the top there and the menu stays along the bottom. Pictures:
+`feedback/before-jotter-1440.png`, `feedback/after-jotter-1440.png`,
+`feedback/after-jotter-scrolled-1440.png`, `feedback/after-jotter-1920.png`,
+`feedback/after-jotter-phone.png`.
+
+### 13. Today's header back, and one true before-and-after
+
+aj (2026-10-19): the larger Focus Deck name and the centred jotter from before were better; every
+picture should show the newest design; and one picture should show everything the build changes,
+before and after, as the app would really look.
+
+- The header is today's again: the Focus Deck name at today's size (1.7rem) in the left corner and
+  the jotter centred at today's width (560px). What section 12 keeps is that the header stays at the
+  top while the page scrolls, and the side menu starts below it.
+- The test site now loads the same fonts as the app (it had been loading an older set, so its
+  pictures showed the name in the wrong typeface).
+- Projects is back in the side menu, because the build plan's suggested choice keeps the Projects
+  screen as it is; on the test site it opens a note saying so.
+- `docs/generated/calm-build/before-after.png` is the one picture: today's Board and Settings beside
+  the same screens on the test site, with a numbered list of the changes. Every picture on the build
+  plan page is now re-taken from this version (`docs/generated/calm-build/*.png`, made by `ba.mjs`,
+  `ba2.mjs` and `compose.mjs` in that folder). The pictures under `feedback/` are kept as the record
+  of earlier rounds.

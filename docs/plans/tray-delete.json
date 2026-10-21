@@ -1,0 +1,35 @@
+{
+ "title": "Tray Delete Safety",
+ "eyebrow": "Design for approval · one change from your phone test · nothing built yet",
+ "approval": "Design approved: tray delete",
+ "short": {
+  "lead": "You found that Delete under a thought in the tray, on the Sort screen, removes it with one tap and no way back. It was like this before the calm build (pull request #209) too: deleting a task asks first, but deleting a thought never did (the delete code is in `app/js/app.js`, line 531). Option A asks first, and option B deletes at once but lets you undo it. The pictures use the sample thought 'Get three quotes for fixing the shed door'.",
+  "hint": "Tap Today, Option A or Option B to see its picture.",
+  "key": [["Built by me", ""], ["You decide", "you"]],
+  "items": [
+   ["bulb", "Today", "One tap deletes", "", "Delete under the thought removes it at once. A notice says 'Deleted' with only a close button, and the thought can't be brought back.", "Nothing from you.",
+    {"src": "docs/generated/tray-delete/before-390.png", "alt": "The Sort screen with a thought and Done already, Later and Delete under it", "caption": "Today, before tapping Delete."}],
+   ["list", "Option A", "Ask first", "you", "Tapping Delete opens a small card in the app's own style: 'Delete \"Get three quotes for fixing the shed door\"? It leaves the tray for good.' with Cancel and Delete. This is the same card the app shows before moving a task that is linked to GitHub.", "Look at the card over the Sort screen.",
+    {"src": "docs/generated/tray-delete/a-390.png", "alt": "A card asking Delete Get three quotes for fixing the shed door, with Cancel and Delete buttons", "caption": "Option A."}],
+   ["list", "Option B", "Delete with Undo", "you", "Delete removes the thought straight away, as it does today, but the notice gets an Undo button that puts the thought back in the tray where it was. The Undo button disappears when the notice closes.", "Look at the Undo button on the notice at the bottom.",
+    {"src": "docs/generated/tray-delete/b-390.png", "alt": "The Sort screen after deleting, with a notice reading Deleted and an Undo button", "caption": "Option B."}]
+  ]
+ },
+ "changes": [
+  ["chg", "Delete under a thought", "Asks first, or offers Undo.", null, "Only thoughts in the tray change. Deleting a task keeps the question it already asks."],
+  ["keep", "Done already and Later", "No change.", null, "Neither one removes anything for good, so neither needs a question."]
+ ],
+ "choices": [
+  ["delete", "What should happen when you tap Delete under a thought?", [
+    ["A", "Ask first", 1, "Nothing is lost by a slip of the finger, and it matches how deleting a task already works."],
+    ["B", "Delete with Undo", 0, "One tap stays fast, but if you miss the notice the thought is gone."]
+   ], "I suggest A because you asked for a question first, and deleting a task already works that way."]
+ ],
+ "wrapup": {
+  "summary": "Deleting a thought in the tray will either ask first or offer Undo. I suggest asking first.",
+  "changing": "Changed: the Delete button under a thought on the Sort screen. Kept: Done already, Later and deleting tasks.",
+  "blocking": "I am waiting for your answer to the question in Choices. Nothing is built until you approve.",
+  "next": "After you approve, I will write a build plan and open a new issue under #198 (Calm by default). Then I will make the change, with tests, and update pull request #209 (the calm build), so your test link shows it.",
+  "todo": ["Look at the three pictures.", "Pick an answer under Choices.", "Tap <b>Copy my reply</b> and send it, or say what to change."]
+ }
+}

@@ -57,7 +57,7 @@ export function renderRail(screen, unsortedCount, syncHTML = '') {
     return '<button type="button" class="rail-item' + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
       + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[key].icon + '</svg>' + count + '</span>'
       + '<span class="rail-label">' + SCREEN_INFO[key].label + '</span></button>';
-  }).join('') + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '</a></div></nav>';
+  }).join('') + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn rail-settings" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '<span class="rail-settings-label" aria-hidden="true">Settings</span></a></div></nav>';
 }
 
 export function renderToast(text, kind) {
@@ -137,8 +137,8 @@ function renderFocusPicker(st, ui) {
     return '<section class="focus-card focus-empty desk-empty">'
       + '<h2 class="focus-q">Your desk is clear.</h2>'
       + (st.projects.length
-        ? '<p class="muted">Nothing is waiting to be picked. Add a task to a folder on the Projects screen, or jot a thought on the pad above and sort it later.</p>'
-        : '<p class="muted">Nothing is waiting to be picked. Make your first folder on the Projects screen and add a task to it, or jot a thought on the pad above and sort it later.</p>')
+        ? '<p class="muted">Nothing is waiting to be picked. Add a task to a project on the Projects screen, or jot a thought on the pad above and sort it later.</p>'
+        : '<p class="muted">Nothing is waiting to be picked. Make your first project on the Projects screen and add a task to it, or jot a thought on the pad above and sort it later.</p>')
       + '<button type="button" class="btn primary" data-action="set-screen" data-screen="projects">Go to Projects</button>'
       + '</section>';
   }
@@ -156,7 +156,7 @@ function renderFocusPicker(st, ui) {
 
   return '<section class="card focus-card focus-empty wallet-root">'
     + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
-    + '<p class="muted"><span class="only-narrow">Flip to a folder</span><span class="only-wide">Pick a folder</span> and a kind of work, and I&rsquo;ll surface one task.</p>'
+    + '<p class="muted"><span class="only-narrow">Flip to a project</span><span class="only-wide">Pick a project</span> and a kind of work, and I&rsquo;ll surface one task.</p>'
     + '<div class="wallet" id="project-wallet">' + walletInner({ wallet: 'projects', label: 'Project', aria: 'Projects. Arrow keys flip, Enter chooses.', items: folders, facing: projectId || ALL_PROJECTS_KEY, mode }) + '</div>'
     + '<div class="wallet" id="category-wallet">' + renderCategoryWalletInner(st, ui) + '</div>'
     + '<div class="flip-hint">' + CHOOSING_MODE_INFO[mode].hint + '</div>'
@@ -199,9 +199,9 @@ export function renderFocus(st, findTaskWithProject, ui) {
     + '<div class="desk-acts' + (canReroll ? '' : ' is-single') + '">'
       + '<button type="button" class="check-btn' + leaving.button + '" data-action="complete-focus">'
         + '<span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="tick" d="M4.5 12.8l4.6 4.7L19.8 6.2"/></svg></span>'
-        + '<span class="check-words"><span class="slip-main">I&rsquo;ve done it</span><span class="slip-sub">tick it off</span></span>'
+        + '<span class="check-words"><span class="slip-main">I&rsquo;ve done it</span><span class="slip-sub">mark it done</span></span>'
       + '</button>'
-      + (canReroll ? '<button type="button" class="slip-btn" data-action="reroll"><span class="slip-main">Not this one</span><span class="slip-sub">slip it back in the deck</span></button>' : '')
+      + (canReroll ? '<button type="button" class="slip-btn" data-action="reroll"><span class="slip-main">Not this one</span><span class="slip-sub">pick another task</span></button>' : '')
     + '</div>'
     + '<div class="desk-clear"><button type="button" class="btn-text" data-action="clear-focus">Clear</button></div>'
     + '</section>';
@@ -599,14 +599,15 @@ function taskGroup(p, status, label, tasks, ui, categories, projects) {
 }
 
 // The confirmation shown before a task move that touches GitHub (js/move-dialog.js puts it on the
-// page). A small modal card: the question, an accent Move, a quiet Cancel.
-export function renderMoveDialog(message) {
+// page). A small modal card: the question, an accent button (Move unless `actionLabel` says
+// otherwise, e.g. Delete for a tray thought), a quiet Cancel.
+export function renderMoveDialog(message, actionLabel = 'Move') {
   return '<div class="move-dialog-backdrop">'
     + '<div class="move-dialog" role="dialog" aria-modal="true" aria-labelledby="move-dialog-text">'
     + '<p class="move-dialog-text" id="move-dialog-text">' + esc(message) + '</p>'
     + '<div class="move-dialog-actions">'
     + '<button type="button" class="btn-text" data-dialog="cancel">Cancel</button>'
-    + '<button type="button" class="btn primary" data-dialog="move">Move</button>'
+    + '<button type="button" class="btn primary" data-dialog="move">' + esc(actionLabel) + '</button>'
     + '</div></div></div>';
 }
 
@@ -687,7 +688,7 @@ export function renderProjectsMain(st, ui, visibleProjects, isWide, hasToken) {
   // No projects at all is not a dead end (#124): say what goes here and offer the first one. The
   // sidebar (home of the "+ New" panel) isn't drawn until there is a project, so the panel opens here.
   if (!st.projects.length) {
-    return '<div class="desk-empty projects-empty"><p><strong>No folders yet.</strong> A folder holds one project&rsquo;s tasks: a subject, a room, a side project.</p>'
+    return '<div class="desk-empty projects-empty"><p><strong>No projects yet.</strong> A project holds one project&rsquo;s tasks: a subject, a room, a side project.</p>'
       + (ui.newPanelOpen ? renderNewPanel(ui, hasToken) : '<button type="button" class="btn primary" data-action="start-new-project">+ New project</button>') + '</div>';
   }
   const card = (p) => renderProjectCard(p, ui, st.categories, st.projectCategories, hasToken, st.projects);

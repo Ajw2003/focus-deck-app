@@ -191,7 +191,7 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   assert.ok(html.includes('<h2 class="focus-title"><span class="ink">Reply to &lt;Sam&gt;</span></h2>'), 'the title is escaped and wrapped in the span the biro line is drawn on');
   assert.ok(html.indexOf('note-meta') < html.indexOf('focus-title'), 'the meta line is above the title');
   assert.ok(html.includes('class="check-btn" data-action="complete-focus"') && html.includes('I&rsquo;ve done it') && html.includes('<path class="tick"'), '"I\'ve done it" is the paper checkbox with its tick');
-  assert.ok(html.includes('class="slip-btn" data-action="reroll"') && html.includes('slip it back in the deck'), '"Not this one" is the ticket stub');
+  assert.ok(html.includes('class="slip-btn" data-action="reroll"') && html.includes('pick another task'), '"Not this one" is the ticket stub');
   assert.ok(html.includes('data-action="clear-focus">Clear<'), 'Clear is still there');
   // no pool to re-roll from: no stub
   const single = mk({ taskId: 'x1', pool: ['x1'] }, [task('x1')]);
@@ -209,7 +209,7 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   // nothing open: the empty desk says what to do next
   const empty = mk(null, [task('x1', { status: 'done' })]);
   const emptyHtml = renderFocus(empty, () => null, { focusFilter: {} });
-  assert.ok(emptyHtml.includes('desk-empty') && emptyHtml.includes('Add a task to a folder on the Projects screen') && emptyHtml.includes('data-action="set-screen" data-screen="projects"') && emptyHtml.includes('jot a thought'), 'the empty desk names the next step');
+  assert.ok(emptyHtml.includes('desk-empty') && emptyHtml.includes('Add a task to a project on the Projects screen') && emptyHtml.includes('data-action="set-screen" data-screen="projects"') && emptyHtml.includes('jot a thought'), 'the empty desk names the next step');
 }
 
 // wide-screen project sidebar: search, category pills, sort, and a row per visible project that jumps to it
@@ -267,7 +267,7 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   const doneForm = renderTaskEditForm({ ...base, status: 'done' }, p, cats);
   assert.ok(!doneForm.includes('>Focus on this<'), 'a done task has nothing to focus on');
   const inbox = renderInTrayCard({ inbox: [{ id: 'i1', text: 'idea', createdAt: Date.now() }], projects: [{ id: 'p1', name: 'P', color: 'red', tasks: [] }], categories: cats }, { inboxOpen: true, unsorted: freshUnsorted() });
-  assert.ok(inbox.includes('Which folder?') && inbox.includes('data-key="p1"') && inbox.includes('Choose a folder first'), 'a captured thought is guided to a folder before it can be filed');
+  assert.ok(inbox.includes('Choose a project') && inbox.includes('data-key="p1"') && inbox.includes('Choose a project first'), 'a captured thought is guided to a folder before it can be filed');
 }
 
 // Project header (Q15a, #83): controls stay on the first line whatever the name's length; the

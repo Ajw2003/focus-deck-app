@@ -226,6 +226,13 @@ test('markup: the move dialog', () => {
   assert.ok(html.includes('data-dialog="move"') && html.includes('data-dialog="cancel"'));
 });
 
+test('markup: the move dialog button label defaults to Move and can be Delete', () => {
+  assert.match(renderMoveDialog('Q?'), /data-dialog="move">Move<\/button>/);
+  const del = renderMoveDialog('Q?', 'Delete');
+  assert.match(del, /data-dialog="move">Delete<\/button>/);
+  assert.ok(!del.includes('>Move<'));
+});
+
 test('a sync that lists the old repo while a transfer is in flight does not mark the task done', async () => {
   const t = task('t', 1, { source: 'github', repoFullName: 'a/b', issueNumber: 12, url: 'old' });
   state.projects = [

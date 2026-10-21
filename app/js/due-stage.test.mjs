@@ -52,16 +52,17 @@ test('3-day span: yellow with about a day left, red with about 7 hours left', ()
   const t = taskDueIn('2026-10-05', 3 * D);
   const due = dueOf('2026-10-05');
   assert.strictEqual(dueStage(t, due - 2 * D, undefined), 'white');
-  assert.strictEqual(dueStage(t, due - 23 * H, undefined), 'yellow');
-  assert.strictEqual(dueStage(t, due - 8 * H, undefined), 'yellow');
+  assert.strictEqual(dueStage(t, due - 23 * H, undefined), 'red'); // already the due day (#214)
+  assert.strictEqual(dueStage(t, due - 8 * H, undefined), 'red');
   assert.strictEqual(dueStage(t, due - 7 * H, undefined), 'red');
 });
 
 test('1-day span: yellow all of its last day (the day-before floor), red with about 2 hours left', () => {
   const t = taskDueIn('2026-10-05', 1 * D);
   const due = dueOf('2026-10-05');
-  assert.strictEqual(dueStage(t, due - 9 * H, undefined), 'yellow');
-  assert.strictEqual(dueStage(t, due - 7 * H, undefined), 'yellow');
+  assert.strictEqual(dueStage(t, new Date(2026, 9, 4, 23, 0, 0).getTime(), undefined), 'yellow'); // the evening before
+  assert.strictEqual(dueStage(t, due - 9 * H, undefined), 'red'); // the due day is always red (#214)
+  assert.strictEqual(dueStage(t, due - 7 * H, undefined), 'red');
   assert.strictEqual(dueStage(t, due - 2 * H, undefined), 'red');
 });
 
@@ -83,8 +84,8 @@ test('overdue is always red, whatever the span or overrides', () => {
 test('a 5-minute span: yellow from the start (it is the due day), then red', () => {
   const due = dueOf('2026-10-05');
   const t = { status: 'next', deadline: '2026-10-05', dueSetAt: due - 5 * 60000 };
-  assert.strictEqual(dueStage(t, due - 4 * 60000, undefined), 'yellow');
-  assert.strictEqual(dueStage(t, due - 90 * 1000, undefined), 'yellow');
+  assert.strictEqual(dueStage(t, due - 4 * 60000, undefined), 'red'); // the due day is always red (#214)
+  assert.strictEqual(dueStage(t, due - 90 * 1000, undefined), 'red');
   assert.strictEqual(dueStage(t, due - 20 * 1000, undefined), 'red');
 });
 
@@ -139,7 +140,7 @@ test('dueSetAt missing: createdAt, then now', () => {
   assert.strictEqual(dueStage(bare, due + 1000, undefined), 'red');
   // dueSetAt wins over createdAt
   const both = { status: 'next', deadline: '2026-12-31', createdAt: due - 400 * D, dueSetAt: due - 3 * D };
-  assert.strictEqual(dueStage(both, due - 20 * H, undefined), 'yellow');
+  assert.strictEqual(dueStage(both, due - 30 * H, undefined), 'yellow'); // the day before; 20 hours out is the due day, red (#214)
 });
 
 test('a dueSetAt in the future (clock skew) cannot make a task look ahead of its span', () => {
@@ -176,7 +177,7 @@ test('daylight-saving change: the due moment is built from the date, so the day 
     const span = dueMoment(t) - setAt;
     assert.strictEqual(span, 47 * H - 1000, 'two calendar days to the last second, one of them 23 hours');
     assert.strictEqual(dueStage(t, new Date(2026, 2, 7, 12, 0, 0).getTime(), undefined), 'yellow'); // the day before
-    assert.strictEqual(dueStage(t, new Date(2026, 2, 8, 12, 0, 0).getTime(), undefined), 'yellow'); // after the jump
+    assert.strictEqual(dueStage(t, new Date(2026, 2, 8, 12, 0, 0).getTime(), undefined), 'red'); // after the jump: the due day (#214)
     assert.strictEqual(dueStage(t, new Date(2026, 2, 8, 20, 0, 0).getTime(), undefined), 'red');
     assert.strictEqual(dueStage(t, new Date(2026, 2, 9, 0, 0, 1).getTime(), undefined), 'red'); // overdue
     // and fall-back, 2026-11-01: a 25-hour day. Due the 2nd, the day-before floor starts at the 1st's midnight.
@@ -217,4 +218,21 @@ test('stageMoments matches dueStage exactly', () => {
   assert.strictEqual(dueStage(t, m.yellowAt - 1, undefined), 'white');
   assert.strictEqual(dueStage(t, m.redAt, undefined), 'red');
   assert.strictEqual(dueStage(t, m.redAt - 1, undefined), 'yellow');
+});
+
+test('due today is always red (#214): a date set on the due day itself is red at noon', () => {
+  const t = { status: 'next', deadline: '2026-12-31', dueSetAt: new Date(2026, 11, 31, 8, 0, 0).getTime() };
+  assert.strictEqual(dueStage(t, new Date(2026, 11, 31, 12, 0, 0).getTime(), undefined), 'red');
+});
+
+test('due today is always red (#214): a 90-day span is red at 9am on the due day, far above the red cut-off', () => {
+  const t = taskDueIn('2026-12-31', 90 * D);
+  assert.strictEqual(dueStage(t, new Date(2026, 11, 31, 9, 0, 0).getTime(), undefined), 'red');
+});
+
+test('due today is always red (#214): at 23:00 the evening before, a long-span task is still yellow', () => {
+  // a 5-day span: its red cut-off (12h) is shorter than the 25h left, so only the day-before floor matters
+  // (a 90-day span would already be red here by the 10% rule, 9 days out)
+  const t = taskDueIn('2026-12-31', 5 * D);
+  assert.strictEqual(dueStage(t, new Date(2026, 11, 30, 23, 0, 0).getTime(), undefined), 'yellow');
 });

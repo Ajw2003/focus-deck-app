@@ -1,7 +1,7 @@
 // run with: node --test app/js/board.test.mjs  (Board columns, #143)
 import test from 'node:test';
 import assert from 'node:assert';
-import { boardColumns, weekStart } from './board.js';
+import { boardColumns, boardList, weekStart } from './board.js';
 
 const NOW = new Date(2026, 9, 8, 15, 0).getTime(); // Thursday 8 Oct 2026, local
 const MON = new Date(2026, 9, 5, 0, 0).getTime();
@@ -74,4 +74,53 @@ test('completedAt wins over updatedAt for Done this week; updatedAt is the fallb
     task('legacy', 'done', { updatedAt: NOW - 3600e3 }),                                  // no completedAt: falls back
   ])] };
   assert.deepStrictEqual(ids(boardColumns(st, null, NOW).done), ['legacy', 'fresh']);
+});
+
+test('boardList: tab, project, Find, Show and subtasks (#200)', () => {
+  const st = {
+    categories: [{ id: 'c1', name: 'Garden' }],
+    projectCategories: [],
+    projects: [
+      proj('p', [
+        task('a', 'next', { sortOrder: 1 }),
+        task('b', 'next', { sortOrder: 2, categoryIds: ['c1'], waitsOn: ['a'], title: 'Mop' }),
+        task('s', 'next', { sortOrder: 3, parentId: 'a' }),
+        task('d', 'doing'),
+      ]),
+      Object.assign(proj('q', [task('e', 'next', { sortOrder: 1 })]), { name: 'Allotment', categoryId: 'pc1' }),
+    ],
+  };
+  const list = (o) => ids(boardList(st, Object.assign({ tab: 'next' }, o), NOW).tasks);
+  assert.deepStrictEqual(list({}), ['a', 'b', 'e'], 'subtasks of a live parent are not cards');
+  assert.deepStrictEqual(boardList(st, { tab: 'next' }, NOW).counts, { next: 3, doing: 1, done: 0 }, 'counts leave out subtasks');
+  assert.deepStrictEqual(list({ project: 'q' }), ['e']);
+  assert.deepStrictEqual(list({ pcat: 'pc1' }), ['e']);
+  assert.deepStrictEqual(list({ find: 'MOP' }), ['b'], 'task title');
+  assert.deepStrictEqual(list({ find: 'allot' }), ['e'], 'project name');
+  assert.deepStrictEqual(list({ find: 'garden' }), ['b'], 'label name');
+  assert.deepStrictEqual(list({ show: 'subs' }), ['a']);
+  assert.deepStrictEqual(list({ show: 'waits' }), ['a', 'b'], 'a waits on its open subtask, b on a');
+  assert.deepStrictEqual(list({ show: 'holds' }), ['a'], 'a holds b up');
+  assert.deepStrictEqual(ids(boardList(st, { tab: 'doing' }, NOW).tasks), ['d']);
+});
+
+test('boardList counts follow the same narrowing as the list (#217)', () => {
+  const st = {
+    projects: [
+      proj('p', [
+        task('a', 'next', { sortOrder: 1 }),
+        task('b', 'next', { sortOrder: 2, title: 'Mop', waitsOn: ['a'] }),
+        task('s', 'next', { sortOrder: 3, parentId: 'a' }),
+        task('d', 'doing'),
+      ]),
+      Object.assign(proj('q', [task('e', 'next'), task('f', 'doing'), task('g', 'doing', { title: 'Mop' })]), { name: 'Allotment' }),
+    ],
+  };
+  const counts = (o) => boardList(st, Object.assign({ tab: 'next' }, o), NOW).counts;
+  assert.deepStrictEqual(counts({}), { next: 3, doing: 3, done: 0 }, 'nothing narrowed');
+  assert.deepStrictEqual(counts({ project: 'q' }), { next: 1, doing: 2, done: 0 }, 'picked project only');
+  assert.deepStrictEqual(counts({ find: 'mop' }), { next: 1, doing: 1, done: 0 }, 'Find word');
+  assert.deepStrictEqual(counts({ show: 'subs' }), { next: 1, doing: 0, done: 0 }, 'Show subs');
+  assert.deepStrictEqual(counts({ show: 'waits' }), { next: 2, doing: 0, done: 0 }, 'Show waits');
+  assert.deepStrictEqual(counts({ tab: 'doing', project: 'q' }), counts({ project: 'q' }), 'same on every tab');
 });

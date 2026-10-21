@@ -1,0 +1,28 @@
+{
+ "title": "Board Project Build Plan",
+ "eyebrow": "Build plan for approval · design 1B 2A from your phone test · issue #216 and its steps #217 and #218",
+ "approval": "Build plan approved: board project view",
+ "short": {
+  "lead": "This builds the design you approved. Each tab's number counts only the cards the list is narrowed to (answer 1B, \"Everything you narrowed by\"). A picked project becomes the Board's heading, in its colour (answer 2A, \"The heading names the project\"). I will put it on the build branch for pull request #209 (the calm build), and your test link will show the change once I have pushed it there.",
+  "hint": "Tap a step to see what it does.",
+  "key": [["Built by me", ""], ["You decide", "you"]],
+  "items": [
+   ["list", "Step 1", "Count only what the list shows (#217)", "", "Each tab counts only the cards left after the Project menu, the Find box and Filter have narrowed the list. For example, with Home picked, the Up next tab counts only Home's tasks. With nothing narrowed, the numbers stay as they are now. New automatic tests cover three cases: a picked project, a word typed in Find, and a Show filter setting.", "Nothing from you."],
+   ["list", "Step 2", "Name the project in the heading and hand it back (#218)", "", "With a project picked, the heading becomes the project's name with a coloured dot and bar, and the Project menu gets a border in the same colour. A browser check confirms the heading, the border and the tab numbers. Then I rerun all the automatic checks, update the docs and the quality-check page, and move issues #216, #217 and #218 to 'needs review'.", "Nothing from you.",
+    {"src": "docs/generated/board-project/a-390.png", "alt": "The Board with Home picked: heading Home with a green dot and bar, green-edged menu, Up next 17", "caption": "What both steps build."}],
+   ["check", "Approve", "Say go", "you", "The build starts once you send the reply below.", "Reply \"Build plan approved: board project view\", or say what to change."]
+  ]
+ },
+ "changes": [
+  ["chg", "Tab numbers", "Count what the list is narrowed to.", null, "Files changed: `app/js/board.js` and its tests."],
+  ["chg", "Board heading and Project menu", "Show the picked project in its colour.", null, "Files changed: `app/js/board-view.js`, `app/css/app.css` and the browser check, `scripts/check-board-browser.mjs`."]
+ ],
+ "choices": [],
+ "wrapup": {
+  "summary": "Two steps make the tab numbers follow the picked project and make that project the Board's heading. Then I hand the build back to you to test.",
+  "changing": "Only the Board's tab numbers, heading and Project menu change. Every other screen stays the same.",
+  "blocking": "I am waiting for your reply: \"Build plan approved: board project view\".",
+  "next": "Once you approve, I will build both steps, push them to pull request #209 (the calm build) and tell you when your test link shows them.",
+  "todo": ["Read the two steps above.", "If you are happy, send the approval phrase above. If not, say what to change."]
+ }
+}

@@ -125,7 +125,8 @@ for (const scheme of ['dark', 'light']) {
 // Settings page: change via the radios, preview in each face, persists and syncs shape
 for (const scheme of ['dark', 'light']) {
   const { ctx, page } = await open(null, scheme, { url: BASE + 'settings.html' });
-  await page.waitForSelector('.note-face-sample');
+  await page.click('[aria-controls="fold-note-face"]');
+  await page.waitForSelector('.note-face-sample', { state: 'visible' });
   const fams = await page.$$eval('.note-face-sample', (els) => els.map((e) => getComputedStyle(e).fontFamily.replace(/"/g, '').split(',')[0]));
   check(`[settings/${scheme}] three previews, each in its own face`, fams.join('|') === 'Kalam|Atkinson Hyperlegible|OpenDyslexic', fams.join('|'));
   check(`[settings/${scheme}] default is Handwriting`, await page.$eval('input[value="hand"]', (i) => i.checked));
@@ -134,7 +135,7 @@ for (const scheme of ['dark', 'light']) {
   const st = await page.evaluate(() => ({ s: JSON.parse(localStorage.getItem('focusdeck-state-v1')).noteFace, a: document.documentElement.dataset.noteFace }));
   check(`[settings/${scheme}] choosing OpenDyslexic stores and applies it`, st.s.face === 'dyslexic' && st.s.updatedAt > 1 && st.a === 'dyslexic', JSON.stringify(st));
   await page.screenshot({ path: OUT + `${scheme}-settings.png`, fullPage: true });
-  await page.reload(); await page.waitForSelector('.note-face-sample');
+  await page.reload(); await page.click('[aria-controls="fold-note-face"]'); await page.waitForSelector('.note-face-sample', { state: 'visible' });
   check(`[settings/${scheme}] still chosen after reload`, await page.$eval('input[value="dyslexic"]', (i) => i.checked));
   await ctx.close();
 }
