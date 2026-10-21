@@ -1,6 +1,6 @@
 {
  "title": "Calm Build QA",
- "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #218",
+ "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · pull request 209 · issues #198 to #221",
  "short": {
   "lead": "Calm by default is built into the real app. On a wide screen the Focus Deck name and the centred 'Jot down a stray thought…' box stay at the top, with the side menu below them. The Board shows one tab at a time, each card shows its priority and due date, and a Task details panel opens beside the list. Every setting is a row that opens and closes, and there is a new Comfort group. Projects is unchanged, as you chose in option 1A ('keep Projects as it is today'). You test a copy of branch AjsAgent/calm-build with sample data, on your phone or computer, so your real tasks are not touched.",
   "hint": "Tap a step to see what to try and what you should see.",
@@ -21,7 +21,7 @@
     "Open the test copy",
     "you",
     "This is a copy of branch AjsAgent/calm-build with sample data. A site called raw.githack serves it from GitHub, so it opens on your phone or computer with nothing to install.",
-    "Open https://raw.githack.com/Ajw2003/focus-deck-app/22ba8b82e00a3336b788eedc58c9e10977fe1675/docs/generated/sort-steps/seed.html#board?ties in your browser. Change the end to #focus, #sort or #projects to open another screen. Opening the address again reloads the sample data, so it also works as a reset.",
+    "Open https://raw.githack.com/Ajw2003/focus-deck-app/278eb36d0321bb5be16af1bcaaf92617264c85de/docs/generated/sort-steps/seed.html#board?ties in your browser. Change the end to #focus, #sort or #projects to open another screen. Opening the address again reloads the sample data, so it also works as a reset.",
     {
      "src": "docs/generated/calm-build/built/206-board-1440.png",
      "alt": "The built Board at 1440 wide with sample data",
@@ -111,6 +111,19 @@
    ],
    [
     "check",
+    "Tray delete",
+    "Check that deleting a thought asks first",
+    "you",
+    "Pressing Delete under a thought in the tray now opens a confirmation card that asks before anything is removed (added after your fourth look).",
+    "Open Sort and press Delete under the top thought in the tray. A confirmation card should ask 'Delete \"…\"? It leaves the tray for good.' Press Cancel; the thought should stay. Press Delete under the same thought again, then press Delete on the confirmation card; the thought should leave the tray.",
+    {
+     "src": "docs/generated/calm-build/built/220-tray-delete-390-light.png",
+     "alt": "A card over the Sort screen asking Delete Get three quotes for fixing the shed door, with Cancel and Delete",
+     "caption": "The question before a thought is deleted."
+    }
+   ],
+   [
+    "check",
     "Sort",
     "Check the Sort fixes",
     "you",
@@ -130,7 +143,7 @@
     "Reply",
     "Tell me how it went",
     "you",
-    "Your reply tells me whether the issues for this build, #198 to #208 and #210 to #218, can move forward.",
+    "Your reply tells me whether the issues for this build, #198 to #208 and #210 to #221, can move forward.",
     "Reply 'QA passed: calm by default', or say what's wrong."
    ]
   ]
@@ -149,7 +162,7 @@
   ]
  },
  "wrapup": {
-  "summary": "Calm by default is built. The header and side menu stay in place, and the Board shows one tab at a time. You also get Task details, one coloured label per card, settings as rows that open and close, with a new Comfort group, plainer wording and the Sort fixes. Cards show their priority and due date too, in the new due colours (red for due today, a stronger olive for due soon), and the Board follows the project you pick. All 229 unit tests and all 13 browser checks pass.",
+  "summary": "Calm by default is built. The header and side menu stay in place, and the Board shows one tab at a time. It adds Task details, one coloured label per card, and settings as rows that open and close, including a new Comfort group. Wording is plainer, and the Sort screen has its fixes. Cards now show their priority and due date, using new due colours: red for due today and a stronger olive for due soon. The Board follows the project you pick, and deleting a thought in the tray asks first. All 230 unit tests and all 13 browser checks pass.",
   "changing": "Changed: the frame, the Board, Settings and some wording. New: Task details, Card colour and the Comfort group. Unchanged: Projects.",
   "blocking": "Waiting on your test.",
   "next": "After 'QA passed', you close the issues when you're happy, and the pull request is merged into main, the version of the app you use.",
