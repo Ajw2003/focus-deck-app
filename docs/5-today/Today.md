@@ -1,3 +1,13 @@
+# Today — 2026-10-21
+
+## Calm build: QA passed
+
+aj replied "QA passed: calm by default" on 2026-10-21, after four rounds of fixes found on the phone:
+due and urgency on cards (#210), due colours (#213), the Board project view (#216) and asking before a
+tray thought is deleted (#219). Unit tests 230/230; all 13 browser checks pass; GitHub's `test` check is
+green on b72de80. Pull request 209 is open and mergeable into `main`; merging waits on aj's word. The
+issues stay labelled `needs review` until aj closes them.
+
 # Today — 2026-10-19
 
 ## Calm build: built, in QA
