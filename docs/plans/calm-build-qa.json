@@ -115,7 +115,7 @@
     "Check that deleting a thought asks first",
     "you",
     "Pressing Delete under a thought in the tray now opens a confirmation card that asks before anything is removed (added after your fourth look).",
-    "Open Sort and press Delete under the top thought in the tray. A confirmation card should ask 'Delete \"…\"? It leaves the tray for good.' Press Cancel; the thought should stay. Press Delete under the same thought again, then press Delete on the confirmation card; the thought should leave the tray.",
+    "Open Sort and press Delete under the top thought in the tray. A confirmation card should ask 'Delete \"…\"? It leaves the tray for good.' Press Cancel; the thought should stay. Tap that thought's Delete once more, then the card's own Delete button; the thought should leave the tray.",
     {
      "src": "docs/generated/calm-build/built/220-tray-delete-390-light.png",
      "alt": "A card over the Sort screen asking Delete Get three quotes for fixing the shed door, with Cancel and Delete",
