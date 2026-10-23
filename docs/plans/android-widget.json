@@ -3,7 +3,7 @@
  "eyebrow": "Plan for approval · Android only · nothing built yet",
  "approval": "Design approved: Android widget",
  "short": {
-  "lead": "You asked for a widget on your Android home screen that shows one project's Board, where you can tick tasks off and move them between columns without opening the app. That project is a local list, not one linked to GitHub. Today Focus Deck is a web app installed from Chrome, and Chrome gives web apps no way to put a widget on the home screen (the Chrome request is still open: issues.chromium.org/issues/40744630). So the plan wraps the same Focus Deck code in a small Android app, built with Capacitor (free and open source), and adds a native widget to it. The pictures are drawings of the plan, not the built widget.",
+  "lead": "You asked for a widget on your Android home screen that shows one project's Board, where you can tick tasks off and move them between columns without opening the app. That project is a local list on your phone, not one linked to GitHub. Today Focus Deck is a web app installed from Chrome, and Chrome gives web apps no way to put a widget on the home screen (the Chrome request is still open: issues.chromium.org/issues/40744630). So the plan wraps the same Focus Deck code in a small Android app, built with Capacitor (free and open source), and adds a native widget to it. The pictures are drawings of the plan, not the built widget.",
   "hint": "Tap each circle to see its picture.",
   "key": [
    [
@@ -42,7 +42,7 @@
     "Ticking off",
     "Tick, then Undo",
     "",
-    "Ticking a task marks it done straight away and saves it. The ticked task stays in place for a few seconds, crossed out, with an Undo button, then moves into Done. The change is saved the same way a change in the app is, so the app shows it next time it opens.",
+    "Ticking a task marks it done straight away and saves it. The ticked task stays in place for a few seconds, crossed out, with an Undo button, then moves into Done. The change is saved the same way as a change made in the app, so the app shows it the next time you open it.",
     "Look at the crossed-out task and its Undo button.",
     {
      "src": "docs/generated/android-widget/s2.png",
@@ -68,8 +68,8 @@
     "Installing it",
     "An app file from GitHub",
     "you",
-    "The Android app is built automatically on GitHub and attached to the repo's Releases page as an APK, the file Android installs apps from. You download it on your phone once and allow your browser to install apps. No Play Store account is needed. Your tasks move over once, as chosen below.",
-    "Choose how your tasks move over, and how app updates arrive."
+    "The Android app is built automatically on GitHub and attached to the repo's Releases page as an APK, the file Android installs apps from. You download it on your phone once and allow your browser to install apps. No Play Store account is needed. Your tasks move over once, in the way you choose under Choices.",
+    "Answer the two questions under Choices: how your tasks move over, and how app updates arrive."
    ]
   ]
  },
@@ -77,35 +77,35 @@
   [
    "chg",
    "New Android app",
-   "The same Focus Deck code, wrapped with Capacitor, plus the widget.",
+   "The same Focus Deck code, wrapped in an Android app with Capacitor, plus the widget.",
    null,
    "The repo gains an android folder. The widget code is written in Kotlin, Android's own language, using Jetpack Glance, Google's toolkit for widgets."
   ],
   [
    "chg",
-   "Where your tasks are saved, inside the Android app",
+   "Where the Android app saves your tasks",
    "The app also writes them where the widget can reach them.",
    null,
-   "Inside the Android app, every save is copied to the phone's app storage (Android's SharedPreferences). Changes made in the widget are stamped and merged back by the app's existing merge code, the same code that already merges Gist sync copies, so two edits never overwrite each other silently."
+   "Inside the Android app, every save is copied to the phone's app storage (Android's SharedPreferences). Changes made in the widget are time-stamped and merged back into the app's data by its existing merge code, the same code that already merges Gist sync copies, so two edits never silently overwrite each other."
   ],
   [
    "chg",
    "GitHub build",
    "Builds the APK and attaches it to a Release.",
    null,
-   "The signing key, which proves updates come from you, is kept as a GitHub secret, never in the repo. I'll generate it; losing it means future updates can't install over the old app."
+   "The signing key proves that updates come from you. It is kept as a GitHub secret, never in the repo. I'll generate it. If it is lost, future updates can't be installed over the old app."
   ],
   [
    "keep",
    "The web app on every device",
-   "No change, and the APK is optional.",
+   "No change. Using the APK is optional.",
    null,
    "GitHub Pages keeps serving the web app exactly as now. iPhone (installed from Safari), desktop and Android phones that install from Chrome all keep working the same way, and nobody has to use the APK. The widget is the only thing that needs the Android app."
   ],
   [
    "keep",
    "Board rules",
-   "No change.",
+   "No change to the Board's rules.",
    null,
    "The widget uses the same columns, the same order and the same move rules as the Board."
   ]
@@ -138,7 +138,7 @@
      "A",
      "Load the app from GitHub Pages",
      1,
-     "The Android app opens the live web app, so every change you merge arrives by itself, as it does now. Only widget changes need a new APK. It still works offline after the first open. Capacitor's documentation describes live loading as a development feature, so I'd test it carefully."
+     "The Android app opens the live web app, so every change you merge arrives by itself, as it does now. Only widget changes need a new APK. It still works offline after the first open. Capacitor's documentation describes live loading as a development feature, so I would test it carefully before relying on it."
     ],
     [
      "B",
@@ -156,7 +156,7 @@
   "blocking": "I am waiting for your answers to the two questions in Choices. Nothing is built until you approve.",
   "next": "After you approve, I open a parent issue with one child issue per step, then build on a new branch. I can build and run the tests here, but I can't run an Android phone, so the last check is you installing the APK and trying the widget.",
   "todo": [
-   "Look at the four pictures.",
+   "Look at the three pictures in In short.",
    "Answer both questions under Choices.",
    "Tap <b>Copy my reply</b> and send it, or say what to change."
   ]
