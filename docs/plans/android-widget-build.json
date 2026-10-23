@@ -1,0 +1,95 @@
+{
+ "title": "Android Widget Build Plan",
+ "eyebrow": "Build plan for approval · five steps · issue #225",
+ "approval": "Build plan approved: Android widget",
+ "short": {
+  "lead": "You approved the widget design, including two answers: tasks move into the Android app through Gist sync if you use it, or through a one-time copy file if you don't. The app loads the live site from GitHub Pages. This page lists the steps in the order I'll build them. Each step is a GitHub issue under #225, and the details are in docs/4-systems/android-widget.md. One step needs about five minutes from you: adding the app's signing key to the repo's secrets, because I can't write secrets from here.",
+  "hint": "Tap each circle to read the step.",
+  "key": [
+   [
+    "Built by me",
+    ""
+   ],
+   [
+    "Needs you",
+    "you"
+   ]
+  ],
+  "items": [
+   [
+    "file",
+    "Step 1",
+    "Save and Load a copy (#226)",
+    "",
+    "Two buttons in Settings: 'Save a copy' downloads all your projects, tasks and settings as a file, and 'Load a copy' merges such a file into the app without losing what's already there. Works on every device.",
+    "Nothing from you."
+   ],
+   [
+    "hammer",
+    "Step 2",
+    "The Android app shell (#227)",
+    "",
+    "Capacitor (a tool that wraps a web app as an Android app) and an android folder. The app opens the live site, so your changes to the site reach it without a new APK (the Android install file). The web app only talks to Android when it is running inside the Android app; in every browser nothing changes.",
+    "Nothing from you."
+   ],
+   [
+    "lock",
+    "Step 3",
+    "Build and publish the APK (#228)",
+    "you",
+    "A new GitHub workflow builds the signed APK and publishes it as a GitHub Release called 'Android app'. I generate the signing key. You add it once to the repo's Actions secrets (GitHub's private settings store), following a step-by-step card I send you. I can't write secrets from here.",
+    "Add four secrets once, following my card."
+   ],
+   [
+    "swap",
+    "Step 4",
+    "Share the Board with the widget (#229)",
+    "",
+    "Inside the Android app, each save also writes the lists on your Board to the phone's app storage, where the widget can read them. Tasks you tick or move in the widget are queued and applied the next time the app opens, then saved and synced like a tick or move made in the app. This part is ordinary web-app code (JavaScript) covered by automated tests.",
+    "Nothing from you."
+   ],
+   [
+    "list",
+    "Step 5",
+    "The widget itself (#230)",
+    "you",
+    "The widget as in the design you approved: pick a project, three tabs with counts, tick with Undo, move buttons, and Open. Then I send you a QA page with the install steps.",
+    "Install the APK and try it on your phone."
+   ]
+  ]
+ },
+ "changes": [
+  [
+   "chg",
+   "Settings",
+   "Gains Save a copy and Load a copy.",
+   null,
+   "Same on every device."
+  ],
+  [
+   "chg",
+   "Repo",
+   "Gains an android folder, a Capacitor config, package.json entries and an Android build workflow.",
+   null,
+   "The Pages deploy workflow is untouched."
+  ],
+  [
+   "keep",
+   "Web app on iPhone, desktop and Android Chrome",
+   "No change.",
+   null,
+   "The native code runs only inside the Android app."
+  ]
+ ],
+ "choices": [],
+ "wrapup": {
+  "summary": "Five steps, built in order on one branch, with one pull request that links #225. Steps 1, 2 and 4 are tested here. The Android code compiles only on GitHub, because this sandbox can't download Google's Android tools, and only your phone can show the widget working.",
+  "changing": "Added: Save and Load a copy, the Android app, its build workflow and the widget. Kept: everything about the web app and its installs.",
+  "blocking": "I am waiting for your approval of this build plan. After step 3 I will also need you to add the four signing secrets to the repo.",
+  "next": "After you approve, I build step 1 and work down the list, then open one pull request and send you a QA page with the steps for installing and testing the widget on your phone.",
+  "todo": [
+   "Read the five steps.",
+   "Send 'Build plan approved: Android widget', or say what to change."
+  ]
+ }
+}
