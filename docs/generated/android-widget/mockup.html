@@ -1,0 +1,52 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<style>
+:root{--bg:#E4E8EF;--surface:#FBFAF7;--ink:#1C2438;--soft:#59627A;--faint:#6E7790;--accent:#8F5A06;--home:#3D6B5A}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Roboto,sans-serif;color:var(--ink)}
+.phone{width:390px;height:844px;background:linear-gradient(160deg,#5b7f9c,#2f4a63 60%,#26394d);position:relative;overflow:hidden;padding:44px 16px 0}
+.status{position:absolute;top:0;left:0;right:0;height:32px;color:#fff;font-size:13px;display:flex;justify-content:space-between;padding:8px 20px}
+.clock{color:#fff;font-size:56px;font-weight:300;margin:10px 6px 2px}.date{color:#e8eef5;font-size:15px;margin:0 8px 18px}
+.w{background:var(--surface);border-radius:26px;padding:14px 14px 10px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.wh{display:flex;align-items:center;gap:8px;margin-bottom:10px}.dot{width:10px;height:10px;border-radius:50%;background:var(--home)}
+.wh b{font-size:16px}.wh .open{margin-left:auto;font-size:13px;color:var(--accent);font-weight:600}
+.tabs{display:flex;gap:6px;margin-bottom:8px}.tab{flex:1;text-align:center;font-size:12.5px;padding:7px 2px;border-radius:12px;background:#EEF1F6;color:var(--soft)}
+.tab.on{background:var(--ink);color:#fff;font-weight:600}
+.row{display:flex;align-items:center;gap:10px;padding:9px 6px;border-radius:12px;border-left:4px solid var(--home);background:#fff;margin-bottom:6px}
+.box{width:22px;height:22px;border:2px solid var(--soft);border-radius:6px;flex:none}.box.ok{background:var(--home);border-color:var(--home);color:#fff;font-size:15px;text-align:center;line-height:18px}
+.t{font-size:14.5px;flex:1}.t.done{text-decoration:line-through;color:var(--faint)}
+.mv{font-size:12.5px;padding:6px 9px;border-radius:10px;background:#EEF1F6;color:var(--ink);white-space:nowrap;font-weight:600}
+.more{font-size:12.5px;color:var(--soft);text-align:center;padding:4px}
+.add{display:flex;gap:8px;margin-top:4px}.add span{flex:1;font-size:13px;color:var(--faint);background:#EEF1F6;border-radius:12px;padding:8px 10px}
+.icons{position:absolute;bottom:40px;left:16px;right:16px;display:flex;justify-content:space-around}.ic{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.85)}
+.hl{outline:3px solid #F2B45A;outline-offset:2px}
+.sheet{position:absolute;inset:0;background:var(--surface);padding:52px 20px}
+.sheet h2{font-size:22px;font-weight:500;margin:0 0 6px}.sheet p{color:var(--soft);font-size:14px;margin:0 0 18px}
+.opt{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:#fff;margin-bottom:8px;font-size:16px;border:1px solid #dde2ea}
+.opt.on{border:2px solid var(--ink)}.opt small{margin-left:auto;color:var(--faint);font-size:13px}
+.btn{position:absolute;bottom:36px;left:20px;right:20px;background:var(--ink);color:#fff;text-align:center;padding:14px;border-radius:16px;font-weight:600}
+</style></head><body>
+<div id="s1" class="phone"><div class="status"><span>9:41</span><span>●●● 82%</span></div>
+<div class="clock">9:41</div><div class="date">Thursday 23 October</div>
+<div class="w"><div class="wh"><span class="dot"></span><b>Home</b><span class="open">Open ↗</span></div>
+<div class="tabs"><span class="tab on">Up next 4</span><span class="tab">In progress 2</span><span class="tab">Done 3</span></div>
+<div class="row"><span class="box"></span><span class="t">Book the boiler service</span><span class="mv">→ In progress</span></div>
+<div class="row"><span class="box"></span><span class="t">Get three quotes for the shed door</span><span class="mv">→ In progress</span></div>
+<div class="row"><span class="box"></span><span class="t">Sort the recycling rota</span><span class="mv">→ In progress</span></div>
+<div class="more">1 more · scroll</div>
+<div class="icons"><span class="ic"></span><span class="ic"></span><span class="ic"></span><span class="ic"></span></div></div>
+
+<div id="s2" class="phone"><div class="status"><span>9:42</span><span>●●● 82%</span></div>
+<div class="clock">9:42</div><div class="date">Thursday 23 October</div>
+<div class="w"><div class="wh"><span class="dot"></span><b>Home</b><span class="open">Open ↗</span></div>
+<div class="tabs"><span class="tab">Up next 3</span><span class="tab on">In progress 2</span><span class="tab">Done 4</span></div>
+<div class="row hl"><span class="box ok">✓</span><span class="t done">Renew the car tax</span><span class="mv">Undo</span></div>
+<div class="row"><span class="box"></span><span class="t">Book the boiler service</span><span class="mv">← Up next</span></div>
+<div class="row"><span class="box"></span><span class="t">Pay the window cleaner</span><span class="mv">← Up next</span></div>
+<div class="icons"><span class="ic"></span><span class="ic"></span><span class="ic"></span><span class="ic"></span></div></div>
+
+<div id="s3" class="phone" style="padding:0"><div class="sheet"><h2>Which project should this widget show?</h2><p>You can add more widgets for other projects. Long-press the widget later to change it.</p>
+<div class="opt on"><span class="dot"></span>Home<small>4 up next</small></div>
+<div class="opt"><span class="dot" style="background:#8F5A06"></span>Work admin<small>7 up next</small></div>
+<div class="opt"><span class="dot" style="background:#5A4E8F"></span>Garden<small>2 up next</small></div>
+<div class="opt"><span class="dot" style="background:#59627A"></span>All projects<small>13 up next</small></div>
+<div class="btn">Add widget</div></div></div>
+</body></html>
