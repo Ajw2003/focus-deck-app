@@ -19,7 +19,8 @@
     <header class="topbar">
       <div class="brand"><span class="brand-mark" aria-hidden="true"><span class="lamp"></span></span><h1>Focus Deck</h1></div>
       <form id="capture-form" class="capture-form jotter" autocomplete="off">
-        <input id="capture-input" type="text" placeholder="Jot down a stray thought…" aria-label="Capture a stray thought" maxlength="400">
+        <textarea id="capture-input" rows="1" placeholder="Jot down a stray thought…" aria-label="Capture a stray thought" aria-describedby="capture-hint"></textarea>
+        <span id="capture-hint" class="sr-only">Enter adds it. Shift and Enter starts a new line.</span>
         <button type="submit" class="jot-add">Add</button>
       </form>
       <div class="topbar-tools">

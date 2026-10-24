@@ -383,6 +383,18 @@ export function deadlineChip(iso, task) {
   return '<span class="chip deadline-chip' + stageClass + '">' + (stage === 'red' || amber ? ICON_DUE_RED : '') + label + '</span>';
 }
 
+// A thought longer than the jotter used to allow (400 characters) or written over several lines is
+// too long for a task title: titles are one-line inputs and GitHub caps issue titles. Filing one keeps
+// its first line (cut to 120 characters) as the title and the whole text, untouched, as the notes,
+// so nothing written is lost. Shorter one-line thoughts are filed exactly as before.
+export const LONG_THOUGHT = 400;
+export function splitLongThought(text) {
+  const full = String(text || '').trim();
+  if (full.length <= LONG_THOUGHT && !full.includes('\n')) return { title: full, notes: '' };
+  const first = full.split('\n')[0].trim();
+  return { title: first.length > 120 ? first.slice(0, 119).trimEnd() + '…' : first, notes: full };
+}
+
 export function shortName(name) { return name.length > 14 ? name.slice(0, 13) + '…' : name; }
 
 // Display-only formatting for a label (task category) name (Q7b): title-cased, with a small set of

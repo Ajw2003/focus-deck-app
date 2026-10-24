@@ -1,5 +1,5 @@
 // focus-deck-app/js/app.js
-import { state, findTaskWithProject, findProjectIdForTask, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, GIST_ID_KEY } from './state.js';
+import { state, findTaskWithProject, findProjectIdForTask, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, GIST_ID_KEY, STORAGE_KEY, backupRaw } from './state.js';
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle } from './sync.js';
@@ -17,7 +17,7 @@ import { startComplete, phaseClasses } from './focus-complete.js';
 import { mountWallets, onSpreadChange } from './wallet.js';
 import { tiesOf } from './task-links.js';
 import { renderInTrayCard, unsortedCurrent, STEP_LOCKED_WHY } from './in-tray-view.js';
-import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY } from './in-tray.js';
+import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY, orderTray, pickedSlips, bulkBlocker, bulkSort } from './in-tray.js';
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
 import { renderOnboarding } from './onboarding-view.js';
 import { normalizeBoardCol } from './board-view.js';
@@ -100,6 +100,12 @@ function saveProjectSort() {
 // Per-slip scratch for the Unsorted in-tray (step, search text, chosen folder, flags stuck on, edited title and notes, the
 // card facing in each wallet) plus this session's "Later" list and which slip it belongs to. Reset
 // whenever the top slip changes -- see renderApp below. See docs/4-systems/in-tray.md
+// "Select many" on the Sort screen: memory only, and kept apart from ui.unsorted, which resets
+// whenever the top slip changes. `picked` holds queue keys.
+function freshBulk(on) {
+  return { on: !!on, picked: [], projectId: null, selected: [], groupTitle: '', newLabel: '', why: '' };
+}
+
 function freshUnsortedScratch(later) {
   return { later: later || [], projectId: null, selected: [], step: 1, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null,
     parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '', why: '' };
@@ -168,7 +174,7 @@ export const ui = {
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectFilter: undefined, projectQuery: '', projectSort: loadProjectSort(), projectCollapsed: loadCollapsedProjects(),
-  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(),
+  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(), bulk: freshBulk(false),
   projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: resolveProjectView(loadProjectView(), isWideScreen()),
   // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
   // (Q30c) -- neither persisted, both reset to closed on load.
@@ -295,12 +301,26 @@ export function paint() {
   document.getElementById('app').innerHTML = renderApp(state);
   paintHeaderControls();
   mountWallets(document.getElementById('app'), walletHooks);
+  growAll();
   window.scrollTo(0, scrollY);
   if (restoreSearch) {
     const el = document.querySelector(active.matches('.board-find') ? '.board-find' : '.project-search');
     if (el) { el.focus(); el.setSelectionRange(restoreSearch.start, restoreSearch.end); }
   }
 }
+
+// Notes and thoughts have no length limit, so their boxes grow with the text. CSS field-sizing does
+// it where supported; elsewhere (Safari, Firefox at the time of writing) this sets the height from
+// the content. The jotter's 40vh cap is in its CSS max-height.
+const GROWING_BOXES = '#capture-input, .slip-notes, [data-detail-notes]';
+const growsByItself = typeof CSS !== 'undefined' && CSS.supports && CSS.supports('field-sizing', 'content');
+function autoGrow(box) {
+  if (growsByItself || !box) return;
+  box.style.height = 'auto';
+  box.style.height = box.scrollHeight + 'px';
+}
+document.addEventListener('input', (e) => { if (e.target.matches && e.target.matches(GROWING_BOXES)) autoGrow(e.target); });
+function growAll() { document.querySelectorAll(GROWING_BOXES).forEach(autoGrow); }
 
 registerPaint(paint);
 onSpreadChange(paint); // wallets lie flat on a wide screen, flip on a narrow one (#128)
@@ -518,6 +538,7 @@ function onAppClick(e) {
     u.picking = null; u.pickQuery = '';
     paint();
   }
+  else if (action.startsWith('bulk-')) onBulkAction(action, el);
   else if (action === 'unsorted-skip') {
     const cur = unsortedCurrent(state, ui.unsorted);
     if (cur) ui.unsorted.later = sendToBack(ui.unsorted.later, cur.key);
@@ -868,6 +889,19 @@ function onDetailFocusOut(e) {
 function onAppChange(e) {
   const colorEl = colorInputTarget(e);
   if (colorEl) { onColorChange(colorEl); return; }
+  if (e.target.matches && e.target.matches('[data-bulk-key]')) {
+    const key = e.target.getAttribute('data-bulk-key');
+    ui.bulk.picked = e.target.checked ? ui.bulk.picked.filter((k) => k !== key).concat(key) : ui.bulk.picked.filter((k) => k !== key);
+    ui.bulk.why = '';
+    paintKeepingFocus('[data-bulk-key="' + CSS.escape(key) + '"]');
+    return;
+  }
+  if (e.target.matches && e.target.matches('[data-bulk-project]')) {
+    ui.bulk.projectId = e.target.value || null;
+    ui.bulk.why = '';
+    paintKeepingFocus('[data-bulk-project]');
+    return;
+  }
   if (e.target.matches && onDetailChange(e.target)) return;
   if (e.target.matches && e.target.matches('.add-task-form input[name="deadline"], .task-edit-form input[name="deadline"]')) { syncDueStageStep(e.target); return; }
   if (e.target.matches && e.target.matches('[data-action="board-project-select"]')) { setBoardProject(e.target.value); ui.boardShown = null; paint(); return; }
@@ -915,8 +949,11 @@ function onAppInput(e) {
     return;
   }
   if (e.target.matches && e.target.matches('[data-board-find]')) { ui.boardFind = e.target.value; ui.boardShown = null; paint(); return; }
-  // the slip's title and notes are kept in the scratch without a repaint (it would lose the caret)
-  if (e.target.matches && e.target.matches('[data-slip-title]')) { ui.unsorted.title = e.target.textContent; return; }
+  // the slip's title and notes are kept in the scratch without a repaint (it would lose the caret);
+  // innerText, not textContent, so a line break typed into the title is kept
+  if (e.target.matches && e.target.matches('[data-slip-title]')) { ui.unsorted.title = e.target.innerText; return; }
+  if (e.target.matches && e.target.matches('[data-bulk-group]')) { ui.bulk.groupTitle = e.target.value; refreshBulkApply(); return; }
+  if (e.target.matches && e.target.matches('[data-bulk-newlabel]')) { ui.bulk.newLabel = e.target.value; return; }
   if (e.target.matches && e.target.matches('.slip-notes')) { ui.unsorted.notes = e.target.value; return; }
   if (e.target.matches && e.target.matches('[data-tie-find]')) {
     ui.unsorted.pickQuery = e.target.value;
@@ -941,6 +978,62 @@ function onAppInput(e) {
     paint();
     const field = document.querySelector('.repo-filter');
     if (field) { field.focus(); field.setSelectionRange(field.value.length, field.value.length); }
+  }
+}
+
+// ---- "Select many" on the Sort screen (js/in-tray.js bulkSort) ---------------------------------
+function bulkOrdered() { return orderTray(R.unsortedQueue(state), ui.unsorted.later); }
+
+// A repaint replaces the controls, so put focus back on the one that was in use.
+function paintKeepingFocus(selector) {
+  paint();
+  const el = document.querySelector(selector);
+  if (el) el.focus();
+}
+
+// Typing a group name changes whether Apply can run, without a repaint (it would lose the caret).
+function refreshBulkApply() {
+  const btn = document.querySelector('[data-action="bulk-apply"]');
+  const slips = pickedSlips(bulkOrdered(), ui.bulk.picked);
+  if (btn) btn.disabled = !slips.length || !!bulkBlocker(slips, ui.bulk);
+}
+
+function onBulkAction(action, el) {
+  const b = ui.bulk;
+  if (action === 'bulk-toggle') { ui.bulk = freshBulk(!b.on); paint(); return; }
+  if (action === 'bulk-all') { b.picked = bulkOrdered().map((x) => x.key); b.why = ''; paint(); return; }
+  if (action === 'bulk-none') { b.picked = []; b.why = ''; paint(); return; }
+  if (action === 'bulk-flag') { b.selected = toggleToken(b.selected, el.getAttribute('data-token')); paintKeepingFocus('[data-action="bulk-flag"][data-token="' + CSS.escape(el.getAttribute('data-token')) + '"]'); return; }
+  if (action === 'bulk-new-flag') {
+    const name = (b.newLabel || '').trim();
+    if (name) {
+      const id = labelIdByName(name);
+      if (!b.selected.includes(id)) b.selected = b.selected.concat(id);
+      b.newLabel = '';
+    }
+    paintKeepingFocus('[data-bulk-newlabel]');
+    return;
+  }
+  if (action === 'bulk-apply') {
+    const slips = pickedSlips(bulkOrdered(), b.picked);
+    const blocked = bulkBlocker(slips, b);
+    if (blocked) { b.why = blocked; paint(); return; }
+    // a copy of everything as it stands, first: the same backup list a load or a shrinking save uses
+    try { backupRaw(localStorage.getItem(STORAGE_KEY), 'before sorting many at once'); } catch (err) { console.error('Could not back up before sorting many at once:', err); }
+    const done = bulkSort(slips, b, {
+      fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove, addTask: M.addTask, projects: state.projects,
+      createIssue: createIssueIfGithubProject, labelIdByName,
+    });
+    const project = state.projects.find((p) => p.id === b.projectId);
+    const parts = [];
+    if (done.filed) parts.push('filed ' + done.filed + ' into ' + (project ? project.name : 'the project'));
+    if (done.moved) parts.push('moved ' + done.moved);
+    if (done.labelled) parts.push('labelled ' + done.labelled);
+    if (done.parent) parts.push('grouped ' + done.grouped + ' under "' + done.parent.title + '"');
+    if (done.skipped) parts.push(done.skipped + ' had already gone and were left alone');
+    ui.notice = parts.length ? 'Sorted: ' + parts.join(', ') + '.' : 'Nothing changed.';
+    ui.bulk = freshBulk(true);
+    paint();
   }
 }
 
@@ -1385,13 +1478,19 @@ function init() {
     else if (e.key === 'Escape' && ui.screen === 'board' && ui.boardSelected) { selectBoardTask(null); paint(); }
   });
   const captureForm = document.getElementById('capture-form');
+  const captureInput = document.getElementById('capture-input');
   captureForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const input = document.getElementById('capture-input');
-    M.addCapture(input.value);
-    input.value = '';
-    input.focus();
+    M.addCapture(captureInput.value);
+    captureInput.value = '';
+    autoGrow(captureInput);
+    captureInput.focus();
   });
+  // Enter adds the thought, as it did when the jotter was a one-line input; Shift+Enter is a new line
+  captureInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); captureForm.requestSubmit(); }
+  });
+  captureInput.addEventListener('input', () => autoGrow(captureInput));
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

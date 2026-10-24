@@ -6,7 +6,7 @@
 // action does is in js/in-tray.js and js/app.js. See docs/4-systems/in-tray.md
 import { esc, relTime } from './state.js';
 import { CHOOSING_MODE_INFO, wording } from './wallet.js';
-import { orderTray, flagCards, folderCards } from './in-tray.js';
+import { orderTray, flagCards, folderCards, pickedSlips, bulkBlocker } from './in-tray.js';
 import { canWaitOn, subtasksOf } from './task-links.js';
 import { sleeve, walletInner, mutedChip, focusChoosingMode, unsortedQueue } from './render.js';
 
@@ -112,7 +112,7 @@ function trayWallets(st, u, project, step, allCards, mode, tid) {
   return '<div class="wallet-root tray-wallets">' + stepBar(step, project, u.selected.map((t) => (allCards.find((c) => c.token === t) || {}).name).filter(Boolean), u.why) + html + (html.includes('flip-track') ? '<div class="flip-hint">' + hint + '</div>' : '') + '<div class="sr-only" id="tray-live" aria-live="polite"></div></div>';
 }
 
-function renderTray(st, u, ordered, mode) {
+function renderTray(st, u, ordered, mode, head = '') {
   const lip = '<div class="tray-lip"><span>To sort</span></div>';
   const cur = ordered[0];
   if (!cur) {
@@ -144,7 +144,7 @@ function renderTray(st, u, ordered, mode) {
       : '<button type="button" class="file-btn" data-action="unsorted-save" ' + ids + '>Save in ' + esc(project.name) + ' →</button>';
   // .tray-side holds the slip and its buttons: on a wide Sort screen it stays in view beside the
   // choices; on a phone it dissolves (display:contents) so the buttons come after the choices
-  return '<div class="tray-side"><p class="tray-count muted small">' + (n === 1 ? '1 to sort' : n + ' to sort') + '</p>'
+  return '<div class="tray-side"><div class="tray-head"><p class="tray-count muted small">' + (n === 1 ? '1 to sort' : n + ' to sort') + '</p>' + head + '</div>'
     + '<div class="tray"><div class="tray-stack">'
     + (n >= 2 ? '<div class="slip-behind"></div>' : '') + (n >= 3 ? '<div class="slip-behind two"></div>' : '')
     + '<div class="jot-slip"><div class="slip-flags">' + slipFlags(allCards, u.selected) + '</div>'
@@ -164,12 +164,54 @@ export function unsortedCurrent(st, u) {
   return orderTray(unsortedQueue(st), u.later)[0] || null;
 }
 
+// "Select many": every slip as a row with a tick box, then one project, labels and an optional group
+// for all the ticked ones. `b` is ui.bulk ({ picked, projectId, selected, groupTitle, newLabel, why }).
+// What Apply does is bulkSort in js/in-tray.js. See docs/4-systems/in-tray.md#sort-many-at-once
+function renderBulk(st, b, ordered) {
+  const picked = pickedSlips(ordered, b.picked);
+  const n = picked.length;
+  const rows = ordered.map((x) => {
+    const on = picked.includes(x);
+    const text = x.kind === 'thought' ? x.item.text : x.task.title;
+    const where = x.kind === 'thought'
+      ? '<span class="muted small">Thought · ' + relTime(x.item.createdAt) + '</span>'
+      : '<span class="folder-chip" style="--c:' + x.project.color + '">' + esc(x.project.name) + '</span>';
+    return '<label class="bulk-row' + (on ? ' on' : '') + '"><input type="checkbox" data-bulk-key="' + esc(x.key) + '"' + (on ? ' checked' : '') + '>'
+      + '<span class="bulk-text">' + esc(text) + '</span>' + where + '</label>';
+  }).join('');
+  const thoughts = picked.some((x) => x.kind === 'thought');
+  const project = b.projectId ? st.projects.find((p) => p.id === b.projectId) : null;
+  const options = '<option value="">' + (thoughts || !n ? 'Choose a project…' : 'Keep each task in its project') + '</option>'
+    + folderCards(st).map((f) => '<option value="' + esc(f.id) + '"' + (f.id === b.projectId ? ' selected' : '') + '>' + esc(f.name) + '</option>').join('');
+  const flags = flagCards(st, project, { selected: b.selected, showAll: true }).map((c) => {
+    const on = b.selected.includes(c.token);
+    return '<button type="button" class="bulk-flag' + (on ? ' on' : '') + '" data-action="bulk-flag" data-token="' + esc(c.token) + '" aria-pressed="' + on + '" style="--c:' + mutedChip(c.color) + '">' + esc(c.name) + '</button>';
+  }).join('');
+  const why = n ? bulkBlocker(picked, b) : '';
+  return '<div class="bulk">'
+    + '<div class="bulk-head"><p class="tray-count muted small" role="status">' + n + ' of ' + ordered.length + ' ticked</p>'
+    + '<button type="button" data-action="bulk-all">Tick all</button><button type="button" data-action="bulk-none"' + (n ? '' : ' disabled') + '>Clear ticks</button>'
+    + '<button type="button" data-action="bulk-toggle">One at a time</button></div>'
+    + (ordered.length ? '<div class="bulk-list">' + rows + '</div>' : '<p class="muted small">Nothing left to sort.</p>')
+    + '<div class="bulk-panel"><label class="bulk-field"><b>1. Project</b><select data-bulk-project aria-label="Project for the ticked items">' + options + '</select></label>'
+    + '<div class="bulk-field"><b>2. Labels</b><div class="bulk-flags">' + flags + '</div>'
+    + '<div class="bulk-addrow"><input type="text" data-bulk-newlabel value="' + esc(b.newLabel || '') + '" placeholder="New label…" aria-label="New label"><button type="button" data-action="bulk-new-flag">Add</button></div></div>'
+    + '<label class="bulk-field"><b>3. Group them under one task <span class="muted small">(optional)</span></b>'
+    + '<input type="text" data-bulk-group value="' + esc(b.groupTitle || '') + '" placeholder="Name of the task to group them under…"></label>'
+    + (why || b.why ? '<p class="step-why" role="status">' + esc(b.why || why) + '</p>' : '')
+    + '<button type="button" class="file-btn" data-action="bulk-apply"' + (n && !why ? '' : ' disabled') + '>' + (n ? 'Sort ' + (n === 1 ? '1 item' : n + ' items') + ' →' : 'Tick items to sort') + '</button></div>'
+    + '</div>';
+}
+
 // The whole Unsorted card (the replacement for render.js's renderInbox). `ui.unsorted.later` is the
-// list of slips sent to the back.
+// list of slips sent to the back; `ui.bulk.on` swaps the one-slip tray for the "Select many" list.
 export function renderInTrayCard(st, ui) {
   const u = ui.unsorted;
   const queue = unsortedQueue(st);
-  const body = ui.inboxOpen ? renderTray(st, u, orderTray(queue, u.later), focusChoosingMode(st)) : '';
+  const bulkOn = !!(ui.bulk && ui.bulk.on);
+  const ordered = orderTray(queue, u.later);
+  const toggle = queue.length > 1 ? '<button type="button" class="bulk-switch" data-action="bulk-toggle">Select many</button>' : '';
+  const body = !ui.inboxOpen ? '' : (bulkOn ? renderBulk(st, ui.bulk, ordered) : renderTray(st, u, ordered, focusChoosingMode(st), toggle));
   return '<section class="card inbox-card">'
     + '<button type="button" class="section-toggle" data-action="toggle-inbox">Sort <span class="count">' + queue.length + '</span><span class="chev">' + (ui.inboxOpen ? '−' : '+') + '</span></button>'
     + (ui.inboxOpen ? '<div class="unsorted-body">' + body + '</div>' : '')

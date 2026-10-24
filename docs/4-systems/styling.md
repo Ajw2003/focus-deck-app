@@ -431,6 +431,14 @@ has `aria-label="Capture a stray thought"` (its name was the placeholder before,
 "Jot down a stray thought…"). The topbar keeps the brand (a lamp dot and "Focus Deck"), the Projects
 button, the sync icon and the settings link, all unchanged.
 
+Since 2026-10-24 the input is a one-row `<textarea>` with no `maxlength` (it was a one-line
+`<input maxlength="400">`). It grows with the text through CSS `field-sizing: content`, or `autoGrow`
+in `app/js/app.js` where that is unsupported (Safari, Firefox), up to `max-height: 40vh`, then
+scrolls inside itself so the sticky topbar never covers the page. Enter still adds the thought;
+Shift+Enter starts a new line (a screen-reader hint, `#capture-hint`, says so). The Sort slip's notes
+and the Board's task notes grow the same way (`GROWING_BOXES` in `app/js/app.js`). Checked by
+`scripts/check-bulk-sort-browser.mjs`.
+
 ### The sticky note
 
 `renderFocus` (js/render.js:128) draws a picked task as

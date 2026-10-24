@@ -63,6 +63,39 @@ first. Labels and links open once the thought has a project." in a `.step-why` l
 and `stepBar`, `app/js/in-tray-view.js:66-69`). A long note ends above the tray's lip, because
 `.jot-slip` keeps 34px of padding at its foot (`app/css/app.css:827`).
 
+## Sort many at once
+
+Built 2026-10-24 (Aj asked for it with "skip design"). A **Select many** button beside the tray's
+count (shown when two or more slips wait) swaps the one-slip tray for a list of every slip, each a
+row with a tick box (`.bulk-row`, `data-bulk-key` = the queue key), with **Tick all**, **Clear ticks**
+and **One at a time** above it. A panel beside the list (below it on a phone) takes one project
+(`<select data-bulk-project>`), any labels (`.bulk-flag` toggles, plus a "New label" field) and an
+optional name for a new task to group them under (`data-bulk-group`). **Sort N items** applies all
+of it to every ticked slip.
+
+- `app/js/in-tray.js`: `pickedSlips`, `bulkProjectId`, `bulkBlocker` (why Apply waits) and
+  `bulkSort`. A ticked thought is filed (`fileInboxItem`, then the GitHub issue hook); a ticked task
+  is moved if another project was chosen (`applyTaskMove`) and gets the labels added to any it has
+  (`updateTaskFields`). With a group name, one new task is added to the project (`addTask`, with
+  the same labels) and every sorted item that `canSetParent` allows becomes its subtask. Thoughts
+  need a project; tasks alone can be labelled where they are, and grouped when they all share one
+  project. A slip that went away meanwhile (a sync, another tab) is skipped and counted.
+- `app/js/in-tray-view.js`: `renderBulk`. `app/js/app.js`: `ui.bulk` (`freshBulk`; memory only,
+  apart from `ui.unsorted`, which resets with each top slip) and `onBulkAction`.
+- **A copy first.** Before applying, `bulk-apply` saves the stored data as it was into the backup
+  list (`backupRaw(..., 'before sorting many at once')`, the same list a load keeps,
+  `app/js/state.js:105`).
+- Tests: `app/js/in-tray.test.mjs` (the "select many" tests); browser check
+  `scripts/check-bulk-sort-browser.mjs` (46 checks on a phone and a wide screen, sample data only).
+  Screenshots in `docs/generated/bulk-sort/`.
+
+**Long thoughts.** The jotter has no length limit any more (see `styling.md#the-jotter`). A thought
+over the old 400 characters, or written over several lines, is filed with its first line (cut to
+120 characters) as the title and the whole text, unchanged, as the task's notes
+(`splitLongThought` in `app/js/state.js`, used by `fileInboxItem`). Titles are one-line inputs and
+GitHub caps issue titles, so this is how nothing written is lost. Shorter one-line thoughts file
+exactly as before. On the slip a long thought scrolls inside the slip (`max-height: 45vh`).
+
 ## Category choices
 
 Settings > How it works > Category choices (#133, `state.categoryFilter = { on, updatedAt }`, on by
