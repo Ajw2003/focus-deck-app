@@ -140,3 +140,82 @@ export function fileSlip(cur, pick, deps) {
   applyTies(task, pick.projectId || cur.project.id, pick, deps);
   return ids.length ? { outcome: 'saved', taskId: task.id } : { outcome: 'later' };
 }
+
+// ---- Sort many at once ("Select many") ----------------------------------------------------------
+// The tray can also show every slip as a list with a tick box each; the ticked ones get one project,
+// one set of labels and, optionally, one new task to group them under, in a single press. The
+// mutations are the same ones a single slip uses. See docs/4-systems/in-tray.md#sort-many-at-once
+
+// The ticked slips, in tray order. `picked` is a list of queue keys; keys no longer in the queue
+// (filed elsewhere, synced away) are dropped.
+export function pickedSlips(ordered, picked) {
+  const keys = picked || [];
+  return ordered.filter((x) => keys.includes(x.key));
+}
+
+// The project a bulk sort files into: the chosen one, else (tasks only, all from one project) that
+// project, else null. Thoughts have no project of their own, so any ticked thought needs a choice.
+export function bulkProjectId(slips, projectId) {
+  if (projectId) return projectId;
+  if (!slips.length || slips.some((x) => x.kind === 'thought')) return null;
+  const ids = new Set(slips.map((x) => x.project.id));
+  return ids.size === 1 ? slips[0].project.id : null;
+}
+
+// Why the bulk "Apply" can't run yet, or '' when it can. `pick` is { projectId, selected, groupTitle }.
+export function bulkBlocker(slips, pick) {
+  if (!slips.length) return 'Tick at least one item first.';
+  const target = bulkProjectId(slips, pick.projectId);
+  const group = (pick.groupTitle || '').trim();
+  if (slips.some((x) => x.kind === 'thought') && !pick.projectId) return 'Choose a project for the thoughts you ticked.';
+  if (group && !target) return 'Choose a project to group them in.';
+  if (!pick.projectId && !(pick.selected || []).length && !group) return 'Choose a project, a label or a group name.';
+  return '';
+}
+
+// Applies one bulk sort. `deps` are the mutations (fileInboxItem, updateTaskFields, applyTaskMove,
+// addTask), createIssue, labelIdByName and the live `projects`. Returns { filed, moved, labelled,
+// grouped, parent, skipped } as counts (parent: the new group task or null). Nothing happens when
+// bulkBlocker says no.
+export function bulkSort(slips, pick, deps) {
+  const none = { filed: 0, moved: 0, labelled: 0, grouped: 0, parent: null, skipped: 0 };
+  if (bulkBlocker(slips, pick)) return none;
+  const ids = selectionToIds(pick.selected || [], deps.labelIdByName);
+  const target = bulkProjectId(slips, pick.projectId);
+  const out = { ...none };
+  const sorted = [];
+  slips.forEach((x) => {
+    if (x.kind === 'thought') {
+      const task = deps.fileInboxItem(x.item.id, pick.projectId, ids);
+      if (!task) { out.skipped++; return; }
+      deps.createIssue(task, pick.projectId);
+      out.filed++;
+      sorted.push(task.id);
+      return;
+    }
+    const live = deps.projects.find((p) => p.tasks.some((t) => t.id === x.task.id));
+    if (!live) { out.skipped++; return; }
+    if (pick.projectId && pick.projectId !== live.id) {
+      if (deps.applyTaskMove({ taskId: x.task.id, toProjectId: pick.projectId }) === false) { out.skipped++; return; }
+      out.moved++;
+    }
+    if (ids.length) {
+      const had = x.task.categoryIds || [];
+      deps.updateTaskFields(x.task.id, { categoryIds: had.concat(ids.filter((id) => !had.includes(id))) });
+      out.labelled++;
+    }
+    sorted.push(x.task.id);
+  });
+  const group = (pick.groupTitle || '').trim();
+  if (group && target && sorted.length) {
+    const parent = deps.addTask(target, group, null, ids);
+    if (parent) {
+      deps.createIssue(parent, target);
+      out.parent = parent;
+      sorted.forEach((id) => {
+        if (canSetParent(deps.projects, id, parent.id)) { deps.updateTaskFields(id, { parentId: parent.id }); out.grouped++; }
+      });
+    }
+  }
+  return out;
+}

@@ -1,6 +1,6 @@
 // focus-deck-app/js/mutations.js
 import { rankFocusPool, isBlocked } from './task-links.js';
-import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER } from './state.js';
+import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER, splitLongThought } from './state.js';
 import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriorityToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
 // The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
 // used to have its own copy that saved locally but never pushed, so most edits never reached the
@@ -251,8 +251,10 @@ export function fileInboxItem(inboxId, projectId, categoryIds, extra) {
   if (!item || !project) return;
   const task = { id: uid('t'), title: item.text, status: 'next', deadline: null, categoryIds: categoryIds || [], priority: null, source: 'manual', updatedAt: Date.now() };
   const { title, notes } = extra || {};
-  if (title && title.trim()) task.title = title.trim();
-  if (notes && notes.trim()) task.notes = notes.trim();
+  const long = splitLongThought(title && title.trim() ? title : item.text);
+  task.title = long.title;
+  const typed = notes && notes.trim() ? notes.trim() : '';
+  if (long.notes || typed) task.notes = [long.notes, typed].filter(Boolean).join('\n\n');
   project.tasks.push(task);
   ensureTaskSortOrder([project]); // a new task goes to the end of its group
   state.inbox = state.inbox.filter((i) => i.id !== inboxId);

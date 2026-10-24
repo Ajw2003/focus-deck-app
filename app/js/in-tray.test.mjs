@@ -302,3 +302,121 @@ test('saving ties through fileSlip: parent, waits-on, holds-up, new subtask; ref
   M.deleteTask('a1', 'pA');
   assert.ok(!find(t.id).parentId, 'deleting a task removes it from every tie');
 });
+
+// ---- Sort many at once ("Select many") --------------------------------------------------------
+const { pickedSlips, bulkProjectId, bulkBlocker, bulkSort } = await import('./in-tray.js');
+const { splitLongThought } = await import('./state.js');
+const bulkDeps = (issues = []) => ({
+  fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove, addTask: M.addTask,
+  projects: state.projects, createIssue: (t, p) => issues.push([t.title, p]), labelIdByName: (name) => 'id_' + name,
+});
+const findTask = (id) => state.projects.flatMap((p) => p.tasks).find((t) => t.id === id);
+
+test('select many: only ticked slips still in the queue count, in tray order', () => {
+  seed();
+  const q = unsortedQueue(state);
+  assert.deepStrictEqual(pickedSlips(q, ['t:a2', 'i:th1', 'i:gone']).map((x) => x.key), ['i:th1', 't:a2']);
+  assert.deepStrictEqual(pickedSlips(q, null), []);
+});
+
+test('select many: what has to be chosen before Apply can run', () => {
+  seed();
+  const q = unsortedQueue(state);
+  const th = q.filter((x) => x.kind === 'thought'), tk = q.filter((x) => x.kind === 'task');
+  assert.match(bulkBlocker([], {}), /Tick at least one/);
+  assert.match(bulkBlocker(th, { selected: ['c_art'] }), /project for the thoughts/, 'thoughts have no project of their own');
+  assert.match(bulkBlocker(tk, { selected: [] }), /Choose a project, a label or a group/, 'nothing chosen');
+  assert.strictEqual(bulkBlocker(tk, { selected: ['c_art'] }), '', 'tasks can be labelled where they are');
+  assert.strictEqual(bulkBlocker(tk, { selected: [], groupTitle: 'Week' }), '', 'tasks all in one project group there');
+  assert.strictEqual(bulkProjectId(tk, null), 'pA');
+  assert.strictEqual(bulkProjectId(q, null), null);
+  assert.strictEqual(bulkProjectId(q, 'pB'), 'pB');
+});
+
+test('select many: files every ticked thought, moves and labels tasks, in one go', () => {
+  seed();
+  const issues = [];
+  const slips = unsortedQueue(state); // th1, th2, a2
+  const out = bulkSort(slips, { projectId: 'pB', selected: ['c_art', 'kind:fix'], groupTitle: '' }, bulkDeps(issues));
+  assert.deepStrictEqual({ ...out, parent: !!out.parent }, { filed: 2, moved: 1, labelled: 1, grouped: 0, parent: false, skipped: 0 });
+  assert.strictEqual(state.inbox.length, 0, 'both thoughts left the inbox');
+  const home = state.projects.find((p) => p.id === 'pB');
+  const titles = home.tasks.map((t) => t.title);
+  assert.ok(titles.includes('Buy a card') && titles.includes('Email Ms Patel') && titles.includes('Unlabelled A'), 'all three are in Home');
+  home.tasks.filter((t) => ['Buy a card', 'Email Ms Patel', 'Unlabelled A'].includes(t.title))
+    .forEach((t) => assert.deepStrictEqual(t.categoryIds, ['c_art', 'id_fix'], t.title + ' got both labels'));
+  assert.deepStrictEqual(issues.map((i) => i[1]), ['pB', 'pB'], 'each filed thought goes through the GitHub issue hook');
+  assert.strictEqual(unsortedQueue(state).length, 0, 'the tray is empty');
+  assert.ok(findTask('a1') && findTask('b1') && findTask('b2'), 'tasks that were not ticked are untouched');
+  assert.deepStrictEqual(findTask('b1').categoryIds, ['c_chore']);
+});
+
+test('select many: groups the ticked items under one new task', () => {
+  seed();
+  const slips = unsortedQueue(state).filter((x) => x.kind === 'thought');
+  const out = bulkSort(slips, { projectId: 'pA', selected: [], groupTitle: '  Errands  ' }, bulkDeps());
+  assert.strictEqual(out.filed, 2);
+  assert.strictEqual(out.grouped, 2);
+  assert.strictEqual(out.parent.title, 'Errands');
+  const school = state.projects.find((p) => p.id === 'pA');
+  const kids = school.tasks.filter((t) => t.parentId === out.parent.id).map((t) => t.title);
+  assert.deepStrictEqual(kids.sort(), ['Buy a card', 'Email Ms Patel']);
+});
+
+test('select many: labels only, tasks stay in their own projects', () => {
+  seed();
+  state.projects[1].tasks.push({ id: 'b3', title: 'Unlabelled B', status: 'next', categoryIds: [] });
+  const slips = unsortedQueue(state).filter((x) => x.kind === 'task');
+  const out = bulkSort(slips, { projectId: null, selected: ['c_study'] }, bulkDeps());
+  assert.strictEqual(out.labelled, 2);
+  assert.strictEqual(out.moved, 0);
+  assert.ok(state.projects[0].tasks.some((t) => t.id === 'a2'), 'a2 still in School');
+  assert.ok(state.projects[1].tasks.some((t) => t.id === 'b3'), 'b3 still in Home');
+  assert.deepStrictEqual(findTask('b3').categoryIds, ['c_study']);
+});
+
+test('select many: blocked picks change nothing', () => {
+  seed();
+  const before = JSON.stringify({ p: state.projects, i: state.inbox });
+  const out = bulkSort(unsortedQueue(state), { projectId: null, selected: ['c_art'] }, bulkDeps());
+  assert.strictEqual(out.filed + out.moved + out.labelled, 0);
+  assert.strictEqual(JSON.stringify({ p: state.projects, i: state.inbox }), before);
+});
+
+test('select many: a slip that went away meanwhile is skipped, not errored', () => {
+  seed();
+  const slips = unsortedQueue(state);
+  M.discardInbox('th1');
+  const out = bulkSort(slips, { projectId: 'pB', selected: [] }, bulkDeps());
+  assert.strictEqual(out.skipped, 1);
+  assert.strictEqual(out.filed, 1);
+});
+
+test('the select many list and panel render, with the ticks and the reason Apply waits', () => {
+  seed();
+  const html = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh(), bulk: { on: true, picked: ['i:th1'], projectId: null, selected: [], groupTitle: '', newLabel: '', why: '' } });
+  assert.match(html, /1 of 3 ticked/);
+  assert.strictEqual((html.match(/data-bulk-key=/g) || []).length, 3, 'one row per slip');
+  assert.match(html, /data-bulk-key="i:th1" checked/);
+  assert.match(html, /Choose a project for the thoughts you ticked/);
+  assert.match(html, /data-action="bulk-apply" disabled/);
+  const off = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh(), bulk: { on: false } });
+  assert.match(off, /data-action="bulk-toggle">Select many/, 'the one-at-a-time tray offers Select many');
+});
+
+test('long thoughts: nothing is cut off when filed', () => {
+  const short = 'Ring the dentist';
+  assert.deepStrictEqual(splitLongThought(short), { title: short, notes: '' }, 'short thoughts file exactly as before');
+  const at400 = 'x'.repeat(400);
+  assert.deepStrictEqual(splitLongThought(at400), { title: at400, notes: '' }, 'up to the old 400 limit is unchanged');
+  const long = 'Plan for the week: '.repeat(200);
+  const split = splitLongThought(long);
+  assert.ok(split.title.length <= 120 && split.title.endsWith('…'));
+  assert.strictEqual(split.notes, long.trim(), 'the whole text is kept as notes');
+  const lines = 'Shopping\nmilk\neggs';
+  assert.deepStrictEqual(splitLongThought(lines), { title: 'Shopping', notes: lines });
+  seed();
+  state.inbox.push({ id: 'big', text: long.trim(), createdAt: Date.now() });
+  const t = M.fileInboxItem('big', 'pA', [], { notes: 'my own note' });
+  assert.strictEqual(t.notes, long.trim() + '\n\nmy own note', 'the text and any typed notes both survive');
+});
