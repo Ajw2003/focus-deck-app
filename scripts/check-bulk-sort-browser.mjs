@@ -168,6 +168,29 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   await ctx.close();
 }
 
+// Many slips (Aj had 41): every row still shows its whole text. A height-capped scrolling list used to
+// squeeze each row to one line once the list was longer than the cap.
+{
+  const many = seed();
+  const words = ['clear space on the right side of the desk for the monitor', 'move bins by printer ontop of the cabinet', 'unplug and move subwoofer'];
+  many.inbox = Array.from({ length: 41 }, (_, i) => ({ id: 'm' + i, text: words[i % 3], createdAt: now - 4 * 86400000 }));
+  many.noteFace = { face: 'dyslexic', updatedAt: 1 };
+  const ctx = await browser.newContext({ viewport: { width: 393, height: 800 }, colorScheme: 'dark', serviceWorkers: 'block' });
+  const page = await ctx.newPage();
+  await page.addInitScript(([s, key]) => { localStorage.setItem(key, JSON.stringify(s)); localStorage.setItem('focusdeck-screen', 'sort'); }, [many, STATE_KEY]);
+  await page.goto(BASE);
+  await page.waitForSelector('[data-action="bulk-toggle"]');
+  await page.click('[data-action="bulk-toggle"]');
+  await page.waitForSelector('.bulk');
+  const spill = await page.$$eval('.bulk-row', (rows) => rows.filter((r) => {
+    const t = r.querySelector('.bulk-text'), m = r.querySelector('.bulk-meta');
+    return m.getBoundingClientRect().bottom > r.getBoundingClientRect().bottom || t.scrollHeight > t.clientHeight + 1;
+  }).length);
+  check(`[phone, 41 slips, dyslexic face] no row cuts its text short`, spill === 0, spill + ' rows spill');
+  await page.screenshot({ path: OUT + 'phone-41-rows.png' });
+  await ctx.close();
+}
+
 await browser.close();
 server.close();
 const failed = results.filter((ok) => !ok).length;
