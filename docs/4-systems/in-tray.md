@@ -73,6 +73,12 @@ and **One at a time** above it. A panel beside the list (below it on a phone) ta
 optional name for a new task to group them under (`data-bulk-group`). **Sort N items** applies all
 of it to every ticked slip.
 
+Each row shows the item's whole text, never cut short, with a small line under it: how long ago a
+thought was jotted ("4d ago"), or a task's project. Until 2026-10-25 the text was clamped to four
+lines with `-webkit-line-clamp` and "Thought · 4d ago" sat beside it; on Aj's phone the clamp cut
+each row to one line with the rest spilling over the card, so the clamp is gone
+(`.bulk-text`, `.bulk-meta` in `app/css/app.css`).
+
 - `app/js/in-tray.js`: `pickedSlips`, `bulkProjectId`, `bulkBlocker` (why Apply waits) and
   `bulkSort`. A ticked thought is filed (`fileInboxItem`, then the GitHub issue hook); a ticked task
   is moved if another project was chosen (`applyTaskMove`) and gets the labels added to any it has

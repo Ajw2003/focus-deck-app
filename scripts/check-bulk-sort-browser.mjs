@@ -4,7 +4,7 @@
 // Serves the repo root itself on 127.0.0.1:8131 for the length of the run. Checks, on a phone and a
 // wide screen: the list and its ticks, what Apply waits for, filing ticked thoughts with a label
 // into a project and grouping them under one new task, labelling tasks where they are, the backup
-// copy taken first, then a 3,000-character, multi-line thought typed into the jotter (kept whole,
+// copy taken first, every row showing its whole text, then a 3,000-character, multi-line thought typed into the jotter (kept whole,
 // the box grows, Enter adds it) and filed (short title, full text in the notes).
 // Screenshots: docs/generated/bulk-sort/. See docs/4-systems/in-tray.md#sort-many-at-once
 import { createRequire } from 'node:module';
@@ -70,6 +70,12 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   await page.click('[data-action="bulk-toggle"]');
   await page.waitForSelector('.bulk');
   check(`${tag} every slip is listed (3 thoughts + 2 unlabelled tasks)`, (await page.$$('.bulk-row')).length === 5);
+  const fits = await page.$$eval('.bulk-row', (rows) => rows.every((r) => {
+    const t = r.querySelector('.bulk-text'), rb = r.getBoundingClientRect(), tb = t.getBoundingClientRect();
+    return t.scrollHeight <= t.clientHeight + 1 && tb.bottom <= rb.bottom && getComputedStyle(t).display === 'block';
+  }));
+  check(`${tag} every row shows its whole text, inside the row`, fits);
+  check(`${tag} a thought's row says only when, in small type under the text`, (await page.$eval('[data-bulk-key="i:th1"] ~ .bulk-body .bulk-meta', (e) => e.textContent)) === '3m ago');
   check(`${tag} Apply is off with nothing ticked`, await page.$eval('[data-action="bulk-apply"]', (b) => b.disabled));
   await page.click('[data-action="bulk-all"]');
   check(`${tag} Tick all ticks all five`, (await page.textContent('.bulk-head .tray-count')).startsWith('5 of 5'));
