@@ -173,11 +173,13 @@ function renderBulk(st, b, ordered) {
   const rows = ordered.map((x) => {
     const on = picked.includes(x);
     const text = x.kind === 'thought' ? x.item.text : x.task.title;
+    // the whole text, never cut short, with a small line under it: when a thought was jotted, or
+    // which project a task is in
     const where = x.kind === 'thought'
-      ? '<span class="muted small">Thought · ' + relTime(x.item.createdAt) + '</span>'
-      : '<span class="folder-chip" style="--c:' + x.project.color + '">' + esc(x.project.name) + '</span>';
+      ? '<span class="bulk-meta">' + relTime(x.item.createdAt) + '</span>'
+      : '<span class="bulk-meta"><span class="folder-chip" style="--c:' + x.project.color + '">' + esc(x.project.name) + '</span></span>';
     return '<label class="bulk-row' + (on ? ' on' : '') + '"><input type="checkbox" data-bulk-key="' + esc(x.key) + '"' + (on ? ' checked' : '') + '>'
-      + '<span class="bulk-text">' + esc(text) + '</span>' + where + '</label>';
+      + '<span class="bulk-body"><span class="bulk-text">' + esc(text) + '</span>' + where + '</span></label>';
   }).join('');
   const thoughts = picked.some((x) => x.kind === 'thought');
   const project = b.projectId ? st.projects.find((p) => p.id === b.projectId) : null;
