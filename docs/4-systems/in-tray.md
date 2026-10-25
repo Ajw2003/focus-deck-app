@@ -78,6 +78,10 @@ thought was jotted ("4d ago"), or a task's project. Until 2026-10-25 the text wa
 lines with `-webkit-line-clamp` and "Thought · 4d ago" sat beside it; on Aj's phone the clamp cut
 each row to one line with the rest spilling over the card, so the clamp is gone
 (`.bulk-text`, `.bulk-meta` in `app/css/app.css`).
+That alone did not fix it: with many slips (Aj had 41) the list itself was a height-capped
+scrolling grid, and that squeezed every row to one line. Since 2026-10-25 the list is a plain block
+that grows with the page (`.bulk-list`), and the browser check seeds 41 slips in the dyslexic face
+to catch this.
 
 - `app/js/in-tray.js`: `pickedSlips`, `bulkProjectId`, `bulkBlocker` (why Apply waits) and
   `bulkSort`. A ticked thought is filed (`fileInboxItem`, then the GitHub issue hook); a ticked task
