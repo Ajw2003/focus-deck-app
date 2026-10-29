@@ -270,11 +270,11 @@ const EXAMPLE_PIC = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http
 const EXAMPLE_PIC_AFTER = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><rect width="320" height="180" fill="#dff3e8"/><rect x="100" y="50" width="120" height="80" rx="12" fill="#1f7a4d"/></svg>');
 const PAGE = {
   "title": "Add a Task Anywhere",
-  "eyebrow": "Design for approval · nothing built yet",
+  "eyebrow": "Design for approval · round 2 · nothing built yet",
   "approval": "Design approved: add a task anywhere",
   "short": {
-    "lead": "Today a task can only be added from the Projects screen: open a project card, scroll to the bottom, tap '+ Add task', and fill a form with five boxes (title, steps, priority, date, labels). The Focus, Sort and Board screens have no way in. What every screen already shares is the jotter, the 'Jot down a stray thought…' strip at the top, but it only drops thoughts into the tray on the Sort screen. Three options follow. Each one is mocked on the real app with the sample task 'Ring the plumber about the boiler' going into the Home project.",
-    "hint": "Tap Today or an option to see its picture.",
+    "lead": "In round 1 you picked option A (the jotter at the top of every screen learns to pick a project). You also asked for an add-task row on the Board and on the Projects screen that files straight into the project you are working in, so you just type and press Add. You then settled the Board case: the row appears once you choose a project in the Board's project filter. This round shows that design. One small question is left, under Choices. The pictures use the sample project Home.",
+    "hint": "Tap each item to see its picture.",
     "key": [
       [
         "Built by me",
@@ -287,55 +287,42 @@ const PAGE = {
     ],
     "items": [
       [
-        "bulb",
-        "Today",
-        "Projects screen only",
-        "",
-        "The '+ Add task' link sits at the bottom of each project card and opens a five-box form. No other screen can add a task straight to a project.",
-        "Nothing from you.",
-        {
-          "src": "quick-add-pics/before-projects-form-1440.png",
-          "alt": "The Projects screen with the add-task form open: title, steps, priority, date, labels, a plus button and Cancel",
-          "caption": "Today: the form at the foot of a project card."
-        }
-      ],
-      [
         "list",
-        "Option A",
+        "Everywhere",
         "The jotter picks a project",
-        "you",
-        "The jotter gets a small dashed 'To: Tray ▾' stamp beside Add. Left alone, it works exactly as now. Pick a project and Add becomes 'Add task', and the task goes straight into that project's Up next. A notice confirms it, with an Open button that shows the task's details so you can add a date or labels. When you are looking at one project (the Projects screen's 'One project' view, or the Board filtered to a project) the stamp starts on that project. Nothing new is added to the screens themselves.",
-        "Look at the stamp, the project list it opens and the notice.",
+        "",
+        "This is option A from round 1, unchanged. The jotter gets a dashed 'To: Tray ▾' stamp beside Add. Left alone, it drops thoughts into the tray as it does today. Pick a project and Add becomes 'Add task', and the task goes straight into that project's Up next.",
+        "Nothing new; you picked this in round 1.",
         {
           "src": "quick-add-pics/a-menu-390.png",
           "alt": "The phone Board screen with the jotter's To: Tray stamp open, listing Tray and the projects",
-          "caption": "Option A on a phone, picking a project."
+          "caption": "The jotter on a phone, picking a project."
         }
       ],
       [
         "list",
-        "Option B",
-        "A 'New task' card",
-        "you",
-        "A '+ New task' button sits at the top of the side rail on a computer and in the top bar on a phone. It opens a card in the same style as the app's existing 'Move this task?' card: the task, a project picker, and a 'More' line that opens steps, priority, due date and labels. The same card replaces the form on the project cards, so there is one way to add a task everywhere.",
-        "Look at the card over the Board screen.",
-        {
-          "src": "quick-add-pics/b-1440.png",
-          "alt": "A New task card over the Board screen with Task, Project and More fields, Cancel and Add task buttons",
-          "caption": "Option B on a computer."
-        }
-      ],
-      [
-        "list",
-        "Option C",
-        "An add row on the Board",
-        "you",
-        "The Board's Up next list gets a dashed 'Add a task…' row at the top with a project picker at its end. The Projects card keeps its own form. Focus and Sort get nothing, so this only covers two of the four screens.",
+        "Board, one project",
+        "Add row with nothing to pick",
+        "",
+        "When you choose a project in the Board's project filter, a dashed 'Add a task to Home…' row appears above Up next. Type, then press Enter or Add, and the task goes into Home's Up next. There is no picker, because the filter already says which project you are in. When the Board shows all projects the row is hidden, and the jotter still works.",
         "Look at the dashed row above the first card.",
         {
-          "src": "quick-add-pics/c-1440.png",
-          "alt": "The Board screen with a dashed add-a-task row and a Home project picker above the first task",
-          "caption": "Option C on a computer."
+          "src": "quick-add-pics/d-board-home-390.png",
+          "alt": "The phone Board screen showing Home, with a dashed Add a task to Home row and an Add button above the list",
+          "caption": "The Board showing Home, on a phone."
+        }
+      ],
+      [
+        "list",
+        "Projects screen",
+        "The card's own add row",
+        "",
+        "Each project card's five-box form becomes the same one-line row: type, then press Enter or Add, and the task goes into that card's project. This works in both the 'All projects' and 'One project' views.",
+        "Look at the row at the foot of the card.",
+        {
+          "src": "quick-add-pics/slim-1440.png",
+          "alt": "A project card with a one-line add row: Add a task, More and Add buttons",
+          "caption": "A project card on a computer."
         }
       ]
     ]
@@ -343,91 +330,62 @@ const PAGE = {
   "changes": [
     [
       "chg",
-      "Adding a task",
-      "A and B work from every screen. C works from the Board only.",
+      "The jotter",
+      "Gains a 'To:' stamp for picking a project.",
       null,
-      "Every option files the task into the project's Up next, just as the Projects form does now."
+      "Left on 'Tray', it works exactly as today."
+    ],
+    [
+      "chg",
+      "The Board",
+      "Gains an add row above the list when one project is chosen.",
+      null,
+      "It adds to the project the Board is showing."
     ],
     [
       "chg",
       "The '+ Add task' form on project cards",
-      "Slimmer, or replaced by the card in option B.",
-      {
-        "src": "quick-add-pics/slim-1440.png",
-        "alt": "A project card with a one-line add row: Add a task, More and Add buttons",
-        "caption": "The slimmer form: one line, with More for the rest."
-      },
-      "See the second question under Choices, about what happens to this form."
+      "Becomes the same one-line row.",
+      null,
+      "Steps, priority, due date and labels stay reachable; see the question under Choices."
     ],
     [
       "keep",
-      "The jotter's tray",
-      "Still the default in option A.",
+      "Focus and Sort",
+      "Only the jotter changes there.",
       null,
-      "Jotting a stray thought to sort later works exactly as today in every option."
-    ],
-    [
-      "keep",
-      "Steps, priority, dates and labels",
-      "Still available.",
-      null,
-      "They move behind a 'More' line or into the task's details, but none is removed."
+      "The Sort screen still files thoughts from the tray into projects as it does now."
     ]
   ],
   "choices": [
     [
-      "where",
-      "How should you add a task from any screen?",
+      "more",
+      "Should the one-line rows keep a small 'More' button for steps, priority, due date and labels?",
       [
         [
-          "A",
-          "The jotter picks a project",
+          "Y",
+          "Keep 'More'",
           1,
-          "It reuses the strip already on every screen, adds one small control, and keeps quick capture to one line."
+          "The row stays one line, and 'More' opens the other boxes underneath when you want them."
         ],
         [
-          "B",
-          "A 'New task' card",
+          "N",
+          "Drop it",
           0,
-          "It gives the most room for details up front, but adds a new button and a pop-up card."
-        ],
-        [
-          "C",
-          "An add row on the Board",
-          0,
-          "It is the smallest change, but Focus and Sort still have no way in."
+          "The row is title-only. You add the other details afterwards by editing the task."
         ]
       ],
-      "I suggest A because the jotter is already on every screen and already where you type things in, so it only needs to learn where to put them."
-    ],
-    [
-      "form",
-      "What should happen to the '+ Add task' form at the foot of each project card?",
-      [
-        [
-          "1",
-          "Slim it to one line",
-          1,
-          "Type a title and press Enter; a 'More' button opens steps, priority, date and labels."
-        ],
-        [
-          "2",
-          "Leave it as it is",
-          0,
-          "Nothing changes on the Projects screen."
-        ]
-      ],
-      "I suggest the slim line because you called the current form obtuse, and the slim row matches the look of the new ways in. If you pick option B above, the card replaces this form instead, so you can skip this question."
+      "I suggest keeping 'More', because the project card's form has those boxes today and dropping them would remove a way of setting them as you add."
     ]
   ],
   "wrapup": {
-    "summary": "You will be able to add a task straight to a chosen project from any screen. I suggest teaching the jotter to pick a project, and slimming the project card's form to one line.",
-    "changing": "Changed: the jotter if you pick A, a new button and card if you pick B, or the Board's Up next list if you pick C. The project card's add form changes under every option. Kept: the tray, and every task field.",
-    "blocking": "I am waiting for your answers to both questions under Choices. Nothing is built until you approve.",
+    "summary": "You can add a task to a project from any screen with the jotter, and with no picking at all from the Board and project cards. One small question is left.",
+    "changing": "Changed: the jotter, the Board, and the add form on each project card. Kept: the tray, the Focus and Sort screens, and every task field.",
+    "blocking": "I am waiting for your answer to the question under Choices. Nothing is built until you approve.",
     "next": "After you approve, I will open a parent issue with one child issue per step, build it with tests on the branch ccr-bfad8420-d02at0, screenshot it on a phone and a computer, and hand it to you for a test.",
     "todo": [
       "Look at the pictures.",
-      "Pick an answer to each question under Choices.",
+      "Pick an answer under Choices.",
       "Tap <b>Copy my reply<\/b> and send it: \"Design approved: add a task anywhere\", or say what to change."
     ]
   }

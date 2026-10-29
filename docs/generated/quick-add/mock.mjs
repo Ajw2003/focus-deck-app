@@ -106,13 +106,22 @@ async function slimForm(page) {
     f.innerHTML = '<div class="qa-row" style="margin:0;flex:1 1 100%"><span style="font-weight:700;color:var(--accent)">+</span><input placeholder="Add a task…" value="Ring the plumber about the boiler"><button type="button" class="btn-text">More</button><button type="button" class="btn primary" style="padding:6px 14px">Add</button></div>';
   });
 }
+async function boardRow(page, { pick, label, chip }) {
+  if (pick) {
+    await page.evaluate(() => { const sel = document.querySelector('[data-action="board-project-select"]'); const o = [...sel.options].find((x) => x.textContent.trim() === 'Home'); sel.value = o.value; sel.dispatchEvent(new Event('change', { bubbles: true })); });
+    await page.waitForTimeout(400);
+    await page.addStyleTag({ content: CSS });
+  }
+  await page.evaluate(({ label, chip }) => {
+    const first = document.querySelector('.screen-board [data-task], .screen-board .board-card, .screen-board li');
+    const tag = chip ? '<button type="button" class="btn-text" style="display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface-2)"><span style="width:9px;height:9px;border-radius:50%;background:#4c9a6a;display:inline-block"></span>Home ▾</button>' : '';
+    first.insertAdjacentHTML('beforebegin', '<form class="qa-row"><span style="font-weight:700;color:var(--accent)">+</span><input placeholder="' + label + '">' + tag + '<button type="button" class="btn primary" style="padding:6px 14px">Add</button></form>');
+  }, { label, chip });
+}
 const jobs = [
-  ['slim-1440', 1440, 900, 'projects', slimForm],
-  ['a-menu-390', 390, 844, 'board', (p) => optionA(p, { menu: true, text: 'Ring the plumber about the boiler' })],
-  ['a-chosen-1440', 1440, 900, 'focus', (p) => optionA(p, { chosen: 'Home', toast: 'Added “Ring the plumber about the boiler” to Home · Up next' })],
-  ['b-1440', 1440, 900, 'board', (p) => optionB(p, false)],
-  ['b-390', 390, 844, 'focus', (p) => optionB(p, true)],
-  ['c-1440', 1440, 900, 'board', optionC],
+  ['d-board-home-1440', 1440, 900, 'board', (p) => boardRow(p, { pick: true, label: 'Add a task to Home…' })],
+  ['d-board-all-1440', 1440, 900, 'board', (p) => boardRow(p, { label: 'Add a task to Home…', chip: true })],
+  ['d-board-home-390', 390, 844, 'board', (p) => boardRow(p, { pick: true, label: 'Add a task to Home…' })],
 ];
 for (const [name, w, h, hash, fn] of jobs) {
   const { ctx, page } = await open(w, h, hash);
