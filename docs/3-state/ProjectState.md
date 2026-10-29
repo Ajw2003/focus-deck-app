@@ -228,7 +228,7 @@ whose Gist read was unconfirmed; the user has since confirmed it works, see mile
 
 ## Cross-cutting issues that belong to no milestone
 
-- **Add a task from any screen (#239), planned 2026-10-29, not built.** The jotter's "To:" stamp
+- **Add a task from any screen (#239), built 2026-10-29, in aj's QA** (`docs/plans/quick-add-qa.html`). The jotter's "To:" stamp
   and one-line add rows on project cards and the Board; see `docs/4-systems/quick-add.md`.
 
 Nothing currently qualifies. (Until 2026-09-26 this held two items — the Claude chips being both

@@ -18,7 +18,7 @@ ends up. Build plan `docs/plans/quick-add-build.html` approved the same day.
 **Why.** aj wanted to add a task from any screen with as little friction as possible: type and add.
 The jotter is already on every screen.
 
-**Status.** Building under #239 (#240, #241, #242). See `docs/4-systems/quick-add.md`.
+**Status.** Built 2026-10-29 under #239 (#240, #241, #242), in aj's QA. See `docs/4-systems/quick-add.md`.
 
 ## 2026-10-20 — Design approved: tray delete (1A)
 

@@ -1,0 +1,42 @@
+{
+ "title": "Add a Task QA",
+ "eyebrow": "Built and checked in a real browser · ready for you to test · issues #239 to #242",
+ "short": {
+  "lead": "You can now add a task to a project from every screen. The jotter at the top has a 'To: Unsorted' stamp that can send a task straight to a project. Each project card and the Board (once you pick a project) have a one-line 'Add a task' row: type, press Enter, done. Everything is on the branch ccr-bfad8420-d02at0. The app only goes live on your site when a change reaches main, so the pictures below are taken from the built app with sample data.",
+  "hint": "Tap a step to see what to try and what you should see.",
+  "key": [["Built", ""], ["You test it", "you"]],
+  "items": [
+   ["list", "Project cards", "Type and press Enter", "you", "Every project card ends in a dashed 'Add a task…' row. The task goes into that project's Up next, the box empties and stays ready for the next one. 'More' opens steps, priority, due date and labels.", "On the Projects screen, type a task in a card's row and press Enter. Then press More, pick a priority and a date, and add another.",
+    {"src": "../generated/quick-add/built-row-more-phone-light.png", "alt": "A project card on a phone with the add row and More open showing steps, priority, a date and the due-date stage step", "caption": "A project card with More open, on a phone."}],
+   ["loop", "Sync safety", "Half-typed text stays", "you", "If a sync arrives while you are typing in a row, your text is kept (the problem in issue #235).", "Start typing in a row, then make a change on another device or tab and wait for it to arrive. Your text should still be there.",
+    {"src": "../generated/quick-add/built-row-desktop-dark.png", "alt": "Two project cards in dark mode; Home's row still holds 'Half-typed thought' after the School card received a task from another tab", "caption": "The text survived another tab's save, in dark mode."}],
+   ["list", "Board", "Pick a project, then add", "you", "With a project chosen in the Board's project menu, an 'Add a task to <project>…' row sits above Up next. With 'Project: All', or on the other tabs, it is hidden.", "On the Board, choose a project, type a task in the row and press Enter. It should appear in the list at once.",
+    {"src": "../generated/quick-add/built-board-phone-light.png", "alt": "The Board on a phone showing School with an Add a task to School row above three cards", "caption": "The Board with School chosen, on a phone."}],
+   ["next", "Jotter", "Send a task straight to a project", "you", "Left on 'To: Unsorted', the jotter works as before. Pick a project and Add becomes 'Add task'; a notice says where the task went, and Open takes you to it on the Board. On the Board with a project chosen, the stamp starts on that project by itself. Changing screen puts it back.", "On the Focus screen, set the stamp to a project, type a task and press Enter. Press Open on the notice.",
+    {"src": "../generated/quick-add/built-jotter-phone-light.png", "alt": "The Focus screen on a phone with the jotter stamp set to Home, an Add task button, and a notice reading Added Jotted straight to Home to Home with an Open button", "caption": "The jotter set to Home, with the notice, on a phone."}],
+   ["check", "Reply", "Tell me how it went", "you", "Your reply moves the issues on.", "Reply 'QA passed: add a task anywhere', or say what's wrong."]
+  ]
+ },
+ "changes": [
+  ["chg", "Project cards", "The five-box form became a one-line row with More.", null, "Kept: every box the old form had. Dropped: the '+ Add task' link and Cancel, because the row is always there; Escape closes More."],
+  ["chg", "Board", "An add row above Up next when one project is chosen.", null, "Hidden with 'Project: All' and on In progress and Done this week."],
+  ["chg", "Jotter", "A 'To: Unsorted' stamp beside Add.", null, "On a phone, tapping the stamp opens the phone's own list."],
+  ["keep", "Unsorted and the Sort screen", "No change.", null, "The existing Sort-screen browser check passed 54 of 54."]
+ ],
+ "qa": {
+  "feature": "add a task anywhere",
+  "base": "origin/main",
+  "unverified": [
+   "Adding from the jotter or a row to a GitHub-linked project should also create the GitHub issue, through the same code the old form used, but the test data has no GitHub key, so that was not run",
+   "No pull request is open yet, so GitHub's CI has not run the tests; locally 242 unit tests pass and the add-a-task browser check passes 128 of 128, run twice",
+   "Nothing is deployed to your site yet; it goes live when the branch reaches main"
+  ]
+ },
+ "wrapup": {
+  "summary": "Adding a task now works from every screen: the jotter's stamp, the project cards' row, and the Board's row once a project is chosen.",
+  "changing": "Changed: the jotter, the project cards' add form and the Board. Kept: Unsorted, the Sort screen and every task field.",
+  "blocking": "Your test. To try it on your own site it needs a pull request to main; I have not opened one because you haven't asked.",
+  "next": "Tell me whether to open the pull request. After 'QA passed', you close the issues when you're happy.",
+  "todo": ["Look at the four pictures and their steps.", "Say whether to open the pull request so you can test it live.", "Reply 'QA passed: add a task anywhere', or say what's wrong."]
+ }
+}
