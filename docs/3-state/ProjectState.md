@@ -228,6 +228,9 @@ whose Gist read was unconfirmed; the user has since confirmed it works, see mile
 
 ## Cross-cutting issues that belong to no milestone
 
+- **Add a task from any screen (#239), built 2026-10-29, in aj's QA** (`docs/plans/quick-add-qa.html`). The jotter's "To:" stamp
+  and one-line add rows on project cards and the Board; see `docs/4-systems/quick-add.md`.
+
 Nothing currently qualifies. (Until 2026-09-26 this held two items — the Claude chips being both
 a shipped feature and a scheduled deletion, and `ENERGY_UI_ENABLED` masking still-live energy
 data/sync logic — both resolved by PR 2: the chips are gone and the energy system was deleted

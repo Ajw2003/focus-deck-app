@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node app/js/render.test.mjs
-import { renderTaskRow, chipsMaxPct, renderToast, renderFocus, renderCategoryWalletInner, renderTaskEditForm, unsortedQueue, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderTaskRow, chipsMaxPct, renderToast, jotTarget, renderFocus, renderCategoryWalletInner, renderTaskEditForm, unsortedQueue, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderSyncButton, syncButtonTitle } from './render.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import assert from 'node:assert';
 
@@ -302,11 +302,13 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   const confirming = renderProjectCard(long, { ...cardUi(), editingProject: { p2: true }, pendingRemove: { p2: true } }, [], projectCategories);
   assert.ok(confirming.includes('Yes') && confirming.includes('No'), 'Remove project still uses the two-step Yes/No confirm');
 
-  // "+ Add task" collapses by default and opens the full form when tapped
-  assert.ok(shortHtml.includes('data-action="open-add-task" data-project="p1">+ Add task<') && !shortHtml.includes('add-task-form'), 'collapsed: a single "+ Add task" line, no open form');
+  // The one-line add row is always there (#240); "More" (ui.addingTask) opens the other boxes
+  assert.ok(shortHtml.includes('<form class="add-task-form add-row" data-action="add-task" data-project="p1">') && shortHtml.includes('name="title"'), 'the add row is always on the card');
+  assert.ok(!shortHtml.includes('name="steps"') && shortHtml.includes('aria-expanded="false">More<'), 'More closed: title only');
   const opened = renderProjectCard(short, { ...cardUi(), addingTask: { p1: true } }, [], []);
-  assert.ok(opened.includes('<form class="add-task-form"') && opened.includes('name="title"') && opened.includes('autofocus'), 'open: the full add-task form, title focused');
-  assert.ok(opened.includes('data-action="cancel-add-task" data-project="p1"'), 'the open form can be cancelled');
+  assert.ok(opened.includes('name="steps"') && opened.includes('name="deadline"') && opened.includes('name="priority"') && opened.includes('aria-expanded="true">Less<'), 'More open: steps, priority and due date');
+  const drafted = renderProjectCard(short, { ...cardUi(), addDraft: { p1: 'Fix "the" <gate>' } }, [], []);
+  assert.ok(drafted.includes('value="Fix &quot;the&quot; &lt;gate&gt;"'), 'a typed draft survives a repaint, escaped');
 
   // Minimising is back (PR 6, 2026-09-27): in the "All" view a saved collapsed flag renders
   // header-only, with the ▸ toggle and aria-expanded="false"; expanded is ▾ and aria-expanded="true".
@@ -510,4 +512,22 @@ assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds:
   assert.deepStrictEqual(rowIds(plain), ['b', 'a', 'z', 'c'], 'no ties: plain sort order');
   const q = { id: 'q', title: 'Q', status: 'next' };
   assert.strictEqual(renderTaskRow(q, p, [], ui), renderTaskRow(q, p, [], ui, [{ id: 'p1', tasks: [q] }]), 'a tie-less row is byte-identical');
+}
+
+// the jotter's To: stamp (#242): target resolution and the toast's optional action
+{
+  const st = { projects: [{ id: 'a' }, { id: 'b' }] };
+  assert.strictEqual(jotTarget(st, { screen: 'focus' }), '', 'follows nothing on Focus: Unsorted');
+  assert.strictEqual(jotTarget(st, { screen: 'board', boardProject: 'b' }), 'b', 'follows the Board project');
+  assert.strictEqual(jotTarget(st, { screen: 'board', boardProject: null }), '', 'Board with all projects: Unsorted');
+  assert.strictEqual(jotTarget(st, { screen: 'projects', projectView: 'one', selectedProjectId: 'a' }), 'a', 'follows the one project view');
+  assert.strictEqual(jotTarget(st, { screen: 'projects', projectView: 'all', selectedProjectId: 'a' }), '', 'all view: Unsorted');
+  assert.strictEqual(jotTarget(st, { screen: 'board', boardProject: 'b', jotTo: 'a' }), 'a', 'a manual pick wins');
+  assert.strictEqual(jotTarget(st, { screen: 'board', boardProject: 'b', jotTo: '' }), '', 'a manual Unsorted wins');
+  assert.strictEqual(jotTarget(st, { screen: 'focus', jotTo: 'gone' }), '', 'deleted project falls back to Unsorted');
+  assert.strictEqual(jotTarget(st, { screen: 'board', boardProject: 'gone' }), '', 'deleted Board project falls back');
+  assert.ok(!renderToast('Hi', 'info').includes('toast-action'), 'no action, no button');
+  const withAct = renderToast('Added', 'info', { label: 'Open', action: 'open-added-task', attrs: { 'data-task': 't"1', 'data-project': 'p' } });
+  assert.ok(withAct.includes('class="btn ghost toast-action" data-action="open-added-task" data-task="t&quot;1" data-project="p">Open</button>'), 'action button, escaped');
+  assert.ok(withAct.indexOf('toast-action') < withAct.indexOf('toast-close'), 'before the close button');
 }

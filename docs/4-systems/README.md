@@ -31,3 +31,5 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
   the Comfort settings (`js/board-view.js`, `js/render.js`, `js/state.js`, `settings.html`).
 - [sync-setup.md](./sync-setup.md) — the guided GitHub sync setup and the pasted-key check that names
   what's missing (`setup.html`, `js/sync-setup.js`, `js/key-check.js`).
+- [quick-add.md](./quick-add.md) — adding a task to a project from any screen: the jotter's "To:" stamp,
+  the one-line add row on project cards and the Board (`js/render.js`, `js/board-view.js`, `js/app.js`).

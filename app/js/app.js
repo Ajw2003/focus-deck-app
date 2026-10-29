@@ -1,5 +1,5 @@
 // focus-deck-app/js/app.js
-import { state, findTaskWithProject, findProjectIdForTask, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, GIST_ID_KEY, STORAGE_KEY, backupRaw } from './state.js';
+import { state, esc, findTaskWithProject, findProjectIdForTask, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, GIST_ID_KEY, STORAGE_KEY, backupRaw } from './state.js';
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle } from './sync.js';
@@ -174,7 +174,7 @@ export const ui = {
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectFilter: undefined, projectQuery: '', projectSort: loadProjectSort(), projectCollapsed: loadCollapsedProjects(),
-  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(), bulk: freshBulk(false),
+  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, addDraft: {}, unsorted: freshUnsortedScratch(), bulk: freshBulk(false),
   projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: resolveProjectView(loadProjectView(), isWideScreen()),
   // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
   // (Q30c) -- neither persisted, both reset to closed on load.
@@ -241,6 +241,12 @@ const walletHooks = {
   },
 };
 
+// The notice's Open button belongs to one notice text; any other notice replaces it (#242).
+function noticeAction() {
+  const a = ui.noticeAction;
+  return !ui.syncError && a && a.text === ui.notice ? a : undefined;
+}
+
 export function renderApp(st) {
   applyNoteFace(st.noteFace && st.noteFace.face); // also after a sync brings in another device's choice
   applyComfort(st);
@@ -257,7 +263,7 @@ export function renderApp(st) {
   if (ui.onboarding) {
     return '<div class="main-col onboarding-col">'
       + renderOnboarding(st, ui.onboarding, () => R.renderFocus(st, findTaskWithProject, ui))
-      + '</div>' + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
+      + '</div>' + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
   }
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   // Resolved against every project, not just the filtered/searched list -- the selected project
@@ -266,7 +272,7 @@ export function renderApp(st) {
   const hasToken = !!getToken();
   // one activity at a time (#135): the rail, then only the chosen screen
   const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, R.renderSyncButton(st));
-  const toast = R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
+  const toast = R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
   if (ui.screen === 'focus') return rail + '<div class="screen screen-focus">' + R.renderFocus(st, findTaskWithProject, ui) + '</div>' + toast;
   // the Sort screen is the tray, always open (its header can't fold it away here)
   if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
@@ -283,7 +289,24 @@ function paintHeaderControls() {
   const syncSlot = document.getElementById('topbar-sync');
   if (syncSlot) syncSlot.innerHTML = R.renderSyncButton(state);
   const projectsBtn = document.getElementById('projects-btn');
+  const to = document.getElementById('capture-to');
+  if (to) {
+    const target = R.jotTarget(state, ui);
+    to.innerHTML = '<option value="">To: Unsorted</option>' + state.projects.map((p) => '<option value="' + esc(p.id) + '">To: ' + esc(p.name) + '</option>').join('');
+    to.value = target;
+    const addBtn = document.querySelector('#capture-form .jot-add');
+    if (addBtn) addBtn.textContent = target ? 'Add task' : 'Add';
+  }
   if (projectsBtn) projectsBtn.setAttribute('aria-expanded', String(!!ui.projectsDrawerOpen));
+}
+
+// Puts focus (and caret, else the end) in a project's add-row title box.
+function focusAddTitle(projectId, caret) {
+  const el = document.querySelector('.add-row[data-project="' + CSS.escape(projectId) + '"] input[name="title"]');
+  if (!el) return;
+  el.focus();
+  const n = el.value.length;
+  el.setSelectionRange(caret ? caret.start : n, caret ? caret.end : n);
 }
 
 // A repaint mid-drag (a sync landing, say) would tear down the elements being dragged, so it waits
@@ -295,6 +318,8 @@ export function paint() {
   const scrollY = window.scrollY;
   const active = document.activeElement;
   // the one project search box (the sidebar/drawer's)
+  const addPid = active && active.matches && active.matches('.add-row input[name="title"]') ? active.closest('.add-row').getAttribute('data-project') : null;
+  const addCaret = addPid ? { start: active.selectionStart, end: active.selectionEnd } : null;
   const restoreSearch = active && active.matches && active.matches('.project-search, .board-find')
     ? { start: active.selectionStart, end: active.selectionEnd }
     : null;
@@ -303,6 +328,7 @@ export function paint() {
   mountWallets(document.getElementById('app'), walletHooks);
   growAll();
   window.scrollTo(0, scrollY);
+  if (addPid) focusAddTitle(addPid, addCaret);
   if (restoreSearch) {
     const el = document.querySelector(active.matches('.board-find') ? '.board-find' : '.project-search');
     if (el) { el.focus(); el.setSelectionRange(restoreSearch.start, restoreSearch.end); }
@@ -319,6 +345,7 @@ function autoGrow(box) {
   box.style.height = 'auto';
   box.style.height = box.scrollHeight + 'px';
 }
+document.addEventListener('input', (e) => { if (e.target.matches && e.target.matches('.add-row input[name="title"]')) ui.addDraft[e.target.closest('.add-row').getAttribute('data-project')] = e.target.value; });
 document.addEventListener('input', (e) => { if (e.target.matches && e.target.matches(GROWING_BOXES)) autoGrow(e.target); });
 function growAll() { document.querySelectorAll(GROWING_BOXES).forEach(autoGrow); }
 
@@ -447,6 +474,7 @@ function onAppClick(e) {
   }
   if (action === 'set-screen') {
     setScreen(el.getAttribute('data-screen'));
+    ui.jotTo = undefined;
     if (ui.projectsDrawerOpen) ui.projectsDrawerOpen = false;
     paint();
     window.scrollTo(0, 0);
@@ -638,8 +666,11 @@ function onAppClick(e) {
       paint();
     });
   }
-  else if (action === 'open-add-task') { ui.addingTask[projectId] = true; paint(); scrollOpenedFormIntoView('.add-task-form'); }
-  else if (action === 'cancel-add-task') { delete ui.addingTask[projectId]; paint(); }
+  else if (action === 'toggle-add-more') { if (ui.addingTask[projectId]) delete ui.addingTask[projectId]; else ui.addingTask[projectId] = true; paint(); focusAddTitle(projectId); if (ui.addingTask[projectId]) scrollOpenedFormIntoView('.add-row[data-project="' + CSS.escape(projectId) + '"]'); }
+  else if (action === 'open-added-task') {
+    setScreen('board'); setBoardProject(el.getAttribute('data-project')); ui.boardCol = 'next'; ui.boardShown = null;
+    selectBoardTask(el.getAttribute('data-task')); ui.notice = null; ui.jotTo = undefined; paint();
+  }
   else if (action === 'dismiss-toast') {
     if (ui.syncError === storageProblem) ui.storageProblemDismissed = true;
     ui.syncError = null;
@@ -1209,8 +1240,11 @@ function onAppSubmit(e) {
     e.preventDefault();
     const fd = new FormData(addTaskForm);
     const projectId = addTaskForm.getAttribute('data-project');
+    if (!String(fd.get('title') || '').trim()) return;
     const task = M.addTask(projectId, fd.get('title'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'), dueStagesFromForm(fd));
     createIssueIfGithubProject(task, projectId);
+    delete ui.addDraft[projectId]; delete ui.addingTask[projectId];
+    paint(); focusAddTitle(projectId);
     return;
   }
   // The "+ New" panel's "New project" tab (Q29a): a plain name, no category -- set afterward
@@ -1320,10 +1354,11 @@ function onAppKeydown(e) {
     paint();
     scrollOpenedFormIntoView('.task-edit-form');
   }
-  // Escape collapses a project's open "+ Add task" form while focus is inside it (Q3b).
+  // Escape closes a project's add row's "More" boxes while focus is inside the row (Q3b, #240).
   if (e.key === 'Escape') {
     const form = e.target.closest && e.target.closest('.add-task-form');
-    if (form) { delete ui.addingTask[form.getAttribute('data-project')]; paint(); }
+    const pid = form && form.getAttribute('data-project');
+    if (form && ui.addingTask[pid]) { delete ui.addingTask[pid]; paint(); focusAddTitle(pid); }
   }
   // Escape inside the "+ New" panel closes it and returns focus to "+ New" (Q29a).
   // Each Escape closes only the innermost thing: stopPropagation keeps it from also reaching the
@@ -1377,7 +1412,7 @@ function scrollProjectAfterPaint(projectId) {
   if (target) scrollProjectIntoView(target);
 }
 
-// Opening a row's editor or a project's "+ Add task" form should bring it into view within its own
+// Opening a row's editor or a project's add row's "More" boxes should bring it into view within its own
 // tile at >=1100px, not just onto the page (Q26a, #82) -- `block:'nearest'` does that and is a no-op
 // below 1100px, where the tile isn't its own scroll container. Runs after the paint that put the
 // form in the DOM.
@@ -1481,7 +1516,16 @@ function init() {
   const captureInput = document.getElementById('capture-input');
   captureForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    M.addCapture(captureInput.value);
+    const target = R.jotTarget(state, ui), title = captureInput.value.trim();
+    if (!target) M.addCapture(captureInput.value);
+    else if (!title) return;
+    else {
+      const task = M.addTask(target, title);
+      createIssueIfGithubProject(task, target);
+      ui.notice = 'Added "' + title + '" to ' + state.projects.find((q) => q.id === target).name;
+      ui.noticeAction = { text: ui.notice, label: 'Open', action: 'open-added-task', attrs: { 'data-task': task.id, 'data-project': target } };
+      paint();
+    }
     captureInput.value = '';
     autoGrow(captureInput);
     captureInput.focus();
@@ -1491,6 +1535,8 @@ function init() {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); captureForm.requestSubmit(); }
   });
   captureInput.addEventListener('input', () => autoGrow(captureInput));
+  document.getElementById('capture-to').addEventListener('change', (e) => { ui.jotTo = e.target.value; paint(); });
+  paintHeaderControls();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

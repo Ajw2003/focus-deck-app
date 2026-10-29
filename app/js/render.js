@@ -60,11 +60,21 @@ export function renderRail(screen, unsortedCount, syncHTML = '') {
   }).join('') + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn rail-settings" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '<span class="rail-settings-label" aria-hidden="true">Settings</span></a></div></nav>';
 }
 
-export function renderToast(text, kind) {
+// The jotter's "To:" stamp (#242): ui.jotTo undefined follows the screen (Board's chosen project, or
+// Projects' single selected project); a project that no longer exists falls back to '' (Unsorted).
+export function jotTarget(st, ui) {
+  let id = ui.jotTo;
+  if (id === undefined) id = (ui.screen === 'board' && ui.boardProject) || (ui.screen === 'projects' && ui.projectView === 'one' && ui.selectedProjectId) || '';
+  return st.projects.some((p) => p.id === id) ? id : '';
+}
+
+// action (optional): { label, action, attrs } renders a button before the close button.
+export function renderToast(text, kind, action) {
   if (!text) return '';
   const isError = kind === 'error';
   return '<div class="toast' + (isError ? ' toast-error' : '') + '" role="' + (isError ? 'alert' : 'status') + '">'
     + '<p class="toast-text">' + esc(text) + '</p>'
+    + (action ? '<button type="button" class="btn ghost toast-action" data-action="' + esc(action.action) + '"' + Object.entries(action.attrs || {}).map(([k, v]) => ' ' + k + '="' + esc(v) + '"').join('') + '>' + esc(action.label) + '</button>' : '')
     + '<button type="button" class="toast-close" data-action="dismiss-toast" aria-label="Dismiss">×</button>'
     + '</div>';
 }
@@ -611,6 +621,26 @@ export function renderMoveDialog(message, actionLabel = 'Move') {
     + '</div></div></div>';
 }
 
+// The one-line add row at a project card's foot (docs/4-systems/quick-add.md). "More" opens the
+// old boxes underneath; `draft` is the title typed so far, so a repaint does not lose it (#235).
+export function renderAddTaskRow(project, categories, isMoreOpen, draft, placeholder) {
+  const id = esc(project.id);
+  return '<form class="add-task-form add-row" data-action="add-task" data-project="' + id + '">'
+    + '<div class="add-line"><span class="add-plus" aria-hidden="true">+</span>'
+      + '<input type="text" name="title" maxlength="280" required placeholder="' + esc(placeholder || 'Add a task…') + '" aria-label="Add a task to ' + esc(project.name) + '" value="' + esc(draft || '') + '">'
+      + '<button type="button" class="btn-text" data-action="toggle-add-more" data-project="' + id + '" aria-expanded="' + !!isMoreOpen + '">' + (isMoreOpen ? 'Less' : 'More') + '</button>'
+      + '<button type="submit" class="btn primary">Add</button></div>'
+    + (isMoreOpen
+      ? '<div class="add-more">'
+          + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
+          + renderPrioritySelect(null)
+          + '<input type="date" name="deadline">'
+          + renderLabelPicker(categories, [], project)
+        + '</div>'
+      : '')
+    + '</form>';
+}
+
 export function renderProjectCard(p, ui, categories, projectCategories, hasToken, projects = []) {
   const doing = p.tasks.filter((t) => t.status === 'doing');
   const next = p.tasks.filter((t) => t.status === 'next');
@@ -639,18 +669,7 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
   // the order, and there's a single card. A real button, so the arrow keys work on it too
   // (js/project-drag.js). See docs/4-systems/styling.md#dragging-projects
   const gripBtn = isOneView ? '' : '<button type="button" class="drag-grip" data-project="' + p.id + '" aria-label="Move ' + esc(p.name) + '" title="Drag to reorder, or use the arrow keys">' + ICON_GRIP + '</button>';
-  const addingTask = !!ui.addingTask[p.id];
-  const addTaskBlock = addingTask
-    ? '<form class="add-task-form" data-action="add-task" data-project="' + p.id + '">'
-        + '<input type="text" name="title" placeholder="Add a task…" maxlength="280" required autofocus>'
-        + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
-        + renderPrioritySelect(null)
-        + '<input type="date" name="deadline">'
-        + renderLabelPicker(categories, [], p)
-        + '<button type="submit" aria-label="Add task">+</button>'
-        + '<button type="button" data-action="cancel-add-task" data-project="' + p.id + '">Cancel</button>'
-      + '</form>'
-    : '<button type="button" class="link-btn add-task-toggle" data-action="open-add-task" data-project="' + p.id + '">+ Add task</button>';
+  const addTaskBlock = renderAddTaskRow(p, categories, !!ui.addingTask[p.id], (ui.addDraft || {})[p.id] || '');
   return '<section class="card project-card' + (collapsed ? ' is-collapsed' : '') + (isSelected ? ' is-selected' : '') + '" id="proj-' + p.id + '" style="--proj-color:' + p.color + '">'
     // Line 1: dot, name (wraps, never truncated), collapse toggle + Edit -- always on this line,
     // whatever the name's length (#83). Line 2 (badges) always renders, even empty, so a card's
@@ -662,7 +681,7 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
     + '<div class="project-badges">' + ghBadge + projCatChip + '</div>'
     + (editingPanel ? renderProjectEditPanel(p, ui, projectCategories, hasToken) : '')
     + '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>'
-    // The task groups, done group and "+ Add task" scroll inside a fixed-height tile at >=1100px
+    // The task groups, done group and the add row scroll inside a fixed-height tile at >=1100px
     // (Q26a, #82) instead of the whole tile growing; below that width this is just a plain block in
     // the page's own scroll. tabindex/role/aria-label keep the scroll region reachable by keyboard
     // and named for a screen reader. See docs/4-systems/styling.md.

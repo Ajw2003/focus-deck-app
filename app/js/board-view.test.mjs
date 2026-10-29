@@ -112,3 +112,13 @@ const UI = { boardProject: null, boardCol: 'next' };
   assert.ok(done.includes('data-task-id="g1"') && !done.includes('deadline-chip') && !done.includes('gl-glance'), 'done task: no date');
 }
 console.log('board-view tests passed');
+
+// The add row (#241): only with one project chosen, only on Up next, and it adds to that project
+{
+  assert.ok(!renderBoard(st, UI, now).includes('add-row'), 'no add row with Project: All');
+  const h = renderBoard(st, { ...UI, boardProject: 'pa' }, now);
+  assert.ok(h.includes('<form class="add-task-form add-row" data-action="add-task" data-project="pa">') && h.includes('placeholder="Add a task to Home…"'), 'Up next with Home chosen has Home\'s add row');
+  assert.ok(h.indexOf('add-row') < h.indexOf('calm-cards'), 'the row sits above the list');
+  assert.ok(!renderBoard(st, { ...UI, boardProject: 'pa', boardCol: 'doing' }, now).includes('add-row'), 'no add row on In progress');
+  assert.ok(renderBoard(st, { ...UI, boardProject: 'pa', addDraft: { pa: 'Half' } }, now).includes('value="Half"'), 'a draft survives a repaint');
+}

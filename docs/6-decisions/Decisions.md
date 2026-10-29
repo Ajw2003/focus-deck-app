@@ -4,6 +4,22 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-29 — Design and build plan approved: add a task anywhere
+
+**Context.** A task could only be added from the project card's five-box form on the Projects
+screen, which aj called obtuse (`docs/plans/quick-add.html`, related #103 and #235).
+
+**Decision.** The jotter gets a "To: Unsorted ▾" stamp that can send a task straight to a project
+(round 1, option A). The Board, once one project is chosen, and every project card get a one-line
+add row with no picker, keeping "More" for the other boxes (round 2, "1Y"). With "Project: All" the
+Board's row is hidden. The stamp says "Unsorted", not "Tray", because that names where the thought
+ends up. Build plan `docs/plans/quick-add-build.html` approved the same day.
+
+**Why.** aj wanted to add a task from any screen with as little friction as possible: type and add.
+The jotter is already on every screen.
+
+**Status.** Built 2026-10-29 under #239 (#240, #241, #242), in aj's QA. See `docs/4-systems/quick-add.md`.
+
 ## 2026-10-20 — Design approved: tray delete (1A)
 
 **Context.** In aj's phone test, Delete under a thought in the tray removed it in one tap with no way
