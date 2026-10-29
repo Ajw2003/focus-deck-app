@@ -18,8 +18,8 @@
   ]
  },
  "changes": [
-  ["chg", "Adding a task", "Possible from every screen (A, B) or from the Board too (C).", null, "Every option files the task into the project's Up next, just as the Projects form does now."],
-  ["chg", "The '+ Add task' form on project cards", "Slimmer, or replaced by the card in option B.", {"src": "docs/generated/quick-add/slim-1440.png", "alt": "A project card with a one-line add row: Add a task, More and Add buttons", "caption": "The slimmer form: one line, with More for the rest."}, "See the second question under Choices."],
+  ["chg", "Adding a task", "A and B work from every screen. C works from the Board only.", null, "Every option files the task into the project's Up next, just as the Projects form does now."],
+  ["chg", "The '+ Add task' form on project cards", "Slimmer, or replaced by the card in option B.", {"src": "docs/generated/quick-add/slim-1440.png", "alt": "A project card with a one-line add row: Add a task, More and Add buttons", "caption": "The slimmer form: one line, with More for the rest."}, "See the second question under Choices, about what happens to this form."],
   ["keep", "The jotter's tray", "Still the default in option A.", null, "Jotting a stray thought to sort later works exactly as today in every option."],
   ["keep", "Steps, priority, dates and labels", "Still available.", null, "They move behind a 'More' line or into the task's details, but none is removed."]
  ],
@@ -32,11 +32,11 @@
   ["form", "What should happen to the '+ Add task' form at the foot of each project card?", [
     ["1", "Slim it to one line", 1, "Type a title and press Enter; a 'More' button opens steps, priority, date and labels."],
     ["2", "Leave it as it is", 0, "Nothing changes on the Projects screen."]
-   ], "I suggest the slim line because you called the current form obtuse, and the slim row matches the look of the new ways in. If you pick option B above, the card replaces this form instead and this question falls away."]
+   ], "I suggest the slim line because you called the current form obtuse, and the slim row matches the look of the new ways in. If you pick option B above, the card replaces this form instead, so you can skip this question."]
  ],
  "wrapup": {
   "summary": "You will be able to add a task straight to a chosen project from any screen. I suggest teaching the jotter to pick a project, and slimming the project card's form to one line.",
-  "changing": "Changed: the jotter (A), a new button and card (B) or the Board (C), and the project card's add form. Kept: the tray, and every task field.",
+  "changing": "Changed: the jotter if you pick A, a new button and card if you pick B, or the Board's Up next list if you pick C. The project card's add form changes under every option. Kept: the tray, and every task field.",
   "blocking": "I am waiting for your answers to both questions under Choices. Nothing is built until you approve.",
   "next": "After you approve, I will open a parent issue with one child issue per step, build it with tests on the branch ccr-bfad8420-d02at0, screenshot it on a phone and a computer, and hand it to you for a test.",
   "todo": ["Look at the pictures.", "Pick an answer to each question under Choices.", "Tap <b>Copy my reply</b> and send it, or say what to change."]
