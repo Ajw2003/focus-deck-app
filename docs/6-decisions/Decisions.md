@@ -4,6 +4,19 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-10-29 — Design and build plan approved: room to jot (1A)
+
+**Context.** In aj's phone test of #243, the jotter's writing, its new "To:" stamp and Add shared one
+line, so the writing was squeezed into less than half the width (`docs/plans/jotter-room.html`).
+
+**Decision.** On a phone the writing takes the whole first line, with the stamp (left) and Add (right)
+on a second line (A), rather than shrinking the stamp to an icon (B) or showing it only while
+writing (C). Build plan `docs/plans/jotter-room-build.html` approved the same day.
+
+**Why.** aj took the suggestion: it fixes the squeeze and the stamp's project stays readable.
+
+**Status.** Built 2026-10-29 under #244 (#245), in aj's QA. See `docs/4-systems/quick-add.md`.
+
 ## 2026-10-29 — Design and build plan approved: add a task anywhere
 
 **Context.** A task could only be added from the project card's five-box form on the Projects

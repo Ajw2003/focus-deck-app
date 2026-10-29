@@ -230,6 +230,13 @@ a{color:inherit;}
 /* on a phone the brand and the tools share the first row and capture gets the full second row,
    instead of the tools wrapping onto a row of their own */
 @media (max-width:699px){.capture-form{order:1; flex-basis:100%;}}
+/* On a phone the writing gets the whole first line, with the "To:" stamp and Add on a second line
+   below it: on one line the writing was squeezed to under half the width (#244). */
+@media (max-width:699px){
+  .capture-form{flex-wrap:wrap;}
+  #capture-input{flex:1 1 100%;}
+  .to-stamp{max-width:none; margin-right:auto;}
+}
 .projects-toggle{white-space:nowrap;}
 @media (min-width:1100px){.projects-toggle{display:none;}}
 
