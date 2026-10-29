@@ -181,6 +181,18 @@ for (const size of ['phone', 'desktop']) {
     check(`${tag} the jotter box is empty and focused`, await page.evaluate((s) => document.activeElement === document.querySelector(s) && document.activeElement.value === '', JOT));
     const jw = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     check(`${tag} jotter: no sideways page scroll`, jw <= 0, 'overflow ' + jw + 'px');
+    // Room to jot (#244): on a phone the writing spans the jotter, with the stamp and Add on a line
+    // below it (stamp left, Add right); on a computer all three stay on one line.
+    const box = await page.evaluate(() => Object.fromEntries(['#capture-form', '#capture-input', '#capture-to', '#capture-form .jot-add']
+      .map((s) => [s, document.querySelector(s).getBoundingClientRect().toJSON()])));
+    const [form, input, stamp, add] = ['#capture-form', '#capture-input', '#capture-to', '#capture-form .jot-add'].map((s) => box[s]);
+    if (size === 'phone') {
+      check(`${tag} jotter: the writing spans the jotter`, input.width >= form.width - 40, Math.round(input.width) + ' of ' + Math.round(form.width) + 'px');
+      check(`${tag} jotter: stamp and Add sit below the writing`, stamp.top >= input.bottom && add.top >= input.bottom);
+      check(`${tag} jotter: stamp on the left, Add on the right`, stamp.right < add.left && add.right >= form.right - 30);
+    } else {
+      check(`${tag} jotter: writing, stamp and Add share one line`, stamp.top < input.bottom && add.top < input.bottom && input.right <= stamp.left);
+    }
     await page.screenshot({ path: OUT + `built-jotter-${size}-${scheme}.png` });
     await page.click('.toast-action');
     await page.waitForSelector('[data-action="board-project-select"]');

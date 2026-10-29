@@ -1,0 +1,38 @@
+{
+ "title": "Room to Jot",
+ "eyebrow": "Design for approval · from your phone test of pull request #243 · nothing built yet",
+ "approval": "Design approved: room to jot",
+ "short": {
+  "lead": "On your phone, the jotter's new 'To:' stamp sits on the same line as the writing and the Add button, so the writing is squeezed into a narrow column and wraps every few words. Three ways to give the writing its room follow. Each one is mocked on the real app at phone width in dark mode, on the Board showing 'To Buy', with your sample thought typed. On a computer the jotter has room to spare, so it stays as it is in every option.",
+  "hint": "Tap Today or an option to see its picture.",
+  "key": [["Built by me", ""], ["You decide", "you"]],
+  "items": [
+   ["bulb", "Today", "Three things on one line", "", "The writing, the stamp and Add share one line, so the writing gets less than half of the jotter's width.", "Nothing from you.",
+    {"src": "docs/generated/jotter-room/now.png", "alt": "The phone jotter with the thought wrapped over three short lines beside the To: To Buy stamp and Add task", "caption": "Today, on a phone."}],
+   ["list", "Option A", "Writing on top, stamp and Add below", "you", "On a phone, the writing gets the whole first line. The stamp sits on a second line on the left, with Add on the right. The second line is always there.", "Look at how the thought now runs across the full width.",
+    {"src": "docs/generated/jotter-room/a.png", "alt": "The phone jotter with the thought on one full-width line, and below it the To: To Buy stamp on the left and Add task on the right", "caption": "Option A, on a phone."}],
+   ["list", "Option B", "The stamp shrinks to a folder icon", "you", "Everything stays on one line, but the stamp becomes a small folder icon. The project's name appears only in the list that opens when you tap the icon. The Add button still reads 'Add task' once a project is picked.", "Look at the folder icon beside Add task.",
+    {"src": "docs/generated/jotter-room/b.png", "alt": "The phone jotter with the thought over two lines, a small dashed folder icon and Add task", "caption": "Option B, on a phone."}],
+   ["list", "Option C", "The stamp shows only while you write", "you", "When you aren't writing, the jotter looks just as it did before the stamp was added, with the writing and Add on one line. Tap into it and a second line opens with the stamp on the left and Add on the right, as in option A.", "Compare this picture, taken while writing, with the at-rest picture under Changes.",
+    {"src": "docs/generated/jotter-room/c-typing.png", "alt": "The phone jotter while writing: the thought on one full-width line, the To: To Buy stamp and Add task below", "caption": "Option C while writing. At rest it is one line with Add, like before."}]
+  ]
+ },
+ "changes": [
+  ["chg", "The jotter on a phone", "In options A and C the writing gets the full width. In option B it gets more width than today.", {"src": "docs/generated/jotter-room/c-rest.png", "alt": "The phone jotter at rest in option C: Jot down a stray thought and an Add task button on one line", "caption": "Option C at rest."}, "Only the layout changes. What the stamp does, and where tasks go, stay the same."],
+  ["keep", "The jotter on a computer", "No change.", null, "It has room for all three on one line."]
+ ],
+ "choices": [
+  ["layout", "How should the jotter give your writing room on a phone?", [
+    ["A", "Writing on top, stamp and Add below", 1, "Always the same shape, so nothing moves while you type, and the stamp's project is always readable."],
+    ["B", "Folder icon", 0, "Keeps one line, but you can't see which project is picked without tapping it."],
+    ["C", "Stamp only while writing", 0, "The calmest at rest, but the jotter grows a line when you tap into it, and at rest you can't see where a thought will go."]
+   ], "I suggest A, because it fixes the squeeze and you can always see where a thought will go."]
+ ],
+ "wrapup": {
+  "summary": "The jotter's writing gets its room back on a phone. I suggest putting the stamp and Add on a second line beneath the writing.",
+  "changing": "Changed: the jotter's layout on a phone. Kept: the jotter on a computer, and everything the stamp does.",
+  "blocking": "I am waiting for your answer under Choices. Nothing is built until you approve.",
+  "next": "After you approve, I will open an issue, make the change with a browser check at phone and computer widths, and open a pull request for you to test.",
+  "todo": ["Look at the pictures.", "Pick an option under Choices.", "Tap <b>Copy my reply</b> and send it, or say what to change."]
+ }
+}

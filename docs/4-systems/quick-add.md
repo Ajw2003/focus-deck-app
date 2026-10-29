@@ -33,6 +33,10 @@ phone and desktop, light and dark). Screenshots: `docs/generated/quick-add/built
    - On a project, Add reads "Add task" and the text becomes a task in that project's Up next. A
      notice says `Added "<title>" to <project>` with an Open button, which goes to the Board
      narrowed to that project with the new task selected.
+   - On a phone (the 699px breakpoint where the jotter goes full width) the writing takes the whole
+     first line and the stamp and Add sit on a second line, stamp left, Add right (#244, approved
+     2026-10-29 as option A of `docs/plans/jotter-room.html`; built in `css/app.css`, checked by
+     `scripts/check-add-row-browser.mjs`): on one line the writing got 119 of the jotter's 358px.
    - Until you change it, the stamp follows what you are looking at: the Board's chosen project,
      or the selected project in the Projects screen's "One project" view, else Unsorted. Your own
      choice holds until you change screen (`ui.jotTo`; `undefined` means "follow").

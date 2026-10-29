@@ -1,0 +1,27 @@
+{
+ "title": "Room to Jot Build Plan",
+ "eyebrow": "Build plan for approval · option A, writing on top · issues #244 and #245",
+ "approval": "Build plan approved: room to jot",
+ "short": {
+  "lead": "This builds option A. On a phone, the writing in the jotter gets the whole first line. The 'To:' stamp (which picks where the thought goes) and the Add button move to a second line below it, with the stamp on the left and Add on the right. It is one small style change in `app/css/app.css`. It applies at the phone width where the jotter already stretches across the screen. On a computer nothing changes.",
+  "hint": "Tap a step to see what it does.",
+  "key": [["Built by me", ""], ["You decide", "you"]],
+  "items": [
+   ["list", "Step 1", "Lay the jotter out on two lines (#245)", "", "The change applies only at phone width. A long project name on the stamp gets the spare room on the second line instead of being cut short. The browser check confirms two things, in light and dark mode. On a phone, the writing spans the jotter. On a computer, the writing, the stamp and Add all stay on one line. Then I open a pull request for you to test.", "Nothing from you.",
+    {"src": "docs/generated/jotter-room/a.png", "alt": "The phone jotter with the thought on one full-width line, and below it the To: To Buy stamp on the left and Add task on the right", "caption": "What step 1 builds."}],
+   ["check", "Approve", "Reply to approve", "you", "The build starts when you send the approval phrase below.", "Reply \"Build plan approved: room to jot\", or say what to change."]
+  ]
+ },
+ "changes": [
+  ["chg", "The jotter on a phone", "Writing on top; the stamp and Add on the line below.", null, "Files changed: the style file `app/css/app.css` and the browser check `scripts/check-add-row-browser.mjs`."],
+  ["keep", "The jotter on a computer, and what the stamp does", "No change.", null, "Where a thought or task goes is untouched."]
+ ],
+ "choices": [],
+ "wrapup": {
+  "summary": "One style change puts the jotter's writing on its own line on a phone.",
+  "changing": "The jotter's layout on a phone changes. The jotter on a computer, and everything the stamp does, stay the same.",
+  "blocking": "Waiting on your reply: \"Build plan approved: room to jot\".",
+  "next": "Once you approve, I build it, run the checks, and open a pull request for you to test on your phone.",
+  "todo": ["Read the step.", "If you are happy, send the approval phrase above. If not, say what to change."]
+ }
+}

@@ -1,0 +1,35 @@
+{
+ "title": "Room to Jot QA",
+ "eyebrow": "Built and checked in a real browser · ready for you to test · issues #244 and #245",
+ "short": {
+  "lead": "On a phone, the jotter's writing now has a line to itself, with the 'To:' stamp and the Add button on a second line below it. On a computer it is unchanged. Before this change the writing got 119 pixels of the jotter's 358-pixel width on a phone; now it gets 334.",
+  "hint": "Tap a step to see what to try and what you should see.",
+  "key": [["Built", ""], ["You test it", "you"]],
+  "items": [
+   ["list", "Phone", "Write a long thought", "you", "The writing runs across the whole jotter. The stamp sits below it on the left and Add on the right.", "Once the pull request is merged, open the app on your phone and type a thought of about a dozen words in the jotter.",
+    {"src": "../generated/jotter-room/built-phone-dark.png", "alt": "The phone jotter in dark mode with the writing line on top and the To: Home stamp and Add task button below it", "caption": "The built jotter on a phone, dark mode."}],
+   ["list", "Computer", "Nothing moves", "you", "On a computer the writing, the stamp and Add stay on one line, as before.", "Open the app on a computer and check that the jotter looks as it did before.",
+    {"src": "../generated/jotter-room/built-desktop-light.png", "alt": "The desktop app with the jotter's writing, To: Home stamp and Add task on one line", "caption": "The built jotter on a computer, light mode."}],
+   ["check", "Reply", "Tell me how it went", "you", "Your reply moves issues #244 and #245 on to the next stage.", "Reply 'QA passed: room to jot', or say what's wrong."]
+  ]
+ },
+ "changes": [
+  ["chg", "The jotter on a phone", "Writing on top; the stamp and Add on the line below.", null, "Files changed: the style file `app/css/app.css` and the browser check `scripts/check-add-row-browser.mjs`."],
+  ["keep", "The jotter on a computer, and what the stamp does", "The jotter looks and works as before.", null, "The existing browser check of the main screens passed 60 of 60."]
+ ],
+ "qa": {
+  "feature": "room to jot",
+  "base": "origin/main",
+  "unverified": [
+   "Checked in Chromium at a phone-sized window, not on a real phone; your phone's own browser may differ slightly",
+   "Nothing is deployed until the pull request is merged into main"
+  ]
+ },
+ "wrapup": {
+  "summary": "The jotter's writing has its own line on a phone, and the jotter on a computer is unchanged.",
+  "changing": "The jotter's layout on a phone changes. The jotter on a computer, and everything the stamp does, stay the same.",
+  "blocking": "Waiting on your test, which can start once the pull request is merged.",
+  "next": "Merge the pull request, try it on your phone, and reply 'QA passed: room to jot' or say what's wrong. You close the issues once you're happy.",
+  "todo": ["Merge the pull request linked in my message.", "Try the two steps above: the phone and the computer.", "Reply 'QA passed: room to jot', or say what's wrong."]
+ }
+}
