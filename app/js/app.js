@@ -1,5 +1,5 @@
 // focus-deck-app/js/app.js
-import { state, findTaskWithProject, findProjectIdForTask, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, GIST_ID_KEY, STORAGE_KEY, backupRaw } from './state.js';
+import { state, esc, findTaskWithProject, findProjectIdForTask, cssColorToHex, storageProblem, onExternalStateChange, requestPersistentStorage, GIST_ID_KEY, STORAGE_KEY, backupRaw } from './state.js';
 import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle } from './sync.js';
@@ -241,6 +241,12 @@ const walletHooks = {
   },
 };
 
+// The notice's Open button belongs to one notice text; any other notice replaces it (#242).
+function noticeAction() {
+  const a = ui.noticeAction;
+  return !ui.syncError && a && a.text === ui.notice ? a : undefined;
+}
+
 export function renderApp(st) {
   applyNoteFace(st.noteFace && st.noteFace.face); // also after a sync brings in another device's choice
   applyComfort(st);
@@ -257,7 +263,7 @@ export function renderApp(st) {
   if (ui.onboarding) {
     return '<div class="main-col onboarding-col">'
       + renderOnboarding(st, ui.onboarding, () => R.renderFocus(st, findTaskWithProject, ui))
-      + '</div>' + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
+      + '</div>' + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
   }
   const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   // Resolved against every project, not just the filtered/searched list -- the selected project
@@ -266,7 +272,7 @@ export function renderApp(st) {
   const hasToken = !!getToken();
   // one activity at a time (#135): the rail, then only the chosen screen
   const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, R.renderSyncButton(st));
-  const toast = R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info');
+  const toast = R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
   if (ui.screen === 'focus') return rail + '<div class="screen screen-focus">' + R.renderFocus(st, findTaskWithProject, ui) + '</div>' + toast;
   // the Sort screen is the tray, always open (its header can't fold it away here)
   if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
@@ -283,6 +289,14 @@ function paintHeaderControls() {
   const syncSlot = document.getElementById('topbar-sync');
   if (syncSlot) syncSlot.innerHTML = R.renderSyncButton(state);
   const projectsBtn = document.getElementById('projects-btn');
+  const to = document.getElementById('capture-to');
+  if (to) {
+    const target = R.jotTarget(state, ui);
+    to.innerHTML = '<option value="">To: Unsorted</option>' + state.projects.map((p) => '<option value="' + esc(p.id) + '">To: ' + esc(p.name) + '</option>').join('');
+    to.value = target;
+    const addBtn = document.querySelector('#capture-form .jot-add');
+    if (addBtn) addBtn.textContent = target ? 'Add task' : 'Add';
+  }
   if (projectsBtn) projectsBtn.setAttribute('aria-expanded', String(!!ui.projectsDrawerOpen));
 }
 
@@ -460,6 +474,7 @@ function onAppClick(e) {
   }
   if (action === 'set-screen') {
     setScreen(el.getAttribute('data-screen'));
+    ui.jotTo = undefined;
     if (ui.projectsDrawerOpen) ui.projectsDrawerOpen = false;
     paint();
     window.scrollTo(0, 0);
@@ -652,6 +667,10 @@ function onAppClick(e) {
     });
   }
   else if (action === 'toggle-add-more') { if (ui.addingTask[projectId]) delete ui.addingTask[projectId]; else ui.addingTask[projectId] = true; paint(); focusAddTitle(projectId); if (ui.addingTask[projectId]) scrollOpenedFormIntoView('.add-row[data-project="' + CSS.escape(projectId) + '"]'); }
+  else if (action === 'open-added-task') {
+    setScreen('board'); setBoardProject(el.getAttribute('data-project')); ui.boardCol = 'next'; ui.boardShown = null;
+    selectBoardTask(el.getAttribute('data-task')); ui.notice = null; ui.jotTo = undefined; paint();
+  }
   else if (action === 'dismiss-toast') {
     if (ui.syncError === storageProblem) ui.storageProblemDismissed = true;
     ui.syncError = null;
@@ -1497,7 +1516,16 @@ function init() {
   const captureInput = document.getElementById('capture-input');
   captureForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    M.addCapture(captureInput.value);
+    const target = R.jotTarget(state, ui), title = captureInput.value.trim();
+    if (!target) M.addCapture(captureInput.value);
+    else if (!title) return;
+    else {
+      const task = M.addTask(target, title);
+      createIssueIfGithubProject(task, target);
+      ui.notice = 'Added "' + title + '" to ' + state.projects.find((q) => q.id === target).name;
+      ui.noticeAction = { text: ui.notice, label: 'Open', action: 'open-added-task', attrs: { 'data-task': task.id, 'data-project': target } };
+      paint();
+    }
     captureInput.value = '';
     autoGrow(captureInput);
     captureInput.focus();
@@ -1507,6 +1535,8 @@ function init() {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); captureForm.requestSubmit(); }
   });
   captureInput.addEventListener('input', () => autoGrow(captureInput));
+  document.getElementById('capture-to').addEventListener('change', (e) => { ui.jotTo = e.target.value; paint(); });
+  paintHeaderControls();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

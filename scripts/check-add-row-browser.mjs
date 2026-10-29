@@ -152,6 +152,48 @@ for (const size of ['phone', 'desktop']) {
     const boardWide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     check(`${tag} Board: no sideways page scroll`, boardWide <= 0, 'overflow ' + boardWide + 'px');
     await page.screenshot({ path: OUT + `built-board-${size}-${scheme}.png` });
+
+    // The jotter's To: stamp (#242)
+    const STAMP = '#capture-to', JOT = '#capture-input';
+    const sel = (s) => page.evaluate((x) => { const e = document.querySelector(x); return e.options[e.selectedIndex].text; }, s);
+    const stored = () => page.evaluate((k) => JSON.parse(localStorage.getItem(k)), STATE_KEY);
+    check(`${tag} Board with School chosen: stamp reads "To: School" untouched`, (await sel(STAMP)) === 'To: School');
+    await page.click('[data-action="set-screen"][data-screen="focus"]');
+    await page.waitForTimeout(150);
+    check(`${tag} Focus: stamp reads "To: Unsorted", Add reads "Add"`, (await sel(STAMP)) === 'To: Unsorted' && (await page.textContent('.jot-add')) === 'Add');
+    const before = await stored();
+    await page.click(JOT);
+    await page.keyboard.type('A stray thought');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(200);
+    const after = await stored();
+    const count = (s) => s.projects.reduce((n, p) => n + p.tasks.length, 0);
+    check(`${tag} Enter on Unsorted grows the inbox, adds no task`, after.inbox.length === before.inbox.length + 1 && count(after) === count(before));
+    await page.selectOption(STAMP, 'pHome');
+    check(`${tag} picking Home makes Add read "Add task"`, (await page.textContent('.jot-add')) === 'Add task');
+    await page.click(JOT);
+    await page.keyboard.type('Jotted straight to Home');
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('.toast-action');
+    const home = (await stored()).projects.find((p) => p.id === 'pHome').tasks.find((t) => t.title === 'Jotted straight to Home');
+    check(`${tag} the jot became a task in Home's Up next`, !!home && home.status === 'next');
+    check(`${tag} notice reads Added "…" to Home`, (await page.textContent('.toast-text')) === 'Added "Jotted straight to Home" to Home');
+    check(`${tag} the jotter box is empty and focused`, await page.evaluate((s) => document.activeElement === document.querySelector(s) && document.activeElement.value === '', JOT));
+    const jw = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    check(`${tag} jotter: no sideways page scroll`, jw <= 0, 'overflow ' + jw + 'px');
+    await page.screenshot({ path: OUT + `built-jotter-${size}-${scheme}.png` });
+    await page.click('.toast-action');
+    await page.waitForSelector('[data-action="board-project-select"]');
+    check(`${tag} Open shows the Board on Home with the task selected`, await page.evaluate(() => document.querySelector('[data-action="board-project-select"]').value === 'pHome' && /Jotted straight to Home/.test(document.querySelector('.screen-board').textContent) && !!document.querySelector('.cw-detail[data-selected]')));
+    check(`${tag} Open clears the notice`, !(await page.$('.toast')));
+    await page.keyboard.press('Escape'); // close the details panel (it covers the rail on a phone)
+    await page.selectOption(STAMP, '');
+    await page.click('[data-action="set-screen"][data-screen="sort"]');
+    await page.waitForTimeout(150);
+    check(`${tag} changing screen resets the manual pick (stamp follows again)`, (await sel(STAMP)) === 'To: Unsorted');
+    await page.click('[data-action="set-screen"][data-screen="board"]');
+    await page.waitForTimeout(150);
+    check(`${tag} back on the Board (Home) the stamp follows: "To: Home"`, (await sel(STAMP)) === 'To: Home');
     await ctx.close();
   }
 }

@@ -60,11 +60,21 @@ export function renderRail(screen, unsortedCount, syncHTML = '') {
   }).join('') + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn rail-settings" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '<span class="rail-settings-label" aria-hidden="true">Settings</span></a></div></nav>';
 }
 
-export function renderToast(text, kind) {
+// The jotter's "To:" stamp (#242): ui.jotTo undefined follows the screen (Board's chosen project, or
+// Projects' single selected project); a project that no longer exists falls back to '' (Unsorted).
+export function jotTarget(st, ui) {
+  let id = ui.jotTo;
+  if (id === undefined) id = (ui.screen === 'board' && ui.boardProject) || (ui.screen === 'projects' && ui.projectView === 'one' && ui.selectedProjectId) || '';
+  return st.projects.some((p) => p.id === id) ? id : '';
+}
+
+// action (optional): { label, action, attrs } renders a button before the close button.
+export function renderToast(text, kind, action) {
   if (!text) return '';
   const isError = kind === 'error';
   return '<div class="toast' + (isError ? ' toast-error' : '') + '" role="' + (isError ? 'alert' : 'status') + '">'
     + '<p class="toast-text">' + esc(text) + '</p>'
+    + (action ? '<button type="button" class="btn ghost toast-action" data-action="' + esc(action.action) + '"' + Object.entries(action.attrs || {}).map(([k, v]) => ' ' + k + '="' + esc(v) + '"').join('') + '>' + esc(action.label) + '</button>' : '')
     + '<button type="button" class="toast-close" data-action="dismiss-toast" aria-label="Dismiss">×</button>'
     + '</div>';
 }

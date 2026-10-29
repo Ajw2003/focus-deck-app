@@ -13,7 +13,8 @@ way gets the same fields, sort order and GitHub issue.
 
 ## Status
 
-**#240 (project-card row) and #241 (Board row) built; #242 (jotter stamp) still planned.** Tracked by #239.
+**#240 (project-card row), #241 (Board row) and #242 (jotter stamp) built.** Tracked by #239.
+#242: `#capture-to` in `index.html`, `.to-stamp` in `css/app.css`, `jotTarget` and `renderToast`'s optional action in `js/render.js`, stamp painting in `paintHeaderControls`, submit, `open-added-task` and `ui.jotTo`/`ui.noticeAction` in `js/app.js`. Tests: `js/render.test.mjs` (target resolution, toast action) and the jotter steps in `scripts/check-add-row-browser.mjs`; screenshots `docs/generated/quick-add/built-jotter-*.png` (native select open is not capturable, so shown chosen with the notice).
 #241: `renderBoard` in `js/board-view.js` puts `renderAddTaskRow` above Up next when one project is
 chosen (tests in `js/board-view.test.mjs`; Board steps in the browser check below; screenshots
 `docs/generated/quick-add/built-board-*.png`).

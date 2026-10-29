@@ -204,6 +204,12 @@ a{color:inherit;}
   flex:none; min-height:36px; padding:4px 14px; border:1.5px solid var(--paper-ink); border-radius:3px; background:transparent;
   color:var(--paper-ink); font:700 var(--text-sm) var(--font-paper); white-space:nowrap; transform:rotate(-1.5deg);
 }
+.to-stamp{
+  flex:0 1 auto; min-width:0; max-width:9.5em; min-height:36px; padding:4px 6px; border:1.5px dashed var(--paper-ink); border-radius:3px; background:transparent;
+  color:var(--paper-ink); font:700 var(--text-sm) var(--font-paper); text-overflow:ellipsis; transform:rotate(1deg);
+}
+.to-stamp option{color:initial;}
+.toast-action{flex:none;}
 .jot-add:active{transform:rotate(-1.5deg) translateY(2px);}
 
 /* The topbar sync icon, settings icon and Projects drawer toggle (index.html, outside #app). See
