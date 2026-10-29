@@ -13,7 +13,10 @@ way gets the same fields, sort order and GitHub issue.
 
 ## Status
 
-**#240 (project-card row) built; #241 (Board row) and #242 (jotter stamp) still planned.** Tracked by #239.
+**#240 (project-card row) and #241 (Board row) built; #242 (jotter stamp) still planned.** Tracked by #239.
+#241: `renderBoard` in `js/board-view.js` puts `renderAddTaskRow` above Up next when one project is
+chosen (tests in `js/board-view.test.mjs`; Board steps in the browser check below; screenshots
+`docs/generated/quick-add/built-board-*.png`).
 Built in `js/render.js` (`renderAddTaskRow`, `renderProjectCard`), `js/app.js` (`toggle-add-more`,
 `ui.addDraft`, `focusAddTitle`, focus restore in `paint()`) and `css/app.css` (`.add-row`). Tests:
 `js/add-row.test.mjs`, `js/render.test.mjs`, and `scripts/check-add-row-browser.mjs` (real Chromium,

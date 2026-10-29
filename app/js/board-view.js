@@ -10,6 +10,7 @@ import { boardList } from './board.js';
 import { getChunk, getColourBy } from './comfort.js';
 import { cardKey, NO_CATEGORY, PRIORITY_COLOURS } from './card-key.js';
 import { renderTaskDetails } from './task-details.js';
+import { renderAddTaskRow } from './render.js';
 import { tieSummary, tieLineHtml, subtasksOf } from './task-links.js';
 
 export const BOARD_COLS = ['next', 'doing', 'done'];
@@ -96,6 +97,11 @@ export function renderBoard(st, ui, now = Date.now()) {
   const cards = tasks.slice(0, limit).map((t) => card(t, owner.get(t.id), st, !!narrowedTo, t.id === selected, now)).join('');
   const empty = '<p class="calm-empty">' + (find || active || narrowedTo ? 'Nothing matches. Clear the search or filters to see more.' : COL_INFO[tab].empty) + '</p>';
   const left = tasks.length - limit;
+  // With one project chosen, Up next gets that project's add row: type and add, nothing to pick
+  // (#241, docs/4-systems/quick-add.md). New tasks land in Up next, so the other tabs don't get it.
+  const addRow = narrowedTo && tab === 'next'
+    ? renderAddTaskRow(narrowedTo, st.categories || [], !!(ui.addingTask || {})[narrowedTo.id], (ui.addDraft || {})[narrowedTo.id] || '', 'Add a task to ' + narrowedTo.name + '…')
+    : '';
   const projColor = narrowedTo ? esc(narrowedTo.color || 'var(--accent)') : '';
   const heading = narrowedTo
     ? '<h2 class="board-title is-project" style="--proj-color:' + projColor + '"><span class="board-title-name"><i aria-hidden="true"></i>' + esc(narrowedTo.name) + '</span><span class="board-title-sub">Board · one project</span></h2>'
@@ -106,7 +112,7 @@ export function renderBoard(st, ui, now = Date.now()) {
     + projects.map((p) => '<option value="' + esc(p.id) + '"' + (narrowedTo && narrowedTo.id === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>').join('') + '</select>'
     + '<button type="button" class="btn ghost calm-btn' + (open ? ' on' : '') + '" data-action="board-filter" aria-expanded="' + open + '">Filter' + (active ? ' (' + active + ')' : '') + '</button></div>'
     + drawer + '<div class="calm-tabs" role="tablist">' + tabs + '</div>'
-    + '<div class="calm-cards">' + (cards || empty) + '</div>'
+    + addRow + '<div class="calm-cards">' + (cards || empty) + '</div>'
     + (left > 0 ? '<button type="button" class="btn-text calm-more" data-action="board-more">Show ' + Math.min(chunk, left) + ' more (' + left + ' left)</button>' : '')
     + '</section>' + (selected ? renderTaskDetails(st, ui, selected, now) : '<aside class="cw-detail"><p class="calm-meta">' + EMPTY_PANEL + '</p></aside>') + '</div>';
 }

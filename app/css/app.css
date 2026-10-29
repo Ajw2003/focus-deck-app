@@ -982,6 +982,7 @@ body.is-dragging-task .empty-note{display:none;}
 .add-row .add-plus{color:var(--ink-soft); font-weight:700;}
 .add-task-form.add-row .add-line input[type="text"]{flex:1 1 0; min-width:0; border:none; background:transparent; padding:6px 4px; outline-offset:2px;}
 .add-task-form.add-row .add-line .btn-text{background:none; color:var(--ink-soft); padding:6px 8px; font-weight:600;}
+.screen-board .add-task-form.add-row{margin:0 0 10px;}
 .add-row .add-more{flex:1 1 100%; display:flex; flex-wrap:wrap; gap:6px; padding-top:8px; border-top:1px dashed var(--line);}
 
 /* The project Edit panel: a slip tucked in the folder. */

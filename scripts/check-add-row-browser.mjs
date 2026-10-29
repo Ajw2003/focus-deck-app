@@ -125,6 +125,33 @@ for (const size of ['phone', 'desktop']) {
     check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
     await page.$eval(ROW, (e) => { e.scrollIntoView({ block: 'center' }); });
     await page.screenshot({ path: OUT + `built-row-${size}-${scheme}.png` });
+
+    // The Board (#241): no row with Project: All; choose School and the row adds to School
+    await page.fill(TITLE, '');
+    await page.dispatchEvent(TITLE, 'input');
+    await page.click('[data-action="set-screen"][data-screen="board"]');
+    await page.waitForSelector('[data-action="board-project-select"]');
+    check(`${tag} Board with Project: All has no add row`, !(await page.$('.screen-board .add-row')));
+    await page.selectOption('[data-action="board-project-select"]', 'pSchool');
+    const BOARD_TITLE = '.screen-board .add-row[data-project="pSchool"] input[name="title"]';
+    await page.waitForSelector(BOARD_TITLE);
+    check(`${tag} Board with School chosen shows "Add a task to School…"`, (await page.getAttribute(BOARD_TITLE, 'placeholder')) === 'Add a task to School…');
+    await page.click(BOARD_TITLE);
+    await page.keyboard.type('Print the reading list');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(200);
+    const school = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)).projects.find((p) => p.id === 'pSchool').tasks, STATE_KEY);
+    check(`${tag} Enter on the Board adds to School's Up next`, school.some((t) => t.title === 'Print the reading list' && t.status === 'next'));
+    check(`${tag} the new task shows in the Board list`, (await page.textContent('.calm-cards')).includes('Print the reading list'));
+    check(`${tag} the Board's box is empty and focused`, await page.evaluate((sel) => document.activeElement === document.querySelector(sel) && document.activeElement.value === '', BOARD_TITLE));
+    await page.click('[data-action="board-col"][data-col="doing"]');
+    await page.waitForTimeout(100);
+    check(`${tag} no add row on In progress`, !(await page.$('.screen-board .add-row')));
+    await page.click('[data-action="board-col"][data-col="next"]');
+    await page.waitForSelector(BOARD_TITLE);
+    const boardWide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    check(`${tag} Board: no sideways page scroll`, boardWide <= 0, 'overflow ' + boardWide + 'px');
+    await page.screenshot({ path: OUT + `built-board-${size}-${scheme}.png` });
     await ctx.close();
   }
 }
