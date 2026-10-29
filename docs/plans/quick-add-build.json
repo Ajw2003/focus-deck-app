@@ -1,0 +1,33 @@
+{
+ "title": "Add a Task Build Plan",
+ "eyebrow": "Build plan for approval · issues #239, #240, #241 and #242",
+ "approval": "Build plan approved: add a task anywhere",
+ "short": {
+  "lead": "This builds the design you approved: one-line add rows on the project cards and the Board, with the 'More' button kept, and a 'To: Unsorted ▾' stamp on the jotter that can send a task straight to a project. The work goes on the branch ccr-bfad8420-d02at0 in three steps, one issue each. Each step ends with the automatic tests and a check in a real browser at a phone width and at a computer width.",
+  "hint": "Tap a step to see what it does.",
+  "key": [["Built by me", ""], ["You decide", "you"]],
+  "items": [
+   ["list", "Step 1", "Add row on project cards (#240)", "", "The five-box '+ Add task' form becomes an always-visible one-line row: type, then press Enter or Add. 'More' opens the task's own steps, priority, due date and labels underneath. A half-typed title survives a sync, which fixes the text loss you reported in issue #235. After adding, the box empties and stays ready for the next task.", "Nothing from you.",
+    {"src": "docs/generated/quick-add/slim-1440.png", "alt": "A project card with a one-line add row: Add a task, More and Add buttons", "caption": "Step 1, as approved."}],
+   ["list", "Step 2", "The same row on the Board (#241)", "", "When you choose a project in the Board's project filter, the row appears above Up next and adds to that project. With 'Project: All', or on the other tabs, it is hidden.", "Nothing from you.",
+    {"src": "docs/generated/quick-add/d-board-home-390.png", "alt": "The phone Board showing Home with an Add a task to Home row", "caption": "Step 2, as approved."}],
+   ["list", "Step 3", "The jotter's 'To: Unsorted ▾' stamp (#242)", "", "Left on Unsorted, the jotter works as today. Pick a project and the text becomes a task there, with an 'Added … to Home' notice and an Open button that shows the task on the Board. The stamp starts on the project you are looking at, if any. The phone shows its own list when you tap the stamp, rather than the list drawn in the round 1 design picture; the closed stamp looks the same.", "Nothing from you.",
+    {"src": "docs/generated/quick-add/a-menu-390.png", "alt": "The jotter's stamp open on a phone, listing projects", "caption": "Step 3, as approved (the stamp will say Unsorted, not Tray)."}],
+   ["check", "Approve", "Reply to approve", "you", "The build starts when you send your approval. After step 3 I hand it to you with a test page.", "Reply \"Build plan approved: add a task anywhere\", or say what to change."]
+  ]
+ },
+ "changes": [
+  ["chg", "Project cards", "The add form becomes a one-line row with More.", null, "Changed: `app/js/render.js`, `app/js/app.js`, `app/css/app.css` and their tests. Kept: every box the old form had (title, steps, priority, due date and its stage step, labels) and the GitHub issue a GitHub project's task gets. Dropped: the '+ Add task' link and the Cancel button, because the row is always there; Escape closes More."],
+  ["chg", "Board", "Gains the add row when one project is chosen.", null, "Changed: `app/js/board-view.js` and its tests."],
+  ["chg", "The jotter", "Gains the 'To: Unsorted ▾' stamp.", null, "Changed: `app/index.html`, `app/js/app.js`, `app/css/app.css`."],
+  ["keep", "Unsorted and the Sort screen", "No change.", null, "A thought jotted with the stamp left on Unsorted goes to the Sort screen as it does today."]
+ ],
+ "choices": [],
+ "wrapup": {
+  "summary": "Three steps add the one-line add rows and the jotter's stamp, then hand the build to you to test.",
+  "changing": "What changes is the project cards' add form, the Board and the jotter. What stays the same is Unsorted, the Sort screen and every task field.",
+  "blocking": "Waiting on your reply: \"Build plan approved: add a task anywhere\".",
+  "next": "Once you approve, I build the three steps in order, push each to ccr-bfad8420-d02at0, and send you a test page with screenshots.",
+  "todo": ["Read the three steps.", "If you are happy, send the approval phrase above. If not, say what to change."]
+ }
+}
