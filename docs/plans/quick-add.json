@@ -1,0 +1,44 @@
+{
+ "title": "Add a Task Anywhere",
+ "eyebrow": "Design for approval · nothing built yet",
+ "approval": "Design approved: add a task anywhere",
+ "short": {
+  "lead": "Today a task can only be added from the Projects screen: open a project card, scroll to the bottom, tap '+ Add task', and fill a form with five boxes (title, steps, priority, date, labels). The Focus, Sort and Board screens have no way in. What every screen already shares is the jotter, the 'Jot down a stray thought…' strip at the top, but it only drops thoughts into the tray on the Sort screen. Three options follow. Each one is mocked on the real app with the sample task 'Ring the plumber about the boiler' going into the Home project.",
+  "hint": "Tap Today or an option to see its picture.",
+  "key": [["Built by me", ""], ["You decide", "you"]],
+  "items": [
+   ["bulb", "Today", "Projects screen only", "", "The '+ Add task' link sits at the bottom of each project card and opens a five-box form. No other screen can add a task straight to a project.", "Nothing from you.",
+    {"src": "docs/generated/quick-add/before-projects-form-1440.png", "alt": "The Projects screen with the add-task form open: title, steps, priority, date, labels, a plus button and Cancel", "caption": "Today: the form at the foot of a project card."}],
+   ["list", "Option A", "The jotter picks a project", "you", "The jotter gets a small dashed 'To: Tray ▾' stamp beside Add. Left alone, it works exactly as now. Pick a project and Add becomes 'Add task', and the task goes straight into that project's Up next. A notice confirms it, with an Open button that shows the task's details so you can add a date or labels. When you are looking at one project (the Projects screen's 'One project' view, or the Board filtered to a project) the stamp starts on that project. Nothing new is added to the screens themselves.", "Look at the stamp, the project list it opens and the notice.",
+    {"src": "docs/generated/quick-add/a-menu-390.png", "alt": "The phone Board screen with the jotter's To: Tray stamp open, listing Tray and the projects", "caption": "Option A on a phone, picking a project."}],
+   ["list", "Option B", "A 'New task' card", "you", "A '+ New task' button sits at the top of the side rail on a computer and in the top bar on a phone. It opens a card in the same style as the app's existing 'Move this task?' card: the task, a project picker, and a 'More' line that opens steps, priority, due date and labels. The same card replaces the form on the project cards, so there is one way to add a task everywhere.", "Look at the card over the Board screen.",
+    {"src": "docs/generated/quick-add/b-1440.png", "alt": "A New task card over the Board screen with Task, Project and More fields, Cancel and Add task buttons", "caption": "Option B on a computer."}],
+   ["list", "Option C", "An add row on the Board", "you", "The Board's Up next list gets a dashed 'Add a task…' row at the top with a project picker at its end. The Projects card keeps its own form. Focus and Sort get nothing, so this only covers two of the four screens.", "Look at the dashed row above the first card.",
+    {"src": "docs/generated/quick-add/c-1440.png", "alt": "The Board screen with a dashed add-a-task row and a Home project picker above the first task", "caption": "Option C on a computer."}]
+  ]
+ },
+ "changes": [
+  ["chg", "Adding a task", "Possible from every screen (A, B) or from the Board too (C).", null, "Every option files the task into the project's Up next, just as the Projects form does now."],
+  ["chg", "The '+ Add task' form on project cards", "Slimmer, or replaced by the card in option B.", {"src": "docs/generated/quick-add/slim-1440.png", "alt": "A project card with a one-line add row: Add a task, More and Add buttons", "caption": "The slimmer form: one line, with More for the rest."}, "See the second question under Choices."],
+  ["keep", "The jotter's tray", "Still the default in option A.", null, "Jotting a stray thought to sort later works exactly as today in every option."],
+  ["keep", "Steps, priority, dates and labels", "Still available.", null, "They move behind a 'More' line or into the task's details, but none is removed."]
+ ],
+ "choices": [
+  ["where", "How should you add a task from any screen?", [
+    ["A", "The jotter picks a project", 1, "It reuses the strip already on every screen, adds one small control, and keeps quick capture to one line."],
+    ["B", "A 'New task' card", 0, "It gives the most room for details up front, but adds a new button and a pop-up card."],
+    ["C", "An add row on the Board", 0, "It is the smallest change, but Focus and Sort still have no way in."]
+   ], "I suggest A because the jotter is already on every screen and already where you type things in, so it only needs to learn where to put them."],
+  ["form", "What should happen to the '+ Add task' form at the foot of each project card?", [
+    ["1", "Slim it to one line", 1, "Type a title and press Enter; a 'More' button opens steps, priority, date and labels."],
+    ["2", "Leave it as it is", 0, "Nothing changes on the Projects screen."]
+   ], "I suggest the slim line because you called the current form obtuse, and the slim row matches the look of the new ways in. If you pick option B above, the card replaces this form instead and this question falls away."]
+ ],
+ "wrapup": {
+  "summary": "You will be able to add a task straight to a chosen project from any screen. I suggest teaching the jotter to pick a project, and slimming the project card's form to one line.",
+  "changing": "Changed: the jotter (A), a new button and card (B) or the Board (C), and the project card's add form. Kept: the tray, and every task field.",
+  "blocking": "I am waiting for your answers to both questions under Choices. Nothing is built until you approve.",
+  "next": "After you approve, I will open a parent issue with one child issue per step, build it with tests on the branch ccr-bfad8420-d02at0, screenshot it on a phone and a computer, and hand it to you for a test.",
+  "todo": ["Look at the pictures.", "Pick an answer to each question under Choices.", "Tap <b>Copy my reply</b> and send it, or say what to change."]
+ }
+}
