@@ -1,0 +1,134 @@
+// scripts/check-add-row-browser.mjs -- real-Chromium check of the one-line add row on project cards
+// (#240, docs/4-systems/quick-add.md), at phone (390x844) and desktop (1440x900) widths in dark and
+// light: Enter adds a title-only task and leaves the box empty and focused; "More" opens the other
+// boxes and a task added with them keeps its priority and date; Escape closes "More"; a half-typed
+// title survives a repaint caused by another tab saving (the path a sync takes, #235).
+// Usage: node scripts/check-add-row-browser.mjs [out-dir]   (CHROMIUM=... to pick a browser binary)
+// Serves the repo root itself on 127.0.0.1:8147 for the length of the run. Screenshots go to the
+// out-dir (default docs/generated/quick-add/).
+import { createRequire } from 'node:module';
+import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { fileURLToPath } from 'node:url';
+import { join, extname, normalize, resolve } from 'node:path';
+const require = createRequire('/opt/node22/lib/node_modules/');
+const { chromium } = require('playwright');
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
+const OUT = resolve(process.argv[2] || join(ROOT, 'docs/generated/quick-add/')) + '/';
+mkdirSync(OUT, { recursive: true });
+const BASE = 'http://127.0.0.1:8147/app/';
+const STATE_KEY = 'focusdeck-state-v1';
+
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
+const server = createServer((req, res) => {
+  const rel = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^[/\\]+/, '');
+  let file = join(ROOT, rel);
+  if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
+  if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
+  if (!existsSync(file)) { res.writeHead(404); return res.end(); }
+  res.writeHead(200, { 'Content-Type': TYPES[extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
+  res.end(readFileSync(file));
+});
+await new Promise((ok) => server.listen(8147, '127.0.0.1', ok));
+
+const day = 86400000;
+const iso = (offsetDays) => new Date(Date.now() + offsetDays * day).toISOString().slice(0, 10);
+const task = (id, title) => ({ id, title, status: 'next', categoryIds: [], priority: null, sortOrder: 0 });
+const seed = () => ({
+  projects: [
+    { id: 'pHome', name: 'Home', color: '#3E8E5E', tasks: [task('h1', 'Recycling out on Thursday'), task('h2', 'Hallway photos')] },
+    { id: 'pSchool', name: 'School', color: '#4D6FB8', tasks: [task('s1', 'Read chapter 4')] },
+  ],
+  categories: [{ id: 'c_chore', name: 'Chore', color: '#3E8E5E' }],
+  inbox: [], completedLog: [], deletedTaskIds: [],
+});
+
+const results = [];
+const check = (name, ok, extra = '') => { results.push(ok); console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  [' + extra + ']' : '')); };
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM, args: ['--no-sandbox'] });
+const SIZES = { phone: { width: 390, height: 844 }, desktop: { width: 1440, height: 900 } };
+const ROW = '.add-row[data-project="pHome"]';
+const TITLE = ROW + ' input[name="title"]';
+const homeTasks = (page) => page.evaluate((k) => JSON.parse(localStorage.getItem(k)).projects.find((p) => p.id === 'pHome').tasks, STATE_KEY);
+
+for (const size of ['phone', 'desktop']) {
+  for (const scheme of ['light', 'dark']) {
+    const tag = `[${size}/${scheme}]`;
+    const ctx = await browser.newContext({ viewport: SIZES[size], colorScheme: scheme, serviceWorkers: 'block', hasTouch: size === 'phone' });
+    await ctx.addInitScript(([s, key]) => {
+      localStorage.setItem('focusdeck-onboarding', 'done');
+      if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'projects');
+      if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
+      if (!localStorage.getItem('focusdeck-project-view')) localStorage.setItem('focusdeck-project-view', 'all');
+    }, [seed(), STATE_KEY]);
+    const page = await ctx.newPage();
+    page.on('pageerror', (e) => check(`${tag} no page error: ` + e.message, false));
+    await page.goto(BASE);
+    await page.waitForSelector(TITLE);
+
+    check(`${tag} every card has an add row`, (await page.$$('.project-card .add-row')).length === 2);
+    check(`${tag} the old "+ Add task" link is gone`, !(await page.$('[data-action="open-add-task"]')));
+    check(`${tag} More starts closed`, !(await page.$(ROW + ' [name="steps"]')));
+
+    // Title only: type, Enter, the task lands in Home's Up next and the box is empty and focused
+    await page.click(TITLE);
+    await page.keyboard.type('Ring the plumber');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(200);
+    let tasks = await homeTasks(page);
+    const added = tasks.find((t) => t.title === 'Ring the plumber');
+    check(`${tag} Enter adds the task to Home's Up next`, !!added && added.status === 'next');
+    check(`${tag} the box is empty and still focused for the next one`, await page.evaluate((sel) => document.activeElement === document.querySelector(sel) && document.activeElement.value === '', TITLE));
+    check(`${tag} the new task shows on the card`, (await page.textContent('#proj-pHome')).includes('Ring the plumber'));
+
+    // More: priority and a due date go onto the task
+    await page.click(ROW + ' [data-action="toggle-add-more"]');
+    await page.waitForSelector(ROW + ' [name="steps"]');
+    check(`${tag} More opens steps, priority and due date`, !!(await page.$(ROW + ' [name="priority"]')) && !!(await page.$(ROW + ' [name="deadline"]')));
+    await page.fill(TITLE, 'Book the boiler service');
+    await page.selectOption(ROW + ' [name="priority"]', 'high');
+    await page.fill(ROW + ' [name="deadline"]', iso(4));
+    await page.dispatchEvent(ROW + ' [name="deadline"]', 'input');
+    await page.waitForTimeout(150);
+    await page.screenshot({ path: OUT + `built-row-more-${size}-${scheme}.png` });
+    await page.click(ROW + ' button[type="submit"]');
+    await page.waitForTimeout(200);
+    tasks = await homeTasks(page);
+    const detailed = tasks.find((t) => t.title === 'Book the boiler service');
+    check(`${tag} a task added with More keeps its priority and date`, !!detailed && detailed.priority === 'high' && detailed.deadline === iso(4));
+    check(`${tag} More closes after adding`, !(await page.$(ROW + ' [name="steps"]')));
+
+    // Escape closes More
+    await page.click(ROW + ' [data-action="toggle-add-more"]');
+    await page.waitForSelector(ROW + ' [name="steps"]');
+    await page.focus(TITLE);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(150);
+    check(`${tag} Escape closes More`, !(await page.$(ROW + ' [name="steps"]')));
+
+    // A half-typed title survives another tab saving (the storage event repaints this tab)
+    await page.click(TITLE);
+    await page.keyboard.type('Half-typed thought');
+    const other = await ctx.newPage();
+    await other.goto(BASE);
+    await other.waitForSelector('.add-row[data-project="pSchool"] input[name="title"]');
+    await other.fill('.add-row[data-project="pSchool"] input[name="title"]', 'From the other tab');
+    await other.press('.add-row[data-project="pSchool"] input[name="title"]', 'Enter');
+    await other.waitForTimeout(200);
+    await page.bringToFront();
+    await page.waitForFunction(() => (document.getElementById('proj-pSchool') || {}).textContent?.includes('From the other tab'), null, { timeout: 4000 }).catch(() => {});
+    check(`${tag} the other tab's task arrived (so this tab repainted)`, (await page.textContent('#proj-pSchool')).includes('From the other tab'));
+    check(`${tag} the half-typed title survived the repaint`, (await page.inputValue(TITLE)) === 'Half-typed thought');
+    await other.close();
+
+    const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
+    await page.$eval(ROW, (e) => { e.scrollIntoView({ block: 'center' }); });
+    await page.screenshot({ path: OUT + `built-row-${size}-${scheme}.png` });
+    await ctx.close();
+  }
+}
+await browser.close(); server.close();
+const failed = results.filter((r) => !r).length;
+console.log(`\n${results.length - failed}/${results.length} checks passed`);
+process.exit(failed ? 1 : 0);

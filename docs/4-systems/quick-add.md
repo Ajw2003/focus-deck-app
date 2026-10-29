@@ -13,7 +13,11 @@ way gets the same fields, sort order and GitHub issue.
 
 ## Status
 
-**Planned, not built.** Tracked by #239: #240 (project-card row), #241 (Board row), #242 (jotter stamp).
+**#240 (project-card row) built; #241 (Board row) and #242 (jotter stamp) still planned.** Tracked by #239.
+Built in `js/render.js` (`renderAddTaskRow`, `renderProjectCard`), `js/app.js` (`toggle-add-more`,
+`ui.addDraft`, `focusAddTitle`, focus restore in `paint()`) and `css/app.css` (`.add-row`). Tests:
+`js/add-row.test.mjs`, `js/render.test.mjs`, and `scripts/check-add-row-browser.mjs` (real Chromium,
+phone and desktop, light and dark). Screenshots: `docs/generated/quick-add/built-row-*.png`.
 
 ## The three entry points
 

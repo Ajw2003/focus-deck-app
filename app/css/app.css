@@ -576,7 +576,6 @@ button.chip.proj-chip:hover{background:var(--line);}
 .project-edit-panel{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 0; margin-bottom:10px; border-top:1px dashed var(--line); border-bottom:1px dashed var(--line); font-size:var(--text-sm);}
 .project-edit-cat{display:flex; align-items:center; gap:6px; color:var(--ink-soft); font-weight:600;}
 .project-edit-cat select{padding:5px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);}
-.add-task-toggle{margin-top:12px; color:var(--accent); font-weight:600;}
 .task-edit-actions{flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:4px 14px; font-size:var(--text-sm);}
 .task-edit-actions .link-btn{background:none; color:var(--accent); padding:2px 0; font-size:var(--text-sm);}
 .task-edit-actions a.link-btn{text-decoration:none;}
@@ -976,6 +975,14 @@ body.is-dragging-task .empty-note{display:none;}
   border-radius:4px 4px 8px 8px; padding:12px; margin:6px 0 8px; box-shadow:0 12px 20px -16px var(--paper-shadow);
 }
 .task-edit-form{border-top:2px solid var(--index-red);}
+
+/* The one-line add row on a project card (docs/4-systems/quick-add.md). */
+.add-task-form.add-row{background:var(--surface); border:1.5px dashed var(--line); border-radius:var(--r-control); padding:6px 8px; box-shadow:none; margin:10px 0 0; gap:8px;}
+.add-row .add-line{flex:1 1 100%; display:flex; align-items:center; gap:8px; min-width:0;}
+.add-row .add-plus{color:var(--ink-soft); font-weight:700;}
+.add-task-form.add-row .add-line input[type="text"]{flex:1 1 0; min-width:0; border:none; background:transparent; padding:6px 4px; outline-offset:2px;}
+.add-task-form.add-row .add-line .btn-text{background:none; color:var(--ink-soft); padding:6px 8px; font-weight:600;}
+.add-row .add-more{flex:1 1 100%; display:flex; flex-wrap:wrap; gap:6px; padding-top:8px; border-top:1px dashed var(--line);}
 
 /* The project Edit panel: a slip tucked in the folder. */
 .project-edit-panel{background:var(--surface-2); border:1px dashed var(--line); border-radius:6px; padding:10px 12px;}

@@ -174,7 +174,7 @@ export const ui = {
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectFilter: undefined, projectQuery: '', projectSort: loadProjectSort(), projectCollapsed: loadCollapsedProjects(),
-  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, unsorted: freshUnsortedScratch(), bulk: freshBulk(false),
+  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, addDraft: {}, unsorted: freshUnsortedScratch(), bulk: freshBulk(false),
   projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: resolveProjectView(loadProjectView(), isWideScreen()),
   // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
   // (Q30c) -- neither persisted, both reset to closed on load.
@@ -286,6 +286,15 @@ function paintHeaderControls() {
   if (projectsBtn) projectsBtn.setAttribute('aria-expanded', String(!!ui.projectsDrawerOpen));
 }
 
+// Puts focus (and caret, else the end) in a project's add-row title box.
+function focusAddTitle(projectId, caret) {
+  const el = document.querySelector('.add-row[data-project="' + CSS.escape(projectId) + '"] input[name="title"]');
+  if (!el) return;
+  el.focus();
+  const n = el.value.length;
+  el.setSelectionRange(caret ? caret.start : n, caret ? caret.end : n);
+}
+
 // A repaint mid-drag (a sync landing, say) would tear down the elements being dragged, so it waits
 // until the drag ends (js/project-drag.js calls onEnd, below).
 let paintWaitingOnDrag = false;
@@ -295,6 +304,8 @@ export function paint() {
   const scrollY = window.scrollY;
   const active = document.activeElement;
   // the one project search box (the sidebar/drawer's)
+  const addPid = active && active.matches && active.matches('.add-row input[name="title"]') ? active.closest('.add-row').getAttribute('data-project') : null;
+  const addCaret = addPid ? { start: active.selectionStart, end: active.selectionEnd } : null;
   const restoreSearch = active && active.matches && active.matches('.project-search, .board-find')
     ? { start: active.selectionStart, end: active.selectionEnd }
     : null;
@@ -303,6 +314,7 @@ export function paint() {
   mountWallets(document.getElementById('app'), walletHooks);
   growAll();
   window.scrollTo(0, scrollY);
+  if (addPid) focusAddTitle(addPid, addCaret);
   if (restoreSearch) {
     const el = document.querySelector(active.matches('.board-find') ? '.board-find' : '.project-search');
     if (el) { el.focus(); el.setSelectionRange(restoreSearch.start, restoreSearch.end); }
@@ -319,6 +331,7 @@ function autoGrow(box) {
   box.style.height = 'auto';
   box.style.height = box.scrollHeight + 'px';
 }
+document.addEventListener('input', (e) => { if (e.target.matches && e.target.matches('.add-row input[name="title"]')) ui.addDraft[e.target.closest('.add-row').getAttribute('data-project')] = e.target.value; });
 document.addEventListener('input', (e) => { if (e.target.matches && e.target.matches(GROWING_BOXES)) autoGrow(e.target); });
 function growAll() { document.querySelectorAll(GROWING_BOXES).forEach(autoGrow); }
 
@@ -638,8 +651,7 @@ function onAppClick(e) {
       paint();
     });
   }
-  else if (action === 'open-add-task') { ui.addingTask[projectId] = true; paint(); scrollOpenedFormIntoView('.add-task-form'); }
-  else if (action === 'cancel-add-task') { delete ui.addingTask[projectId]; paint(); }
+  else if (action === 'toggle-add-more') { if (ui.addingTask[projectId]) delete ui.addingTask[projectId]; else ui.addingTask[projectId] = true; paint(); focusAddTitle(projectId); if (ui.addingTask[projectId]) scrollOpenedFormIntoView('.add-row[data-project="' + CSS.escape(projectId) + '"]'); }
   else if (action === 'dismiss-toast') {
     if (ui.syncError === storageProblem) ui.storageProblemDismissed = true;
     ui.syncError = null;
@@ -1209,8 +1221,11 @@ function onAppSubmit(e) {
     e.preventDefault();
     const fd = new FormData(addTaskForm);
     const projectId = addTaskForm.getAttribute('data-project');
+    if (!String(fd.get('title') || '').trim()) return;
     const task = M.addTask(projectId, fd.get('title'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'), dueStagesFromForm(fd));
     createIssueIfGithubProject(task, projectId);
+    delete ui.addDraft[projectId]; delete ui.addingTask[projectId];
+    paint(); focusAddTitle(projectId);
     return;
   }
   // The "+ New" panel's "New project" tab (Q29a): a plain name, no category -- set afterward
@@ -1320,10 +1335,11 @@ function onAppKeydown(e) {
     paint();
     scrollOpenedFormIntoView('.task-edit-form');
   }
-  // Escape collapses a project's open "+ Add task" form while focus is inside it (Q3b).
+  // Escape closes a project's add row's "More" boxes while focus is inside the row (Q3b, #240).
   if (e.key === 'Escape') {
     const form = e.target.closest && e.target.closest('.add-task-form');
-    if (form) { delete ui.addingTask[form.getAttribute('data-project')]; paint(); }
+    const pid = form && form.getAttribute('data-project');
+    if (form && ui.addingTask[pid]) { delete ui.addingTask[pid]; paint(); focusAddTitle(pid); }
   }
   // Escape inside the "+ New" panel closes it and returns focus to "+ New" (Q29a).
   // Each Escape closes only the innermost thing: stopPropagation keeps it from also reaching the
@@ -1377,7 +1393,7 @@ function scrollProjectAfterPaint(projectId) {
   if (target) scrollProjectIntoView(target);
 }
 
-// Opening a row's editor or a project's "+ Add task" form should bring it into view within its own
+// Opening a row's editor or a project's add row's "More" boxes should bring it into view within its own
 // tile at >=1100px, not just onto the page (Q26a, #82) -- `block:'nearest'` does that and is a no-op
 // below 1100px, where the tile isn't its own scroll container. Runs after the paint that put the
 // form in the DOM.
