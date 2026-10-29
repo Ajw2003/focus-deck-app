@@ -18,15 +18,15 @@ way gets the same fields, sort order and GitHub issue.
 ## The three entry points
 
 1. **The jotter's "To:" stamp** (`index.html`, `js/app.js`, `css/app.css`). A native `<select>`
-   styled as a dashed paper stamp beside Add: first option "Tray", then every project. A native
+   styled as a dashed paper stamp beside Add: first option "Unsorted" (the stamp reads "To: Unsorted ▾"; aj chose that word over "Tray" because it names where to find the thought, the Sort screen), then every project. A native
    select is used instead of the mocked pop-up list because the phone's own picker is accessible
    and needs no extra code; the closed stamp looks the same as the mock.
-   - On "Tray" the jotter calls `M.addCapture` exactly as before.
+   - On "Unsorted" the jotter calls `M.addCapture` exactly as before.
    - On a project, Add reads "Add task" and the text becomes a task in that project's Up next. A
      notice says `Added "<title>" to <project>` with an Open button, which goes to the Board
      narrowed to that project with the new task selected.
    - Until you change it, the stamp follows what you are looking at: the Board's chosen project,
-     or the selected project in the Projects screen's "One project" view, else Tray. Your own
+     or the selected project in the Projects screen's "One project" view, else Unsorted. Your own
      choice holds until you change screen (`ui.jotTo`; `undefined` means "follow").
 2. **The Board's add row** (`js/board-view.js`). Shown only when the Board's project filter has
    one project chosen, and only on the Up next tab, since that is where a new task lands. Reads
@@ -48,7 +48,7 @@ closes More. After Add, the title box empties and keeps focus so you can add the
   restored after `paint()`. The jotter is outside `#app`, so it is already safe.
 - The jotter sits in `index.html`, outside `#app`, so `paint()` must update the stamp's options and
   value itself; a project renamed or deleted must not leave a stale option selected (fall back to
-  Tray).
+  Unsorted).
 - Title-only submits must still pass an empty deadline, labels and steps to `M.addTask`, exactly as
   the old form did when its boxes were left blank.
 - The style contract test (`js/style-contract.test.mjs`) checks that every class the markup uses
