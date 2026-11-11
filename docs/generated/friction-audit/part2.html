@@ -321,6 +321,85 @@
 <div class="ms" style="--c:#C9584F"><b>Focus Deck · Tidy up, Triage, Roadmap</b>0 of 9<div class="pbar"><i style="width:0"></i></div></div>
 <div class="lbl">Later · 6 groups ›</div></div>
 <div class="tag u" style="left:150px; top:680px">On a phone: one column, Now first</div><div class="mk-nav"><div>Start</div><div>Focus</div><div>Sort</div><div>Board</div><div class="on">Plan</div></div></div></section>
+<style>
+ .ab{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:0 0 14px;}
+ .ac{border:1.5px solid var(--line); border-radius:999px; padding:6px 12px; font-weight:700; font-size:var(--text-sm); background:var(--surface); display:flex; align-items:center; gap:6px; color:var(--ink);}
+ .ac::before{content:""; width:9px; height:9px; border-radius:50%; background:var(--c,var(--ink-faint));}
+ .ac.on{background:var(--c); border-color:var(--c); color:#fff;} .ac.on::before{background:#fff;}
+ .ac.plain::before{display:none;}
+ .seg{display:inline-flex; border:1.5px solid var(--ink); border-radius:10px; overflow:hidden; font-weight:700; font-size:var(--text-sm);} .seg span{padding:7px 12px;} .seg .on{background:var(--ink); color:#fff;}
+ .arow{display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--line); font-size:var(--text-body);}
+ .arow .sw{width:14px; height:14px; border-radius:50%; background:var(--c);} .arow .n{margin-left:auto; color:var(--ink-faint); font-size:var(--text-sm);} .arow .ed{color:var(--ink-faint); font-size:var(--text-sm); font-weight:700;}
+ .arow.sel{background:color-mix(in srgb,var(--c) 12%,transparent); border-radius:10px; font-weight:700;}
+ .pch{display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid var(--line); font-size:var(--text-body);} .pch .mv{margin-left:auto; border:1px solid var(--line); border-radius:8px; padding:4px 9px; font-size:var(--text-sm); font-weight:700; background:var(--surface-2);}
+ .tl{font-size:var(--text-sm); padding:5px 0; border-top:1px solid var(--line); display:flex; gap:8px;} .tl .why{margin:0 0 0 auto; padding:1px 8px;}
+</style>
+<section class="pic" id="areas-settings"><div class="phone"><div class="mk-top"><div class="mk-brand">Focus Deck</div></div><div style="padding:0 16px">
+<div class="keys">Settings ›</div><h2 class="mk-h" style="font-size:1.35rem">Areas</h2><p class="mk-sub" style="margin-bottom:6px">Each project belongs to one area. Pick an area anywhere in the app and you only see its projects.</p>
+<div class="arow" style="--c:#3F8F5E"><span class="sw"></span>Personal<span class="n">4 projects</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#8A6FB8"><span class="sw"></span>Lists<span class="n">3</span><span class="ed">Edit</span></div>
+<div class="arow sel" style="--c:#B9782E"><span class="sw"></span>Home<span class="n">4</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#C9584F"><span class="sw"></span>Apps<span class="n">6</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#2F8F8F"><span class="sw"></span>Games<span class="n">3</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#4D6A9A"><span class="sw"></span>Work<span class="n">2</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#4D6FB8"><span class="sw"></span>School<span class="n">2</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#8A90A0"><span class="sw"></span>Unsorted<span class="n">2</span><span class="ed" style="font-weight:600">fixed</span></div>
+<div class="arow" style="color:var(--accent); font-weight:700; border:none">+ Add an area</div>
+<div class="lbl" style="margin-top:4px">In Home</div>
+<div class="pch">To-do list<span class="mv">Move ▾</span></div><div class="pch">Room clean-up<span class="mv">Move ▾</span></div><div class="pch">Chores<span class="mv">Move ▾</span></div><div class="pch">Groceries<span class="mv">Move ▾</span></div>
+</div><div class="tag l" style="left:250px; top:370px">Your eight to start with; rename, recolour or add more</div></div></section>
+
+<section class="pic" id="roadmap-area"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div><div class="rail"><div>Start here</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div><div>Tidy up</div><div>Triage</div><div class="on">Roadmap</div></div><div style="width:1080px">
+<div class="ab"><span class="ac plain">All</span><span class="ac" style="--c:#3F8F5E">Personal</span><span class="ac" style="--c:#8A6FB8">Lists</span><span class="ac on" style="--c:#B9782E">Home</span><span class="ac" style="--c:#C9584F">Apps</span><span class="ac" style="--c:#2F8F8F">Games</span><span class="ac" style="--c:#4D6A9A">Work</span><span class="ac" style="--c:#4D6FB8">School</span><span class="ac" style="--c:#8A90A0">Unsorted</span><span style="margin-left:auto" class="seg"><span class="on">Whole area</span><span>One project</span></span></div>
+<div style="display:flex; justify-content:space-between; align-items:flex-end"><div><h2 class="mk-h">Roadmap: Home</h2><p class="mk-sub" style="margin:0">Only Home projects. Apps, Games and the rest are hidden.</p></div>
+<div style="text-align:right"><div class="big">55%</div><div class="keys">of Home work since 1 Nov is done · 12 of 22</div></div></div>
+<div class="meter" style="margin:12px 0 20px"><b style="flex:12; background:#B9782E"></b><i style="flex:10; background:var(--surface-2)"></i></div>
+<div class="rm"><div></div><div class="h">Now</div><div class="h">Next</div><div class="h">Later</div>
+<div class="pj" style="--c:#B9782E"><b>Room clean-up</b><span class="keys">5 of 9 done</span></div>
+<div class="ms" style="--c:#B9782E"><b>Desk and shelves</b>3 of 4 tasks<div class="pbar"><i style="width:75%"></i></div></div><div class="ms" style="--c:#B9782E"><b>Wardrobe</b>0 of 3<div class="pbar"><i style="width:0"></i></div></div><div class="ms" style="--c:#B9782E"><b>Under the bed</b>0 of 2<div class="pbar"><i style="width:0"></i></div></div>
+<div class="pj" style="--c:#B9782E"><b>Chores</b><span class="keys">4 of 7 done</span></div>
+<div class="ms" style="--c:#B9782E"><b>This week's chores</b>4 of 6<div class="pbar"><i style="width:66%"></i></div></div><div class="ms" style="--c:#B9782E"><b>Fix the tap</b>0 of 1<div class="pbar"><i style="width:0"></i></div></div><div></div>
+<div class="pj" style="--c:#B9782E"><b>To-do list</b><span class="keys">3 of 6 done</span></div>
+<div class="ms" style="--c:#B9782E"><b>Book the dentist</b>0 of 1<div class="pbar"><i style="width:0"></i></div></div><div></div><div class="ms" style="--c:#B9782E"><b>Sort old cables</b>0 of 2<div class="pbar"><i style="width:0"></i></div></div>
+</div><p class="keys" style="margin-top:14px">Showing 3 of 4 Home projects: the ones with work in Now come first. <b style="color:var(--accent)">Show all 4</b></p>
+</div><div class="tag u" style="left:1050px; top:140px">Pick an area; the rest disappear</div><div class="tag u" style="left:600px; top:770px">At most 5 rows at once, busiest first</div></div></section>
+
+<section class="pic" id="roadmap-one"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div><div class="rail"><div>Start here</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div><div>Tidy up</div><div>Triage</div><div class="on">Roadmap</div></div><div style="width:1080px">
+<div class="ab"><span class="ac plain">All</span><span class="ac" style="--c:#3F8F5E">Personal</span><span class="ac" style="--c:#8A6FB8">Lists</span><span class="ac" style="--c:#B9782E">Home</span><span class="ac on" style="--c:#C9584F">Apps</span><span class="ac" style="--c:#2F8F8F">Games</span><span class="ac" style="--c:#4D6A9A">Work</span><span class="ac" style="--c:#4D6FB8">School</span><span class="ac" style="--c:#8A90A0">Unsorted</span><span style="margin-left:auto" class="seg"><span>Whole area</span><span class="on">One project</span></span></div>
+<div style="display:flex; justify-content:space-between; align-items:flex-end"><div><div class="keys" style="margin-bottom:4px"><kbd>←</kbd> AjsClaudeCodeTools · Unblocked <kbd>→</kbd> &nbsp;2 of 6 in Apps</div><h2 class="mk-h">Roadmap: Focus Deck</h2></div>
+<div style="text-align:right"><div class="big">48%</div><div class="keys">11 of 23 done</div></div></div>
+<div class="meter" style="margin:12px 0 20px"><b style="flex:11; background:#C9584F"></b><i style="flex:12; background:var(--surface-2)"></i></div>
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px" ><div><div class="h lbl" style="margin-top:0">Now</div>
+<div class="ms" style="--c:#C9584F"><b>Start here screen</b>3 of 5 tasks<div class="pbar"><i style="width:60%"></i></div>
+<div class="tl" style="margin-top:8px">✓ Three suggestions</div><div class="tl">✓ Pick one for me</div><div class="tl">✓ Tab on the phone</div><div class="tl">Open on Start here <span class="why go">In progress</span></div><div class="tl">Test on phone</div></div></div>
+<div><div class="lbl" style="margin-top:0">Next</div><div class="ms" style="--c:#C9584F"><b>Tidy up, Triage, Roadmap</b>0 of 9 tasks<div class="pbar"><i style="width:0"></i></div><div class="tl" style="margin-top:8px">Areas in Settings</div><div class="tl">Tidy up groups</div><div class="tl">Triage order</div><div class="tl" style="color:var(--ink-faint)">+ 6 more</div></div></div>
+<div><div class="lbl" style="margin-top:0">Later</div><div class="ms" style="--c:#C9584F"><b>Android app</b>0 of 6<div class="pbar"><i style="width:0"></i></div></div></div></div>
+</div><div class="tag u" style="left:420px; top:225px">Arrow keys step to the next project in the area</div></div></section>
+
+<section class="pic" id="tidy-area"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div><div class="rail"><div>Start here</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div><div class="on">Tidy up</div><div>Triage</div><div>Roadmap</div></div><div style="width:1080px">
+<div class="ab"><span class="ac plain">All</span><span class="ac" style="--c:#3F8F5E">Personal</span><span class="ac" style="--c:#8A6FB8">Lists</span><span class="ac on" style="--c:#B9782E">Home</span><span class="ac" style="--c:#C9584F">Apps</span><span class="ac" style="--c:#2F8F8F">Games</span><span class="ac" style="--c:#4D6A9A">Work</span><span class="ac" style="--c:#4D6FB8">School</span><span class="ac" style="--c:#8A90A0">Unsorted</span></div>
+<div class="stage"><div class="on">1 · Tidy up Home</div><div>2 · Triage Home</div><div>3 · Roadmap Home</div></div>
+<div style="display:grid; grid-template-columns:1fr 300px; gap:24px; align-items:start"><div>
+<h2 class="mk-h">Tidy up: Home</h2><p class="mk-sub">Only Home tasks. Nothing from Apps or Games is in this list.</p>
+<div class="grp"><h4>Looks the same as another <small>2</small></h4><p>Similar titles. Pick one to keep and the other merges into it.</p>
+<div class="it" style="--c:#B9782E"><span class="dot"></span><div class="w">Buy bin bags · bin bags!!<small>Groceries and To-do list</small></div><div class="kb"><span class="k ksel">Merge</span></div></div></div>
+<div class="grp"><h4>Not touched in 60 days <small>5</small></h4><p>Still wanted? Keep moves it to Triage. Close puts it in a Closed list you can undo.</p>
+<div class="it" style="--c:#B9782E"><span class="dot"></span><div class="w">Repaint the skirting boards<small>Room clean-up · added 3 Aug</small></div><div class="kb"><span class="k">Keep</span><span class="c sel">Close</span></div></div>
+<div class="it" style="--c:#B9782E"><span class="dot"></span><div class="w">Sort old cables<small>To-do list · added 12 Jul</small></div><div class="kb"><span class="k ksel">Keep</span><span class="c">Close</span></div></div></div>
+</div><div class="panel"><h3>Open in Home</h3><div class="big">29 → 25</div><div class="meter" style="margin:10px 0"><b style="flex:25; background:#B9782E"></b><i style="flex:4"></i></div><p class="keys">4 marked to close. The other areas are not touched.</p><button class="addbtn">Confirm 4 and triage Home</button></div></div>
+</div><div class="tag u" style="left:640px; top:160px">The area carries through all three steps</div></div></section>
+
+<section class="pic" id="triage-area-phone"><div class="phone"><div class="mk-top"><div class="mk-brand">Focus Deck</div></div><div style="padding:0 16px">
+<div class="ab" style="flex-wrap:nowrap; overflow:hidden; margin-bottom:10px"><span class="ac plain">All</span><span class="ac" style="--c:#3F8F5E">Personal</span><span class="ac" style="--c:#8A6FB8">Lists</span><span class="ac on" style="--c:#B9782E">Home</span><span class="ac" style="--c:#C9584F">Apps</span><span class="ac" style="--c:#2F8F8F">Games</span></div>
+<div class="stage" style="margin-bottom:10px"><div class="done">Tidy ✓</div><div class="on">Triage</div><div>Roadmap</div></div>
+<h2 class="mk-h" style="font-size:1.35rem">Triage: Home</h2><p class="mk-sub">25 Home tasks, ranked.</p>
+<div class="tier" style="--k:var(--prio-urgent)"><h4>Now <small>3</small></h4>
+<div class="rk"><span class="n">1</span><span class="w">Fix the tap</span><span class="why urg">Urgent</span></div>
+<div class="rk"><span class="n">2</span><span class="w">Desk and shelves</span><span class="why go">In progress</span></div>
+<div class="rk"><span class="n">3</span><span class="w">Book the dentist</span><span class="why red">Due Fri</span></div></div>
+<div class="tier" style="--k:var(--prio-high)"><h4>Next <small>8</small></h4><div class="rk"><span class="n">4</span><span class="w">Wardrobe</span><span class="why" style="color:var(--prio-high); background:#f6e9de">High</span></div></div>
+<div class="tier" style="--k:var(--prio-low)"><h4>Later <small>14</small></h4></div>
+</div><div class="tag u" style="left:120px; top:100px">Swipe the row for more areas</div><div class="mk-nav"><div>Start</div><div>Focus</div><div>Sort</div><div>Board</div><div class="on">Plan</div></div></div></section>
 <section class="pic" id="map2"><div class="map" style="height:560px">
 <h2 class="mk-h" style="margin:0 0 4px">Two loops: doing tasks, and keeping the list honest</h2>
 <p class="mk-sub">The top row is every day. The bottom row is when the list feels too big, maybe once a week. Triage's order is what Start here suggests.</p>
