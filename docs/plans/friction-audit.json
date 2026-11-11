@@ -3,43 +3,167 @@
  "eyebrow": "Proposal from the friction audit · pick where to start · nothing built yet",
  "approval": "Design approved: friction audit start",
  "short": {
-  "lead": "The audit found that Focus Deck was built and tested with 66 tasks. With 400 or more tasks across 26 projects, every screen turns back into the wall of choices the app exists to remove. Before you can start one task, you choose from 64 cards on the Focus screen. On a phone that means swiping through two carousels one card at a time. On desktop it means about three screens of scrolling. Your GitHub workflow labels, like Needs review and Duplicate, also show up as kinds of work. Below are four directions. Each one is a design proposal first, with no code until you approve it.",
-  "hint": "Tap each row to see what it changes. The first two have pictures from the real app loaded at your size.",
-  "key": [["Built by me", ""], ["You decide", "you"]],
+  "lead": "The audit found that Focus Deck was built and tested with 66 tasks. With 400 or more tasks across 26 projects (the sample data had 420), every screen turns back into the wall of choices the app exists to remove. Before you can start one task, you choose from 64 cards on the Focus screen. On a phone that means swiping through two carousels one card at a time. On desktop the page is 2,389 pixels tall, 2.7 times the height of the screen. Your GitHub workflow labels, like Needs review and Duplicate, also appear in the list of kinds of work, even though they are not kinds of work. Below are four directions. Each one is a design proposal first, with no code until you approve it.",
+  "hint": "Tap each row to see what it changes. The first two have pictures of the real app, one on a phone and one on desktop.",
+  "key": [
+   [
+    "Built by me",
+    ""
+   ],
+   [
+    "You decide",
+    "you"
+   ]
+  ],
   "items": [
-   ["bulb", "Today, phone", "Two carousels before one task", "", "Focus asks for a project (1 of 27) and then a label (1 of 37), one swipe per card, with no search. A project in the middle of the list is about 13 swipes away.", "Nothing from you.",
-    {"src": "docs/generated/friction-audit/phone-focus.png", "alt": "Phone Focus screen showing project carousel 1 of 27 and label carousel 1 of 37", "caption": "Today on a phone, with 420 tasks."}],
-   ["bulb", "Today, desktop", "64 cards, Surprise me at the bottom", "", "27 folders and 37 label cards fill about three screens. Most folders say 'top: Urgent', so that line stops meaning anything. Labels like Duplicate and AjsAgent created this appear as kinds of work.", "Nothing from you.",
-    {"src": "docs/generated/friction-audit/desk-focus-full.png", "alt": "Desktop Focus screen, full length, with 27 project folders and 37 label cards", "caption": "Today on desktop, the whole page."}],
-   ["list", "Direction A", "One 'Start here' screen", "you", "Focus opens on three suggested tasks, ranked by due date, priority and what is already in progress, with 'Pick one for me' at the top. The folders and labels move behind one 'Narrow it down' button. It works the same way on a phone and on desktop. This is the biggest change.", "Decide if this is where you want to end up."],
-   ["list", "Direction B", "Clean up labels and priority", "you", "Workflow labels (Needs review, Duplicate, Wontfix, AjsAgent created this and similar) stop showing as kinds of work. Asap and highest priority count as priority. In Settings you tick, once, which labels are kinds of work. The label list on Focus drops from 37 cards to the ones you tick. This is small, and it makes the suggestions in A trustworthy. It is my suggestion for the first build.", "Decide if B goes first."],
-   ["list", "Direction C", "Faster sorting", "you", "Sort the thoughts for one project together, pick a project from a searchable list instead of a carousel on a phone, and put the main button within thumb reach. With 44 thoughts waiting, this cuts the steps per thought.", "Decide if sorting is your biggest pain."],
-   ["list", "Direction D", "Tidy the Focus Deck backlog", "you", "There are 97 open issues. 15 are built and waiting for your review, the old Board issues #140 to #147 are still open after the Board was replaced, and Bursts A to G overlap the issues they group. I would make a list of what to close and which urgency labels to merge, for you to approve. Nothing is closed without your yes. Issue #162 already asks for this.", "Decide if I make that list."]
+   [
+    "bulb",
+    "Today, phone",
+    "Two carousels before one task",
+    "",
+    "Focus asks for a project (1 of 27) and then a label (1 of 37), one swipe per card, with no search. Reaching the middle project, card 14 of 27, takes 13 swipes.",
+    "Nothing from you.",
+    {
+     "src": "docs/generated/friction-audit/phone-focus.png",
+     "alt": "Phone Focus screen showing project carousel 1 of 27 and label carousel 1 of 37",
+     "caption": "Today on a phone, with 420 tasks."
+    }
+   ],
+   [
+    "bulb",
+    "Today, desktop",
+    "64 cards, Surprise me at the bottom",
+    "",
+    "27 folders (All projects plus your 26) and 37 label cards fill a page 2.7 screens tall. In the sample data, 24 of the 27 folders say 'top: Urgent', so that line tells you nothing. Labels like Duplicate and AjsAgent created this appear as kinds of work.",
+    "Nothing from you.",
+    {
+     "src": "docs/generated/friction-audit/desk-focus-full.png",
+     "alt": "Desktop Focus screen, full length, with 27 project folders and 37 label cards",
+     "caption": "Today on desktop, the whole page."
+    }
+   ],
+   [
+    "list",
+    "Direction A",
+    "One 'Start here' screen",
+    "you",
+    "Focus opens on three suggested tasks, ranked by due date, priority and what is already in progress, with 'Pick one for me' at the top. The folders and labels move behind one 'Narrow it down' button. It works the same way on a phone and on desktop. This is the biggest change.",
+    "Decide if this is where you want to end up."
+   ],
+   [
+    "list",
+    "Direction B",
+    "Clean up labels and priority",
+    "you",
+    "Workflow labels (Needs review, Duplicate, Wontfix, Help wanted, Question, Up next and AjsAgent created this) stop showing as kinds of work. The labels Asap and highest priority are read as priority levels instead of kinds of work. In Settings you tick, once, which labels are kinds of work. The label list on Focus drops from 37 cards to the ones you tick. This is small, and it makes the suggestions in A trustworthy. It is my suggestion for the first build.",
+    "Decide if B goes first."
+   ],
+   [
+    "list",
+    "Direction C",
+    "Faster sorting",
+    "you",
+    "Three changes. You sort all the thoughts for one project together. On a phone, you pick a project from a searchable list instead of a carousel. The main button moves to where your thumb reaches. You have 44 thoughts waiting, so fewer steps per thought adds up.",
+    "Decide if sorting is your biggest pain."
+   ],
+   [
+    "list",
+    "Direction D",
+    "Tidy the Focus Deck backlog",
+    "you",
+    "There are 97 open issues. 15 are built and waiting for your review, the eight old Board issues, #140 to #147, are still open after the Board was replaced, and the issues called Burst A to Burst G repeat the issues inside them. I would make a list of what to close and which urgency labels to merge, for you to approve. Nothing is closed without your yes. GitHub issue #162 (triage the open issues) already asks for this.",
+    "Decide if I make that list."
+   ]
   ]
  },
  "changes": [
-  ["chg", "Focus screen", "Changed by A and B.", null, "B shortens the label list. A replaces the two pickers with three suggestions."],
-  ["chg", "Label list and priority", "Changed by B.", null, "Your GitHub labels stay on GitHub as they are. Only what Focus Deck shows changes."],
-  ["chg", "Sort screen", "Changed by C.", null, "The three sorting steps stay. C changes how many thoughts you sort at once and how you pick the project."],
-  ["keep", "Board, Projects and the jotter", "No change in any direction.", null, "The audit found problems there too (the Board ignores priority, and project cards show up to four labels per task). They come after you pick a start."],
-  ["keep", "Your data and sync", "No change.", null, "Nothing is deleted. GitHub and Gist sync work as today."]
+  [
+   "chg",
+   "Focus screen",
+   "Changed by A and B.",
+   null,
+   "B shortens the label list. A replaces the two pickers with three suggestions."
+  ],
+  [
+   "chg",
+   "Label list and priority",
+   "Changed by B.",
+   null,
+   "Your GitHub labels stay on GitHub as they are. Only what Focus Deck shows changes."
+  ],
+  [
+   "chg",
+   "Sort screen",
+   "Changed by C.",
+   null,
+   "The three sorting steps stay: choose a project, add labels, link to other tasks. C changes how many thoughts you sort at once and how you pick the project."
+  ],
+  [
+   "keep",
+   "Board, Projects and the jotter",
+   "No change in any direction.",
+   null,
+   "The audit found problems there too (the Board ignores priority, and project cards show up to four labels per task). They come after you pick a start."
+  ],
+  [
+   "keep",
+   "Your data and sync",
+   "No change.",
+   null,
+   "Nothing is deleted. GitHub and Gist sync work as today."
+  ]
  ],
  "choices": [
-  ["first", "What do we build first?", [
-   ["A", "One 'Start here' screen", 0, "The biggest gain for starting tasks, but the biggest build, and its suggestions lean on clean priority labels."],
-   ["B", "Clean up labels and priority", 1, "Small, quick to feel, and it shrinks the Focus screen right away. A can follow straight after."],
-   ["C", "Faster sorting", 0, "Best if the 44 thoughts in Sort are what stops you most."]
-  ], "I suggest B because it is small, you would feel it within a day, and it makes A's suggestions trustworthy."],
-  ["backlog", "Should I tidy the Focus Deck issue backlog too?", [
-   ["A", "Yes, make a list for me to approve", 1, "I list what to close and which labels to merge. Nothing changes on GitHub until you say yes."],
-   ["B", "Not now", 0, "The backlog stays as it is, and we only work on the app."]
-  ], "I suggest Yes because 97 open issues make it hard for you to see what is actually left."]
+  [
+   "first",
+   "What do we build first?",
+   [
+    [
+     "A",
+     "One 'Start here' screen",
+     0,
+     "The biggest gain for starting tasks, but the biggest build, and its suggestions lean on clean priority labels."
+    ],
+    [
+     "B",
+     "Clean up labels and priority",
+     1,
+     "Small, and it shortens the Focus screen right away. Direction A can follow straight after."
+    ],
+    [
+     "C",
+     "Faster sorting",
+     0,
+     "Best if the 44 thoughts waiting in the Sort screen are what stops you most."
+    ]
+   ],
+   "I suggest B because it is the smallest change, and it makes A's suggestions trustworthy."
+  ],
+  [
+   "backlog",
+   "Should I tidy the Focus Deck issue backlog too?",
+   [
+    [
+     "Yes",
+     "Yes, make a list for me to approve",
+     1,
+     "I list what to close and which labels to merge. Nothing changes on GitHub until you say yes."
+    ],
+    [
+     "No",
+     "Not now",
+     0,
+     "The backlog stays as it is, and we only work on the app."
+    ]
+   ],
+   "I suggest Yes because 97 open issues make it hard for you to see what is actually left."
+  ]
  ],
  "wrapup": {
-  "summary": "The audit's fix is to make starting a task take one tap again. My suggestions are to clean up labels and priority first, and to have me make a backlog list for you to approve.",
+  "summary": "The audit's fix is to make starting a task take one tap again, through Direction A's 'Pick one for me'. My suggestions are to clean up labels and priority first, and to have me make a backlog list for you to approve.",
   "changing": "Changed: only the parts of the app named by the direction you pick. Kept: your data, sync, and every screen the direction doesn't touch.",
   "blocking": "Waiting on your answers to the two questions in Choices. Nothing is built until you approve.",
-  "next": "After you approve, I will draw the design for your pick on the real screens, at phone and desktop size, for you to approve before any code.",
+  "next": "After you send your two answers, I will draw the design for your pick on the real screens, at phone and desktop size. You approve that drawing before I write any code.",
   "todo": [
    "Look at the two pictures of today.",
    "Pick one answer under each of the two questions in Choices.",
