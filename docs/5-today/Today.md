@@ -1,3 +1,18 @@
+# Today — 2026-11-11
+
+## Friction audit and a proposal to get started (design only, nothing built)
+
+Eden asked for an audit of what stops Focus Deck working at their size (400+ tasks, 25+ projects). The
+real app was loaded with 26 projects, 420 tasks, 45 labels and 44 thoughts
+(`docs/generated/friction-audit/seed-at-scale.mjs`) at 1440 and 390 wide. Main findings: Focus asks for
+a choice from 64 cards before a task (27 folders and 37 labels; on a phone, two one-at-a-time
+carousels), GitHub workflow labels become Focus categories (`categoryIdsForLabels`,
+`app/js/github-sync.js:49`; only priority, in-progress and Claude labels are reserved, `:31`), Asap and
+highest priority are not read as priority (`PRIORITY_ALIASES`, `:20`), and the Board orders Up next by
+project and hand order only (`boardColumns`, `app/js/board.js:22`). The proposal page is
+`docs/plans/friction-audit.html`, built from `docs/plans/friction-audit.json`; it is waiting on
+Eden's two answers.
+
 # Today — 2026-10-21
 
 ## Calm build: QA passed
