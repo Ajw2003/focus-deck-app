@@ -22,6 +22,12 @@ one shared carousel on phone and desktop (desktop shows five, arrow keys and mou
 steps: Tidy up, Triage and Roadmap. Page: `docs/plans/friction-part2.html` (from `friction-part2.json`),
 drawn in `docs/generated/friction-audit/part2.html` and shot by `shoot-part2.mjs`. Published as a
 separate page; the combined plan stays the base. Waiting on Eden's answers to both pages.
+Eden then asked for areas so 26 projects don't crowd Roadmap, Tidy up and Triage. The design reuses
+the existing project category (`state.projectCategories`, `app/js/state.js:44`; one per project as
+`categoryId`, already a filter on Projects and the Board, `app/js/board.js:58`), renamed Areas, with
+Eden's eight defaults (Learning becomes School; no category shows as Unsorted). Drawn as the
+`areas-settings`, `roadmap-area`, `roadmap-one`, `tidy-area` and `triage-area-phone` pictures, added to
+the same part 2 page with two more choices.
 
 # Today — 2026-10-21
 

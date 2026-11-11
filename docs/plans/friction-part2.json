@@ -3,63 +3,379 @@
  "eyebrow": "Proposal · adds to the combined plan · nothing built yet",
  "approval": "Design approved: friction plan part 2",
  "short": {
-  "lead": "You asked for five more things on top of the combined plan, which stays as the base. First, picking a priority is needed to add any task, and setting a due date takes one tap. Second, 'Needs review' ranks above 'In progress'. Third, phone and desktop share one carousel (a row of cards you slide sideways). Desktop shows five cards at once, and you can move along it with the arrow keys or a mouse. Fourth, a Tidy up step closes what no longer needs to exist, and a Triage step then ranks what is left. Fifth, a Roadmap shows where you are and how far you have come, and it updates as you finish or add tasks. The pictures below are drawings, not the built app. Numbers marked 'example' are made up to fill the drawing.",
+  "lead": "You asked for five more things on top of the combined plan, which stays as the base. First, picking a priority is needed to add any task, and setting a due date takes one tap. Second, 'Needs review' ranks above 'In progress'. Third, phone and desktop share one carousel (a row of cards you slide sideways). Desktop shows five cards at once, and you can move along it with the arrow keys or a mouse. Fourth, a Tidy up step closes what no longer needs to exist, and a Triage step then ranks what is left. Fifth, a Roadmap shows where you are and how far you have come, and it updates as you finish or add tasks. After seeing it, you asked for one more thing: with 26 projects, Roadmap, Tidy up and Triage are too crowded to read. So each project now belongs to an area (a named group of projects, such as Home or Games), and picking an area hides the projects outside it. The pictures below are drawings, not the built app. Numbers marked 'example' are made up to fill the drawing.",
   "hint": "Tap each row to see its picture. Start with 'The two loops', which shows how the new screens connect to the ones from the combined plan.",
-  "key": [["Built by me", ""], ["You decide", "you"]],
+  "key": [
+   [
+    "Built by me",
+    ""
+   ],
+   [
+    "You decide",
+    "you"
+   ]
+  ],
   "items": [
-   ["bulb", "The two loops", "How the new screens connect", "", "The top row is every day: add a task, open Start here, use Focus, tick it off. The bottom row is for when the list feels too big, maybe once a week: Tidy up, then Triage, then Roadmap. Triage decides which three tasks Start here suggests. Each task you tick off moves the Roadmap forward.", "Follow the top row, then the bottom row.",
-    {"src": "docs/generated/friction-audit/p2-map2.png", "alt": "Two rows of boxes. Top: Add a task, Start here, Focus, Done. Bottom: Tidy up, Triage, Roadmap. Triage points up to Start here; Done points down to Roadmap.", "caption": "The daily loop and the weekly loop. A drawing, not built."}],
-   ["list", "Adding a task, phone", "Priority needed, due date one tap", "you", "After you type a task and press Add, a panel slides up. Priority has four buttons: Urgent (today), High (this week), Medium (soon) and Low (some day). Due date has Today, Tomorrow, Friday, Next week, Pick a date and None. The big button repeats what you chose, for example 'Add to Health · High · due Friday'.", "Check that the four priority words and their hints match how you think about urgency.",
-    {"src": "docs/generated/friction-audit/p2-add-phone.png", "alt": "Phone drawing: Add Book the dentist panel with four priority buttons, High picked, due date chips with Friday picked, and an Add to Health, High, due Friday button", "caption": "Adding a task on a phone. A drawing, not built."}],
-   ["list", "Before a priority is picked", "Add stays off", "you", "Until you tap a priority, the big button is greyed out and reads 'Pick a priority to add'. Due date is optional and starts on None. Today the app lets a task be saved with no priority at all.", "Decide in Choices whether quick thoughts in the jotter need a priority too.",
-    {"src": "docs/generated/friction-audit/p2-add-phone-off.png", "alt": "Phone drawing: the same panel with no priority picked and a greyed Pick a priority to add button", "caption": "The add panel before a priority is picked. A drawing, not built."}],
-   ["list", "Adding a task, desktop", "The same row everywhere", "you", "The jotter, project cards, the Board and Sort all use this one row. Keys 1 to 4 pick the priority, and you can type a date such as 'fri' or '15 dec'. Enter adds the task. On any card, the priority and due date are small chips you tap to change.", "Check that the chips on the card under the row are easy to spot.",
-    {"src": "docs/generated/friction-audit/p2-add-desk.png", "alt": "Desktop drawing: add row with task text, project picker, four priority buttons with keys 1 to 4, due chips, Add button, and a task card with High and Due Fri chips", "caption": "The add row on desktop. A drawing, not built."}],
-   ["list", "Focus carousel, desktop", "Same carousel as the phone, five at a time", "you", "Desktop stops laying out every card on one long page. It shows the same project and kind-of-work carousels as the phone, five cards at a time. The left and right arrow keys move along, Enter picks, and typing a name jumps to that project. A mouse wheel or trackpad swipe sideways also moves the row.", "Compare it with 'Focus, desktop' in the combined plan.",
-    {"src": "docs/generated/friction-audit/p2-car-desk.png", "alt": "Desktop drawing: Project carousel showing five folders with Focus Deck picked, 3 of 27, and arrow key hints; Kind of work carousel showing five cards", "caption": "Focus on desktop with one carousel. A drawing, not built."}],
-   ["list", "Focus carousel, phone", "Same cards, same search", "you", "The phone shows one and a half cards, so you can see there is more to the right. 'Find a project' sits above the folders. The bottom menu gets a fifth tab, Plan, which holds Tidy up, Triage and Roadmap.", "Decide in Choices where Tidy up, Triage and Roadmap go on a phone.",
-    {"src": "docs/generated/friction-audit/p2-car-phone.png", "alt": "Phone drawing: Find a project box, a folder row and a kind-of-work row, each with the next card peeking in, and tabs Start, Focus, Sort, Board, Plan", "caption": "Focus on a phone with the shared carousel. A drawing, not built."}],
-   ["list", "Tidy up", "Step 1: does each task still need to exist?", "you", "The app groups tasks and issues that look finished, repeated or forgotten, and says why each group is there. 'Built, waiting for your review' (15) means a finished change on GitHub already mentions it. 'Replaced by newer work' (8) covers the old issues about the Board. 'Looks the same as another' finds pairs like issue #154 and issue #236, which are both about the mobile icon. 'Not touched in 60 days' asks if you still want it. You press Keep or Close on each. Nothing closes on GitHub until you press Confirm. The 15, the 8 and the pair of issues #154 and #236 are real. The 4 beside 'Looks the same' and the 21 beside the 60-day group are examples.", "Check that the four groups are the right reasons to close something.",
-    {"src": "docs/generated/friction-audit/p2-tidy-desk.png", "alt": "Desktop drawing: Tidy up with four groups of issues, Keep and Close buttons, and a side panel showing 97 to 67 open with a Confirm 30 and go to Triage button", "caption": "Tidy up on desktop. A drawing, not built."}],
-   ["list", "Triage", "Step 2: what comes next", "you", "What is left gets ranked into Now, Next and Later. The rules are on the right, in order: needs review, in progress, past its date or due today, priority, blocks other tasks from starting, due soonest, oldest. 'Needs review' comes first, above 'In progress', as you asked. Today the app does not know 'Needs review' at all; it is only a GitHub label, so the app would learn to read it. You can drag a task to change the order, and your order wins. The Now list is what Start here suggests.", "Check the order of the seven rules.",
-    {"src": "docs/generated/friction-audit/p2-triage-desk.png", "alt": "Desktop drawing: Triage with Now, Next and Later lists, and seven numbered rules on the right starting with Needs review then In progress", "caption": "Triage on desktop. A drawing, not built."}],
-   ["list", "Roadmap, desktop", "Step 3: where you are", "you", "Each project gets a row, and each block is a group of tasks (a parent task with its subtasks, or a GitHub milestone, which is a named goal that holds a set of issues) with its own progress bar. Blocks sit in Now, Next or Later from Triage. The big number at the top shows how much of your open work is done since the last time you finished Tidy up. All the numbers in this picture are examples.", "Check that one row per project is how you want to see it.",
-    {"src": "docs/generated/friction-audit/p2-roadmap-desk.png", "alt": "Desktop drawing: Roadmap with 41 percent done at the top, and rows for Focus Deck, School and UnamedSoulsLike with blocks in Now, Next and Later columns", "caption": "Roadmap on desktop, with example numbers. A drawing, not built."}],
-   ["list", "Roadmap, phone", "One column, Now first", "you", "On a phone the Roadmap is one list: Now, then Next, with Later folded away. The three steps sit at the top as tabs, so you can go back to Tidy up or Triage.", "Nothing extra from you.",
-    {"src": "docs/generated/friction-audit/p2-roadmap-phone.png", "alt": "Phone drawing: Tidy, Triage and Roadmap tabs, 41 percent, Now and Next blocks with progress bars, Later folded, and the Plan tab selected", "caption": "Roadmap on a phone, with example numbers. A drawing, not built."}]
+   [
+    "bulb",
+    "The two loops",
+    "How the new screens connect",
+    "",
+    "The top row is every day: add a task, open Start here, use Focus, tick it off. The bottom row is for when the list feels too big, maybe once a week: Tidy up, then Triage, then Roadmap. Triage decides which three tasks Start here suggests. Each task you tick off moves the Roadmap forward.",
+    "Follow the top row, then the bottom row.",
+    {
+     "src": "docs/generated/friction-audit/p2-map2.png",
+     "alt": "Two rows of boxes. Top: Add a task, Start here, Focus, Done. Bottom: Tidy up, Triage, Roadmap. Triage points up to Start here; Done points down to Roadmap.",
+     "caption": "The daily loop and the weekly loop. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Adding a task, phone",
+    "Priority needed, due date one tap",
+    "you",
+    "After you type a task and press Add, a panel slides up. Priority has four buttons: Urgent (today), High (this week), Medium (soon) and Low (some day). Due date has Today, Tomorrow, Friday, Next week, Pick a date and None. The big button repeats what you chose, for example 'Add to Health · High · due Friday'.",
+    "Check that the four priority words and their hints match how you think about urgency.",
+    {
+     "src": "docs/generated/friction-audit/p2-add-phone.png",
+     "alt": "Phone drawing: Add Book the dentist panel with four priority buttons, High picked, due date chips with Friday picked, and an Add to Health, High, due Friday button",
+     "caption": "Adding a task on a phone. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Before a priority is picked",
+    "Add stays off",
+    "you",
+    "Until you tap a priority, the big button is greyed out and reads 'Pick a priority to add'. Due date is optional and starts on None. Today the app lets a task be saved with no priority at all.",
+    "Decide in Choices whether quick thoughts in the jotter need a priority too.",
+    {
+     "src": "docs/generated/friction-audit/p2-add-phone-off.png",
+     "alt": "Phone drawing: the same panel with no priority picked and a greyed Pick a priority to add button",
+     "caption": "The add panel before a priority is picked. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Adding a task, desktop",
+    "The same row everywhere",
+    "you",
+    "The jotter, project cards, the Board and Sort all use this one row. Keys 1 to 4 pick the priority, and you can type a date such as 'fri' or '15 dec'. Enter adds the task. On any card, the priority and due date are small chips you tap to change.",
+    "Check that the chips on the card under the row are easy to spot.",
+    {
+     "src": "docs/generated/friction-audit/p2-add-desk.png",
+     "alt": "Desktop drawing: add row with task text, project picker, four priority buttons with keys 1 to 4, due chips, Add button, and a task card with High and Due Fri chips",
+     "caption": "The add row on desktop. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Focus carousel, desktop",
+    "Same carousel as the phone, five at a time",
+    "you",
+    "Desktop stops laying out every card on one long page. It shows the same project and kind-of-work carousels as the phone, five cards at a time. The left and right arrow keys move along, Enter picks, and typing a name jumps to that project. A mouse wheel or trackpad swipe sideways also moves the row.",
+    "Compare it with 'Focus, desktop' in the combined plan.",
+    {
+     "src": "docs/generated/friction-audit/p2-car-desk.png",
+     "alt": "Desktop drawing: Project carousel showing five folders with Focus Deck picked, 3 of 27, and arrow key hints; Kind of work carousel showing five cards",
+     "caption": "Focus on desktop with one carousel. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Focus carousel, phone",
+    "Same cards, same search",
+    "you",
+    "The phone shows one and a half cards, so you can see there is more to the right. 'Find a project' sits above the folders. The bottom menu gets a fifth tab, Plan, which holds Tidy up, Triage and Roadmap.",
+    "Decide in Choices where Tidy up, Triage and Roadmap go on a phone.",
+    {
+     "src": "docs/generated/friction-audit/p2-car-phone.png",
+     "alt": "Phone drawing: Find a project box, a folder row and a kind-of-work row, each with the next card peeking in, and tabs Start, Focus, Sort, Board, Plan",
+     "caption": "Focus on a phone with the shared carousel. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Tidy up",
+    "Step 1: does each task still need to exist?",
+    "you",
+    "The app groups tasks and issues that look finished, repeated or forgotten, and says why each group is there. 'Built, waiting for your review' (15) means a finished change on GitHub already mentions it. 'Replaced by newer work' (8) covers the old issues about the Board. 'Looks the same as another' finds pairs like issue #154 and issue #236, which are both about the mobile icon. 'Not touched in 60 days' asks if you still want it. You press Keep or Close on each. Nothing closes on GitHub until you press Confirm. The 15, the 8 and the pair of issues #154 and #236 are real. The 4 beside 'Looks the same' and the 21 beside the 60-day group are examples.",
+    "Check that the four groups are the right reasons to close something.",
+    {
+     "src": "docs/generated/friction-audit/p2-tidy-desk.png",
+     "alt": "Desktop drawing: Tidy up with four groups of issues, Keep and Close buttons, and a side panel showing 97 to 67 open with a Confirm 30 and go to Triage button",
+     "caption": "Tidy up on desktop. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Triage",
+    "Step 2: what comes next",
+    "you",
+    "What is left gets ranked into Now, Next and Later. The rules are on the right, in order: needs review, in progress, past its date or due today, priority, blocks other tasks from starting, due soonest, oldest. 'Needs review' comes first, above 'In progress', as you asked. Today the app does not know 'Needs review' at all; it is only a GitHub label, so the app would learn to read it. You can drag a task to change the order, and your order wins. The Now list is what Start here suggests.",
+    "Check the order of the seven rules.",
+    {
+     "src": "docs/generated/friction-audit/p2-triage-desk.png",
+     "alt": "Desktop drawing: Triage with Now, Next and Later lists, and seven numbered rules on the right starting with Needs review then In progress",
+     "caption": "Triage on desktop. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Roadmap, desktop",
+    "Step 3: where you are",
+    "you",
+    "Each project gets a row, and each block is a group of tasks (a parent task with its subtasks, or a GitHub milestone, which is a named goal that holds a set of issues) with its own progress bar. Blocks sit in Now, Next or Later from Triage. The big number at the top shows how much of your open work is done since the last time you finished Tidy up. All the numbers in this picture are examples.",
+    "Check that one row per project is how you want to see it.",
+    {
+     "src": "docs/generated/friction-audit/p2-roadmap-desk.png",
+     "alt": "Desktop drawing: Roadmap with 41 percent done at the top, and rows for Focus Deck, School and UnamedSoulsLike with blocks in Now, Next and Later columns",
+     "caption": "Roadmap on desktop, with example numbers. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Roadmap, phone",
+    "One column, Now first",
+    "you",
+    "On a phone the Roadmap is one list: Now, then Next, with Later folded away. The three steps sit at the top as tabs, so you can go back to Tidy up or Triage.",
+    "Nothing extra from you.",
+    {
+     "src": "docs/generated/friction-audit/p2-roadmap-phone.png",
+     "alt": "Phone drawing: Tidy, Triage and Roadmap tabs, 41 percent, Now and Next blocks with progress bars, Later folded, and the Plan tab selected",
+     "caption": "Roadmap on a phone, with example numbers. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Areas in Settings",
+    "Your own groups of projects",
+    "you",
+    "The app already lets each project have one category, set when you edit a project, with Work, Personal and Learning to start. Areas reuse that, under a clearer name, so they don't get mixed up with labels like Bug. The list starts with eight areas: Personal, Lists, Home, Apps, Games, Work, School and Unsorted. Learning becomes School. You can rename, recolour or add areas. Unsorted cannot be renamed or removed. It holds every project that has no area yet. Tapping an area lists its projects, each with a Move button.",
+    "Check the eight areas and their colours.",
+    {
+     "src": "docs/generated/friction-audit/p2-areas-settings.png",
+     "alt": "Phone drawing: Settings, Areas list with eight areas and project counts, Add an area, and the four projects in Home with Move buttons",
+     "caption": "Areas in Settings. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Roadmap by area",
+    "Pick Home and only Home shows",
+    "you",
+    "A row of area chips sits at the top. With Home picked, the Roadmap shows only Home projects, and the big number counts only Home work. It shows at most five project rows at once, putting the ones with work in Now first, with a 'Show all' link under them. 'All' brings back the overall view.",
+    "Check that five rows is a comfortable number.",
+    {
+     "src": "docs/generated/friction-audit/p2-roadmap-area.png",
+     "alt": "Desktop drawing: area chips with Home picked, Whole area selected, Roadmap Home at 55 percent, three Home projects in Now, Next and Later columns, and Showing 3 of 4",
+     "caption": "Roadmap with the Home area picked, with example numbers. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Roadmap for one project",
+    "Switch from the area to one project",
+    "you",
+    "The switch at the top right has two settings, 'Whole area' and 'One project'. 'One project' shows that project's blocks, with their tasks listed inside each block. The left and right arrow keys step to the next project in the same area. On a phone, a swipe does the same.",
+    "Check that the task lists inside each block are enough detail.",
+    {
+     "src": "docs/generated/friction-audit/p2-roadmap-one.png",
+     "alt": "Desktop drawing: Apps area picked, One project selected, Roadmap Focus Deck at 48 percent, with Now, Next and Later blocks listing their tasks",
+     "caption": "Roadmap for one project, with example numbers. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Tidy up by area",
+    "The area carries through all three steps",
+    "you",
+    "Pick Home once and Tidy up, Triage and Roadmap all stay on Home. Tidy up then only shows Home tasks, so a game issue never appears while you're sorting chores. Confirm only closes what you marked in that area.",
+    "Nothing extra from you.",
+    {
+     "src": "docs/generated/friction-audit/p2-tidy-area.png",
+     "alt": "Desktop drawing: Home area picked, steps named Tidy up Home, Triage Home, Roadmap Home, two Home groups, and Open in Home 29 to 25",
+     "caption": "Tidy up with the Home area picked, with example numbers. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Triage by area, phone",
+    "Area chips above the steps",
+    "you",
+    "On a phone the area chips scroll sideways above the three steps. Triage ranks only Home tasks, with the same seven rules.",
+    "Nothing extra from you.",
+    {
+     "src": "docs/generated/friction-audit/p2-triage-area-phone.png",
+     "alt": "Phone drawing: area chips with Home picked, Triage step, Now, Next and Later for Home tasks, and the Plan tab",
+     "caption": "Triage on a phone with the Home area picked. A drawing, not built."
+    }
+   ]
   ]
  },
  "changes": [
-  ["chg", "Adding a task", "Priority is needed everywhere; due date is one tap.", null, "The jotter, project cards, the Board and Sort share one add row."],
-  ["chg", "Task cards", "Priority and due date become chips you tap to change.", null, "Labels and subtasks stay as they are."],
-  ["chg", "Focus on desktop", "Uses the phone's carousels, five cards at a time, with arrow keys and mouse.", null, "Replaces the long page of folders. The 'Find a project' search from the combined plan stays."],
-  ["new", "Needs review", "The app reads the GitHub label and ranks it first.", null, "It is not a new task status; the label on GitHub is unchanged."],
-  ["new", "Tidy up, Triage, Roadmap", "Three steps, in a new Plan tab on a phone and the side menu on desktop.", null, "Start here takes its suggestions from Triage."],
-  ["keep", "The combined plan", "Start here, Settings for labels, faster Sort.", null, "Everything there still applies."],
-  ["keep", "Your data and sync", "No change.", null, "Nothing is closed on GitHub without your Confirm."]
+  [
+   "chg",
+   "Adding a task",
+   "Priority is needed everywhere; due date is one tap.",
+   null,
+   "The jotter, project cards, the Board and Sort share one add row."
+  ],
+  [
+   "chg",
+   "Task cards",
+   "Priority and due date become chips you tap to change.",
+   null,
+   "Labels and subtasks stay as they are."
+  ],
+  [
+   "chg",
+   "Focus on desktop",
+   "Uses the phone's carousels, five cards at a time, with arrow keys and mouse.",
+   null,
+   "Replaces the long page of folders. The 'Find a project' search from the combined plan stays."
+  ],
+  [
+   "new",
+   "Needs review",
+   "The app reads the GitHub label and ranks it first.",
+   null,
+   "It is not a new task status; the label on GitHub is unchanged."
+  ],
+  [
+   "new",
+   "Tidy up, Triage, Roadmap",
+   "Three steps, in a new Plan tab on a phone and the side menu on desktop.",
+   null,
+   "Start here takes its suggestions from Triage."
+  ],
+  [
+   "chg",
+   "Project categories become Areas",
+   "Eight areas to start, which you can rename, recolour or add to; at least Roadmap, Tidy up and Triage filter by area.",
+   null,
+   "Each project's current category carries over; Learning becomes School."
+  ],
+  [
+   "keep",
+   "The combined plan",
+   "Start here, Settings for labels, faster Sort.",
+   null,
+   "Everything there still applies."
+  ],
+  [
+   "keep",
+   "Your data and sync",
+   "No change.",
+   null,
+   "Nothing is closed on GitHub without your Confirm."
+  ]
  ],
  "choices": [
-  ["jot", "Does a quick thought in the jotter need a priority too?", [
-   ["1", "No, it gets one when you sort it", 1, "Jotting stays one step. Sort asks for the priority before the thought becomes a task."],
-   ["2", "Yes, every time", 0, "Nothing is ever saved without a priority, but jotting gains a step."]
-  ], "I suggest 1 because the jotter exists to catch a thought before it slips, and Sort already asks you about each one."],
-  ["nav", "Where do Tidy up, Triage and Roadmap go on a phone?", [
-   ["1", "A fifth tab called Plan", 1, "One tap from anywhere, as in the pictures. The tabs are Start, Focus, Sort, Board, Plan."],
-   ["2", "Inside Projects", 0, "Projects keeps its tab, and the three steps are a button at its top."]
-  ], "I suggest 1 because the weekly loop is a habit, and a habit is easier with its own tab."],
-  ["order", "How should I build it, together with the combined plan?", [
-   ["1", "Priority and needs review first", 1, "Then Start here, then the shared carousel, then Tidy up, Triage and Roadmap. Each part makes the next one's ranking trustworthy."],
-   ["2", "Tidy up, Triage and Roadmap first", 0, "You get the backlog clean-up soonest, but the ranking leans on priorities many tasks don't have yet."]
-  ], "I suggest 1 because Triage and Start here rank by priority, so every task needs one first."]
+  [
+   "jot",
+   "Does a quick thought in the jotter need a priority too?",
+   [
+    [
+     "1",
+     "No, it gets one when you sort it",
+     1,
+     "Jotting stays one step. Sort asks for the priority before the thought becomes a task."
+    ],
+    [
+     "2",
+     "Yes, every time",
+     0,
+     "Nothing is ever saved without a priority, but jotting gains a step."
+    ]
+   ],
+   "I suggest 1 because the jotter exists to catch a thought before it slips, and Sort already asks you about each one."
+  ],
+  [
+   "nav",
+   "Where do Tidy up, Triage and Roadmap go on a phone?",
+   [
+    [
+     "1",
+     "A fifth tab called Plan",
+     1,
+     "One tap from anywhere, as in the pictures. The tabs are Start, Focus, Sort, Board, Plan."
+    ],
+    [
+     "2",
+     "Inside Projects",
+     0,
+     "Projects keeps its tab, and the three steps are a button at its top."
+    ]
+   ],
+   "I suggest 1 because the weekly loop is a habit, and a habit is easier with its own tab."
+  ],
+  [
+   "areawide",
+   "Where should the area you pick apply?",
+   [
+    [
+     "1",
+     "Everywhere",
+     1,
+     "Start here, Focus and the Board also show only that area until you pick All."
+    ],
+    [
+     "2",
+     "Only Tidy up, Triage and Roadmap",
+     0,
+     "The daily screens show everything, as they do now."
+    ]
+   ],
+   "I suggest Everywhere, because you said you want to work on Home without seeing app or game work."
+  ],
+  [
+   "multi",
+   "Can a project be in more than one area?",
+   [
+    [
+     "1",
+     "No, one area each",
+     1,
+     "Simple to set, and it works the way categories work today."
+    ],
+    [
+     "2",
+     "Yes, several",
+     0,
+     "More flexible, but a project in two areas would be counted in both, so the area totals could add up to more than the number of projects."
+    ]
+   ],
+   "I suggest one area each, because counts and progress stay clear."
+  ],
+  [
+   "order",
+   "How should I build it, together with the combined plan?",
+   [
+    [
+     "1",
+     "Priority and needs review first",
+     1,
+     "Then areas, then Start here, then the shared carousel, then Tidy up, Triage and Roadmap. Each part makes the next one's ranking trustworthy."
+    ],
+    [
+     "2",
+     "Tidy up, Triage and Roadmap first",
+     0,
+     "You get the backlog clean-up soonest, but the ranking leans on priorities many tasks don't have yet."
+    ]
+   ],
+   "I suggest 1 because Triage and Start here rank by priority, so every task needs one first."
+  ]
  ],
  "wrapup": {
-  "summary": "Part 2 adds a required priority and one-tap due dates, ranks Needs review first, gives phone and desktop one carousel, and adds Tidy up, Triage and Roadmap as a weekly loop. The combined plan stays as the base.",
-  "changing": "Changed: adding a task, task cards, Focus on desktop and the menu. Added: Tidy up, Triage, Roadmap, and the app reading 'Needs review'. Kept: everything else in the combined plan, your data and sync.",
-  "blocking": "Waiting on your answers to the three questions in Choices here and the three on the combined plan page. Nothing is built until you approve.",
+  "summary": "Part 2 adds a required priority and one-tap due dates, ranks Needs review first, gives phone and desktop one carousel, and adds Tidy up, Triage and Roadmap as a weekly loop, filtered by areas you set. The combined plan stays as the base.",
+  "changing": "Changed: adding a task, task cards, Focus on desktop, the menu, and project categories, which become Areas. Added: Tidy up, Triage, Roadmap, and the app reading 'Needs review'. Kept: everything else in the combined plan, your data and sync.",
+  "blocking": "Waiting on your answers to the five questions in Choices here and the three on the combined plan page. Nothing is built until you approve.",
   "next": "After you answer, I will open GitHub issues for each part and build the first one. You get a test page for each part before the next starts.",
   "todo": [
    "Look at 'The two loops' first, then the rest.",
-   "Pick one answer under each of the three questions in Choices.",
+   "Pick one answer under each of the five questions in Choices.",
    "Tap <b>Copy my reply</b> and send it, or say what to change."
   ]
  }

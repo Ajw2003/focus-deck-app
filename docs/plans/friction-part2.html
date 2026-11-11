@@ -273,7 +273,7 @@ const PAGE = {
   "eyebrow": "Proposal · adds to the combined plan · nothing built yet",
   "approval": "Design approved: friction plan part 2",
   "short": {
-    "lead": "You asked for five more things on top of the combined plan, which stays as the base. First, picking a priority is needed to add any task, and setting a due date takes one tap. Second, 'Needs review' ranks above 'In progress'. Third, phone and desktop share one carousel (a row of cards you slide sideways). Desktop shows five cards at once, and you can move along it with the arrow keys or a mouse. Fourth, a Tidy up step closes what no longer needs to exist, and a Triage step then ranks what is left. Fifth, a Roadmap shows where you are and how far you have come, and it updates as you finish or add tasks. The pictures below are drawings, not the built app. Numbers marked 'example' are made up to fill the drawing.",
+    "lead": "You asked for five more things on top of the combined plan, which stays as the base. First, picking a priority is needed to add any task, and setting a due date takes one tap. Second, 'Needs review' ranks above 'In progress'. Third, phone and desktop share one carousel (a row of cards you slide sideways). Desktop shows five cards at once, and you can move along it with the arrow keys or a mouse. Fourth, a Tidy up step closes what no longer needs to exist, and a Triage step then ranks what is left. Fifth, a Roadmap shows where you are and how far you have come, and it updates as you finish or add tasks. After seeing it, you asked for one more thing: with 26 projects, Roadmap, Tidy up and Triage are too crowded to read. So each project now belongs to an area (a named group of projects, such as Home or Games), and picking an area hides the projects outside it. The pictures below are drawings, not the built app. Numbers marked 'example' are made up to fill the drawing.",
     "hint": "Tap each row to see its picture. Start with 'The two loops', which shows how the new screens connect to the ones from the combined plan.",
     "key": [
       [
@@ -415,6 +415,71 @@ const PAGE = {
           "alt": "Phone drawing: Tidy, Triage and Roadmap tabs, 41 percent, Now and Next blocks with progress bars, Later folded, and the Plan tab selected",
           "caption": "Roadmap on a phone, with example numbers. A drawing, not built."
         }
+      ],
+      [
+        "list",
+        "Areas in Settings",
+        "Your own groups of projects",
+        "you",
+        "The app already lets each project have one category, set when you edit a project, with Work, Personal and Learning to start. Areas reuse that, under a clearer name, so they don't get mixed up with labels like Bug. The list starts with eight areas: Personal, Lists, Home, Apps, Games, Work, School and Unsorted. Learning becomes School. You can rename, recolour or add areas. Unsorted cannot be renamed or removed. It holds every project that has no area yet. Tapping an area lists its projects, each with a Move button.",
+        "Check the eight areas and their colours.",
+        {
+          "src": "friction-part2-pics/p2-areas-settings.png",
+          "alt": "Phone drawing: Settings, Areas list with eight areas and project counts, Add an area, and the four projects in Home with Move buttons",
+          "caption": "Areas in Settings. A drawing, not built."
+        }
+      ],
+      [
+        "list",
+        "Roadmap by area",
+        "Pick Home and only Home shows",
+        "you",
+        "A row of area chips sits at the top. With Home picked, the Roadmap shows only Home projects, and the big number counts only Home work. It shows at most five project rows at once, putting the ones with work in Now first, with a 'Show all' link under them. 'All' brings back the overall view.",
+        "Check that five rows is a comfortable number.",
+        {
+          "src": "friction-part2-pics/p2-roadmap-area.png",
+          "alt": "Desktop drawing: area chips with Home picked, Whole area selected, Roadmap Home at 55 percent, three Home projects in Now, Next and Later columns, and Showing 3 of 4",
+          "caption": "Roadmap with the Home area picked, with example numbers. A drawing, not built."
+        }
+      ],
+      [
+        "list",
+        "Roadmap for one project",
+        "Switch from the area to one project",
+        "you",
+        "The switch at the top right has two settings, 'Whole area' and 'One project'. 'One project' shows that project's blocks, with their tasks listed inside each block. The left and right arrow keys step to the next project in the same area. On a phone, a swipe does the same.",
+        "Check that the task lists inside each block are enough detail.",
+        {
+          "src": "friction-part2-pics/p2-roadmap-one.png",
+          "alt": "Desktop drawing: Apps area picked, One project selected, Roadmap Focus Deck at 48 percent, with Now, Next and Later blocks listing their tasks",
+          "caption": "Roadmap for one project, with example numbers. A drawing, not built."
+        }
+      ],
+      [
+        "list",
+        "Tidy up by area",
+        "The area carries through all three steps",
+        "you",
+        "Pick Home once and Tidy up, Triage and Roadmap all stay on Home. Tidy up then only shows Home tasks, so a game issue never appears while you're sorting chores. Confirm only closes what you marked in that area.",
+        "Nothing extra from you.",
+        {
+          "src": "friction-part2-pics/p2-tidy-area.png",
+          "alt": "Desktop drawing: Home area picked, steps named Tidy up Home, Triage Home, Roadmap Home, two Home groups, and Open in Home 29 to 25",
+          "caption": "Tidy up with the Home area picked, with example numbers. A drawing, not built."
+        }
+      ],
+      [
+        "list",
+        "Triage by area, phone",
+        "Area chips above the steps",
+        "you",
+        "On a phone the area chips scroll sideways above the three steps. Triage ranks only Home tasks, with the same seven rules.",
+        "Nothing extra from you.",
+        {
+          "src": "friction-part2-pics/p2-triage-area-phone.png",
+          "alt": "Phone drawing: area chips with Home picked, Triage step, Now, Next and Later for Home tasks, and the Plan tab",
+          "caption": "Triage on a phone with the Home area picked. A drawing, not built."
+        }
       ]
     ]
   },
@@ -453,6 +518,13 @@ const PAGE = {
       "Three steps, in a new Plan tab on a phone and the side menu on desktop.",
       null,
       "Start here takes its suggestions from Triage."
+    ],
+    [
+      "chg",
+      "Project categories become Areas",
+      "Eight areas to start, which you can rename, recolour or add to; at least Roadmap, Tidy up and Triage filter by area.",
+      null,
+      "Each project's current category carries over; Learning becomes School."
     ],
     [
       "keep",
@@ -509,6 +581,44 @@ const PAGE = {
       "I suggest 1 because the weekly loop is a habit, and a habit is easier with its own tab."
     ],
     [
+      "areawide",
+      "Where should the area you pick apply?",
+      [
+        [
+          "1",
+          "Everywhere",
+          1,
+          "Start here, Focus and the Board also show only that area until you pick All."
+        ],
+        [
+          "2",
+          "Only Tidy up, Triage and Roadmap",
+          0,
+          "The daily screens show everything, as they do now."
+        ]
+      ],
+      "I suggest Everywhere, because you said you want to work on Home without seeing app or game work."
+    ],
+    [
+      "multi",
+      "Can a project be in more than one area?",
+      [
+        [
+          "1",
+          "No, one area each",
+          1,
+          "Simple to set, and it works the way categories work today."
+        ],
+        [
+          "2",
+          "Yes, several",
+          0,
+          "More flexible, but a project in two areas would be counted in both, so the area totals could add up to more than the number of projects."
+        ]
+      ],
+      "I suggest one area each, because counts and progress stay clear."
+    ],
+    [
       "order",
       "How should I build it, together with the combined plan?",
       [
@@ -516,7 +626,7 @@ const PAGE = {
           "1",
           "Priority and needs review first",
           1,
-          "Then Start here, then the shared carousel, then Tidy up, Triage and Roadmap. Each part makes the next one's ranking trustworthy."
+          "Then areas, then Start here, then the shared carousel, then Tidy up, Triage and Roadmap. Each part makes the next one's ranking trustworthy."
         ],
         [
           "2",
@@ -529,13 +639,13 @@ const PAGE = {
     ]
   ],
   "wrapup": {
-    "summary": "Part 2 adds a required priority and one-tap due dates, ranks Needs review first, gives phone and desktop one carousel, and adds Tidy up, Triage and Roadmap as a weekly loop. The combined plan stays as the base.",
-    "changing": "Changed: adding a task, task cards, Focus on desktop and the menu. Added: Tidy up, Triage, Roadmap, and the app reading 'Needs review'. Kept: everything else in the combined plan, your data and sync.",
-    "blocking": "Waiting on your answers to the three questions in Choices here and the three on the combined plan page. Nothing is built until you approve.",
+    "summary": "Part 2 adds a required priority and one-tap due dates, ranks Needs review first, gives phone and desktop one carousel, and adds Tidy up, Triage and Roadmap as a weekly loop, filtered by areas you set. The combined plan stays as the base.",
+    "changing": "Changed: adding a task, task cards, Focus on desktop, the menu, and project categories, which become Areas. Added: Tidy up, Triage, Roadmap, and the app reading 'Needs review'. Kept: everything else in the combined plan, your data and sync.",
+    "blocking": "Waiting on your answers to the five questions in Choices here and the three on the combined plan page. Nothing is built until you approve.",
     "next": "After you answer, I will open GitHub issues for each part and build the first one. You get a test page for each part before the next starts.",
     "todo": [
       "Look at 'The two loops' first, then the rest.",
-      "Pick one answer under each of the three questions in Choices.",
+      "Pick one answer under each of the five questions in Choices.",
       "Tap <b>Copy my reply<\/b> and send it: \"Design approved: friction plan part 2\", or say what to change."
     ]
   }
