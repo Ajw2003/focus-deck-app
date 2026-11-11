@@ -16,6 +16,13 @@ pictures for every change. That combined plan is `docs/plans/friction-combined.h
 `friction-combined.json`), drawn in `docs/generated/friction-audit/mockups.html`; it replaces the
 first page at the same published link and is waiting on Eden's three answers.
 
+Part 2, asked for after the combined plan: priority needed on every add with one-tap due dates, Needs
+review ranked above In progress (today it is only a GitHub label; tasks have only next, doing and done),
+one shared carousel on phone and desktop (desktop shows five, arrow keys and mouse), and three new
+steps: Tidy up, Triage and Roadmap. Page: `docs/plans/friction-part2.html` (from `friction-part2.json`),
+drawn in `docs/generated/friction-audit/part2.html` and shot by `shoot-part2.mjs`. Published as a
+separate page; the combined plan stays the base. Waiting on Eden's answers to both pages.
+
 # Today — 2026-10-21
 
 ## Calm build: QA passed
