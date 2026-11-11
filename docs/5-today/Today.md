@@ -28,6 +28,10 @@ the existing project category (`state.projectCategories`, `app/js/state.js:44`; 
 Eden's eight defaults (Learning becomes School; no category shows as Unsorted). Drawn as the
 `areas-settings`, `roadmap-area`, `roadmap-one`, `tidy-area` and `triage-area-phone` pictures, added to
 the same part 2 page with two more choices.
+Eden then asked for Roadmap blocks to fill each row (now tagged Now, Next or Later instead of fixed
+columns), a phone area row that never cuts a button off, and one All / Area / Project switch on every
+screen (`view-every`, `view-sheet` pictures). That switch answers the "where does the area apply"
+question, so it was dropped from Choices; four questions remain.
 
 # Today — 2026-10-21
 
