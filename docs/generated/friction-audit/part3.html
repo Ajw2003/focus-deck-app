@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<!-- Mock-ups for docs/plans/friction-part3.html (tabs as steps). Styles copied from part2.html. Open with #id. -->
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plan part 3 mock-ups</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=Kalam:wght@700&display=swap">
+<style>/* light-theme tokens copied from app/css/app.css so the app's own classes do not apply */
+:root{
+  color-scheme: light dark;
+  --bg:#E4E8EF;
+  --surface:#FBFAF7;
+  --surface-2:#EEF1F6;
+  --ink:#1C2438;
+  --ink-soft:#59627A;
+  --ink-faint:#6E7790;
+  --line:#C7CEDB;
+  --accent:#8F5A06;
+  --accent-ink:#FFFFFF;
+  --danger:#A83E3E;
+  --prio-urgent:#B42318;
+  --prio-high:#AD4A0B;
+  --prio-medium:#7A5A00;
+  --prio-low:#3F6E53;
+  /* Deadline chip stages (#106). Borders + tint + words, never hue alone: --due-soon is an olive-lime and
+     --due-now a crimson, apart from the gold --prio-medium, orange --prio-high and red --prio-urgent. */
+  --due-soon:#4F5A00;
+  /* The yellow chip is stronger in light mode so it reads on a bright (HDR) white screen; dark mode
+     keeps the 18% tint and 60% border (design 1C, approved 2026-10-20, #215). */
+  --due-soon-fill:34%; --due-soon-edge:100%; --due-soon-ink:#3A4200; /* darker words keep 4.5:1 on that fill */
+  --due-now:#9F0C3D;
+  --due-amber:#7A4D00;
+  --proj-sat:58%;
+  --proj-light:40%;
+  /* The lamp: a glow on the desk behind the focus area, and the brand dot */
+  --lamp:rgba(255,255,255,.75);
+  --lamp-dot:#D98A12;
+  /* Paper objects. Paper stays paper in both themes (dark ink on cream), so most of these are shared. */
+  --paper:#FFFEFA;
+  --paper-ink:#1D2733;
+  --paper-soft:#4E5A68;
+  --paper-faint:#5F6A79;
+  --rule:#C3CEDD;
+  --paper-shadow:rgba(40,52,80,.35);
+  --hole:var(--bg);
+  --folder:#F1E6CC;
+  --index-red:#C9584F; /* the index card's heading line (#123) */
+  --index-rule:color-mix(in srgb, var(--rule) 45%, var(--surface)); /* its row rules, toned to the theme */
+  --note:#FFE27A;
+  --note-fold:#E2C055;
+  --note-ink:#2B2412;
+  --note-soft:#6B5520;
+  --pen:#1F3F99;
+  /* Stage colours on paper, for the deadline chip's border and icon on the sticky note (its words stay ink) */
+  --paper-due-soon:#5E6B00;
+  --paper-due-now:#A30D40;
+  --paper-due-amber:#7A4D00;
+  /* The writing on paper notes: the default face (Handwriting). Print and OpenDyslexic override
+     these in the "Note faces" section at the end (#122) */
+  --note-font:'Kalam', 'Comic Sans MS', cursive;
+  --note-scale:1;
+  --font-display:'Young Serif', Georgia, serif;
+  --font-ui:'Figtree', system-ui, -apple-system, sans-serif;
+  --font-paper:'Bricolage Grotesque', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-paper-small:'Atkinson Hyperlegible', system-ui, sans-serif;
+  /* Type scale (Q17a): exactly five sizes. See docs/4-systems/styling.md#visual-system */
+  --text-sm:.8rem;
+  --text-body:.95rem;
+  --text-h:1.15rem;
+  --text-q:1.5rem;
+  --text-title:2.1rem;
+  /* Corners (Q17a): exactly three radii. Circles (dots, icon buttons) stay 50% — a shape, not a step. */
+  --r-pill:999px;
+  --r-control:10px;
+  --r-card:18px;
+  --shadow:0 1px 2px rgba(28,36,60,.06), 0 6px 20px rgba(28,36,60,.09);
+  
+  
+}
+</style><style>
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-ui);}
+  .pic{display:none;} .pic.on{display:block;}
+  .mk-top{display:flex; align-items:center; gap:10px; padding:14px 16px 8px;}
+  .mk-brand{font-family:var(--font-display); font-size:1.2rem; display:flex; align-items:center; gap:8px;}
+  .mk-brand::before{content:""; width:9px; height:9px; border-radius:50%; background:var(--lamp-dot); box-shadow:0 0 10px var(--lamp-dot);}
+  .mk-jot{margin:0 16px 10px; background:var(--paper); border-radius:6px; padding:10px 12px; display:flex; gap:8px; align-items:center; box-shadow:0 4px 10px -8px var(--paper-shadow);}
+  .mk-jot span{flex:1; font-family:var(--note-font); color:var(--paper-faint);}
+  .mk-jot b{font-size:var(--text-sm); border:1.5px solid var(--paper-ink); border-radius:8px; padding:4px 10px; color:var(--paper-ink);}
+  .mk-nav{position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:space-around; background:var(--surface); border-top:1px solid var(--line); padding:8px 0 12px;}
+  .mk-nav div{font-size:var(--text-sm); color:var(--ink-soft); text-align:center; padding:6px 12px; border-radius:10px;}
+  .mk-nav .on{background:var(--surface-2); color:var(--accent); font-weight:700;}
+  .phone{position:relative; width:390px; height:844px; overflow:hidden; background:var(--bg);}
+  h2.mk-h{font-family:var(--font-display); font-size:var(--text-q); margin:6px 0 4px;}
+  .mk-sub{color:var(--ink-soft); font-size:var(--text-body); margin:0 0 14px;}
+  .mk-big{display:flex; align-items:center; justify-content:center; gap:10px; width:100%; background:var(--accent); color:var(--accent-ink); border-radius:var(--r-card); padding:18px; font-weight:700; font-size:1.1rem; border:none; box-shadow:var(--shadow);}
+  .sug{background:var(--surface); border-radius:var(--r-card); padding:14px 16px; margin-top:10px; border-left:6px solid var(--c); box-shadow:var(--shadow); display:flex; gap:12px; align-items:center;}
+  .sug .t{font-weight:600; font-size:var(--text-body);}
+  .sug .p{font-size:var(--text-sm); color:var(--ink-soft); display:flex; align-items:center; gap:6px; margin-bottom:3px;}
+  .sug .p::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--c);}
+  .why{display:inline-block; margin-top:6px; font-size:var(--text-sm); font-weight:700; padding:3px 9px; border-radius:999px;}
+  .why.red{color:var(--due-now); background:color-mix(in srgb,var(--due-now) 14%,transparent);}
+  .why.go{color:var(--accent); background:color-mix(in srgb,var(--accent) 14%,transparent);}
+  .why.urg{color:var(--prio-urgent); background:color-mix(in srgb,var(--prio-urgent) 14%,transparent);}
+  .start{margin-left:auto; border:1.5px solid var(--ink); border-radius:10px; padding:8px 14px; font-weight:700; background:none; color:var(--ink); white-space:nowrap;}
+  .narrow{margin-top:16px; display:flex; align-items:center; justify-content:space-between; background:var(--surface-2); border:1px dashed var(--line); border-radius:var(--r-control); padding:12px 14px; font-size:var(--text-body);}
+  .narrow small{color:var(--ink-soft);}
+  .tag{position:absolute; background:#1F3F99; color:#fff; font:700 12px/1.3 var(--font-ui); padding:5px 9px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.25); max-width:190px;}
+  .tag::after{content:""; position:absolute; width:10px; height:10px; background:inherit; transform:rotate(45deg);}
+  .tag.l::after{left:-4px; top:10px;} .tag.r::after{right:-4px; top:10px;} .tag.u::after{left:18px; top:-4px;} .tag.d::after{left:18px; bottom:-4px;}
+  /* desktop */
+  .desk{position:relative; width:1440px; height:900px; overflow:hidden; display:grid; grid-template-columns:232px 1fr; grid-template-rows:auto 1fr; column-gap:48px; padding:0 24px 0 16px; box-sizing:border-box;}
+  .desk .mk-top{grid-column:1/3; justify-content:space-between; padding:16px 0;}
+  .desk .mk-jot{width:560px; margin:0;}
+  .rail{background:var(--surface); border-radius:var(--r-card); padding:14px; align-self:start; box-shadow:var(--shadow);}
+  .rail div{padding:12px 14px; border-radius:10px; color:var(--ink-soft); font-weight:600;}
+  .rail .on{background:var(--surface-2); color:var(--accent);}
+  .desk-main{display:grid; grid-template-columns:600px 1fr; gap:32px; align-items:start;}
+  .panel{background:var(--surface); border-radius:var(--r-card); padding:18px; box-shadow:var(--shadow);}
+  .panel h3{font-size:var(--text-h); margin-bottom:10px;}
+  .search{border:1px solid var(--line); border-radius:var(--r-control); padding:10px 12px; color:var(--ink-faint); margin-bottom:10px; background:var(--surface-2);}
+  .row{display:flex; align-items:center; gap:10px; padding:9px 6px; border-bottom:1px solid var(--line); font-size:var(--text-body);}
+  .row .dot{width:9px; height:9px; border-radius:50%; background:var(--c);} .row .n{margin-left:auto; color:var(--ink-faint); font-size:var(--text-sm);}
+  .row.sel{background:color-mix(in srgb,var(--accent) 10%,transparent); border-radius:8px; font-weight:700;}
+  .kinds{display:flex; flex-wrap:wrap; gap:8px;}
+  .kind{border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:var(--text-sm); font-weight:600; background:var(--surface-2);}
+  .kind.on{background:var(--accent); color:#fff; border-color:transparent;}
+  .lbl{font-size:var(--text-sm); color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin:14px 0 8px;}
+  /* settings */
+  .tick{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line);}
+  .box{width:20px; height:20px; border:2px solid var(--ink); border-radius:5px; display:grid; place-items:center; font-weight:900; font-size:14px;}
+  .box.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .tick .s{margin-left:auto; font-size:var(--text-sm); color:var(--ink-faint);}
+  .tick.off{color:var(--ink-faint);}
+  /* flow */
+  .flow{width:1280px; padding:32px; box-sizing:border-box; background:var(--bg);}
+  .lane{display:flex; align-items:center; gap:0; margin:0 0 26px;}
+  .lane-h{width:200px; flex:none; font-weight:700; font-size:var(--text-h); font-family:var(--font-display);}
+  .lane-h small{display:block; font-family:var(--font-ui); font-size:var(--text-sm); color:var(--ink-soft); font-weight:600; margin-top:4px;}
+  .st{background:var(--surface); border-radius:12px; padding:12px 14px; width:150px; box-sizing:border-box; box-shadow:var(--shadow); font-size:var(--text-sm); line-height:1.35; border-top:5px solid var(--line); min-height:96px;}
+  .st b{display:block; font-size:var(--text-body); margin-bottom:3px;}
+  .st.hard{border-top-color:var(--due-now);} .st.ok{border-top-color:var(--prio-low);} .st.goal{border-top-color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,var(--surface));}
+  .ar{width:28px; text-align:center; color:var(--ink-faint); font-size:22px; flex:none;}
+  .cnt{margin-left:18px; font-weight:800; font-size:1.6rem; font-family:var(--font-display); white-space:nowrap;}
+  .cnt small{display:block; font-family:var(--font-ui); font-size:var(--text-sm); color:var(--ink-soft); font-weight:600;}
+  .legend{display:flex; gap:22px; font-size:var(--text-sm); color:var(--ink-soft); margin-top:4px;}
+  .legend span::before{content:""; display:inline-block; width:22px; height:5px; margin-right:6px; vertical-align:middle; background:var(--k);}
+  /* sort mock */
+  .slip{margin:0 16px; background:var(--paper); border-radius:4px; padding:14px 16px; box-shadow:0 6px 14px -10px var(--paper-shadow); color:var(--paper-ink);}
+  .slip .w{font-family:var(--note-font); font-weight:700; font-size:1.25rem; line-height:1.25;}
+  .thumb{position:absolute; left:16px; right:16px; bottom:84px; display:flex; gap:10px;}
+  .thumb .mk-big{padding:15px; font-size:1rem;}
+  .thumb .later{flex:none; width:96px; border:1.5px solid var(--ink); border-radius:var(--r-card); background:var(--surface); font-weight:700; display:grid; place-items:center;}
+  /* backlog */
+  .bl{width:1200px; padding:32px; box-sizing:border-box;}
+  .bars{display:grid; grid-template-columns:200px 1fr; gap:18px 20px; align-items:center;}
+  .bar{display:flex; height:54px; border-radius:10px; overflow:hidden; box-shadow:var(--shadow);}
+  .bar div{display:grid; place-items:center; color:#fff; font-weight:700; font-size:var(--text-sm); text-align:center; line-height:1.2;}
+</style><style>
+  .doors{display:grid; gap:10px; margin-top:16px;}
+  .door{display:grid; grid-template-columns:1fr auto; background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-control); padding:12px 14px;}
+  .door b{font-size:var(--text-body);} .door small{grid-column:1; color:var(--ink-soft); font-size:var(--text-sm);} .door span{grid-row:1/3; grid-column:2; align-self:center; font-size:1.3rem; color:var(--ink-soft);}
+  .desk .doors{grid-template-columns:1fr 1fr;}
+  .map{width:1280px; padding:32px; box-sizing:border-box; position:relative; height:640px;}
+  .scr{position:absolute; width:210px; background:var(--surface); border-radius:14px; box-shadow:var(--shadow); padding:14px 16px; border-top:6px solid var(--k); font-size:var(--text-sm); line-height:1.4;}
+  .scr b{display:block; font-family:var(--font-display); font-size:var(--text-h); margin-bottom:4px;}
+  .scr em{display:block; font-style:normal; font-weight:700; color:var(--accent); margin-top:6px;}
+  .new{position:absolute; top:-12px; right:10px; background:var(--accent); color:#fff; font-weight:800; font-size:11px; padding:3px 8px; border-radius:999px; letter-spacing:.05em;}
+  .ln{position:absolute; font-size:var(--text-sm); font-weight:700; color:var(--ink-soft);}
+  svg.arrows{position:absolute; left:0; top:0;}
+  .ff{margin:0 16px; background:linear-gradient(var(--surface),var(--surface)); border-radius:var(--r-card); padding:18px; box-shadow:var(--shadow);}
+  .folder{height:92px; border-radius:6px 10px 10px 10px; background:var(--c); position:relative; padding:28px 12px 8px; box-sizing:border-box; color:#1C2438;}
+  .folder::before{content:""; position:absolute; top:-10px; left:0; width:80px; height:14px; border-radius:6px 6px 0 0; background:var(--c);}
+  .folder b{background:#fff; padding:2px 7px; border-radius:3px; font-size:var(--text-body);} .folder small{display:block; margin-top:8px; font-size:var(--text-sm);}
+  .icard{height:92px; background:var(--paper); border-top:5px solid #8a6a4a; border-left:2px solid var(--index-red); padding:12px; box-sizing:border-box; box-shadow:0 4px 12px -8px var(--paper-shadow);}
+  .icard b{font-size:1.05rem;} .icard small{display:block; margin-top:8px; font-size:var(--text-sm); color:var(--paper-soft);}
+  .count{display:flex; justify-content:space-between; font-weight:700; margin:14px 0 8px;} .count span{font-weight:500; color:var(--ink-soft); font-size:var(--text-sm);}
+  .grid5{display:grid; grid-template-columns:repeat(5,1fr); gap:14px 14px;}
+</style><style>
+ .pr{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+ .pb{border:2px solid var(--c); color:var(--c); border-radius:12px; padding:10px 4px; text-align:center; font-weight:800; font-size:var(--text-body); background:var(--surface);}
+ .pb.on{background:var(--c); color:#fff;}
+ .pb small{display:block; font-weight:600; font-size:11px; opacity:.85;}
+ .dd{display:flex; gap:8px; flex-wrap:wrap;} .dc{border:1px solid var(--line); border-radius:999px; padding:8px 13px; font-weight:700; font-size:var(--text-sm); background:var(--surface);}
+ .dc.on{background:var(--ink); color:#fff; border-color:var(--ink);}
+ .sheet{position:absolute; left:0; right:0; bottom:0; background:var(--surface); border-radius:22px 22px 0 0; box-shadow:0 -10px 30px rgba(0,0,0,.18); padding:18px 16px 24px;}
+ .sheet h3{font-family:var(--font-display); font-size:var(--text-h); margin:0 0 4px;}
+ .req{color:var(--prio-urgent); font-weight:700; font-size:var(--text-sm);}
+ .addbtn{margin-top:14px; width:100%; border:none; border-radius:14px; padding:14px; font-weight:800; font-size:1rem; background:var(--accent); color:#fff;}
+ .addbtn.off{background:var(--surface-2); color:var(--ink-faint); border:1px dashed var(--line);}
+ .dim{position:absolute; inset:0; background:rgba(20,26,40,.35);}
+ .car{display:flex; gap:14px; align-items:center;}
+ .arr{width:44px; height:44px; flex:none; border-radius:50%; border:1.5px solid var(--ink); display:grid; place-items:center; font-weight:800; background:var(--surface);}
+ .car .folder{flex:1;} .car .folder.cur{outline:3px solid var(--accent); outline-offset:3px;}
+ .car .icard{flex:1;} .car .icard.cur{outline:3px solid var(--accent); outline-offset:3px;}
+ .keys{font-size:var(--text-sm); color:var(--ink-soft);} .keys kbd{border:1px solid var(--line); border-bottom-width:3px; border-radius:6px; padding:1px 7px; background:var(--surface); font-family:var(--font-ui); font-weight:700;}
+ .dots{display:flex; gap:5px; justify-content:center; margin-top:8px;} .dots i{width:7px; height:7px; border-radius:50%; background:var(--line);} .dots i.on{background:var(--accent); width:18px; border-radius:4px;}
+ .stage{display:flex; gap:8px; margin:0 0 16px;} .stage div{flex:1; text-align:center; padding:8px; border-radius:10px; font-weight:700; font-size:var(--text-sm); background:var(--surface-2); color:var(--ink-soft);} .stage .on{background:var(--accent); color:#fff;} .stage .done{background:color-mix(in srgb,var(--prio-low) 18%,var(--surface)); color:var(--prio-low);}
+ .grp{background:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow); padding:12px 16px; margin-bottom:12px;}
+ .grp h4{font-family:var(--font-ui); font-size:var(--text-body); font-weight:800; margin:0 0 2px; display:flex; justify-content:space-between;} .grp h4 small{color:var(--ink-soft); font-weight:600;}
+ .grp p{margin:0 0 6px; font-size:var(--text-sm); color:var(--ink-soft);}
+ .it{display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--line); font-size:var(--text-body);}
+ .it .dot{width:8px; height:8px; border-radius:50%; background:var(--c); flex:none;} .it .w{flex:1;} .it .w small{display:block; color:var(--ink-faint); font-size:var(--text-sm);}
+ .kb{display:flex; gap:6px;} .kb span{border:1.5px solid var(--line); border-radius:8px; padding:5px 10px; font-weight:700; font-size:var(--text-sm);} .kb .k{border-color:var(--prio-low); color:var(--prio-low);} .kb .c{border-color:var(--danger); color:var(--danger);} .kb .sel{background:var(--danger); color:#fff;} .kb .ksel{background:var(--prio-low); color:#fff;}
+ .meter{height:12px; border-radius:6px; background:var(--surface-2); overflow:hidden; display:flex;} .meter b{background:var(--prio-low);} .meter i{background:var(--danger); opacity:.6;}
+ .tier{background:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow); padding:12px 14px; margin-bottom:12px; border-left:6px solid var(--k);}
+ .tier h4{margin:0 0 6px; font-family:var(--font-display); font-size:var(--text-h); font-weight:400; display:flex; justify-content:space-between;} .tier h4 small{font-family:var(--font-ui); font-size:var(--text-sm); color:var(--ink-soft);}
+ .rk{display:flex; gap:10px; align-items:center; padding:7px 0; border-top:1px solid var(--line); font-size:var(--text-body);} .rk .n{width:22px; font-weight:800; color:var(--ink-faint);} .rk .w{flex:1;} .rk .why{margin:0 0 0 auto;}
+ .ladder{display:flex; flex-direction:column; gap:6px;} .ladder div{display:flex; gap:10px; align-items:center; background:var(--surface); border-radius:10px; padding:8px 12px; box-shadow:var(--shadow); font-size:var(--text-body);} .ladder b{width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-size:13px;}
+ .rm{display:grid; grid-template-columns:180px repeat(3,1fr); gap:10px; align-items:stretch;}
+ .rm .h{font-weight:800; font-size:var(--text-sm); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; padding:4px 6px;}
+ .rm .pj{display:flex; flex-direction:column; justify-content:center; padding:6px 0;} .rm .pj b{display:flex; gap:8px; align-items:center;} .rm .pj b::before{content:""; width:10px; height:10px; border-radius:50%; background:var(--c);}
+ .ms{background:var(--surface); border-radius:12px; box-shadow:var(--shadow); padding:10px 12px; font-size:var(--text-sm); border-top:5px solid var(--c);} .ms b{display:block; font-size:var(--text-body); margin-bottom:6px;} .ms.done{opacity:.7;} .ms.done b::after{content:"  ✓"; color:var(--prio-low);}
+ .pbar{height:8px; border-radius:4px; background:var(--surface-2); overflow:hidden; margin-top:6px;} .pbar i{display:block; height:100%; background:var(--c);}
+ .big{font-family:var(--font-display); font-size:2rem;}
+ .wide{width:1440px; padding:28px 32px; box-sizing:border-box;}
+</style><style>
+ .ab{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:0 0 14px;}
+ .ac{border:1.5px solid var(--line); border-radius:999px; padding:6px 12px; font-weight:700; font-size:var(--text-sm); background:var(--surface); display:flex; align-items:center; gap:6px; color:var(--ink);}
+ .ac::before{content:""; width:9px; height:9px; border-radius:50%; background:var(--c,var(--ink-faint));}
+ .ac.on{background:var(--c); border-color:var(--c); color:#fff;} .ac.on::before{background:#fff;}
+ .ac.plain::before{display:none;}
+ .seg{display:inline-flex; border:1.5px solid var(--ink); border-radius:10px; overflow:hidden; font-weight:700; font-size:var(--text-sm);} .seg span{padding:7px 12px;} .seg .on{background:var(--ink); color:#fff;}
+ .arow{display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--line); font-size:var(--text-body);}
+ .arow .sw{width:14px; height:14px; border-radius:50%; background:var(--c);} .arow .n{margin-left:auto; color:var(--ink-faint); font-size:var(--text-sm);} .arow .ed{color:var(--ink-faint); font-size:var(--text-sm); font-weight:700;}
+ .arow.sel{background:color-mix(in srgb,var(--c) 12%,transparent); border-radius:10px; font-weight:700;}
+ .pch{display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid var(--line); font-size:var(--text-body);} .pch .mv{margin-left:auto; border:1px solid var(--line); border-radius:8px; padding:4px 9px; font-size:var(--text-sm); font-weight:700; background:var(--surface-2);}
+ .tl{font-size:var(--text-sm); padding:5px 0; border-top:1px solid var(--line); display:flex; gap:8px;} .tl .why{margin:0 0 0 auto; padding:1px 8px;}
+</style><style>
+ .rows{display:flex; flex-direction:column; gap:12px;}
+ .rr{display:grid; grid-template-columns:180px 1fr; gap:12px; align-items:center;}
+ .rr .pj{display:flex; flex-direction:column; justify-content:center;} .rr .pj b{display:flex; gap:8px; align-items:center;} .rr .pj b::before{content:""; width:10px; height:10px; border-radius:50%; background:var(--c);}
+ .blks{display:flex; gap:10px; align-items:stretch;} .blks .ms{flex:1; min-width:0;}
+ .tt{display:inline-block; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:2px 8px; border-radius:999px; margin-bottom:6px;}
+ .tt.now{background:color-mix(in srgb,var(--prio-urgent) 14%,transparent); color:var(--prio-urgent);} .tt.next{background:color-mix(in srgb,var(--prio-high) 14%,transparent); color:var(--prio-high);} .tt.later{background:color-mix(in srgb,var(--prio-low) 16%,transparent); color:var(--prio-low);}
+</style><style>
+ .mini{background:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow); padding:16px 18px; display:flex; flex-direction:column; gap:10px;}
+ .mini h5{margin:0; font-family:var(--font-display); font-weight:400; font-size:var(--text-h);}
+ .vb{display:flex; gap:8px; align-items:center;} .vb .seg span{padding:5px 10px;}
+ .mrow{display:flex; gap:8px; align-items:center; font-size:var(--text-sm); padding:7px 10px; border-radius:10px; background:var(--surface-2); border-left:5px solid var(--c);}
+ .mrow .why{margin:0 0 0 auto; padding:1px 8px;}
+ .cols{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;} .cols div{background:var(--surface-2); border-radius:10px; padding:8px; font-size:var(--text-sm); min-height:70px;} .cols b{display:block; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;}
+ .cols i{display:block; font-style:normal; background:var(--paper); border-left:4px solid #B9782E; padding:4px 6px; margin-bottom:4px; border-radius:4px;}
+ .shtab{display:flex; gap:6px; margin:10px 0 12px;}
+</style></head><body>
+<style>
+ .tb5{position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:space-around; background:var(--surface); border-top:1px solid var(--line); padding:6px 4px 12px;}
+ .tb5 div{flex:1; text-align:center; font-size:12px; color:var(--ink-soft); padding:5px 2px; border-radius:10px; font-weight:600; position:relative;}
+ .tb5 div i{display:block; font-style:normal; font-size:10px; font-weight:800; color:var(--ink-faint);}
+ .tb5 .on{background:var(--surface-2); color:var(--accent); font-weight:800;} .tb5 .on i{color:var(--accent);}
+ .badge{position:absolute; top:-2px; right:6px; background:var(--accent); color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:1px 6px;}
+ .rail2 div{padding:9px 14px;} .rail2 .st1{font-weight:800; color:var(--ink); display:flex; gap:8px; align-items:center;} .rail2 .st1 i{font-style:normal; width:20px; height:20px; border-radius:50%; background:var(--surface-2); display:grid; place-items:center; font-size:11px;}
+ .rail2 .sub{padding:5px 14px 5px 42px; font-weight:600; font-size:var(--text-sm);} .rail2 .on{background:var(--surface-2); color:var(--accent);} .rail2 .st1.on i{background:var(--accent); color:#fff;}
+ .rail2 .sep{border-top:1px solid var(--line); margin:8px 0; padding:0;}
+ .colz{display:grid; grid-template-columns:repeat(5,1fr); gap:14px;}
+ .stp{background:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow); padding:14px; border-top:6px solid var(--k); display:flex; flex-direction:column; gap:6px; font-size:var(--text-sm); line-height:1.4;}
+ .stp h4{margin:0; font-family:var(--font-display); font-weight:400; font-size:1.3rem; display:flex; gap:8px; align-items:center;} .stp h4 i{font-style:normal; font-family:var(--font-ui); font-size:12px; font-weight:800; width:22px; height:22px; border-radius:50%; background:var(--k); color:#fff; display:grid; place-items:center;}
+ .stp .q{font-weight:700; color:var(--ink);}
+ .from{display:flex; flex-wrap:wrap; gap:5px;} .from span{border:1px dashed var(--line); background:var(--surface-2); border-radius:8px; padding:3px 8px; font-weight:600;}
+ .from span.old{border-style:solid; border-color:var(--ink-faint);}
+ .ln2{height:22px; display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:22px;}
+ .tk{display:flex; align-items:center; gap:10px; padding:8px 4px; border-top:1px solid var(--line); font-size:var(--text-body);} .tk .bx{width:16px; height:16px; border:2px solid var(--ink-soft); border-radius:4px;} .tk .bx.done{background:var(--prio-low); border-color:var(--prio-low);} .tk .ch{margin-left:auto; display:flex; gap:6px;}
+ .chip{font-size:var(--text-sm); font-weight:700; border-radius:999px; padding:2px 9px; border:1px solid var(--line); background:var(--surface-2);}
+ .menu{position:absolute; background:var(--surface); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.2); padding:6px; width:190px; font-size:var(--text-body);} .menu div{padding:8px 10px; border-radius:8px; display:flex; gap:8px; align-items:center;} .menu .on{background:var(--surface-2); font-weight:800;} .menu small{color:var(--ink-faint); margin-left:auto;}
+ table.inv{border-collapse:collapse; width:100%; font-size:var(--text-body); background:var(--surface); border-radius:var(--r-card); overflow:hidden; box-shadow:var(--shadow);}
+ table.inv th{background:var(--surface-2); text-align:left; padding:9px 12px; font-size:var(--text-sm); text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft);}
+ table.inv td{padding:7px 12px; border-top:1px solid var(--line);} table.inv td.g{color:var(--ink-soft); font-weight:700; width:150px;} table.inv .to{font-weight:700;} table.inv .k{font-size:12px; font-weight:800; padding:2px 8px; border-radius:999px;} .k.same{background:color-mix(in srgb,var(--prio-low) 16%,transparent); color:var(--prio-low);} .k.moved{background:color-mix(in srgb,var(--accent) 14%,transparent); color:var(--accent);} .k.merged{background:#efe8fb; color:#6A3FB8;}
+</style>
+
+<section class="pic" id="steps"><div class="wide" style="height:620px; position:relative">
+<h2 class="mk-h">Five tabs, one for each step</h2><p class="mk-sub">Each tab answers one question, in the order you use them. The dashed boxes are today's screens and where they go.</p>
+<div class="colz">
+<div class="stp" style="--k:#7A6A55"><h4><i>1</i>Capture</h4><div class="q">What's on my mind?</div>Jot a thought or add a task, then file it to a project.<div class="from"><span class="old">Jotter</span><span class="old">Sort</span></div></div>
+<div class="stp" style="--k:#6A3FB8"><h4><i>2</i>Plan</h4><div class="q">What still matters, and in what order?</div>Tidy up, Triage, then Roadmap. Roadmap is where projects live now.<div class="from"><span class="old">Tidy up</span><span class="old">Triage</span><span class="old">Roadmap</span><span class="old">Projects</span><span class="old">Board: Up next</span></div></div>
+<div class="stp" style="--k:#8F5A06"><h4><i>3</i>Start</h4><div class="q">What should I do now?</div>Three suggestions from Triage, or 'Choose it myself'.<div class="from"><span class="old">Start here</span></div></div>
+<div class="stp" style="--k:#B42318"><h4><i>4</i>Focus</h4><div class="q">What am I doing?</div>The carousels and today's task card, plus everything already in progress.<div class="from"><span class="old">Focus</span><span class="old">Board: In progress</span></div></div>
+<div class="stp" style="--k:#3F6E53"><h4><i>5</i>Review</h4><div class="q">Is it really done?</div>Check what's waiting for review, and see what you finished.<div class="from"><span class="old">Board: Done</span><span class="old">Needs review label</span></div></div>
+</div>
+<p class="keys" style="margin-top:18px">Settings stays out of the tabs: on a phone it's the gear at the top, and on desktop it's at the bottom of the side menu. The All / Area / Project switch sits at the top of every tab.</p>
+<div class="tag u" style="left:420px; top:470px">The Board's three columns split across Plan, Focus and Review, so nothing is shown twice</div>
+</div></section>
+
+<section class="pic" id="capture-phone"><div class="phone"><div class="mk-top"><div class="mk-brand">Focus Deck</div><span style="margin-left:auto; font-size:1.2rem; color:var(--ink-soft)">⚙</span></div><div style="padding:0 16px">
+<div class="ab" style="flex-wrap:nowrap"><span class="seg"><span class="on">All</span><span>Area</span><span>Project</span></span></div>
+<h2 class="mk-h" style="font-size:1.35rem">Capture</h2><p class="mk-sub" style="margin-bottom:8px">Get it out of your head, then file it.</p></div>
+<div class="mk-jot"><span>Jot a thought…</span><b>Add</b></div>
+<div style="padding:0 16px"><div class="lbl">44 thoughts to sort</div></div>
+<div class="slip"><div class="w">call about the boiler??</div><div class="keys" style="margin-top:6px">jotted Mon 9 Nov</div></div>
+<div style="padding:12px 16px 0"><div class="search">Find a project…</div><div class="kinds"><span class="kind">Home</span><span class="kind">Chores</span><span class="kind">To-do list</span><span class="kind">+ New</span></div>
+<div class="lbl">Priority · needed</div><div class="pr"><div class="pb" style="--c:var(--prio-urgent)">Urgent</div><div class="pb on" style="--c:var(--prio-high)">High</div><div class="pb" style="--c:var(--prio-medium)">Medium</div><div class="pb" style="--c:var(--prio-low)">Low</div></div></div>
+<div class="thumb" style="bottom:86px"><button class="mk-big">File to Chores</button><div class="later">Later</div></div>
+<div class="tag u" style="left:120px; top:118px">Sort is now part of Capture</div>
+<div class="tb5"><div class="on"><i>1</i>Capture<span class="badge">44</span></div><div><i>2</i>Plan</div><div><i>3</i>Start</div><div><i>4</i>Focus</div><div><i>5</i>Review<span class="badge">15</span></div></div></div></section>
+
+<section class="pic" id="plan-project-desk"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div>
+<div class="rail rail2"><div class="st1"><i>1</i>Capture</div><div class="sub">Sort · 44</div><div class="st1 on"><i>2</i>Plan</div><div class="sub">Tidy up</div><div class="sub">Triage</div><div class="sub on">Roadmap</div><div class="st1"><i>3</i>Start</div><div class="st1"><i>4</i>Focus</div><div class="st1"><i>5</i>Review · 15</div><div class="sep"></div><div class="sub" style="padding-left:14px">⚙ Settings</div></div>
+<div style="width:1080px">
+<div class="ab"><span class="seg"><span>All</span><span>Area</span><span class="on">Project</span></span><span style="width:6px"></span><span class="ac" style="--c:#C9584F">Apps</span><span class="ac on" style="--c:#C9584F">Focus Deck ▾</span><span style="margin-left:auto" class="ac plain">+ New project</span></div>
+<div style="display:flex; justify-content:space-between; align-items:flex-end"><div><h2 class="mk-h">Focus Deck</h2><p class="mk-sub" style="margin:0">Linked to GitHub · synced 2 min ago · <b style="color:var(--accent)">Sync now</b> · <b style="color:var(--accent)">Edit project</b></p></div><div style="text-align:right"><div class="big">48%</div><div class="keys">11 of 23 done</div></div></div>
+<div class="meter" style="margin:10px 0 16px"><b style="flex:11; background:#C9584F"></b><i style="flex:12; background:var(--surface-2)"></i></div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px">
+<div class="ms" style="--c:#C9584F"><span class="tt now">Now</span><b>Start here screen · 3 of 5</b>
+<div class="tk"><span class="bx done"></span>Three suggestions</div><div class="tk"><span class="bx done"></span>Pick one for me</div><div class="tk"><span class="bx"></span>Open on Start here<span class="ch"><span class="chip" style="color:var(--accent)">Doing ▾</span><span class="chip" style="color:var(--prio-high)">High</span></span></div><div class="tk"><span class="bx"></span>Test on phone<span class="ch"><span class="chip">Up next ▾</span><span class="chip">Due Fri</span></span></div>
+<div class="tk" style="color:var(--ink-faint)">+ Add a task here</div></div>
+<div class="ms" style="--c:#C9584F"><span class="tt next">Next</span><b>Tidy up, Triage, Roadmap · 0 of 9</b>
+<div class="tk"><span class="bx"></span>Areas in Settings<span class="ch"><span class="chip">Up next ▾</span></span></div><div class="tk"><span class="bx"></span>Tidy up groups<span class="ch"><span class="chip">Up next ▾</span></span></div><div class="tk" style="color:var(--ink-faint)">6 more · Show</div>
+<div style="margin-top:10px"><span class="tt later">Later</span><b style="display:block">Android app · 0 of 6</b></div></div>
+</div>
+</div><div class="tag l" style="left:960px; top:150px">Projects' add, edit, GitHub and Sync move here</div></div></section>
+
+<section class="pic" id="focus-desk"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div>
+<div class="rail rail2"><div class="st1"><i>1</i>Capture</div><div class="sub">Sort · 44</div><div class="st1"><i>2</i>Plan</div><div class="sub">Tidy up</div><div class="sub">Triage</div><div class="sub">Roadmap</div><div class="st1"><i>3</i>Start</div><div class="st1 on"><i>4</i>Focus</div><div class="st1"><i>5</i>Review · 15</div><div class="sep"></div><div class="sub" style="padding-left:14px">⚙ Settings</div></div>
+<div style="width:1080px; position:relative">
+<div class="ab"><span class="seg"><span>All</span><span class="on">Area</span><span>Project</span></span><span style="width:6px"></span><span class="ac on" style="--c:#C9584F">Apps ▾</span></div>
+<div class="lbl" style="margin-top:4px">Doing now · 3</div>
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px">
+<div class="sug" style="--c:#C9584F; margin:0"><div><div class="p">Focus Deck</div><div class="t">Open on Start here</div><span class="why go">Doing ▾</span></div></div>
+<div class="sug" style="--c:#C9584F; margin:0"><div><div class="p">Focus Deck</div><div class="t">Fix the icon on mobile</div><span class="why go">Doing ▾</span></div></div>
+<div class="sug" style="--c:#2F8F8F; margin:0"><div><div class="p">UnamedSoulsLike</div><div class="t">Rig the boss model</div><span class="why go">Doing ▾</span></div></div></div>
+<h2 class="mk-h" style="margin-top:22px">What's your focus right now?</h2>
+<div class="count">Project <span>2 of 6 in Apps · ← → · type to find</span></div>
+<div class="car"><div class="arr">‹</div><div class="folder" style="--c:#B9A6C9"><b>AjsClaudeCode…</b><small>19 open</small></div><div class="folder cur" style="--c:#D69C92"><b>Focus Deck</b><small>23 open</small></div><div class="folder" style="--c:#9BC4C0"><b>Unblocked</b><small>18 open</small></div><div class="folder" style="--c:#C9B48A"><b>Refocused site</b><small>7 open</small></div><div class="folder" style="--c:#A9B8D6"><b>Gist tools</b><small>4 open</small></div><div class="arr">›</div></div>
+<div class="menu" style="left:10px; top:178px"><div>Up next<small>Plan</small></div><div class="on">● Doing<small>Focus</small></div><div>Waiting for review<small>Review</small></div><div>Done<small>Review</small></div></div>
+</div><div class="tag l" style="left:470px; top:250px">This status menu replaces dragging between Board columns</div><div class="tag u" style="left:700px; top:215px">Board's In progress column lives here</div></div></section>
+
+<section class="pic" id="review-phone"><div class="phone"><div class="mk-top"><div class="mk-brand">Focus Deck</div><span style="margin-left:auto; font-size:1.2rem; color:var(--ink-soft)">⚙</span></div><div style="padding:0 16px">
+<div class="ab" style="flex-wrap:nowrap"><span class="seg"><span class="on">All</span><span>Area</span><span>Project</span></span></div>
+<h2 class="mk-h" style="font-size:1.35rem">Review</h2><p class="mk-sub" style="margin-bottom:8px">Check it's really done. Then see how far you've come.</p>
+<div class="grp"><h4>Waiting for your review <small>15</small></h4>
+<div class="it" style="--c:#C9584F; display:block"><div class="w">Jotter phone layout: writing on top<small>Focus Deck · #245 · PR merged 29 Oct</small></div><div class="kb" style="margin-top:6px"><span class="k ksel">Looks good · Done</span><span class="c">Needs more work</span></div></div>
+<div class="it" style="--c:#C9584F; display:block"><div class="w">One-line add row on project cards<small>Focus Deck · #240</small></div><div class="kb" style="margin-top:6px"><span class="k">Looks good · Done</span><span class="c">Needs more work</span></div></div></div>
+<div class="grp"><h4>Done this week <small>12</small></h4>
+<div class="it" style="--c:#B9782E"><span class="dot"></span><div class="w">Bins out<small>Chores · Tue</small></div><span class="keys">Undo</span></div>
+<div class="it" style="--c:#4D6FB8"><span class="dot"></span><div class="w">History essay draft<small>School · Mon</small></div><span class="keys">Undo</span></div></div>
+</div><div class="tag u" style="left:110px; top:560px">'Needs more work' sends it back to Focus as Doing</div>
+<div class="tb5"><div><i>1</i>Capture<span class="badge">44</span></div><div><i>2</i>Plan</div><div><i>3</i>Start</div><div><i>4</i>Focus</div><div class="on"><i>5</i>Review<span class="badge">15</span></div></div></div></section>
+
+<section class="pic" id="inventory"><div class="wide" style="height:auto; padding-bottom:36px">
+<h2 class="mk-h">Where every feature of Projects and Board goes</h2><p class="mk-sub">Nothing is dropped. 'Same' means it works as today, in a new place. 'Merged' means two copies become one.</p>
+<table class="inv"><tr><th>Today</th><th>What it does</th><th>Goes to</th><th></th></tr>
+<tr><td class="g">Projects</td><td>Grid of all projects, with search, category filter and sort (name, most open, deadline, recently synced, your own order)</td><td class="to">Plan › Roadmap, switch on All or Area</td><td><span class="k merged">Merged</span></td></tr>
+<tr><td class="g">Projects</td><td>One project's task list, add a task, tick done, '+ done' list</td><td class="to">Plan › Roadmap, switch on Project</td><td><span class="k merged">Merged</span></td></tr>
+<tr><td class="g">Projects</td><td>New project, link or create a GitHub repo</td><td class="to">'+ New project' on Roadmap</td><td><span class="k moved">Moved</span></td></tr>
+<tr><td class="g">Projects</td><td>Edit project: name, category, deadline, remove</td><td class="to">'Edit project' on Roadmap; category becomes Area</td><td><span class="k moved">Moved</span></td></tr>
+<tr><td class="g">Projects</td><td>Sync with GitHub</td><td class="to">'Sync now' on the project, and Settings</td><td><span class="k moved">Moved</span></td></tr>
+<tr><td class="g">Projects</td><td>Drag to reorder projects, collapse a project</td><td class="to">Roadmap rows: 'Your own order' in sort, rows fold</td><td><span class="k same">Same</span></td></tr>
+<tr><td class="g">Board</td><td>Up next column, drag to reorder</td><td class="to">Plan › Triage (Now, Next, Later), drag to reorder</td><td><span class="k merged">Merged</span></td></tr>
+<tr><td class="g">Board</td><td>In progress column</td><td class="to">Focus › 'Doing now'</td><td><span class="k moved">Moved</span></td></tr>
+<tr><td class="g">Board</td><td>Done column</td><td class="to">Review › 'Done this week'</td><td><span class="k moved">Moved</span></td></tr>
+<tr><td class="g">Board</td><td>Drag a card between columns</td><td class="to">Status menu on every card: Up next, Doing, Waiting for review, Done</td><td><span class="k moved">Moved</span></td></tr>
+<tr><td class="g">Board</td><td>Project and project-group filter, search</td><td class="to">The All / Area / Project switch, and search</td><td><span class="k merged">Merged</span></td></tr>
+<tr><td class="g">Sort</td><td>File thoughts, steps, sort many at once</td><td class="to">Capture</td><td><span class="k same">Same</span></td></tr>
+<tr><td class="g">Task details</td><td>Subtasks, links, labels, priority, due date, delete</td><td class="to">Opens from any card, on any tab</td><td><span class="k same">Same</span></td></tr>
+</table></div></section>
+<script>
+  const id = location.hash.slice(1) || 'steps';
+  document.getElementById(id).classList.add('on');
+</script></body></html>
