@@ -264,7 +264,7 @@
     </div>
   </div>
   <div class="tag l" style="left:180px; top:58px">Untick once, gone from Focus</div>
-  <div class="mk-nav"><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div></div>
+  <div class="mk-nav"><div>Start</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div></div>
 </div></section>
 
 <!-- ============ C, PHONE ============ -->
@@ -285,7 +285,7 @@
   <div class="thumb"><button class="mk-big">File to UnamedSoulsLikeProject</button><div class="later">Later</div></div>
   <div class="tag u" style="left:150px; top:470px">A list you can search, not a carousel</div>
   <div class="tag d" style="left:40px; top:640px">Main button where your thumb is</div>
-  <div class="mk-nav"><div>Start</div><div class="on">Sort</div><div>Board</div><div>Projects</div></div>
+  <div class="mk-nav"><div>Start</div><div>Focus</div><div class="on">Sort</div><div>Board</div><div>Projects</div></div>
 </div></section>
 
 <!-- ============ D, BACKLOG ============ -->
@@ -300,6 +300,132 @@
     <div class="lane-h">Labels<small>29 today</small></div>
     <div style="font-size:var(--text-body); line-height:1.6">Urgency today: <b>Asap</b>, <b>highest priority</b>, <b>priority: urgent</b>, <b>Up next</b> (four labels for one idea)<br>After: one set, <b>priority: urgent / high / medium / low</b>, which Focus Deck already reads.</div>
   </div>
+</div></section>
+
+
+<style>
+  .doors{display:grid; gap:10px; margin-top:16px;}
+  .door{display:grid; grid-template-columns:1fr auto; background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-control); padding:12px 14px;}
+  .door b{font-size:var(--text-body);} .door small{grid-column:1; color:var(--ink-soft); font-size:var(--text-sm);} .door span{grid-row:1/3; grid-column:2; align-self:center; font-size:1.3rem; color:var(--ink-soft);}
+  .desk .doors{grid-template-columns:1fr 1fr;}
+  .map{width:1280px; padding:32px; box-sizing:border-box; position:relative; height:640px;}
+  .scr{position:absolute; width:210px; background:var(--surface); border-radius:14px; box-shadow:var(--shadow); padding:14px 16px; border-top:6px solid var(--k); font-size:var(--text-sm); line-height:1.4;}
+  .scr b{display:block; font-family:var(--font-display); font-size:var(--text-h); margin-bottom:4px;}
+  .scr em{display:block; font-style:normal; font-weight:700; color:var(--accent); margin-top:6px;}
+  .new{position:absolute; top:-12px; right:10px; background:var(--accent); color:#fff; font-weight:800; font-size:11px; padding:3px 8px; border-radius:999px; letter-spacing:.05em;}
+  .ln{position:absolute; font-size:var(--text-sm); font-weight:700; color:var(--ink-soft);}
+  svg.arrows{position:absolute; left:0; top:0;}
+  .ff{margin:0 16px; background:linear-gradient(var(--surface),var(--surface)); border-radius:var(--r-card); padding:18px; box-shadow:var(--shadow);}
+  .folder{height:92px; border-radius:6px 10px 10px 10px; background:var(--c); position:relative; padding:28px 12px 8px; box-sizing:border-box; color:#1C2438;}
+  .folder::before{content:""; position:absolute; top:-10px; left:0; width:80px; height:14px; border-radius:6px 6px 0 0; background:var(--c);}
+  .folder b{background:#fff; padding:2px 7px; border-radius:3px; font-size:var(--text-body);} .folder small{display:block; margin-top:8px; font-size:var(--text-sm);}
+  .icard{height:92px; background:var(--paper); border-top:5px solid #8a6a4a; border-left:2px solid var(--index-red); padding:12px; box-sizing:border-box; box-shadow:0 4px 12px -8px var(--paper-shadow);}
+  .icard b{font-size:1.05rem;} .icard small{display:block; margin-top:8px; font-size:var(--text-sm); color:var(--paper-soft);}
+  .count{display:flex; justify-content:space-between; font-weight:700; margin:14px 0 8px;} .count span{font-weight:500; color:var(--ink-soft); font-size:var(--text-sm);}
+  .grid5{display:grid; grid-template-columns:repeat(5,1fr); gap:14px 14px;}
+</style>
+
+<!-- ============ MAP: how the screens connect ============ -->
+<section class="pic" id="map"><div class="map">
+  <h2 class="mk-h" style="margin:0 0 4px">How the screens connect in the combined plan</h2>
+  <p class="mk-sub">Start here is a new screen. Focus stays, and you can still go straight to it. Orange is new or changed.</p>
+  <svg class="arrows" width="1280" height="640" viewBox="0 0 1280 640" fill="none" stroke="#59627A" stroke-width="2.5" stroke-linecap="round">
+    <defs><marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="#59627A" stroke="none"/></marker></defs>
+    <path d="M222 300 H312" marker-end="url(#h)"/>
+    <path d="M532 260 C600 200 640 190 712 190" marker-end="url(#h)"/>
+    <path d="M532 330 C600 400 640 430 712 430" marker-end="url(#h)"/>
+    <path d="M932 190 H1012" marker-end="url(#h)"/>
+    <path d="M427 200 C450 60, 1100 60, 1127 146" stroke-dasharray="7 6" marker-end="url(#h)"/>
+  </svg>
+  <div class="scr" style="left:32px; top:250px; --k:var(--line)"><b>Open the app</b>Phone or desktop</div>
+  <div class="scr" style="left:322px; top:200px; --k:var(--accent)"><span class="new">NEW</span><b>Start here</b>Three suggested tasks, chosen by due date, priority and what's in progress.<em>Uses your priority labels (B)</em></div>
+  <div class="scr" style="left:722px; top:130px; --k:var(--accent)"><span class="new">CHANGED</span><b>Focus</b>Kept. Adds "Find a project" and shows only the kinds of work you ticked.<em>"Choose it myself" goes here</em></div>
+  <div class="scr" style="left:1022px; top:150px; --k:var(--prio-low)"><b>Your task</b>On the sticky note, as today.</div>
+  <div class="scr" style="left:722px; top:394px; --k:var(--accent)"><span class="new">CHANGED</span><b>Sort</b>Pick a project from a list, main button at the bottom.<em>"44 thoughts to sort" goes here</em></div>
+  <div class="ln" style="left:236px; top:270px">opens on</div>
+  <div class="ln" style="left:560px; top:178px">Choose it myself</div>
+  <div class="ln" style="left:560px; top:420px">Thoughts to sort</div>
+  <div class="ln" style="left:942px; top:160px">Draw</div>
+  <div class="ln" style="left:640px; top:62px">Start on a suggestion: straight to your task</div>
+  <div class="scr" style="left:32px; top:470px; width:600px; --k:var(--line)"><b>Not in the app: D, a GitHub tidy-up</b>I list the Focus Deck issues that are already built or replaced, for you to check. Nothing changes on GitHub until you say yes. Board, Projects and Settings keep their place in the menu.</div>
+</div></section>
+
+<!-- ============ START HERE, PHONE ============ -->
+<section class="pic" id="s-phone"><div class="phone">
+  <div class="mk-top"><div class="mk-brand">Focus Deck</div></div>
+  <div class="mk-jot"><span>Jot down a stray thought…</span><b>Add</b></div>
+  <div style="padding:2px 16px">
+    <h2 class="mk-h">Start here</h2>
+    <p class="mk-sub" style="margin-bottom:10px">Three tasks that matter most right now.</p>
+    <button class="mk-big" style="padding:14px">Pick one for me</button>
+    <div class="sug" style="--c:#4D6FB8"><div><div class="p">School</div><div class="t">History essay draft</div><span class="why red">Due today</span></div><button class="start">Start</button></div>
+<div class="sug" style="--c:#C9584F"><div><div class="p">Focus Deck</div><div class="t">Fix the icon on mobile</div><span class="why go">Already in progress</span></div><button class="start">Start</button></div>
+<div class="sug" style="--c:#3E8E5E"><div><div class="p">Home</div><div class="t">Book boiler service</div><span class="why urg">Urgent</span></div><button class="start">Start</button></div>
+    <div class="doors"><div class="door"><b>Choose it myself</b><small>Opens Focus: pick a project and a kind of work</small><span>›</span></div>
+<div class="door"><b>44 thoughts to sort</b><small>Opens Sort</small><span>›</span></div></div>
+  </div>
+  <div class="tag u" style="left:30px; top:700px">Focus is still one tap away</div>
+  <div class="tag l" style="left:250px; top:775px">Five tabs: Start is new</div>
+  <div class="mk-nav"><div class="on">Start</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div></div>
+</div></section>
+
+<!-- ============ START HERE, DESKTOP ============ -->
+<section class="pic" id="s-desk"><div class="desk">
+  <div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div class="mk-jot"><span>Jot down a stray thought…</span><b>Add</b></div><div style="width:200px"></div></div>
+  <div class="rail"><div class="on">Start here</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div></div>
+  <div style="width:640px">
+    <h2 class="mk-h">Start here</h2>
+    <p class="mk-sub">Three tasks that matter most right now.</p>
+    <button class="mk-big">Pick one for me</button>
+    <div class="sug" style="--c:#4D6FB8"><div><div class="p">School</div><div class="t">History essay draft</div><span class="why red">Due today</span></div><button class="start">Start</button></div>
+<div class="sug" style="--c:#C9584F"><div><div class="p">Focus Deck</div><div class="t">Fix the icon on mobile</div><span class="why go">Already in progress</span></div><button class="start">Start</button></div>
+<div class="sug" style="--c:#3E8E5E"><div><div class="p">Home</div><div class="t">Book boiler service</div><span class="why urg">Urgent</span></div><button class="start">Start</button></div>
+    <div class="doors"><div class="door"><b>Choose it myself</b><small>Opens Focus: pick a project and a kind of work</small><span>›</span></div>
+<div class="door"><b>44 thoughts to sort</b><small>Opens Sort</small><span>›</span></div></div>
+  </div>
+  <div class="tag l" style="left:1000px; top:270px">Each tag says why it was suggested</div>
+  <div class="tag l" style="left:1000px; top:660px">The two ways out: Focus and Sort</div>
+</div></section>
+
+<!-- ============ FOCUS KEPT, PHONE ============ -->
+<section class="pic" id="f-phone"><div class="phone">
+  <div class="mk-top"><div class="mk-brand">Focus Deck</div></div>
+  <div class="mk-jot"><span>Jot down a stray thought…</span><b>Add</b></div>
+  <div class="ff">
+    <h2 class="mk-h" style="font-size:1.35rem">What's your focus right now?</h2>
+    <div class="count">Project <span>1 of 27</span></div>
+    <div class="search" style="margin-bottom:10px">Find a project…</div>
+    <div class="folder" style="--c:#C9A16A; width:220px"><b>All projects</b><small>387 open · top: Urgent</small></div>
+    <div class="count">Kind of work <span>1 of 25</span></div>
+    <div class="icard" style="width:220px"><b>Bug</b><small>12 open · top: High</small></div>
+  </div>
+  <div class="tag l" style="left:245px; top:300px">New: type to jump to a project</div>
+  <div class="tag l" style="left:245px; top:470px">Workflow labels hidden: 1 of 25, was 1 of 37</div>
+  <div class="mk-nav"><div>Start</div><div class="on">Focus</div><div>Sort</div><div>Board</div><div>Projects</div></div>
+</div></section>
+
+<!-- ============ FOCUS KEPT, DESKTOP ============ -->
+<section class="pic" id="f-desk"><div class="desk">
+  <div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div class="mk-jot"><span>Jot down a stray thought…</span><b>Add</b></div><div style="width:200px"></div></div>
+  <div class="rail"><div>Start here</div><div class="on">Focus</div><div>Sort</div><div>Board</div><div>Projects</div></div>
+  <div class="panel" style="padding:24px 28px">
+    <h2 class="mk-h">What's your focus right now?</h2>
+    <div class="count">Project <span>27 folders</span></div>
+    <div class="search" style="width:380px">Find a project…</div>
+    <div class="grid5">
+      <div class="folder" style="--c:#C9A16A"><b>All projects</b><small>387 open</small></div>
+      <div class="folder" style="--c:#9DBB9E"><b>Home</b><small>49 open</small></div>
+      <div class="folder" style="--c:#9AA6C2"><b>School</b><small>27 open</small></div>
+      <div class="folder" style="--c:#D69C92"><b>Focus Deck</b><small>23 open</small></div>
+      <div class="folder" style="--c:#B9A6C6"><b>AjsClaudeCodeTools</b><small>19 open</small></div>
+    </div>
+    <div style="font-size:var(--text-sm); color:var(--ink-faint); margin:10px 0 0">Showing the 5 busiest. Type to find any of the other 22.</div>
+    <div class="count">Kind of work <span>25 cards, workflow labels hidden</span></div>
+    <div class="grid5" style="gap:10px"><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Feature</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Bug</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Fix</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Build</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">QoL</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">UX</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Chore</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Art</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Reminder</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Call</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Email</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Buy</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Plan</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Research</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Repair</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Clean</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Cook</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Money</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Travel</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Design</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Code</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Read</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Practice</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Deep work</b></div><div class="icard" style="height:58px; padding:9px 12px"><b style="font-size:var(--text-body)">Surprise me</b></div>
+    </div>
+  </div>
+  <div class="tag l" style="left:960px; top:328px">Five busiest folders, the rest one search away</div>
+  <div class="tag l" style="left:960px; top:372px">No workflow labels: 25 kind cards, was 37</div>
 </div></section>
 
 <script>
