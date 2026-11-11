@@ -10,8 +10,11 @@ carousels), GitHub workflow labels become Focus categories (`categoryIdsForLabel
 `app/js/github-sync.js:49`; only priority, in-progress and Claude labels are reserved, `:31`), Asap and
 highest priority are not read as priority (`PRIORITY_ALIASES`, `:20`), and the Board orders Up next by
 project and hand order only (`boardColumns`, `app/js/board.js:22`). The proposal page is
-`docs/plans/friction-audit.html`, built from `docs/plans/friction-audit.json`; it is waiting on
-Eden's two answers.
+`docs/plans/friction-audit.html`, built from `docs/plans/friction-audit.json`. Eden then asked for
+all four directions together, with Start here as a new screen beside Focus (not replacing it), and
+pictures for every change. That combined plan is `docs/plans/friction-combined.html` (from
+`friction-combined.json`), drawn in `docs/generated/friction-audit/mockups.html`; it replaces the
+first page at the same published link and is waiting on Eden's three answers.
 
 # Today — 2026-10-21
 
