@@ -33,6 +33,13 @@ columns), a phone area row that never cuts a button off, and one All / Area / Pr
 screen (`view-every`, `view-sheet` pictures). That switch answers the "where does the area apply"
 question, so it was dropped from Choices; four questions remain.
 
+Part 3, tabs as steps: Eden asked for tabs that each name a step, with Projects and Board folded in
+and no repeated views. Proposal: Capture (jotter, Sort), Plan (Tidy up, Triage, Roadmap; Roadmap with
+the switch on Project replaces the Projects screen), Start, Focus (adds Board's In progress as 'Doing
+now'), Review (Board's Done and Needs review). A status menu on each card replaces dragging between
+Board columns (`BOARD_COLS`, `app/js/board-view.js:16`). Page: `docs/plans/friction-part3.html`, drawn in
+`docs/generated/friction-audit/part3.html`; the table there maps every Projects and Board feature.
+
 # Today — 2026-10-21
 
 ## Calm build: QA passed
