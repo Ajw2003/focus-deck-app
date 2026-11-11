@@ -40,6 +40,12 @@ now'), Review (Board's Done and Needs review). A status menu on each card replac
 Board columns (`BOARD_COLS`, `app/js/board-view.js:16`). Page: `docs/plans/friction-part3.html`, drawn in
 `docs/generated/friction-audit/part3.html`; the table there maps every Projects and Board feature.
 
+Part 3 redrawn to Eden's flow (2026-11-11): the jot box sits on every tab (J on desktop), and the tabs
+are Sort, Organize (Tidy up, Triage), Roadmap, Focus (Start here on top) and Review. The Roadmap holds
+sections, milestones and per-milestone Up next / In progress / Review / Done columns with drag in any
+direction; each milestone has a user-set weight and measure. Four questions: Review as a fourth column,
+starting weights, where Start here lives, removing the Board. The Capture/Plan/Start version is superseded.
+
 # Today — 2026-10-21
 
 ## Calm build: QA passed

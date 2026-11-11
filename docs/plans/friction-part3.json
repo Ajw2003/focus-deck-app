@@ -3,54 +3,269 @@
  "eyebrow": "Proposal · part 3 · nothing built yet",
  "approval": "Design approved: friction plan part 3, tabs as steps",
  "short": {
-  "lead": "Today the app's screens are Focus, Sort, Board and Projects, and parts 1 and 2 added Start here, Tidy up, Triage and Roadmap. You said the tabs should each name a part of the process, and that Projects and Board don't fit. This plan has five tabs, one per step, in the order you use them: Capture, Plan, Start, Focus and Review. Nothing is dropped. Projects becomes the Roadmap, which already showed projects. The Board's three columns split across Plan, Focus and Review, so no list appears twice. Everything else from the earlier plans stays as you approved it.",
-  "hint": "Tap each row to see its picture. Start with 'The five steps', then the table at the end, which shows where every feature of Projects and Board goes.",
-  "key": [["Built by me", ""], ["You decide", "you"]],
+  "lead": "You described the flow you want: Capture a stray thought from anywhere, Sort it, Organize with Tidy up and Triage, plan on the Roadmap, then Focus and Review. This plan follows it exactly. Capture is not a tab. The jot box sits at the top of every tab. The five tabs are Sort, Organize, Roadmap, Focus and Review. The Roadmap replaces the Projects screen and the Board. Each project has sections. Each section holds milestones. Each milestone has its own Up next, In progress, Review and Done columns. You choose how much each milestone counts and how its progress is measured. All the numbers in the pictures are made-up examples.",
+  "hint": "Tap each row to see its picture. Start with 'Your flow, as five tabs', then the table at the end, which shows where every feature of Projects and Board goes.",
+  "key": [
+   [
+    "Built by me",
+    ""
+   ],
+   [
+    "You decide",
+    "you"
+   ]
+  ],
   "items": [
-   ["bulb", "The five steps", "One tab per step, each with one question", "", "Capture asks what's on your mind. Plan asks what still matters and in what order. Start asks what to do now. Focus asks what you're doing. Review asks whether it's really done. Under each tab are today's screens that move into it. Settings sits outside the tabs: the gear at the top on a phone, and the bottom of the side menu on desktop.", "Read the five questions left to right.",
-    {"src": "docs/generated/friction-audit/p3-steps.png", "alt": "Five step cards, each listing the screens that move into it: Capture, Plan, Start, Focus and Review", "caption": "The five tabs and where today's screens go. A drawing, not built."}],
-   ["list", "Capture, phone", "Jot, then file", "you", "The jotter sits at the top. Below it are the thoughts to sort, one at a time, with the project search and the priority buttons from part 2. The bottom tabs are numbered 1 to 5, and Capture and Review show how many are waiting.", "Check that Sort feels at home under Capture.",
-    {"src": "docs/generated/friction-audit/p3-capture-phone.png", "alt": "Phone drawing: Capture tab with the jotter, 44 thoughts to sort, one thought, a project search, priority buttons, File to Chores and Later, and five numbered tabs with badges 44 and 15", "caption": "Capture on a phone. A drawing, not built."}],
-   ["list", "Plan › Roadmap, one project", "Where projects live now", "you", "Picking Project in the All / Area / Project switch turns the Roadmap into the project's own page. It lists every task in its Now, Next and Later blocks, with an add row, tick boxes and a status chip on each task. 'Edit project', 'Sync now' and '+ New project' move here from the Projects screen. On desktop the side menu lists the five steps, with Plan's three sub-steps (Tidy up, Triage and Roadmap) under it.", "Look for anything you use on today's Projects screen that is missing from this project page.",
-    {"src": "docs/generated/friction-audit/p3-plan-project-desk.png", "alt": "Desktop drawing: side menu with five numbered steps and Plan's Tidy up, Triage and Roadmap; the Focus Deck project page with Sync now, Edit project, New project, and task lists in Now and Next blocks", "caption": "A project's page inside Plan, on desktop. A drawing, not built."}],
-   ["list", "Focus, desktop", "What you're doing, above what to pick next", "you", "A 'Doing now' row at the top holds every task in progress, which was the Board's middle column. The carousels (scrolling rows of cards) sit underneath, as in part 2. Each task has a small status label. Tapping the label opens a menu with Up next, Doing, Waiting for review and Done, and each one says which tab the task moves to. That menu replaces dragging cards between Board columns.", "Check that the status menu is clear enough without the Board.",
-    {"src": "docs/generated/friction-audit/p3-focus-desk.png", "alt": "Desktop drawing: Doing now row with three tasks, an open status menu with Up next, Doing, Waiting for review and Done, and the project carousel below", "caption": "Focus with the in-progress tasks on top. A drawing, not built."}],
-   ["list", "Review, phone", "Check that it's really done", "you", "'Waiting for your review' lists the 15 built issues, each with 'Looks good · Done' or 'Needs more work'. 'Needs more work' sends the task back to Focus as Doing. 'Done this week' lists what you finished, with Undo. This was the Board's last column.", "Read 'Looks good · Done' and 'Needs more work', and say if either is unclear.",
-    {"src": "docs/generated/friction-audit/p3-review-phone.png", "alt": "Phone drawing: Review tab with Waiting for your review, two issues with Looks good Done and Needs more work buttons, and Done this week with Undo", "caption": "Review on a phone. A drawing, not built."}],
-   ["bulb", "Where every feature goes", "Nothing from Projects or Board is lost", "", "The table lists each thing the Projects and Board screens do today, and where it goes. 'Same' means it works as today in a new place, 'Moved' means it's reached a different way, and 'Merged' means two copies become one. Task details, with subtasks, links and labels, still open from any card.", "Look for anything you use that isn't in the table.",
-    {"src": "docs/generated/friction-audit/p3-inventory.png", "alt": "Table of 13 rows mapping each Projects, Board, Sort and Task details feature to its new place, marked Same, Moved or Merged", "caption": "Where each feature of today's screens goes."}]
+   [
+    "bulb",
+    "Your flow, as five tabs",
+    "Capture sits above every tab",
+    "",
+    "The dashed band at the top is Capture: the jot box shown on every tab, and the J key opens it from anywhere on desktop. Below it are the five tabs in your order, each with the question it answers. The grey boxes under each tab name today's screens that move into it.",
+    "Read the five tabs left to right and check that the order matches your flow.",
+    {
+     "src": "docs/generated/friction-audit/p3-flow5.png",
+     "alt": "Capture band with a jot box above five numbered tab cards: Sort, Organize, Roadmap, Focus and Review, each listing today's screens that move into it",
+     "caption": "The flow and where today's screens go. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Sort, phone",
+    "Jot on top, then sort",
+    "you",
+    "The jot box is at the top, as on every tab. Below it, one thought at a time gets a project, a priority (required) and a due date (optional), as in part 2. The tabs at the bottom are numbered 1 to 5. Sort and Review each show a count of items waiting for you.",
+    "Check that the jot box at the top doesn't crowd the sorting.",
+    {
+     "src": "docs/generated/friction-audit/p3-sort5.png",
+     "alt": "Phone drawing: jot box, the Sort tab with one thought, project chips, priority and due buttons, File to Chores and Later, and five numbered tabs",
+     "caption": "Sort on a phone. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Roadmap, a group of projects",
+    "See several projects at once",
+    "you",
+    "With the switch on Area (here Apps), each row is a project. Each block is the milestone that project is working on in one section, with its own measure, such as screens tested or beta testers. The percent under each project name adds up its milestones, giving more weight to the ones you said count more.",
+    "Check that one block per section is enough to see where each project stands.",
+    {
+     "src": "docs/generated/friction-audit/p3-roadmap-group5.png",
+     "alt": "Desktop drawing: Roadmap for the Apps area, three project rows, each with milestone blocks tagged by section and their own measures",
+     "caption": "Roadmap for a group of projects. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Roadmap, one project",
+    "Sections, milestones and every task",
+    "you",
+    "With the switch on Project, the page shows the project's sections in order. Each milestone opens into four columns: Up next, In progress, Review and Done. You can drag a task to any column, in any direction. You can also drag a milestone to another section; the dashed gap shows where it will land. The buttons '+ Add a task', '+ Add a milestone' and '+ Add a section' sit where they apply. The bar at the top splits the project's progress by milestone, so you can see how much each milestone added.",
+    "Follow the task 'Test on phone' as it is dragged in the picture, then tell me whether dragging looks right to you.",
+    {
+     "src": "docs/generated/friction-audit/p3-roadmap-proj5.png",
+     "alt": "Desktop drawing: Focus Deck at 26 percent, a split progress bar, section 1 Foundations with milestone Start here screen open into four columns and a task being dragged, a closed Areas milestone, and section 2 with a dashed drop gap",
+     "caption": "One project's roadmap. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Milestone settings, phone",
+    "You decide what counts",
+    "you",
+    "Tapping a milestone's name opens its settings. The slider sets how much it counts toward the project. 'Measure progress by' offers four ways: Tasks done (how many tasks are finished), Task size (small counts 1, medium 2, large 3), Your own number (you give it a name and a target), or A checklist (you list what 'done' means).",
+    "Check that the four measures cover how you'd judge a milestone.",
+    {
+     "src": "docs/generated/friction-audit/p3-milestone5.png",
+     "alt": "Phone drawing: milestone settings sheet with a slider at 40 percent and four measure options, Your own number selected as screens tested on a phone 2 of 4",
+     "caption": "Milestone settings on a phone. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Focus, desktop",
+    "Start here on top, then choose",
+    "you",
+    "Start here's three picks and 'Pick one for me' sit at the top, beside 'Doing now', which lists what is in progress. 'Or choose it yourself' below is the carousel from part 2. The All / Area / Project switch works here too.",
+    "Check that Start here belongs on Focus rather than a tab of its own.",
+    {
+     "src": "docs/generated/friction-audit/p3-focus5.png",
+     "alt": "Desktop drawing: Start here with three picks and Pick one for me, a Doing now column with two tasks, and a carousel of Home projects below",
+     "caption": "Focus on desktop. A drawing, not built."
+    }
+   ],
+   [
+    "list",
+    "Review, phone",
+    "Check that it's really done",
+    "you",
+    "'Waiting for your review' lists tasks in the Review column, each with 'Looks good · Done' or 'Needs more work'. 'Needs more work' moves the task back to In progress. 'Done this week' lists what you finished, with Undo.",
+    "Read the two buttons, 'Looks good · Done' and 'Needs more work', and tell me if either is unclear.",
+    {
+     "src": "docs/generated/friction-audit/p3-review5.png",
+     "alt": "Phone drawing: Review tab with two waiting tasks and their buttons, and Done this week with Undo",
+     "caption": "Review on a phone. A drawing, not built."
+    }
+   ],
+   [
+    "bulb",
+    "Where every feature goes",
+    "Nothing from Projects or Board is lost",
+    "",
+    "Each row is something a screen does today and where it goes. 'Same' means it works as today, 'Moved' means it's reached a different way, and 'Merged' means two copies become one.",
+    "Look for anything you use that isn't in the table.",
+    {
+     "src": "docs/generated/friction-audit/p3-inventory5.png",
+     "alt": "Table of 11 rows mapping each Projects, Board, Sort, Jotter, Start here, Tidy up, Triage and Task details feature to its new home",
+     "caption": "Where each feature of today's screens goes. A drawing, not built."
+    }
+   ]
   ]
  },
  "changes": [
-  ["new", "Five tabs: Capture, Plan, Start, Focus, Review", "Numbered, in the order you use them, on phone and desktop.", null, "The All / Area / Project switch from part 2 sits at the top of each."],
-  ["chg", "Projects screen", "Becomes Plan › Roadmap with the switch on All, Area or Project.", null, "Add, edit, GitHub link and Sync come with it."],
-  ["chg", "Board", "Its columns split: Up next to Triage, In progress to Focus, Done to Review.", null, "A status menu on each card replaces dragging between columns."],
-  ["chg", "Sort", "Moves under Capture.", null, "The sorting steps stay the same."],
-  ["new", "Review tab", "Waiting for review, and what you finished.", null, "'Needs more work' sends a task back to Focus."],
-  ["keep", "Task details, your data and sync", "No change.", null, "Nothing is deleted."]
+  [
+   "new",
+   "Five tabs: Sort, Organize, Roadmap, Focus, Review",
+   "Numbered in your order, on phone and desktop.",
+   null,
+   "The All / Area / Project switch sits at the top of each."
+  ],
+  [
+   "chg",
+   "Jotter",
+   "Becomes the jot box at the top of every tab; J opens it on desktop.",
+   null,
+   "Capture works from anywhere."
+  ],
+  [
+   "chg",
+   "Projects screen",
+   "Becomes the Roadmap, on All, Area or one Project.",
+   null,
+   "Adding, editing, the GitHub link and Sync all come with it."
+  ],
+  [
+   "chg",
+   "Board",
+   "Its columns live inside each milestone, plus a Review column.",
+   null,
+   "Drag in any direction, as today."
+  ],
+  [
+   "new",
+   "Sections and milestone settings",
+   "Drag sections and milestones; set what each milestone counts and how it's measured.",
+   null,
+   "Project progress is weighted by milestone."
+  ],
+  [
+   "chg",
+   "Start here",
+   "Moves to the top of Focus.",
+   null,
+   "Three picks and Pick one for me stay."
+  ],
+  [
+   "new",
+   "Review tab",
+   "Waiting for review, and what you finished.",
+   null,
+   "'Needs more work' sends a task back to In progress."
+  ],
+  [
+   "keep",
+   "Task details, your data and sync",
+   "No change.",
+   null,
+   "Nothing is deleted."
+  ]
  ],
  "choices": [
-  ["review", "Should 'Waiting for review' become a real task status?", [
-   ["1", "Yes, a fourth status", 1, "Tasks go Up next, Doing, Waiting for review, Done. On GitHub it sets and reads your Needs review label."],
-   ["2", "No, keep it as a label", 0, "Review reads the label only, and manual tasks can't be marked as waiting."]
-  ], "I suggest Yes, because then a task you added in the app can wait for review too, not only a GitHub issue."],
-  ["board", "Should the Board stay as an optional layout?", [
-   ["1", "No, remove it", 1, "Its three columns live in Plan, Focus and Review, so nothing is shown twice."],
-   ["2", "Yes, as a Settings option", 0, "You can switch the old three-column view back on, but the same tasks appear in two places."]
-  ], "I suggest removing it, because you asked for no views that repeat each other."],
-  ["startfocus", "Should Start and Focus stay as two tabs?", [
-   ["1", "Yes, two tabs", 1, "Start picks for you; Focus is where you choose yourself and see what you're doing."],
-   ["2", "Merge them into one 'Do' tab", 0, "Four tabs instead of five, with Start here at the top of Focus."]
-  ], "I suggest two tabs, because you asked for Start here not to replace Focus."]
+  [
+   "review",
+   "Should Review become a real fourth column for every task?",
+   [
+    [
+     "1",
+     "Yes, a fourth column",
+     1,
+     "Tasks go Up next, In progress, Review, Done. On GitHub it sets and reads your Needs review label."
+    ],
+    [
+     "2",
+     "No, keep it as a GitHub label",
+     0,
+     "Only GitHub issues can wait for review; tasks you add in the app can't."
+    ]
+   ],
+   "I suggest Yes, because your flow moves tasks between review and in progress in both directions."
+  ],
+  [
+   "weights",
+   "How should a new milestone's weight start?",
+   [
+    [
+     "1",
+     "Equal shares",
+     1,
+     "Each milestone starts with an equal share and you change any you like."
+    ],
+    [
+     "2",
+     "By task count",
+     0,
+     "Milestones with more tasks start with a bigger share. This is the plain task percent, which you said doesn't tell the whole story."
+    ]
+   ],
+   "I suggest equal shares, because then the percent only changes when you choose to give a milestone a bigger share."
+  ],
+  [
+   "starthere",
+   "Where should Start here live?",
+   [
+    [
+     "1",
+     "Top of Focus",
+     1,
+     "Five tabs, matching your flow, with the picks above Doing now."
+    ],
+    [
+     "2",
+     "Its own tab before Focus",
+     0,
+     "Six tabs, one of which isn't in the flow you described."
+    ]
+   ],
+   "I suggest the top of Focus, because your flow goes straight from Roadmap to Focus."
+  ],
+  [
+   "board",
+   "Should the old Board stay as an optional layout?",
+   [
+    [
+     "1",
+     "No, remove it",
+     1,
+     "Its columns live inside each milestone, so nothing is shown twice."
+    ],
+    [
+     "2",
+     "Yes, as a Settings option",
+     0,
+     "The same tasks would appear in two places."
+    ]
+   ],
+   "I suggest removing it, because you asked for no views that repeat each other."
+  ]
  ],
  "wrapup": {
-  "summary": "Five tabs named after the steps you take: Capture, Plan, Start, Focus and Review. Projects becomes the Roadmap, and the Board's columns split across Plan, Focus and Review, so no view repeats another.",
-  "changing": "Changed: the tabs, Projects, Board and where Sort lives. Added: the Review tab and a status menu on each card. Kept: task details, your data and sync.",
-  "blocking": "Waiting on your answers to the three questions in Choices here, and to the questions on the part 2 page. Nothing is built until you approve.",
+  "summary": "The tabs follow your flow: the jot box on every tab for Capture, then Sort, Organize, Roadmap, Focus and Review. The Roadmap holds sections, milestones and four columns per milestone, and you decide how much each milestone counts.",
+  "changing": "Changed: the tabs, the Jotter, Projects, Board and Start here. Added: sections, milestone settings, weighted progress and the Review tab. Kept: task details, your data and sync.",
+  "blocking": "Waiting on your answers to the four questions in the Choices section of this page, and to the open questions on the part 2 page. Nothing is built until you approve.",
   "next": "After you answer, I will fold parts 1, 2 and 3 into one build order and open GitHub issues for each part.",
   "todo": [
-   "Look at 'The five steps' first, then the table at the end.",
-   "Pick one answer under each of the three questions in Choices.",
+   "Look at 'Your flow, as five tabs' first, then 'Roadmap, one project'.",
+   "Pick one answer under each of the four questions in Choices.",
    "Tap <b>Copy my reply</b> and send it, or say what to change."
   ]
  }
