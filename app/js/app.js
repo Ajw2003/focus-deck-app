@@ -645,7 +645,7 @@ function onAppClick(e) {
   if (action === 'triage-go') {
     const to = el.getAttribute('data-to'), from = el.getAttribute('data-from'), l = triageLists(state, ui.view, dueDates().today);
     if (to === 'move') ui.triageMoveIds = (from === 'next' ? l.next : from === 'later' ? l.later.filter((r) => r.task.title.toLowerCase().includes((ui.triageFind || '').toLowerCase())) : l.now).map((r) => r.id); // Move works on the list it was opened from
-    ui.triageStep = to; paint(); window.scrollTo(0, 0); return;
+    setScreen('triage'); ui.triageStep = to; paint(); window.scrollTo(0, 0); return; // the Triage card on the first screen comes here too
   }
   if (action === 'triage-move') { moveTriage(el.getAttribute('data-task'), null, Number(el.getAttribute('data-dir'))); return; }
   if (action === 'triage-reset') { const l = triageLists(state, ui.view, dueDates().today); M.resetTriageOrder(l.now.concat(l.next, l.later).map((r) => r.id)); ui.triageStep = 'top'; paint(); return; }

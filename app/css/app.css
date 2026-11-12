@@ -1403,7 +1403,7 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
    (a long list scrolls inside its own box). See docs/4-systems/tidy-up.md and triage.md */
 .screen-tidy .org, .screen-triage .org{--text-sm:13px; display:flex; flex-direction:column; max-width:560px; margin:0 auto; width:100%; min-height:calc(100dvh - 240px - env(safe-area-inset-bottom, 0px));}
 .org .dk-board{flex:1; min-height:0;}
-.org-list{display:flex; flex-direction:column; gap:6px; min-height:0; overflow-y:auto; max-height:calc(100dvh - 470px);}
+.org-list{display:flex; flex-direction:column; gap:6px; min-height:0; overflow-y:auto; max-height:calc(100dvh - 520px);}
 .org-row{display:flex; align-items:center; gap:4px; min-height:44px; border-bottom:1px dashed var(--dk-rule);}
 .org-row.on{background:#FFF4C2;}
 .org-box{flex:none; width:44px; height:44px; display:grid; place-items:center; cursor:pointer;}
