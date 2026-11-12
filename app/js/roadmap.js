@@ -10,6 +10,8 @@ export const UNPLANNED = 'unplanned';
 const byOrder = (a, b) => (a.order || 0) - (b.order || 0);
 const mkid = (k) => k + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 export const percent = (done, total) => (total ? Math.round((done / total) * 100) : 0);
+export const SIZE_POINTS = { small: 1, medium: 2, large: 3 };
+export const MEASURES = ['tasks', 'size', 'number', 'checklist'];
 export const colOf = (t) => (COLS.some((c) => c[0] === t.status) ? t.status : 'next');
 
 // The section a milestone shows in: its own, or '' (the leading virtual "Milestones" one) when that is gone.
@@ -32,8 +34,73 @@ export function milestoneOf(p, t) {
   return par ? par.id : UNPLANNED;
 }
 
+// ---- shares and measures (#258) ----------------------------------------------------------------------
+// Splits `total` over `raw` weights as whole numbers that add up to exactly `total`; leftovers go to the largest.
+export function split(raw, total) {
+  const sum = raw.reduce((a, b) => a + b, 0), w = sum > 0 ? raw : raw.map(() => 1), s = sum > 0 ? sum : raw.length;
+  const out = w.map((x) => Math.floor((x * total) / s));
+  const order = w.map((x, i) => i).sort((a, b) => w[b] - w[a] || a - b);
+  for (let left = total - out.reduce((a, b) => a + b, 0), k = 0; left > 0 && order.length; left--, k++) out[order[k % order.length]] += 1;
+  return out;
+}
+// { id: whole-number share } for `ids` (milestone ids, and UNPLANNED when it has tasks); always adds up to 100.
+// Stored `weight`s are used when every one is there; otherwise (old saves, a new milestone) the shares are equal.
+// Unplanned keeps its share on the project as `unplannedWeight`.
+export function sharesFor(p, ids) {
+  const w = ids.map((id) => (id === UNPLANNED ? p.unplannedWeight : ((p.milestones || []).find((m) => m.id === id) || {}).weight));
+  const ok = w.length && w.every((x) => Number.isFinite(x) && x >= 0) && w.some((x) => x > 0);
+  const out = {};
+  split(ok ? w : ids.map(() => 1), 100).forEach((x, i) => { out[ids[i]] = x; });
+  return out;
+}
+// Shares after moving `id`'s share to `v`: the others rescale in proportion to fill the rest.
+export function sharesAfter(shares, id, v) {
+  const ids = Object.keys(shares);
+  if (ids.length < 2) return ids.length ? { [ids[0]]: 100 } : {};
+  const at = Math.max(0, Math.min(100, Math.round(Number(v) || 0))), others = ids.filter((x) => x !== id);
+  const out = { [id]: at };
+  split(others.map((o) => shares[o]), 100 - at).forEach((x, i) => { out[others[i]] = x; });
+  return out;
+}
+export function applyShares(p, shares, now = Date.now()) {
+  Object.keys(shares).forEach((id) => {
+    if (id === UNPLANNED) { p.unplannedWeight = shares[id]; p.updatedAt = now; return; }
+    const m = (p.milestones || []).find((x) => x.id === id);
+    if (m && m.weight !== shares[id]) { m.weight = shares[id]; m.updatedAt = now; }
+  });
+}
+// How far a milestone is, by how it is measured: { pct, text } for its tasks `ts`.
+export function progressOf(m, ts) {
+  const done = ts.filter((t) => t.status === 'done'), pts = (t) => SIZE_POINTS[t.size] || 1;
+  if (m.measureBy === 'size') {
+    const d = done.reduce((a, t) => a + pts(t), 0), n = ts.reduce((a, t) => a + pts(t), 0);
+    return { pct: percent(d, n), text: d + ' of ' + n + ' points' };
+  }
+  if (m.measureBy === 'number') {
+    const { name = '', current = 0, target = 0 } = m.number || {};
+    return { pct: Math.min(100, percent(current, target)), text: (name.trim() || 'done') + ' ' + current + ' of ' + target };
+  }
+  if (m.measureBy === 'checklist') {
+    const items = m.checklist || [], d = items.filter((i) => i.done).length;
+    return { pct: percent(d, items.length), text: d + ' of ' + items.length + ' items' };
+  }
+  return { pct: percent(done.length, ts.length), text: (m.measure || 'tasks') + ' ' + done.length + ' of ' + ts.length };
+}
+// Saves the settings dialog's draft `d` ({shares, measureBy, number, checklist}) on milestone `id`.
+export function applyMilestoneSettings(p, id, d, now = Date.now()) {
+  const m = (p.milestones || []).find((x) => x.id === id);
+  if (!m) return false;
+  const n = (x) => Math.max(0, Number(x) || 0);
+  m.measureBy = MEASURES.includes(d.measureBy) ? d.measureBy : 'tasks';
+  m.number = { name: String((d.number || {}).name || '').trim(), current: n((d.number || {}).current), target: n((d.number || {}).target) };
+  m.checklist = (d.checklist || []).filter((i) => String(i.text).trim()).map((i) => ({ id: i.id, text: String(i.text).trim(), done: !!i.done }));
+  m.updatedAt = now;
+  applyShares(p, d.shares || {}, now);
+  return true;
+}
+
 // { pct, done, total, sections: [{id,name,virtual,n,milestones:[M]}], unplanned: M|null, currentId }
-// M = { id, name, measure, cols:{next,doing,review,done}, done, total, pct, parentTaskId, unplanned }
+// M = { id, name, measure, measureBy, text, share, contribution, cols:{next,doing,review,done}, done, total, pct, parentTaskId, unplanned }
 // A milestone's own parent task is not one of its tasks.
 export function roadmapOf(p) {
   const asParent = new Set((p.milestones || []).map((m) => m.parentTaskId).filter(Boolean));
@@ -43,15 +110,19 @@ export function roadmapOf(p) {
   const build = (m, unplanned) => {
     const ts = by.get(m.id) || [], cols = {};
     COLS.forEach(([k]) => { cols[k] = ts.filter((t) => colOf(t) === k); });
-    return { id: m.id, name: m.name, measure: m.measure || 'tasks', cols, done: cols.done.length, total: ts.length, pct: percent(cols.done.length, ts.length), parentTaskId: m.parentTaskId, unplanned: !!unplanned };
+    const pr = progressOf(m, ts);
+    return { id: m.id, name: m.name, measure: m.measure || 'tasks', measureBy: m.measureBy || 'tasks', number: m.number, checklist: m.checklist, cols, done: cols.done.length, total: ts.length, pct: pr.pct, text: pr.text, parentTaskId: m.parentTaskId, unplanned: !!unplanned };
   };
   let k = 0; // sections are numbered 1.., the virtual one has no number
   const sections = sectionsOf(p).map((s) => ({ id: s.id, name: s.name, virtual: !!s.virtual, n: s.virtual ? 0 : ++k,milestones: milestonesIn(p, s.id).map((m) => build(m)) }));
   const un = by.get(UNPLANNED) ? build({ id: UNPLANNED, name: 'Unplanned' }, true) : null;
   const all = sections.flatMap((s) => s.milestones).concat(un ? [un] : []);
-  const cur = all.find((m) => m.done < m.total || m.total === 0);
+  const cur = all.find((m) => m.pct < 100 || (m.measureBy === 'tasks' && !m.total));
+  const sh = sharesFor(p, all.map((m) => m.id));
+  all.forEach((m) => { m.share = sh[m.id]; m.contribution = (m.share * m.pct) / 100; });
   const done = mine.filter((t) => t.status === 'done').length;
-  return { pct: percent(done, mine.length), done, total: mine.length, sections, unplanned: un, currentId: cur ? cur.id : null };
+  const pct = Math.round(all.reduce((a, m) => a + m.contribution, 0));
+  return { pct, done, total: mine.length, sections, unplanned: un, currentId: cur ? cur.id : null, milestones: all };
 }
 
 // ---- changes (each stamps what it touches; the caller persists) -------------------------------------
