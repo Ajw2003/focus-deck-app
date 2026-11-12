@@ -42,22 +42,24 @@ export function renderSyncButton(st) {
 // One activity at a time (#135): the screens, and the rail that switches between them (a column
 // on the left on a wide screen, a bar along the bottom on a phone). Adding stays on every screen:
 // it is the jotter in the topbar. See docs/4-systems/styling.md#one-screen-at-a-time
-export const SCREENS = ['focus', 'sort', 'board', 'projects'];
+export const SCREENS = ['focus', 'sort', 'board', 'projects', 'review'];
 const SCREEN_INFO = {
   focus: { label: 'Focus', icon: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>' },
   sort: { label: 'Sort', icon: '<path d="M4 7h16M4 12h10M4 17h6"/>' },
   board: { label: 'Board', icon: '<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="9.5" y="4" width="5" height="11" rx="1.5"/><rect x="16" y="4" width="5" height="7" rx="1.5"/>' },
   projects: { label: 'Projects', icon: '<path d="M3 7h7l2 2h9v10H3z"/>' },
+  review: { label: 'Review', icon: '<path d="M5 12.5l4.5 4.5L19 7.5"/>' },
 };
 export function normalizeScreen(value) { return SCREENS.includes(value) ? value : 'focus'; }
 // The Board screen's markup is in js/board-view.js (#144).
 export { renderBoard } from './board-view.js';
 // syncHTML is the sync button (renderSyncButton): on a wide screen it and Settings sit at the foot of
 // the rail instead of the topbar; .rail-tools is hidden on a phone, where the topbar keeps them.
-export function renderRail(screen, unsortedCount, syncHTML = '') {
+export function renderRail(screen, unsortedCount, syncHTML = '', reviewCount = 0) {
   return '<nav class="rail" aria-label="What to do">' + SCREENS.map((key) => {
     const on = key === screen;
-    const count = key === 'sort' && unsortedCount ? '<b class="rail-count" aria-label="' + unsortedCount + ' to sort">' + unsortedCount + '</b>' : '';
+    const n = key === 'sort' ? unsortedCount : key === 'review' ? reviewCount : 0;
+    const count = n ? '<b class="rail-count" aria-label="' + n + (key === 'sort' ? ' to sort' : ' to review') + '">' + n + '</b>' : '';
     return '<button type="button" class="rail-item' + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
       + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[key].icon + '</svg>' + count + '</span>'
       + '<span class="rail-label">' + SCREEN_INFO[key].label + '</span></button>';

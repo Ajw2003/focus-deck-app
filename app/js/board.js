@@ -70,3 +70,15 @@ export function boardList(st, opts, now) {
   const tasks = tab(cols[o.tab] ? o.tab : 'next');
   return { tasks, counts };
 }
+
+// The Review tab (docs/4-systems/review-tab.md): tasks waiting for review, newest first, and this week's
+// done tasks (the Board's rule), both narrowed by the All | Area | Project switch. Subtasks are included.
+export function reviewLists(st, view, now) {
+  const mine = (t, p) => inView(st, view, p);
+  const owner = new Map();
+  (st.projects || []).forEach((p) => (p.tasks || []).forEach((t) => owner.set(t.id, p)));
+  const cols = boardColumns(st, null, now);
+  const pick = (list) => list.filter((t) => mine(t, owner.get(t.id)));
+  const waiting = pick(cols.review).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  return { waiting, done: pick(cols.done), owner };
+}
