@@ -1,0 +1,284 @@
+[
+ {
+  "name": "01-sort-step1",
+  "width": 390,
+  "controls": 40,
+  "texts": 10,
+  "chips": 0
+ },
+ {
+  "name": "02-sort-project-picked",
+  "width": 390,
+  "controls": 49,
+  "texts": 12,
+  "chips": 1
+ },
+ {
+  "name": "03-sort-step2-labels",
+  "width": 390,
+  "controls": 53,
+  "texts": 11,
+  "chips": 1
+ },
+ {
+  "name": "04-sort-step3-links",
+  "width": 390,
+  "controls": 35,
+  "texts": 15,
+  "chips": 1
+ },
+ {
+  "name": "05-sort-select-many",
+  "width": 390,
+  "controls": 23,
+  "texts": 15,
+  "chips": 4
+ },
+ {
+  "name": "06-tidy",
+  "width": 390,
+  "controls": 25,
+  "texts": 19,
+  "chips": 0
+ },
+ {
+  "name": "07-triage",
+  "width": 390,
+  "controls": 25,
+  "texts": 18,
+  "chips": 3
+ },
+ {
+  "name": "08-roadmap-all",
+  "width": 390,
+  "controls": 21,
+  "texts": 3,
+  "chips": 0
+ },
+ {
+  "name": "09-view-switch-area-list",
+  "width": 390,
+  "controls": 31,
+  "texts": 4,
+  "chips": 0
+ },
+ {
+  "name": "10-roadmap-project",
+  "width": 390,
+  "controls": 37,
+  "texts": 6,
+  "chips": 1
+ },
+ {
+  "name": "11-roadmap-add-task",
+  "width": 390,
+  "controls": 44,
+  "texts": 9,
+  "chips": 1
+ },
+ {
+  "name": "12-milestone-settings",
+  "width": 390,
+  "controls": 50,
+  "texts": 31,
+  "chips": 1
+ },
+ {
+  "name": "13-task-details",
+  "width": 390,
+  "controls": 53,
+  "texts": 13,
+  "chips": 1
+ },
+ {
+  "name": "14-edit-project",
+  "width": 390,
+  "controls": 37,
+  "texts": 9,
+  "chips": 1
+ },
+ {
+  "name": "15-new-project",
+  "width": 390,
+  "controls": 35,
+  "texts": 9,
+  "chips": 0
+ },
+ {
+  "name": "16-focus-pick",
+  "width": 390,
+  "controls": 54,
+  "texts": 10,
+  "chips": 0
+ },
+ {
+  "name": "17-focus-task",
+  "width": 390,
+  "controls": 18,
+  "texts": 8,
+  "chips": 0
+ },
+ {
+  "name": "18-review",
+  "width": 390,
+  "controls": 22,
+  "texts": 8,
+  "chips": 0
+ },
+ {
+  "name": "19-settings",
+  "width": 390,
+  "controls": 10,
+  "texts": 6,
+  "chips": 0
+ },
+ {
+  "name": "20-settings-all-open",
+  "width": 390,
+  "controls": 11,
+  "texts": 7,
+  "chips": 0,
+  "rows": 14
+ },
+ {
+  "name": "21-onboarding",
+  "width": 390,
+  "controls": 7,
+  "texts": 5,
+  "chips": 0
+ },
+ {
+  "name": "01-sort-step1",
+  "width": 1440,
+  "controls": 58,
+  "texts": 12,
+  "chips": 0
+ },
+ {
+  "name": "02-sort-project-picked",
+  "width": 1440,
+  "controls": 58,
+  "texts": 12,
+  "chips": 0
+ },
+ {
+  "name": "05-sort-select-many",
+  "width": 1440,
+  "controls": 81,
+  "texts": 25,
+  "chips": 7
+ },
+ {
+  "name": "06-tidy",
+  "width": 1440,
+  "controls": 36,
+  "texts": 30,
+  "chips": 0
+ },
+ {
+  "name": "07-triage",
+  "width": 1440,
+  "controls": 28,
+  "texts": 67,
+  "chips": 10
+ },
+ {
+  "name": "08-roadmap-all",
+  "width": 1440,
+  "controls": 34,
+  "texts": 3,
+  "chips": 0
+ },
+ {
+  "name": "09-view-switch-area-list",
+  "width": 1440,
+  "controls": 37,
+  "texts": 3,
+  "chips": 0
+ },
+ {
+  "name": "10-roadmap-project",
+  "width": 1440,
+  "controls": 54,
+  "texts": 17,
+  "chips": 5
+ },
+ {
+  "name": "11-roadmap-add-task",
+  "width": 1440,
+  "controls": 54,
+  "texts": 17,
+  "chips": 5
+ },
+ {
+  "name": "12-milestone-settings",
+  "width": 1440,
+  "controls": 62,
+  "texts": 40,
+  "chips": 5
+ },
+ {
+  "name": "13-task-details",
+  "width": 1440,
+  "controls": 54,
+  "texts": 17,
+  "chips": 5
+ },
+ {
+  "name": "14-edit-project",
+  "width": 1440,
+  "controls": 56,
+  "texts": 19,
+  "chips": 5
+ },
+ {
+  "name": "15-new-project",
+  "width": 1440,
+  "controls": 56,
+  "texts": 17,
+  "chips": 5
+ },
+ {
+  "name": "16-focus-pick",
+  "width": 1440,
+  "controls": 61,
+  "texts": 10,
+  "chips": 0
+ },
+ {
+  "name": "17-focus-task",
+  "width": 1440,
+  "controls": 20,
+  "texts": 8,
+  "chips": 0
+ },
+ {
+  "name": "18-review",
+  "width": 1440,
+  "controls": 36,
+  "texts": 15,
+  "chips": 0
+ },
+ {
+  "name": "19-settings",
+  "width": 1440,
+  "controls": 11,
+  "texts": 6,
+  "chips": 0
+ },
+ {
+  "name": "20-settings-all-open",
+  "width": 1440,
+  "controls": 13,
+  "texts": 7,
+  "chips": 0,
+  "rows": 14
+ },
+ {
+  "name": "21-onboarding",
+  "width": 1440,
+  "controls": 5,
+  "texts": 5,
+  "chips": 0
+ }
+]

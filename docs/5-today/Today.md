@@ -592,3 +592,4 @@ An eighth screen, "Roadmap": a row per project with a card per milestone (All / 
 Click a milestone's name on the Roadmap: a dialog (a bottom sheet on a phone) sets how much it counts toward the project (a slider; the others rescale, always 100) and how it is measured (tasks done, task size, your own number, a checklist); the project bar shows what each milestone added. Tasks gain an optional Size. See docs/4-systems/roadmap.md. Seen in Chromium at 360, 390 and 1440 wide.
 
 - 2026-11-12: all 11 steps of "tabs that follow the flow" built (#249 to #259, all labelled needs review); QA page docs/plans/flow-build-qa.html, test copy docs/generated/flow-qa/seed.html; waiting on Eden's QA and the pull request branch choice.
+- 2026-11-12: QA failed (too busy). Step-by-step proposal docs/plans/friction-steps.html sent for approval.

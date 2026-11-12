@@ -1,0 +1,261 @@
+{
+ "title": "Step By Step",
+ "eyebrow": "Proposal · after QA · nothing built yet",
+ "approval": "Design approved: step by step",
+ "short": {
+  "lead": "The app failed QA because it shows too much at once. This plan keeps every feature but asks one question per screen. The order is the one you gave: project, priority, labels, due date, waits on, holds up. Four sources on cognitive, autism and ADHD design agree: one step at a time, show where you are, and hide what isn't needed yet. I also counted every screen. The busiest has 54 things to press at once. Under this plan each screen shows one question and its answers, plus Back, the next button and the five tabs. The pictures are drawings. Nothing is built yet.",
+  "hint": "Tap each row to see its picture.",
+  "key": [
+   [
+    "Found by me",
+    ""
+   ],
+   [
+    "You decide",
+    "you"
+   ]
+  ],
+  "items": [
+   [
+    "bulb",
+    "Why",
+    "What the research says",
+    "",
+    "Four sources agree. The W3C guide for people with cognitive and learning disabilities says: 'Make Each Step Clear', 'Avoid Too Much Content', 'Make Short Critical Paths', 'Limit Interruptions' and 'Let Users Go Back'. GOV.UK's form standard says to start with one thing per page, because people focus on one answer, recover from mistakes more easily and cope better on a phone. GOV.UK's autism poster says 'Build simple and consistent layouts' and 'Don't build complex and cluttered layouts'. St Andrews' ADHD guidance says to show fewer tasks and options at once, reveal details only when they're needed, and show progress so you don't have to remember where you were.",
+    "Check that these rules match how the app feels to you. Sources: w3.org/TR/coga-usable, gov.uk/service-manual/design/form-structure, designnotes.blog.gov.uk ('One thing per page'), digitalcommunications.wp.st-andrews.ac.uk (designing for users with ADHD, and for autistic users)."
+   ],
+   [
+    "search",
+    "Map",
+    "Every screen today, counted",
+    "",
+    "I opened all 20 screens, panels and dialogs on a phone-sized screen and counted what you can press without scrolling. The busiest five are: Focus before you pick a project (54 things to press), the labels step in Sort (53), Task details (53), Milestone settings (50), and Sort after you pick a project (49). Every screen also starts with the same 14: the header icons, the jot box, the All / Area / Project switch and the five tabs. Those take up the top 40% of a phone screen. Your work starts below them. Settings (10) and the welcome screen (7) are already calm. The counts and pictures are in docs/generated/friction-map/.",
+    "Look at the picture and tell me if any screen I missed bothers you too.",
+    {
+     "src": "docs/generated/friction-steps/map-all-390.png",
+     "alt": "20 phone screenshots of every screen in the app today",
+     "caption": "Every screen today on a phone, left to right: Sort (5 states), Tidy up, Triage, Roadmap (8 states), Focus (2), Review, Settings and the welcome screen."
+    }
+   ],
+   [
+    "list",
+    "Everywhere",
+    "Less on screen before your work",
+    "you",
+    "The header keeps only the name and the settings cog. The jot box shrinks to a '+ Jot' button that opens a screen with only the box on it. The All / Area / Project switch becomes one line, 'Showing All tasks ▾', which opens the switch when tapped. Every screen gets the same shape: a question at the top, the answers below, and one big button at the bottom. On a phone, 3 things (the name, the cog and the 'Showing' line) sit above your work instead of 14.",
+    "Check that one line saying what you're looking at is enough.",
+    {
+     "src": "docs/generated/friction-steps/m-chrome.png",
+     "alt": "Today's Sort screen beside the proposed one with a + Jot button",
+     "caption": "Left: today. Middle: proposed. Right: + Jot opens its own screen."
+    }
+   ],
+   [
+    "list",
+    "Sort and adding a task",
+    "One question per step, in your order",
+    "you",
+    "Sorting a thought and adding a task become the same seven steps, in the order you gave: project, priority, labels, due date, waits on (what has to happen first), holds up (what can't start until this task is done), then a check screen. You can't skip Priority. You can skip labels, due date, waits on and holds up with the Skip button. Each step shows only that question, the thought at the top, and Back. The check screen lists every answer with Change beside it, so nothing is saved by surprise. '+ Add a task' on the Roadmap and 'Select many' on Sort use the same steps.",
+    "Check that the order is right, and that seven steps is not too long.",
+    {
+     "src": "docs/generated/friction-steps/m-add.png",
+     "alt": "Seven phone screens: project, priority, labels, due date, waits on, holds up, check",
+     "caption": "The seven steps on a phone."
+    }
+   ],
+   [
+    "list",
+    "Computer",
+    "The same steps, with the list beside them",
+    "you",
+    "On a computer the steps sit in one panel in the middle of the screen. Beside it, a list shows what's done (with your answer), the step you're on, and what's left. You can click any finished step to change it.",
+    "Check that seeing the whole list of steps helps rather than distracts.",
+    {
+     "src": "docs/generated/friction-steps/m-desk.png",
+     "alt": "Desktop: the priority step in a centre panel with the list of steps on the right",
+     "caption": "Step 2 of 7 on a computer."
+    }
+   ],
+   [
+    "list",
+    "Focus",
+    "Two questions, then one task",
+    "you",
+    "Focus asks which project, then what kind of work, one question per screen, using the same folders as today. 'Or let me pick for you' sits on the first step. The task then shows with only two buttons, 'I've done it' and 'Not this one'. Everything else (details, subtasks, start it) is behind More.",
+    "Check that hiding the extras behind More is OK.",
+    {
+     "src": "docs/generated/friction-steps/m-focus.png",
+     "alt": "Three phone screens: pick a project, pick a kind of work, one task",
+     "caption": "Focus on a phone."
+    }
+   ],
+   [
+    "list",
+    "Organize",
+    "Tidy up shows one task at a time; Triage shows only Now",
+    "you",
+    "Tidy up shows one task at a time, with why it's there and two big buttons, Keep and Close (or Merge for a copy). At the end, one screen lists what will close, with 'Keep instead' on each, and one Confirm. Triage shows only the three tasks to do first. Next and Later fold away, and the move arrows only appear after you press 'Move…'.",
+    "Check that one task at a time isn't too slow for 25 tasks.",
+    {
+     "src": "docs/generated/friction-steps/m-organize.png",
+     "alt": "Three phone screens: one Tidy up task, the confirm list, and Triage's Now list",
+     "caption": "Tidy up and Triage on a phone."
+    }
+   ],
+   [
+    "list",
+    "Roadmap",
+    "One milestone and one column at a time",
+    "you",
+    "A project shows one milestone at a time, with Previous and Next to move between them, and one column at a time (Up next, Doing, Review, Done). Edit project, New project and Sync now move into a ⋯ menu. Tapping a task opens one list of what you can do to it, instead of arrows on every row. Milestone settings becomes two steps: how much it counts, then how to measure it.",
+    "Check that one milestone at a time still shows you enough of the project.",
+    {
+     "src": "docs/generated/friction-steps/m-roadmap.png",
+     "alt": "Three phone screens: one milestone, the task action list, and milestone settings step 1",
+     "caption": "The Roadmap on a phone."
+    }
+   ]
+  ]
+ },
+ "changes": [
+  [
+   "chg",
+   "Header, jot box and switch",
+   "Shrink to the name, a '+ Jot' button and one 'Showing …' line.",
+   null,
+   "Everything still works; it's one tap away instead of always open."
+  ],
+  [
+   "chg",
+   "Sort, + Add a task and Select many",
+   "One seven-step flow: project, priority, labels, due date, waits on, holds up, check.",
+   null,
+   "Replaces the three tabs on Sort and the add row on the Roadmap."
+  ],
+  [
+   "chg",
+   "Focus",
+   "Two steps (project, kind of work), then one task with two buttons and More.",
+   null,
+   "The folders stay the same."
+  ],
+  [
+   "chg",
+   "Tidy up",
+   "One task at a time, then one confirm screen.",
+   null,
+   "The four groups and their reasons stay."
+  ],
+  [
+   "chg",
+   "Triage",
+   "Shows Now; Next and Later fold away; move arrows only after 'Move…'.",
+   null,
+   "The seven rules stay."
+  ],
+  [
+   "chg",
+   "Roadmap",
+   "One milestone and one column at a time; actions in a list per task; a ⋯ menu.",
+   null,
+   "Drag still works on a computer."
+  ],
+  [
+   "chg",
+   "Task details",
+   "Each part (priority, labels, due date, links) opens the matching step on its own screen.",
+   null,
+   "Same steps as adding a task."
+  ],
+  [
+   "chg",
+   "Milestone settings",
+   "Two steps: share, then measure.",
+   null,
+   "The four ways to measure stay."
+  ],
+  [
+   "keep",
+   "Review, Settings and the welcome screen",
+   "Already one list or one question at a time.",
+   null,
+   "Only the shared header changes."
+  ],
+  [
+   "keep",
+   "Your data and the five tabs",
+   "Nothing is removed; every feature keeps working.",
+   null,
+   "Only how much shows at once changes."
+  ]
+ ],
+ "choices": [
+  [
+   "jot",
+   "Where should the jot box go?",
+   [
+    [
+     "1",
+     "A '+ Jot' button on every tab",
+     1,
+     "It opens a screen with only the box on it, so it's always one tap away but never in the way."
+    ],
+    [
+     "2",
+     "Keep the full box at the top",
+     0,
+     "Always visible, but it takes a quarter of a phone screen on every tab."
+    ]
+   ],
+   "I suggest the button, because the box is the biggest single thing above your work today."
+  ],
+  [
+   "optional",
+   "How should the optional steps (labels, due date, waits on, holds up) work?",
+   [
+    [
+     "1",
+     "Ask each one, with Skip",
+     1,
+     "Seven steps every time, but each is one tap to skip."
+    ],
+    [
+     "2",
+     "Ask priority, then 'Add more details?'",
+     0,
+     "Three steps by default; the other four only if you say yes."
+    ]
+   ],
+   "I suggest asking each one, because you listed them as steps, and Skip keeps it quick."
+  ],
+  [
+   "tidy",
+   "How should Tidy up show tasks?",
+   [
+    [
+     "1",
+     "One task at a time",
+     1,
+     "Like flashcards: Keep or Close, then the next one."
+    ],
+    [
+     "2",
+     "One group at a time",
+     0,
+     "A short list for each reason, with Keep and Close on each row."
+    ]
+   ],
+   "I suggest one at a time, because it removes all the rows of buttons."
+  ]
+ ],
+ "wrapup": {
+  "summary": "Every screen becomes one question at a time: a seven-step flow for sorting and adding tasks, two steps for Focus, one task at a time in Tidy up, Now only in Triage, and one milestone at a time on the Roadmap. The header shrinks so your work starts near the top. No feature is removed.",
+  "changing": "Changed: how much each screen shows at once, Sort, adding a task, Focus, Tidy up, Triage, the Roadmap, Task details and Milestone settings. Kept: every feature, your data, the five tabs, Review and Settings.",
+  "blocking": "Waiting on your three choices and your approval.",
+  "next": "After you approve, I'll write the build plan as GitHub issues and build it on the same test link. Nothing goes into the app you use until you've tested it.",
+  "todo": [
+   "Make the three choices at the bottom.",
+   "Reply 'Design approved: step by step' with your choices, or say what to change. Write each choice as the question number then the option number: 11 21 31 means option 1 for all three questions."
+  ]
+ }
+}

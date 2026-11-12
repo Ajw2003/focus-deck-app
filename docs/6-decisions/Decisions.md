@@ -1055,3 +1055,7 @@ actually calls the mutation and inspects the real serialized/deserialized round-
 it, so that's the form the regression test takes.
 
 **Status.** Fixed and standing; regression test is green (`js/persist-storage.test.mjs`).
+
+## 2026-11-12: QA of "tabs that follow the flow" failed: too busy
+
+Eden: "too cluttered for me to begin to use"; asked for research on ADHD/autism guidance and for each flow to go in stages (project, priority, labels, due date, waits on, holds up). Proposal docs/plans/friction-steps.html; screen counts in docs/generated/friction-map/counts.json. Nothing merged to main; the test link stays the place to test.
