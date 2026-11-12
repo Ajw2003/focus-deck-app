@@ -22,6 +22,8 @@ import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js'
 import { renderOnboarding } from './onboarding-view.js';
 import { pickState, dueDates, parseDue } from './pick-bits.js';
 import { normalizeBoardCol } from './board-view.js';
+import { renderReview } from './review-view.js';
+import { reviewLists } from './board.js';
 import { notesSummary } from './task-details.js';
 import { canSetParent, canWaitOn } from './task-links.js';
 import { applyNoteFace } from './note-face.js';
@@ -265,11 +267,12 @@ export function renderApp(st) {
   if (ui.projectView === 'one') ui.selectedProjectId = ui.view.id;
   const hasToken = !!getToken();
   // one activity at a time (#135): the rail, then only the chosen screen
-  const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, R.renderSyncButton(st));
+  const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, R.renderSyncButton(st), reviewLists(st, null, Date.now()).waiting.length);
   const toast = R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
   if (ui.screen === 'focus') return rail + '<div class="screen screen-focus">' + sw + R.renderFocus(st, findTaskWithProject, ui) + '</div>' + toast;
   // the Sort screen is the tray, always open (its header can't fold it away here)
   if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + sw + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
+  if (ui.screen === 'review') return rail + '<div class="screen screen-review">' + sw + renderReview(st, ui) + '</div>' + toast;
   if (ui.screen === 'board') return rail + '<div class="screen screen-board">' + sw + R.renderBoard(st, ui) + '</div>' + toast;
   return rail + R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
     + '<div class="main-col view-' + ui.projectView + '">'
@@ -556,6 +559,10 @@ function onAppClick(e) {
     if (to) { to.scrollIntoView({ block: 'center' }); const f = to.querySelector('button, input, [tabindex]'); if (f) f.focus({ preventScroll: true }); }
     return;
   }
+  if (action === 'review-done') { M.setTaskStatus(el.getAttribute('data-task'), 'done'); paint(); return; }
+  if (action === 'review-more') { M.setTaskStatus(el.getAttribute('data-task'), 'doing'); paint(); return; }
+  if (action === 'review-undo') { M.undoDone(el.getAttribute('data-task')); paint(); return; }
+  if (action === 'review-open') { selectBoardTask(el.getAttribute('data-task')); paint(); return; }
   if (action === 'board-col') { ui.boardCol = normalizeBoardCol(el.getAttribute('data-col')); ui.boardShown = null; paint(); return; }
   if (action === 'board-select') { selectBoardTask(ui.boardSelected === el.getAttribute('data-task-id') ? null : el.getAttribute('data-task-id')); paint(); return; }
   if (action.startsWith('detail-')) { onDetailAction(action, el); return; }
@@ -1625,7 +1632,7 @@ function init() {
   if (topbar) topbar.addEventListener('click', onAppClick);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && ui.projectsDrawerOpen) setProjectsDrawerOpen(false);
-    else if (e.key === 'Escape' && ui.screen === 'board' && ui.boardSelected) { selectBoardTask(null); paint(); }
+    else if (e.key === 'Escape' && (ui.screen === 'board' || ui.screen === 'review') && ui.boardSelected) { selectBoardTask(null); paint(); }
   });
   const captureForm = document.getElementById('capture-form');
   const captureInput = document.getElementById('capture-input');

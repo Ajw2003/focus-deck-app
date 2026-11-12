@@ -173,9 +173,11 @@ export function setTaskStatus(taskId, status) {
   const { task, project } = found;
   const wasDone = task.status === 'done';
   const wasReview = task.status === 'review';
+  const before = task.status;
   task.status = status;
   task.updatedAt = Date.now();
   if (status === 'done' && !wasDone) {
+    task.statusBeforeDone = before; // what the Review tab's Undo goes back to
     task.completedAt = Date.now(); // when it was finished; the Board's "Done this week" reads it (#145)
     state.completedLog.unshift({ id: uid('log'), taskId: task.id, title: task.title, projectId: project.id, color: project.color, completedAt: Date.now() });
     state.completedLog = state.completedLog.slice(0, 12);
@@ -186,6 +188,14 @@ export function setTaskStatus(taskId, status) {
   persist();
   syncIssueCompletion(task); // fire-and-forget
   pushReviewToIssue(task, wasReview);
+}
+
+// The Review tab's Undo: back to the status the task had before it was done ('next' if unknown).
+export function undoDone(taskId) {
+  const found = findTaskWithProject(taskId);
+  if (!found || found.task.status !== 'done') return;
+  const prev = found.task.statusBeforeDone;
+  setTaskStatus(taskId, ['next', 'doing', 'review'].includes(prev) ? prev : 'next');
 }
 
 export function deleteTask(taskId, projectId) {
