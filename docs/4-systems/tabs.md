@@ -33,3 +33,16 @@ Left for later: `app/js/project-drag.js`, `moveTaskTo` in `app.js`, `renderTaskR
 Browser checks that drove the removed screens now drive the Roadmap: `check-desk-screens`, `check-review-status`, `check-priority`,
 `check-add-row`, `check-category-filter` (Task details owns the label picker; its "Show all" folds back if the title box is blurred
 first, since that repaints the panel). The task editor's due-date step (`renderTaskEditForm`) has no screen, so no browser check reaches it.
+
+## On a computer (>= 1100px, #272)
+
+Design: `docs/generated/friction-steps/prototype.html?all=desk` (`p-desk.png`). Same screens as the phone, no new data.
+
+- The tabs are the column on the left (#262); every screen is a centred panel (560px) in the middle.
+- **Sort** lists its nine steps beside the panel (`stepList` in `app/js/sort-flow-view.js`, `.sort-steps`; ✓ done, ● the current one). It is
+  hidden below 1100px and in Task details edit mode.
+- **Roadmap**: a task's drawer (`rm-drawer`) and Task details open in a column beside the panel instead of over it (`.rm-project` is a
+  flex row, `css/app.css` end). On the other tabs Task details is still the fixed side panel on the right. shortcut: not beside, but over the right edge.
+- **Triage Move**: each row also has a grip (⠿) to drag with the mouse (`app/js/triage-drag.js`), beside the up and down keys. No touch drag.
+- Restored in #272 with the phone screens: tapping a linked task in Task details (waits on, holds up, part of, smaller step) opens it
+  (`detail-goto`); on the labels step of Task details a ★ on a picked tag makes it the task's category (`sort-make-cat`, the first label).

@@ -11,7 +11,10 @@ run() { # name, command...
   if timeout "${CHECK_TIMEOUT:-600}" "$@" >"$LOGS/$name.log" 2>&1; then lines+=("PASS $name"); else lines+=("FAIL $name (log: $LOGS/$name.log)"); fail=1; fi
 }
 run unit-tests node --test app/js/*.test.mjs
-run feature-map node docs/generated/friction-steps/check-feature-map.cjs
+# the feature-map check loads prototype.html from a static server on 8196 and needs playwright on NODE_PATH
+python3 -m http.server 8196 --bind 127.0.0.1 >/dev/null 2>&1 & srv=$!
+NODE_PATH=/opt/node22/lib/node_modules run feature-map node docs/generated/friction-steps/check-feature-map.cjs
+kill "$srv" 2>/dev/null
 for f in scripts/check-*.mjs scripts/shoot-*.mjs; do run "$(basename "$f")" node "$f"; done
 printf '%s\n' "${lines[@]}"
 exit $fail

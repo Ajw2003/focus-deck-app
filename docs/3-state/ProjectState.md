@@ -1,5 +1,7 @@
 # Project State
 
+> **2026-11-12 (#272):** computer layout (>= 1100px): centred panel, Sort's nine steps listed beside it, Roadmap drawer and Task details beside the panel; Triage rows drag with the mouse; linked tasks open from Task details; a ★ makes a label the category; the explaining hint lines are gone; `scripts/check-all.sh` runs the unit tests, the feature-map check and every browser check. See `docs/4-systems/tabs.md`.
+
 > **2026-11-12 (#264):** Sort is one thought at a time in nine steps (slip, then project, priority, labels, due date, part of, smaller steps, waits on, holds up, the receipt). Only the screens changed. See `docs/4-systems/in-tray.md`.
 
 > **2026-11-12 (#267):** the Projects tab is back as the project list (a clipboard with Find, Sort by, My order) and New project in four steps; the Roadmap is one project. See `docs/4-systems/projects-tab.md`.
