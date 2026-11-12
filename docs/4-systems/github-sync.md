@@ -29,6 +29,12 @@ be reserved as energy hints; the energy system (and the `energyFromLabels`/`reso
 functions and `js/complexity.js` that backed it) was deleted on 2026-09-26 — see
 `docs/6-decisions/Decisions.md` — so they're ordinary labels now, with no special reading at all.
 
+**Review (#250).** The label "needs review" (normalised, so "Needs-review" matches) reads as status
+`review` and beats in-progress labels; a closed issue is still done. Moving a linked task into Review
+adds the label (created on the repo if missing), moving it out removes it (`pushReviewToIssue`,
+called from `setTaskStatus`, js/github-sync.js). A move into another project sets the status directly
+and pushes no label. The label is in `RESERVED_LABELS`.
+
 The provenance labels `Claude created this` and `Claude completed this` are also
 reserved, and are read into `task.claudeCreated` / `task.claudeCompleted` in the same
 pass (see [claude-integration.md](./claude-integration.md)).

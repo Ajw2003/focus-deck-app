@@ -10,10 +10,10 @@ Status: designed and approved (docs/6-decisions/Decisions.md, 2026-10-19) and bu
   the top while the page scrolls, and the side menu is one 232px column below it, with Settings and
   sync at its foot. Phones keep the bottom bar. (`.rail`, `app/css/app.css:1090`; `renderRail`,
   `app/js/render.js:53`)
-- **The Board (#200).** One tab at a time: Up next, In progress, Done this week, each with its count.
+- **The Board (#200).** One tab at a time: Up next, In progress, Review, Done this week, each with its count.
   Above the tabs: Find (task, project or label), a Project menu, and Filter (Category; Show: Everything,
   Has subtasks, Waiting on something, Holding others up). Cards come in groups of "Cards at once"
-  with "Show N more". Up next cards carry "→ In progress"; In progress cards carry "← Up next". A
+  with "Show N more". Up next cards carry "→ In progress"; In progress cards "← Up next" and "→ Review"; Review cards "← In progress"; ticking a card marks it done, and Task details' status menu moves between all four (#250: Review is the fourth status, between In progress and Done; project cards get a Review group between In progress and Up next). A
   card shows its project's name only on "Project: All". Subtasks show inside their parent, not as cards.
   Built: `boardList` (`app/js/board.js:46`) makes the list, `renderBoard` (`app/js/board-view.js:64`) the markup;
   the Board's memory-only state is `ui.board*` in `app/js/app.js` (tab, find, filter, shown, and
