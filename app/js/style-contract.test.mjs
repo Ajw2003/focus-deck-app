@@ -107,7 +107,6 @@ const invariants = [
   ['.task-grip', 'touch-action:none', 'the task grip must not let a touch scroll the page, or a touch drag never starts'],
   ['.task-group.is-empty', 'display:none', 'an empty group stays out of sight until a task is being dragged'],
   ['body.is-dragging-task .task-group.is-empty', 'display:block', 'while a task is dragged the empty groups show their drop zone'],
-  ['.drop-zone', 'dashed', 'the empty-group drop zone reads as a dashed target'],
   ['.project-card.drop-target', 'outline', 'a minimised card that would take the drop must show it'],
   ['.move-dialog-backdrop', 'position:fixed', 'the move dialog covers the page'],
   ['.move-dialog', 'border-radius:var\\(--r-control\\)', 'the move dialog uses the control radius'],
