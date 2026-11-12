@@ -36,3 +36,5 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
   what's missing (`setup.html`, `js/sync-setup.js`, `js/key-check.js`).
 - [quick-add.md](./quick-add.md) — adding a task to a project from any screen: the jotter's "To:" stamp,
   the one-line add row on project cards and the Board (`js/render.js`, `js/board-view.js`, `js/app.js`).
+
+- [tabs.md](./tabs.md): the five numbered tabs, the jot box and J key, Task details from every tab, what replaced the Board and Projects screens (2026-11-12, #259).

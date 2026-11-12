@@ -1,5 +1,7 @@
 # Today — 2026-11-11
 
+- 2026-11-12: step 11 of "tabs that follow the flow" (#259): five numbered tabs (Sort, Organize, Roadmap, Focus, Review), jot box on every tab with J on desktop, Board and Projects screens removed into the Roadmap; see `docs/4-systems/tabs.md`.
+
 ## Friction audit and a proposal to get started (design only, nothing built)
 
 Eden asked for an audit of what stops Focus Deck working at their size (400+ tasks, 25+ projects). The

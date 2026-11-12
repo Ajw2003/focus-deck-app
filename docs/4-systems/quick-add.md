@@ -1,5 +1,7 @@
 # Quick add
 
+> **2026-11-12 (#259):** the Board and Projects screens were removed in the five-tab change; the Roadmap took over their jobs. Where this file describes them as current it is history. See [tabs.md](./tabs.md).
+
 ## What it owns
 
 Related requests: #103 (the add form as one field like the jotter) and #235 (adding straight to a

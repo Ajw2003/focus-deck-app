@@ -1,5 +1,7 @@
 # Styling
 
+> **2026-11-12 (#259):** the Board and Projects screens were removed in the five-tab change; the Roadmap took over their jobs. Where this file describes them as current it is history. See [tabs.md](./tabs.md).
+
 ## What it owns
 
 `css/app.css` — the app's single, global, unscoped stylesheet — and the implicit contract it has
