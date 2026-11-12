@@ -117,20 +117,24 @@ for (const size of ['phone', 'desktop']) {
   ({ ctx, page } = await open(size, 'sort'));
   await page.waitForSelector('.jot-slip');
   await page.waitForTimeout(300);
-  check(`${tag} the Sort slip has the pickers, marked needed`, (await page.textContent('.sort-picks')).includes('Priority · needed'));
+  await page.click('[data-action="sort-next"]');
+  await page.waitForSelector('[data-wallet="tray-folders"]');
   const sel = '[data-wallet="tray-folders"] .sleeve[data-key="pSchool"] .icard';
   await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
   await page.waitForTimeout(400);
   const box = await (await page.$(sel)).boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await page.waitForTimeout(400);
-  await page.click('.step-tab[data-step="3"]');
-  check(`${tag} the file button waits for a priority`, await page.$eval('.file-btn', (b) => b.disabled && b.textContent === 'Pick a priority to file'));
-  await page.$eval('.inbox-card', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); });
+  await page.click('.sort-foot .file-btn');
+  check(`${tag} the priority step is a page of flags and Next waits for a priority`, (await page.textContent('.sort-q')) === 'How important?' && (await page.$$('.sort-flags .sort-flag')).length === 4 && (await page.$eval('.sort-foot .file-btn', (b) => b.disabled)) && (await page.textContent('.step-why')).includes('Pick a priority'));
   await page.screenshot({ path: OUT + `${size}-sort-needs-priority.png` });
   await page.click('.sort-picks [data-field="priority"][data-value="medium"]');
-  await page.click('.sort-picks [data-field="due"][data-value="tomorrow"]');
+  await page.click('.sort-foot .file-btn'); // labels
+  await page.click('.sort-foot .file-btn'); // due date
+  await page.click('.sort-cal-page[data-value="tomorrow"]');
   await page.screenshot({ path: OUT + `${size}-sort-picked.png` });
+  for (let i = 0; i < 5; i++) { await page.click('.sort-foot .dk-skip'); await page.waitForTimeout(100); } // skip to the receipt
+  check(`${tag} the receipt shows Medium and the date`, (await page.textContent('.sort-receipt')).includes('Medium') && /\d/.test(await page.$eval('.sort-receipt > div:nth-child(4) em', (e) => e.textContent)));
   await page.click('[data-action="unsorted-file"]');
   await page.waitForTimeout(200);
   const st = await stored(page);
