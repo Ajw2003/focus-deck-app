@@ -580,3 +580,7 @@ A sixth tab, "Tidy up", groups open tasks that look finished, repeated or forgot
 ## Triage screen (#256, step 8)
 
 A seventh tab, "Triage", ranks the open tasks in the view into Now (3), Next (8) and Later (the rest, folded) by seven rules, one ranking shared with Focus (`pick-order.js`). Drag, Alt+Up/Down or the phone buttons save your own order, which wins; "Reset to the rules" clears it. "Or let me pick for you" now picks from Now. Tidy up's Confirm leads here. See docs/4-systems/triage.md. Seen in Chromium at 360, 390 and 1440 wide.
+
+## Roadmap screen (#257, step 9)
+
+An eighth screen, "Roadmap": a row per project with a card per milestone (All / Area), or one project's sections and milestones with four columns (Up next, In progress, Review, Done) in the open one; drag, Alt+Arrow or phone buttons move tasks, milestones and sections; GitHub issue milestones and parent tasks become milestones. On a phone Tidy up and Triage share an "Organize" tab so seven tabs fit. See docs/4-systems/roadmap.md. Seen in Chromium at 360, 390 and 1440 wide.
