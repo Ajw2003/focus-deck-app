@@ -337,14 +337,14 @@ assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds:
 {
   const st = { projects: [{ id: 'a' }, { id: 'b' }] };
   assert.strictEqual(jotTarget(st, { screen: 'focus' }), '', 'follows nothing on Focus: Unsorted');
-  assert.strictEqual(jotTarget(st, { screen: 'board', view: { mode: 'project', id: 'b' } }), 'b', 'follows the Board project');
-  assert.strictEqual(jotTarget(st, { screen: 'board' }), '', 'Board with all projects: Unsorted');
-  assert.strictEqual(jotTarget(st, { screen: 'projects', view: { mode: 'project', id: 'a' } }), 'a', 'follows the one project view');
-  assert.strictEqual(jotTarget(st, { screen: 'projects', view: { mode: 'all' } }), '', 'all view: Unsorted');
-  assert.strictEqual(jotTarget(st, { screen: 'board', view: { mode: 'project', id: 'b' }, jotTo: 'a' }), 'a', 'a manual pick wins');
-  assert.strictEqual(jotTarget(st, { screen: 'board', view: { mode: 'project', id: 'b' }, jotTo: '' }), '', 'a manual Unsorted wins');
+  assert.strictEqual(jotTarget(st, { screen: 'roadmap', view: { mode: 'project', id: 'b' } }), 'b', 'follows the Roadmap project');
+  assert.strictEqual(jotTarget(st, { screen: 'roadmap' }), '', 'Roadmap with all projects: Unsorted');
+  assert.strictEqual(jotTarget(st, { screen: 'roadmap', view: { mode: 'project', id: 'a' } }), 'a', 'follows the one project view');
+  assert.strictEqual(jotTarget(st, { screen: 'roadmap', view: { mode: 'all' } }), '', 'all view: Unsorted');
+  assert.strictEqual(jotTarget(st, { screen: 'roadmap', view: { mode: 'project', id: 'b' }, jotTo: 'a' }), 'a', 'a manual pick wins');
+  assert.strictEqual(jotTarget(st, { screen: 'roadmap', view: { mode: 'project', id: 'b' }, jotTo: '' }), '', 'a manual Unsorted wins');
   assert.strictEqual(jotTarget(st, { screen: 'focus', jotTo: 'gone' }), '', 'deleted project falls back to Unsorted');
-  assert.strictEqual(jotTarget(st, { screen: 'board', view: { mode: 'project', id: 'gone' } }), '', 'deleted Board project falls back');
+  assert.strictEqual(jotTarget(st, { screen: 'roadmap', view: { mode: 'project', id: 'gone' } }), '', 'deleted Roadmap project falls back');
   assert.ok(!renderToast('Hi', 'info').includes('toast-action'), 'no action, no button');
   const withAct = renderToast('Added', 'info', { label: 'Open', action: 'open-added-task', attrs: { 'data-task': 't"1', 'data-project': 'p' } });
   assert.ok(withAct.includes('class="btn ghost toast-action" data-action="open-added-task" data-task="t&quot;1" data-project="p">Open</button>'), 'action button, escaped');
