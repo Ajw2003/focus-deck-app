@@ -83,6 +83,7 @@ const visible = (page, id) => page.$$eval('.car[data-car="' + id + '"] .car-card
   await page.focus('.car[data-car="projects"] .car-row');
   await page.keyboard.type('gar');
   check('desktop: typing "gar" jumps to Garden (9 of 13)', (await count(page, 'projects')).trim() === '9 of 13', await count(page, 'projects'));
+  await page.waitForTimeout(600); // the smooth scroll settles
   check('desktop: the row scrolled so the active card is in view', (await visible(page, 'projects')) === 5 && await page.$eval('.car[data-car="projects"] .car-card.is-active', (e) => { const r = e.closest('.car-row').getBoundingClientRect(), b = e.getBoundingClientRect(); return b.left >= r.left - 2 && b.right <= r.right + 2; }));
   await page.screenshot({ path: OUT + 'focus-desk-garden.png' });
   await page.keyboard.press('Enter');
@@ -94,7 +95,7 @@ const visible = (page, id) => page.$$eval('.car[data-car="' + id + '"] .car-card
 // ---- desktop: Find, pick for me ----------------------------------------------------------------
 {
   const page = await open({ width: 1440, height: 900 }, 'focus');
-  await page.fill('.car-find', 'ho');
+  await page.fill('.car-find', 'hot');
   check('Find a project narrows the row to Hotel', (await count(page, 'projects')).trim() === '1 of 1', await count(page, 'projects'));
   await page.fill('.car-find', 'zzz');
   check('Find with no match says so', !!(await page.$('.find-empty')));
@@ -143,8 +144,8 @@ const visible = (page, id) => page.$$eval('.car[data-car="' + id + '"] .car-card
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Input.synthesizeScrollGesture', { x: box.x + box.width / 2, y: box.y + box.height / 2, xDistance: -Math.round(cw * 3), yDistance: 0, gestureSourceType: 'touch', speed: 800 });
   await page.waitForTimeout(500);
-  const c = (await count(page, 'projects')).trim();
-  check('phone: a swipe moves the row (count is no longer 1 of 13)', c !== '1 of 13' && c.endsWith('of 13'), c);
+  const c = (await count(page, 'projects')).trim() + ' scrollLeft=' + (await page.$eval('.car[data-car="projects"] .car-row', (r) => Math.round(r.scrollLeft)));
+  check('phone: a swipe moves the row (count is no longer 1 of 13)', !c.startsWith('1 of 13') && c.includes(' of 13'), c);
   await page.fill('.car-find', 'kil');
   check('phone: Find narrows the row', (await count(page, 'projects')).trim() === '1 of 1');
   await page.click('.car[data-car="projects"] .car-card');
