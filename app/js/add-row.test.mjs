@@ -16,7 +16,8 @@ test('add row, More closed: one line, no extra boxes, no autofocus', () => {
 test('add row, More open: steps, priority, date and labels; button reads Less', () => {
   const h = renderAddTaskRow(p, [], true, '');
   assert.match(h, /aria-expanded="true">Less</);
-  for (const n of ['name="steps"', 'name="priority"', 'name="deadline"']) assert.ok(h.includes(n), n);
+  assert.ok(h.includes('name="steps"') && !h.includes('<select name="priority"'), 'More keeps steps; priority is not shown twice');
+  assert.equal((h.match(/role="group" aria-label="Priority"/g) || []).length, 1);
 });
 
 test('add row: draft and placeholder are escaped', () => {
