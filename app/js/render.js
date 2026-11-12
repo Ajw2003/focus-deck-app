@@ -42,44 +42,43 @@ export function renderSyncButton(st) {
 // One activity at a time (#135): the screens, and the rail that switches between them (a column
 // on the left on a wide screen, a bar along the bottom on a phone). Adding stays on every screen:
 // it is the jotter in the topbar. See docs/4-systems/styling.md#one-screen-at-a-time
-export const SCREENS = ['focus', 'sort', 'board', 'projects', 'review', 'tidy', 'triage', 'roadmap'];
+export const SCREENS = ['sort', 'tidy', 'triage', 'roadmap', 'focus', 'review'];
 const SCREEN_INFO = {
   focus: { label: 'Focus', icon: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>' },
   sort: { label: 'Sort', icon: '<path d="M4 7h16M4 12h10M4 17h6"/>' },
-  board: { label: 'Board', icon: '<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="9.5" y="4" width="5" height="11" rx="1.5"/><rect x="16" y="4" width="5" height="7" rx="1.5"/>' },
-  projects: { label: 'Projects', icon: '<path d="M3 7h7l2 2h9v10H3z"/>' },
   review: { label: 'Review', icon: '<path d="M5 12.5l4.5 4.5L19 7.5"/>' },
   tidy: { label: 'Tidy up', icon: '<path d="M4 6h16M7 6l1 13h8l1-13M10 6V4h4v2"/>' },
   triage: { label: 'Triage', icon: '<path d="M4 6h16M4 12h11M4 18h6"/><path d="M19 14v6M16.5 17.5L19 20l2.5-2.5"/>' },
   roadmap: { label: 'Roadmap', icon: '<path d="M4 6h9M4 12h14M4 18h7"/><circle cx="17" cy="6" r="2"/><circle cx="21" cy="18" r="1.5"/>' },
 };
-export function normalizeScreen(value) { return SCREENS.includes(value) ? value : 'focus'; }
-// The Board screen's markup is in js/board-view.js (#144).
-export { renderBoard } from './board-view.js';
+// A saved screen from before the five tabs (Board, Projects) opens the Roadmap; anything else unknown (Start here) opens Focus.
+export function normalizeScreen(value) { return SCREENS.includes(value) ? value : (value === 'board' || value === 'projects') ? 'roadmap' : 'focus'; }
+// The five tabs, in the order of the flow (#259). Organize holds Tidy up and Triage.
+const svg = (k) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[k].icon + '</svg>';
 // syncHTML is the sync button (renderSyncButton): on a wide screen it and Settings sit at the foot of
 // the rail instead of the topbar; .rail-tools is hidden on a phone, where the topbar keeps them.
-export function renderRail(screen, unsortedCount, syncHTML = '', reviewCount = 0, tidyCount = 0) {
-  // On a phone Tidy up and Triage share one "Organize" tab (CSS hides the two and shows this one; the screens
-  // carry Tidy up | Triage buttons at the top). Hidden on a wide screen. See docs/4-systems/roadmap.md
+// Only Sort and Review carry a count. See docs/4-systems/tabs.md
+export function renderRail(screen, unsortedCount, syncHTML = '', reviewCount = 0) {
   const org = screen === 'tidy' || screen === 'triage';
-  const organize = '<button type="button" class="rail-item rail-organize' + (org ? ' is-on' : '') + '" data-action="set-screen" data-go="' + (screen === 'triage' ? 'triage' : 'tidy') + '"' + (org ? ' aria-current="page"' : '') + '>'
-    + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO.tidy.icon + '</svg>'
-    + (tidyCount ? '<b class="rail-count" aria-label="' + tidyCount + ' to tidy">' + tidyCount + '</b>' : '') + '</span><span class="rail-label">Organize</span></button>';
-  return '<nav class="rail" aria-label="What to do">' + SCREENS.map((key) => {
-    const on = key === screen;
-    const n = key === 'sort' ? unsortedCount : key === 'review' ? reviewCount : key === 'tidy' ? tidyCount : 0;
-    const count = n ? '<b class="rail-count" aria-label="' + n + (key === 'sort' ? ' to sort' : key === 'tidy' ? ' to tidy' : ' to review') + '">' + n + '</b>' : '';
-    return (key === 'tidy' ? organize : '') + '<button type="button" class="rail-item' + (key === 'tidy' || key === 'triage' ? ' rail-org-part' : '') + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
-      + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[key].icon + '</svg>' + count + '</span>'
-      + '<span class="rail-label">' + SCREEN_INFO[key].label + '</span></button>';
-  }).join('') + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn rail-settings" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '<span class="rail-settings-label" aria-hidden="true">Settings</span></a></div></nav>';
+  const tab = (n, label, key, on, attrs, count, countLabel) => '<button type="button" class="rail-item' + (on ? ' is-on' : '') + '" data-action="set-screen" ' + attrs + (on ? ' aria-current="page"' : '') + '>'
+    + '<span class="rail-icon">' + svg(key) + (count ? '<b class="rail-count" aria-label="' + count + ' ' + countLabel + '">' + count + '</b>' : '') + '</span>'
+    + '<span class="rail-label"><span class="rail-num">' + n + '</span> ' + label + '</span></button>';
+  const sub = (k) => '<button type="button" class="rail-sub' + (screen === k ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + k + '"' + (screen === k ? ' aria-current="page"' : '') + '>' + SCREEN_INFO[k].label + '</button>';
+  return '<nav class="rail" aria-label="What to do">'
+    + tab(1, 'Sort', 'sort', screen === 'sort', 'data-screen="sort"', unsortedCount, 'to sort')
+    + tab(2, 'Organize', 'tidy', org, 'data-go="' + (screen === 'triage' ? 'triage' : 'tidy') + '"', 0, '')
+    + '<div class="rail-subs">' + sub('tidy') + sub('triage') + '</div>'
+    + tab(3, 'Roadmap', 'roadmap', screen === 'roadmap', 'data-screen="roadmap"', 0, '')
+    + tab(4, 'Focus', 'focus', screen === 'focus', 'data-screen="focus"', 0, '')
+    + tab(5, 'Review', 'review', screen === 'review', 'data-screen="review"', reviewCount, 'to review')
+    + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn rail-settings" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '<span class="rail-settings-label" aria-hidden="true">Settings</span></a></div></nav>';
 }
 
 // The jotter's "To:" stamp (#242): ui.jotTo undefined follows the screen (Board's chosen project, or
 // Projects' single selected project); a project that no longer exists falls back to '' (Unsorted).
 export function jotTarget(st, ui) {
   let id = ui.jotTo;
-  if (id === undefined) id = (ui.view && ui.view.mode === 'project' && (ui.screen === 'board' || ui.screen === 'projects' || ui.screen === 'roadmap') && ui.view.id) || '';
+  if (id === undefined) id = (ui.view && ui.view.mode === 'project' && ui.screen === 'roadmap' && ui.view.id) || '';
   return st.projects.some((p) => p.id === id) ? id : '';
 }
 
@@ -164,9 +163,9 @@ function renderFocusPicker(full, ui) {
     return '<section class="focus-card focus-empty desk-empty">'
       + '<h2 class="focus-q">Your desk is clear.</h2>'
       + (st.projects.length
-        ? '<p class="muted">Nothing is waiting to be picked. Add a task to a project on the Projects screen, or jot a thought on the pad above and sort it later.</p>'
-        : '<p class="muted">Nothing is waiting to be picked. Make your first project on the Projects screen and add a task to it, or jot a thought on the pad above and sort it later.</p>')
-      + '<button type="button" class="btn primary" data-action="set-screen" data-screen="projects">Go to Projects</button>'
+        ? '<p class="muted">Nothing is waiting to be picked. Add a task to a project on the Roadmap, or jot a thought on the pad above and sort it later.</p>'
+        : '<p class="muted">Nothing is waiting to be picked. Make your first project on the Roadmap and add a task to it, or jot a thought on the pad above and sort it later.</p>')
+      + '<button type="button" class="btn primary" data-action="set-screen" data-screen="roadmap">Go to Roadmap</button>'
       + '</section>';
   }
   const mode = focusChoosingMode(st);
