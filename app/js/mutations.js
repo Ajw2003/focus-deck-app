@@ -1,6 +1,6 @@
 // focus-deck-app/js/mutations.js
 import { rankFocusPool, isBlocked } from './task-links.js';
-import { pickOrder } from './pick-order.js';
+import { triageLists } from './triage.js';
 import { dueDates } from './pick-bits.js';
 import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER, splitLongThought } from './state.js';
 import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriorityToIssue, pushReviewToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
@@ -319,9 +319,9 @@ export function pickFocus(filter) {
 // "Or let me pick for you": the best open task in the current view by js/pick-order.js. The pool is
 // kept in that order, so "Not this one" (reroll) offers the next one down.
 export function pickForMe() {
-  const ids = openTasksMatching({ view: state._ui && state._ui.view });
-  if (!ids.length) return false;
-  const ordered = pickOrder(ids.map((id) => { const f = findTaskWithProject(id); return { t: f.task, p: f.project }; }), state, dueDates().today).map((x) => x.t.id);
+  // from Now: the top of the triaged order in the current view (the rules, then your saved order)
+  const ordered = triageLists(state, state._ui && state._ui.view, dueDates().today).now.map((r) => r.id);
+  if (!ordered.length) return false;
   state.focus = { taskId: ordered[0], pool: ordered, ordered: true, filter: { categoryId: null, projectId: null }, startedAt: Date.now() };
   persist();
   return true;
