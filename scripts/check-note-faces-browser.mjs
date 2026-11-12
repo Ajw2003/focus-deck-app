@@ -59,9 +59,9 @@ async function open(face, scheme, { sw = false, url = BASE } = {}) {
 const fam = (page, sel) => page.$eval(sel, (e) => getComputedStyle(e).fontFamily);
 const size = (page, sel) => page.$eval(sel, (e) => parseFloat(getComputedStyle(e).fontSize));
 async function draw(page) {
-  await page.waitForSelector('.flip-track');
+  await page.waitForSelector('.car-row');
   await page.waitForTimeout(300);
-  await page.click('[data-wallet="categories"] .sleeve.is-centre .icard').catch(() => {});
+  await page.click('[data-car="categories"] .car-card.is-active .icard').catch(() => {});
   await page.waitForSelector('.focus-active', { timeout: 4000 }).catch(() => {});
 }
 
