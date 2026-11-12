@@ -101,7 +101,7 @@ thought, `updateTaskFields` for a task). The main button for a **thought** is "F
 Since #205 (2026-10-19) every step tab can be tapped while its step is allowed. With no folder chosen
 yet, tabs 2 and 3 are `aria-disabled` rather than `disabled`, so a tap on one shows "Choose a project
 first. Labels and links open once the thought has a project." in a `.step-why` line (`STEP_LOCKED_WHY`
-and `stepBar`, `app/js/in-tray-view.js:66-69`). A long note ends above the tray's lip, because
+and `stepBar`, `app/js/in-tray-view.js:17-24`). A long note ends above the tray's lip, because
 `.jot-slip` keeps 34px of padding at its foot (`app/css/app.css:827`).
 
 ## A thought needs a priority (#249)
