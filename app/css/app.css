@@ -1525,7 +1525,8 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 }
 
 /* Triage (#256): Now / Next / Later cards, numbered rows, the rules column. See docs/4-systems/triage.md */
-.tr-sub{margin:0 0 16px; color:var(--ink-soft);}
+.screen-triage{min-width:0;}
+.tr-sub{margin:0 0 16px; color:var(--ink-soft); display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px;}
 .tr-layout{display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:24px; align-items:start;}
 .tr-main{min-width:0; display:flex; flex-direction:column; gap:16px;}
 .tr-card{background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--line); border-radius:16px; padding:12px 16px;}
