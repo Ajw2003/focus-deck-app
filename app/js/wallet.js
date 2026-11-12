@@ -360,7 +360,7 @@ function mountOne(track, hooks) {
     else if (action === 'last') w.flipTo(sleeves.length - 1);
     else w.choose(w.facing, sleeves[w.facing]); // Enter draws at once in every mode: a keyboard has no "tap twice"
   });
-  track.addEventListener('scroll', () => requestAnimationFrame(updateTilt), { passive: true });
+  track.addEventListener('scroll', () => { if (!w.spread) requestAnimationFrame(updateTilt); }, { passive: true }); // the strip's own scrolling must not re-pick the middle card
 
   // Put the facing card back in the middle without animating, then draw the tilt for it. Setting
   // facing first means the scroll event this causes finds nothing changed and tells nobody.
