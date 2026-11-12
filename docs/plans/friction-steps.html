@@ -273,7 +273,7 @@ const PAGE = {
   "eyebrow": "Proposal · every screen drawn · nothing built yet",
   "approval": "Design approved: step by step",
   "short": {
-    "lead": "The app failed QA because it shows too much at once. This plan keeps every feature and asks one question per screen. This version draws every screen and step, 83 of them, as a clickable prototype you can tap through, and every button, field and line of text is now a real desk object. Labels and kinds of work are a carousel, like projects. I checked all 125 things the app does today against it, and each one has a screen. The pictures and the prototype are drawings. Nothing is built yet, and your app hasn't changed.",
+    "lead": "The app failed QA because it shows too much at once. This plan keeps every feature and asks one question per screen. This round takes out every caption, hint and line of small print, so each screen has to explain itself with pictures alone. Every one of the 82 screens fits on a phone without scrolling, and no text is smaller than 13px. Two scripts check both on every run, and a third confirms that all 125 things the app does today still have a screen. The pictures and the prototype are drawings. Nothing is built yet, and your app hasn't changed.",
     "hint": "Tap each row to see its picture.",
     "key": [
       [
@@ -312,7 +312,7 @@ const PAGE = {
         "Prototype",
         "Click through every screen yourself",
         "",
-        "Every screen in this page is also in a clickable prototype, published as the page 'Step by step prototype' (its link is in the chat, not in the repo). Tap a button and it goes where the real app would go. The list on the left jumps to any of the 83 screens. It is a drawing, not the app, so nothing you tap changes your tasks.",
+        "Every screen in this page is also in a clickable prototype, published as the page 'Step by step prototype' (its link is in the chat, not in the repo). Tap anything and it goes where the real app would go. The list on the left jumps to any of the 82 screens. It is a drawing, not the app, so nothing you tap changes your tasks.",
         "Open the prototype on your phone and try sorting one thought from start to finish."
       ],
       [
@@ -328,8 +328,8 @@ const PAGE = {
         "Look",
         "Every control is a real object",
         "you",
-        "No plain buttons are left. Each kind of control has one desk object, the same on every screen, and they match the objects the app already has (folders, index cards, the sticky note, jotter slips). The next step is an ink-stamped card. Back is a page corner folded back. Skip and links are sticky flags. A choice is an index card, and the one you picked gets a paperclip. Priority is coloured page flags, due dates are tear-off calendar pages, and status, Looks good and Done are rubber stamps. Tidy up keeps things in a tray, closes them in a bin and merges them with a stapler. Search is a magnifying glass, typing goes on a jotter strip, the check screen is a till receipt you change in pencil, and menus are a card-index drawer. Every question sits on a clipboard, the tabs are ring-binder dividers, and 'Showing' is label-maker tape.",
-        "Check that each object reads as what it does. Tell me any that don't.",
+        "No plain buttons are left. Each kind of control has one desk object, the same on every screen. The next step is an ink-stamped card, Back is a folded page corner, and Skip is a sticky flag. A choice is an index card, and the one you picked gets a paperclip. Priority is coloured page flags, due dates are tear-off calendar pages, and status, Looks good and Done are rubber stamps. Tidy up uses a tray to keep, a bin to close and a stapler to merge. The check screen is a till receipt you change in pencil, menus are a card-index drawer, and what you're looking at is label-maker tape. The descriptions in this picture are for you reviewing it; none of them appear in the app.",
+        "Check that each object reads as what it does without a label. Tell me any that don't.",
         {
           "src": "friction-steps-pics/p-kit.png",
           "alt": "A grid of 27 controls drawn as desk objects",
@@ -341,8 +341,8 @@ const PAGE = {
         "Everywhere",
         "Header, + Jot and Showing",
         "you",
-        "The header keeps the name, + Jot (your pick), a sync dot and the cog. + Jot opens a screen with only the box; 'Goes to' picks Sort or a project, like today's To: stamp. The one 'Showing' line opens the All / Area / Project switch in a panel that slides up. The sync dot opens Sync now.",
-        "Check that a sync dot is enough in place of the sync button.",
+        "The header keeps the name, + Jot, a sync light and the settings dial. + Jot opens a screen with only the jotter and a 'where it goes' card. The label-maker tape (ALL TASKS) opens the drawer that switches between everything, one area and one project. The green light opens Sync now.",
+        "Check that a green light is enough in place of the sync button.",
         {
           "src": "friction-steps-pics/p-header.png",
           "alt": "Eight phone screens: jot, where it goes, saved, the Showing sheet for all, area and project, sync and settings",
@@ -354,7 +354,7 @@ const PAGE = {
         "Sort",
         "One thought, nine steps",
         "you",
-        "Your order, with the two link steps from today put back: project, priority, labels, due date (with an optional 'when to warn you'), part of, subtasks, waits on, holds up, then check. Priority can't be skipped; every other step after it has Skip. The ⋯ on the thought holds Add notes, Done already, Later and Delete. Labels are now a carousel of index cards, like projects: you flip through them and tap to pick, a paperclip marks each one you picked, and the picked ones collect as tags underneath. Find narrows the cards, 'A to Z' opens the card drawer, and the last card is '+ New label'. Project has '+ New project'. The check screen shows every answer with Change.",
+        "Your order: project, priority, labels, due date, part of, smaller steps, what has to happen first, what is waiting on this, then the receipt. A row of dots at the top shows how far along you are. Priority has no Skip; every step after it does. Labels are a carousel of index cards, and the ones you pick collect as tags underneath. A to Z opens the card drawer. The ⋯ on the thought holds notes, done already, later and delete. The receipt shows every answer, and the pencil beside each one goes back to that step.",
         "Check that nine steps isn't too long. If it is, option 2 of the first choice below offers a shorter way.",
         {
           "src": "friction-steps-pics/p-sort.png",
@@ -367,7 +367,7 @@ const PAGE = {
         "Sort",
         "Several at once",
         "you",
-        "Today's 'Select many' becomes five steps: tick the thoughts (Tick all, Clear ticks), one project, labels, group them under one task, check. Priority and due dates stay one task at a time, as today.",
+        "Today's 'Select many' becomes five steps: tick the thoughts, pick one project, labels, group them under one task, then the receipt. Priority and due dates stay one task at a time, as today.",
         "Check that grouping under one task is worth its own step.",
         {
           "src": "friction-steps-pics/p-many.png",
@@ -380,8 +380,8 @@ const PAGE = {
         "Organize",
         "Tidy up, then Triage",
         "you",
-        "Organize starts by naming its two jobs. Tidy up shows one task at a time with its reason: waiting for review, replaced by newer work (it shows what replaced it), looks the same as another (both shown, Keep both or Merge), and not touched in 60 days. Nothing closes until the confirm screen, and Undo follows. Triage shows Now; Next and Later open on their own screens; 'Move…' turns on the move arrows and a 'Reset to the rules' button; 'Why these?' lists the seven real rules from the app.",
-        "Check that the Tidy up reasons read clearly one at a time.",
+        "Organize opens on two cards, Tidy up and Triage. Tidy up shows one task at a time under a plain question: Finished?, Replaced?, The same? or Still want it? You drop it in the tray to keep it or the bin to close it, and The same? offers a stapler to merge. Nothing closes until the Close these? list, and a slip with Undo follows. Triage shows the three tasks to do first, with Next and Later as flags you tap to open. Move turns on the arrows, with a Reset card.",
+        "Check that each Tidy up question is clear without the longer reason the app shows today.",
         {
           "src": "friction-steps-pics/p-organize.png",
           "alt": "Twelve phone screens of Tidy up and Triage",
@@ -393,7 +393,7 @@ const PAGE = {
         "Roadmap",
         "All projects, and a new project",
         "you",
-        "The project list keeps Find, progress bars and ways to sort (A to Z, most open tasks, closest deadline, recently synced, my own order with arrows). A new project is four steps: name, area, colour, then GitHub (not on GitHub, link one of my repos, create a new repo, or track someone else's repo).",
+        "The project list keeps Find, a progress ruler on each folder, and a drawer to sort by A to Z, most tasks, due soonest, last synced or your own order. A new project is four steps: name, area, colour, then GitHub (no, my repo, a new repo, or someone else's).",
         "Check that GitHub as the last optional step suits you.",
         {
           "src": "friction-steps-pics/p-roadmap.png",
@@ -419,8 +419,8 @@ const PAGE = {
         "Task details",
         "Every detail on one list",
         "you",
-        "Task details stops folding things away. It lists status, priority, due, labels, part of, subtasks, waits on, holds up, notes and GitHub, each with its answer. Tapping a line opens the same question the Sort step uses, with Save instead of Next. Subtasks and the GitHub issue get their own screens. ⋯ More holds rename, move to another project and delete.",
-        "Check that ten lines at once is calm enough; it scrolls a little on a phone.",
+        "Task details is a status stamp and a receipt: priority, due, labels, smaller steps, waits on, notes and GitHub. The pencil on each line opens the same step Sort uses. Tapping the stamp changes status. The ⋯ drawer holds Rename, Move, Part of, Holds up and Delete.",
+        "Check that 'Part of' and 'Holds up' are fine inside the ⋯ drawer.",
         {
           "src": "friction-steps-pics/p-details.png",
           "alt": "Five phone screens of task details",
@@ -432,8 +432,8 @@ const PAGE = {
         "Focus",
         "Two questions, then one task",
         "you",
-        "Which project (or Pick for me), then what kind of work (Skip means any; Unlabelled and Surprise me are in the folders). Kinds of work are index cards, as in the app today. Then one task on its sticky note, with two rubber stamps: 'I've done it' and 'Not this one'. The More button lists: start it, subtasks (tick, or tap to focus on one), details, go to the project, and clear. When you finish, the note peels away as today and you pick again.",
-        "Check that More is the right place for Start it.",
+        "Which project (or Pick for me), then what kind of work, both as carousels. Then one task on its sticky note, with two rubber stamps: Done and Another. The ⋯ drawer holds Start it, Smaller steps, Details, Project and Clear. When you finish, the note is crossed out and Next one picks again.",
+        "Check that the ⋯ drawer is the right place for Start it.",
         {
           "src": "friction-steps-pics/p-focus.png",
           "alt": "Six phone screens of Focus",
@@ -445,7 +445,7 @@ const PAGE = {
         "Review",
         "One task at a time",
         "you",
-        "Review asks 'Is it finished?' one task at a time, with two rubber stamps: Looks good or Needs more work, and Open details. Done this week keeps Undo on each task.",
+        "Review asks 'Finished?' one task at a time, with two rubber stamps: Looks good and More work. A slip with Undo follows each one. Done this week lists the week's tasks, each with an Undo flag.",
         "Check that one at a time suits Review too.",
         {
           "src": "friction-steps-pics/p-review.png",
@@ -588,7 +588,7 @@ const PAGE = {
     ]
   ],
   "wrapup": {
-    "summary": "Every screen is now drawn, 83 in all, as pictures here and as a clickable prototype. All 125 things the app does today have a screen. Sort becomes nine steps, Task details one list, Focus two questions, Tidy up and Review one task at a time, and the Roadmap one milestone at a time.",
+    "summary": "Every screen is drawn, 82 in all, with no small print and none taller than a phone. All 125 things the app does today have a screen. Sort becomes nine steps, Task details a receipt, Focus two questions, Tidy up and Review one task at a time, and the Roadmap one milestone at a time.",
     "changing": "Changed: how much each screen shows at once, Sort, adding a task, Focus, Tidy up, Triage, the Roadmap, Task details and Milestone settings. Kept: every feature, your data, the five tabs, Review and Settings.",
     "blocking": "Waiting on your sign-off and your two remaining choices. The jot choice is already made: + Jot at the top.",
     "next": "After you approve, I'll write the build plan as GitHub issues and build it on the same test link. Nothing goes into the app you use until you've tested it.",

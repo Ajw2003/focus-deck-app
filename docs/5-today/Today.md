@@ -601,3 +601,11 @@ Eden picked the "+ Jot" button for the step-by-step proposal, placed in the head
 ## 2026-11-12, later still: every control drawn as a real desk object
 
 Eden asked that nothing in the prototype be a plain button or plain text, and that labels use the carousel. prototype.html now draws each kind of control as one desk object (its "Every control is a real object" section lists all 27), and labels and kinds of work are index-card carousels like the project folders. The checks still pass: 83 screens, no broken taps, nothing cut off, all 125 actions mapped. Waiting on Eden's review.
+
+## 2026-11-12: step by step, small print removed
+
+- Eden asked for all small text, captions and explanations to go, and for no screen to be longer than a phone.
+- Every screen in docs/generated/friction-steps/prototype.html now has only its question and its objects. There are 82 screens; r14 was folded away.
+- shoot-prototype.cjs now fails on own text under 13px and on any screen taller than 660px. The last run passed: 82 screens, nothing cut off, nothing taller than a phone, no small text.
+- check-feature-map.cjs still passes: all 125 app actions are mapped.
+- docs/plans/friction-steps.json was rewritten to match. It still waits on Eden's sign-off. No app code was changed.

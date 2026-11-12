@@ -248,11 +248,6 @@
      "triage-reset",
      "Reset to the rules",
      "r13"
-    ],
-    [
-     "(rules)",
-     "How the order is worked out",
-     "r14"
     ]
    ]
   ],

@@ -9,9 +9,18 @@ const { chromium } = require('playwright');
     const ids = Object.keys(window.SCREENS), inFlows = new Set(window.FLOWS.flatMap((f) => f[3].map((x) => x[0])));
     const bad = [...document.querySelectorAll('[data-go]')].map((e) => e.dataset.go).filter((g) => !window.SCREENS[g]);
     const cut = [...document.querySelectorAll('.phone')].filter((ph) => [...ph.querySelectorAll('.body')].some((b) => b.scrollHeight > b.clientHeight + 2)).map((ph) => ph.dataset.screen);
-    return { screens: ids.length, notShown: ids.filter((i) => !inFlows.has(i)), badLinks: [...new Set(bad)], cutOff: [...new Set(cut)] };
+    // small print: any visible text in a phone under 13px
+    const small = [];
+    for (const ph of document.querySelectorAll('.phone')) for (const el of ph.querySelectorAll('*')) {
+      const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+      const fs = parseFloat(getComputedStyle(el).fontSize);
+      if (own && fs > 0 && fs < 13) small.push(ph.dataset.screen + ':' + el.textContent.trim().slice(0, 20));
+    }
+    const tall = [...document.querySelectorAll('.phone')].filter((ph) => ph.getBoundingClientRect().height > 660).map((ph) => ph.dataset.screen);
+    return { screens: ids.length, notShown: ids.filter((i) => !inFlows.has(i)), badLinks: [...new Set(bad)], cutOff: [...new Set(cut)], tallerThanAPhone: [...new Set(tall)], smallText: [...new Set(small)].slice(0, 30) };
   });
   console.log(JSON.stringify(r));
+  if (r.badLinks.length || r.cutOff.length || r.tallerThanAPhone.length || r.smallText.length || r.notShown.length) process.exitCode = 1;
   for (const f of await p.evaluate(() => [...document.querySelectorAll('section.flow')].map((s) => s.id))) {
     await p.locator('#' + f).screenshot({ path: __dirname + '/p-' + f + '.png' }); console.log('shot', f);
   }
