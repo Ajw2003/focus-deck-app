@@ -9,7 +9,7 @@ const store = {};
 globalThis.localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } };
 globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({}) });
 
-const { state, loadState } = await import('./state.js');
+const { state, loadState, openTasksMatching, UNLABELLED } = await import('./state.js');
 const { mergeStates } = await import('./merge.js');
 const M = await import('./mutations.js');
 const A = await import('./areas.js');
@@ -121,4 +121,14 @@ test('setLabelPriority maps and clears, and refuses unknown levels', () => {
   state.categories = [{ id: 'c1', name: 'Asap', color: 'red' }];
   M.setLabelPriority('c1', 'urgent'); assert.strictEqual(state.categories[0].priority, 'urgent');
   M.setLabelPriority('c1', 'bogus'); assert.strictEqual(state.categories[0].priority, undefined);
+});
+
+test('a task whose only labels are unticked counts as Unlabelled on Focus, and is picked by it', () => {
+  Object.assign(state, loadState());
+  state.categories = [{ id: 'c1', name: 'Bug', color: 'red' }, { id: 'c2', name: 'Chore', color: 'blue', kind: false }];
+  state.projects = [{ id: 'p', name: 'P', color: 'red', tasks: [{ id: 't1', title: 'x', status: 'next', categoryIds: ['c2'] }] }];
+  assert.ok(renderCategoryWalletInner(state, {}).includes('Unlabelled'));
+  assert.deepStrictEqual(openTasksMatching({ categoryId: UNLABELLED }), ['t1']);
+  state.categories[1].kind = true;
+  assert.deepStrictEqual(openTasksMatching({ categoryId: UNLABELLED }), []);
 });
