@@ -1137,7 +1137,7 @@ body.is-dragging-task .empty-note{display:none;}
    screen is drawn. Wide: a column fixed on the left under the topbar. Phone: a bar fixed along the
    bottom. Focus and Sort are one centred column; Projects keeps the project list and folders.
    The jotter (adding) stays in the topbar on every screen. See docs/4-systems/styling.md#one-screen-at-a-time */
-.rail{position:fixed; z-index:15; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(7,minmax(0,1fr));
+.rail{position:fixed; z-index:15; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(8,minmax(0,1fr));
   background:var(--surface); border-top:1px solid var(--line); padding:6px 8px calc(6px + env(safe-area-inset-bottom, 0px));}
 .rail-item{display:flex; flex-direction:column; align-items:center; gap:3px; border:0; background:none; color:var(--ink-soft); font:600 .72rem var(--font-ui); padding:6px 0; border-radius:12px; cursor:pointer;}
 .rail-item.is-on{color:var(--accent); background:var(--surface-2);}
@@ -1567,3 +1567,91 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
   .tr-chip{grid-area:chip; justify-self:start;}
   .tr-moves{grid-area:moves;}
 }
+
+/* Roadmap (#257): a row per project (group view), sections > milestones > four columns (project view).
+   See docs/4-systems/roadmap.md */
+.screen-roadmap{min-width:0;}
+.rm{min-width:0; --c:var(--accent);}
+.rm-head{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 16px; margin-bottom:12px;}
+.rm-head .board-title{margin:0;}
+.rm-tools{display:flex; flex-wrap:wrap; gap:8px;}
+.rm-new, .rm-tools .btn{min-height:40px;}
+.rm-title{display:flex; align-items:center; gap:10px;}
+.rm-dot{flex:none; width:12px; height:12px; border-radius:50%; background:var(--c);}
+.rm-group{display:flex; flex-direction:column; gap:14px;}
+.rm-row{display:grid; grid-template-columns:200px minmax(0,1fr); gap:12px 16px; align-items:center;}
+.rm-proj{display:grid; grid-template-columns:auto minmax(0,1fr); gap:2px 8px; align-items:center; text-align:left; border:0; background:none; color:inherit; font:inherit; padding:4px; cursor:pointer;}
+.rm-proj-name{font-weight:700; overflow-wrap:anywhere;}
+.rm-proj-pct{grid-column:2; color:var(--ink-soft); font-size:.85rem;}
+.rm-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; min-width:0;}
+.rm-card{display:flex; flex-direction:column; gap:4px; text-align:left; border:1px solid var(--line); border-top:4px solid var(--c); border-radius:14px; background:var(--surface); color:inherit; font:inherit; padding:10px 14px; cursor:pointer; min-width:0;}
+.rm-card-name{font-weight:700; overflow-wrap:anywhere;}
+.rm-card-count, .rm-now{color:var(--ink-soft); font-size:.85rem;}
+.rm-none{margin:0; color:var(--ink-soft);}
+.rm-bar{display:block; height:7px; border-radius:999px; background:var(--line); overflow:hidden;}
+.rm-bar i{display:block; height:100%; background:var(--c); border-radius:999px;}
+.rm-bar-big{height:12px; margin-bottom:16px;}
+.rm-phone{display:none; text-align:left; border:1px solid var(--line); border-left:6px solid var(--c); border-radius:14px; background:var(--surface); color:inherit; font:inherit; padding:12px 14px; flex-direction:column; gap:6px; cursor:pointer;}
+.rm-phone-top{display:flex; justify-content:space-between; gap:8px;}
+.rm-phone-top small{color:var(--ink-soft);}
+.rm-total{display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
+.rm-big{font:700 2.4rem var(--font-ui); color:var(--ink);}
+.rm-total-sub{color:var(--ink-soft);}
+.rm-sec{margin-top:18px;}
+.rm-sec.is-dragging, .rm-ms.is-dragging, .rm-task.is-dragging{opacity:.5;}
+.rm-unplanned{margin-top:8px;}
+.rm-sec-h{display:flex; align-items:center; gap:8px; margin:0 0 8px; font-size:1.15rem;}
+.rm-sec-name{flex:1 1 auto; min-width:0; overflow-wrap:anywhere;}
+.rm-grip{flex:none; border:0; background:none; color:var(--ink-faint); cursor:grab; touch-action:none; padding:4px 2px; letter-spacing:-2px; font:inherit; min-height:28px;}
+.rm-grip:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.rm-dragging{cursor:grabbing; user-select:none;}
+.rm-moves, .rm-tmoves{display:none; gap:4px;}
+.rm-step{min-height:40px; min-width:40px; padding:0;}
+.rm-ms{background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--c); border-radius:14px; padding:8px 14px; margin-bottom:8px; min-width:0;}
+.rm-ms.is-open{padding-bottom:12px;}
+.rm-ms-head{display:flex; align-items:center; gap:6px;}
+.rm-ms-toggle{flex:1 1 auto; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:12px; border:0; background:none; color:inherit; font:inherit; padding:8px 0; cursor:pointer; text-align:left;}
+.rm-ms-name{font-weight:700; overflow-wrap:anywhere;}
+.rm-ms-count{flex:none; color:var(--ink-soft); font-size:.85rem; white-space:nowrap;}
+.rm-coltabs{display:none; gap:8px; flex-wrap:wrap; margin:6px 0 8px;}
+.rm-coltab{min-height:40px; padding:0 14px; border:1px solid var(--line); border-radius:var(--r-pill); background:var(--surface-2); color:inherit; font:600 .9rem var(--font-ui); cursor:pointer;}
+.rm-coltab.on{background:var(--ink); color:var(--surface); border-color:var(--ink);}
+.rm-cols{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:6px;}
+.rm-col{background:var(--surface-2); border-radius:12px; padding:8px 10px; min-height:84px; min-width:0;}
+.rm-dragging .rm-col:hover{outline:2px dashed var(--accent); outline-offset:-2px;}
+.rm-col-h{margin:0 0 6px; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); display:flex; justify-content:space-between;}
+.rm-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px;}
+.rm-task{display:flex; align-items:center; gap:6px; background:var(--surface); border-radius:8px; padding:6px 8px; min-width:0;}
+.rm-task.is-done .rm-task-title{color:var(--ink-soft); text-decoration:line-through;}
+.rm-task-title{flex:1 1 auto; min-width:0; border:0; background:none; color:inherit; font:inherit; text-align:left; padding:2px 0; cursor:pointer; overflow-wrap:anywhere;}
+.rm-add-link{margin-top:8px;}
+.rm-foot{margin:14px 0 0; color:var(--ink-soft);}
+.rm-add-form{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; align-items:center;}
+.rm-add-form input{flex:1 1 200px; min-width:0; min-height:40px;}
+.rm-detail{margin-top:20px; min-width:0;}
+.rm-detail-tools{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; margin-bottom:10px;}
+.rm-detail-tools select{min-height:36px;}
+@media (max-width:899.98px){
+  .rm-row{grid-template-columns:minmax(0,1fr);}
+  .rm-proj, .rm-cards, .rm-grip{display:none;}
+  .rm-phone{display:flex;}
+  .rm-moves, .rm-tmoves, .rm-coltabs{display:flex;}
+  .rm-cols{grid-template-columns:minmax(0,1fr);}
+  .rm-col:not(.is-on){display:none;}
+  .rm-col-h{display:none;}
+  .rm-big{font-size:2rem;}
+}
+
+/* Organize (phone only): Tidy up and Triage share one tab, so the bar holds seven. See docs/4-systems/roadmap.md */
+.rail-organize{display:none;}
+.org-tabs{display:none; gap:8px; margin:0 0 12px;}
+.org-tab{min-height:40px; padding:0 18px; border:1px solid var(--line); border-radius:var(--r-pill); background:var(--surface-2); color:inherit; font:600 .95rem var(--font-ui); cursor:pointer;}
+.org-tab.on{background:var(--ink); color:var(--surface); border-color:var(--ink);}
+@media (max-width:699.98px){
+  .rail{grid-template-columns:repeat(7,minmax(0,1fr));}
+  .rail-organize{display:flex;}
+  .rail-org-part{display:none;}
+  .org-tabs{display:flex;}
+}
+/* seven tabs on a 360 bar: a little less padding and type so "Organize" and "Roadmap" do not touch */
+@media (max-width:399.98px){ .rail{padding-left:2px; padding-right:2px;} .rail-item{font-size:.66rem;} }

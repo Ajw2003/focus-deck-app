@@ -42,7 +42,7 @@ export function renderSyncButton(st) {
 // One activity at a time (#135): the screens, and the rail that switches between them (a column
 // on the left on a wide screen, a bar along the bottom on a phone). Adding stays on every screen:
 // it is the jotter in the topbar. See docs/4-systems/styling.md#one-screen-at-a-time
-export const SCREENS = ['focus', 'sort', 'board', 'projects', 'review', 'tidy', 'triage'];
+export const SCREENS = ['focus', 'sort', 'board', 'projects', 'review', 'tidy', 'triage', 'roadmap'];
 const SCREEN_INFO = {
   focus: { label: 'Focus', icon: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>' },
   sort: { label: 'Sort', icon: '<path d="M4 7h16M4 12h10M4 17h6"/>' },
@@ -51,6 +51,7 @@ const SCREEN_INFO = {
   review: { label: 'Review', icon: '<path d="M5 12.5l4.5 4.5L19 7.5"/>' },
   tidy: { label: 'Tidy up', icon: '<path d="M4 6h16M7 6l1 13h8l1-13M10 6V4h4v2"/>' },
   triage: { label: 'Triage', icon: '<path d="M4 6h16M4 12h11M4 18h6"/><path d="M19 14v6M16.5 17.5L19 20l2.5-2.5"/>' },
+  roadmap: { label: 'Roadmap', icon: '<path d="M4 6h9M4 12h14M4 18h7"/><circle cx="17" cy="6" r="2"/><circle cx="21" cy="18" r="1.5"/>' },
 };
 export function normalizeScreen(value) { return SCREENS.includes(value) ? value : 'focus'; }
 // The Board screen's markup is in js/board-view.js (#144).
@@ -58,11 +59,17 @@ export { renderBoard } from './board-view.js';
 // syncHTML is the sync button (renderSyncButton): on a wide screen it and Settings sit at the foot of
 // the rail instead of the topbar; .rail-tools is hidden on a phone, where the topbar keeps them.
 export function renderRail(screen, unsortedCount, syncHTML = '', reviewCount = 0, tidyCount = 0) {
+  // On a phone Tidy up and Triage share one "Organize" tab (CSS hides the two and shows this one; the screens
+  // carry Tidy up | Triage buttons at the top). Hidden on a wide screen. See docs/4-systems/roadmap.md
+  const org = screen === 'tidy' || screen === 'triage';
+  const organize = '<button type="button" class="rail-item rail-organize' + (org ? ' is-on' : '') + '" data-action="set-screen" data-go="' + (screen === 'triage' ? 'triage' : 'tidy') + '"' + (org ? ' aria-current="page"' : '') + '>'
+    + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO.tidy.icon + '</svg>'
+    + (tidyCount ? '<b class="rail-count" aria-label="' + tidyCount + ' to tidy">' + tidyCount + '</b>' : '') + '</span><span class="rail-label">Organize</span></button>';
   return '<nav class="rail" aria-label="What to do">' + SCREENS.map((key) => {
     const on = key === screen;
     const n = key === 'sort' ? unsortedCount : key === 'review' ? reviewCount : key === 'tidy' ? tidyCount : 0;
     const count = n ? '<b class="rail-count" aria-label="' + n + (key === 'sort' ? ' to sort' : key === 'tidy' ? ' to tidy' : ' to review') + '">' + n + '</b>' : '';
-    return '<button type="button" class="rail-item' + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
+    return (key === 'tidy' ? organize : '') + '<button type="button" class="rail-item' + (key === 'tidy' || key === 'triage' ? ' rail-org-part' : '') + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
       + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[key].icon + '</svg>' + count + '</span>'
       + '<span class="rail-label">' + SCREEN_INFO[key].label + '</span></button>';
   }).join('') + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn rail-settings" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '<span class="rail-settings-label" aria-hidden="true">Settings</span></a></div></nav>';
@@ -72,7 +79,7 @@ export function renderRail(screen, unsortedCount, syncHTML = '', reviewCount = 0
 // Projects' single selected project); a project that no longer exists falls back to '' (Unsorted).
 export function jotTarget(st, ui) {
   let id = ui.jotTo;
-  if (id === undefined) id = (ui.view && ui.view.mode === 'project' && (ui.screen === 'board' || ui.screen === 'projects') && ui.view.id) || '';
+  if (id === undefined) id = (ui.view && ui.view.mode === 'project' && (ui.screen === 'board' || ui.screen === 'projects' || ui.screen === 'roadmap') && ui.view.id) || '';
   return st.projects.some((p) => p.id === id) ? id : '';
 }
 
@@ -513,7 +520,7 @@ function renderNewRepoTab(ui, hasToken) {
     + '<div class="new-panel-section"><h4 class="group-label">Paste</h4>' + renderPasteRepo(ui) + '</div>'
     + '<div class="new-panel-section">' + renderCreateRepo(ui) + '</div>';
 }
-function renderNewPanel(ui, hasToken) {
+export function renderNewPanel(ui, hasToken) {
   if (!ui.newPanelOpen) return '';
   const tab = ui.newPanelTab === 'repo' ? 'repo' : 'project';
   const tabBtn = (value, label) => '<button type="button" class="filter-pill' + (tab === value ? ' active' : '') + '" data-action="set-new-panel-tab" data-tab="' + value + '" aria-pressed="' + (tab === value) + '">' + label + '</button>';
@@ -584,7 +591,7 @@ function renderPasteRepoForLink() {
     + '<button type="submit">Link</button>'
     + '</form>';
 }
-function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
+export function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
   const total = p.tasks.length;
   const pendingRemove = !!ui.pendingRemove[p.id];
   const projCatOptions = projectCategories.filter((c) => c.id !== UNSORTED_ID).map((c) => '<option value="' + c.id + '"' + (p.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');

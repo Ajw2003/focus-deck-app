@@ -15,6 +15,10 @@ const row = (r, last) => '<li class="tr-row" tabindex="0" data-task-id="' + esc(
   + '<span class="tr-moves"><button type="button" class="btn ghost tr-move" data-action="triage-move" data-task="' + esc(r.id) + '" data-dir="-1" aria-label="Move up: ' + esc(r.task.title) + '"' + (r.n === 1 ? ' disabled' : '') + '>↑</button>'
   + '<button type="button" class="btn ghost tr-move" data-action="triage-move" data-task="' + esc(r.id) + '" data-dir="1" aria-label="Move down: ' + esc(r.task.title) + '"' + (last ? ' disabled' : '') + '>↓</button></span></li>';
 
+// Tidy up | Triage: on a phone the two share the Organize tab, so each screen starts with these two buttons.
+export const orgTabs = (screen) => '<div class="org-tabs" role="group" aria-label="Organize">'
+  + [['tidy', 'Tidy up'], ['triage', 'Triage']].map(([k, n]) => '<button type="button" class="org-tab' + (k === screen ? ' on' : '') + '" data-action="set-screen" data-screen="' + k + '" aria-pressed="' + (k === screen) + '">' + n + '</button>').join('') + '</div>';
+
 export function renderTriage(st, ui, today = dueDates().today) {
   const l = triageLists(st, ui.view, today);
   const name = ui.view.mode === 'all' ? 'All' : viewLabel(st, ui.view);
@@ -28,7 +32,7 @@ export function renderTriage(st, ui, today = dueDates().today) {
   const reset = (cls) => '<button type="button" class="btn ghost ' + cls + '" data-action="triage-reset"' + (l.saved ? '' : ' disabled') + '>Reset to the rules</button>';
   const side = '<aside class="tr-side" aria-label="How the order is worked out"><h3 class="tr-side-h">HOW THE ORDER IS WORKED OUT</h3><ol class="tr-rules">'
     + RULES.map((r) => '<li>' + esc(r) + '</li>').join('') + '</ol><p class="tr-side-note">Your own order wins over these.</p>' + reset('tr-reset') + '</aside>';
-  return '<h2 class="board-title">Triage: ' + esc(name) + '</h2>'
+  return orgTabs('triage') + '<h2 class="board-title">Triage: ' + esc(name) + '</h2>'
     + '<p class="tr-sub">' + l.total + ' ' + esc(ui.view.mode === 'all' ? 'open' : name) + ' tasks, ranked. <span class="tr-hint">Drag one to change the order.</span> ' + reset('tr-reset-phone') + '</p>'
     + '<div class="tr-layout"><div class="tr-main">' + lists + '</div>' + side + '</div>';
 }

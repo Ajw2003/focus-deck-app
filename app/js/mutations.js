@@ -567,3 +567,20 @@ export function resetTriageOrder(ids) {
   ids.forEach((id) => { const f = findTaskWithProject(id); if (f && "triageRank" in f.task) { delete f.task.triageRank; f.task.updatedAt = Date.now(); } });
   persist();
 }
+
+// Roadmap (#257): `fn(project)` is one of the changes in js/roadmap.js (addSection, moveMilestone, ...); it
+// returns what it made or whether it moved. A change that did nothing (false/null) is not saved.
+export function editRoadmap(projectId, fn) {
+  const p = state.projects.find((x) => x.id === projectId);
+  const out = p && fn(p);
+  if (out) persist();
+  return out || null;
+}
+// A task's milestone ('' = Unplanned: the task falls back to its GitHub milestone or parent task, if any).
+export function setTaskMilestone(taskId, milestoneId) {
+  const f = findTaskWithProject(taskId);
+  if (!f) return;
+  if (milestoneId) f.task.milestoneId = milestoneId; else delete f.task.milestoneId;
+  f.task.updatedAt = Date.now();
+  persist();
+}
