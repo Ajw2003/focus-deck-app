@@ -102,7 +102,7 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   await pickView('area', 'a1');
   check((await page.textContent('.board-title')) === 'Roadmap: Apps' && (await page.$$('.rm-row')).length === 3, tag + 'Area Apps: title and three rows');
   const row0 = await page.textContent('.rm-row[data-project="p0"] ' + (phone ? '.rm-phone' : '.rm-proj'));
-  check(row0.includes('Focus Deck') && row0.includes('36%'), tag + 'Focus Deck row says 36% done', row0.replace(/\s+/g, ' '));
+  check(row0.includes('Focus Deck') && row0.includes('37%'), tag + 'Focus Deck row says 37% done (equal milestone shares: 40, 50, 33, 25)', row0.replace(/\s+/g, ' '));
   const row1 = await page.textContent('.rm-row[data-project="p1"] ' + (phone ? '.rm-phone' : '.rm-proj'));
   check(row1.includes('50%'), tag + 'second project 50%', row1.replace(/\s+/g, ' '));
   if (phone) {
@@ -119,7 +119,7 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   // project view
   await pickView('project', 'p0');
   await page.waitForSelector('.rm-project');
-  check((await page.textContent('.rm-big')) === '36%' && (await page.textContent('.rm-title')).trim() === 'Focus Deck', tag + 'project view: name and big 36%');
+  check((await page.textContent('.rm-big')) === '37%' && (await page.textContent('.rm-title')).trim() === 'Focus Deck', tag + 'project view: name and big 37%', await page.textContent('.rm-big'));
   check((await page.$$eval('.rm-sec-name', (e) => e.map((x) => x.textContent).join('|'))) === '1 · Foundations|2 · Plan tools', tag + 'sections in order');
   check((await page.$$('.rm-ms.is-open')).length === 1 && (await page.$$eval('.rm-ms.is-open .rm-col', (c) => c.map((x) => x.dataset.status).join())) === 'next,doing,review,done', tag + 'the open milestone has the four columns');
   check((await page.$$('.rm-ms:not(.is-open)')).length === 3, tag + 'the other milestones (and Unplanned) are collapsed rows');
@@ -220,7 +220,7 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   await page.keyboard.press('Escape'); // Task details fills a phone's screen; Escape closes it
   check(!!mk && mk.name === 'Android app', tag + 'Make this a milestone on a task with subtasks');
   check((await page.textContent('.rm-ms[data-ms-id="' + (mk || {}).id + '"] .rm-ms-count')).trim().startsWith('tasks 1 of 2'), tag + 'its subtasks are its tasks (1 of 2)');
-  check((await page.textContent('.rm-big')) === '36%', tag + 'project percent: 5 of 14 tasks (a milestone\'s own parent task is not counted)', await page.textContent('.rm-big'));
+  check((await page.textContent('.rm-big')) === '28%', tag + 'project percent: equal shares again after Polish (empty) and Android app are added (#258)', await page.textContent('.rm-big'));
   await noScroll('after adds'); await shot('after-adds');
 
   // Edit project (the existing panel) and New project
