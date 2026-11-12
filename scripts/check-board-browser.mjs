@@ -54,7 +54,7 @@ for (const size of ['desk', 'phone']) for (const scheme of ['dark', 'light']) {
     localStorage.setItem('seeded', '1');
     localStorage.setItem('focusdeck-onboarding', 'done'); localStorage.setItem('focusdeck-screen', 'board');
     localStorage.setItem('focusdeck-state-v1', JSON.stringify(s));
-    localStorage.setItem('focusdeck-board-project', 'p0'); // narrowed to Home: a small, predictable board
+    localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'p0' })); // narrowed to Home: a small, predictable board
   }, seed);
   await page.goto(BASE);
   await page.waitForSelector('.board-card');
@@ -117,13 +117,13 @@ for (const size of ['desk', 'phone']) for (const scheme of ['dark', 'light']) {
   const homeNext = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).projects[0].tasks.filter((x) => x.status === 'next').length);
   await page.click('.calm-tab[data-col="next"]');
   const head = () => page.$eval('.board-title', (e) => e.textContent);
-  await page.selectOption('.calm-tools select', ''); await page.waitForTimeout(200);
-  check((await head()) === 'Board' && !(await page.$('.calm-tools select.is-picked')), tag + 'with no project the heading is exactly Board', await head());
+  await page.click('.vs-seg[data-mode="all"]'); await page.waitForTimeout(200);
+  check((await head()) === 'Board' && !(await page.$('.calm-tools select')), tag + 'with no project the heading is exactly Board', await head());
   const allNext = await tabCount('next');
-  await page.selectOption('.calm-tools select', 'p0'); await page.waitForTimeout(200);
+  await page.click('.vs-seg[data-mode="project"]'); await page.click('.vs-item[data-id="p0"]'); await page.waitForTimeout(200);
   const picked = await head();
   check(picked.includes('Home') && picked.includes('Board · one project'), tag + 'the heading names the picked project', picked);
-  check(await page.$eval('.calm-tools select', (e) => e.classList.contains('is-picked')), tag + 'the select is marked is-picked');
+  check((await page.$eval('.vs-pick', (e) => e.textContent)).includes('Home'), tag + 'the switch names the picked project');
   check((await tabCount('next')) === homeNext && allNext > homeNext, tag + 'Up next counts only Home when picked', homeNext + ' vs all ' + allNext);
   await noSideways('with Home picked');
   await page.screenshot({ path: ROOT + 'docs/generated/calm-build/built/218-board-project-' + (phone ? '390' : '1440') + '-' + scheme + '.png', fullPage: false });

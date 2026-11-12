@@ -292,7 +292,7 @@ export function completeInboxItem(inboxId) {
 // (empty means any). Returns false, changing nothing, when no open task matches.
 export function pickFocus(filter) {
   const f = { categoryId: (filter && filter.categoryId) || null, projectId: (filter && filter.projectId) || null };
-  const pool = openTasksMatching(f);
+  const pool = openTasksMatching({ ...f, view: state._ui && state._ui.view }); // the view is not saved in state.focus
   if (!pool.length) return false;
   const { candidates, allBlocked } = rankFocusPool(state.projects, pool);
   state.focus = { taskId: candidates[Math.floor(Math.random() * candidates.length)], pool, filter: f, startedAt: Date.now() };

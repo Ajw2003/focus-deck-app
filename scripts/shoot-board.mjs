@@ -58,7 +58,7 @@ for (const size of ['desk', 'phone']) for (const scheme of ['dark', 'light']) fo
     localStorage.setItem('shot-seeded', '1');
     localStorage.setItem('focusdeck-onboarding', 'done'); localStorage.setItem('focusdeck-screen', 'board');
     localStorage.setItem('focusdeck-state-v1', JSON.stringify(s));
-    if (one) localStorage.setItem('focusdeck-board-project', 'p0');
+    if (one) localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'p0' }));
   }, [seed, view === 'one']);
   await page.goto(BASE);
   await page.waitForSelector('.board-card');

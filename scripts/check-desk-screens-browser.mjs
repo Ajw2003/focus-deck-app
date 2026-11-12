@@ -68,7 +68,8 @@ async function open(size, scheme, path = '', view = 'all') {
   await page.addInitScript(([s, key, v]) => {
     if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'projects'); // the folders' screen (#135)
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
-    if (!localStorage.getItem('focusdeck-project-view')) localStorage.setItem('focusdeck-project-view', v);
+    // the old All/One toggle is now the All | Area | Project switch: One = Project mode (#252)
+    if (!localStorage.getItem('focusdeck-view') && v === 'one') localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pHome' }));
   }, [seed(), STATE_KEY, view]);
   await page.goto(BASE + path);
   await page.waitForTimeout(500);
@@ -137,7 +138,7 @@ for (const size of ['phone', 'desktop']) {
     await shot(page, tag, 'new-panel');
     await ctx.close();
 
-    // The One view (stored, as the switch is in the drawer on a phone)
+    // The One view (the switch on Project mode)
     ({ ctx, page } = await open(size, scheme, '', 'one'));
     const oneCards = await page.$$eval('.project-card', (els) => els.filter((e) => e.offsetParent !== null).length);
     check(`${tag} the One view shows one project`, oneCards === 1, oneCards + ' visible');

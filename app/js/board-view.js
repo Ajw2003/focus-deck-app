@@ -1,8 +1,8 @@
 // focus-deck-app/js/board-view.js
-// The Board screen's markup (#200, calm): one toolbar (Find, Project, Filter), one tab at a time (Up next,
+// The Board screen's markup (#200, calm): one toolbar (Find, Filter; the All | Area | Project switch above it, js/view-switch.js), one tab at a time (Up next,
 // In progress, Done this week, each with its count) and the tab's cards in groups of the "Cards at once"
 // setting. Up next cards carry "In progress", In progress cards "Up next" (data-action="board-move").
-// A card shows its project's name only on "Project: All"; subtasks show inside their parent as "1/2 done".
+// A card shows its project's name unless the view is one Project; subtasks show inside their parent as "1/2 done".
 // The right-hand column is the empty-panel hint, or Task details (js/task-details.js, #201) for ui.boardSelected. The list comes from js/board.js. Ticking a card is the same `toggle-task` checkbox
 // the task rows use. See docs/4-systems/calm-board.md and docs/4-systems/styling.md#the-board-144
 import { esc, deadlineChip, PRIORITY, state } from './state.js';
@@ -84,29 +84,26 @@ function card(t, p, st, narrowed, selected, now) {
 
 export function renderBoard(st, ui, now = Date.now()) {
   const projects = st.projects || [];
-  const narrowedTo = ui.boardProject ? projects.find((p) => p.id === ui.boardProject) : null;
+  const narrowedTo = ui.view && ui.view.mode === 'project' ? projects.find((p) => p.id === ui.view.id) : null;
   const tab = normalizeBoardCol(ui.boardCol);
   const show = SHOW_INFO.some((s) => s[0] === ui.boardShow) ? ui.boardShow : 'all';
-  const pcat = (st.projectCategories || []).some((c) => c.id === ui.boardPcat) ? ui.boardPcat : '';
   const find = ui.boardFind || '';
-  const { tasks, counts } = boardList(st, { tab, find, project: narrowedTo ? narrowedTo.id : null, pcat, show }, now);
+  const { tasks, counts } = boardList(st, { tab, find, view: ui.view, show }, now);
   const chunk = getChunk(st);
   const limit = Math.max(chunk, ui.boardShown || 0);
   const owner = new Map();
   projects.forEach((p) => (p.tasks || []).forEach((t) => owner.set(t.id, p)));
-  const active = (pcat ? 1 : 0) + (show !== 'all' ? 1 : 0);
+  const active = show !== 'all' ? 1 : 0;
   const open = !!ui.boardFilterOpen;
   const drawer = open
-    ? '<div class="calm-drawer"><p class="calm-h">Area</p><div class="bm-row">' + chip(!pcat, 'board-pcat', 'data-pcat', '', 'All')
-      + (st.projectCategories || []).map((c) => chip(pcat === c.id, 'board-pcat', 'data-pcat', c.id, c.name, c.color)).join('') + '</div>'
-      + '<p class="calm-h">Show</p><div class="bm-row">' + SHOW_INFO.map(([k, l]) => chip(show === k, 'board-show', 'data-show', k, l)).join('') + '</div>'
+    ? '<div class="calm-drawer"><p class="calm-h">Show</p><div class="bm-row">' + SHOW_INFO.map(([k, l]) => chip(show === k, 'board-show', 'data-show', k, l)).join('') + '</div>'
       + '<button type="button" class="btn primary" data-action="board-filter">Show ' + tasks.length + ' task' + (tasks.length === 1 ? '' : 's') + '</button></div>'
     : '';
   const tabs = BOARD_COLS.map((k) => '<button type="button" role="tab" aria-selected="' + (k === tab) + '" class="calm-tab' + (k === tab ? ' on' : '') + '" data-action="board-col" data-col="' + k + '">'
     + COL_INFO[k].title + ' <b>' + counts[k] + '</b></button>').join('');
   const selected = ui.boardSelected && owner.has(ui.boardSelected) ? ui.boardSelected : null;
   const cards = tasks.slice(0, limit).map((t) => card(t, owner.get(t.id), st, !!narrowedTo, t.id === selected, now)).join('');
-  const empty = '<p class="calm-empty">' + (find || active || narrowedTo ? 'Nothing matches. Clear the search or filters to see more.' : COL_INFO[tab].empty) + '</p>';
+  const empty = '<p class="calm-empty">' + (find || active || (ui.view && ui.view.mode !== 'all') ? 'Nothing matches. Clear the search or filters, or switch to All, to see more.' : COL_INFO[tab].empty) + '</p>';
   const left = tasks.length - limit;
   // With one project chosen, Up next gets that project's add row: type and add, nothing to pick
   // (#241, docs/4-systems/quick-add.md). New tasks land in Up next, so the other tabs don't get it.
@@ -119,8 +116,6 @@ export function renderBoard(st, ui, now = Date.now()) {
     : '<h2 class="board-title">Board</h2>';
   return heading + '<div class="cw"><section class="cw-list">'
     + '<div class="calm-tools"><input type="search" class="bm-find board-find" data-board-find value="' + esc(find) + '" placeholder="Find…" aria-label="Find a task, project or label">'
-    + '<select data-action="board-project-select" aria-label="Project"' + (narrowedTo ? ' class="is-picked" style="--proj-color:' + projColor + '"' : '') + '><option value="">Project: All</option>'
-    + projects.map((p) => '<option value="' + esc(p.id) + '"' + (narrowedTo && narrowedTo.id === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>').join('') + '</select>'
     + '<button type="button" class="btn ghost calm-btn' + (open ? ' on' : '') + '" data-action="board-filter" aria-expanded="' + open + '">Filter' + (active ? ' (' + active + ')' : '') + '</button></div>'
     + drawer + '<div class="calm-tabs" role="tablist">' + tabs + '</div>'
     + addRow + '<div class="calm-cards">' + (cards || empty) + '</div>'

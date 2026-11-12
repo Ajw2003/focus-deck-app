@@ -16,14 +16,14 @@ const st = {
 };
 const count = (h, re) => (h.match(re) || []).length;
 const ids = (h) => [...h.matchAll(/data-task-id="([^"]+)"/g)].map((m) => m[1]);
-const UI = { boardProject: null, boardCol: 'next' };
+const UI = { view: { mode: 'all', id: null }, boardCol: 'next' };
 
 {
   const h = renderBoard(st, UI, now);
   assert.ok(h.includes('Up next <b>1</b>') && h.includes('In progress <b>1</b>') && h.includes('Done <b>1</b>'), 'three tabs with counts');
   assert.ok(h.includes('aria-selected="true" class="calm-tab on" data-action="board-col" data-col="next"'), 'default tab is Up next');
   assert.deepStrictEqual(ids(h), ['t1'], 'only the open tab shows cards');
-  assert.ok(h.includes('<option value="">Project: All</option>') && h.includes('<option value="pa">Home</option>'), 'Project menu');
+  assert.ok(!h.includes('<select') && !h.includes('board-pcat'), 'the Board has no project or area filter of its own (the All | Area | Project switch replaces them)');
   assert.ok(h.includes('data-board-find') && h.includes('data-action="board-filter"'), 'Find and Filter');
   assert.ok(!h.includes('calm-drawer'), 'drawer closed to start with');
   assert.ok(h.includes('data-action="board-move" data-task="t1" data-to="doing"') && h.includes('>In progress</button>'), 'Up next card moves to In progress');
@@ -47,17 +47,16 @@ const UI = { boardProject: null, boardCol: 'next' };
   assert.strictEqual(normalizeBoardCol('bogus'), 'next');
 }
 {
-  const h = renderBoard(st, { ...UI, boardProject: 'pa' }, now);
-  assert.ok(!h.includes('board-card-proj') && h.includes('<option value="pa" selected>'), 'project name hidden on a card when narrowed');
-  const none = renderBoard(st, { ...UI, boardProject: 'pb' }, now);
+  const h = renderBoard(st, { ...UI, view: { mode: 'project', id: 'pa' } }, now);
+  assert.ok(!h.includes('board-card-proj') && h.includes('Board · one project'), 'project name hidden on a card when narrowed');
+  const none = renderBoard(st, { ...UI, view: { mode: 'project', id: 'pb' } }, now);
   assert.ok(none.includes('Nothing matches.') && !none.includes('<article'), 'empty narrowed list says so');
   assert.ok(renderBoard(st, { ...UI, boardCol: 'doing', boardFind: 'zzz' }, now).includes('Nothing matches.'));
   assert.ok(renderBoard({ projects: [] }, { boardCol: 'doing' }, now).includes('Nothing in progress. Press'), 'empty tab line');
 }
 {
-  const withCat = { ...st, projectCategories: [{ id: 'pc1', name: 'Home life', color: '#3E8E5E' }] };
-  const open = renderBoard(withCat, { ...UI, boardFilterOpen: true, boardShow: 'subs' }, now);
-  assert.ok(open.includes('Filter (1)') && open.includes('calm-drawer') && open.includes('>Home life</button>'), 'drawer with Category');
+  const open = renderBoard(st, { ...UI, boardFilterOpen: true, boardShow: 'subs' }, now);
+  assert.ok(open.includes('Filter (1)') && open.includes('calm-drawer') && !open.includes('Area</p>'), 'drawer has Show only (the area filter moved to the switch)');
   ['Everything', 'Has subtasks', 'Waiting on something', 'Holding others up'].forEach((l) => assert.ok(open.includes('>' + l + '</button>'), l));
   assert.ok(open.includes('Nothing matches.') && open.includes('Show 0 tasks'), 'Has subtasks narrows the list');
 }
@@ -83,14 +82,14 @@ const UI = { boardProject: null, boardCol: 'next' };
     ] },
     { id: 'pb', name: 'Work', color: '#4D6FB8', tasks: [{ id: 'd', title: 'Other', status: 'next', categoryIds: [] }] },
   ] });
-  const h = renderBoard(mkSt(true), { boardProject: null, boardCol: 'next' }, now);
+  const h = renderBoard(mkSt(true), { boardCol: 'next' }, now);
   assert.ok(h.includes('<b>0/1</b> done') && h.includes('board-segs') && !h.includes('1 subtask \u00b7'), 'parent shows its subtask as 0/1 done with the bar');
   assert.deepStrictEqual(ids(h), ['a', 'c', 'd'], 'the subtask is not a card of its own');
   assert.ok(h.includes('waits on <button type="button" class="tie-name" data-action="scroll-to-task" data-task="d">Other</button> \u00b7 Work'), 'other folder named');
   assert.ok(h.includes('holds up 1'), 'holds up');
   assert.strictEqual(count(h, /board-card calm-card is-waiting/g), 2, 'parent (open subtask) and waiter are soft');
   assert.ok(!h.includes('Child'), 'the subtask title is not on a card');
-  const plain = renderBoard(mkSt(false), { boardProject: null, boardCol: 'next' }, now);
+  const plain = renderBoard(mkSt(false), { boardCol: 'next' }, now);
   assert.ok(!plain.includes('tie-line') && !plain.includes('is-waiting'), 'no ties, nothing added');
 }
 {
@@ -115,10 +114,10 @@ console.log('board-view tests passed');
 
 // The add row (#241): only with one project chosen, only on Up next, and it adds to that project
 {
-  assert.ok(!renderBoard(st, UI, now).includes('add-row'), 'no add row with Project: All');
-  const h = renderBoard(st, { ...UI, boardProject: 'pa' }, now);
+  assert.ok(!renderBoard(st, UI, now).includes('add-row'), 'no add row with the view on All');
+  const h = renderBoard(st, { ...UI, view: { mode: 'project', id: 'pa' } }, now);
   assert.ok(h.includes('<form class="add-task-form add-row" data-action="add-task" data-project="pa">') && h.includes('placeholder="Add a task to Home…"'), 'Up next with Home chosen has Home\'s add row');
   assert.ok(h.indexOf('add-row') < h.indexOf('calm-cards'), 'the row sits above the list');
-  assert.ok(!renderBoard(st, { ...UI, boardProject: 'pa', boardCol: 'doing' }, now).includes('add-row'), 'no add row on In progress');
-  assert.ok(renderBoard(st, { ...UI, boardProject: 'pa', addDraft: { pa: 'Half' } }, now).includes('value="Half"'), 'a draft survives a repaint');
+  assert.ok(!renderBoard(st, { ...UI, view: { mode: 'project', id: 'pa' }, boardCol: 'doing' }, now).includes('add-row'), 'no add row on In progress');
+  assert.ok(renderBoard(st, { ...UI, view: { mode: 'project', id: 'pa' }, addDraft: { pa: 'Half' } }, now).includes('value="Half"'), 'a draft survives a repaint');
 }

@@ -133,9 +133,9 @@ for (const size of ['phone', 'desktop']) {
     await page.fill(TITLE, '');
     await page.dispatchEvent(TITLE, 'input');
     await page.click('[data-action="set-screen"][data-screen="board"]');
-    await page.waitForSelector('[data-action="board-project-select"]');
-    check(`${tag} Board with Project: All has no add row`, !(await page.$('.screen-board .add-row')));
-    await page.selectOption('[data-action="board-project-select"]', 'pSchool');
+    await page.waitForSelector('.vs-row');
+    check(`${tag} Board with the switch on All has no add row`, !(await page.$('.screen-board .add-row')));
+    await page.click('.vs-seg[data-mode="project"]'); await page.click('.vs-item[data-id="pSchool"]');
     const BOARD_TITLE = '.screen-board .add-row[data-project="pSchool"] input[name="title"]';
     await page.waitForSelector(BOARD_TITLE);
     check(`${tag} Board with School chosen shows "Add a task to School…"`, (await page.getAttribute(BOARD_TITLE, 'placeholder')) === 'Add a task to School…');
@@ -199,8 +199,8 @@ for (const size of ['phone', 'desktop']) {
     }
     await page.screenshot({ path: OUT + `built-jotter-${size}-${scheme}.png` });
     await page.click('.toast-action');
-    await page.waitForSelector('[data-action="board-project-select"]');
-    check(`${tag} Open shows the Board on Home with the task selected`, await page.evaluate(() => document.querySelector('[data-action="board-project-select"]').value === 'pHome' && /Jotted straight to Home/.test(document.querySelector('.screen-board').textContent) && !!document.querySelector('.cw-detail[data-selected]')));
+    await page.waitForSelector('.vs-pick');
+    check(`${tag} Open shows the Board on Home with the task selected`, await page.evaluate(() => document.querySelector('.vs-pick').textContent.includes('Home') && /Jotted straight to Home/.test(document.querySelector('.screen-board').textContent) && !!document.querySelector('.cw-detail[data-selected]')));
     check(`${tag} Open clears the notice`, !(await page.$('.toast')));
     await page.keyboard.press('Escape'); // close the details panel (it covers the rail on a phone)
     await page.selectOption(STAMP, '');
