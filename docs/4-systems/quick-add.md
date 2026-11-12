@@ -57,7 +57,7 @@ closes More. After Add, the title box empties and keeps focus so you can add the
 Rows 2 and 3 (the project and Board add rows) ask for a priority. Once the title box has text a
 **Priority · needed** block (Urgent, High, Medium, Low) and a **Due** block (Today, Tomorrow, Friday,
 Next week, Pick a date…, None; None is the default) appear under the line. The Add button is
-disabled and reads "Pick a priority to add" until a priority is picked, then reads "Add".
+disabled until a priority is picked; the reason ("Pick a priority to add") is a hint line in the priority block, so the button stays short and the title box keeps its room on a phone.
 `M.addTaskPicked` (`js/mutations.js`) is what the submit calls and refuses (no task made) without a
 valid priority even if the disabled state is bypassed; `M.addTask` itself is unchanged, so the
 jotter stamp (exempt, like jotting into Unsorted) and subtasks still add without one. The More panel

@@ -1414,3 +1414,8 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .sort-picks{display:flex; flex-direction:column; gap:6px; margin-bottom:8px;}
 .sort-picks .pick-blocks{border-top:0; padding-top:0;}
 .add-row .btn.primary:disabled{opacity:.6; cursor:default;}
+.pick-bare .deadline-chip::first-letter{text-transform:uppercase;}
+.pick-hint{font-size:var(--text-sm); color:var(--ink-soft);}
+/* beat .add-task-form button (accent fill) so unpicked options read as unpicked */
+.add-task-form .pick-opt{border:1.5px solid var(--line); background:var(--surface); color:var(--ink); padding:6px 12px; border-radius:var(--r-pill); font-weight:600;}
+.add-task-form .pick-opt.on{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}

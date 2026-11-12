@@ -68,7 +68,7 @@ for (const size of ['phone', 'desktop']) {
   await page.click(ROW + ' input[name="title"]');
   await page.keyboard.type('Ring the plumber');
   check(`${tag} pickers show once there is a title`, !(await page.$eval(ROW + ' .pick-blocks', (e) => e.hidden)));
-  check(`${tag} Add is disabled and says why`, await page.$eval(ROW + ' button[type=submit]', (b) => b.disabled && b.textContent === 'Pick a priority to add'));
+  check(`${tag} Add is disabled and says why`, await page.$eval(ROW + ' button[type=submit]', (b) => b.disabled && b.textContent === 'Add') && (await page.textContent(ROW + ' .pick-hint')) === 'Pick a priority to add' && (await page.getAttribute(ROW + ' input[name="title"]', 'placeholder')) === 'Add a task…' && (await page.$eval(ROW + ' input[name="title"]', (i) => i.getBoundingClientRect().width)) > 120);
   await page.$eval(ROW, (e) => e.scrollIntoView({ block: 'center' }));
   await page.screenshot({ path: OUT + `${size}-add-title-only.png` });
   await page.keyboard.press('Enter'); // bypassing the disabled button: still nothing is added

@@ -57,8 +57,7 @@ function glanceLine(t, key) {
   // a done task keeps its priority (static) but shows no date (calm-board.md, #211)
   if (t.status === 'done') { if (prio && key.source !== 'priority') bits.push('<span class="gl-prio" style="--c:' + PRIORITY_COLOURS[t.priority] + '">' + PRIORITY[t.priority].label + '</span>'); }
   else {
-    if (key.source !== 'priority') bits.push(pickChip('priority', t));
-    if (key.source !== 'due') bits.push(pickChip('due', t));
+    bits.push(pickChip('priority', t), pickChip('due', t)); // always: the chips are the controls, whatever the card's label shows
   }
   return bits.length ? '<span class="board-card-due gl-glance">' + bits.join('') + '</span>' : '';
 }

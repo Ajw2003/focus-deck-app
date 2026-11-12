@@ -66,10 +66,10 @@ export function dueButtons(S, ctx = {}, now = new Date()) {
 
 // The add row's / Sort slip's / bulk panel's two blocks, plus hidden inputs a form submit reads.
 // `scope` names the state they edit ('add', 'sort', 'bulk'); `hidden` hides them until there is a title.
-export function renderPickBlocks(S, scope, ctx = {}, hidden = false, now = new Date()) {
+export function renderPickBlocks(S, scope, ctx = {}, hidden = false, now = new Date(), hint = '') {
   const c = Object.assign({ scope }, ctx);
   return '<div class="pick-blocks"' + (hidden ? ' hidden' : '') + '>'
-    + '<div class="pick-block"><span class="pick-label">' + (S.priority ? 'Priority' : 'Priority · needed') + '</span>' + priorityButtons(S, c) + '</div>'
+    + '<div class="pick-block"><span class="pick-label">' + (S.priority ? 'Priority' : 'Priority · needed') + '</span>' + priorityButtons(S, c) + (hint && !S.priority ? '<span class="pick-hint" role="status">' + esc(hint) + '</span>' : '') + '</div>'
     + '<div class="pick-block"><span class="pick-label">Due</span>' + dueButtons(S, c, now) + '</div></div>'
     + '<input type="hidden" name="priority" value="' + esc(S.priority || '') + '"><input type="hidden" name="deadline" value="' + esc(S.due || '') + '">';
 }
@@ -81,7 +81,7 @@ export function pickChip(field, t, now = new Date()) {
   const isPrio = field === 'priority';
   const has = isPrio ? !!(t.priority && PRIORITY[t.priority]) : !!t.deadline;
   const label = isPrio ? (has ? PRIORITY[t.priority].label : 'Priority') : 'Due';
-  const inner = !isPrio && has ? deadlineChip(t.deadline, t) + '<span aria-hidden="true"> ▾</span>' : esc(label) + ' ▾';
+  const inner = !isPrio && has ? deadlineChip(t.deadline, t).replace(/<\/span>$/, ' ▾</span>') : esc(label) + ' ▾';
   const cls = !isPrio && has ? 'pick-bare' : 'chip pick-chip small' + (isPrio ? ' priority-chip' : '') + (has ? '' : ' is-empty');
   const style = isPrio && has ? ' style="--chip-color:var(--prio-' + t.priority + ')"' : '';
   const btn = '<button type="button" class="' + cls + '" data-action="open-pick" data-field="' + field + '" data-task="' + esc(t.id) + '" aria-haspopup="true" aria-expanded="' + open + '"'
