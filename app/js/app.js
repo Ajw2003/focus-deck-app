@@ -583,7 +583,7 @@ function onAppClick(e) {
     return;
   }
   if (action === 'set-screen') {
-    setScreen(el.getAttribute('data-screen'));
+    setScreen(el.getAttribute('data-screen') || el.getAttribute('data-go'));
     ui.jotTo = undefined;
     if (ui.projectsDrawerOpen) ui.projectsDrawerOpen = false;
     paint();

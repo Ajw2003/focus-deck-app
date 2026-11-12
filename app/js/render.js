@@ -59,11 +59,17 @@ export { renderBoard } from './board-view.js';
 // syncHTML is the sync button (renderSyncButton): on a wide screen it and Settings sit at the foot of
 // the rail instead of the topbar; .rail-tools is hidden on a phone, where the topbar keeps them.
 export function renderRail(screen, unsortedCount, syncHTML = '', reviewCount = 0, tidyCount = 0) {
+  // On a phone Tidy up and Triage share one "Organize" tab (CSS hides the two and shows this one; the screens
+  // carry Tidy up | Triage buttons at the top). Hidden on a wide screen. See docs/4-systems/roadmap.md
+  const org = screen === 'tidy' || screen === 'triage';
+  const organize = '<button type="button" class="rail-item rail-organize' + (org ? ' is-on' : '') + '" data-action="set-screen" data-go="' + (screen === 'triage' ? 'triage' : 'tidy') + '"' + (org ? ' aria-current="page"' : '') + '>'
+    + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO.tidy.icon + '</svg>'
+    + (tidyCount ? '<b class="rail-count" aria-label="' + tidyCount + ' to tidy">' + tidyCount + '</b>' : '') + '</span><span class="rail-label">Organize</span></button>';
   return '<nav class="rail" aria-label="What to do">' + SCREENS.map((key) => {
     const on = key === screen;
     const n = key === 'sort' ? unsortedCount : key === 'review' ? reviewCount : key === 'tidy' ? tidyCount : 0;
     const count = n ? '<b class="rail-count" aria-label="' + n + (key === 'sort' ? ' to sort' : key === 'tidy' ? ' to tidy' : ' to review') + '">' + n + '</b>' : '';
-    return '<button type="button" class="rail-item' + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
+    return (key === 'tidy' ? organize : '') + '<button type="button" class="rail-item' + (key === 'tidy' || key === 'triage' ? ' rail-org-part' : '') + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
       + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[key].icon + '</svg>' + count + '</span>'
       + '<span class="rail-label">' + SCREEN_INFO[key].label + '</span></button>';
   }).join('') + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn rail-settings" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '<span class="rail-settings-label" aria-hidden="true">Settings</span></a></div></nav>';

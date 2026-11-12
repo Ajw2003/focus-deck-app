@@ -88,10 +88,11 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
 
   // eight tabs on the phone bar: every label whole
   const fit = await page.evaluate(() => {
-    const items = [...document.querySelectorAll('.rail-item')];
+    const items = [...document.querySelectorAll('.rail-item')].filter((i) => i.offsetParent);
     return { n: items.length, clipped: items.filter((i) => i.querySelector('.rail-label').scrollWidth > i.clientWidth).map((i) => i.textContent.trim()).join() };
   });
-  check(fit.n === 8 && fit.clipped === '', tag + 'eight rail items, no label clipped', fit.n + ' ' + fit.clipped);
+  check(fit.n === (phone ? 7 : 8) && fit.clipped === '', tag + (phone ? 'phone bar: seven tabs (Tidy up and Triage share Organize), no label clipped' : 'rail: eight entries'), fit.n + ' ' + fit.clipped);
+  if (phone) check((await page.$$eval('.rail-label', (l) => l.filter((x) => x.offsetParent).map((x) => x.textContent).join())) === 'Focus,Sort,Board,Projects,Review,Organize,Roadmap', tag + 'phone tab order');
   if (phone) await page.screenshot({ path: OUT + 'roadmap-' + w + '-tabbar.png', clip: { x: 0, y: h - 90, width: w, height: 90 } });
 
   // group view: All, then Area
@@ -216,6 +217,7 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   await shot('details');
   await page.click('.rm-detail [data-action="rm-make"]');
   const mk = (await proj('p0')).milestones.find((m) => m.parentTaskId === 'par2');
+  await page.keyboard.press('Escape'); // Task details fills a phone's screen; Escape closes it
   check(!!mk && mk.name === 'Android app', tag + 'Make this a milestone on a task with subtasks');
   check((await page.textContent('.rm-ms[data-ms-id="' + (mk || {}).id + '"] .rm-ms-count')).trim().startsWith('tasks 1 of 2'), tag + 'its subtasks are its tasks (1 of 2)');
   check((await page.textContent('.rm-big')) === '36%', tag + 'project percent: 5 of 14 tasks (a milestone\'s own parent task is not counted)', await page.textContent('.rm-big'));

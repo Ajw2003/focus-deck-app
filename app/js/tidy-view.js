@@ -4,6 +4,7 @@
 import { esc, relTime } from './state.js';
 import { tidyGroups, confirmIds } from './tidy.js';
 import { viewLabel } from './view-switch.js';
+import { orgTabs } from './triage-view.js';
 
 function row(item, group, marks) {
   const t = item.task, mark = marks[item.id], p = item.project || { name: '' };
@@ -28,6 +29,6 @@ export function renderTidy(st, ui, now = Date.now()) {
   const closedList = closed.length
     ? '<details class="td-closed" open><summary>Closed <b>' + closed.length + '</b></summary><ul class="td-list">' + closed.map((c) => '<li class="td-row" data-closed-id="' + esc(c.id) + '"><div class="td-row-text"><span class="td-row-title">' + esc(c.title) + '</span></div>'
       + '<div class="td-btns"><button type="button" class="btn ghost td-btn" data-action="tidy-undo" data-task="' + esc(c.id) + '" aria-label="Undo: ' + esc(c.title) + '">Undo</button></div></li>').join('') + '</ul></details>' : '';
-  return '<h2 class="board-title">Tidy up: ' + esc(name) + '</h2><p class="td-sub">Keep or close each one. Nothing closes until you press Confirm.</p>'
+  return orgTabs('tidy') + '<h2 class="board-title">Tidy up: ' + esc(name) + '</h2><p class="td-sub">Keep or close each one. Nothing closes until you press Confirm.</p>'
     + '<div class="td-layout"><div class="td-main">' + (cards || '<p class="calm-empty">Nothing looks finished, repeated or forgotten here.</p>') + closedList + '</div>' + side + '</div>';
 }

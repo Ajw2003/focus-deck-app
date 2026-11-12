@@ -1641,3 +1641,15 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
   .rm-col-h{display:none;}
   .rm-big{font-size:2rem;}
 }
+
+/* Organize (phone only): Tidy up and Triage share one tab, so the bar holds seven. See docs/4-systems/roadmap.md */
+.rail-organize{display:none;}
+.org-tabs{display:none; gap:8px; margin:0 0 12px;}
+.org-tab{min-height:40px; padding:0 18px; border:1px solid var(--line); border-radius:var(--r-pill); background:var(--surface-2); color:inherit; font:600 .95rem var(--font-ui); cursor:pointer;}
+.org-tab.on{background:var(--ink); color:var(--surface); border-color:var(--ink);}
+@media (max-width:699.98px){
+  .rail{grid-template-columns:repeat(7,minmax(0,1fr));}
+  .rail-organize{display:flex;}
+  .rail-org-part{display:none;}
+  .org-tabs{display:flex;}
+}
