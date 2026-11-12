@@ -616,3 +616,8 @@ Eden asked that nothing in the prototype be a plain button or plain text, and th
 - In the prototype, Projects sits between Organize and Roadmap. It holds the project list, Sort by, My order and the four New project steps. Roadmap now opens on one project. '+ New project' left the Roadmap ⋯ drawer.
 - The tab bar was tightened so all six labels fit at 13px. shoot-prototype.cjs now also fails if the tab bar or any tab overflows sideways. The last run passed: 82 screens, no problems. check-feature-map.cjs still passes.
 - docs/generated/friction-steps/make-tabs-picture.cjs draws p-tabs.png, a before-and-after of the split. The proposal page has a new row, New, that shows it.
+
+## 2026-11-12: step-by-step design approved, build plan written
+
+- Eden approved: "Design approved: step by step 11 2*". Choice 2 was their own answer: Tidy up selects one task or many, like GitHub issues. The prototype's t1 to t4 now show tick lists. Recorded in docs/6-decisions/Decisions.md.
+- Build plan: parent #261 with eleven steps, #262 to #272, built in order on claude/project-thread-gryib9. #260 stays open; #263 takes it in.

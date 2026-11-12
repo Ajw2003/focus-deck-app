@@ -1059,3 +1059,12 @@ it, so that's the form the regression test takes.
 ## 2026-11-12: QA of "tabs that follow the flow" failed: too busy
 
 Eden: "too cluttered for me to begin to use"; asked for research on ADHD/autism guidance and for each flow to go in stages (project, priority, labels, due date, waits on, holds up). Proposal docs/plans/friction-steps.html; screen counts in docs/generated/friction-map/counts.json. Nothing merged to main; the test link stays the place to test.
+
+## 2026-11-12: Step-by-step design approved
+
+Eden's words: "Design approved: step by step 11 2*", with choice 2 answered in their own words: "able to select multiple tasks or a single one like git issues can".
+
+- Choice 1 (optional Sort steps): option 1, ask each step with Skip. Sort is nine steps; priority has no Skip.
+- Choice 2 (how Tidy up shows tasks): Eden's own answer. Each Tidy up reason (Finished?, Replaced?, The same?, Still want it?) is one screen with a tick list, like GitHub's issue list: tick one task or many, or ✓ All, then drop the ticked ones in the tray (keep), the bin (close) or the stapler (merge). The prototype's t1 to t4 screens show it.
+- Also approved earlier in the same thread: Projects is a sixth tab between Organize and Roadmap; Roadmap opens on one project. + Jot sits in the header and opens its own screen (this takes in #260).
+- The design is docs/generated/friction-steps/prototype.html, the page is docs/plans/friction-steps.html, and every app action maps to a screen in docs/generated/friction-steps/feature-map.json.
