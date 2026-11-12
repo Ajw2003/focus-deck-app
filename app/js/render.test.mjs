@@ -259,7 +259,7 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   assert.ok(repoTabNoToken.includes('Connect GitHub in') && repoTabNoToken.includes('href="settings.html"'), 'no token -- just the Settings line, nothing else');
   assert.ok(!repoTabNoToken.includes('data-action="track-repo"') && !repoTabNoToken.includes('data-action="create-repo"'), 'no repo picker or Create when there is no token');
 
-  const repoTabWithToken = renderProjectSidebar({ projects, projectCategories: [] }, { ...repoTabUi, newPanelRepos: { list: [{ full_name: 'me/one', private: false }, { full_name: 'me/two', private: true }] } }, projects, true);
+  const repoTabWithToken = panel({ ...repoTabUi, newPanelRepos: { list: [{ full_name: 'me/one', private: false }, { full_name: 'me/two', private: true }] } }, true);
   assert.ok(repoTabWithToken.includes('me/one') && repoTabWithToken.includes('me/two') && repoTabWithToken.includes('>Private<'), 'Your repos lists the untracked repos, with a Private chip');
   assert.ok(repoTabWithToken.includes('data-action="track-repo" data-repo="me/one"'), 'each row has a Track button');
   assert.ok(repoTabWithToken.includes('data-action="paste-repo"') && repoTabWithToken.includes('owner/repo or URL'), 'the paste field is present');
