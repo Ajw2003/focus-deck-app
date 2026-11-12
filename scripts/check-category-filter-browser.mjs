@@ -74,7 +74,8 @@ async function chooseFlag(page, key) {
   await page.waitForTimeout(300);
 }
 // The Sort screen goes in steps (project, labels, links): Next moves on, and the last step's button files.
-const nextStep = async (page) => { await page.click('.file-btn[data-action="sort-next"]'); await page.waitForSelector('[data-wallet="tray-flags"], .links-step'); await page.waitForTimeout(300); };
+const nextStep = async (page) => { const next = await page.$('.file-btn[data-action="sort-next"]'); if (next) await next.click(); else await page.click('.step-tab[data-step="2"]'); // a thought is filed from step 1 now (no Next there)
+  await page.waitForSelector('[data-wallet="tray-flags"], .links-step'); await page.waitForTimeout(300); };
 const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 
 // 1. In the in-tray: before a folder, all; Home's flags; More categories shows the rest
