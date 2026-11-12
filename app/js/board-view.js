@@ -14,10 +14,11 @@ import { renderAddTaskRow } from './render.js';
 import { pickChip } from './pick-bits.js';
 import { tieSummary, tieLineHtml, subtasksOf } from './task-links.js';
 
-export const BOARD_COLS = ['next', 'doing', 'done'];
+export const BOARD_COLS = ['next', 'doing', 'review', 'done'];
 const COL_INFO = {
   next: { title: 'Up next', empty: 'Nothing up next.' },
   doing: { title: 'In progress', empty: 'Nothing in progress. Press “In progress” on an Up next card to start one.' },
+  review: { title: 'Review', empty: 'Nothing waiting for review.' },
   done: { title: 'Done this week', empty: 'Nothing finished yet this week.' },
 };
 const SHOW_INFO = [['all', 'Everything'], ['subs', 'Has subtasks'], ['waits', 'Waiting on something'], ['holds', 'Holding others up']];
@@ -26,9 +27,13 @@ const ARROW_LEFT = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H
 export const EMPTY_PANEL = 'No task selected. Choose a task on the left to see its notes, every label and its links here. Click it again, or press Escape, to put it back.';
 export function normalizeBoardCol(v) { return BOARD_COLS.includes(v) ? v : 'next'; }
 
+function mv(t, to, label, arrow, aria) {
+  return '<button type="button" class="calm-move" data-action="board-move" data-task="' + esc(t.id) + '" data-to="' + to + '" aria-label="' + aria + ': ' + esc(t.title) + '">' + arrow + label + '</button>';
+}
 function moveButton(t) {
-  if (t.status === 'next') return '<button type="button" class="calm-move" data-action="board-move" data-task="' + esc(t.id) + '" data-to="doing" aria-label="Move to In progress: ' + esc(t.title) + '">' + ARROW_RIGHT + 'In progress</button>';
-  if (t.status === 'doing') return '<button type="button" class="calm-move" data-action="board-move" data-task="' + esc(t.id) + '" data-to="next" aria-label="Move back to Up next: ' + esc(t.title) + '">' + ARROW_LEFT + 'Up next</button>';
+  if (t.status === 'next') return mv(t, 'doing', 'In progress', ARROW_RIGHT, 'Move to In progress');
+  if (t.status === 'doing') return mv(t, 'next', 'Up next', ARROW_LEFT, 'Move back to Up next') + mv(t, 'review', 'Review', ARROW_RIGHT, 'Move to Review');
+  if (t.status === 'review') return mv(t, 'doing', 'In progress', ARROW_LEFT, 'Move back to In progress');
   return '';
 }
 

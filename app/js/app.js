@@ -564,9 +564,9 @@ function onAppClick(e) {
     // the same path as a drop used to take: lands at the end of the other group, saves and syncs
     const f = findTaskWithProject(taskId);
     const to = el.getAttribute('data-to');
-    if (f && (to === 'doing' || to === 'next')) {
+    if (f && ['next', 'doing', 'review'].includes(to)) {
       moveTaskTo({ taskId, toProjectId: f.project.id, status: to, toIndex: f.project.tasks.filter((t) => t.status === to).length });
-      ui.notice = 'Moved to ' + (to === 'doing' ? 'In progress' : 'Up next');
+      ui.notice = 'Moved to ' + ({ doing: 'In progress', review: 'Review' }[to] || 'Up next');
     }
     paint();
     return;

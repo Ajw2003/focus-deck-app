@@ -206,7 +206,8 @@ export function renderFocus(st, findTaskWithProject, ui) {
       + nextSubLine(st, t)
     + '</div></div>'
     + (t.status === 'next' ? '<div class="focus-doing"><button type="button" class="btn-text focus-doing-btn" data-action="focus-doing">Mark in progress</button></div>'
-      : t.status === 'doing' ? '<div class="focus-doing"><span class="focus-doing-mark">In progress</span></div>' : '')
+      : t.status === 'doing' ? '<div class="focus-doing"><span class="focus-doing-mark">In progress</span></div>'
+      : t.status === 'review' ? '<div class="focus-doing"><span class="focus-doing-mark">Review</span></div>' : '')
     + '<div class="desk-acts' + (canReroll ? '' : ' is-single') + '">'
       + '<button type="button" class="check-btn' + leaving.button + '" data-action="complete-focus">'
         + '<span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="tick" d="M4.5 12.8l4.6 4.7L19.8 6.2"/></svg></span>'
@@ -645,6 +646,7 @@ export function renderAddTaskRow(project, categories, isMoreOpen, draft, placeho
 
 export function renderProjectCard(p, ui, categories, projectCategories, hasToken, projects = []) {
   const doing = p.tasks.filter((t) => t.status === 'doing');
+  const review = p.tasks.filter((t) => t.status === 'review');
   const next = p.tasks.filter((t) => t.status === 'next');
   const done = p.tasks.filter((t) => t.status === 'done');
   const total = p.tasks.length;
@@ -690,8 +692,9 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
     + (collapsed ? '' : (
       '<div class="project-body" tabindex="0" role="region" aria-label="' + esc(p.name) + ' tasks">'
       + taskGroup(p, 'doing', 'In progress', doing, ui, categories, projects)
+      + taskGroup(p, 'review', 'Review', review, ui, categories, projects)
       + taskGroup(p, 'next', 'Up next', next, ui, categories, projects)
-      + (!doing.length && !next.length ? '<p class="muted small empty-note">Nothing open — add a task below.</p>' : '')
+      + (!doing.length && !review.length && !next.length ? '<p class="muted small empty-note">Nothing open — add a task below.</p>' : '')
       + (done.length ? (
           '<button type="button" class="section-toggle small" data-action="toggle-done" data-project="' + p.id + '">' + (doneOpen ? '−' : '+') + ' ' + done.length + ' done</button>'
           + (doneOpen ? '<div class="task-group done-group">' + done.map((t) => renderTaskRow(t, p, categories, ui, projects)).join('') + '</div>' : '')

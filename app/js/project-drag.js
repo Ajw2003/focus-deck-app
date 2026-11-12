@@ -101,8 +101,8 @@ function taskTargetAt(d) {
 // A Board card is a task like a row: same `task` drag, same opts.moveTask. The columns are the
 // "groups" (data-col = the status); a task keeps its own project, and within a column it is ordered
 // among that project's own cards (the order sortTasks gives a project). Done takes the top.
-export const BOARD_COLS = ['next', 'doing', 'done'];
-const BOARD_LABEL = { next: 'Up next', doing: 'In progress', done: 'Done' };
+export const BOARD_COLS = ['next', 'doing', 'review', 'done'];
+const BOARD_LABEL = { next: 'Up next', doing: 'In progress', review: 'Review', done: 'Done' };
 
 function projectCardsIn(col, projectId, exceptId) {
   return Array.from(col.querySelectorAll('.board-card'))
@@ -158,7 +158,7 @@ export function boardStepRequest(card, delta) {
   const others = projectCardsIn(col, projectId, taskId);
   const titleEl = card.querySelector('.board-card-title');
   return {
-    req: { taskId, fromProjectId: projectId, toProjectId: projectId, status, toIndex: status === 'doing' ? others.length : 0, orderedIds: others.map((c) => c.getAttribute('data-task-id')) },
+    req: { taskId, fromProjectId: projectId, toProjectId: projectId, status, toIndex: status === 'doing' || status === 'review' ? others.length : 0, orderedIds: others.map((c) => c.getAttribute('data-task-id')) },
     title: titleEl ? titleEl.textContent.trim() : 'Task', label: BOARD_LABEL[status],
   };
 }
@@ -321,7 +321,7 @@ function endPending() {
   pending = null;
 }
 
-const GROUP_LABEL = { doing: 'In progress', next: 'Up next' };
+const GROUP_LABEL = { doing: 'In progress', review: 'Review', next: 'Up next' };
 
 // ArrowUp/ArrowDown on a task's grip (PR 11): one place within its group, crossing into the
 // neighbouring group at the ends (Up next's top -> In progress's bottom, and back). Moving to

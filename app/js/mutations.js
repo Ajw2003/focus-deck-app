@@ -1,7 +1,7 @@
 // focus-deck-app/js/mutations.js
 import { rankFocusPool, isBlocked } from './task-links.js';
 import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER, splitLongThought } from './state.js';
-import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriorityToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
+import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriorityToIssue, pushReviewToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
 // The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
 // used to have its own copy that saved locally but never pushed, so most edits never reached the
 // Gist. See doc-ref 2425 docs/4-systems/gist-sync.md
@@ -166,6 +166,7 @@ export function setTaskStatus(taskId, status) {
   if (!found) return;
   const { task, project } = found;
   const wasDone = task.status === 'done';
+  const wasReview = task.status === 'review';
   task.status = status;
   task.updatedAt = Date.now();
   if (status === 'done' && !wasDone) {
@@ -178,6 +179,7 @@ export function setTaskStatus(taskId, status) {
   }
   persist();
   syncIssueCompletion(task); // fire-and-forget
+  pushReviewToIssue(task, wasReview);
 }
 
 export function deleteTask(taskId, projectId) {
