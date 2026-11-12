@@ -3,7 +3,7 @@
  "eyebrow": "Proposal · every screen drawn · nothing built yet",
  "approval": "Design approved: step by step",
  "short": {
-  "lead": "The app failed QA because it shows too much at once. This plan keeps every feature and asks one question per screen. This round takes out every caption, hint and line of small print, so each screen has to explain itself with pictures alone. Every one of the 82 screens fits on a phone without scrolling, and no text is smaller than 13px. Two scripts check both on every run, and a third confirms that all 125 things the app does today still have a screen. The pictures and the prototype are drawings. Nothing is built yet, and your app hasn't changed.",
+  "lead": "The app failed QA because it shows too much at once. This plan keeps every feature and asks one question per screen. Since the last version, the project list has moved out of Roadmap into its own Projects tab; the row named New, below, shows it. The version before that took out every caption, hint and line of small print, so each screen has to explain itself with pictures alone. Every one of the 82 screens fits on a phone without scrolling, and no text is smaller than 13px. Two scripts check those two limits on every run, and a third confirms that all 125 things the app does today still have a screen. The pictures and the prototype are drawings. Nothing is built yet, and your app hasn't changed.",
   "hint": "Tap each row to see its picture.",
   "key": [
    [
@@ -35,6 +35,19 @@
      "src": "docs/generated/friction-steps/map-all-390.png",
      "alt": "20 phone screenshots of every screen in the app today",
      "caption": "Every screen today on a phone, left to right: Sort (5 states), Tidy up, Triage, Roadmap (8 states), Focus (2), Review, Settings and the welcome screen."
+    }
+   ],
+   [
+    "list",
+    "New",
+    "Projects gets its own tab",
+    "you",
+    "You asked for the project list to leave Roadmap. Projects is now a sixth tab, between Organize and Roadmap, drawn as a manila folder. It holds everything that was the first half of Roadmap: the list with Find and progress rulers, the Sort by drawer, your own order and the four New project steps. Roadmap now opens straight on one project (the last one you used), and the label-maker tape at the top switches project. '+ New project' left the Roadmap ⋯ drawer, because it lives in Projects now. Tapping a project in Projects still opens its Roadmap. Nothing else about Roadmap changed.",
+    "Check that six tabs still feel calm, and that Roadmap opening on the project you used last suits you.",
+    {
+     "src": "docs/generated/friction-steps/p-tabs.png",
+     "alt": "Three phones: Roadmap today opening on the project list, then the new Projects tab and the new Roadmap tab",
+     "caption": "Before and after: the project list moves from Roadmap to its own Projects tab."
     }
    ],
    [
@@ -120,7 +133,7 @@
    ],
    [
     "list",
-    "Roadmap",
+    "Projects",
     "All projects, and a new project",
     "you",
     "The project list keeps Find, a progress ruler on each folder, and a drawer to sort by A to Z, most tasks, due soonest, last synced or your own order. A new project is four steps: name, area, colour, then GitHub (no, my repo, a new repo, or someone else's).",
@@ -128,7 +141,7 @@
     {
      "src": "docs/generated/friction-steps/p-roadmap.png",
      "alt": "Eleven phone screens of the project list and a new project",
-     "caption": "All projects and New project."
+     "caption": "The Projects tab: all projects and New project."
     }
    ],
    [
@@ -136,7 +149,7 @@
     "Roadmap",
     "One project",
     "you",
-    "One milestone and one column at a time, with Previous, Next and All milestones. The ⋯ holds milestone settings, all milestones and sections (open, hide, reorder, add), find a task, edit project, sync and new project. Tapping a task opens what you can do to it: start it, send to review, mark done, move to another milestone, focus on this, make it a milestone, details. '+ Add a task' adds by name, or 'Add details…' runs the Sort steps. Milestone settings is two steps, with extra screens for entering your own number and for a checklist. Edit project is a list of lines that each open their step; Remove asks first.",
+    "One milestone and one column at a time, with Previous, Next and All milestones. The ⋯ holds milestone settings, all milestones and sections (open, hide, reorder, add), find a task, edit project and sync. Tapping a task opens what you can do to it: start it, send to review, mark done, move to another milestone, focus on this, make it a milestone, details. '+ Add a task' adds by name, or 'Add details…' runs the Sort steps. Milestone settings is two steps, with extra screens for entering your own number and for a checklist. Edit project is a list of lines that each open their step; Remove asks first.",
     "Check that the ⋯ menu doesn't hide something you use every day.",
     {
      "src": "docs/generated/friction-steps/p-project.png",
@@ -201,6 +214,13 @@
  "changes": [
   [
    "chg",
+   "Tabs",
+   "A sixth tab, Projects, holds the project list and New project. Roadmap keeps only one project's milestones.",
+   null,
+   "You asked for this."
+  ],
+  [
+   "chg",
    "Header, jot box and switch",
    "Shrink to the name, a '+ Jot' button at the top and one 'Showing …' line. You picked this.",
    null,
@@ -237,7 +257,7 @@
   [
    "chg",
    "Roadmap",
-   "One milestone and one column at a time; actions in a list per task; a ⋯ menu.",
+   "Opens on one project: one milestone and one column at a time; actions in a list per task; a ⋯ menu.",
    null,
    "Drag still works on a computer."
   ],
@@ -257,7 +277,7 @@
   ],
   [
    "keep",
-   "Your data and the five tabs",
+   "Your data",
    "Nothing is removed; every feature keeps working.",
    null,
    "Only how much shows at once changes."
@@ -318,8 +338,8 @@
   ]
  ],
  "wrapup": {
-  "summary": "Every screen is drawn, 82 in all, with no small print and none taller than a phone. All 125 things the app does today have a screen. Sort becomes nine steps, Task details a receipt, Focus two questions, Tidy up and Review one task at a time, and the Roadmap one milestone at a time.",
-  "changing": "Changed: how much each screen shows at once, Sort, adding a task, Focus, Tidy up, Triage, the Roadmap, Task details and Milestone settings. Kept: every feature, your data, the five tabs, Review and Settings.",
+  "summary": "This round splits Roadmap in two: a new Projects tab holds the project list and New project, and Roadmap opens straight on one project. Everything else is as you saw it last time: 82 screens with no small print, none taller than a phone, and all 125 features with a screen.",
+  "changing": "Changed: a sixth tab for Projects, how much each screen shows at once, Sort, adding a task, Focus, Tidy up, Triage, Roadmap, Review, Task details and Milestone settings. Kept: every feature, your data, and Settings.",
   "blocking": "Waiting on your sign-off and your two remaining choices. The jot choice is already made: + Jot at the top.",
   "next": "After you approve, I'll write the build plan as GitHub issues and build it on the same test link. Nothing goes into the app you use until you've tested it.",
   "todo": [

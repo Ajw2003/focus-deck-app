@@ -609,3 +609,10 @@ Eden asked that nothing in the prototype be a plain button or plain text, and th
 - shoot-prototype.cjs now fails on own text under 13px and on any screen taller than 660px. The last run passed: 82 screens, nothing cut off, nothing taller than a phone, no small text.
 - check-feature-map.cjs still passes: all 125 app actions are mapped.
 - docs/plans/friction-steps.json was rewritten to match. It still waits on Eden's sign-off. No app code was changed.
+
+## 2026-11-12: Projects becomes its own tab
+
+- Eden asked for the first half of Roadmap (all projects) to become a sixth tab, with nothing else changed.
+- In the prototype, Projects sits between Organize and Roadmap. It holds the project list, Sort by, My order and the four New project steps. Roadmap now opens on one project. '+ New project' left the Roadmap ⋯ drawer.
+- The tab bar was tightened so all six labels fit at 13px. shoot-prototype.cjs now also fails if the tab bar or any tab overflows sideways. The last run passed: 82 screens, no problems. check-feature-map.cjs still passes.
+- docs/generated/friction-steps/make-tabs-picture.cjs draws p-tabs.png, a before-and-after of the split. The proposal page has a new row, New, that shows it.

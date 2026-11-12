@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
   const r = await p.evaluate(() => {
     const ids = Object.keys(window.SCREENS), inFlows = new Set(window.FLOWS.flatMap((f) => f[3].map((x) => x[0])));
     const bad = [...document.querySelectorAll('[data-go]')].map((e) => e.dataset.go).filter((g) => !window.SCREENS[g]);
-    const cut = [...document.querySelectorAll('.phone')].filter((ph) => [...ph.querySelectorAll('.body')].some((b) => b.scrollHeight > b.clientHeight + 2)).map((ph) => ph.dataset.screen);
+    const cut = [...document.querySelectorAll('.phone')].filter((ph) => ([...ph.querySelectorAll('.body')].some((b) => b.scrollHeight > b.clientHeight + 2) || [...ph.querySelectorAll('.tabs, .tabs button')].some((b) => b.scrollWidth > b.clientWidth + 1))).map((ph) => ph.dataset.screen);
     // small print: any visible text in a phone under 13px
     const small = [];
     for (const ph of document.querySelectorAll('.phone')) for (const el of ph.querySelectorAll('*')) {
