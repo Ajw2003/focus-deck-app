@@ -1597,7 +1597,7 @@ function init() {
   const captureForm = document.getElementById('capture-form');
   const captureInput = document.getElementById('capture-input');
   document.addEventListener('keydown', (e) => {
-    const tag = e.target && e.target.tagName, typing = e.target && (e.target.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT');
+    const tag = e.target && e.target.tagName, typing = e.target && (e.target.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target.closest && e.target.closest('[data-wallet]'))); // a wallet takes typed letters to find a card
     // J jumps to the jot box from anywhere on a wide screen (not while typing); Escape leaves it (#259)
     if ((e.key === 'j' || e.key === 'J') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && isWideScreen()) { e.preventDefault(); captureInput.focus(); }
     else if (e.key === 'Escape' && e.target === captureInput) captureInput.blur();
