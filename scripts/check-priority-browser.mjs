@@ -48,7 +48,7 @@ async function open(size, screen) {
   await ctx.addInitScript(([s, key, scr]) => {
     localStorage.setItem('focusdeck-onboarding', 'done');
     if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', scr);
-    if (scr === 'board') localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pHome' }));
+    if (scr === 'board' || scr === 'projects' || scr === 'roadmap') localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pHome' }));
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
   }, [seed(), STATE_KEY, screen]);
   const page = await ctx.newPage();
@@ -60,8 +60,9 @@ async function open(size, screen) {
 for (const size of ['phone', 'desktop']) {
   const tag = `[${size}]`;
   // ---- project add row and chips
-  let { ctx, page } = await open(size, 'projects');
+  let { ctx, page } = await open(size, 'roadmap');
   const ROW = '.add-row[data-project="pHome"]';
+  await page.click('.rm-add-link');
   await page.waitForSelector(ROW + ' input[name="title"]');
   check(`${tag} pickers hidden before there is a title`, await page.$eval(ROW + ' .pick-blocks', (e) => e.hidden));
   await page.click(ROW + ' input[name="title"]');

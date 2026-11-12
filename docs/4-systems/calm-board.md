@@ -1,5 +1,7 @@
 # Calm Board, Task details and Comfort settings
 
+> **2026-11-12 (#259):** the Board and Projects screens were removed in the five-tab change; the Roadmap took over their jobs. Where this file describes them as current it is history. See [tabs.md](./tabs.md).
+
 Status: designed and approved (docs/6-decisions/Decisions.md, 2026-10-19) and built on 2026-10-19 under
 #198 and its sub-issues #199 to #205; waiting for Aj's QA. The test site it was copied from is
 `docs/generated/calm-test/index.html`; this file describes the built code.

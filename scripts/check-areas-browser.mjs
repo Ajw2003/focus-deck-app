@@ -114,13 +114,15 @@ for (const size of ['phone', 'desktop']) {
     check(`${tag} Focus kinds row: Chore (unticked) is gone, Bug stays`, !keys.includes('c_chore') && keys.includes('c_bug'), keys.join());
     check(`${tag} Focus: the unticked-only-label task is not lost (Unlabelled card)`, keys.includes('__none__'), keys.join());
     // Asap is mapped to Urgent above: its task (Paint, no priority of its own) shows the Urgent chip
-    // the phone's Projects screen shows one project at a time: select Shed first
-    await page.evaluate(() => localStorage.setItem('focusdeck-selected-project', 'pShed'));
+    // the Roadmap's project view, then Task details, which shows the priority (the old Projects task row's chip)
+    await page.evaluate(() => localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pShed' })));
     await page.reload();
-    await page.click('[data-action="set-screen"][data-screen="projects"]');
-    await page.waitForSelector('.task-row', { state: 'attached' });
-    const urgent = await page.$$eval('.task-row', (rows) => rows.filter((r) => r.textContent.includes('Paint')).map((r) => (r.querySelector('.priority-chip') || {}).textContent || ''));
-    check(`${tag} a task labelled Asap (mapped to Urgent) shows the Urgent chip`, urgent.length > 0 && urgent.every((x) => x.includes('Urgent')), JSON.stringify(urgent));
+    await page.click('[data-action="set-screen"][data-screen="roadmap"]');
+    await page.waitForSelector('.rm-task', { state: 'attached' });
+    await page.evaluate(() => [...document.querySelectorAll('.rm-task-title')].find((b) => b.textContent.includes('Paint')).click());
+    await page.waitForSelector('.cw-detail h3');
+    const urgent = [await page.textContent('.rm-detail')];
+    check(`${tag} a task labelled Asap (mapped to Urgent) shows Urgent in Task details`, urgent.every((x) => x.includes('Urgent')), JSON.stringify(urgent).slice(0, 200));
     await page.screenshot({ path: OUT + `${size}-focus.png` });
     await ctx.close();
   }

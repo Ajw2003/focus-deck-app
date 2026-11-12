@@ -1,5 +1,7 @@
 # Project State
 
+> **2026-11-12 (#259):** step 11 built: five tabs (Sort, Organize, Roadmap, Focus, Review); the Board and Projects screens are removed and the Roadmap has their features (Find a project, project order, Find a task). Mentions of the Board and Projects screens below are history. See `docs/4-systems/tabs.md`.
+
 ## Headline: milestones 1-5 done, 6 started, 7-13 not started
 
 Five of six milestones are done: four shipped and covered by passing tests, and the autonomous

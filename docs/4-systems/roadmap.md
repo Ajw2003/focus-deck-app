@@ -1,5 +1,7 @@
 # Roadmap (#257)
 
+> **2026-11-12 (#259):** there are now five tabs; Tidy up and Triage sit under Organize on the wide rail too. The phone-only Organize wording below is history. See [tabs.md](./tabs.md).
+
 ## What it owns
 
 `js/roadmap.js` (pure: the data model, `roadmapOf`, `percent`, add / move / step functions), `js/roadmap-view.js`
@@ -71,7 +73,7 @@ title they last had. shortcut: upgrade when milestones should be written back.
 
 ## Invariants
 
-- Nothing on the Projects screen or the Board is removed; both still work.
+- (Until 2026-11-12) nothing on the Projects screen or the Board was removed. Since #259 both screens are gone and the Roadmap has their features: Find a project, project sort and order, Find a task, see [tabs.md](./tabs.md).
 - A task is in exactly one milestone; no change here moves a task between projects.
 
 See also [triage.md](./triage.md), [view-switch.md](./view-switch.md), [github-sync.md](./github-sync.md),

@@ -158,7 +158,7 @@ function renderTray(st, u, ordered, mode, head = '') {
     + '<div class="tray"><div class="tray-stack">'
     + (n >= 2 ? '<div class="slip-behind"></div>' : '') + (n >= 3 ? '<div class="slip-behind two"></div>' : '')
     + '<div class="jot-slip"><div class="slip-flags">' + slipFlags(allCards, u.selected) + '</div>'
-    + '<p class="slip-text"' + (editable ? ' contenteditable="true" spellcheck="false" data-slip-title' : '') + '>' + esc(text) + '</p><div class="slip-dest">' + dest + '</div>' + when + noteBox + '</div>'
+    + '<p class="slip-text"' + (editable ? ' contenteditable="true" spellcheck="false" data-slip-title' : '') + '>' + esc(text) + '</p><div class="slip-dest">' + dest + '</div>' + when + (isThought ? '' : '<button type="button" class="btn-text task-open" data-action="task-open" data-task="' + esc(cur.task.id) + '" aria-label="Task details: ' + esc(cur.task.title) + '">Details</button>') + noteBox + '</div>'
     + '</div>' + lip + '</div>'
     + '<div class="sort-acts">' + picks + main
     + '<div class="sort-small">' + (step > 1 ? '<button type="button" data-action="sort-back">← Back</button>' : '')

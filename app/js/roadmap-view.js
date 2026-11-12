@@ -5,7 +5,8 @@
 import { esc } from './state.js';
 import { viewProjects, viewLabel } from './view-switch.js';
 import { roadmapOf, COLS, UNPLANNED } from './roadmap.js';
-import { renderProjectEditPanel, renderNewPanel, renderAddTaskRow } from './render.js';
+import { renderProjectEditPanel, renderNewPanel, renderAddTaskRow, projectSortSelect } from './render.js';
+import { filterAndSortProjects } from './project-filter.js';
 import { renderTaskDetails } from './task-details.js';
 import { subtasksOf } from './task-links.js';
 
@@ -15,12 +16,14 @@ const bar = (pct, cls) => '<span class="rm-bar' + (cls ? ' ' + cls : '') + '" ar
 const segBar = (r) => '<span class="rm-bar rm-bar-big rm-segs" role="img" aria-label="' + r.pct + '% done">' + r.milestones.filter((m) => m.contribution > 0).map((m) => '<i style="width:' + m.contribution + '%" title="' + esc(m.name + ': ' + Math.round(m.contribution * 10) / 10 + '% of the project') + '"></i>').join('') + '</span>';
 const newBtn = '<button type="button" class="btn ghost rm-new" id="new-panel-toggle" data-action="toggle-new-panel" aria-controls="new-panel">+ New project</button>';
 
-function groupRow(p) {
+function groupRow(p, reorder) {
   const r = roadmapOf(p), ms = r.sections.flatMap((s) => s.milestones).concat(r.unplanned ? [r.unplanned] : []);
   const cur = ms.find((m) => m.id === r.currentId);
   const cards = ms.map((m) => '<button type="button" class="rm-card" data-action="rm-open" data-project="' + esc(p.id) + '"><span class="rm-card-name">' + esc(m.name) + '</span><span class="rm-card-count">' + esc(count(m)) + '</span>' + bar(m.pct) + '</button>').join('')
     || '<p class="rm-none">No milestones yet.</p>';
+  const mv = (d) => '<button type="button" class="btn ghost rm-step" data-action="rm-project-step" data-project="' + esc(p.id) + '" data-dir="' + d + '" aria-label="Move ' + (d < 0 ? 'up' : 'down') + ': ' + esc(p.name) + '">' + (d < 0 ? '↑' : '↓') + '</button>';
   return '<section class="rm-row" style="--c:' + esc(p.color) + '" data-project="' + esc(p.id) + '">'
+    + (reorder ? '<span class="rm-moves rm-pmoves">' + mv(-1) + mv(1) + '</span>' : '')
     + '<button type="button" class="rm-proj" data-action="rm-open" data-project="' + esc(p.id) + '"><span class="rm-dot" aria-hidden="true"></span><span class="rm-proj-name">' + esc(p.name) + '</span><span class="rm-proj-pct">' + r.pct + '% done</span></button>'
     + '<div class="rm-cards">' + cards + '</div>'
     + '<button type="button" class="rm-phone" data-action="rm-open" data-project="' + esc(p.id) + '"><span class="rm-phone-top"><b>' + esc(p.name) + '</b><span>' + r.pct + '% <small>done</small></span></span>'
@@ -41,7 +44,10 @@ function taskChip(t, p, col) {
 }
 
 function milestone(m, p, ui, st, at) {
-  const open = (ui.rmOpen || {})[m.id] !== undefined ? !!ui.rmOpen[m.id] : m.id === at.currentId;
+  // Find a task: narrows every milestone's columns, and opens the milestones so the matches show
+  const q = (ui.taskQuery || '').trim().toLowerCase();
+  if (q) m = Object.assign({}, m, { cols: Object.fromEntries(COLS.map(([k]) => [k, m.cols[k].filter((t) => t.title.toLowerCase().includes(q))])) });
+  const open = q ? true : (ui.rmOpen || {})[m.id] !== undefined ? !!ui.rmOpen[m.id] : m.id === at.currentId;
   const col = (ui.rmCol || {})[m.id] || 'next';
   const head = '<div class="rm-ms-head">' + (m.unplanned ? '' : grip('ms', m.id, m.name, 'Alt plus up or down arrow'))
     + (m.unplanned ? '<span class="rm-ms-name">' + esc(m.name) + '</span>' : '<button type="button" class="rm-ms-name" data-action="rm-settings" data-id="' + esc(m.id) + '" title="Milestone settings">' + esc(m.name) + '</button>')
@@ -89,6 +95,7 @@ function projectView(st, ui, p, hasToken) {
     + '<button type="button" class="btn ghost" data-action="' + (editing ? 'close-project-edit' : 'open-project-edit') + '" data-project="' + esc(p.id) + '">Edit project</button>' + newBtn + '</div></div>'
     + (ui.newPanelOpen ? renderNewPanel(ui, hasToken) : '')
     + (editing ? renderProjectEditPanel(p, Object.assign({ pendingRemove: {} }, ui), st.projectCategories || [], hasToken) : '')
+    + '<input type="search" class="project-search rm-find" data-action="set-task-query" value="' + esc(ui.taskQuery || '') + '" placeholder="Find a task…" aria-label="Find a task in this project">'
     + '<div class="rm-total"><span class="rm-big">' + r.pct + '%</span><span class="rm-total-sub">' + r.done + ' of ' + r.total + ' tasks done</span></div>' + segBar(r)
     + secs + un + foot + detail(st, ui, p);
 }
@@ -97,8 +104,9 @@ export function renderRoadmap(st, ui, hasToken = false) {
   const view = ui.view || { mode: 'all' }, name = view.mode === 'all' ? 'All' : viewLabel(st, view);
   const p = view.mode === 'project' && (st.projects || []).find((x) => x.id === view.id);
   if (p) return '<div class="rm rm-project" style="--c:' + esc(p.color) + '">' + projectView(st, ui, p, hasToken) + '</div>';
-  const ps = viewProjects(st, view);
+  const ps = filterAndSortProjects(viewProjects(st, view), { query: ui.projectQuery, sortBy: ui.projectSort });
   return '<div class="rm"><div class="rm-head"><h2 class="board-title">Roadmap: ' + esc(name) + '</h2><div class="rm-tools">' + newBtn + '</div></div>'
     + (ui.newPanelOpen ? renderNewPanel(ui, hasToken) : '')
-    + (ps.length ? '<div class="rm-group">' + ps.map(groupRow).join('') + '</div>' : '<p class="calm-empty">No projects here yet. Use + New project.</p>') + '</div>';
+    + '<div class="rm-finds"><input type="search" class="project-search rm-find" data-action="set-project-query" value="' + esc(ui.projectQuery || '') + '" placeholder="Find a project…" aria-label="Find a project">' + projectSortSelect(ui) + '</div>'
+    + (ps.length ? '<div class="rm-group">' + ps.map((p) => groupRow(p, ui.projectSort === 'custom' && !ui.projectQuery)).join('') + '</div>' : '<p class="calm-empty">No projects here yet. Use + New project.</p>') + '</div>';
 }

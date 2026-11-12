@@ -91,8 +91,8 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
     const items = [...document.querySelectorAll('.rail-item')].filter((i) => i.offsetParent);
     return { n: items.length, clipped: items.filter((i) => i.querySelector('.rail-label').scrollWidth > i.clientWidth).map((i) => i.textContent.trim()).join() };
   });
-  check(fit.n === (phone ? 7 : 8) && fit.clipped === '', tag + (phone ? 'phone bar: seven tabs (Tidy up and Triage share Organize), no label clipped' : 'rail: eight entries'), fit.n + ' ' + fit.clipped);
-  if (phone) check((await page.$$eval('.rail-label', (l) => l.filter((x) => x.offsetParent).map((x) => x.textContent).join())) === 'Focus,Sort,Board,Projects,Review,Organize,Roadmap', tag + 'phone tab order');
+  check(fit.n === 5 && fit.clipped === '', tag + 'five numbered tabs (Tidy up and Triage share Organize), no label clipped', fit.n + ' ' + fit.clipped);
+  check((await page.$$eval('.rail-label', (l) => l.filter((x) => x.offsetParent).map((x) => x.textContent.replace(/\s+/g, ' ').trim()).join())) === '1 Sort,2 Organize,3 Roadmap,4 Focus,5 Review', tag + 'tab order');
   if (phone) await page.screenshot({ path: OUT + 'roadmap-' + w + '-tabbar.png', clip: { x: 0, y: h - 90, width: w, height: 90 } });
 
   // group view: All, then Area

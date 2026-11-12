@@ -57,16 +57,17 @@ for (const size of ['phone', 'desktop']) {
     const ctx = await browser.newContext({ viewport: SIZES[size], colorScheme: scheme, serviceWorkers: 'block', hasTouch: size === 'phone' });
     await ctx.addInitScript(([s, key]) => {
       localStorage.setItem('focusdeck-onboarding', 'done');
-      if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'projects');
+      if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'roadmap');
       if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
-      if (!localStorage.getItem('focusdeck-project-view')) localStorage.setItem('focusdeck-project-view', 'all');
+      if (!localStorage.getItem('focusdeck-view')) localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pHome' })); // the add row now lives in a Roadmap milestone (#259)
     }, [seed(), STATE_KEY]);
     const page = await ctx.newPage();
     page.on('pageerror', (e) => check(`${tag} no page error: ` + e.message, false));
     await page.goto(BASE);
+    await page.click('.rm-add-link');
     await page.waitForSelector(TITLE);
 
-    check(`${tag} every card has an add row`, (await page.$$('.project-card .add-row')).length === 2);
+    check(`${tag} the project's milestone has an add row`, (await page.$$('.rm-project .add-row')).length === 1);
     check(`${tag} the old "+ Add task" link is gone`, !(await page.$('[data-action="open-add-task"]')));
     check(`${tag} More starts closed`, !(await page.$(ROW + ' [name="steps"]')));
 
@@ -146,7 +147,7 @@ for (const size of ['phone', 'desktop']) {
     await page.waitForTimeout(200);
     const school = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)).projects.find((p) => p.id === 'pSchool').tasks, STATE_KEY);
     check(`${tag} Enter on the Board adds to School's Up next`, school.some((t) => t.title === 'Print the reading list' && t.status === 'next'));
-    check(`${tag} the new task shows in the Board list`, (await page.textContent('.calm-cards')).includes('Print the reading list'));
+    check(`${tag} the new task shows on the Roadmap`, (await page.textContent('.rm-project')).includes('Print the reading list'));
     check(`${tag} the Board's box is empty and focused`, await page.evaluate((sel) => document.activeElement === document.querySelector(sel) && document.activeElement.value === '', BOARD_TITLE));
     await page.click('[data-action="board-col"][data-col="doing"]');
     await page.waitForTimeout(100);

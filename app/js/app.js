@@ -21,7 +21,6 @@ import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY, orderT
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
 import { renderOnboarding } from './onboarding-view.js';
 import { pickState, dueDates, parseDue } from './pick-bits.js';
-import { normalizeBoardCol } from './board-view.js';
 import { renderReview } from './review-view.js';
 import { renderTidy } from './tidy-view.js';
 import { tidyGroups, confirmIds } from './tidy.js';
@@ -33,20 +32,13 @@ import { initRoadmapDrag } from './roadmap-drag.js';
 import { openMilestoneSettings } from './milestone-settings.js';
 import { COLS, roadmapOf, applyMilestoneSettings, stepMilestone, stepSection, moveMilestone, moveSection, addSection, addMilestone, makeMilestone } from './roadmap.js';
 import { reviewLists } from './board.js';
-import { notesSummary } from './task-details.js';
+import { notesSummary, renderTaskDetails } from './task-details.js';
 import { canSetParent, canWaitOn } from './task-links.js';
 import { applyNoteFace } from './note-face.js';
 import { applyComfort, getChunk } from './comfort.js';
 import { VIEW_ALL, renderViewSwitch, normalizeView, defaultFor, viewProjects, viewState, inView } from './view-switch.js';
-import { filterAndSortProjects, resolveSelectedProject, moveProject } from './project-filter.js';
+import { moveProject, filterAndSortProjects } from './project-filter.js';
 
-// Which projects are minimised is a per-device layout choice, so it lives in this browser's
-// storage rather than in the synced state.
-const COLLAPSED_KEY = 'focusdeck-collapsed-projects';
-function loadCollapsedProjects() {
-  try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || {}; }
-  catch (e) { console.error('Could not read minimised projects:', e); return {}; }
-}
 // The focus pick's chosen project pill, remembered per device like the minimised projects.
 const FOCUS_FILTER_KEY = 'focusdeck-focus-filter';
 function loadFocusFilter() {
@@ -58,30 +50,8 @@ function saveFocusFilter() {
   catch (e) { console.error('Could not save the focus pick filter:', e); }
 }
 
-function saveCollapsedProjects() {
-  try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(ui.projectCollapsed)); }
-  catch (e) { console.error('Could not save minimised projects:', e); }
-}
-
-// Which project is open at a time on wide screens (Q22b, Q23a, #82) is a per-device layout
-// choice, like the collapsed projects above -- not synced state.
-const SELECTED_PROJECT_KEY = 'focusdeck-selected-project';
-function loadSelectedProjectId() {
-  try { return localStorage.getItem(SELECTED_PROJECT_KEY) || null; }
-  catch (e) { console.error('Could not read the selected project:', e); return null; }
-}
-function saveSelectedProjectId(id) {
-  try { localStorage.setItem(SELECTED_PROJECT_KEY, id || ''); }
-  catch (e) { console.error('Could not save the selected project:', e); }
-}
-
-// The app's one layout breakpoint: from 1100px the "All" view is 2x2 tiles, below it every project
-// stacks at its natural height. This constant mirrors the `@media (min-width:1100px)` queries in
-// css/app.css -- the two are coupled only by both spelling 1100 the same way.
-const WIDE_BREAKPOINT_PX = 1100;
-function isWideScreen() {
-  return typeof matchMedia === 'function' && matchMedia('(min-width:' + WIDE_BREAKPOINT_PX + 'px)').matches;
-}
+// J focuses the jot box only from the wide layout up (mirrors the 1100px media queries in css/app.css).
+const isWideScreen = () => typeof matchMedia === 'function' && matchMedia('(min-width:1100px)').matches;
 
 // The project sort is a per-device choice too (PR 9): a drag switches it to "custom", and it has to
 // still be "custom" after a reload, or the person's order would look lost.
@@ -155,7 +125,6 @@ function loadView() {
 }
 function setView(view) {
   ui.view = normalizeView(view, state);
-  ui.boardShown = null;
   try { localStorage.setItem(VIEW_KEY, JSON.stringify(ui.view)); }
   catch (e) { console.error('Could not save the view switch:', e); }
 }
@@ -163,18 +132,16 @@ function setView(view) {
 export const ui = {
   screen: loadScreen(),
   view: loadView(), viewOpen: false,
-  // The Board's own state (#200), memory only: boardCol is the open tab; boardShown the cards shown so
-  // far (null = one group); boardSelected the selected card's id, which Task details (#201) renders from.
-  boardCol: 'next', boardFind: '', boardFilterOpen: false, boardShow: 'all', boardShown: null, boardSelected: null,
+  // boardSelected: the open task's id, which Task details (#201) renders from, on any tab.
+  boardSelected: null,
   // Task details (#201): the open row, a subtask being typed, the link search, the label list open
   boardOpen: null, boardAddSub: false, boardLink: null, boardPicker: false,
   onboarding: loadOnboarding(),
   rmOpen: {}, rmCol: {}, rmAdd: null, // the Roadmap (#257), memory only: milestones opened/closed by hand, the phone's column per milestone, the add form open
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
-  projectFilter: undefined, projectQuery: '', projectSort: loadProjectSort(), projectCollapsed: loadCollapsedProjects(),
+  projectQuery: '', taskQuery: '', projectSort: loadProjectSort(), // the Roadmap's Find boxes and project order
   focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, addDraft: {}, addPick: {}, unsorted: freshUnsortedScratch(), bulk: freshBulk(false),
-  projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: 'all', // follows the view switch: one project = 'one' (renderApp)
  
   // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
   // (Q30c) -- neither persisted, both reset to closed on load.
@@ -268,29 +235,19 @@ export function renderApp(st) {
   ui.view = normalizeView(ui.view, st); // a gone area or project is All
   st._ui = ui;
   const sw = renderViewSwitch(st, ui.view, ui.viewOpen);
-  const visibleProjects = filterAndSortProjects(viewProjects(st, ui.view), { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
-  // Resolved against every project, not just the filtered/searched list -- the selected project
-  // stays selected in the "One" view even if a search or category filter hides it from the list.
-  ui.selectedProjectId = resolveSelectedProject(st.projects, ui.selectedProjectId);
-  // the switch decides the layout: one project = the "One" card, anything else = the list
-  ui.projectView = ui.view.mode === 'project' ? 'one' : 'all';
-  if (ui.projectView === 'one') ui.selectedProjectId = ui.view.id;
   const hasToken = !!getToken();
   // one activity at a time (#135): the rail, then only the chosen screen
-  const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, R.renderSyncButton(st), reviewLists(st, null, Date.now()).waiting.length, tidyGroups(st, null).groups.reduce((n, g) => n + g.items.length, 0));
+  const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, R.renderSyncButton(st), reviewLists(st, null, Date.now()).waiting.length);
   const toast = R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
-  if (ui.screen === 'focus') return rail + '<div class="screen screen-focus">' + sw + R.renderFocus(st, findTaskWithProject, ui) + '</div>' + toast;
-  // the Sort screen is the tray, always open (its header can't fold it away here)
-  if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + sw + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
-  if (ui.screen === 'tidy') return rail + '<div class="screen screen-tidy">' + sw + renderTidy(st, ui) + '</div>' + toast;
+  // Task details (#201) opens from a task on any tab: Review and Roadmap draw it themselves, the others get it here
+  const details = ['sort', 'tidy', 'triage', 'focus'].includes(ui.screen) && ui.boardSelected && findTaskWithProject(ui.boardSelected) ? renderTaskDetails(st, ui, ui.boardSelected) : '';
+  const screen = (name, body) => rail + '<div class="screen screen-' + name + '">' + sw + body + details + '</div>' + toast;
+  if (ui.screen === 'sort') return screen('sort', renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true }))); // the tray, always open
+  if (ui.screen === 'tidy') return screen('tidy', renderTidy(st, ui));
   if (ui.screen === 'roadmap') return rail + '<div class="screen screen-roadmap">' + sw + renderRoadmap(st, ui, hasToken) + '</div>' + toast;
-  if (ui.screen === 'triage') return rail + '<div class="screen screen-triage">' + sw + renderTriage(st, ui) + '</div>' + toast;
+  if (ui.screen === 'triage') return screen('triage', renderTriage(st, ui));
   if (ui.screen === 'review') return rail + '<div class="screen screen-review">' + sw + renderReview(st, ui) + '</div>' + toast;
-  if (ui.screen === 'board') return rail + '<div class="screen screen-board">' + sw + R.renderBoard(st, ui) + '</div>' + toast;
-  return rail + R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
-    + '<div class="main-col view-' + ui.projectView + '">'
-      + sw + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken)
-    + '</div>' + toast;
+  return screen('focus', R.renderFocus(st, findTaskWithProject, ui));
 }
 
 // Triage: a drop, Alt+Arrow or an up/down button. `to` is the place to end at, or (when null) `by` steps
@@ -327,7 +284,6 @@ function rmEdit(kind, id, fn) { M.editRoadmap(rmProject(), fn); paint(); rmFocus
 function paintHeaderControls() {
   const syncSlot = document.getElementById('topbar-sync');
   if (syncSlot) syncSlot.innerHTML = R.renderSyncButton(state);
-  const projectsBtn = document.getElementById('projects-btn');
   const to = document.getElementById('capture-to');
   if (to) {
     const target = R.jotTarget(state, ui);
@@ -336,7 +292,6 @@ function paintHeaderControls() {
     const addBtn = document.querySelector('#capture-form .jot-add');
     if (addBtn) addBtn.textContent = target ? 'Add task' : 'Add';
   }
-  if (projectsBtn) projectsBtn.setAttribute('aria-expanded', String(!!ui.projectsDrawerOpen));
 }
 
 // Puts focus (and caret, else the end) in a project's add-row title box.
@@ -359,7 +314,7 @@ export function paint() {
   // the one project search box (the sidebar/drawer's)
   const addPid = active && active.matches && active.matches('.add-row input[name="title"]') ? active.closest('.add-row').getAttribute('data-project') : null;
   const addCaret = addPid ? { start: active.selectionStart, end: active.selectionEnd } : null;
-  const restoreSearch = active && active.matches && active.matches('.project-search, .board-find')
+  const restoreSearch = active && active.matches && active.matches('.project-search')
     ? { start: active.selectionStart, end: active.selectionEnd }
     : null;
   document.getElementById('app').innerHTML = renderApp(state);
@@ -369,7 +324,7 @@ export function paint() {
   window.scrollTo(0, scrollY);
   if (addPid) focusAddTitle(addPid, addCaret);
   if (restoreSearch) {
-    const el = document.querySelector(active.matches('.board-find') ? '.board-find' : '.project-search');
+    const el = document.querySelector('.project-search');
     if (el) { el.focus(); el.setSelectionRange(restoreSearch.start, restoreSearch.end); }
   }
 }
@@ -586,7 +541,7 @@ function onAppClick(e) {
   if (action === 'set-screen') {
     setScreen(el.getAttribute('data-screen') || el.getAttribute('data-go'));
     ui.jotTo = undefined;
-    if (ui.projectsDrawerOpen) ui.projectsDrawerOpen = false;
+    ui.projectQuery = ''; ui.taskQuery = '';
     paint();
     window.scrollTo(0, 0);
     return;
@@ -643,23 +598,8 @@ function onAppClick(e) {
   if (action === 'review-more') { M.setTaskStatus(el.getAttribute('data-task'), 'doing'); paint(); return; }
   if (action === 'review-undo') { M.undoDone(el.getAttribute('data-task')); paint(); return; }
   if (action === 'review-open') { selectBoardTask(el.getAttribute('data-task')); paint(); return; }
-  if (action === 'board-col') { ui.boardCol = normalizeBoardCol(el.getAttribute('data-col')); ui.boardShown = null; paint(); return; }
-  if (action === 'board-select') { selectBoardTask(ui.boardSelected === el.getAttribute('data-task-id') ? null : el.getAttribute('data-task-id')); paint(); return; }
+  if (action === 'task-open') { const id = el.getAttribute('data-task'); selectBoardTask(ui.boardSelected === id ? null : id); paint(); return; }
   if (action.startsWith('detail-')) { onDetailAction(action, el); return; }
-  if (action === 'board-move') {
-    // the same path as a drop used to take: lands at the end of the other group, saves and syncs
-    const f = findTaskWithProject(taskId);
-    const to = el.getAttribute('data-to');
-    if (f && ['next', 'doing', 'review'].includes(to)) {
-      moveTaskTo({ taskId, toProjectId: f.project.id, status: to, toIndex: f.project.tasks.filter((t) => t.status === to).length });
-      ui.notice = 'Moved to ' + ({ doing: 'In progress', review: 'Review' }[to] || 'Up next');
-    }
-    paint();
-    return;
-  }
-  if (action === 'board-filter') { ui.boardFilterOpen = !ui.boardFilterOpen; paint(); return; }
-  if (action === 'board-show') { ui.boardShown = null; ui.boardShow = el.getAttribute('data-show'); paint(); return; }
-  if (action === 'board-more') { ui.boardShown = Math.max(getChunk(state), ui.boardShown || 0) + getChunk(state); paint(); return; }
   if (action === 'start-new-project') { openFirstProjectPanel(); return; }
   if (action === 'unsorted-file' || action === 'unsorted-save') {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
@@ -823,7 +763,7 @@ function onAppClick(e) {
   }
   else if (action === 'toggle-add-more') { if (ui.addingTask[projectId]) delete ui.addingTask[projectId]; else ui.addingTask[projectId] = true; paint(); focusAddTitle(projectId); if (ui.addingTask[projectId]) scrollOpenedFormIntoView('.add-row[data-project="' + CSS.escape(projectId) + '"]'); }
   else if (action === 'open-added-task') {
-    setScreen('board'); setView({ mode: 'project', id: el.getAttribute('data-project') }); ui.boardCol = 'next'; ui.boardShown = null;
+    setScreen('roadmap'); setView({ mode: 'project', id: el.getAttribute('data-project') });
     selectBoardTask(el.getAttribute('data-task')); ui.notice = null; ui.jotTo = undefined; paint();
   }
   else if (action === 'dismiss-toast') {
@@ -834,30 +774,10 @@ function onAppClick(e) {
   }
   else if (action === 'toggle-inbox') { ui.inboxOpen = !ui.inboxOpen; paint(); }
   else if (action === 'toggle-done') { ui.doneOpen[projectId] = !ui.doneOpen[projectId]; paint(); }
-  else if (action === 'scroll-project') scrollToProject(projectId);
   else if (action === 'sync-github') manualSyncGithub();
-  // with no projects there is no list to open yet: go to making the first one instead
-  // the project list lives on the Projects screen: the button goes there first
-  else if (action === 'toggle-projects-drawer') {
-    if (ui.screen !== 'projects') setScreen('projects');
-    if (state.projects.length) setProjectsDrawerOpen(!ui.projectsDrawerOpen); else openFirstProjectPanel();
-  }
-  else if (action === 'close-projects-drawer') { setProjectsDrawerOpen(false); }
+  else if (action === 'rm-project-step') { const ids = visibleRoadmapProjects().map((p) => p.id), i = ids.indexOf(el.getAttribute('data-project')); moveProjectTo(ids[i], i + Number(el.getAttribute('data-dir')), ids); }
   else if (action === 'edit-task') { ui.editingTask = { taskId, projectId }; paint(); scrollOpenedFormIntoView('.task-edit-form'); }
   else if (action === 'cancel-task-edit') { ui.editingTask = null; paint(); }
-  else if (action === 'set-project-filter') {
-    const cat = el.getAttribute('data-category');
-    ui.projectFilter = cat === '' ? undefined : (cat === '__uncat__' ? null : cat);
-    paint();
-  }
-  else if (action === 'toggle-project-collapse') { ui.projectCollapsed[projectId] = !ui.projectCollapsed[projectId]; saveCollapsedProjects(); paint(); }
-  else if (action === 'toggle-collapse-all') {
-    const visible = filterAndSortProjects(state.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
-    const allCollapsed = visible.length > 0 && visible.every((p) => ui.projectCollapsed[p.id]);
-    visible.forEach((p) => { ui.projectCollapsed[p.id] = !allCollapsed; });
-    saveCollapsedProjects();
-    paint();
-  }
   else if (action === 'link-github-issue') {
     const input = prompt('Link to which GitHub issue? Paste "owner/repo#123" or the issue URL:');
     if (input) linkTaskToIssue(taskId, input, ui).then(paint);
@@ -1129,7 +1049,7 @@ function onAppInput(e) {
     if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
     return;
   }
-  if (e.target.matches && e.target.matches('[data-board-find]')) { ui.boardFind = e.target.value; ui.boardShown = null; paint(); return; }
+  if (e.target.matches && e.target.matches('[data-action="set-task-query"]')) { ui.taskQuery = e.target.value; paint(); return; }
   // the slip's title and notes are kept in the scratch without a repaint (it would lose the caret);
   // innerText, not textContent, so a line break typed into the title is kept
   if (e.target.matches && e.target.matches('[data-slip-title]')) { ui.unsorted.title = e.target.innerText; return; }
@@ -1284,15 +1204,15 @@ document.addEventListener('input', (e) => {
   document.querySelectorAll('.vs-pop .vs-grp').forEach((g) => { g.hidden = ![...g.querySelectorAll('li')].some((li) => !li.hidden); });
 });
 
-// After adding a project from the "+ New" panel (Q29a, Q12d): select it in the "One" view, or in
-// "All" just scroll to its new card/tile once it's rendered -- the same split as scrollToProject.
+// After adding a project from the "+ New" panel (Q29a, Q12d): the Roadmap shows its new row (back to All if the switch hides it).
 function afterProjectAdded(projectId) {
   showInView(projectId);
-  if (ui.projectView === 'one') {
-    ui.selectedProjectId = projectId;
-    saveSelectedProjectId(projectId);
-  }
-  scrollProjectAfterPaint(projectId);
+  paint();
+}
+
+// The projects the Roadmap's group view lists, in the order it shows them (Find box and sort control).
+function visibleRoadmapProjects() {
+  return filterAndSortProjects(viewProjects(state, ui.view), { query: ui.projectQuery, sortBy: ui.projectSort });
 }
 
 // The "+ New" panel's "Your repos" tab (Q29a): fetched once when the tab first opens, cached in
@@ -1592,40 +1512,6 @@ function onAppKeydown(e) {
   }
 }
 
-// Below 1100px, the project list is a drawer opened from the topbar's Projects button (see
-// index.html); at >=1100px CSS shows it as the sticky sidebar regardless of this flag. Opening it
-// moves focus to the drawer itself (not its search box, which would raise the phone keyboard over the
-// list); closing it returns focus to the button that opened it. See
-// docs/4-systems/styling.md#project-sidebar
-function setProjectsDrawerOpen(open) {
-  ui.projectsDrawerOpen = open;
-  paint();
-  if (open) {
-    const drawer = document.getElementById('projects-drawer');
-    if (drawer) drawer.focus({ preventScroll: true });
-  } else {
-    const btn = document.getElementById('projects-btn');
-    if (btn) btn.focus({ preventScroll: true });
-  }
-}
-
-// Scrolls so a project's card top sits just below the sticky topbar (its height varies with
-// width), not underneath it.
-function scrollProjectIntoView(target) {
-  const header = document.querySelector('.topbar');
-  const sticky = header && getComputedStyle(header).position === 'sticky'; // a wide screen's topbar scrolls away
-  const top = target.getBoundingClientRect().top + window.scrollY - (sticky ? header.offsetHeight : 0) - 12;
-  window.scrollTo({ top: Math.max(0, top), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-}
-
-// Repaints, then scrolls to a project's card once it's in the DOM -- used after a selection change
-// or a newly added project, where the target might not exist yet.
-function scrollProjectAfterPaint(projectId) {
-  paint();
-  const target = document.getElementById('proj-' + projectId);
-  if (target) scrollProjectIntoView(target);
-}
-
 // Opening a row's editor or a project's add row's "More" boxes should bring it into view within its own
 // tile at >=1100px, not just onto the page (Q26a, #82) -- `block:'nearest'` does that and is a no-op
 // below 1100px, where the tile isn't its own scroll container. Runs after the paint that put the
@@ -1633,26 +1519,6 @@ function scrollProjectAfterPaint(projectId) {
 function scrollOpenedFormIntoView(selector) {
   const el = document.querySelector(selector);
   if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
-}
-
-// Jumps to a project's card: in the "One" view this selects it (closing the drawer first) and
-// scrolls to it, on any width. In "All" every visible project already renders as its own card/tile
-// -- no selection state, no aria-current there -- so this just expands it first if it's minimised
-// (there'd be nothing to scroll to see otherwise) and scrolls. The sidebar row, the focus card's
-// project chip, and any other scroll-project source all branch here.
-function scrollToProject(projectId) {
-  if (!state.projects.some((p) => p.id === projectId)) return;
-  showInView(projectId);
-  if (ui.screen !== 'projects') setScreen('projects'); // the folders are on the Projects screen (#135)
-  if (ui.projectsDrawerOpen) setProjectsDrawerOpen(false);
-  if (ui.projectView === 'one') {
-    ui.selectedProjectId = projectId;
-    saveSelectedProjectId(projectId);
-  } else if (ui.projectCollapsed[projectId]) {
-    ui.projectCollapsed[projectId] = false;
-    saveCollapsedProjects();
-  }
-  scrollProjectAfterPaint(projectId);
 }
 
 // GitHub syncs by itself when the app opens and whenever it comes back to the foreground, once the
@@ -1694,10 +1560,9 @@ function init() {
   // Settings' checklist links here to link a first GitHub repo (#126): open "+ New" on its repo tab
   const params = new URLSearchParams(location.search);
   if (params.get('new') === 'repo') {
-    setScreen('projects'); // the project list, and its + New panel, are on the Projects screen (#135)
+    setScreen('roadmap'); // the + New panel is on the Roadmap
     ui.newPanelOpen = true;
     ui.newPanelTab = 'repo';
-    if (state.projects.length && !isWideScreen()) ui.projectsDrawerOpen = true;
     fetchNewPanelRepos();
     history.replaceState(null, '', location.pathname);
   }
@@ -1729,12 +1594,15 @@ function init() {
   // only acts on data-action values it recognizes
   const topbar = document.querySelector('.topbar');
   if (topbar) topbar.addEventListener('click', onAppClick);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && ui.projectsDrawerOpen) setProjectsDrawerOpen(false);
-    else if (e.key === 'Escape' && (ui.screen === 'board' || ui.screen === 'review' || ui.screen === 'roadmap') && ui.boardSelected) { selectBoardTask(null); paint(); }
-  });
   const captureForm = document.getElementById('capture-form');
   const captureInput = document.getElementById('capture-input');
+  document.addEventListener('keydown', (e) => {
+    const tag = e.target && e.target.tagName, typing = e.target && (e.target.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target.closest && e.target.closest('[data-wallet]'))); // a wallet takes typed letters to find a card
+    // J jumps to the jot box from anywhere on a wide screen (not while typing); Escape leaves it (#259)
+    if ((e.key === 'j' || e.key === 'J') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && isWideScreen()) { e.preventDefault(); captureInput.focus(); }
+    else if (e.key === 'Escape' && e.target === captureInput) captureInput.blur();
+    else if (e.key === 'Escape' && ui.boardSelected && !typing) { selectBoardTask(null); paint(); }
+  });
   captureForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const target = R.jotTarget(state, ui), title = captureInput.value.trim();

@@ -11,6 +11,7 @@ export const RULES = ['Needs review', 'In progress', 'Past its date, or due toda
 const row = (r, last) => '<li class="tr-row" tabindex="0" data-task-id="' + esc(r.id) + '" data-n="' + r.n + '" aria-label="' + r.n + ', ' + esc(r.task.title) + ', ' + esc(r.reason) + '. Alt plus up or down arrow moves it.">'
   + '<span class="tr-grip" aria-hidden="true">⋮⋮</span><span class="tr-num">' + r.n + '</span>'
   + '<span class="tr-text"><span class="tr-title">' + esc(r.task.title) + '</span><span class="tr-meta">' + esc(r.project.name) + '</span></span>'
+  + '<button type="button" class="btn-text task-open" data-action="task-open" data-task="' + esc(r.id) + '" aria-label="Task details: ' + esc(r.task.title) + '">Details</button>'
   + '<span class="tr-chip">' + esc(r.reason) + '</span>'
   + '<span class="tr-moves"><button type="button" class="btn ghost tr-move" data-action="triage-move" data-task="' + esc(r.id) + '" data-dir="-1" aria-label="Move up: ' + esc(r.task.title) + '"' + (r.n === 1 ? ' disabled' : '') + '>↑</button>'
   + '<button type="button" class="btn ghost tr-move" data-action="triage-move" data-task="' + esc(r.id) + '" data-dir="1" aria-label="Move down: ' + esc(r.task.title) + '"' + (last ? ' disabled' : '') + '>↓</button></span></li>';

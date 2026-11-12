@@ -63,7 +63,7 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   const order = () => page.$$eval('.tr-row', (r) => r.map((x) => x.dataset.taskId).join());
   const chips = () => page.$$eval('.tr-row .tr-chip', (r) => r.map((x) => x.textContent).join('|'));
   const noScroll = async (n) => check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), tag + 'no sideways scroll ' + n);
-  const goScreen = async (k) => { const d = page.locator('.rail-item[data-screen="' + k + '"]'); if (await d.isVisible()) return d.click(); if (!(await page.locator('.org-tab[data-screen="' + k + '"]').count())) await page.click('.rail-organize'); await page.click('.org-tab[data-screen="' + k + '"]'); };
+  const goScreen = async (k) => { const d = page.locator('.rail-sub[data-screen="' + k + '"]'); if (await d.isVisible()) return d.click(); if (!(await page.locator('.org-tab[data-screen="' + k + '"]').count())) await page.click('.rail-item[data-go]'); await page.click('.org-tab[data-screen="' + k + '"]'); };
   const goTriage = async () => { await goScreen('triage'); await page.waitForSelector('.tr-layout'); };
   const pickArea = async (id) => { await page.click('[data-action="view-mode"][data-mode="area"]'); await page.click('[data-action="view-pick"][data-id="' + id + '"]'); };
   const laterHidden = () => page.$eval('.tr-later .tr-list', (e) => e.hidden);

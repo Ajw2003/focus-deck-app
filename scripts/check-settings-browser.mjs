@@ -148,7 +148,7 @@ for (const size of ['phone', 'desktop']) for (const scheme of ['dark', 'light'])
   await openRow(page, '#checklist-items'); await page.click('[data-item="issues"] a');
   await page.waitForSelector('#new-panel');
   await page.waitForTimeout(300);
-  check('repo link: the drawer opens on the repo tab', !!(await page.$('.project-sidebar.is-open')) && ((await page.textContent('#new-panel')) || '').includes('aj/site'));
+  check('repo link: the Roadmap opens on the repo tab', !!(await page.$('.screen-roadmap')) && ((await page.textContent('#new-panel')) || '').includes('aj/site'));
   check('repo link: the address is tidied', !page.url().includes('new=repo'));
   await page.screenshot({ path: OUT + 'phone-dark-repo-link.png' });
   await ctx.close();

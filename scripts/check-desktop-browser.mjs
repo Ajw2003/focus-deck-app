@@ -70,7 +70,7 @@ for (const scheme of ['dark', 'light']) {
   const rail = await (await page.$('.rail')).boundingBox();
   const screen = await (await page.$('.screen-focus')).boundingBox();
   check(`${tag} the rail sits on the left, beside the Focus screen`, rail.x + rail.width <= screen.x && rail.width < 300, JSON.stringify({ rail: Math.round(rail.x + rail.width), screen: Math.round(screen.x) }));
-  check(`${tag} the Focus screen shows only the picker: no tray, no folders`, !(await page.$('.inbox-card')) && !(await page.$('.project-card')));
+  check(`${tag} the Focus screen shows only the picker: no tray, no folders`, !(await page.$('.inbox-card')) && !(await page.$('.rm-row')));
   check(`${tag} the jotter is there`, await page.isVisible('#capture-input'));
   check(`${tag} Sort shows its count on the rail`, ((await page.$eval('.rail [data-screen="sort"]', (e) => e.textContent)) || '').includes('1'));
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
@@ -98,16 +98,14 @@ for (const scheme of ['dark', 'light']) {
   check(`${tag} one click on a category draws from the picked folder`, title === 'Learn the bridge', title);
   await page.screenshot({ path: OUT + `desktop-${scheme}-drawn.png` });
 
-  // the Projects screen: the folders, nothing else; paper in both themes
-  await page.click('.rail [data-screen="projects"]');
+  // the Roadmap (the old Projects screen): the project rows, nothing else
+  await page.click('.rail [data-screen="roadmap"]');
   await page.waitForTimeout(300);
-  check(`${tag} Projects shows the folders and the project list, not the picker or the tray`, (await page.$$('.project-card')).length === 5 && !!(await page.$('.project-sidebar')) && !(await page.$('.focus-card')) && !(await page.$('.inbox-card')));
+  check(`${tag} Roadmap shows the project rows, not the picker or the tray`, (await page.$$('.rm-row')).length === 5 && !(await page.$('.focus-card')) && !(await page.$('.inbox-card')));
   await page.screenshot({ path: OUT + `desktop-${scheme}-projects.png` });
-  const bg = await page.$eval('.project-card', (e) => getComputedStyle(e).backgroundColor);
-  check(`${tag} project folders are paper (light) in this theme too`, bg === 'rgb(251, 250, 247)', bg);
   await page.reload();
   await page.waitForTimeout(300);
-  check(`${tag} the chosen screen is remembered after a reload`, !!(await page.$('.rail [data-screen="projects"][aria-current="page"]')));
+  check(`${tag} the chosen screen is remembered after a reload`, !!(await page.$('.rail [data-screen="roadmap"][aria-current="page"]')));
   await ctx.close();
 }
 
@@ -116,7 +114,7 @@ for (const scheme of ['dark', 'light']) {
   const { ctx, page } = await open('dark');
   await page.click('.rail [data-screen="sort"]');
   await page.waitForTimeout(300);
-  check('Sort: its own screen, the tray alone', !!(await page.$('.screen-sort .inbox-card')) && !(await page.$('.focus-card')) && !(await page.$('.project-card')));
+  check('Sort: its own screen, the tray alone', !!(await page.$('.screen-sort .inbox-card')) && !(await page.$('.focus-card')) && !(await page.$('.rm-row')));
   await click(page, 'tray-folders', 'p1');
   await page.click('.step-tab[data-step="2"]'); // a thought is filed from part 1 now; labels is its tab (was: Next)
   await page.waitForSelector('[data-wallet="tray-flags"]');

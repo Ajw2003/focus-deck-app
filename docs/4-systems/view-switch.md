@@ -1,5 +1,7 @@
 # The All | Area | Project switch (#252)
 
+> **2026-11-12 (#259):** the Board and Projects screens were removed in the five-tab change; the Roadmap took over their jobs. Where this file describes them as current it is history. See [tabs.md](./tabs.md).
+
 ## What it owns
 
 `js/view-switch.js` (pure: filters and markup), the state `ui.view` and its persistence in `js/app.js`, the

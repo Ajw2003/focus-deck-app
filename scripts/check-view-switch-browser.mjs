@@ -1,5 +1,5 @@
 // scripts/check-view-switch-browser.mjs -- real-Chromium check of the All | Area | Project switch (#252) at
-// 360x780, 390x844 and 1440x900: pick Area=Home on Focus and see only Home on Board, Projects and Sort; reload keeps
+// 360x780, 390x844 and 1440x900: pick Area=Home on Focus and see only Home on the Roadmap and Sort; reload keeps
 // it; Project and All work; the phone sheet lists every area without clipping; the row is not cut off at 360.
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux/chrome node scripts/check-view-switch-browser.mjs
 // Serves the repo root itself on 127.0.0.1:8133. Screenshots: docs/generated/build-checks/step4/.
@@ -46,7 +46,8 @@ const data = {
 const HOME = ['Paint the shed', 'Fix the door', 'Mow the lawn'];
 const sizes = [['360', 360, 780], ['390', 390, 844], ['desk', 1440, 900]];
 const screen = async (page, name) => { await page.click(`[data-action="set-screen"][data-screen="${name}"]`); await page.waitForSelector('.vs-row'); };
-const boardTitles = (page) => page.$$eval('.board-card-title', (els) => els.map((e) => e.textContent));
+const rmNames = (page) => page.$$eval('.rm-row .rm-proj-name', (els) => els.map((e) => e.textContent));
+const rmTaskTitles = (page) => page.$$eval('.rm-project .rm-task-title', (els) => els.map((e) => e.textContent));
 const folderKeys = (page) => page.$$eval('[data-wallet="tray-folders"] .sleeve', (els) => els.map((e) => e.dataset.key));
 const wallet = (page) => page.$$eval('[data-wallet="projects"] .sleeve', (els) => els.map((e) => e.dataset.key));
 const pickBtn = (page) => page.$eval('.vs-pick', (b) => b.textContent.replace(/\s+/g, ' ').trim());
@@ -93,16 +94,11 @@ for (const [tag, w, h] of sizes) {
   const keys = await wallet(page);
   check(`[${tag}] Focus: only Home's projects`, keys.sort().join() === ['all', 'pGarden', 'pShed'].sort().join(), keys.join());
   await page.screenshot({ path: OUT + `${tag}-focus-home.png` });
-  // Board
-  await screen(page, 'board');
-  check(`[${tag}] Board: only Home tasks`, (await boardTitles(page)).sort().join() === HOME.slice().sort().join(), (await boardTitles(page)).join());
-  check(`[${tag}] Board has no project select or area filter of its own`, !(await page.$('select[data-action="board-project-select"]')) && !(await page.$('[data-action="board-pcat"]')));
-  await page.screenshot({ path: OUT + `${tag}-board-home.png` });
-  // Projects
-  await screen(page, 'projects');
-  const names = (await page.$$eval('.project-card', (els) => els.map((e) => e.textContent))).join(' ');
-  check(`[${tag}] Projects: only Home projects`, names.includes('Shed') && names.includes('Garden') && !names.includes('Report') && !names.includes('Loose'));
-  await page.screenshot({ path: OUT + `${tag}-projects-home.png` });
+  // Roadmap (the old Board and Projects screens, #259)
+  await screen(page, 'roadmap');
+  const names = (await rmNames(page)).sort().join();
+  check(`[${tag}] Roadmap: only Home projects`, names === 'Garden,Shed', names);
+  await page.screenshot({ path: OUT + `${tag}-roadmap-home.png` });
   // Sort
   await screen(page, 'sort');
   const fk = await folderKeys(page);
@@ -113,8 +109,8 @@ for (const [tag, w, h] of sizes) {
   await page.reload();
   await page.waitForSelector('.vs-row');
   check(`[${tag}] reload: still Home on the Sort screen`, (await pickBtn(page)) === 'Home▾');
-  await screen(page, 'board');
-  check(`[${tag}] reload: Board still only Home`, (await boardTitles(page)).length === 3);
+  await screen(page, 'roadmap');
+  check(`[${tag}] reload: Roadmap still only Home`, (await rmNames(page)).length === 2);
 
   // Project
   await page.click('.vs-seg[data-mode="project"]');
@@ -122,9 +118,8 @@ for (const [tag, w, h] of sizes) {
   const grouped = await page.$$eval('.vs-pop .vs-group', (els) => els.map((e) => e.textContent));
   check(`[${tag}] project list is grouped by area`, grouped.join() === 'Home,Work,Unsorted', grouped.join());
   await page.click('.vs-item[data-id="pReport"]');
-  check(`[${tag}] Project=Report: Board shows only its task`, (await boardTitles(page)).join() === 'Write the report', (await boardTitles(page)).join());
-  await screen(page, 'projects');
-  check(`[${tag}] Project=Report: Projects shows that one card`, (await page.$$('.project-card')).length === 1 && (await page.textContent('.project-card')).includes('Report'));
+  await screen(page, 'roadmap');
+  check(`[${tag}] Project=Report: Roadmap shows only its task`, (await rmTaskTitles(page)).join() === 'Write the report', (await rmTaskTitles(page)).join());
   await screen(page, 'focus');
   const k2 = await wallet(page);
   check(`[${tag}] Project=Report: Focus offers only it`, k2.sort().join() === 'all,pReport', k2.join());
@@ -144,17 +139,15 @@ for (const [tag, w, h] of sizes) {
   // All
   await page.click('.vs-seg[data-mode="all"]');
   check(`[${tag}] All: no name button, aria-pressed on All`, !(await page.$('.vs-pick')) && (await page.getAttribute('.vs-seg[data-mode="all"]', 'aria-pressed')) === 'true');
-  await screen(page, 'board');
-  check(`[${tag}] All: Board shows everything including Unsorted`, (await boardTitles(page)).length === 6, (await boardTitles(page)).join());
-  await screen(page, 'projects');
-  check(`[${tag}] All: Projects shows every project`, (await page.$$('.project-card')).length === 5);
+  await screen(page, 'roadmap');
+  check(`[${tag}] All: Roadmap shows every project`, (await rmNames(page)).length === 5, (await rmNames(page)).join());
   await screen(page, 'sort');
   check(`[${tag}] All: Sort offers every project`, (await folderKeys(page)).length === 5);
   // Unsorted area
   await page.click('.vs-seg[data-mode="area"]');
   await page.click('.vs-item[data-id="pcat_unsorted"]');
-  await screen(page, 'board');
-  check(`[${tag}] Area=Unsorted: the project with no area`, (await boardTitles(page)).join() === 'Unsorted chore', (await boardTitles(page)).join());
+  await screen(page, 'roadmap');
+  check(`[${tag}] Area=Unsorted: the project with no area`, (await rmNames(page)).join() === 'Loose', (await rmNames(page)).join());
   await ctx.close();
 }
 await browser.close();
