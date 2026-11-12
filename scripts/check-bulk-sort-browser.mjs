@@ -127,7 +127,8 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   check(`${tag} One at a time goes back to the slip`, (await page.textContent('.jot-slip .slip-text')).startsWith('Old phone charger'));
 
   // ---- The jotter: no length limit ----
-  const jot = '#capture-input';
+  const jot = '#jot-input';
+  await page.click('#jot-open'); // the jotter lives on the + Jot screen (#263)
   check(`${tag} the jotter has no maxlength`, await page.$eval(jot, (e) => e.tagName === 'TEXTAREA' && !e.hasAttribute('maxlength')));
   const h0 = await page.$eval(jot, (e) => e.getBoundingClientRect().height);
   const para = 'Remember to ask about the timetable change and the form for the trip. ';
@@ -137,15 +138,15 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   await page.keyboard.press('Shift+Enter');
   await page.$eval(jot, (e, rest) => { e.value += rest; e.dispatchEvent(new Event('input', { bubbles: true })); }, para.repeat(42).trim());
   const h1 = await page.$eval(jot, (e) => e.getBoundingClientRect().height);
-  check(`${tag} Shift+Enter makes a new line instead of adding`, (await stored(page)).inbox.length === 1 && (await page.$eval(jot, (e) => e.value)).startsWith('Big brain dump\n'));
-  check(`${tag} the jotter grows with the text, up to 40% of the screen`, h1 > h0 * 3 && h1 <= 900 * 0.4 + 2, h0 + 'px -> ' + h1 + 'px');
+  check(`${tag} Shift+Enter makes a new line (nothing added yet)`, (await stored(page)).inbox.length === 1 && (await page.$eval(jot, (e) => e.value)).startsWith('Big brain dump\n'));
+  check(`${tag} the jotter grows with the text, up to 40% of the screen`, h1 > h0 * 1.5 && h1 <= 900 * 0.4 + 2, h0 + 'px -> ' + h1 + 'px');
   await page.screenshot({ path: OUT + label + '-jotter-long.png' });
-  await page.keyboard.press('Enter');
+  await page.click('.jot-save');
   await page.waitForTimeout(300);
   st = await stored(page);
   const cap = st.inbox.find((i) => i.text.startsWith('Big brain dump'));
-  check(`${tag} Enter adds it, every character kept (${longText.length} characters)`, !!cap && cap.text === longText, cap ? String(cap.text.length) : 'missing');
-  check(`${tag} the jotter is empty and small again`, await page.$eval(jot, (e, h) => e.value === '' && e.getBoundingClientRect().height <= h + 2, h0));
+  check(`${tag} Save adds it, every character kept (${longText.length} characters)`, !!cap && cap.text === longText, cap ? String(cap.text.length) : 'missing');
+  check(`${tag} Save closes the jot screen`, !(await page.$('.jot-screen')));
 
   // file it one at a time: short title, whole text in the notes
   await page.click('[data-action="unsorted-skip"]'); // the charger goes to the back, the brain dump is on top

@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node app/js/render.test.mjs
-import { renderTaskRow, chipsMaxPct, renderToast, jotTarget, renderFocus, renderCategoryWalletInner, renderTaskEditForm, unsortedQueue, renderNewPanel, renderProjectEditPanel, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderTaskRow, chipsMaxPct, renderToast, jotTarget, renderJotScreen, renderFocus, renderCategoryWalletInner, renderTaskEditForm, unsortedQueue, renderNewPanel, renderProjectEditPanel, renderSyncButton, syncButtonTitle } from './render.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import assert from 'node:assert';
 
@@ -354,4 +354,14 @@ assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds:
   const withAct = renderToast('Added', 'info', { label: 'Open', action: 'open-added-task', attrs: { 'data-task': 't"1', 'data-project': 'p' } });
   assert.ok(withAct.includes('class="btn ghost toast-action" data-action="open-added-task" data-task="t&quot;1" data-project="p">Open</button>'), 'action button, escaped');
   assert.ok(withAct.indexOf('toast-action') < withAct.indexOf('toast-close'), 'before the close button');
+}
+
+// the + Jot screen (#263)
+{ // renderJotScreen: closed is empty; open shows Sort by default, the drawer lists Sort and projects
+  const st = { projects: [{ id: 'a', name: 'Home' }] };
+  assert.strictEqual(renderJotScreen(st, {}), '');
+  const open = renderJotScreen(st, { jotOpen: true, jotDraft: '<b>x' });
+  assert.ok(open.includes('Jot a thought') && open.includes('📥 Sort ▾') && open.includes('data-action="jot-save"') && open.includes('&lt;b&gt;x') && !open.includes('Where should it go?'));
+  const drawer = renderJotScreen(st, { jotOpen: true, jotPick: true, jotTo: 'a' });
+  assert.ok(drawer.includes('Where should it go?') && drawer.includes('data-jot-search') && drawer.includes('📁 Home ▾') && drawer.includes('data-id="a"'));
 }

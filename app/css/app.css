@@ -183,7 +183,6 @@ a{color:inherit;}
 /* The jotter: a notepad strip with binding holes along its top edge and a ruled line under the
    writing. The holes are the desk showing through (--hole); the add button is a small paper stamp so a
    phone still has a visible submit control. See docs/4-systems/styling.md#the-jotter */
-.capture-form{display:flex; align-items:flex-end; gap:8px; flex:1 1 260px; min-width:0; max-width:560px;}
 .jotter{
   position:relative; border-radius:2px 2px 4px 4px; padding:14px 12px 6px; background-color:var(--paper);
   box-shadow:0 8px 16px -12px var(--paper-shadow);
@@ -194,23 +193,13 @@ a{color:inherit;}
 /* A thought has no length limit: the jotter is a one-row textarea that grows with what is written
    (field-sizing, or autoGrow in js/app.js where that isn't supported), up to 40% of the screen, then
    scrolls inside itself so the sticky topbar never covers the page. */
-#capture-input{
-  flex:1; min-width:0; padding:2px 0; border:0; background:transparent; color:var(--paper-ink); outline:none;
+#jot-input{
+  width:100%; min-width:0; padding:2px 0; border:0; background:transparent; color:var(--paper-ink); outline:none;
   font-family:var(--note-font); font-weight:700; font-size:calc(1.05rem * var(--note-scale));
   display:block; resize:none; line-height:1.45; min-height:1.45em; max-height:40vh; overflow-y:auto; field-sizing:content; white-space:pre-wrap; overflow-wrap:anywhere;
 }
-#capture-input::placeholder{color:var(--paper-faint); font-weight:400;}
-.jot-add{
-  flex:none; min-height:36px; padding:4px 14px; border:1.5px solid var(--paper-ink); border-radius:3px; background:transparent;
-  color:var(--paper-ink); font:700 var(--text-sm) var(--font-paper); white-space:nowrap; transform:rotate(-1.5deg);
-}
-.to-stamp{
-  flex:0 1 auto; min-width:0; max-width:9.5em; min-height:36px; padding:4px 6px; border:1.5px dashed var(--paper-ink); border-radius:3px; background:transparent;
-  color:var(--paper-ink); font:700 var(--text-sm) var(--font-paper); text-overflow:ellipsis; transform:rotate(1deg);
-}
-.to-stamp option{color:initial;}
+#jot-input::placeholder{color:var(--paper-faint); font-weight:400;}
 .toast-action{flex:none;}
-.jot-add:active{transform:rotate(-1.5deg) translateY(2px);}
 
 /* The topbar sync icon, settings icon and Projects drawer toggle (index.html, outside #app). See
    docs/4-systems/styling.md#sync-button and #icons */
@@ -227,17 +216,6 @@ a{color:inherit;}
   .icon-btn.is-syncing svg{animation:none;}
 }
 .topbar-tools{display:flex; align-items:center; gap:12px;}
-/* on a phone the brand and the tools share the first row and capture gets the full second row,
-   instead of the tools wrapping onto a row of their own */
-@media (max-width:699px){.capture-form{order:1; flex-basis:100%;}}
-/* On a phone the writing gets the whole first line, with the "To:" stamp and Add on a second line
-   below it: on one line the writing was squeezed to under half the width (#244). */
-@media (max-width:699px){
-  .capture-form{flex-wrap:wrap;}
-  #capture-input{flex:1 1 100%;}
-  .to-stamp{max-width:none; margin-right:auto;}
-}
-
 /* One raised card (Q5): the focus card is the only surface with a background, radius and shadow.
    .inbox-card, .project-card and settings.html's .settings-section below override this back to flat, each with its own thin top rule. */
 .card{
@@ -1093,7 +1071,6 @@ body.is-dragging-task .empty-note{display:none;}
      menu column, the jotter centred over the content, no rule under it; the sync light and Settings dial in the third column.
      --topbar-h (js/app.js) places the rail just below it */
   .topbar{display:grid; grid-template-columns:232px minmax(0, 1fr) 232px; column-gap:16px; align-items:center; margin-left:-280px; padding-left:14px; background:var(--bg); border-bottom:0;}
-  .topbar .capture-form{grid-column:2; width:100%; justify-self:center;}
   .topbar .brand{padding-left:10px;}
   .topbar .brand h1{font-size:1.7rem;}
   .topbar .lamp{width:12px; height:12px;}
@@ -1680,3 +1657,16 @@ a.dk-choice{text-decoration:none;}
 .vs-name{flex:1;}
 .vs-item.dk-choice{justify-content:flex-start;}
 .vs-pop .dk-back{border:0; min-height:44px;}
+
+/* The + Jot screen (#263): a clipboard laid over the current tab; the drawer is the shared .vs-pop sheet. */
+.jot-screen{position:fixed; inset:0; z-index:60; background:rgba(20,26,40,.45); display:flex; justify-content:center; align-items:flex-start; padding:12px 8px; overflow:auto;}
+.jot-board{width:min(560px,100%); margin-top:8px;}
+.jot-board .vs-pop-head{margin:0 5px 8px;}
+.jot-paper{padding:8px 10px 12px; gap:12px; flex:none;}
+.jot-paper .jotter{padding:14px 12px 8px;}
+.jot-paper #jot-input{min-height:7em;}
+.jot-where{justify-content:space-between;}
+.jot-where small{font-size:15px;}
+.jot-save{flex:none; font-size:15px; padding:12px 8px; cursor:pointer; border:0;}
+.jot-drawer{z-index:71;}
+.jot-screen .vs-backdrop{z-index:70;}

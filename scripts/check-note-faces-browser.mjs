@@ -73,7 +73,7 @@ for (const scheme of ['dark', 'light']) {
     await draw(page);
     check(`${tag} <html data-note-face="${face}"`, (await page.evaluate(() => document.documentElement.dataset.noteFace)) === face);
     check(`${tag} sticky note exists`, !!(await page.$('.focus-title')));
-    const tf = await fam(page, '.focus-title'), jf = await fam(page, '#capture-input');
+    const tf = await fam(page, '.focus-title'), jf = await page.evaluate(() => { document.getElementById('jot-open').click(); return getComputedStyle(document.getElementById('jot-input')).fontFamily; });
     check(`${tag} sticky note font-family starts ${FIRST[face]}`, tf.replace(/"/g, '').startsWith(FIRST[face]), tf);
     check(`${tag} jotter font-family starts ${FIRST[face]}`, jf.replace(/"/g, '').startsWith(FIRST[face]), jf);
     const ui = await fam(page, '.topbar h1');

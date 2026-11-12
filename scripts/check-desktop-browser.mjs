@@ -71,7 +71,7 @@ for (const scheme of ['dark', 'light']) {
   const screen = await (await page.$('.screen-focus')).boundingBox();
   check(`${tag} the rail sits on the left, beside the Focus screen`, rail.x + rail.width <= screen.x && rail.width < 300, JSON.stringify({ rail: Math.round(rail.x + rail.width), screen: Math.round(screen.x) }));
   check(`${tag} the Focus screen shows only the picker: no tray, no folders`, !(await page.$('.inbox-card')) && !(await page.$('.rm-row')));
-  check(`${tag} the jotter is there`, await page.isVisible('#capture-input'));
+  check(`${tag} + Jot is in the header, no jot box`, await page.isVisible('#jot-open') && !(await page.$('#capture-input')));
   check(`${tag} Sort shows its count on the rail`, ((await page.$eval('.rail [data-screen="sort"]', (e) => e.textContent)) || '').includes('1'));
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');

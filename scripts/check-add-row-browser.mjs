@@ -163,59 +163,62 @@ for (const size of ['phone', 'desktop']) {
     check(`${tag} Roadmap: no sideways page scroll`, boardWide <= 0, 'overflow ' + boardWide + 'px');
     await page.screenshot({ path: OUT + `built-board-${size}-${scheme}.png` });
 
-    // The jotter's To: stamp (#242)
-    const STAMP = '#capture-to', JOT = '#capture-input';
-    const sel = (s) => page.evaluate((x) => { const e = document.querySelector(x); return e.options[e.selectedIndex].text; }, s);
+    // The + Jot screen and its destination card (#242 stamp, #263 screen)
+    const JOT = '#jot-input', WHERE = '.jot-where';
+    const dest = () => page.textContent(WHERE);
     const stored = () => page.evaluate((k) => JSON.parse(localStorage.getItem(k)), STATE_KEY);
-    check(`${tag} Roadmap with School chosen: stamp reads "To: School" untouched`, (await sel(STAMP)) === 'To: School');
+    const closed = async () => !(await page.$('.jot-screen'));
+    await page.click('#jot-open');
+    check(`${tag} Roadmap with School chosen: + Jot opens its screen, destination reads School`, !!(await page.$('.jot-screen')) && (await dest()).includes('School'));
+    await page.keyboard.press('Escape');
+    check(`${tag} Escape closes the + Jot screen`, await closed());
     await page.click('[data-action="set-screen"][data-screen="focus"]');
     await page.waitForTimeout(150);
-    check(`${tag} Focus: stamp reads "To: Unsorted", Add reads "Add"`, (await sel(STAMP)) === 'To: Unsorted' && (await page.textContent('.jot-add')) === 'Add');
+    check(`${tag} Focus: no jot box in the topbar`, !(await page.$('#capture-input, #capture-form')));
+    await page.click('#jot-open');
+    check(`${tag} Focus: destination reads Sort, box is focused`, (await dest()).includes('Sort') && await page.evaluate(() => document.activeElement.id === 'jot-input'));
     const before = await stored();
-    await page.click(JOT);
     await page.keyboard.type('A stray thought');
-    await page.keyboard.press('Enter');
+    await page.click('.jot-save');
     await page.waitForTimeout(200);
     const after = await stored();
     const count = (s) => s.projects.reduce((n, p) => n + p.tasks.length, 0);
-    check(`${tag} Enter on Unsorted grows the inbox, adds no task`, after.inbox.length === before.inbox.length + 1 && count(after) === count(before));
-    await page.selectOption(STAMP, 'pHome');
-    check(`${tag} picking Home makes Add read "Add task"`, (await page.textContent('.jot-add')) === 'Add task');
+    check(`${tag} Save on Sort grows the inbox, adds no task, closes the screen`, after.inbox.length === before.inbox.length + 1 && count(after) === count(before) && await closed());
+    check(`${tag} the toast reads Saved ✓`, (await page.textContent('.toast-text')) === 'Saved ✓');
+    await page.click('#jot-open');
+    await page.click(WHERE);
+    check(`${tag} the drawer asks "Where should it go?" with Sort, a find box and projects`, await page.evaluate(() => { const d = document.querySelector('.jot-drawer'); return !!d && d.textContent.includes('Where should it go?') && d.textContent.includes('Sort') && !!d.querySelector('[data-jot-search]') && !!d.querySelector('[data-id="pHome"]'); }));
+    await page.screenshot({ path: OUT + `built-jot-drawer-${size}-${scheme}.png` });
+    await page.click('.jot-drawer [data-id="pHome"]');
+    check(`${tag} picking Home puts Home on the card, drawer closed`, (await dest()).includes('Home') && !(await page.$('.jot-drawer')));
     await page.click(JOT);
     await page.keyboard.type('Jotted straight to Home');
-    await page.keyboard.press('Enter');
+    const jw = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    check(`${tag} jot screen: no sideways page scroll`, jw <= 0, 'overflow ' + jw + 'px');
+    await page.screenshot({ path: OUT + `built-jot-${size}-${scheme}.png` });
+    await page.click('.jot-save');
     await page.waitForSelector('.toast-action');
     const home = (await stored()).projects.find((p) => p.id === 'pHome').tasks.find((t) => t.title === 'Jotted straight to Home');
     check(`${tag} the jot became a task in Home's Up next`, !!home && home.status === 'next');
-    check(`${tag} notice reads Added "…" to Home`, (await page.textContent('.toast-text')) === 'Added "Jotted straight to Home" to Home');
-    check(`${tag} the jotter box is empty and focused`, await page.evaluate((s) => document.activeElement === document.querySelector(s) && document.activeElement.value === '', JOT));
-    const jw = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    check(`${tag} jotter: no sideways page scroll`, jw <= 0, 'overflow ' + jw + 'px');
-    // Room to jot (#244): on a phone the writing spans the jotter, with the stamp and Add on a line
-    // below it (stamp left, Add right); on a computer all three stay on one line.
-    const box = await page.evaluate(() => Object.fromEntries(['#capture-form', '#capture-input', '#capture-to', '#capture-form .jot-add']
-      .map((s) => [s, document.querySelector(s).getBoundingClientRect().toJSON()])));
-    const [form, input, stamp, add] = ['#capture-form', '#capture-input', '#capture-to', '#capture-form .jot-add'].map((s) => box[s]);
-    if (size === 'phone') {
-      check(`${tag} jotter: the writing spans the jotter`, input.width >= form.width - 40, Math.round(input.width) + ' of ' + Math.round(form.width) + 'px');
-      check(`${tag} jotter: stamp and Add sit below the writing`, stamp.top >= input.bottom && add.top >= input.bottom);
-      check(`${tag} jotter: stamp on the left, Add on the right`, stamp.right < add.left && add.right >= form.right - 30);
-    } else {
-      check(`${tag} jotter: writing, stamp and Add share one line`, stamp.top < input.bottom && add.top < input.bottom && input.right <= stamp.left);
-    }
-    await page.screenshot({ path: OUT + `built-jotter-${size}-${scheme}.png` });
+    check(`${tag} toast reads Saved ✓`, (await page.textContent('.toast-text')) === 'Saved ✓');
     await page.click('.toast-action');
-    await page.waitForSelector('.vs-pick');
-    check(`${tag} Open shows the Roadmap on Home with the task selected`, await page.evaluate(() => document.querySelector('.vs-pick').textContent.includes('Home') && /Jotted straight to Home/.test(document.querySelector('.screen-roadmap').textContent) && !!document.querySelector('.cw-detail[data-selected]')));
+    await page.waitForSelector('.vs-tape');
+    check(`${tag} Open shows the Roadmap on Home with the task selected`, await page.evaluate(() => document.querySelector('.vs-tape').textContent.includes('Home') && /Jotted straight to Home/.test(document.querySelector('.screen-roadmap').textContent) && !!document.querySelector('.cw-detail[data-selected]')));
     check(`${tag} Open clears the notice`, !(await page.$('.toast')));
     await page.keyboard.press('Escape'); // close the details panel (it covers the rail on a phone)
-    await page.selectOption(STAMP, '');
+    await page.click('#jot-open');
+    await page.click(WHERE); await page.click('.jot-drawer [data-id=""]');
+    await page.fill(JOT, 'x'); await page.click('.jot-save'); await page.waitForTimeout(150);
     await page.click('[data-action="set-screen"][data-screen="sort"]');
     await page.waitForTimeout(150);
-    check(`${tag} changing screen resets the manual pick (stamp follows again)`, (await sel(STAMP)) === 'To: Unsorted');
+    await page.click('#jot-open');
+    check(`${tag} changing screen resets the manual pick (destination follows again)`, (await dest()).includes('Sort'));
+    await page.keyboard.press('Escape');
     await page.click('[data-action="set-screen"][data-screen="roadmap"]');
     await page.waitForTimeout(150);
-    check(`${tag} back on the Roadmap (Home) the stamp follows: "To: Home"`, (await sel(STAMP)) === 'To: Home');
+    await page.click('#jot-open');
+    check(`${tag} back on the Roadmap (Home) the destination follows: Home`, (await dest()).includes('Home'));
+    await page.keyboard.press('Escape');
     await ctx.close();
   }
 }
