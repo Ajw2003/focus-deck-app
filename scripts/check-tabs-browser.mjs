@@ -139,7 +139,8 @@ for (const [tag, w, h] of sizes) {
   check(`[${tag}] row Board filter by project or group, search: Find a task narrows the milestones' tasks`, shown.join() === 't2', shown.join());
   await page.fill('.rm-find', '');
   await page.waitForTimeout(100);
-  await go(page, '.rm-task[data-task-id="t2"] .rm-task-title');
+  await page.evaluate(() => document.querySelector('.rm-task[data-task-id="t2"] .rm-task-title').click()); // a phone shows one column at a time
+  await page.waitForTimeout(150);
   await detail('Roadmap');
   check(`[${tag}] Roadmap project view: no sideways scroll`, await noSideways(page)); await shot('3-roadmap-project');
   await page.evaluate(() => localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pGh' })));
