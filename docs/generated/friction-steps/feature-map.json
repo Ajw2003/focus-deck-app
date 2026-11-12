@@ -1,0 +1,705 @@
+{
+ "_about": "Every action the app has today (data-action in app/js), and the prototype screens that keep it. check-feature-map.cjs fails if an action is missing or a screen id does not exist. 'same' = unchanged screen (onboarding).",
+ "map": [
+  [
+   "Header and switch",
+   [
+    [
+     "set-screen",
+     "Switch tabs",
+     "s0 o0 r0 f1 v1"
+    ],
+    [
+     "view-mode",
+     "All / Area / Project switch",
+     "g1"
+    ],
+    [
+     "view-open",
+     "Open the area or project picker",
+     "g2 g3"
+    ],
+    [
+     "view-pick",
+     "Pick an area or project",
+     "g2 g3"
+    ],
+    [
+     "view-close",
+     "Close the picker",
+     "g1"
+    ],
+    [
+     "sync-github",
+     "Sync now",
+     "g4 r2m"
+    ],
+    [
+     "dismiss-toast",
+     "Close a message",
+     "s10"
+    ]
+   ]
+  ],
+  [
+   "Jot",
+   [
+    [
+     "capture (form)",
+     "Jot a thought, To: Unsorted or a project",
+     "j1 j2 j3"
+    ],
+    [
+     "open-added-task",
+     "Open the task you just added",
+     "s10"
+    ]
+   ]
+  ],
+  [
+   "Sort",
+   [
+    [
+     "toggle-inbox",
+     "Show or hide the Sort list",
+     "s0"
+    ],
+    [
+     "sort-step",
+     "Jump to a step",
+     "s9"
+    ],
+    [
+     "sort-next",
+     "Next step",
+     "s1 s2 s3 s4 s5 s6 s7 s8"
+    ],
+    [
+     "sort-back",
+     "Back a step",
+     "s2 s9"
+    ],
+    [
+     "open-pick",
+     "Open the priority or due choices",
+     "s2 s4"
+    ],
+    [
+     "pick-set",
+     "Set priority or due date",
+     "s2 s4 s4a"
+    ],
+    [
+     "skip-due-step",
+     "Skip the due-date warning",
+     "s4b"
+    ],
+    [
+     "sort-add-notes",
+     "Add notes to a thought",
+     "s0m s0n"
+    ],
+    [
+     "sort-new-flag",
+     "New label while sorting",
+     "s3b"
+    ],
+    [
+     "label-show-all",
+     "Show all kinds of work",
+     "s3a"
+    ],
+    [
+     "tie-open",
+     "Start linking a task",
+     "s5 s6 s7 s8"
+    ],
+    [
+     "tie-add",
+     "Link a task (part of, subtask, waits on, holds up)",
+     "s5 s6 s7 s8"
+    ],
+    [
+     "tie-new-sub",
+     "Make a new subtask",
+     "s6"
+    ],
+    [
+     "tie-remove",
+     "Remove a link",
+     "s9"
+    ],
+    [
+     "unsorted-file",
+     "File it to the project",
+     "s9 s10"
+    ],
+    [
+     "unsorted-save",
+     "Save the thought's edits",
+     "s0n"
+    ],
+    [
+     "unsorted-complete",
+     "Done already",
+     "s0m"
+    ],
+    [
+     "unsorted-skip",
+     "Later",
+     "s0m"
+    ],
+    [
+     "unsorted-delete",
+     "Delete",
+     "s0m"
+    ],
+    [
+     "(empty)",
+     "Nothing to sort",
+     "s11"
+    ],
+    [
+     "next",
+     "Swipe to the next folder",
+     "s1 f1 f2"
+    ],
+    [
+     "prev",
+     "Swipe to the previous folder",
+     "s1 f1 f2"
+    ],
+    [
+     "first",
+     "Back to the first folder",
+     "s1 f1 f2"
+    ],
+    [
+     "last",
+     "To the last folder",
+     "s1 f1 f2"
+    ]
+   ]
+  ],
+  [
+   "Sort several at once",
+   [
+    [
+     "bulk-toggle",
+     "Select many, or back to one at a time",
+     "s0 m1"
+    ],
+    [
+     "bulk-all",
+     "Tick all",
+     "m1"
+    ],
+    [
+     "bulk-none",
+     "Clear ticks",
+     "m1"
+    ],
+    [
+     "bulk-flag",
+     "Labels for the ticked ones",
+     "m3"
+    ],
+    [
+     "bulk-new-flag",
+     "New label",
+     "m3"
+    ],
+    [
+     "bulk-apply",
+     "Sort the ticked ones, grouped under a task",
+     "m4 m5"
+    ]
+   ]
+  ],
+  [
+   "Organize",
+   [
+    [
+     "tidy-mark",
+     "Keep, Close or Merge a task",
+     "t1 t2 t3 t4"
+    ],
+    [
+     "tidy-confirm",
+     "Confirm, then Triage",
+     "t5"
+    ],
+    [
+     "tidy-undo",
+     "Undo the tidy",
+     "r10t"
+    ],
+    [
+     "triage-move",
+     "Move a task up or down",
+     "r13"
+    ],
+    [
+     "triage-later",
+     "Open Later",
+     "r12"
+    ],
+    [
+     "triage-reset",
+     "Reset to the rules",
+     "r13"
+    ],
+    [
+     "(rules)",
+     "How the order is worked out",
+     "r14"
+    ]
+   ]
+  ],
+  [
+   "Roadmap, all projects",
+   [
+    [
+     "rm-open",
+     "Open a project",
+     "r0"
+    ],
+    [
+     "set-project-query",
+     "Find a project",
+     "r0"
+    ],
+    [
+     "set-project-sort",
+     "Sort projects",
+     "r0m"
+    ],
+    [
+     "rm-project-step",
+     "Move a project in my own order",
+     "r0o"
+    ],
+    [
+     "toggle-new-panel",
+     "New project",
+     "r0 r2m"
+    ],
+    [
+     "start-new-project",
+     "Make the first project",
+     "r5"
+    ],
+    [
+     "add-new-project",
+     "Add the new project",
+     "r5 r9"
+    ],
+    [
+     "set-new-panel-tab",
+     "New, link or create a repo",
+     "r8"
+    ],
+    [
+     "link-repo",
+     "Link to one of my repos",
+     "r8a"
+    ],
+    [
+     "retry-new-panel-repos",
+     "Retry loading repos",
+     "r8a"
+    ],
+    [
+     "retry-link-panel-repos",
+     "Retry loading repos",
+     "r8a"
+    ],
+    [
+     "create-repo",
+     "Create a new repo",
+     "r8b"
+    ],
+    [
+     "track-repo",
+     "Track someone else's repo",
+     "r8c"
+    ],
+    [
+     "paste-repo",
+     "Paste a repo link",
+     "r8c"
+    ],
+    [
+     "paste-link-repo",
+     "Paste a link to link",
+     "r8c"
+    ],
+    [
+     "toggle-link-panel",
+     "Open the GitHub link choices",
+     "r8 r2e"
+    ],
+    [
+     "set-repo-filter",
+     "Filter my repos",
+     "r8a"
+    ]
+   ]
+  ],
+  [
+   "Roadmap, one project",
+   [
+    [
+     "rm-col",
+     "Pick a column",
+     "r2"
+    ],
+    [
+     "rm-task",
+     "Tap a task",
+     "r4"
+    ],
+    [
+     "rm-task-step",
+     "Move a task to the next column",
+     "r4"
+    ],
+    [
+     "toggle-task",
+     "Tick a task done",
+     "r2 r4"
+    ],
+    [
+     "rm-set-milestone",
+     "Move a task to another milestone",
+     "r4m"
+    ],
+    [
+     "rm-make",
+     "Make a task a milestone",
+     "r4"
+    ],
+    [
+     "rm-toggle",
+     "Hide or show a milestone's tasks",
+     "r2o"
+    ],
+    [
+     "rm-ms-step",
+     "Move a milestone up or down",
+     "r2o"
+    ],
+    [
+     "rm-sec-step",
+     "Move a section up or down",
+     "r2o"
+    ],
+    [
+     "rm-add",
+     "Add a task, milestone or section",
+     "r3 r2a r2b"
+    ],
+    [
+     "rm-add-submit",
+     "Save what you added",
+     "r3 r2a r2b"
+    ],
+    [
+     "rm-add-cancel",
+     "Cancel adding",
+     "r3 r2a r2b"
+    ],
+    [
+     "add-task",
+     "Add a task",
+     "r3"
+    ],
+    [
+     "toggle-add-more",
+     "Add a task with more details",
+     "r3"
+    ],
+    [
+     "rm-settings",
+     "Milestone settings",
+     "r2m r2s r2t r2u r2v"
+    ],
+    [
+     "set-task-query",
+     "Find a task in this project",
+     "r2f"
+    ],
+    [
+     "open-project-edit",
+     "Edit project",
+     "r2e"
+    ],
+    [
+     "close-project-edit",
+     "Close Edit project",
+     "r2e"
+    ],
+    [
+     "set-project-category",
+     "Change the project's area",
+     "r6 r2e"
+    ],
+    [
+     "remove-project",
+     "Remove project",
+     "r2x"
+    ],
+    [
+     "confirm-remove-project",
+     "Confirm removing",
+     "r2x"
+    ],
+    [
+     "cancel-remove-project",
+     "Keep the project",
+     "r2x"
+    ],
+    [
+     "toggle-done",
+     "Show done tasks",
+     "r2"
+    ],
+    [
+     "scroll-to-task",
+     "Jump to a task",
+     "r2f"
+    ]
+   ]
+  ],
+  [
+   "Task details",
+   [
+    [
+     "task-open",
+     "Open task details",
+     "d0"
+    ],
+    [
+     "detail-close",
+     "Close",
+     "d0"
+    ],
+    [
+     "detail-fold",
+     "Open a section",
+     "d0"
+    ],
+    [
+     "edit-task",
+     "Edit the task",
+     "d0 d4"
+    ],
+    [
+     "save-task-edit",
+     "Save",
+     "d0"
+    ],
+    [
+     "cancel-task-edit",
+     "Cancel",
+     "d0"
+    ],
+    [
+     "detail-add-sub-open",
+     "Start adding a subtask",
+     "d2"
+    ],
+    [
+     "detail-add-sub",
+     "Add a subtask",
+     "d2"
+    ],
+    [
+     "detail-link-open",
+     "Start linking a task",
+     "s7 s8"
+    ],
+    [
+     "detail-link-add",
+     "Link a task",
+     "s7 s8"
+    ],
+    [
+     "detail-unlink",
+     "Unlink a task",
+     "s9"
+    ],
+    [
+     "detail-goto",
+     "Go to a linked task",
+     "d0"
+    ],
+    [
+     "detail-make-cat",
+     "Make a new label",
+     "s3b"
+    ],
+    [
+     "detail-focus",
+     "Focus on this",
+     "d0"
+    ],
+    [
+     "focus-task",
+     "Focus on this",
+     "d0 r4"
+    ],
+    [
+     "detail-delete",
+     "Delete",
+     "d4"
+    ],
+    [
+     "delete-task",
+     "Delete",
+     "d4"
+    ],
+    [
+     "link-github-issue",
+     "Link a GitHub issue",
+     "d3"
+    ],
+    [
+     "create-github-issue",
+     "Create a GitHub issue",
+     "d3"
+    ],
+    [
+     "unlink-github-issue",
+     "Unlink the issue",
+     "d3"
+    ]
+   ]
+  ],
+  [
+   "Focus",
+   [
+    [
+     "pick-for-me",
+     "Pick for me",
+     "f1"
+    ],
+    [
+     "reroll",
+     "Not this one",
+     "f3"
+    ],
+    [
+     "complete-focus",
+     "I've done it",
+     "f3 f5"
+    ],
+    [
+     "focus-doing",
+     "Start it",
+     "f4"
+    ],
+    [
+     "focus-subtask",
+     "Focus on a subtask",
+     "f4s"
+    ],
+    [
+     "clear-focus",
+     "Clear, pick again",
+     "f4"
+    ]
+   ]
+  ],
+  [
+   "Review",
+   [
+    [
+     "review-open",
+     "Open the task",
+     "v1"
+    ],
+    [
+     "review-done",
+     "Looks good",
+     "v1"
+    ],
+    [
+     "review-more",
+     "Needs more work",
+     "v1"
+    ],
+    [
+     "review-undo",
+     "Undo a done task",
+     "v3"
+    ]
+   ]
+  ],
+  [
+   "Welcome (unchanged)",
+   [
+    [
+     "ob-next",
+     "Next",
+     "same"
+    ],
+    [
+     "ob-skip",
+     "Skip",
+     "same"
+    ],
+    [
+     "ob-finish",
+     "Finish",
+     "same"
+    ],
+    [
+     "ob-suggest",
+     "Suggestions",
+     "same"
+    ],
+    [
+     "ob-category",
+     "Pick areas",
+     "same"
+    ],
+    [
+     "ob-deal",
+     "Deal tasks",
+     "same"
+    ],
+    [
+     "ob-folder",
+     "Pick a folder",
+     "same"
+    ],
+    [
+     "ob-task",
+     "Add a task",
+     "same"
+    ],
+    [
+     "ob-sync",
+     "Set up sync",
+     "same"
+    ]
+   ]
+  ],
+  [
+   "Sync setup (unchanged)",
+   [
+    [
+     "turn-on",
+     "Turn on sync",
+     "same"
+    ],
+    [
+     "recheck",
+     "Check the key again",
+     "same"
+    ]
+   ]
+  ]
+ ]
+}

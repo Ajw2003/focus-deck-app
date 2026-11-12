@@ -2,7 +2,8 @@
 // too busy). Opens every screen, panel and dialog with the flow-qa sample data at 390x844 and 1440x900,
 // counts what is on screen at once (controls you can press, separate bits of text, colour chips), and
 // saves a screenshot of each. Usage: python3 -m http.server 8196 (repo root), then node scripts/map-screens.mjs
-// Output: docs/generated/friction-map/*.png and counts.json
+// Output: docs/generated/friction-map/*.png and counts.json. INVENTORY=1 instead lists every control and
+// heading on each screen (phone only) into inventory.md, the parity list for the redesign.
 import { createRequire } from 'node:module';
 import { writeFileSync } from 'node:fs';
 const require = createRequire('/opt/node22/lib/node_modules/');
@@ -19,7 +20,20 @@ const count = (page) => page.evaluate(() => {
   const chips = [...document.querySelectorAll('[class*=chip], [class*=badge], .tr-chip, .pill')].filter(vis).length;
   return { controls, texts, chips };
 });
-async function shot(page, name, w) { await page.waitForTimeout(400); const c = await count(page); rows.push({ name, width: w, ...c }); await page.screenshot({ path: OUT + name + '-' + w + '.png' }); }
+const INV = process.env.INVENTORY === '1'; const inv = [];
+const list = (page) => page.evaluate(() => {
+  const vis = (e) => { const r = e.getBoundingClientRect(); const s = getComputedStyle(e); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none'; };
+  const label = (e) => (e.getAttribute('aria-label') || (e.tagName === 'SELECT' ? 'select: ' + [...e.options].slice(0, 6).map((o) => o.text).join(' / ') : '') || e.innerText || e.placeholder || e.value || e.title || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  const out = [];
+  for (const e of document.querySelectorAll('h1,h2,h3,h4,legend,button, a[href], input:not([type=hidden]), select, textarea, [role=button], [data-action]')) {
+    if (!vis(e) || e.closest('.topbar') || (e.matches('[data-action]') && e.parentElement.closest('[data-action]'))) continue;
+    if (/^H\d|LEGEND/.test(e.tagName)) { out.push('## ' + label(e)); continue; }
+    out.push('- ' + label(e) + (e.dataset.action ? '  [' + e.dataset.action + ']' : '') + (e.type === 'checkbox' || e.type === 'radio' ? ' (' + e.type + ')' : ''));
+  }
+  return [...new Set(out)];
+});
+async function shot(page, name, w) {
+  if (INV) { if (w === 390) { await page.waitForTimeout(400); inv.push('# ' + name, ...(await list(page)), ''); } return; } await page.waitForTimeout(400); const c = await count(page); rows.push({ name, width: w, ...c }); await page.screenshot({ path: OUT + name + '-' + w + '.png' }); }
 const clickIf = async (page, sel) => { try { const l = page.locator(sel).first(); if (await l.count() && await l.isVisible()) { await l.click({ timeout: 3000 }); return true; } } catch { /* a locked or covered control: that state is not reachable this way */ } return false; };
 for (const [w, h] of [[390, 844], [1440, 900]]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, serviceWorkers: 'block' });
@@ -47,11 +61,13 @@ for (const [w, h] of [[390, 844], [1440, 900]]) {
   await go('review'); await shot(page, '18-review', w);
   await page.goto(BASE + 'app/settings.html'); await page.waitForTimeout(600); await shot(page, '19-settings', w);
   const heads = page.locator('.set-head'); const n = await heads.count(); for (let i = 0; i < n; i++) await heads.nth(i).click().catch(() => {});
-  await page.screenshot({ path: OUT + '20-settings-all-open-' + w + '.png', fullPage: true }); rows.push({ name: '20-settings-all-open', width: w, ...(await count(page)), rows: n });
+  if (INV) { if (w === 390) inv.push('# 20-settings-all-open', ...(await list(page)), ''); }
+  else { await page.screenshot({ path: OUT + '20-settings-all-open-' + w + '.png', fullPage: true }); rows.push({ name: '20-settings-all-open', width: w, ...(await count(page)), rows: n }); }
   await ctx.close();
   const fresh = await b.newContext({ viewport: { width: w, height: h }, serviceWorkers: 'block' });
   const fp = await fresh.newPage(); await fp.goto(BASE + 'app/index.html'); await fp.waitForTimeout(800); await shot(fp, '21-onboarding', w); await fresh.close();
 }
 await b.close();
+if (INV) { writeFileSync(OUT + 'inventory.md', inv.join('\n')); console.log('inventory lines', inv.length); process.exit(0); }
 writeFileSync(OUT + 'counts.json', JSON.stringify(rows, null, 1));
 for (const r of rows) console.log(r.width, r.name.padEnd(28), 'controls', String(r.controls).padStart(3), 'text bits', String(r.texts).padStart(3), 'chips', r.chips);

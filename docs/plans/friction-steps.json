@@ -1,9 +1,9 @@
 {
  "title": "Step By Step",
- "eyebrow": "Proposal · after QA · nothing built yet",
+ "eyebrow": "Proposal · every screen drawn · nothing built yet",
  "approval": "Design approved: step by step",
  "short": {
-  "lead": "The app failed QA because it shows too much at once. This plan keeps every feature but asks one question per screen. The order is the one you gave: project, priority, labels, due date, waits on, holds up. Four sources on cognitive, autism and ADHD design agree: one step at a time, show where you are, and hide what isn't needed yet. I also counted every screen. The busiest has 54 things to press at once. Under this plan each screen shows one question and its answers, plus Back, the next button and the five tabs. The pictures are drawings. Nothing is built yet.",
+  "lead": "The app failed QA because it shows too much at once. This plan keeps every feature and asks one question per screen. This version draws every screen and step, 83 of them, as a clickable prototype you can tap through. I checked all 125 things the app does today against it, and each one has a screen. The pictures and the prototype are drawings. Nothing is built yet, and your app hasn't changed.",
   "hint": "Tap each row to see its picture.",
   "key": [
    [
@@ -38,42 +38,110 @@
     }
    ],
    [
+    "bulb",
+    "Prototype",
+    "Click through every screen yourself",
+    "",
+    "Every screen in this page is also in a clickable prototype, published as the page "Step by step prototype" (its link is in the chat, not in the repo). Tap a button and it goes where the real app would go. The list on the left jumps to any of the 83 screens. It is a drawing, not the app, so nothing you tap changes your tasks.",
+    "Open the prototype on your phone and try sorting one thought from start to finish."
+   ],
+   [
+    "search",
+    "Nothing dropped",
+    "All 125 things the app does today have a home",
+    "",
+    "I listed every action the app can do today, 125 of them, straight from the app's code, and gave each one a screen in the prototype. A check script fails if any action has no screen, or points to a screen that doesn't exist. It passes. Two features I had left out of the first drawings are back: 'Part of a bigger task' and 'Subtasks', which are in today's third Sort step, and the due-date warning ('When should it warn you?'). Settings, the welcome and sync setup are unchanged, because they are already calm. The full list is in docs/generated/friction-steps/feature-map.json.",
+    "If you use something that isn't on any screen here, tell me its name."
+   ],
+   [
     "list",
     "Everywhere",
-    "Less on screen before your work",
+    "Header, + Jot and Showing",
     "you",
-    "The header keeps only the name, a '+ Jot' button and the settings cog, on every screen. You picked this: the jot box becomes the '+ Jot' button, and pressing it opens a screen with only the box on it. The All / Area / Project switch becomes one line, 'Showing All tasks ▾', which opens the switch when tapped. Every screen gets the same shape: a question at the top, the answers below, and one big button at the bottom. On a phone, 4 things (the name, + Jot, the cog and the 'Showing' line) sit above your work instead of 14.",
-    "Check that one line saying what you're looking at is enough.",
+    "The header keeps the name, + Jot (your pick), a sync dot and the cog. + Jot opens a screen with only the box; 'Goes to' picks Sort or a project, like today's To: stamp. The one 'Showing' line opens the All / Area / Project switch in a panel that slides up. The sync dot opens Sync now.",
+    "Check that a sync dot is enough in place of the sync button.",
     {
-     "src": "docs/generated/friction-steps/m-chrome.png",
-     "alt": "Today's Sort screen beside the proposed one with a + Jot button",
-     "caption": "Left: today. Middle: proposed. Right: + Jot, top right on every screen, opens its own screen."
+     "src": "docs/generated/friction-steps/p-header.png",
+     "alt": "Eight phone screens: jot, where it goes, saved, the Showing sheet for all, area and project, sync and settings",
+     "caption": "The header, + Jot, Showing and Sync."
     }
    ],
    [
     "list",
-    "Sort and adding a task",
-    "One question per step, in your order",
+    "Sort",
+    "One thought, nine steps",
     "you",
-    "Sorting a thought and adding a task become the same seven steps, in the order you gave: project, priority, labels, due date, waits on (what has to happen first), holds up (what can't start until this task is done), then a check screen. You can't skip Priority. You can skip labels, due date, waits on and holds up with the Skip button. Each step shows only that question, the thought at the top, and Back. The check screen lists every answer with Change beside it, so nothing is saved by surprise. '+ Add a task' on the Roadmap and 'Select many' on Sort use the same steps.",
-    "Check that the order is right, and that seven steps is not too long.",
+    "Your order, with the two link steps from today put back: project, priority, labels, due date (with an optional 'when to warn you'), part of, subtasks, waits on, holds up, then check. Priority can't be skipped; every other step after it has Skip. The ⋯ on the thought holds Add notes, Done already, Later and Delete. Labels has Find, 'Show all 45 kinds' and '+ New label'. Project has '+ New project'. The check screen shows every answer with Change.",
+    "Check that nine steps isn't too long. If it is, option 2 of the first choice below offers a shorter way.",
     {
-     "src": "docs/generated/friction-steps/m-add.png",
-     "alt": "Seven phone screens: project, priority, labels, due date, waits on, holds up, check",
-     "caption": "The seven steps on a phone."
+     "src": "docs/generated/friction-steps/p-sort.png",
+     "alt": "Eighteen phone screens of sorting one thought",
+     "caption": "Every Sort screen, in order."
     }
    ],
    [
     "list",
-    "Computer",
-    "The same steps, with the list beside them",
+    "Sort",
+    "Several at once",
     "you",
-    "On a computer the steps sit in one panel in the middle of the screen. Beside it, a list shows what's done (with your answer), the step you're on, and what's left. You can click any finished step to change it.",
-    "Check that seeing the whole list of steps helps rather than distracts.",
+    "Today's 'Select many' becomes five steps: tick the thoughts (Tick all, Clear ticks), one project, labels, group them under one task, check. Priority and due dates stay one task at a time, as today.",
+    "Check that grouping under one task is worth its own step.",
     {
-     "src": "docs/generated/friction-steps/m-desk.png",
-     "alt": "Desktop: the priority step in a centre panel with the list of steps on the right",
-     "caption": "Step 2 of 7 on a computer."
+     "src": "docs/generated/friction-steps/p-many.png",
+     "alt": "Five phone screens of sorting several thoughts",
+     "caption": "Select many, as five steps."
+    }
+   ],
+   [
+    "list",
+    "Organize",
+    "Tidy up, then Triage",
+    "you",
+    "Organize starts by naming its two jobs. Tidy up shows one task at a time with its reason: waiting for review, replaced by newer work (it shows what replaced it), looks the same as another (both shown, Keep both or Merge), and not touched in 60 days. Nothing closes until the confirm screen, and Undo follows. Triage shows Now; Next and Later open on their own screens; 'Move…' turns on the move arrows and a 'Reset to the rules' button; 'Why these?' lists the seven real rules from the app.",
+    "Check that the Tidy up reasons read clearly one at a time.",
+    {
+     "src": "docs/generated/friction-steps/p-organize.png",
+     "alt": "Twelve phone screens of Tidy up and Triage",
+     "caption": "Tidy up, one at a time, then Triage."
+    }
+   ],
+   [
+    "list",
+    "Roadmap",
+    "All projects, and a new project",
+    "you",
+    "The project list keeps Find, progress bars and ways to sort (A to Z, most open tasks, closest deadline, recently synced, my own order with arrows). A new project is four steps: name, area, colour, then GitHub (not on GitHub, link one of my repos, create a new repo, or track someone else's repo).",
+    "Check that GitHub as the last optional step suits you.",
+    {
+     "src": "docs/generated/friction-steps/p-roadmap.png",
+     "alt": "Eleven phone screens of the project list and a new project",
+     "caption": "All projects and New project."
+    }
+   ],
+   [
+    "list",
+    "Roadmap",
+    "One project",
+    "you",
+    "One milestone and one column at a time, with Previous, Next and All milestones. The ⋯ holds milestone settings, all milestones and sections (open, hide, reorder, add), find a task, edit project, sync and new project. Tapping a task opens what you can do to it: start it, send to review, mark done, move to another milestone, focus on this, make it a milestone, details. '+ Add a task' adds by name, or 'Add details…' runs the Sort steps. Milestone settings is two steps, with extra screens for entering your own number and for a checklist. Edit project is a list of lines that each open their step; Remove asks first.",
+    "Check that the ⋯ menu doesn't hide something you use every day.",
+    {
+     "src": "docs/generated/friction-steps/p-project.png",
+     "alt": "Fifteen phone screens of one project on the Roadmap",
+     "caption": "One project, its menu, tasks and milestone settings."
+    }
+   ],
+   [
+    "list",
+    "Task details",
+    "Every detail on one list",
+    "you",
+    "Task details stops folding things away. It lists status, priority, due, labels, part of, subtasks, waits on, holds up, notes and GitHub, each with its answer. Tapping a line opens the same question the Sort step uses, with Save instead of Next. Subtasks and the GitHub issue get their own screens. ⋯ More holds rename, move to another project and delete.",
+    "Check that ten lines at once is calm enough; it scrolls a little on a phone.",
+    {
+     "src": "docs/generated/friction-steps/p-details.png",
+     "alt": "Five phone screens of task details",
+     "caption": "Task details and its parts."
     }
    ],
    [
@@ -81,38 +149,38 @@
     "Focus",
     "Two questions, then one task",
     "you",
-    "Focus asks which project, then what kind of work, one question per screen, using the same folders as today. 'Or let me pick for you' sits on the first step. The task then shows with only two buttons, 'I've done it' and 'Not this one'. Everything else (details, subtasks, start it) is behind More.",
-    "Check that hiding the extras behind More is OK.",
+    "Which project (or Pick for me), then what kind of work (Skip means any; Unlabelled and Surprise me are in the folders). Then one task with 'I've done it' and 'Not this one'. The More button lists: start it, subtasks (tick, or tap to focus on one), details, go to the project, and clear. When you finish, the note peels away as today and you pick again.",
+    "Check that More is the right place for Start it.",
     {
-     "src": "docs/generated/friction-steps/m-focus.png",
-     "alt": "Three phone screens: pick a project, pick a kind of work, one task",
-     "caption": "Focus on a phone."
+     "src": "docs/generated/friction-steps/p-focus.png",
+     "alt": "Six phone screens of Focus",
+     "caption": "Focus from picking to done."
     }
    ],
    [
     "list",
-    "Organize",
-    "Tidy up shows one task at a time; Triage shows only Now",
+    "Review",
+    "One task at a time",
     "you",
-    "Tidy up shows one task at a time, with why it's there and two big buttons, Keep and Close (or Merge for a copy). At the end, one screen lists what will close, with 'Keep instead' on each, and one Confirm. Triage shows only the three tasks to do first. Next and Later fold away, and the move arrows only appear after you press 'Move…'.",
-    "Check that one task at a time isn't too slow for 25 tasks.",
+    "Review asks 'Is it finished?' one task at a time: Looks good or Needs more work, with Open details. Done this week keeps Undo on each task.",
+    "Check that one at a time suits Review too.",
     {
-     "src": "docs/generated/friction-steps/m-organize.png",
-     "alt": "Three phone screens: one Tidy up task, the confirm list, and Triage's Now list",
-     "caption": "Tidy up and Triage on a phone."
+     "src": "docs/generated/friction-steps/p-review.png",
+     "alt": "Three phone screens of Review",
+     "caption": "Review, one at a time."
     }
    ],
    [
     "list",
-    "Roadmap",
-    "One milestone and one column at a time",
+    "Computer",
+    "The same screens, wider",
     "you",
-    "A project shows one milestone at a time, with Previous and Next to move between them, and one column at a time (Up next, Doing, Review, Done). Edit project, New project and Sync now move into a ⋯ menu. Tapping a task opens one list of what you can do to it, instead of arrows on every row. Milestone settings becomes two steps: how much it counts, then how to measure it.",
-    "Check that one milestone at a time still shows you enough of the project.",
+    "On a computer the tabs move to the left, the screen sits in a panel in the middle, and the list of steps sits beside it. A task's actions and its details open beside the list instead of over it, so you keep your place.",
+    "Check the desktop layout matches how you use the app on a computer.",
     {
-     "src": "docs/generated/friction-steps/m-roadmap.png",
-     "alt": "Three phone screens: one milestone, the task action list, and milestone settings step 1",
-     "caption": "The Roadmap on a phone."
+     "src": "docs/generated/friction-steps/p-desk.png",
+     "alt": "Three desktop screens: sorting, a project with a task's actions, and task details",
+     "caption": "On a computer."
     }
    ]
   ]
@@ -128,7 +196,7 @@
   [
    "chg",
    "Sort, + Add a task and Select many",
-   "One seven-step flow: project, priority, labels, due date, waits on, holds up, check.",
+   "One nine-step flow: project, priority, labels, due date, part of, subtasks, waits on, holds up, check.",
    null,
    "Replaces the three tabs on Sort and the add row on the Roadmap."
   ],
@@ -163,7 +231,7 @@
   [
    "chg",
    "Task details",
-   "Each part (priority, labels, due date, links) opens the matching step on its own screen.",
+   "One list of every detail; each line opens the matching step with Save.",
    null,
    "Same steps as adding a task."
   ],
@@ -176,38 +244,45 @@
   ],
   [
    "keep",
-   "Review, Settings and the welcome screen",
-   "Already one list or one question at a time.",
-   null,
-   "Only the shared header changes."
-  ],
-  [
-   "keep",
    "Your data and the five tabs",
    "Nothing is removed; every feature keeps working.",
    null,
    "Only how much shows at once changes."
+  ],
+  [
+   "chg",
+   "Review",
+   "One task at a time, with Done this week and Undo.",
+   null,
+   "Looks good and Needs more work stay."
+  ],
+  [
+   "keep",
+   "Settings, the welcome and sync setup",
+   "Already one section or one question at a time.",
+   null,
+   "Only the shared header changes."
   ]
  ],
  "choices": [
   [
    "optional",
-   "How should the optional steps (labels, due date, waits on, holds up) work?",
+   "How should the optional Sort steps (labels to holds up) work?",
    [
     [
      "1",
      "Ask each one, with Skip",
      1,
-     "Seven steps every time, but each is one tap to skip."
+     "Nine steps every time, but each optional one is one tap to skip. This is what the prototype shows."
     ],
     [
      "2",
      "Ask priority, then 'Add more details?'",
      0,
-     "Three steps by default; the other four only if you say yes."
+     "Three steps by default (project, priority, check); the other six only if you tap 'Add more details?'."
     ]
    ],
-   "I suggest asking each one, because you listed them as steps, and Skip keeps it quick."
+   "I suggest asking each one, because you listed them as steps and Skip keeps it quick. Now that there are nine steps, option 2 is worth a look."
   ],
   [
    "tidy",
@@ -230,9 +305,9 @@
   ]
  ],
  "wrapup": {
-  "summary": "Every screen becomes one question at a time: a seven-step flow for sorting and adding tasks, two steps for Focus, one task at a time in Tidy up, Now only in Triage, and one milestone at a time on the Roadmap. The header shrinks so your work starts near the top. No feature is removed.",
+  "summary": "Every screen is now drawn, 83 in all, as pictures here and as a clickable prototype. All 125 things the app does today have a screen. Sort becomes nine steps, Task details one list, Focus two questions, Tidy up and Review one task at a time, and the Roadmap one milestone at a time.",
   "changing": "Changed: how much each screen shows at once, Sort, adding a task, Focus, Tidy up, Triage, the Roadmap, Task details and Milestone settings. Kept: every feature, your data, the five tabs, Review and Settings.",
-  "blocking": "Waiting on your two remaining choices and your approval. The jot choice is made: a '+ Jot' button at the top.",
+  "blocking": "Waiting on your sign-off and your two remaining choices. The jot choice is already made: + Jot at the top.",
   "next": "After you approve, I'll write the build plan as GitHub issues and build it on the same test link. Nothing goes into the app you use until you've tested it.",
   "todo": [
    "Make the two choices at the bottom.",

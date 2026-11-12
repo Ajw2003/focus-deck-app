@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Step by step prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,600&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Clickable prototype of the step-by-step redesign (QA of #248 failed: too busy). A drawing, not the app.
+   ?all shows every screen in rows by flow (shot by shoot-prototype.cjs); no query = click through one phone. */
+:root{--bg:#E4E8EF;--surface:#FBFAF7;--ink:#1C2438;--soft:#59627A;--faint:#8A93A8;--line:#C7CEDB;--accent:#8F5A06;--tint:#F6EBD7;--paper:#FFFEFA;--note:#FFE27A;--folder:#F1E6CC;--red:#B42318;--green:#2F7A4B}
+*{box-sizing:border-box}body{margin:0;background:#fff;font:16px/1.4 Figtree,system-ui,sans-serif;color:var(--ink)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;text-align:inherit;cursor:pointer}
+[data-go]{cursor:pointer}
+.phone.tall{height:780px}.phone{width:300px;height:640px;background:var(--bg);border-radius:28px;border:8px solid #1d2230;position:relative;overflow:hidden;display:flex;flex-direction:column;flex:none}
+.top{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 6px}
+.logo{white-space:nowrap;font:600 18px Fraunces,serif;display:flex;align-items:center;gap:8px}.logo:before{content:"";width:9px;height:9px;border-radius:50%;background:#D98A12}
+.topr{display:flex;align-items:center;gap:12px}.jot{white-space:nowrap;background:var(--ink);color:#fff;border-radius:999px;padding:7px 14px;font-weight:700;font-size:14px}
+.icon{font-size:18px;color:var(--soft)}.sync{font-size:12px;color:var(--green);font-weight:700}
+.ctx{margin:0 16px 4px;font-size:13px;color:var(--soft);display:flex;justify-content:space-between}.ctx b{color:var(--ink)}
+.prog{margin:4px 16px 0;display:flex;gap:4px}.prog i{flex:1;height:5px;border-radius:3px;background:var(--line)}.prog i.on{background:var(--accent)}
+.stepname{margin:6px 16px 0;font-size:13px;color:var(--soft)}
+h2{font:600 22px/1.2 Fraunces,serif;margin:8px 16px 4px}
+.sub{margin:0 16px 8px;color:var(--soft);font-size:14px}
+.body{flex:1;padding:0 16px 4px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.choice{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:9px 14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%}
+.choice small{font-weight:400;color:var(--soft);font-size:13px;text-align:right}
+.choice.on{border-color:var(--accent);background:var(--tint)}
+.choice.danger{color:var(--red)}
+.foot{padding:8px 16px 10px;display:flex;align-items:center;gap:12px}
+.back{color:var(--soft);font-weight:600;font-size:15px}
+.primary{flex:1;background:var(--accent);color:#fff;border-radius:14px;padding:13px;text-align:center;font-weight:700}
+.primary.off{opacity:.45}
+.second{flex:1;border:2px solid var(--accent);color:var(--accent);border-radius:14px;padding:11px;text-align:center;font-weight:700}
+.skip,.link{color:var(--accent);font-weight:600;font-size:15px}
+.tabs{display:flex;background:var(--surface);border-top:1px solid var(--line);padding:6px 0 10px}
+.tabs button{flex:1;text-align:center;font-size:11px;color:var(--soft);position:relative}.tabs .on{color:var(--accent);font-weight:700}
+.tabs b{display:block;font-size:17px;font-weight:400}.tabs sup{position:absolute;top:-2px;right:14px;background:var(--accent);color:#fff;border-radius:999px;font-size:10px;padding:0 5px;font-weight:700}
+.slip{background:var(--paper);border-radius:6px;box-shadow:0 2px 6px rgba(40,52,80,.2);padding:10px 14px;font:700 18px/1.25 Kalam,cursive;margin:6px 16px 4px;position:relative}
+.slip .more{position:absolute;right:8px;top:4px;font:700 18px Figtree;color:var(--soft)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600;font-size:14px}.chip.on{border-color:var(--accent);background:var(--tint)}
+.folders{display:flex;gap:10px;overflow:hidden;flex:none}.folder{flex:0 0 140px;height:92px;background:var(--folder);border-radius:4px 12px 12px 12px;padding:10px 12px;font-weight:700;position:relative;margin-top:12px}
+.folder:before{content:"";position:absolute;top:-12px;left:0;width:70px;height:14px;background:inherit;border-radius:8px 8px 0 0}
+.folder.on{outline:3px solid var(--accent)}.folder small{display:block;font-weight:400;color:var(--soft);margin-top:14px;font-size:13px}
+.find{border:2px solid var(--line);border-radius:12px;padding:9px 12px;color:var(--faint);background:var(--surface);flex:none}
+.field{border:2px solid var(--accent);border-radius:12px;padding:10px 12px;background:var(--surface);min-height:44px}
+.summary{background:var(--surface);border-radius:14px;border:1px solid var(--line);flex:none}
+.summary>div{display:flex;justify-content:space-between;gap:8px;padding:6px 12px;font-size:13px;border-top:1px solid var(--line);font-size:14px;align-items:center}.summary>div:first-child{border:0}
+.summary span{color:var(--soft);flex:none;width:76px}.summary em{font-style:normal;flex:1}.summary a{color:var(--accent);font-weight:600}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px;flex:none}
+.card h3{margin:0 0 2px;font-size:16px}.card p{margin:0;color:var(--soft);font-size:13px}
+.row2{display:flex;gap:8px}.row2>*{flex:1;justify-content:center;text-align:center}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;flex:none}.bar i{display:block;height:100%;background:var(--accent)}
+.muted{color:var(--soft);font-size:13px;margin:0}
+.note{background:var(--note);padding:16px;border-radius:4px;font:700 21px/1.25 Kalam,cursive;box-shadow:0 4px 10px rgba(0,0,0,.18);transform:rotate(-1deg)}
+.note small{display:block;font:400 13px Figtree;color:#6B5520;margin-bottom:6px}
+.tick{display:flex;gap:10px;align-items:center;font-size:14px}.tick i{width:20px;height:20px;border:2px solid var(--soft);border-radius:5px;flex:none;font-style:normal;text-align:center;line-height:16px;font-size:13px}.tick i.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.seg{display:flex;background:var(--surface);border-radius:12px;border:1px solid var(--line);padding:3px;flex:none}.seg b{flex:1;text-align:center;padding:6px;border-radius:9px;font-size:13px;font-weight:600;color:var(--soft)}.seg b.on{background:var(--tint);color:var(--accent)}
+.slider{height:6px;background:var(--line);border-radius:3px;position:relative;margin:14px 0}.slider i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:3px}.slider u{position:absolute;top:-8px;width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--accent)}
+.toast{position:absolute;left:12px;right:12px;bottom:128px;background:var(--ink);color:#fff;border-radius:12px;padding:10px 14px;font-size:14px;display:flex;justify-content:space-between;gap:8px}.toast a{color:#FFD58A;font-weight:700}
+.dim{position:absolute;inset:0;background:rgba(20,26,40,.45)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-radius:20px 20px 0 0;padding:8px 0 14px;display:flex;flex-direction:column;max-height:88%}
+.sheet:before{content:"";width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 4px}
+.sheet .body{flex:none}
+.x{position:absolute;right:16px;top:10px;font-size:22px;color:var(--soft)}
+/* gallery */
+.flow{padding:20px 24px 8px;border-top:1px solid #e3e6ec}.flow h1{font:600 26px Fraunces,serif;margin:0 0 4px}.flow>p{margin:0 0 14px;color:var(--soft);max-width:900px}
+.frames{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}.frame .cap{font:600 14px Figtree;color:var(--soft);margin:0 0 6px;width:300px;min-height:40px}.frame .id{color:var(--faint);font-weight:400}
+/* click-through */
+.proto{display:flex;gap:28px;padding:20px;align-items:flex-start;flex-wrap:wrap}
+.nav{width:280px;font-size:14px}.nav h3{margin:14px 0 4px;font-size:14px}.nav button{display:block;color:var(--accent);padding:2px 0}
+.nav .now{font-weight:700;color:var(--ink)}
+@media (max-width:700px){.proto{padding:8px}.nav{order:2}}
+.hint{max-width:300px;color:var(--soft);font-size:14px}
+.hot{outline:2px dashed rgba(143,90,6,.0)}.proto [data-go]:hover{outline:2px dashed rgba(143,90,6,.6);outline-offset:2px;border-radius:8px}
+.desk{width:1200px;height:600px;background:var(--bg);border-radius:12px;border:8px solid #1d2230;display:flex;flex-direction:column;overflow:hidden;flex:none}
+.desk .top{background:var(--surface);border-bottom:1px solid var(--line)}
+.deskrow{flex:1;display:flex;overflow:hidden}
+.rail{flex:none;width:190px;background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:14px;font-weight:600;color:var(--soft);border-right:1px solid var(--line)}.rail .on{color:var(--accent)}
+.deskmain{flex:1;display:flex;justify-content:center;gap:24px;padding:20px}
+.panel{width:520px;background:var(--surface);border-radius:18px;border:1px solid var(--line);padding:14px 0 6px;display:flex;flex-direction:column;position:relative}
+.stepsbox{width:200px;font-size:14px;color:var(--soft);display:flex;flex-direction:column;gap:8px;padding-top:30px}.stepsbox .done{color:var(--ink)}.stepsbox .now{color:var(--accent);font-weight:700}
+</style></head><body>
+<div id="root"></div>
+<script>
+// ---------- building blocks ----------
+const TABS = [['sort','☰','1 Sort',10],['organize','🗑','2 Organize'],['roadmap','≡','3 Roadmap'],['focus','◎','4 Focus'],['review','✓','5 Review',5]];
+const FIRST = { sort:'s0', organize:'o0', roadmap:'r0', focus:'f1', review:'v1' };
+const tabs = (on) => '<div class="tabs">' + TABS.map(([k,i,n,c]) => '<button data-go="' + FIRST[k] + '" class="' + (k === on ? 'on' : '') + '"><b>' + i + '</b>' + n + (c ? '<sup>' + c + '</sup>' : '') + '</button>').join('') + '</div>';
+const topbar = (o) => '<div class="top"><span class="logo">Focus Deck</span><span class="topr">'
+  + (o.close ? '<button class="icon" style="font-size:22px" data-go="' + o.close + '">×</button>'
+     : '<button class="jot" data-go="j1">+ Jot</button><button class="sync" data-go="g4" aria-label="Synced">●</button><button class="icon" data-go="x1">⚙</button>') + '</span></div>';
+const C = (t, o = {}) => '<button class="choice' + (o.on ? ' on' : '') + (o.danger ? ' danger' : '') + '"' + (o.go ? ' data-go="' + o.go + '"' : '') + '>' + t + (o.small ? '<small>' + o.small + '</small>' : '') + '</button>';
+const chips = (a, on = [], go) => '<div class="chips">' + a.map((x) => '<span class="chip' + (on.includes(x) ? ' on' : '') + '"' + (go ? ' data-go="' + go + '"' : '') + '>' + x + '</span>').join('') + '</div>';
+const folders = (a, go) => '<div class="folders">' + a.map(([n, s, on]) => '<div class="folder' + (on ? ' on' : '') + '"' + (go ? ' data-go="' + go + '"' : '') + '>' + n + '<small>' + s + '</small></div>').join('') + '</div>';
+const sum = (rows, go) => '<div class="summary">' + rows.map(([k, v, g]) => '<div' + ((g || go) && g !== '-' ? ' data-go="' + (g || go) + '"' : '') + '><span>' + k + '</span><em>' + v + '</em>' + ((g || go) ? '<a>' + (g === '-' ? '' : 'Change') + '</a>' : '') + '</div>').join('') + '</div>';
+const card = (h, p, go) => '<div class="card"' + (go ? ' data-go="' + go + '"' : '') + '><h3>' + h + '</h3>' + (p ? '<p>' + p + '</p>' : '') + '</div>';
+const tick = (t, on, go) => '<div class="tick"' + (go ? ' data-go="' + go + '"' : '') + '><i class="' + (on ? 'on' : '') + '">' + (on ? '✓' : '') + '</i>' + t + '</div>';
+const seg = (a, on) => '<div class="seg">' + a.map((x) => '<b class="' + (x === on ? 'on' : '') + '">' + x + '</b>').join('') + '</div>';
+const SLIP = 'Get three quotes for fixing the shed door';
+const STEPS9 = ['Project','Priority','Labels','Due date','Part of','Subtasks','Waits on','Holds up','Check'];
+
+// a screen: { tab, ctx, step:[n, of, opt], slip, h, sub, body, back, skip, btn, go, btn2, go2, close, notabs, toast, sheet:{over, h, sub, body} }
+function phone(id) {
+  const o = S[id];
+  if (o.sheet) return phoneBase(S[o.over], o.over, '<div class="dim" data-go="' + o.over + '"></div><div class="sheet">' + (o.h ? '<h2>' + o.h + '</h2>' : '') + (o.sub ? '<p class="sub">' + o.sub + '</p>' : '') + '<div class="body">' + (o.body || '') + '</div>' + (o.btn ? foot(o) : '') + '</div>');
+  return phoneBase(o, id, '');
+}
+const foot = (o) => '<div class="foot">' + (o.back ? '<button class="back" data-go="' + o.back + '">‹ Back</button>' : '') + (o.skip ? '<button class="skip" data-go="' + o.skip + '">Skip</button>' : '')
+  + (o.btn2 ? '<button class="second" data-go="' + o.go2 + '">' + o.btn2 + '</button>' : '') + (o.btn ? '<button class="primary' + (o.off ? ' off' : '') + '" data-go="' + (o.go || '') + '">' + o.btn + '</button>' : '') + '</div>';
+function phoneBase(o, id, extra, bare) {
+  return '<div class="' + (bare ? 'panel' : 'phone') + (o.tall && !bare ? ' tall' : '') + '" data-screen="' + id + '">' + (bare ? '' : topbar(o))
+    + (o.ctx ? '<p class="ctx"><button data-go="g1">Showing <b>' + o.ctx + ' ▾</b></button>' + (o.menu ? '<button data-go="' + o.menu + '" style="font-weight:800;font-size:18px;line-height:12px">⋯</button>' : '') + '</p>' : '')
+    + (o.step ? (o.step[1] <= 10 ? '<div class="prog">' + Array.from({ length: o.step[1] }, (_, i) => '<i class="' + (i < o.step[0] ? 'on' : '') + '"></i>').join('') + '</div>' : '') + '<p class="stepname">' + (o.stepword || 'Step') + ' ' + o.step[0] + ' of ' + o.step[1] + (o.step[2] ? ' · optional' : '') + (o.stepnote ? ' · ' + o.stepnote : '') + '</p>' : '')
+    + (o.slip ? '<div class="slip">' + o.slip + (o.slipmenu ? '<button class="more" data-go="' + o.slipmenu + '">⋯</button>' : '') + '</div>' : '')
+    + (o.h ? '<h2>' + o.h + '</h2>' : '') + (o.sub ? '<p class="sub">' + o.sub + '</p>' : '')
+    + '<div class="body">' + (o.body || '') + '</div>'
+    + ((o.btn || o.back || o.btn2) ? foot(o) : '')
+    + (o.toast ? '<div class="toast">' + o.toast + '</div>' : '')
+    + (o.notabs || bare ? '' : tabs(o.tab || 'sort')) + extra + '</div>';
+}
+
+// ---------- every screen ----------
+const sortStep = (n, extra) => Object.assign({ tab:'sort', ctx:'All tasks', step:[n, 9, n >= 3 && n <= 8], slip:SLIP, slipmenu:'s0m', back:'s' + (n - 1) }, extra);
+const S = {
+ // Header, Jot and Showing
+ j1:{ close:'s0', notabs:false, h:'Jot a thought', body:'<div class="slip" style="margin:0;min-height:110px;color:#8A93A8;font-weight:400">Type it here…</div><button class="muted" data-go="j2" style="text-align:left">Goes to: <b style="color:var(--accent)">Sort ▾</b> &nbsp;(sort it later)</button><p class="muted">Enter saves. Shift and Enter starts a new line.</p>', btn:'Save thought', go:'j3' },
+ j2:{ sheet:1, over:'j1', h:'Where should it go?', body:C('Sort, to sort later', { on:1, go:'j1' }) + '<div class="find">Find a project…</div>' + C('Home', { small:'add as a task', go:'j1' }) + C('Open source: focus-deck', { small:'add as a task', go:'j1' }) + '<p class="muted">On a project’s Roadmap it starts on that project.</p>' },
+ j3:{ tab:'sort', ctx:'All tasks', h:'Sort', sub:'11 thoughts to sort. One at a time.', body:'<div class="slip" style="margin:0">' + SLIP + '</div><p class="muted">Thought · 3 minutes ago</p>', btn:'Sort this one', go:'s1', toast:'<span>Saved to Sort.</span>' },
+ g1:{ sheet:1, over:'s0', h:'What do you want to see?', sub:'Every tab shows only this.', body:C('All tasks', { on:1, go:'s0' }) + C('One area', { small:'Home, Work…', go:'g2' }) + C('One project', { small:'19 projects', go:'g3' }) },
+ g2:{ sheet:1, over:'s0', h:'Which area?', body:C('Personal', { small:'6 projects', go:'s0' }) + C('Home', { small:'4 projects', go:'s0' }) + C('Apps', { small:'3 projects', go:'s0' }) + C('Lists', { small:'2 projects', go:'s0' }) + '<button class="back" data-go="g1">‹ Back</button>' },
+ g3:{ sheet:1, over:'s0', h:'Which project?', body:'<div class="find">Find a project…</div>' + C('Home', { small:'21 open', go:'r2' }) + C('Open source: focus-deck', { small:'9 open', go:'r2' }) + C('Band', { small:'3 open', go:'r2' }) + '<button class="back" data-go="g1">‹ Back</button>' },
+ g4:{ sheet:1, over:'s0', h:'Sync', sub:'Your tasks match on every device and on GitHub.', body:sum([['Last sync','2 minutes ago'],['GitHub','3 projects linked']]) + C('Sync now', { go:'s0' }) + C('Sync settings ›', { go:'x1' }) },
+ x1:{ close:'s0', notabs:true, h:'Settings', sub:'One section opens at a time, as today.', body:sum([['Set up','2 of 3 done','-'],['Looks','Handwriting, 8 areas, 45 kinds','-'],['Comfort','Movement, colour, cards','-'],['Works','Tap twice, due dates','-'],['Sync','Off','-'],['Help','Replay the welcome','-']]) + '<p class="muted">Settings and the welcome already pass the calm check (10 and 7 things to press), so they stay as they are.</p>' },
+
+ // Sort, one thought
+ s0:{ tab:'sort', ctx:'All tasks', h:'Sort', sub:'10 thoughts to sort. One at a time.', body:'<div class="slip" style="margin:0">' + SLIP + '<button class="more" data-go="s0m">⋯</button></div><p class="muted">Thought · 3 minutes ago · No notes</p><button class="link" data-go="m1" style="text-align:left">Sort several at once instead</button>', btn:'Sort this one', go:'s1' },
+ s0m:{ sheet:1, over:'s0', h:'This thought', body:C('Add notes', { go:'s0n' }) + C('Done already', { small:'ticks it off', go:'s0' }) + C('Later', { small:'next thought', go:'s0' }) + C('Delete', { danger:1, go:'s0' }) },
+ s0n:{ tab:'sort', close:'s0', slip:SLIP, h:'Notes', body:'<div class="field" style="min-height:140px;color:var(--faint)">Anything to remember…</div>', btn:'Save notes', go:'s0', back:'s0' },
+ s1:sortStep(1, { back:'s0', h:'Which project?', body:'<div class="find">Find a project…</div>' + folders([['Home','21 open',1],['Garden','2 open']], 's2') + '<p class="muted">Swipe for more · 1 of 19</p><button class="link" data-go="r5" style="text-align:left">+ New project</button>', btn:'Next: priority', go:'s2' }),
+ s2:sortStep(2, { h:'How important is it?', body:C('Urgent', { small:'today, or it hurts' }) + C('High', { on:1, small:'this week' }) + C('Medium', { small:'soon' }) + C('Low', { small:'whenever' }) + '<button class="link" style="text-align:left">No priority</button>', btn:'Next: labels', go:'s3' }),
+ s3:sortStep(3, { skip:'s4', h:'What kind of work?', sub:'Pick any. Your own kinds come first.', body:'<div class="find">Find a label…</div>' + chips(['Repair','Call','Buy','Outside','Quick win','Errand','Fix','Chore'], ['Repair','Call']) + '<button class="link" data-go="s3a" style="text-align:left">Show all 45 kinds</button><button class="link" data-go="s3b" style="text-align:left">+ New label</button>', btn:'Next: due date', go:'s4' }),
+ s3a:sortStep(3, { tall:1, skip:'s4', h:'All kinds of work', sub:'A to Z. Find narrows it.', body:'<div class="find">Find a label…</div>' + chips(['Admin','Art','Bug','Build','Buy','Call','Chore','Clean','Code','Cook','Deep work','Design','Email','Errand','Evening','Family','Friends'], ['Call']) + '<p class="muted">Scroll for 30 more.</p>', back:'s3', btn:'Done', go:'s3' }),
+ s3b:sortStep(3, { h:'New label', body:'<div class="field">Measure</div><p class="muted">It joins your kinds of work everywhere.</p>', back:'s3', btn:'Add label', go:'s3' }),
+ s4:sortStep(4, { skip:'s5', stepnote:'Skip means no date', h:'When is it due?', body:C('Today') + C('Tomorrow') + C('Friday', { on:1 }) + C('Next week') + C('Pick a date…', { go:'s4a' }), btn:'Next: part of', go:'s4b' }),
+ s4a:sortStep(4, { h:'Pick a date', body:'<div class="card" style="text-align:center;padding:14px"><b>November 2026</b><p style="margin-top:8px;letter-spacing:6px">M T W T F S S</p><p style="letter-spacing:5px;color:var(--ink)">9 10 11 12 <b style="color:var(--accent)">13</b> 14 15</p><p style="letter-spacing:5px;color:var(--ink)">16 17 18 19 20 21 22</p></div>', back:'s4', btn:'Use 13 Nov', go:'s4b' }),
+ s4b:sortStep(4, { skip:'s5', stepnote:'warning', h:'When should it warn you?', sub:'Due Friday. Skip uses your setting (yellow at 33%, red at 10%).', body:C('Turn yellow', { small:'2 days left ▾' }) + C('Turn red', { small:'1 day left ▾' }), back:'s4', btn:'Next: part of', go:'s5' }),
+ s5:sortStep(5, { skip:'s6', h:'Is it part of a bigger task?', sub:'Inside Home.', body:'<div class="find">Find a task in Home…</div>' + C('Rebuild the shed', { small:'Home' }) + C('Sort out the garden', { on:1, small:'Home' }), btn:'Next: subtasks', go:'s6' }),
+ s6:sortStep(6, { skip:'s7', h:'Does it have smaller steps?', sub:'Subtasks, inside Home.', body:'<div class="find">“Measure the door”</div>' + C('+ New subtask “Measure the door”', { on:1 }) + C('Order hinges', { small:'Home' }), btn:'Next: waits on', go:'s7' }),
+ s7:sortStep(7, { skip:'s8', h:'Does it wait on anything?', sub:'A task in any project that has to be done first.', body:'<div class="find">Find a task in any project…</div>' + C('Pay council tax', { small:'Finances' }) + C('Measure the door', { on:1, small:'Home' }), btn:'Next: holds up', go:'s8' }),
+ s8:sortStep(8, { skip:'s9', h:'Does anything wait on this?', sub:'Tasks in any project that can’t start until this is done.', body:'<div class="find">Find a task in any project…</div>' + C('Rehang the shed door', { small:'Home' }), btn:'Next: check', go:'s9' }),
+ s9:sortStep(9, { tall:1, h:'Check it', body:sum([['Project','Home','s1'],['Priority','High','s2'],['Labels','Repair, Call','s3'],['Due','Friday, warns 2 days before','s4'],['Part of','Sort out the garden','s5'],['Subtasks','Measure the door (new)','s6'],['Waits on','Measure the door','s7'],['Holds up','None','s8'],['Notes','None','s0n']]), btn:'Save to Home', go:'s10' }),
+ s10:{ tab:'sort', ctx:'All tasks', h:'Sort', sub:'9 thoughts to sort. One at a time.', body:'<div class="slip" style="margin:0">Book the boiler service<button class="more" data-go="s0m">⋯</button></div><p class="muted">Thought · yesterday</p>', btn:'Sort this one', go:'s1', toast:'<span>Filed to Home.</span><a data-go="d0">Open</a>' },
+ s11:{ tab:'sort', ctx:'All tasks', h:'Nothing to sort', sub:'Every thought has a home.', body:'<p class="muted">New thoughts from + Jot land here.</p>', btn:'Go to Organize', go:'o0' },
+
+ // Sort several at once
+ m1:{ tab:'sort', ctx:'All tasks', step:[1, 5], h:'Which thoughts?', sub:'Tick the ones that belong together.', body:'<div class="row2"><button class="link" data-go="m1">Tick all</button><button class="link" data-go="m1">Clear ticks</button></div>' + tick('Get three quotes for the shed door', 1) + tick('Order hinges', 1) + tick('Book the boiler service') + tick('Measure the door', 1) + tick('Ring the council about bins'), back:'s0', btn:'Next: project (3 ticked)', go:'m2' },
+ m2:{ tab:'sort', ctx:'All tasks', step:[2, 5], h:'Which project for all 3?', body:'<div class="find">Find a project…</div>' + folders([['Home','21 open',1],['Garden','2 open']]), back:'m1', btn:'Next: labels', go:'m3' },
+ m3:{ tab:'sort', ctx:'All tasks', step:[3, 5, 1], h:'Labels for all 3?', body:'<div class="find">Find a label…</div>' + chips(['Repair','Buy','Call','Outside','Errand'], ['Repair']) + '<button class="link" style="text-align:left">Show all 45 kinds</button><button class="link" style="text-align:left">+ New label</button>', back:'m2', skip:'m4', btn:'Next: group them', go:'m4' },
+ m4:{ tab:'sort', ctx:'All tasks', step:[4, 5, 1], h:'Group them under one task?', sub:'They become its subtasks.', body:'<div class="field">Fix the shed door</div><p class="muted">Skip keeps them as 3 separate tasks.</p>', back:'m3', skip:'m5', btn:'Next: check', go:'m5' },
+ m5:{ tab:'sort', ctx:'All tasks', step:[5, 5], h:'Check it', body:sum([['Thoughts','3 ticked','m1'],['Project','Home','m2'],['Labels','Repair','m3'],['Grouped','Under “Fix the shed door”','m4']]) + '<p class="muted">Priority and due dates stay one at a time, from Task details.</p>', back:'m4', btn:'Sort 3 into Home', go:'s10' },
+
+ // Organize
+ o0:{ tab:'organize', ctx:'All tasks', h:'Organize', sub:'Two jobs, in order. Each shows one thing at a time.', body:C('1 · Tidy up', { small:'29 to look at', go:'t1' }) + C('2 · Triage', { small:'pick what comes first', go:'r10' }) , btn:'Start tidying', go:'t1' },
+ t1:{ tab:'organize', ctx:'All tasks', step:[1, 29], stepword:'Task', h:'Built, waiting for your review', sub:'Is it finished?', body:card('Contact form sends twice', 'Website redesign · In review since Monday', 'd0') + '<button class="link" data-go="d0" style="text-align:left">Open details</button><div class="row2">' + C('Keep') + C('Close', { go:'t2' }) + '</div><p class="muted">5 for this reason. Then: replaced (1), look the same (22), not touched in 60 days (1).</p>', back:'o0', btn:'Skip this reason', go:'t2' },
+ t2:{ tab:'organize', ctx:'All tasks', step:[6, 29], stepword:'Task', h:'Replaced by newer work', sub:'A newer task does the same job.', body:card('Old shelf plan', 'Home · added 90 days ago', 'd0') + '<p class="muted">Replaced by: <b>New shelf plan</b> (Home)</p><div class="row2">' + C('Keep') + C('Close', { go:'t3' }) + '</div>', back:'t1' },
+ t3:{ tab:'organize', ctx:'All tasks', step:[7, 29], stepword:'Task', h:'Looks the same as another', sub:'Keep both, or merge into one?', body:card('Mop the kitchen', 'Home · Chore · added 3 May', 'd0') + '<p class="muted" style="text-align:center">looks like</p>' + card('Mop the kitchen floor', 'Home · Chore · added 9 June', 'd0') + '<div class="row2">' + C('Keep both') + C('Merge', { go:'t4' }) + '</div>', back:'t2' },
+ t4:{ tab:'organize', ctx:'All tasks', step:[29, 29], stepword:'Task', h:'Not touched in 60 days', sub:'Do you still want this?', body:card('Clear out the loft', 'Home · added 90 days ago · last changed 8 Aug', 'd0') + '<div class="row2">' + C('Keep') + C('Close', { go:'t5' }) + '</div>', back:'t3' },
+ t5:{ tab:'organize', ctx:'All tasks', h:'Close 3 and merge 1?', sub:'Nothing changes until you confirm.', body:sum([['Close','Contact form sends twice','-'],['Close','Old shelf plan','-'],['Merge','Mop the kitchen','-'],['Close','Clear out the loft','-']]) + '<p class="muted">Tap a row to keep it instead.</p>', back:'t4', btn:'Confirm, then Triage', go:'r10t' },
+ r10t:{ tab:'organize', ctx:'All tasks', h:'Do these first', sub:'Picked by the 7 rules. Move one if you disagree.', body:card('1 · Renew passport', 'Family · Urgent · needs review', 'd0') + card('2 · Draft the volunteer rota', 'Volunteering · in progress', 'd0') + card('3 · Contact form sends twice', 'Website redesign · due today', 'd0') + '<button class="link" data-go="r11" style="text-align:left">Next (8) ▸</button><button class="link" data-go="r12" style="text-align:left">Later (57) ▸</button>', btn:'Move…', go:'r13', btn2:'Why these?', go2:'r14', toast:'<span>Closed 3, merged 1.</span><a data-go="t5">Undo</a>' },
+ r10:{ tab:'organize', ctx:'All tasks', h:'Do these first', sub:'Picked by the 7 rules. Move one if you disagree.', body:card('1 · Renew passport', 'Family · Urgent · needs review', 'd0') + card('2 · Draft the volunteer rota', 'Volunteering · in progress', 'd0') + card('3 · Contact form sends twice', 'Website redesign · due today', 'd0') + '<button class="link" data-go="r11" style="text-align:left">Next (8) ▸</button><button class="link" data-go="r12" style="text-align:left">Later (57) ▸</button>', btn:'Move…', go:'r13', btn2:'Why these?', go2:'r14' },
+ r11:{ tab:'organize', ctx:'All tasks', h:'Next', sub:'8 tasks, in order.', body:card('4 · Book boiler service', 'Home · High') + card('5 · Fix the gate latch', 'Home · High') + card('6 · Email the accountant', 'Finances · High') + '<p class="muted">and 5 more</p>', back:'r10', btn:'Move…', go:'r13' },
+ r12:{ tab:'organize', ctx:'All tasks', h:'Later', sub:'57 tasks. Find narrows it.', body:'<div class="find">Find a task…</div>' + card('Learn the bridge', 'Band · Medium') + card('Scan sketches', 'Portfolio · Low') + card('Order compost', 'Garden · Low'), back:'r10', btn:'Move…', go:'r13' },
+ r13:{ tab:'organize', ctx:'All tasks', h:'Move tasks', sub:'Arrows move a task up or down, or between Now, Next and Later.', body:'<div class="card" style="display:flex;justify-content:space-between"><b>1 · Renew passport</b><span>↑ ↓</span></div><div class="card" style="display:flex;justify-content:space-between"><b>2 · Draft the volunteer rota</b><span>↑ ↓</span></div><div class="card" style="display:flex;justify-content:space-between"><b>3 · Contact form sends twice</b><span>↑ ↓</span></div><p class="muted">On a computer you can drag, or use Alt and the arrow keys.</p>', btn2:'Reset to the rules', go2:'r10', btn:'Done moving', go:'r10' },
+ r14:{ sheet:1, over:'r10', h:'Why these?', sub:'The 7 rules, in order. The first rule a task meets places it.', body:'<p class="muted">1 Needs review · 2 In progress · 3 Past its date, or due today · 4 Priority: Urgent, High, Medium, Low · 5 Holds up other tasks · 6 Due soonest · 7 Oldest first</p><p class="muted">Your own order wins over these, until you press Reset to the rules.</p>', btn:'Got it', go:'r10' },
+
+ // Roadmap, all projects and new project
+ r0:{ tab:'roadmap', ctx:'All tasks', h:'Roadmap', sub:'19 projects.', menu:'r0m', body:'<div class="find" data-go="r0">Find a project…</div>' + card('Open source: focus-deck', '<span class="bar" style="display:block;margin:6px 0"><i style="width:40%"></i></span>40% done · Now: Start here screen · 9 open', 'r2') + card('Home', '<span class="bar" style="display:block;margin:6px 0"><i style="width:15%"></i></span>15% done · Now: Unplanned · 21 open', 'r2') + card('Band', '<span class="bar" style="display:block;margin:6px 0"><i style="width:0%"></i></span>0% done · 3 open', 'r2'), btn:'+ New project', go:'r5' },
+ r0m:{ sheet:1, over:'r0', h:'Sort projects', body:C('Name, A to Z', { go:'r0' }) + C('Most open tasks', { on:1, go:'r0' }) + C('Closest deadline', { go:'r0' }) + C('Recently synced', { go:'r0' }) + C('My own order', { small:'arrows to change', go:'r0o' }) },
+ r0o:{ tab:'roadmap', ctx:'All tasks', h:'My own order', sub:'Arrows move a project. On a computer you can drag.', body:'<div class="card" style="display:flex;justify-content:space-between"><b>Open source: focus-deck</b><span>↑ ↓</span></div><div class="card" style="display:flex;justify-content:space-between"><b>Home</b><span>↑ ↓</span></div><div class="card" style="display:flex;justify-content:space-between"><b>Band</b><span>↑ ↓</span></div>', btn:'Done', go:'r0' },
+ r5:{ tab:'roadmap', ctx:'All tasks', step:[1, 4], h:'What is the project called?', body:'<div class="field">Shed rebuild</div>', back:'r0', btn:'Next: area', go:'r6' },
+ r6:{ tab:'roadmap', ctx:'All tasks', step:[2, 4], h:'Which area is it in?', body:C('Home', { on:1 }) + C('Personal') + C('Apps') + C('No area') + C('+ New area'), back:'r5', btn:'Next: colour', go:'r7' },
+ r7:{ tab:'roadmap', ctx:'All tasks', step:[3, 4], h:'Pick a colour', body:'<div class="chips">' + ['#c9584f','#d98a12','#2f7a4b','#3d5a80','#8459c0','#59627a'].map((c, i) => '<span style="width:44px;height:44px;border-radius:50%;background:' + c + ';' + (i === 2 ? 'outline:3px solid var(--ink);outline-offset:3px' : '') + '"></span>').join('') + '</div>', back:'r6', btn:'Next: GitHub', go:'r8' },
+ r8:{ tab:'roadmap', ctx:'All tasks', step:[4, 4, 1], h:'Keep it on GitHub?', sub:'Its tasks become GitHub issues and stay in step.', body:C('Not on GitHub', { on:1 }) + C('Link to one of my repos', { small:'pick from a list', go:'r8a' }) + C('Create a new repo', { small:'private or public', go:'r8b' }) + C('Track someone else’s repo', { small:'paste its link', go:'r8c' }), back:'r7', skip:'r9', btn:'Make the project', go:'r9' },
+ r8a:{ tab:'roadmap', ctx:'All tasks', step:[4, 4, 1], h:'Which repo?', body:'<div class="find">Find a repo…</div>' + C('Ajw2003/shed-plans', { on:1 }) + C('Ajw2003/notes') + '<p class="muted">Can’t load them? Retry, or paste a link instead.</p>', back:'r8', btn:'Link and make it', go:'r9' },
+ r8b:{ tab:'roadmap', ctx:'All tasks', step:[4, 4, 1], h:'New repo', body:'<div class="field">shed-rebuild</div>' + C('Private', { on:1 }) + C('Public'), back:'r8', btn:'Create and make it', go:'r9' },
+ r8c:{ tab:'roadmap', ctx:'All tasks', step:[4, 4, 1], h:'Paste the repo’s link', body:'<div class="field" style="color:var(--faint)">github.com/owner/repo</div><p class="muted">Tracking reads its issues; it never writes to it.</p>', back:'r8', btn:'Track and make it', go:'r9' },
+ r9:{ tab:'roadmap', ctx:'Shed rebuild', menu:'r2m', h:'Shed rebuild', sub:'Nothing planned yet.', body:'<p class="muted">Add a first task, or a milestone to group tasks under.</p>' + C('+ Add a task', { go:'r3' }) + C('+ Add a milestone', { go:'r2a' }), toast:'<span>Made Shed rebuild.</span>' },
+
+ // Roadmap, one project
+ r2:{ tab:'roadmap', ctx:'Open source: focus-deck', menu:'r2m', h:'Start here screen', sub:'Foundations · milestone 1 of 4 · 2 of 5 done', body:'<div class="bar"><i style="width:40%"></i></div>' + chips(['Up next 1','Doing 1','Review 1','Done 2'], ['Up next 1'], 'r2') + '<div class="card" style="display:flex;gap:10px;align-items:center" data-go="r4"><span class="tick"><i></i></span><div><h3>Test on phone</h3><p>High · due Friday</p></div></div><div class="row2"><button class="link" data-go="r2">‹ Previous</button><button class="link" data-go="r2o">All milestones</button><button class="link" data-go="r2">Next ›</button></div>', btn:'+ Add a task', go:'r3' },
+ r2m:{ sheet:1, over:'r2', h:'Open source: focus-deck', body:C('Milestone settings', { go:'r2s' }) + C('All milestones and sections', { go:'r2o' }) + C('Find a task in this project', { go:'r2f' }) + C('Edit project', { go:'r2e' }) + C('Sync with GitHub', { small:'2 min ago', go:'r2' }) + C('+ New project', { go:'r5' }) },
+ r2o:{ tab:'roadmap', ctx:'Open source: focus-deck', menu:'r2m', h:'All milestones', sub:'Tap one to open it. Arrows reorder.', body:'<p class="muted"><b>1 · Foundations</b> ↑↓</p>' + C('Start here screen', { small:'40% · ↑↓', go:'r2' }) + C('Areas', { small:'100% · ↑↓', go:'r2' }) + '<p class="muted"><b>2 · Plan tools</b> ↑↓</p>' + C('Tidy up and Triage', { small:'0% · ↑↓', go:'r2' }) + C('Unplanned', { small:'3 tasks', go:'r2' }), btn:'+ Milestone', go:'r2a', btn2:'+ Section', go2:'r2b' },
+ r2a:{ tab:'roadmap', ctx:'Open source: focus-deck', h:'New milestone', body:'<div class="field">Test on real phones</div><p class="muted">In section: <b>Plan tools ▾</b></p>', back:'r2o', btn:'Add milestone', go:'r2o' },
+ r2b:{ tab:'roadmap', ctx:'Open source: focus-deck', h:'New section', body:'<div class="field">Launch</div><p class="muted">Sections group milestones, like chapters.</p>', back:'r2o', btn:'Add section', go:'r2o' },
+ r2f:{ tab:'roadmap', ctx:'Open source: focus-deck', h:'Find a task', body:'<div class="field">phone</div>' + C('Test on phone', { small:'Start here · Up next', go:'d0' }) + C('Phone layout check', { small:'Areas · Done', go:'d0' }), back:'r2' },
+ r2s:{ tab:'roadmap', ctx:'Open source: focus-deck', step:[1, 2], h:'How much does it count?', sub:'Start here screen, in Open source: focus-deck', body:'<div class="slider"><i style="width:40%"></i><u style="left:38%"></u></div><p><b>40%</b> of the project. The other 3 milestones share the other 60%.</p>', back:'r2', btn:'Next: how to measure', go:'r2t' },
+ r2t:{ tab:'roadmap', ctx:'Open source: focus-deck', step:[2, 2], h:'How do you measure it?', body:C('Tasks done', { on:1, small:'2 of 5 tasks' }) + C('Task size', { small:'small 1, medium 2, large 3' }) + C('Your own number', { small:'like screens tested 2 of 4', go:'r2u' }) + C('A checklist', { small:'tick what done means', go:'r2v' }), back:'r2s', btn:'Save milestone', go:'r2' },
+ r2u:{ tab:'roadmap', ctx:'Open source: focus-deck', step:[2, 2], h:'Your own number', body:'<div class="field">screens tested</div><div class="row2"><div class="field">2</div><div class="field">of 4</div></div>', back:'r2t', btn:'Save milestone', go:'r2' },
+ r2v:{ tab:'roadmap', ctx:'Open source: focus-deck', step:[2, 2], h:'A checklist', body:tick('Works on a phone', 1) + tick('Works offline') + tick('Eden has tried it') + '<div class="find">Add an item…</div>', back:'r2t', btn:'Save milestone', go:'r2' },
+ r2e:{ tab:'roadmap', ctx:'Open source: focus-deck', h:'Edit project', sub:'Tap a line to change it.', body:sum([['Name','Open source: focus-deck','r5'],['Area','Apps','r6'],['Colour','Purple','r7'],['GitHub','Ajw2003/focus-deck-app','r8']]) + C('Remove project', { danger:1, go:'r2x' }), back:'r2' },
+ r2x:{ sheet:1, over:'r2e', h:'Remove Open source: focus-deck?', sub:'Its 9 tasks go too. GitHub keeps its issues.', body:'', btn:'Remove it', go:'r0', back:'r2e' },
+ r3:{ tab:'roadmap', ctx:'Open source: focus-deck', h:'Add a task', sub:'To Start here screen, Up next.', body:'<div class="field">Check the install prompt</div>', back:'r2', btn2:'Add details…', go2:'s2', btn:'Add', go:'r2' },
+ r4:{ sheet:1, over:'r2', h:'Test on phone', sub:'Up next · High · due Friday', body:C('Start it', { small:'In progress', go:'r2' }) + C('Send to Review', { go:'r2' }) + C('Mark done', { go:'r2' }) + C('Move to another milestone ›', { go:'r4m' }) + C('Focus on this', { go:'f3' }) + C('Make it a milestone', { go:'r2o' }) + C('Details ›', { go:'d0' }) },
+ r4m:{ sheet:1, over:'r2', h:'Move to which milestone?', body:C('Start here screen', { on:1, go:'r2' }) + C('Areas', { go:'r2' }) + C('Tidy up and Triage', { go:'r2' }) + C('Unplanned', { go:'r2' }) },
+
+ // Task details
+ d0:{ tall:1, tab:'roadmap', close:'r2', h:'Test on phone', sub:'Open source: focus-deck › Start here screen', body:sum([['Status','Up next','d1'],['Priority','High','s2'],['Due','Friday','s4'],['Labels','Code, Phone','s3'],['Part of','None','s5'],['Subtasks','2 of 3 done','d2'],['Waits on','Install prompt','s7'],['Holds up','None','s8'],['Notes','None','s0n'],['GitHub','Issue #212','d3']]) + '<p class="muted">Each line opens its question, with Save.</p>', btn2:'⋯ More', go2:'d4', btn:'Focus on this', go:'f3' },
+ d1:{ sheet:1, over:'d0', h:'Status', body:C('Up next', { on:1, go:'d0' }) + C('In progress', { go:'d0' }) + C('Review', { go:'d0' }) + C('Done', { go:'d0' }) },
+ d2:{ tab:'roadmap', close:'d0', h:'Subtasks', sub:'Test on phone', body:tick('Install from the browser', 1) + tick('Open offline', 1) + tick('Add a thought') + '<div class="find">+ Add a subtask…</div>', back:'d0', btn:'Done', go:'d0' },
+ d3:{ tab:'roadmap', close:'d0', h:'GitHub', body:sum([['Issue','#212 Test on phone','-']]) + C('Open on GitHub ↗') + C('Unlink the issue') + '<p class="muted">A task with no issue shows “Create an issue” and “Link an issue” here.</p>', back:'d0' },
+ d4:{ sheet:1, over:'d0', h:'More', body:C('Rename', { go:'d0' }) + C('Move to another project ›', { go:'s1' }) + C('Delete task', { danger:1, go:'r2' }) },
+
+ // Focus
+ f1:{ tab:'focus', ctx:'All tasks', step:[1, 2], h:'Which project?', body:'<div class="find">Find a project…</div>' + folders([['All projects','68 open · top: Urgent',1],['Home','21 open · top: Urgent']], 'f2') + '<p class="muted">Swipe for more · 1 of 20</p>', btn2:'Pick for me', go2:'f3', btn:'Next: kind of work', go:'f2' },
+ f2:{ tab:'focus', ctx:'All tasks', step:[2, 2, 1], h:'What kind of work?', sub:'Skip means any kind.', body:'<div class="find">Find a kind…</div>' + folders([['Call','6 open · top: Urgent',1],['Buy','7 open · top: Urgent']], 'f3') + '<p class="muted">Swipe for Unlabelled and Surprise me · 1 of 24</p>', back:'f1', skip:'f3', btn:'Show me one task', go:'f3' },
+ f3:{ tab:'focus', ctx:'All tasks', body:'<div class="note" style="margin-top:14px"><small>Family · Urgent · due Friday</small>Renew passport before the Lisbon trip</div><div class="row2" style="margin-top:12px">' + C('I’ve done it', { on:1, go:'f5' }) + C('Not this one', { go:'f3' }) + '</div><button class="link" data-go="f4" style="text-align:center">More ▾</button>' },
+ f4:{ tab:'focus', ctx:'All tasks', body:'<div class="note" style="margin-top:8px"><small>Family · Urgent · due Friday</small>Renew passport before the Lisbon trip</div>' + C('Start it', { small:'In progress', go:'f3' }) + C('Subtasks', { small:'1 of 3 ›', go:'f4s' }) + C('Details ›', { go:'d0' }) + C('Go to Family on the Roadmap', { go:'r2' }) + C('Clear, pick again', { go:'f1' }), btn:'Less ▴', go:'f3' },
+ f4s:{ tab:'focus', ctx:'All tasks', h:'Subtasks', sub:'Tick one off, or tap its name to focus on it instead.', body:tick('Find old passport', 1) + tick('Get photos taken') + tick('Fill in the form'), back:'f4', btn:'Back to the task', go:'f3' },
+ f5:{ tab:'focus', ctx:'All tasks', h:'Done. Nice.', sub:'Renew passport is ticked off.', body:'<div class="note" style="opacity:.55;text-decoration:line-through;transform:rotate(3deg)"><small>Family · Urgent</small>Renew passport before the Lisbon trip</div>', btn:'Pick the next one', go:'f1' },
+
+ // Review
+ v1:{ tab:'review', ctx:'All tasks', stepword:'Task', step:[1, 5], h:'Is it finished?', sub:'Waiting for your review.', body:card('Pick one for me', 'Open source: focus-deck · sent for review Monday', 'd0') + '<button class="link" data-go="d0" style="text-align:left">Open details</button><div class="row2">' + C('Looks good', { on:1, go:'v2' }) + C('Needs more work', { go:'v2' }) + '</div>', btn2:'Done this week (3)', go2:'v3' },
+ v2:{ tab:'review', ctx:'All tasks', stepword:'Task', step:[2, 5], h:'Is it finished?', sub:'Waiting for your review.', body:card('Renew passport before the Lisbon trip', 'Family · sent for review today', 'd0') + '<button class="link" data-go="d0" style="text-align:left">Open details</button><div class="row2">' + C('Looks good', { on:1 }) + C('Needs more work') + '</div>', btn2:'Done this week (4)', go2:'v3', toast:'<span>Pick one for me is done.</span><a data-go="v1">Undo</a>' },
+ v3:{ tab:'review', ctx:'All tasks', h:'Done this week', sub:'4 tasks. Undo puts one back.', body:sum([['Mon','Pick one for me','-'],['Tue','Bins out Thursday','-'],['Wed','Pay the gas bill','-'],['Thu','Tune the guitar','-']]).replace(/<a><\/a>/g, '<a>Undo</a>'), back:'v1' },
+};
+// screens drawn on a computer
+const DESK = {
+ ds:{ cap:'Sort on a computer: the same steps in one panel, with the list of steps beside it.', main:'s2', steps:STEPS9, at:1 },
+ dr:{ cap:'Roadmap on a computer: the milestone fills the middle; the task sheet opens beside it instead of over it.', main:'r2', side:'r4' },
+ dd:{ cap:'Task details on a computer: opens as a panel beside the list, so you never lose your place.', main:'r2', side:'d0' },
+};
+function desk(k) {
+  const d = DESK[k], inner = (id) => { const o = S[id]; return o.sheet ? '<div class="panel" style="width:330px">' + '<h2>' + o.h + '</h2>' + (o.sub ? '<p class="sub">' + o.sub + '</p>' : '') + '<div class="body">' + o.body + '</div></div>' : phoneBase(o, id, '', true).replace('class="panel"', 'class="panel"' + (d.side && id === d.side ? ' style="width:340px"' : '')); };
+  return '<div class="desk">' + topbar({}) + '<div class="deskrow"><div class="rail">' + TABS.map(([t, i, n]) => '<span class="' + (S[d.main].tab === t ? 'on' : '') + '">' + i + ' ' + n + '</span>').join('') + '</div><div class="deskmain">' + inner(d.main)
+    + (d.steps ? '<div class="stepsbox">' + d.steps.map((s, i) => '<span class="' + (i < d.at ? 'done' : i === d.at ? 'now' : '') + '">' + (i < d.at ? '✓ ' : i === d.at ? '● ' : '') + s + '</span>').join('') + '</div>' : '')
+    + (d.side ? inner(d.side) : '') + '</div></div></div>';
+}
+
+// ---------- the flows, in the order a person meets them ----------
+const FLOWS = [
+ ['header', 'Header, + Jot and Showing', 'Every tab starts with the name, + Jot, the sync dot and the cog, then one “Showing” line. Tapping Showing opens the All / Area / Project switch as a sheet.', [['j1','+ Jot opens a screen with only the box.'],['j2','“Goes to” picks Sort or a project, like today’s To: stamp.'],['j3','Saving keeps you where you were.'],['g1','Showing: All, one area, or one project.'],['g2','One area.'],['g3','One project.'],['g4','The sync dot opens Sync now.'],['x1','Settings stays as it is.']]],
+ ['sort', 'Sort: one thought, nine steps', 'Your order: project, priority, labels, due date, waits on, holds up. Part of and Subtasks are in today’s third step, so they keep a step each. Every optional step has Skip. The ⋯ on the thought holds notes, Done already, Later and Delete.', [['s0','The thought, and one button.'],['s0m','The ⋯ on the thought.'],['s0n','Notes get their own screen.'],['s1','1 Project. + New project is here too.'],['s2','2 Priority. You can’t skip it.'],['s3','3 Labels. Your own kinds first.'],['s3a','Show all 45 kinds. (Scrolls.)'],['s3b','+ New label.'],['s4','4 Due date.'],['s4a','Pick a date.'],['s4b','4b When to warn you (today’s due-date step).'],['s5','5 Part of a bigger task.'],['s6','6 Subtasks, with + New subtask.'],['s7','7 Waits on, any project.'],['s8','8 Holds up, any project.'],['s9','9 Check it. Change jumps back. (Scrolls a little on a phone.)'],['s10','Saved: the next thought, and Open for the one you filed.'],['s11','Nothing left to sort.']]],
+ ['many', 'Sort: several at once', 'Today’s “Select many”, as five steps.', [['m1','1 Tick the thoughts.'],['m2','2 One project for all.'],['m3','3 Labels for all.'],['m4','4 Group them under one task.'],['m5','5 Check it.']]],
+ ['organize', 'Organize: Tidy up, then Triage', 'Tidy up shows one task at a time with its reason (your choice 3, option 1). Nothing closes until you confirm. Triage shows Now only; Next and Later open on their own screens.', [['o0','Two jobs, in order.'],['t1','Waiting for review: Keep or Close.'],['t2','Replaced: shows what replaced it.'],['t3','Looks the same: both shown, Keep both or Merge.'],['t4','Not touched in 60 days.'],['t5','Confirm once. Undo after.'],['r10t','Triage: Now only, with Undo for the tidy.'],['r10','Triage from the Organize start.'],['r11','Next.'],['r12','Later, with Find.'],['r13','Move mode: arrows, Reset to the rules.'],['r14','Why these: the 7 rules.']]],
+ ['roadmap', 'Roadmap: all projects, and a new project', 'The project list keeps Find, Sort and progress. A new project is four steps, with every GitHub option from today’s panel.', [['r0','All projects.'],['r0m','Sort projects (the ⋯).'],['r0o','My own order.'],['r5','New 1: name.'],['r6','New 2: area, or + New area.'],['r7','New 3: colour.'],['r8','New 4: GitHub, optional.'],['r8a','Link one of my repos.'],['r8b','Create a new repo.'],['r8c','Track someone else’s repo.'],['r9','Made: add a task or milestone.']]],
+ ['project', 'Roadmap: one project', 'One milestone and one column at a time. Everything else from today’s project screen lives in the ⋯ menu.', [['r2','A milestone, one column.'],['r2m','The ⋯ menu.'],['r2o','All milestones and sections: open, hide, reorder.'],['r2a','+ Milestone.'],['r2b','+ Section.'],['r2f','Find a task.'],['r2e','Edit project: tap a line.'],['r2x','Remove project, confirmed.'],['r3','Add a task: Add, or Add details… (the Sort steps).'],['r4','Tap a task: what you can do to it.'],['r4m','Move to another milestone.'],['r2s','Milestone settings 1: how much it counts.'],['r2t','Milestone settings 2: how to measure.'],['r2u','Your own number.'],['r2v','A checklist.']]],
+ ['details', 'Task details', 'One list, each line shows its answer. Tapping a line opens the same screen the Sort step uses, with Save instead of Next. Nothing is folded away.', [['d0','Every detail on one list. (Scrolls a little on a phone.)'],['d1','Status.'],['d2','Subtasks: tick and add.'],['d3','GitHub issue.'],['d4','More: rename, move to another project, delete.']]],
+ ['focus', 'Focus', 'Two questions, then one task with two buttons. Everything else is behind More.', [['f1','1 Project, or Pick for me.'],['f2','2 Kind of work. Skip means any.'],['f3','One task.'],['f4','More: start, subtasks, details, go to project, clear.'],['f4s','Subtasks: tap one to focus on it instead.'],['f5','Done: the note peels away, then back to picking.']]],
+ ['review', 'Review', 'One task at a time. Done this week keeps Undo.', [['v1','Is it finished?'],['v2','After Looks good: the next one, with Undo.'],['v3','Done this week.']]],
+];
+
+// ---------- render ----------
+const q = new URLSearchParams(location.search);
+const root = document.getElementById('root');
+if (q.has('all')) {
+  const only = q.get('all');
+  root.innerHTML = FLOWS.filter((f) => !only || f[0] === only).map(([k, h, p, list]) => '<section class="flow" id="' + k + '"><h1>' + h + '</h1><p>' + p + '</p><div class="frames">'
+    + list.map(([id, cap]) => '<div class="frame"><p class="cap">' + cap + ' <span class="id">' + id + '</span></p>' + phone(id) + '</div>').join('') + '</div></section>').join('')
+    + (!only || only === 'desk' ? '<section class="flow" id="desk"><h1>On a computer</h1><p>The same screens, in a panel in the middle. The tabs move to the left.</p><div class="frames">' + Object.keys(DESK).map((k) => '<div class="frame"><p class="cap" style="width:auto">' + DESK[k].cap + '</p>' + desk(k) + '</div>').join('') + '</div></section>' : '');
+} else {
+  const show = (id) => {
+    if (!S[id]) return;
+    root.innerHTML = '<div class="proto"><div class="nav"><h2 style="margin:0 0 6px;font:600 22px Fraunces,serif">Step by step prototype</h2><p class="hint">Tap anything with a dashed outline when you hover. Or jump to a screen:</p>'
+      + FLOWS.map(([k, h, , list]) => '<h3>' + h + '</h3>' + list.map(([sid, cap]) => '<button data-go="' + sid + '" class="' + (sid === id ? 'now' : '') + '">' + cap + '</button>').join('')).join('') + '</div>'
+      + '<div>' + phone(id) + '<p class="hint" style="margin-top:8px">' + ((FLOWS.flatMap((f) => f[3]).find((x) => x[0] === id) || [, ''])[1]) + '</p></div></div>';
+    try { history.replaceState(null, '', '#' + id); } catch (e) { /* a sandboxed frame may refuse; the screen still shows */ }
+  };
+  root.addEventListener('click', (e) => { const g = e.target.closest('[data-go]'); if (g && g.dataset.go) { e.preventDefault(); show(g.dataset.go); } });
+  show(location.hash.slice(1) || 's0');
+}
+window.SCREENS = S; window.FLOWS = FLOWS;
+</script></body></html>
