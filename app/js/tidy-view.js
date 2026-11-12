@@ -13,7 +13,7 @@ function row(item, group, marks) {
   return '<li class="td-row" data-task-id="' + esc(item.id) + '" data-mark="' + esc(mark || '') + '">'
     + '<div class="td-row-text"><span class="td-row-title">' + esc(t.title) + (same ? ' <span class="td-sep">·</span> ' + esc(item.other.title) : '') + '</span>'
     + '<span class="td-row-meta">' + esc(p.name) + (when ? ' · ' + (t.updatedAt ? 'touched ' : 'added ') + esc(relTime(when)) : '') + '</span></div>'
-    + '<div class="td-btns">' + btn('keep', 'Keep', 'ghost') + (same ? btn('merge', 'Merge', 'primary') : btn('close', 'Close', 'primary')) + '</div></li>';
+    + '<div class="td-btns">' + btn('keep', 'Keep', 'ghost') + (same ? btn('merge', 'Merge', 'ghost') : btn('close', 'Close', 'ghost')) + '</div></li>';
 }
 
 export function renderTidy(st, ui, now = Date.now()) {

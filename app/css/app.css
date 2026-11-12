@@ -1510,7 +1510,7 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .td-row-meta{color:var(--ink-soft); font-size:.82rem;}
 .td-btns{display:flex; gap:8px;}
 .td-btn{min-height:40px;}
-.td-btn.is-marked{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); box-shadow:inset 0 0 0 2px var(--surface);}
+.td-btn.is-marked, .td-btn.is-marked:hover{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); box-shadow:inset 0 0 0 2px var(--surface);}
 .td-closed summary{cursor:pointer; font-weight:600;}
 .td-side{position:sticky; top:calc(var(--topbar-h, 64px) + 16px); background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:8px;}
 .td-count{margin:0; color:var(--ink-soft);}
