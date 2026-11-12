@@ -42,7 +42,7 @@ every action the Sort tab had is in `docs/generated/friction-steps/feature-map.j
 
 - **Start (s0).** "N to sort", one thought on a jotter slip (text editable unless GitHub-linked) with a **⋯**
   drawer pull (`sort-menu`: Add notes, Done already, Later, Delete, in a `.dk-sheet` card-index drawer), a
-  **Sort several** flag (`bulk-toggle`, the existing Select many, below, until #265 redesigns it) and a stamped
+  **Sort several** flag (`bulk-toggle`, five screens, see Sort many at once below) and a stamped
   **Sort this one** card. Nothing left: "All sorted ✓" and an **Organize** card.
 - **Steps 1 to 9**, each on the clipboard with nine progress dots, a Back corner, a Skip flag (steps 3 to 8 only,
   `canSkip`) and a stamped Next card: 1 project (the `tray-folders` carousel, Find, **+ New project** page),
@@ -59,13 +59,14 @@ every action the Sort tab had is in `docs/generated/friction-steps/feature-map.j
 - After Save the notice reads "Filed to <project> ✓" with **Open** (`open-added-task`), and the next thought
   shows at its start screen. A task saved with no label still goes to the back (`later`).
 - Files: `js/sort-flow.js` (pure: `navigate`, `monthGrid`, `shiftMonth`, `formatDue`, `warnPlan`),
-  `js/sort-flow-view.js` (the markup), `js/in-tray-view.js` (the card, plus Select many), `js/app.js`
+  `js/sort-flow-view.js` (the markup), `js/in-tray-view.js` (the card), `js/sort-many-view.js` (Sort several), `js/app.js`
   (`onSortAction`; `ui.unsorted` gains `step` 0 to 9, `sub`, `menu`, `month`, `letter`, `dueStages`,
   `fromReceipt`). `fileSlip` and `M.fileInboxItem` now carry `dueStages`; a task slip also saves a changed
   priority and due date. `css/app.css`, "Sort in nine steps (#264)", uses the `dk-*` kit.
 - Every screen fits a 390x844 phone without the page scrolling and has no text under 13px
-  (`scripts/shoot-sort-264.mjs` measures both and writes `docs/generated/sort-264/`). Known: "Sort several" (Select many)
-  still has 12px meta text; #265 redesigns it.
+  (`scripts/shoot-sort-264.mjs` measures both and writes `docs/generated/sort-264/`). `scripts/shoot-many-265.mjs` does the
+  same for Sort several (`docs/generated/many-265/`). Per Eden's rule the slip shows the project chip with no
+  "Going in"/"In" before it, and the labels carousel has no "no label yet" detail and no "Nothing picked yet." line.
 - Tests: `js/sort-flow.test.mjs`, `js/in-tray.test.mjs`, `js/in-tray-priority.test.mjs`. Browser checks that drive
   Sort: `check-in-tray-browser.mjs`, `check-priority-browser.mjs`, `check-carousel-browser.mjs`,
   `check-category-filter-browser.mjs`, `check-bulk-sort-browser.mjs`, `check-desktop-browser.mjs`.
@@ -117,23 +118,28 @@ for the thoughts you ticked." The jotter itself is exempt: jotting into Unsorted
 
 ## Sort many at once
 
-Built 2026-10-24 (Aj asked for it with "skip design"). A **Select many** button beside the tray's
-count (shown when two or more slips wait) swaps the one-slip tray for a list of every slip, each a
-row with a tick box (`.bulk-row`, `data-bulk-key` = the queue key), with **Tick all**, **Clear ticks**
-and **One at a time** above it. A panel beside the list (below it on a phone) takes one project
-(`<select data-bulk-project>`), any labels (`.bulk-flag` toggles, plus a "New label" field) and an
-optional name for a new task to group them under (`data-bulk-group`). **Sort N items** applies all
-of it to every ticked slip.
+Built 2026-10-24 as a list and panel; redesigned 2026-11-12 (#265, Eden: "Design approved") as **Sort
+several in five steps**, prototype screens m1 to m5. The **Sort several** flag on the Sort tab
+(`bulk-toggle`, with two or more slips waiting) opens, on the same clipboard and progress dots
+(five) as the Sort steps (`js/sort-many-view.js`):
 
-Each row shows the item's whole text, never cut short, with a small line under it: how long ago a
-thought was jotted ("4d ago"), or a task's project. Until 2026-10-25 the text was clamped to four
-lines with `-webkit-line-clamp` and "Thought · 4d ago" sat beside it; on Aj's phone the clamp cut
-each row to one line with the rest spilling over the card, so the clamp is gone
-(`.bulk-text`, `.bulk-meta` in `app/css/app.css`).
-That alone did not fix it: with many slips (Aj had 41) the list itself was a height-capped
-scrolling grid, and that squeezed every row to one line. Since 2026-10-25 the list is a plain block
-that grows with the page (`.bulk-list`), and the browser check seeds 41 slips in the dyslexic face
-to catch this.
+1. **Which ones?** Every slip as a tick row (`.bulk-row`, `data-bulk-key` = the queue key, whole text,
+   no caption), **✓ All** (`bulk-all`) and **Clear** (`bulk-none`). Next waits for a tick; Back leaves
+   Sort several (`bulk-toggle`).
+2. **Which project?** Folder carousel and Find (the Sort step 1 carousel, wallet `tray-folders`). A
+   ticked thought also needs a priority, so the four priority flags show here (`pick-set`, scope `bulk`)
+   only when a thought is ticked; Next waits for both. Tasks alone may keep their own projects.
+3. **What kind of work?** The index-card carousel and Find (wallet `tray-flags`, `bulk-flag`), picked
+   labels hang below as tags, **+ New label** (`bulk-new-label`, then `bulk-new-flag`) and **Skip**.
+4. **Group under one task?** A jotter field (`data-bulk-group`) and **Skip**.
+5. **All good?** The receipt: items, project, priority (thoughts only), labels, group, each with a pencil
+   (`bulk-step`; it returns to the receipt after one change) and the **Sort N** stamp (`bulk-apply`).
+
+Back, Next and Skip are `bulk-back`, `bulk-next`, `bulk-skip`. `ui.bulk` gains `step`, `sub`,
+`fromReceipt`, `find`, `facingFolder`, `facingFlag`, `showAllFlags`; `trayScratch()` in `app/js/app.js`
+points the carousels at `ui.bulk` while Sort several is open. The tick list scrolls inside the
+clipboard (`.many-list`), never the page, so 41 slips still fit 390x844. Priority on step 2 is a
+placement I chose (the prototype has no priority screen); say if it should move.
 
 - `app/js/in-tray.js`: `pickedSlips`, `bulkProjectId`, `bulkBlocker` (why Apply waits) and
   `bulkSort`. A ticked thought is filed (`fileInboxItem`, then the GitHub issue hook); a ticked task
@@ -142,14 +148,15 @@ to catch this.
   the same labels) and every sorted item that `canSetParent` allows becomes its subtask. Thoughts
   need a project; tasks alone can be labelled where they are, and grouped when they all share one
   project. A slip that went away meanwhile (a sync, another tab) is skipped and counted.
-- `app/js/in-tray-view.js`: `renderBulk`. `app/js/app.js`: `ui.bulk` (`freshBulk`; memory only,
+- `app/js/sort-many-view.js`: `renderSortMany`. `app/js/app.js`: `ui.bulk` (`freshBulk`; memory only,
   apart from `ui.unsorted`, which resets with each top slip) and `onBulkAction`.
 - **A copy first.** Before applying, `bulk-apply` saves the stored data as it was into the backup
   list (`backupRaw(..., 'before sorting many at once')`, the same list a load keeps,
   `app/js/state.js:105`).
 - Tests: `app/js/in-tray.test.mjs` (the "select many" tests); browser check
-  `scripts/check-bulk-sort-browser.mjs` (46 checks on a phone and a wide screen, sample data only).
-  Screenshots in `docs/generated/bulk-sort/`.
+  `scripts/check-bulk-sort-browser.mjs` (56 checks on a phone and a wide screen, sample data only).
+  Screenshots in `docs/generated/bulk-sort/`; the five screens at 390px in `docs/generated/many-265/`
+  (`scripts/shoot-many-265.mjs`, with fit and 13px checks).
 
 **Long thoughts.** The jotter has no length limit any more (see `styling.md#the-jotter`). A thought
 over the old 400 characters, or written over several lines, is filed with its first line (cut to

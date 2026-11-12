@@ -50,6 +50,7 @@ const SHELL_ASSETS = [
   './js/in-tray-view.js',
   './js/sort-flow.js',
   './js/sort-flow-view.js',
+  './js/sort-many-view.js',
   './js/pick-bits.js',
   './js/onboarding.js',
   './js/onboarding-view.js',

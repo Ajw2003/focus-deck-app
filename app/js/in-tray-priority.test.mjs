@@ -45,8 +45,8 @@ test('Sort priority step and bulk panel carry the pickers; Next waits for a prio
   const set = card({ step: 2, projectId: 'pB', priority: 'high' });
   assert.ok(set.includes('aria-pressed="true"') && set.includes('data-field="priority" data-value="high"') && !set.includes('disabled>Next<'));
   assert.ok(card({ step: 9, projectId: 'pB' }).includes('disabled>Save to Home<') && card({ step: 9, projectId: 'pB', priority: 'high' }).includes('unsorted-file'), 'the receipt files only with a priority');
-  const bulk = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh(), bulk: { on: true, picked: ['i:th1'], projectId: 'pB', selected: [], groupTitle: '', newLabel: '', why: '' } });
-  assert.ok(bulk.includes('data-scope="bulk"') && bulk.includes('Pick a priority for the thoughts'));
+  const bulk = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh(), bulk: { on: true, step: 2, picked: ['i:th1'], projectId: 'pB', selected: [], groupTitle: '', newLabel: '', why: '' } });
+  assert.ok(bulk.includes('data-scope="bulk"') && bulk.includes('Pick a priority to go on.') && bulk.includes('disabled>Next<'));
 });
 
 test('the steps carry the warn stages and a task\'s priority and due date to what they save', () => {

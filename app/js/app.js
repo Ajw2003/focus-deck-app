@@ -73,7 +73,7 @@ function saveProjectSort() {
 // "Select many" on the Sort screen: memory only, and kept apart from ui.unsorted, which resets
 // whenever the top slip changes. `picked` holds queue keys.
 function freshBulk(on) {
-  return { on: !!on, priority: null, due: '', dateOpen: false, picked: [], projectId: null, selected: [], groupTitle: '', newLabel: '', why: '' };
+  return { on: !!on, step: 1, sub: null, fromReceipt: false, find: '', facingFolder: null, facingFlag: null, showAllFlags: false, priority: null, due: '', dateOpen: false, picked: [], projectId: null, selected: [], groupTitle: '', newLabel: '', why: '' };
 }
 
 function freshUnsortedScratch(later) {
@@ -170,6 +170,9 @@ function announceWallet(text) {
   if (live) live.textContent = text;
 }
 
+// The Sort tab's carousels write to the one-thought flow, or to Sort several when that is open.
+const trayScratch = () => (ui.bulk.on ? ui.bulk : ui.unsorted);
+
 const walletHooks = {
   announce: announceWallet,
   onFacing(name, key) {
@@ -181,9 +184,9 @@ const walletHooks = {
     } else if (name === 'categories') {
       ui.focusCategory = key;
     } else if (name === 'tray-folders') {
-      ui.unsorted.facingFolder = key;
+      trayScratch().facingFolder = key;
     } else if (name === 'tray-flags') {
-      ui.unsorted.facingFlag = key;
+      trayScratch().facingFlag = key;
     }
   },
   // Returns false when nothing could be drawn (the card goes back down).
@@ -191,19 +194,21 @@ const walletHooks = {
     // the in-tray's wallets don't draw a task: choosing puts a folder or a flag on the slip, and
     // choosing it again takes it off
     if (name === 'tray-folders') {
-      ui.unsorted.projectId = toggleFolder(ui.unsorted.projectId, key);
-      ui.unsorted.facingFolder = key;
+      const S = trayScratch();
+      S.projectId = toggleFolder(S.projectId, key);
+      S.facingFolder = key;
       paint();
       return true;
     }
     if (name === 'tray-flags' && key === MORE_FLAGS_KEY) {
-      ui.unsorted.showAllFlags = true; // Settings > Category choices hid some (#133)
+      trayScratch().showAllFlags = true; // Settings > Category choices hid some (#133)
       paint();
       return true;
     }
     if (name === 'tray-flags') {
-      ui.unsorted.selected = toggleToken(ui.unsorted.selected, key);
-      ui.unsorted.facingFlag = key;
+      const S = trayScratch();
+      S.selected = toggleToken(S.selected, key);
+      S.facingFlag = key;
       paint();
       return true;
     }
@@ -1058,7 +1063,12 @@ function onAppInput(e) {
   // innerText, not textContent, so a line break typed into the title is kept
   if (e.target.matches && e.target.matches('[data-slip-title]')) { ui.unsorted.title = e.target.innerText; return; }
   if (e.target.matches && e.target.matches('[data-bulk-group]')) { ui.bulk.groupTitle = e.target.value; refreshBulkApply(); return; }
-  if (e.target.matches && e.target.matches('[data-bulk-newlabel]')) { ui.bulk.newLabel = e.target.value; return; }
+  if (e.target.matches && e.target.matches('[data-bulk-newlabel]')) {
+    ui.bulk.newLabel = e.target.value;
+    const add = document.querySelector('[data-action="bulk-new-flag"]');
+    if (add) add.disabled = !e.target.value.trim();
+    return;
+  }
   if (e.target.matches && e.target.matches('.slip-notes')) { ui.unsorted.notes = e.target.value; return; }
   if (e.target.matches && e.target.matches('[data-tie-find]')) {
     ui.unsorted.pickQuery = e.target.value;
@@ -1073,7 +1083,14 @@ function onAppInput(e) {
     if (slot) { slot.innerHTML = R.renderProjectWalletInner(viewState(state), ui); mountWallets(slot, walletHooks); }
     return;
   }
-  if (e.target.matches && e.target.matches('.sort-find')) {
+  if (e.target.matches && e.target.matches('[data-bulk-find]')) {
+    ui.bulk.find = e.target.value;
+    paintKeepingFocus('[data-bulk-find]');
+    const box = document.querySelector('[data-bulk-find]');
+    if (box) box.setSelectionRange(box.value.length, box.value.length);
+    return;
+  }
+  if (e.target.matches && e.target.matches('.sort-find:not([data-bulk-newlabel])')) {
     ui.unsorted.find = e.target.value;
     paint();
     const box = document.querySelector('.sort-find');
@@ -1164,6 +1181,19 @@ function refreshBulkApply() {
 function onBulkAction(action, el) {
   const b = ui.bulk;
   if (action === 'bulk-toggle') { ui.bulk = freshBulk(!b.on); paint(); return; }
+  const go = (step) => { b.step = step; b.find = ''; b.why = ''; paint(); };
+  if (action === 'bulk-next' || action === 'bulk-skip') {
+    if (action === 'bulk-skip' && b.step === 4) b.groupTitle = '';
+    if (action === 'bulk-skip' && b.step === 3) b.selected = [];
+    go(b.fromReceipt ? 5 : Math.min(5, b.step + 1)); b.fromReceipt = false; return;
+  }
+  if (action === 'bulk-back') {
+    if (b.sub) { b.sub = null; paint(); return; }
+    if (b.step === 1) { ui.bulk = freshBulk(false); paint(); return; }
+    const to = b.fromReceipt ? 5 : b.step - 1; b.fromReceipt = false; go(to); return;
+  }
+  if (action === 'bulk-step') { b.fromReceipt = true; go(+el.getAttribute('data-step')); return; }
+  if (action === 'bulk-new-label') { b.sub = 'newlabel'; paintKeepingFocus('[data-bulk-newlabel]'); return; }
   if (action === 'bulk-all') { b.picked = bulkOrdered().map((x) => x.key); b.why = ''; paint(); return; }
   if (action === 'bulk-none') { b.picked = []; b.why = ''; paint(); return; }
   if (action === 'bulk-flag') { b.selected = toggleToken(b.selected, el.getAttribute('data-token')); paintKeepingFocus('[data-action="bulk-flag"][data-token="' + CSS.escape(el.getAttribute('data-token')) + '"]'); return; }
@@ -1174,7 +1204,7 @@ function onBulkAction(action, el) {
       if (!b.selected.includes(id)) b.selected = b.selected.concat(id);
       b.newLabel = '';
     }
-    paintKeepingFocus('[data-bulk-newlabel]');
+    b.sub = null; paint();
     return;
   }
   if (action === 'bulk-apply') {
