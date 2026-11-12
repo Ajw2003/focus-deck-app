@@ -395,17 +395,20 @@ function moveTaskTo(req) {
     const dest = state.projects.find((p) => p.id === req.toProjectId);
     if (!now || !dest) return;
     const order = taskOrderChanges(sortTasks(dest.tasks.filter((t) => t.status === req.status)), req.taskId, req.toIndex);
+    const wasR = now.task.status === 'review';
     M.applyTaskMove({ taskId: req.taskId, toProjectId: dest.id, status: req.status, changes: order });
+    const relabel = () => { const t = findTaskWithProject(req.taskId); if (t && (wasR || t.task.status === 'review')) pushReviewToIssue(t.task, t.task.status !== 'review'); };
     const title = now.task.title;
     if (plan.kind === 'create-issue') {
       createGithubIssueFromTask(req.taskId, dest.repoFullName, ui).then(() => {
+        relabel();
         const t = findTaskWithProject(req.taskId);
         if (ui.syncError) ui.syncError = 'Moved “' + title + '” to ' + dest.name + ', but it stays unlinked. ' + ui.syncError;
         else if (t && t.task.source === 'github') ui.notice = 'Moved “' + title + '” to ' + dest.name + ' and linked it to ' + t.task.repoFullName + '#' + t.task.issueNumber + '.';
         paint();
       });
     } else if (plan.kind === 'transfer') {
-      transferTaskIssue(req.taskId, dest.repoFullName, ui, dest.name).then(paint);
+      transferTaskIssue(req.taskId, dest.repoFullName, ui, dest.name).then((ok) => { if (ok) relabel(); paint(); });
     }
   };
   if (!plan.confirm) { run(); return true; }

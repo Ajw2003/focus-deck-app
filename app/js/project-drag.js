@@ -335,7 +335,8 @@ function keyboardTaskMove(e, grip, opts) {
   if (!card || !row) return;
   const taskId = grip.getAttribute('data-task');
   const projectId = grip.getAttribute('data-project');
-  const ids = { doing: [], next: [] };
+  const ORDER = ['doing', 'review', 'next']; // the groups' order on the card
+  const ids = { doing: [], review: [], next: [] };
   card.querySelectorAll('.task-group[data-group]').forEach((g) => {
     ids[g.getAttribute('data-group')] = Array.from(g.querySelectorAll('.task-row')).map((r) => r.getAttribute('data-task'));
   });

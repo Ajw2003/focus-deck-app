@@ -74,6 +74,8 @@ export function applyTaskMove({ taskId, toProjectId, status, changes }) {
     from.tasks = from.tasks.filter((t) => t.id !== taskId);
     to.tasks.push(task);
     if (status) task.status = status;
+    // within one repo the label moves with the task; a transfer or new issue is handled by the caller (app.js moveTaskTo)
+    if (status && String(task.repoFullName || '').toLowerCase() === String(to.repoFullName || '').toLowerCase()) pushReviewToIssue(task, wasReview);
   }
   Object.keys(changes || {}).forEach((id) => {
     const t = to.tasks.find((x) => x.id === id);
