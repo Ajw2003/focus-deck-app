@@ -1,6 +1,6 @@
-// scripts/check-tidy-browser.mjs -- Tidy up (#255) in real Chromium at 390x844 and 1440x900: the four groups and
-// counts, Keep/Close/Merge marks, the "N → M" number, Confirm closes only marked tasks in the chosen Area, the
-// Closed list and Undo, another area shows only its tasks, no page errors, no sideways scroll.
+// scripts/check-tidy-browser.mjs -- Tidy up as tick lists (#266, was #255) in real Chromium at 390x844 and 1440x900: the four screens, ticks
+// then a desk object marks, Close these?, the Confirm stamp closes only marked tasks in the chosen Area, the
+// Closed slip and Undo, another area shows only its tasks, no page errors, no sideways scroll.
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux/chrome node scripts/check-tidy-browser.mjs
 // Serves the repo root on 127.0.0.1:8139. Screenshots: docs/generated/build-checks/step7/tidy-*.png
 import { createRequire } from 'node:module';
@@ -60,49 +60,38 @@ for (const phone of [true, false]) {
   await page.goto(BASE);
   await page.waitForSelector('.rail');
   const shot = (n) => page.screenshot({ path: OUT + 'tidy-' + (phone ? '390' : '1440') + '-' + n + '.png' });
-  const counts = () => page.$$eval('.td-group', (g) => g.map((x) => x.dataset.group + ':' + x.querySelectorAll('.td-row').length).join());
-  const nums = () => page.$eval('[data-open]', (e) => e.textContent.replace(/\s+/g, ' ').replace(' becomes', '').trim());
-  const mark = (id, m) => page.click('.td-row[data-task-id="' + id + '"] [data-mark="' + m + '"]');
+  const rows = () => page.$$eval('.org-row', (g) => g.map((x) => x.dataset.taskId).join());
+  const step = (n) => page.click('[data-action="tidy-skip"][data-step="' + n + '"]');
+  const tick = (id) => page.click('[data-tidy-tick="' + id + '"]');
+  const obj = (m) => page.click('.dk-obj[data-mark="' + m + '"]');
   const noScroll = async (n) => check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), tag + 'no sideways scroll ' + n);
-  const pickArea = async (id) => { await page.click('[data-action="view-mode"][data-mode="area"]'); await page.click('[data-action="view-pick"][data-id="' + id + '"]'); };
+  const pickArea = async (id) => { await page.click('.vs-tape'); await page.click('[data-action="view-step"][data-step="area"]'); await page.click('[data-action="view-pick"][data-id="' + id + '"]'); };
   const doneIds = () => page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).projects.flatMap((p) => p.tasks).filter((x) => x.status === 'done').map((x) => x.id).sort().join());
-  const goScreen = async (k) => { const d = page.locator('.rail-sub[data-screen="' + k + '"]'); if (await d.isVisible()) return d.click(); if (!(await page.locator('.org-tab[data-screen="' + k + '"]').count())) await page.click('.rail-item[data-go]'); await page.click('.org-tab[data-screen="' + k + '"]'); };
-  await goScreen('tidy');
-  await page.waitForSelector('.td-layout');
-  check((await page.textContent('.board-title')) === 'Tidy up: All', tag + 'title says All');
-  check(await counts() === 'review:2,replaced:2,same:2,stale:2', tag + 'four groups, two each', await counts());
-  check(await nums() === '11 → 11', tag + 'open 11 → 11', await nums());
-  await noScroll('tab'); await shot('tab');
-  await pickArea('a1');
-  check(await counts() === 'review:1,replaced:1,same:1,stale:1', tag + 'Home shows only its tasks', await counts());
-  check((await page.textContent('.board-title')) === 'Tidy up: Home', tag + 'title says Home');
-  await mark('h1', 'close'); await mark('h2', 'keep'); await mark('h3', 'merge'); await mark('h5', 'close');
-  check((await page.$$('.td-btn.is-marked')).length === 4, tag + 'four marks visible');
-  check(await nums() === '6 → 3', tag + 'N → M is 6 → 3', await nums());
-  check((await page.textContent('.td-confirm')) === 'Confirm 3, then Triage', tag + 'Confirm 3, then Triage');
-  await mark('h5', 'close');
-  check((await page.textContent('.td-confirm')) === 'Confirm 2, then Triage', tag + 'pressing again unmarks');
-  await mark('h5', 'close');
-  check(await doneIds() === '', tag + 'nothing closed before Confirm');
-  await noScroll('marked'); await shot('marked');
-  // a mark made in Work must survive a Confirm in Home
-  await pickArea('a2'); await mark('w1', 'close');
-  await pickArea('a1');
-  await page.click('.td-confirm');
-  check(await page.isVisible('.tr-layout'), tag + 'Confirm leads to Triage');
-  await goScreen('tidy');
-  check(await doneIds() === 'h1,h3,h5', tag + 'Confirm closed only the three Home marks', await doneIds());
-  check(await counts() === 'replaced:1', tag + 'closed tasks leave the groups', await counts());
-  check((await page.$$('.td-closed .td-row')).length === 3, tag + 'Closed list has 3');
-  await noScroll('after-confirm'); await shot('after-confirm');
-  await page.click('.td-closed [data-task="h1"]');
-  check((await counts()).startsWith('review:1'), tag + 'Undo puts h1 back in review', await counts());
-  check((await page.$$('.td-closed .td-row')).length === 2 && await doneIds() === 'h3,h5', tag + 'Closed list has 2, h1 open again', await doneIds());
-  await noScroll('closed-undo'); await shot('closed-undo');
-  await pickArea('a2');
-  check(await counts() === 'review:1,replaced:1,same:1,stale:1', tag + 'Work shows its tasks', await counts());
-  check((await page.$$('.td-row[data-task-id^="h"]')).length === 0, tag + 'no Home task in Work');
-  check((await page.textContent('.td-confirm')) === 'Confirm 1, then Triage', tag + 'Work keeps its own mark');
+  const openTidy = async () => { await page.click('.rail-item[data-go="tidy"]'); await page.waitForSelector('.org'); await page.click('.dk-btn[data-action="tidy-step"]'); };
+  await openTidy();
+  check((await page.textContent('.sort-q')) === 'Finished?' && await rows() === 'h1,w1', tag + 'Finished? lists the two review tasks', await rows());
+  await noScroll('finished'); await shot('finished');
+  await step(2); check(await rows() === 'h2,w2', tag + 'Replaced? lists two', await rows());
+  await step(3); check(await rows() === 'h3,w3', tag + 'The same? lists the older of each pair', await rows());
+  await step(4); check(await rows() === 'h5,w5', tag + 'Still want it? lists two', await rows());
+  await page.click('.rail-item[data-go="tidy"]');
+  await pickArea('a1'); await page.click('.dk-btn[data-action="tidy-step"]');
+  check(await rows() === 'h1', tag + 'Home shows only its Finished? task', await rows());
+  // Home: close h1 (Finished?), keep h2, merge h3, close h5
+  await tick('h1'); await obj('close');
+  await tick('h2'); await obj('keep');
+  await tick('h3'); await obj('merge');
+  await tick('h5'); await obj('close');
+  check((await page.textContent('.sort-q')) === 'Close these?' && (await page.$$('.org-plain')).length === 3, tag + 'Close these? lists h1, h3, h5 (not the kept one)');
+  check((await page.textContent('.org-list')).includes('📎 Buy compost'), tag + 'the merged one has a paperclip');
+  check(await doneIds() === '', tag + 'nothing closed before the Confirm stamp');
+  await noScroll('close-these'); await shot('close-these');
+  await page.click('[data-action="tidy-confirm"]');
+  check(await page.isVisible('.tr-card') && (await page.textContent('.org-slip')).includes('Closed 3'), tag + 'the stamp leads to Triage with Closed 3');
+  check(await doneIds() === 'h1,h3,h5', tag + 'it closed only the three Home marks', await doneIds());
+  await noScroll('after-stamp'); await shot('after-stamp');
+  await page.click('.org-slip [data-action="tidy-undo"]');
+  check(await doneIds() === '' && !(await page.$('.org-slip')), tag + 'Undo brings them all back', await doneIds());
   await ctx.close();
 }
 await browser.close();

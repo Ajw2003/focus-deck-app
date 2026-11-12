@@ -2,35 +2,48 @@
 
 ## What it owns
 
-`js/tidy.js` (pure grouping, `tidyGroups`, `confirmIds`), `js/tidy-view.js` (markup), `confirmTidy` in
-`js/mutations.js`, the `tidy-*` actions in `js/app.js`, the `.td-*` rules at the end of `css/app.css`. Tests:
-`js/tidy.test.mjs`; browser check: `scripts/check-tidy-browser.mjs` (390 and 1440 wide; screenshots in
-`docs/generated/build-checks/step7/`).
+`js/tidy.js` (pure grouping, `tidyGroups`, `confirmItems`, `confirmIds`), `js/tidy-view.js` (the Organize cards, four tick lists,
+"Close these?"), `confirmTidy` in `js/mutations.js`, the `tidy-*` actions and `tidyAdvance` in `js/app.js`, the `.org-*` rules in
+`css/app.css`, the desk-object drawings in `js/desk-objects.js`. Tests: `js/tidy.test.mjs`; checks: `scripts/check-tidy-browser.mjs`,
+`scripts/shoot-organize-266.mjs` (390x844 walk, screenshots in `docs/generated/organize-266/`).
 
-## How it works
+## How it works (#266: tick lists; was one page of Keep / Close buttons, #255)
 
-- A sixth screen "Tidy up", last in the rail / bottom nav (step 11 regroups the tabs). Title "Tidy up: <view name>";
-  it follows the All | Area | Project switch (`inView`). The badge counts every grouped task, ignoring the switch.
-- Four groups, each only when not empty, each with a one-line reason; a task is in the first that fits:
-  1. Built, waiting for your review: status `review`. (No GitHub PR data is stored, so none is used.)
-  2. Replaced by newer work: title or notes say "replaced by" / "superseded by"; or "see #N" where N is another
-     open task's issue number that is higher than this task's; or a label (kind of work) named superseded,
-     replaced or obsolete.
-  3. Looks the same as another: open pairs whose titles match after lowercasing and dropping punctuation, emoji
-     and extra spaces, or one (5+ letters) inside the other, or an edit distance of at most 2 (and under 15% of
-     the length, titles 8+ letters). One row "A · B" with Merge; the older is closed, the newer kept.
-  4. Not touched in 60 days: open, `updatedAt` (else `createdAt`) over 60 days ago. Tasks with neither are left out.
-- Keep / Close / Merge only mark (`ui.tidyMarks`, memory only; pressing again unmarks). The side panel (a sticky
-  bar above the tabs on a phone) shows "open now → open after" and "Confirm N".
-- Confirm ("Confirm N, then Triage", #256) closes the marked Close/Merge tasks that are listed in the current view (`confirmIds`), through
-  `setTaskStatus(id, 'done')`: the same route as ticking Done, so GitHub closes the issue as completed (there is
-  no "not planned" route). They move to a "Closed" list (`ui.tidyClosed`, memory only) with Undo = `undoDone`,
-  which restores `statusBeforeDone`.
+- Organize opens on two index cards, 🧹 Tidy up (with its count of grouped tasks) and 📌 Triage, and a Start stamp. The rail's Organize
+  tab and `set-screen` always land here (`ui.tidyStep` 0). It follows the view tape (`inView`).
+- Tidy up is four screens, one per reason, in this order, a task in the first that fits (`ui.tidyStep` 1 to 4, progress dots 1 to 4):
+  1. Finished?: status `review`. (No GitHub PR data is stored, so none is used.)
+  2. Replaced?: title or notes say "replaced by" / "superseded by"; or "see #N" where N is another open task's issue number that is higher
+     than this task's; or a label named superseded, replaced or obsolete. Rows read "old ➜ new" (the newer task, or the words after
+     "replaced by"; just the title for a label).
+  3. The same?: open pairs whose titles match after lowercasing and dropping punctuation, emoji and extra spaces, or one (5+ letters)
+     inside the other, or an edit distance of at most 2 (under 15% of the length, titles 8+ letters). Rows read "a = b"; the older is
+     what Merge closes, the newer is kept.
+  4. Still want it?: open, `updatedAt` (else `createdAt`) over 60 days ago. Tasks with neither are left out.
+- Each row is a tick box and the task's title; tapping the title opens Task details. ✓ All and Clear tick or clear the screen
+  (`ui.tidyTicks`, memory only). The desk objects are disabled until something is ticked: tray = Keep, bin = Close; on The same? the two
+  trays = Keep both, the stapler = Merge. Pressing one marks every ticked task (`ui.tidyMarks`, memory only), clears the ticks and goes on.
+  Back is the corner, Skip the flag (goes on without marking). An empty reason still shows its screen ("Nothing here ✓").
+- After Still want it?, or Skip on it, "Close these?" lists the Close and Merge marks in the view (a merged pair's older half with a 📎).
+  With nothing marked it goes straight to Triage. Back returns to Still want it?.
+- The Confirm stamp closes them through `setTaskStatus(id, 'done')`: the same route as ticking Done, so GitHub closes the issue as
+  completed (no "not planned" route). Then Triage opens with a "Closed N ✓ / Undo" slip (`ui.tidyClosed`, memory only); Undo is
+  `undoDone` for each, which restores `statusBeforeDone`. The slip goes when you leave Organize.
+
+### Inventory of what was kept (#266)
+
+Kept (same mutation, new screen): Keep / Close / Merge (`tidy-mark`), Confirm (`tidy-confirm`, `confirmTidy`), Undo (`tidy-undo`, now all
+at once), Task details (`task-open`), the four reasons and their rules, view tape filtering. Changed: Keep/Close buttons per row became ticks
+plus one desk object; "Confirm N, then Triage" became the Confirm stamp; "Open N → M" numbers became the count on the card. Dropped
+(small text, per the 13px rule): the one-line reason under each group, the "Touched 3 days ago" meta line, the project name on each row,
+the "Nothing closes until you press Confirm" line, "pressing again unmarks" (a later mark replaces an earlier one). Nothing dropped needs an
+issue. New actions: `tidy-step`, `tidy-skip`, `tidy-all`, `tidy-none`.
 
 ## Invariants
 
 - Nothing changes until Confirm. Done tasks never appear. A task is in at most one group.
 - Marks on tasks outside the view stay marked but are not closed by a Confirm in another view.
+- Nothing changes until the Confirm stamp.
 
 ## Traps
 

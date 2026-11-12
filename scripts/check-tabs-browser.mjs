@@ -90,17 +90,18 @@ for (const [tag, w, h] of sizes) {
 
   // Organize: Tidy up, then Triage
   await go(page, '.rail-item[data-go]');
-  await page.waitForSelector('.td-layout');
+  await page.waitForSelector('.org');
+  check(`[${tag}] Organize opens on two cards, Tidy up and Triage`, (await page.$$('.org .dk-choice')).length === 2);
+  await go(page, '.dk-btn[data-action="tidy-step"]');
   await jot('Organize / Tidy up'); check(`[${tag}] Tidy up: no sideways scroll`, await noSideways(page)); await shot('2-organize-tidy');
-  const orgTabs = await page.$$eval('.org-tab', (els) => els.map((e) => e.textContent));
-  check(`[${tag}] Organize: Tidy up | Triage buttons at the top of the screen`, orgTabs.join() === 'Tidy up,Triage');
-  await go(page, '.td-row .task-open');
+  await go(page, '.org-row .task-open');
   await detail('Tidy up');
-  await go(page, '.org-tab:not(.on)');
-  await page.waitForSelector('.tr-row');
+  await go(page, '.rail-item[data-go]');
+  await go(page, '[data-action="triage-go"][data-to="top"]');
+  await page.waitForSelector('.tr-card');
   await jot('Organize / Triage'); check(`[${tag}] Triage: no sideways scroll`, await noSideways(page)); await shot('2-organize-triage');
-  check(`[${tag}] row Tidy up, Triage (close, merge, rank): both screens open from Organize`, !!(await page.$('.tr-row')) && orgTabs.length === 2);
-  await go(page, '.tr-row .task-open');
+  check(`[${tag}] row Tidy up, Triage (close, merge, rank): both screens open from Organize`, !!(await page.$('.tr-card')));
+  await go(page, '.tr-card');
   await detail('Triage');
 
   // Projects tab (the group view)

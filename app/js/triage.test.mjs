@@ -51,3 +51,15 @@ test('moveId puts an id at a place and clamps', () => {
   assert.deepEqual(moveId(['a', 'b', 'c'], 'c', 0), ['c', 'a', 'b']);
   assert.deepEqual(moveId(['a', 'b'], 'a', 9), ['b', 'a']);
 });
+
+import { renderTriage } from './triage-view.js';
+test('markup: top three as numbered cards with flags, Next/Later flags, Move; Closed slip; Move rows with keys', () => {
+  const st = mk(Array.from({ length: 6 }, (_, i) => task('t' + i, { title: 'Task ' + i, priority: i === 0 ? 'urgent' : null })));
+  const ui = { view: all, tidyClosed: [{ id: 'x' }, { id: 'y' }] };
+  const h = renderTriage(st, ui, T);
+  assert.match(h, /Do these first/); assert.match(h, /1 · Task 0/); assert.match(h, /data-p="urgent"/);
+  assert.match(h, /Next 3/); assert.match(h, /disabled>Later 0/); assert.match(h, />Move</); assert.match(h, /Closed 2 ✓/); assert.match(h, /Undo/);
+  const m = renderTriage(st, Object.assign({ triageStep: 'move', triageMoveIds: ['t0', 't1'] }, ui), T);
+  assert.equal((m.match(/data-action="triage-move"/g) || []).length, 4); assert.match(m, /↺ Reset/); assert.match(m, />Done</);
+  assert.match(renderTriage(st, Object.assign({ triageStep: 'later' }, ui), T), /Find a task/);
+});

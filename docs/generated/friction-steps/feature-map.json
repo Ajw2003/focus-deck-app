@@ -325,19 +325,44 @@
    "Organize",
    [
     [
+     "tidy-step",
+     "Open Tidy up, or go back a screen",
+     "o0 t1 t2 t3 t4 t5"
+    ],
+    [
+     "tidy-skip",
+     "Skip a reason",
+     "t1 t2 t3 t4"
+    ],
+    [
+     "tidy-all",
+     "Tick all",
+     "t1 t2 t3 t4"
+    ],
+    [
+     "tidy-none",
+     "Clear the ticks",
+     "t1 t2 t3 t4"
+    ],
+    [
      "tidy-mark",
-     "Keep, Close or Merge a task",
+     "Keep, Close or Merge the ticked tasks (desk objects)",
      "t1 t2 t3 t4"
     ],
     [
      "tidy-confirm",
-     "Confirm, then Triage",
+     "Confirm: close them, then Triage",
      "t5"
     ],
     [
      "tidy-undo",
-     "Undo the tidy",
+     "Undo the tidy (Closed N slip)",
      "r10t"
+    ],
+    [
+     "triage-go",
+     "Open Next or Move, or go back",
+     "r10 r11 r12 r13"
     ],
     [
      "triage-move",
@@ -347,7 +372,7 @@
     [
      "triage-later",
      "Open Later",
-     "r12"
+     "r10"
     ],
     [
      "triage-reset",
