@@ -1699,3 +1699,9 @@ button.rm-ms-name:hover{text-decoration-color:var(--c);}
   .ms-backdrop{align-items:flex-end; padding:0;}
   .ms-dialog{max-width:none; max-height:90dvh; border-radius:16px 16px 0 0;}
 }
+
+/* Roadmap Find boxes and the project order control (#259) */
+.rm-finds{display:flex; flex-wrap:wrap; gap:10px; margin:0 0 14px;}
+.rm-find{flex:1 1 220px; min-width:0; box-sizing:border-box; min-height:40px; padding:0 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit;}
+.rm-find + .rm-total{margin-top:12px;}
+.rm-pmoves{display:flex; gap:4px; margin-bottom:6px;}
