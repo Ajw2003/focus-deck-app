@@ -29,7 +29,7 @@
     "Map",
     "Every screen today, counted",
     "",
-    "I opened all 20 screens, panels and dialogs on a phone-sized screen and counted what you can press without scrolling. The busiest five are: Focus before you pick a project (54 things to press), the labels step in Sort (53), Task details (53), Milestone settings (50), and Sort after you pick a project (49). Every screen also starts with the same 14: the header icons, the jot box, the All / Area / Project switch and the five tabs. Those take up the top 40% of a phone screen. Your work starts below them. Settings (10) and the welcome screen (7) are already calm. The counts and pictures are in docs/generated/friction-map/.",
+    "I opened all 20 screens, panels and dialogs on a phone-sized screen and counted what you can press without scrolling. The busiest five are: Focus before you pick a project (54 things to press), the labels step in Sort (53), Task details (53), Milestone settings (50), and Sort once a project is chosen (49). Every screen also starts with the same 14: the header icons, the jot box, the All / Area / Project switch and the five tabs. Those take up the top 40% of a phone screen. Your work starts below them. Settings (10) and the welcome screen (7) are already calm. The counts and pictures are in docs/generated/friction-map/.",
     "Look at the picture and tell me if any screen I missed bothers you too.",
     {
      "src": "docs/generated/friction-steps/map-all-390.png",
