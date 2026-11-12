@@ -886,17 +886,27 @@
     ],
     [
      "review-done",
-     "Looks good",
+     "Looks good stamp",
      "v1"
     ],
     [
      "review-more",
-     "Needs more work",
+     "More work stamp",
      "v1"
     ],
     [
      "review-undo",
-     "Undo a done task",
+     "Undo: the slip after a stamp, or a flag in Done this week",
+     "v2 v3"
+    ],
+    [
+     "review-list",
+     "Done this week",
+     "v1"
+    ],
+    [
+     "review-back",
+     "Back from Done this week",
      "v3"
     ]
    ]

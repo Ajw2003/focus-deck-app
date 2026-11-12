@@ -33,13 +33,32 @@ test('view filtering narrows both lists', () => {
   assert.deepStrictEqual(ids(reviewLists(st, { mode: 'project', id: 'pb' }, now).done), []);
   assert.deepStrictEqual(ids(reviewLists(st, { mode: 'area', id: 'a1' }, now).waiting), ['r2', 'r1']);
 });
-test('markup: buttons, issue link, escaping, empty state, badge', () => {
-  const h = renderReview(mk(), { view: { mode: 'all' } }, now);
-  assert.ok(h.includes('Looks good · Done') && h.includes('Needs more work') && h.includes('data-action="review-undo"'));
-  assert.ok(h.includes('<a href="https://x/7"') && h.includes('Old &lt;review&gt;') && h.includes('Alpha'));
-  assert.ok(renderReview({ projects: [] }, { view: { mode: 'all' } }, now).includes('Nothing is waiting'));
+test('markup: one task on the clipboard, two stamps, dots, the Done this week tag, escaping, empty state, badge', () => {
+  const ui = { view: { mode: 'all' } };
+  const h = renderReview(mk(), ui, now);
+  assert.ok(h.includes('Finished?') && h.includes('Beta review') && !h.includes('New review'), 'only the newest waiting task');
+  assert.ok(h.includes('✓ Looks good') && h.includes('✎ More work') && h.includes('data-action="review-done"') && h.includes('data-action="review-more"') && h.includes('data-action="review-list"'));
+  assert.ok(h.includes('aria-label="Step 1 of 3"') && !h.includes('Done ✓'));
+  assert.ok(renderReview(mk(), { view: { mode: 'project', id: 'pa' } }, now).includes('Old &lt;review&gt;') === false, 'newest of Alpha is New review');
+  const one = { projects: [{ id: 'p', name: 'Alpha', tasks: [{ id: 'x', title: 'Old <review>', status: 'review', issueNumber: 7, url: 'https://x/7' }] }] };
+  const h1 = renderReview(one, ui, now);
+  assert.ok(h1.includes('<a href="https://x/7"') && h1.includes('Old &lt;review&gt;') && h1.includes('Alpha'));
+  const e = renderReview({ projects: [] }, ui, now);
+  assert.ok(e.includes('All reviewed ✓') && !e.includes('review-done'));
+  const l = renderReview(mk(), { view: { mode: 'all' }, rvList: true }, now);
+  assert.ok(l.includes('Done this week') && l.includes('rv-struck') && l.includes('↶ Undo') && l.includes('data-kind="list"') && l.includes('review-back') && !l.includes('review-done'));
   assert.ok(renderRail('review', 0, 3).includes('aria-label="3 to review"'));
   assert.ok(!renderRail('review', 0, 0).includes('rail-count'));
+});
+test('the Undo slip shows only while the task is where the stamp left it', () => {
+  state.projects.length = 0;
+  state.projects.push({ id: 'p', name: 'p', tasks: [{ id: 'a', title: 'a', status: 'done', completedAt: now }, { id: 'b', title: 'b', status: 'doing' }, { id: 'c', title: 'c', status: 'review', updatedAt: 1 }] });
+  const show = (last) => renderReview(state, { view: { mode: 'all' }, rvLast: last, rvDone: 1 }, now);
+  assert.ok(show({ id: 'a', kind: 'done' }).includes('Done ✓') && show({ id: 'a', kind: 'done' }).includes('data-kind="done"'));
+  assert.ok(show({ id: 'b', kind: 'more' }).includes('Sent back ✓'));
+  assert.ok(!show({ id: 'a', kind: 'more' }).includes('Sent back ✓') && !show({ id: 'c', kind: 'done' }).includes('Done ✓'));
+  assert.ok(show(null).includes('aria-label="Step 2 of 2"'));
+  state.projects.length = 0;
 });
 test('actions and Undo, with GitHub calls', async () => {
   globalThis.localStorage = { getItem: () => 'tok', setItem() {}, removeItem() {} };

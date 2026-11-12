@@ -1,6 +1,6 @@
 // scripts/check-review-tab-browser.mjs -- the Review tab (#254) in real Chromium at 390x844 and 1440x900:
-// badge count, "Looks good · Done" and "Needs more work" move the task (and it shows in the Board's matching
-// column), Undo restores the old status, the All | Area | Project switch filters both lists, a title opens details.
+// badge count, one task at a time, the Looks good / More work stamps move it (slip Undo restores), Done this week and
+// its Undo flag, All reviewed, the All | Area | Project switch, a title opens details.
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux/chrome node scripts/check-review-tab-browser.mjs
 // Serves the repo root on 127.0.0.1:8138. Screenshots: docs/generated/build-checks/step6/review-*.png
 import { createRequire } from 'node:module';
@@ -52,50 +52,54 @@ for (const phone of [true, false]) {
   }, seed());
   await page.goto(BASE);
   await page.waitForSelector('.rail');
+  const text = async (sel) => ((await page.textContent(sel)) || '').replace(/\s+/g, ' ').trim();
   const badge = () => page.$eval('[data-screen="review"] .rail-count', (b) => b.textContent).catch(() => '0');
-  const ids = (list) => page.$$eval('[data-list="' + list + '"] .rv-card', (e) => e.map((x) => x.dataset.taskId).join());
+  const state = () => page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')));
+  const status = async (id) => (await state()).projects.flatMap((p) => p.tasks).find((x) => x.id === id).status;
+  const titleNow = () => page.$eval('.rv-title', (e) => e.textContent).catch(() => '');
   const shot = (n) => page.screenshot({ path: OUT + 'review-' + (phone ? '390' : '1440') + '-' + n + '.png' });
   check(await badge() === '3', tag + 'badge shows 3', await badge());
   await page.click('[data-screen="review"]');
-  await page.waitForSelector('.rv-cols');
-  check(await ids('waiting') === 'r2,r1,r3', tag + 'waiting newest first', await ids('waiting'));
-  check(await ids('done') === 'd1', tag + 'done this week', await ids('done'));
+  await page.waitForSelector('.rv-card');
+  // one task at a time, newest waiting first (#271)
+  check(await titleNow() === 'Read the contract' && (await page.$$('.rv-card')).length === 1, tag + 'one task: the newest waiting', await titleNow());
+  check((await page.$$('.sort-dots i')).length === 3 && (await page.getAttribute('.sort-dots', 'aria-label')) === 'Step 1 of 3', tag + 'three progress dots, first on');
   await shot('tab');
-  // the switch filters both lists
-  await page.click('.vs-tape'); await page.click('[data-action="view-step"][data-step="project"]'); // the view tape
+  // the switch filters the waiting task
+  await page.click('.vs-tape'); await page.click('[data-action="view-step"][data-step="project"]');
   await page.click('[data-action="view-pick"][data-id="p1"]');
-  check(await ids('waiting') === 'r3' && await ids('done') === '', tag + 'switch to Work filters both lists', await ids('waiting') + '|' + await ids('done'));
+  check(await titleNow() === 'Review the draft', tag + 'switch to Work shows its task', await titleNow());
   await page.click('.vs-tape'); await page.click('.vs-pop .dk-choice[data-mode="all"]');
-  check(await ids('waiting') === 'r2,r1,r3', tag + 'All restores');
+  check(await titleNow() === 'Read the contract', tag + 'All restores');
   // title opens details
-  await page.click('.rv-card[data-task-id="r1"] .rv-title');
+  await page.click('.rv-title');
   await page.waitForSelector('.cw-detail');
-  check((await page.$eval('.cw-detail h3', (h) => h.textContent)).includes('Check the quote'), tag + 'title opens Task details');
+  check((await page.$eval('.cw-detail h3', (h) => h.textContent)).includes('Read the contract'), tag + 'title opens Task details');
   await shot('details');
   await page.keyboard.press('Escape');
-  // Looks good · Done
-  await page.click('.rv-card[data-task-id="r1"] [data-action="review-done"]');
-  check(await ids('waiting') === 'r2,r3' && (await ids('done')).includes('r1'), tag + 'Looks good moves r1 to Done this week', await ids('done'));
-  check(await badge() === '2', tag + 'badge is 2', await badge());
+  // Looks good: done, the next task, the slip
+  await page.click('[data-action="review-done"]');
+  check(await status('r2') === 'done' && await titleNow() === 'Check the quote', tag + 'Looks good: r2 done, next task shows', await status('r2'));
+  check((await text('.org-slip')) === 'Done ✓Undo' && await badge() === '2', tag + 'slip says Done ✓ / Undo, badge 2');
   await shot('after-done');
-  // Needs more work
-  await page.click('.rv-card[data-task-id="r2"] [data-action="review-more"]');
-  check(await ids('waiting') === 'r3', tag + 'Needs more work removes r2 from the list');
-  // the Board's columns are inside each milestone on the Roadmap (#259): open Home's project view, look in the column, switch back to All
-  const col = async (c, id) => { await page.click('[data-screen="projects"]'); await page.click('.pj-card[data-project="p0"]'); await page.waitForSelector('.rm-project'); const ok = (await page.$$('.rm-col[data-status="' + c + '"] .rm-task[data-task-id="' + id + '"]')).length === 1; return ok; };
-  check(await col('doing', 'r2'), tag + 'r2 is in the Roadmap In progress column');
-  check(await col('done', 'r1'), tag + 'r1 is in the Roadmap Done column');
-  await page.click('[data-screen="review"]');
-  // Undo: r1 was in review before done; d1 was doing
-  await page.click('.rv-card[data-task-id="r1"] [data-action="review-undo"]');
-  check((await ids('waiting')).split(',').includes('r1') && !(await ids('done')).includes('r1'), tag + 'Undo puts r1 back in review', await ids('waiting'));
-  await page.click('.rv-card[data-task-id="d1"] [data-action="review-undo"]');
-  check(await col('doing', 'd1'), tag + 'Undo restores d1 to In progress (its stored status)');
-  await page.click('[data-screen="review"]');
-  await page.click('.vs-tape'); await page.click('.vs-pop .dk-choice[data-mode="all"]'); // the Roadmap keeps one project in view, so Everything is picked here
-  await page.click('.rv-card[data-task-id="r3"] [data-action="review-done"]');
-  await page.click('.rv-card[data-task-id="r1"] [data-action="review-done"]');
-  await page.waitForSelector('[data-list="waiting"] .calm-empty');
+  await page.click('.org-slip [data-action="review-undo"]');
+  check(await status('r2') === 'review' && await titleNow() === 'Read the contract' && !(await page.$('.org-slip')), tag + 'slip Undo puts r2 back in review');
+  // More work: back to Doing, slip Sent back
+  await page.click('[data-action="review-more"]');
+  check(await status('r2') === 'doing' && (await text('.org-slip')) === 'Sent back ✓Undo', tag + 'More work: r2 doing, slip says Sent back ✓');
+  await page.click('.org-slip [data-action="review-undo"]');
+  check(await status('r2') === 'review', tag + 'slip Undo of More work puts r2 back in review');
+  // Done this week: list, Undo flag restores the stored previous status, Back
+  await page.click('[data-action="review-list"]');
+  check((await page.$$eval('.rv-struck', (e) => e.map((x) => x.textContent).join())) === 'Painted the door', tag + 'Done this week lists d1 struck through');
+  await shot('done-week');
+  await page.click('.rv-done [data-action="review-undo"]');
+  check(await status('d1') === 'doing' && (await page.$$('.rv-struck')).length === 0, tag + 'Undo flag restores d1 to Doing (its stored status)');
+  await page.click('[data-action="review-back"]');
+  check(await titleNow() === 'Read the contract', tag + 'Back returns to the clipboard');
+  // all three stamped: All reviewed
+  for (let i = 0; i < 3; i++) await page.click('[data-action="review-done"]');
+  check((await text('.rv-none')) === 'All reviewed ✓' && !(await page.$('.rv-card')), tag + 'All reviewed ✓');
   await shot('empty');
   check(await badge() === '0', tag + 'no badge when nothing waits');
   await ctx.close();

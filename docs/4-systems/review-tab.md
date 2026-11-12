@@ -5,29 +5,41 @@
 ## What it owns
 
 `js/review-view.js` (markup), `reviewLists` in `js/board.js` (the two lists), `undoDone` and the stored
-`statusBeforeDone` in `js/mutations.js`, the `review-*` actions in `js/app.js`, the `.rv-*` rules at the end of
-`css/app.css`. Tests: `js/review-tab.test.mjs`; browser check: `scripts/check-review-tab-browser.mjs` (390 and
-1440 wide; screenshots in `docs/generated/build-checks/step6/`).
+`statusBeforeDone` in `js/mutations.js`, the `review-*` actions in `js/app.js`, the `.rv-*` rules in `css/app.css` (the clipboard is Organize's `.org`). Tests: `js/review-tab.test.mjs`; browser check: `scripts/check-review-tab-browser.mjs` (390 and
+1440 wide; screenshots in `docs/generated/build-checks/step6/`), `scripts/shoot-review-271.mjs` (390x844 walk, fit and 13px asserts, screenshots in `docs/generated/review-271/`).
 
-## How it works
+## How it works (#271: one task at a time)
 
-- A fifth screen, "Review", last in the rail / bottom nav (step 11 reorders the tabs). Its badge counts every task
-  with status `review`, ignoring the All | Area | Project switch (like Sort's badge).
-- The switch sits at the top and filters both lists (`inView`).
-- "Waiting for your review": every `review` task, newest first by `updatedAt`, with title, project name and the
-  issue number (a link when the task has a `url`). Two buttons:
-  - "Looks good · Done" = `setTaskStatus(id, 'done')`: closes the GitHub issue and removes the "needs review"
-    label, exactly as ticking done does (`syncIssueCompletion`, `pushReviewToIssue`).
-  - "Needs more work" = `setTaskStatus(id, 'doing')`: removes the label.
-- "Done this week": the Board's rule (`boardColumns`: finished since Monday). Each has Undo (`undoDone`): back to
-  `task.statusBeforeDone`, which `setTaskStatus` stores whenever a task becomes done; 'next' if it is missing.
-  Undo of a task that came from review puts the label back (it is a status change like any other).
-- A title is a button that opens the existing Task details as a side panel (`ui.boardSelected`; Escape or Close).
-- Empty states are one calm line each. Phones stack the lists; the phone bottom bar has five equal columns.
+- Last in the rail / bottom nav. Its badge counts every task with status `review`, ignoring the All | Area | Project
+  switch. The switch still narrows what the screen shows (`inView`).
+- **Finished?** is the Organize clipboard: progress dots (tasks stamped this visit + those still waiting), one task card
+  (title, project, issue number as a link when the task has a `url`) and two rubber stamps. The newest waiting task by
+  `updatedAt` is the one shown. The title opens Task details (`ui.boardSelected`; Escape or Close).
+  - ✓ LOOKS GOOD (green) = `setTaskStatus(id, 'done')`: closes the GitHub issue and removes the "needs review" label
+    (`syncIssueCompletion`, `pushReviewToIssue`).
+  - ✎ MORE WORK (red) = `setTaskStatus(id, 'doing')`: removes the label.
+- After a stamp the next task shows with a jotter slip: "Done ✓ / Undo" or "Sent back ✓ / Undo" (`ui.rvLast`). Undo of
+  Done is `undoDone` (back to `statusBeforeDone`, which is `review` for a task stamped here, label restored); Undo of
+  Sent back is `setTaskStatus(id, 'review')`. The slip hides if the task has since moved elsewhere.
+- **Done this week** (a tag at the foot, `ui.rvList`): the Board's rule (`boardColumns`, finished since Monday), each
+  task struck through with a ↶ Undo flag (`undoDone`); the Back corner returns to the clipboard.
+- Nothing waiting: "All reviewed ✓". No text under 13px and no page scroll at 390x844.
+- Memory-only state: `ui.rvDone`, `ui.rvLast`, `ui.rvList`, reset when the tab is opened.
+
+### Every Review action (inventory for #271)
+
+| Action | Verdict |
+|---|---|
+| `review-open` (title opens Task details) | keep, on the card |
+| `review-done` (Looks good · Done) | change: ✓ LOOKS GOOD stamp, same mutation |
+| `review-more` (Needs more work) | change: ✎ MORE WORK stamp, same mutation |
+| `review-undo` (Done this week) | keep as the ↶ Undo flag; also drives the slip's Undo |
+| `review-list`, `review-back` | new: the Done this week tag and its Back corner |
+| Both lists side by side, list counts, the "Waiting for your review" heading | dropped: one task at a time, the dots count |
 
 ## Traps
 
-- Subtasks are listed too (the Board hides subtasks of a live parent; this tab does not).
+- Subtasks are in the queue too (the Board hides subtasks of a live parent; this tab does not).
 - `statusBeforeDone` is a plain task field, so it syncs with the task.
 
 See also [calm-board.md](./calm-board.md), [github-sync.md](./github-sync.md), [view-switch.md](./view-switch.md), [styling.md](./styling.md).

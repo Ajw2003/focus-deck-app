@@ -115,6 +115,7 @@ function loadScreen() {
 }
 function setScreen(screen) {
   ui.screen = R.normalizeScreen(screen);
+  if (ui.screen === 'review') { ui.rvDone = 0; ui.rvLast = null; ui.rvList = false; } // a fresh walk through the tasks waiting
   try { localStorage.setItem(SCREEN_KEY, ui.screen); }
   catch (e) { console.error('Could not save the screen:', e); }
 }
@@ -149,6 +150,7 @@ export const ui = {
   // Task details (#201): the open row, a subtask being typed, the link search, the label list open
   boardOpen: null, boardAddSub: false, boardLink: null, boardPicker: false,
   onboarding: loadOnboarding(),
+  rvDone: 0, rvLast: null, rvList: false, // Review (#271), memory only: tasks stamped this visit, the last stamp (for its Undo slip), the Done this week screen
   rmCol: {}, rmMs: null, rmScreen: null, rmDrawer: null, rmTask: null, rmForm: {}, rmSet: null, rmEditField: null, // the Roadmap (#257, #268), memory only: the folder tab per milestone, the milestone on the clipboard, the screen over it (all / find / task / ms / sec / set / edit), the open drawer and its task, the form being typed, the settings draft, the Edit project field
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
@@ -716,9 +718,17 @@ function onAppClick(e) {
     const one = el.getAttribute('data-task'), back = (ui.tidyClosed || []).filter((c) => !one || c.id === one);
     back.forEach((c) => M.undoDone(c.id)); ui.tidyClosed = (ui.tidyClosed || []).filter((c) => !back.includes(c)); paint(); return;
   }
-  if (action === 'review-done') { M.setTaskStatus(el.getAttribute('data-task'), 'done'); paint(); return; }
-  if (action === 'review-more') { M.setTaskStatus(el.getAttribute('data-task'), 'doing'); paint(); return; }
-  if (action === 'review-undo') { M.undoDone(el.getAttribute('data-task')); paint(); return; }
+  if (action === 'review-done' || action === 'review-more') { // one task at a time (#271): the stamp, then the slip with Undo
+    const id = el.getAttribute('data-task'), kind = action === 'review-done' ? 'done' : 'more';
+    M.setTaskStatus(id, kind === 'done' ? 'done' : 'doing'); ui.rvLast = { id, kind }; ui.rvDone = (ui.rvDone || 0) + 1; paint(); return;
+  }
+  if (action === 'review-undo') { // the slip's Undo (kind done / more) or a Done this week flag (kind list)
+    const id = el.getAttribute('data-task'), kind = el.getAttribute('data-kind');
+    if (kind === 'more') M.setTaskStatus(id, 'review'); else M.undoDone(id);
+    if (kind !== 'list') { ui.rvLast = null; ui.rvDone = Math.max(0, (ui.rvDone || 0) - 1); }
+    paint(); return;
+  }
+  if (action === 'review-list' || action === 'review-back') { ui.rvList = action === 'review-list'; paint(); window.scrollTo(0, 0); return; }
   if (action === 'review-open') { selectBoardTask(el.getAttribute('data-task')); paint(); return; }
   if (action === 'task-open') { const id = el.getAttribute('data-task'); selectBoardTask(ui.boardSelected === id ? null : id); paint(); return; }
   if (action.startsWith('detail-')) { onDetailAction(action, el); return; }
