@@ -70,10 +70,10 @@ const flagsOnSlip = (page) => page.$$eval('.slip-flags .slip-flag', (els) => els
 // Flip a tray wallet to a card (as a swipe would: a card off the edge can't be tapped), then tap
 // it; in tap-twice mode the first tap lifts it, the second chooses.
 async function choose(page, wallet, key, mode) {
-  const sel = '[data-wallet="' + wallet + '"] .sleeve[data-key="' + key + '"] .icard';
+  const sel = wallet === 'tray-folders' ? '[data-car="tray-projects"] .car-card[data-key="' + key + '"] .icard' : '[data-wallet="' + wallet + '"] .sleeve[data-key="' + key + '"] .icard';
   await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
   await page.waitForTimeout(300); // the snap settles and the wallet records the facing card
-  for (let i = 0; i < (mode === 'twice' ? 2 : 1); i++) {
+  for (let i = 0; i < (mode === 'twice' && wallet !== 'tray-folders' ? 2 : 1); i++) { // a carousel card picks on one click
     const box = await (await page.$(sel)).boundingBox();
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
     await page.waitForTimeout(450); // let a flip settle before the next tap
@@ -87,10 +87,10 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
 
   check(`${tag} tray shows the oldest thought first`, (await slipText(page)).startsWith('Buy a birthday card'), await slipText(page));
   check(`${tag} count reads "4 to sort" (3 thoughts + 1 unlabelled task)`, (await trayCount(page)) === '4 to sort', await trayCount(page));
-  check(`${tag} a thought has a folder wallet and a flag wallet`, !!(await page.$('[data-wallet="tray-folders"]')) && !(await page.$('[data-wallet="tray-flags"]')));
+  check(`${tag} a thought has a folder wallet and a flag wallet`, !!(await page.$('[data-car="tray-projects"]')) && !(await page.$('[data-wallet="tray-flags"]')));
   check(`${tag} Next is off until a folder is chosen`, await page.$eval('.file-btn', (b) => b.disabled && b.textContent === 'Choose a project first'));
   await page.click('.step-tab[data-step="2"]', { force: true });
-  check(`${tag} a locked step says why (#205)`, ((await page.textContent('.step-why')) || '').startsWith('Choose a project first. Labels and links open') && !!(await page.$('[data-wallet="tray-folders"]')));
+  check(`${tag} a locked step says why (#205)`, ((await page.textContent('.step-why')) || '').startsWith('Choose a project first. Labels and links open') && !!(await page.$('[data-car="tray-projects"]')));
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
   await page.$eval('.inbox-card', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); }); // clear of the sticky jotter
@@ -98,7 +98,7 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
 
   await choose(page, 'tray-folders', 'pSchool', mode);
   check(`${tag} choosing a folder puts it on the slip`, (await page.$eval('.slip-dest', (e) => e.textContent)).includes('Going in School'), await page.$eval('.slip-dest', (e) => e.textContent));
-  check(`${tag} Next is on`, await page.$eval('.file-btn', (b) => !b.disabled && b.textContent === 'Next: labels →'));
+  check(`${tag} the file button now waits for a priority (was: Next is on)`, await page.$eval('.file-btn', (b) => b.disabled && b.textContent === 'Pick a priority to file'));
   await choose(page, 'tray-folders', 'pSchool', mode);
   check(`${tag} choosing the folder again clears it`, (await page.$eval('.slip-dest', (e) => e.textContent)) === 'No project yet');
   await choose(page, 'tray-folders', 'pHome', mode);

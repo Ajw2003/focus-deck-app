@@ -58,7 +58,7 @@ async function open(storage = {}, path = '') {
 }
 const flagKeys = (page) => page.$$eval('[data-wallet="tray-flags"] .sleeve', (els) => els.map((e) => e.dataset.key));
 async function chooseFolder(page, key) {
-  const sel = '[data-wallet="tray-folders"] .sleeve[data-key="' + key + '"] .icard';
+  const sel = '[data-car="tray-projects"] .car-card[data-key="' + key + '"] .icard';
   await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
   await page.waitForTimeout(300);
   const b = await (await page.$(sel)).boundingBox();
@@ -81,7 +81,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 {
   const { ctx, page } = await open();
   // "No folder yet: every category is offered" can no longer be reached: the labels step is locked until a project is chosen.
-  await page.waitForSelector('[data-wallet="tray-folders"]');
+  await page.waitForSelector('[data-car="tray-projects"]');
   await chooseFolder(page, 'pHome');
   await nextStep(page);
   const home = await flagKeys(page);
@@ -131,7 +131,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   const stored = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), STATE_KEY)).categoryFilter;
   check('Settings: turning it off is stored with a stamp', stored.on === false && stored.updatedAt > 0, JSON.stringify(stored));
   await page.goto(BASE);
-  await page.waitForSelector('[data-wallet="tray-folders"]');
+  await page.waitForSelector('[data-car="tray-projects"]');
   await chooseFolder(page, 'pHome');
   await nextStep(page);
   check('off: Home offers every category, no More card', (await flagKeys(page)).length === kinds.length + 6);

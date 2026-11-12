@@ -153,7 +153,7 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   check(`${tag} the long thought shows whole on the slip`, (await page.$eval('.jot-slip .slip-text', (e) => e.innerText)).replace(/\s+/g, ' ').trim() === longText.replace(/\s+/g, ' '));
   await page.$eval('.inbox-card', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); });
   await page.screenshot({ path: OUT + label + '-slip-long.png', fullPage: label === 'phone' });
-  const sel = '[data-wallet="tray-folders"] .sleeve[data-key="pSchool"] .icard';
+  const sel = '[data-car="tray-projects"] .car-card[data-key="pSchool"] .icard';
   await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
   await page.waitForTimeout(300);
   const box = await (await page.$(sel)).boundingBox();
