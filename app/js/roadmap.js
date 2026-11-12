@@ -4,7 +4,7 @@
 // GitHub milestone title (`githubMilestone`), or by being a subtask of a milestone's parent task; else it is in
 // "Unplanned". Old saves have none of these and load unchanged. See docs/4-systems/roadmap.md
 
-export const COLS = [['next', 'Up next'], ['doing', 'In progress'], ['review', 'Review'], ['done', 'Done']];
+export const COLS = [['next', 'Up next'], ['doing', 'Doing'], ['review', 'Review'], ['done', 'Done']];
 export const UNPLANNED = 'unplanned';
 
 const byOrder = (a, b) => (a.order || 0) - (b.order || 0);

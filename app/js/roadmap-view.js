@@ -1,58 +1,143 @@
-// focus-deck-app/js/roadmap-view.js -- the Roadmap screen's markup (#257): one project, sections each holding
-// milestones; the open one shows four columns. The project list and New project are the Projects tab (js/projects-view.js). The data is roadmapOf (js/roadmap.js); moves are js/roadmap-drag.js + app.js.
+// focus-deck-app/js/roadmap-view.js -- the Roadmap screen's markup (#257, reshaped by #268): one project, one milestone at a
+// time on a clipboard (ruler, four folder tabs, tick rows, flags to the neighbours), All milestones, Find a task, the new task /
+// milestone / section screens, Edit project as a receipt, and the drawers. Milestone settings are js/milestone-steps.js. The project list and New project are the Projects tab (js/projects-view.js). The data is roadmapOf (js/roadmap.js); moves are js/roadmap-drag.js + app.js.
 // See docs/4-systems/roadmap.md and docs/4-systems/styling.md
-import { esc, PRIORITY, deadlineChip } from './state.js';
-import { effectivePriority } from './areas.js';
-import { roadmapOf, COLS, UNPLANNED } from './roadmap.js';
-import { renderProjectEditPanel, renderAddTaskRow } from './render.js';
-import { noProject } from './projects-view.js';
+import { esc, PRIORITY } from './state.js';
+import { effectivePriority, UNSORTED_ID } from './areas.js';
+import { roadmapOf, COLS, UNPLANNED, sectionsOf, milestoneOf } from './roadmap.js';
+import { noProject, COLOURS } from './projects-view.js';
+import { stamp, foot, choice } from './sort-flow-view.js';
+import { board } from './tidy-view.js';
+import { renderSettings } from './milestone-steps.js';
 import { renderTaskDetails } from './task-details.js';
 import { subtasksOf } from './task-links.js';
 
-const count = (m) => m.text;
-const bar = (pct, cls) => '<span class="rm-bar' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><i style="width:' + pct + '%"></i></span>';
-// The project bar: one segment per milestone, as wide as it added to the project (share x progress).
-const segBar = (r) => '<span class="rm-bar rm-bar-big rm-segs" role="img" aria-label="' + r.pct + '% done">' + r.milestones.filter((m) => m.contribution > 0).map((m) => '<i style="width:' + m.contribution + '%" title="' + esc(m.name + ': ' + Math.round(m.contribution * 10) / 10 + '% of the project') + '"></i>').join('') + '</span>';
-
+const back = () => '<button type="button" class="dk-back" data-action="rm-back">‹ Back</button>';
+const scroll = (inner) => '<div class="pj-scroll">' + inner + '</div>';
+const field = (attr, value, ph) => '<input type="text" class="pj-field" ' + attr + ' value="' + esc(value) + '" maxlength="200" placeholder="' + esc(ph) + '" aria-label="' + esc(ph) + '" autocomplete="off" spellcheck="false">';
+const ruler = (pct) => '<span class="pj-ruler" role="img" aria-label="' + pct + '% done"><i style="width:' + pct + '%"></i></span>';
+const to = (screen) => ' data-screen="' + screen + '"';
 const grip = (kind, id, label, keys) => '<button type="button" class="rm-grip" data-kind="' + kind + '" data-id="' + esc(id) + '" aria-label="Move ' + esc(label) + '" title="Drag, or ' + keys + '">⋮⋮</button>';
-const step = (action, id, dir, label) => '<button type="button" class="btn ghost rm-step" data-action="' + action + '" data-id="' + esc(id) + '" data-dir="' + dir + '" aria-label="Move ' + (dir < 0 ? 'up' : 'down') + ': ' + esc(label) + '">' + (dir < 0 ? '↑' : '↓') + '</button>';
+const key = (action, id, dir, label, off) => '<button type="button" class="tr-move rm-key" data-action="' + action + '" data-id="' + esc(id) + '" data-dir="' + dir + '"' + (off ? ' disabled' : '') + ' aria-label="Move ' + (dir < 0 ? 'up' : 'down') + ': ' + esc(label) + '">' + (dir < 0 ? '↑' : '↓') + '</button>';
+const drawer = (label, body) => '<div class="vs-backdrop" data-action="rm-drawer-close"></div><div class="vs-pop dk-sheet sort-drawer" role="dialog" aria-modal="true" aria-label="' + esc(label) + '" tabindex="-1">'
+  + '<div class="vs-pop-head"><b>' + esc(label) + '</b><button type="button" class="vs-x" data-action="rm-drawer-close" aria-label="Close">×</button></div><div class="vs-pop-body">' + body + '</div></div>';
 
-function taskChip(t, p, col, st) {
-  const pr = effectivePriority(t, st);
-  const i = COLS.findIndex((c) => c[0] === col);
-  const tstep = (d) => '<button type="button" class="btn ghost rm-step" data-action="rm-task-step" data-id="' + esc(t.id) + '" data-dir="' + d + '"' + (COLS[i + d] ? '' : ' disabled') + ' aria-label="Move to ' + (COLS[i + d] ? COLS[i + d][1] : 'nowhere') + ': ' + esc(t.title) + '">' + (d < 0 ? '←' : '→') + '</button>';
-  return '<li class="rm-task' + (t.status === 'done' ? ' is-done' : '') + '" data-task-id="' + esc(t.id) + '">'
-    + grip('task', t.id, t.title, 'Alt plus left or right arrow')
-    + '<input type="checkbox" data-action="toggle-task" data-task="' + esc(t.id) + '" data-project="' + esc(p.id) + '"' + (t.status === 'done' ? ' checked' : '') + ' aria-label="Done: ' + esc(t.title) + '">'
-    + '<button type="button" class="rm-task-title" data-action="rm-task" data-id="' + esc(t.id) + '">' + esc(t.title) + '</button>'
-    // read-only priority chip; a click opens Task details, where it is changed
-    + (pr ? '<button type="button" class="chip priority-chip small" data-action="rm-task" data-id="' + esc(t.id) + '" style="--chip-color:var(--prio-' + pr + ')" aria-label="Priority ' + PRIORITY[pr].label + ': ' + esc(t.title) + '">' + PRIORITY[pr].label + '</button>' : '')
-    + (t.deadline && t.status !== 'done' ? deadlineChip(t.deadline, t) : '')
-    + '<span class="rm-tmoves">' + tstep(-1) + tstep(1) + '</span></li>';
+// The milestone on the clipboard: the one picked (ui.rmMs), else the first with open tasks, else the first.
+export const currentOf = (r, ui) => r.milestones.find((m) => m.id === ui.rmMs) || r.milestones.find((m) => m.id === r.currentId) || r.milestones[0] || null;
+
+// A task row: a tick, the title (opens the task's drawer), and on a computer a grip to drag it onto a folder tab.
+function taskRow(t, p) {
+  return '<div class="dk-choice rm-task' + (t.status === 'done' ? ' is-done' : '') + '" data-task-id="' + esc(t.id) + '">' + grip('task', t.id, t.title, 'Alt plus left or right arrow')
+    + '<input type="checkbox" class="rm-tick" data-action="toggle-task" data-task="' + esc(t.id) + '" data-project="' + esc(p.id) + '"' + (t.status === 'done' ? ' checked' : '') + ' aria-label="Done: ' + esc(t.title) + '">'
+    + '<button type="button" class="rm-task-title" data-action="rm-task" data-id="' + esc(t.id) + '">' + esc(t.title) + '</button></div>';
 }
 
-function milestone(m, p, ui, st, at) {
-  // Find a task: narrows every milestone's columns, and opens the milestones so the matches show
-  const q = (ui.taskQuery || '').trim().toLowerCase();
-  if (q) m = Object.assign({}, m, { cols: Object.fromEntries(COLS.map(([k]) => [k, m.cols[k].filter((t) => t.title.toLowerCase().includes(q))])) });
-  const open = q ? true : (ui.rmOpen || {})[m.id] !== undefined ? !!ui.rmOpen[m.id] : m.id === at.currentId;
-  const col = (ui.rmCol || {})[m.id] || 'next';
-  const head = '<div class="rm-ms-head">' + (m.unplanned ? '' : grip('ms', m.id, m.name, 'Alt plus up or down arrow'))
-    + (m.unplanned ? '<span class="rm-ms-name">' + esc(m.name) + '</span>' : '<button type="button" class="rm-ms-name" data-action="rm-settings" data-id="' + esc(m.id) + '" title="Milestone settings">' + esc(m.name) + '</button>')
-    + '<button type="button" class="rm-ms-toggle" data-action="rm-toggle" data-id="' + esc(m.id) + '" aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' tasks: ' + esc(m.name) + '"><span class="rm-ms-count">' + esc(count(m)) + ' <span aria-hidden="true">' + (open ? '▾' : '▸') + '</span></span></button>'
-    + (m.unplanned ? '' : '<span class="rm-moves">' + step('rm-ms-step', m.id, -1, m.name) + step('rm-ms-step', m.id, 1, m.name) + '</span>') + '</div>';
+function main(st, ui, p, r) {
+  const m = currentOf(r, ui), i = m ? r.milestones.indexOf(m) : -1;
+  const flag = (label, dir, aria) => '<button type="button" class="dk-link rm-flag" data-action="rm-ms-go" data-dir="' + dir + '" aria-label="' + aria + '"' + (r.milestones[i + dir] ? '' : ' disabled') + '>' + label + '</button>';
   let body = '';
-  if (open) {
-    const tabs = COLS.map(([k, n]) => '<button type="button" class="rm-coltab' + (k === col ? ' on' : '') + '" data-action="rm-col" data-ms="' + esc(m.id) + '" data-col="' + k + '" aria-pressed="' + (k === col) + '">' + n + '</button>').join('');
-    const cols = COLS.map(([k, n]) => '<div class="rm-col' + (k === col ? ' is-on' : '') + '" data-status="' + k + '" data-ms="' + esc(m.id) + '" role="group" aria-label="' + n + '"><h4 class="rm-col-h">' + n + ' <b>' + m.cols[k].length + '</b></h4><ul class="rm-list">'
-      + m.cols[k].map((t) => taskChip(t, p, k, st)).join('') + '</ul></div>').join('');
-    const adding = ui.rmAdd && ui.rmAdd.kind === 'task' && ui.rmAdd.ms === m.id;
-    const add = adding
-      ? renderAddTaskRow(p, st.categories || [], !!(ui.addingTask || {})[p.id], (ui.addDraft || {})[p.id] || '', 'Add a task to ' + m.name + '…', (ui.addPick || {})[p.id]).replace('<div class="add-line">', '<input type="hidden" name="milestone" value="' + esc(m.id) + '"><div class="add-line">')
-      : '<button type="button" class="link-btn small rm-add-link" data-action="rm-add" data-kind="task" data-ms="' + esc(m.id) + '">+ Add a task</button>';
-    body = '<div class="rm-coltabs" role="group" aria-label="Show a column">' + tabs + '</div><div class="rm-cols">' + cols + '</div>' + add;
+  if (m) {
+    const col = (ui.rmCol || {})[m.id] || 'next';
+    const tabs = COLS.map(([k, n]) => '<button type="button" class="rm-tab rm-col' + (k === col ? ' on' : '') + '" data-action="rm-col" data-ms="' + esc(m.id) + '" data-col="' + k + '" data-status="' + k + '" aria-pressed="' + (k === col) + '">' + n + ' <b>' + m.cols[k].length + '</b></button>').join('');
+    body = ruler(m.pct) + '<div class="rm-tabs" role="group" aria-label="Show a column">' + tabs + '</div>'
+      + '<div class="pj-scroll rm-list rm-col" data-status="' + col + '" data-ms="' + esc(m.id) + '">' + m.cols[col].map((t) => taskRow(t, p)).join('') + '</div>'
+      + '<div class="rm-nav">' + flag('‹', -1, 'Previous milestone') + '<button type="button" class="dk-link rm-flag rm-all" data-action="rm-screen"' + to('all') + '>All milestones</button>' + flag('›', 1, 'Next milestone') + '</div>';
   }
-  return '<article class="rm-ms' + (open ? ' is-open' : '') + '" data-ms-id="' + esc(m.id) + '" data-section-id="' + esc(m.sectionId || '') + '" data-index="' + (m.index || 0) + '">' + head + body + '</article>';
+  return '<div class="pj rm-main"><div class="dk-board sort-board"><div class="dk-paper sort-paper pj-paper">'
+    + '<button type="button" class="slip-more pj-pull" data-action="rm-drawer" data-drawer="menu" aria-haspopup="dialog" aria-expanded="' + (ui.rmDrawer === 'menu') + '" aria-label="More"></button>'
+    + '<h2 class="sort-q">' + esc(m ? m.name : p.name) + '</h2><div class="sort-body">' + body + '</div></div></div>'
+    + foot([stamp('+ Add a task', { action: 'rm-screen', attrs: to('task') })]) + '</div>';
+}
+
+function allMs(p, r) {
+  const row = (m, s, j) => '<div class="dk-choice rm-ms" data-ms-id="' + esc(m.id) + '" data-section-id="' + esc(s.id) + '" data-index="' + j + '">'
+    + (m.unplanned ? '' : grip('ms', m.id, m.name, 'Alt plus up or down arrow'))
+    + '<button type="button" class="rm-ms-open" data-action="rm-ms-open" data-id="' + esc(m.id) + '"><span class="rm-ms-name">' + esc(m.name) + '</span>' + ruler(m.pct) + '</button>'
+    + (m.unplanned ? '' : '<span class="tr-moves">' + key('rm-ms-step', m.id, -1, m.name, false) + key('rm-ms-step', m.id, 1, m.name, false) + '</span>') + '</div>';
+  const real = r.sections.filter((x) => !x.virtual).length;
+  const secs = r.sections.map((s) => '<section class="rm-sec" data-section-id="' + esc(s.id) + '"' + (s.virtual ? '' : ' data-sec-index="' + (s.n - 1) + '"') + ' aria-label="' + esc(s.name) + '">'
+    + '<h3 class="rm-sec-h">' + (s.virtual ? '' : grip('sec', s.id, s.name, 'Alt plus up or down arrow')) + '<span class="rm-sec-name">' + esc(s.name) + '</span>'
+    + (s.virtual ? '' : '<span class="tr-moves">' + key('rm-sec-step', s.id, -1, s.name, s.n === 1) + key('rm-sec-step', s.id, 1, s.name, s.n === real) + '</span>') + '</h3>'
+    + s.milestones.map((m, j) => row(m, s, j)).join('') + '</section>').join('');
+  const un = r.unplanned ? '<section class="rm-sec rm-unplanned" data-section-id="' + UNPLANNED + '">' + row(r.unplanned, { id: UNPLANNED }, 0) + '</section>' : '';
+  return '<div class="pj rm-all-screen">' + board('Milestones', scroll(secs + un)) + foot([back(), stamp('+ Section', { action: 'rm-screen', attrs: to('sec') }), stamp('+ Milestone', { action: 'rm-screen', attrs: to('ms') })]) + '</div>';
+}
+
+function find(st, ui, p) {
+  const q = (ui.taskQuery || '').trim().toLowerCase();
+  const hits = q ? p.tasks.filter((t) => t.title.toLowerCase().includes(q)) : [];
+  const rows = hits.map((t) => { const pr = effectivePriority(t, st); return choice(esc(t.title), { action: 'rm-task', attrs: ' data-id="' + esc(t.id) + '"', small: pr ? PRIORITY[pr].label : '' }); }).join('');
+  return '<div class="pj">' + board('Find a task', '<input type="search" class="sort-find project-search pj-find" data-action="set-task-query" value="' + esc(ui.taskQuery || '') + '" placeholder="Find a task…" aria-label="Find a task">' + scroll(rows)) + foot([back()]) + '</div>';
+}
+
+function forms(ui, p, kind) {
+  const f = ui.rmForm || {};
+  const add = (action, ok) => stamp('Add', { action, disabled: !ok });
+  if (kind === 'task') return '<div class="pj">' + board('New task', field('data-rm-field="title"', f.title || '', 'What needs doing?'))
+    + foot([back(), '<button type="button" class="dk-skip" data-action="rm-add-more">More…</button>', add('rm-add-task', (f.title || '').trim())]) + '</div>';
+  if (kind === 'sec') return '<div class="pj">' + board('New section', field('data-rm-field="name"', f.name || '', 'Name the section…')) + foot([back(), add('rm-add-sec', (f.name || '').trim())]) + '</div>';
+  const secs = sectionsOf(p), sel = f.sec !== undefined ? f.sec : (secs.length ? secs[secs.length - 1].id : '');
+  const pick = secs.length ? scroll(secs.map((s) => choice(esc(s.name), { action: 'rm-form-sec', attrs: ' data-id="' + esc(s.id) + '"', on: sel === s.id, toggle: true })).join('')) : '';
+  return '<div class="pj">' + board('New milestone', field('data-rm-field="name"', f.name || '', 'Name the milestone…') + pick) + foot([back(), add('rm-add-ms', (f.name || '').trim())]) + '</div>';
+}
+
+function edit(st, ui, p, hasToken) {
+  const fld = ui.rmEditField, cats = (st.projectCategories || []).filter((a) => a.id !== UNSORTED_ID);
+  if (fld === 'name') {
+    const v = (ui.rmForm || {}).pname !== undefined ? ui.rmForm.pname : p.name;
+    return '<div class="pj">' + board('Name it', field('data-rm-field="pname"', v, 'Name the project…')) + foot([back(), stamp('Save', { action: 'rm-edit-save', disabled: !String(v).trim() })]) + '</div>';
+  }
+  if (fld === 'area') return '<div class="pj">' + board('Which area?', scroll(choice('Unsorted', { action: 'rm-edit-area', attrs: ' data-id=""', on: !p.categoryId })
+    + cats.map((a) => choice(esc(a.name), { action: 'rm-edit-area', attrs: ' data-id="' + esc(a.id) + '"', on: p.categoryId === a.id })).join(''))) + foot([back()]) + '</div>';
+  if (fld === 'colour') return '<div class="pj">' + board('Pick a colour', '<div class="pj-swatches" role="group" aria-label="Colour">' + COLOURS.map(([c, n]) => '<button type="button" class="pj-swatch' + (p.color === c ? ' on' : '') + '" style="--c:' + c + '" data-action="rm-edit-color" data-color="' + c + '" aria-pressed="' + (p.color === c) + '" aria-label="' + n + '"></button>').join('') + '</div>') + foot([back()]) + '</div>';
+  if (fld === 'repo') {
+    const rs = (ui.linkPanel && ui.linkPanel.repos) || {};
+    let body;
+    if (p.source === 'github') body = choice(esc(p.repoFullName || ''), { action: 'rm-back', on: true });
+    else if (!hasToken) body = '<a class="dk-choice" href="settings.html"><span>Connect GitHub in Settings</span></a>';
+    else if (rs.error) body = '<p class="step-why" role="status">' + esc(rs.error) + '</p>' + choice('Retry', { action: 'retry-link-panel-repos' });
+    else if (!rs.list) body = '<p class="muted">Loading your repos…</p>';
+    else body = scroll(rs.list.map((x) => choice(esc(x.full_name), { action: 'link-repo', attrs: ' data-repo="' + esc(x.full_name) + '"', small: x.private ? 'Private' : '' })).join('') || '<p class="muted">No untracked repos.</p>');
+    return '<div class="pj">' + board('Which repo?', body + (ui.linkPanel && ui.linkPanel.error ? '<p class="step-why" role="status">' + esc(ui.linkPanel.error) + '</p>' : '')) + foot([back()]) + '</div>';
+  }
+  const area = cats.find((a) => a.id === p.categoryId);
+  const row = (icon, label, val, f) => '<div><span aria-hidden="true">' + icon + '</span><b class="sr-only">' + label + ': </b><em>' + val + '</em><button type="button" class="dk-pencil" data-action="rm-edit-field" data-field="' + f + '" aria-label="Change ' + label.toLowerCase() + '">✎</button></div>';
+  const receipt = '<div class="dk-summary sort-receipt">' + row('🏷', 'Name', esc(p.name), 'name') + row('🗄', 'Area', esc(area ? area.name : 'Unsorted'), 'area')
+    + row('🎨', 'Colour', '<i class="rm-dot" style="--c:' + esc(p.color) + '"></i>', 'colour') + row('🐙', 'Repo', esc(p.repoFullName || 'None'), 'repo') + '</div>';
+  return '<div class="pj">' + board('Edit project', receipt + choice('Remove project', { action: 'rm-drawer', attrs: ' data-drawer="remove"', cls: ' danger' })) + foot([back()]) + '</div>';
+}
+
+// The drawers over the clipboard: the ⋯ menu, a tapped task, Move to, and "Remove it?".
+function drawers(st, ui, p, r) {
+  const m = currentOf(r, ui), d = ui.rmDrawer;
+  if (d === 'menu') {
+    const pick = (label, screen) => choice(label, { action: 'rm-screen', attrs: to(screen) });
+    return drawer(p.name, choice('⚙ Milestone', { action: 'rm-settings', attrs: ' data-id="' + esc(m ? m.id : '') + '"' + (!m || m.unplanned ? ' disabled' : '') })
+      + pick('🗺 All milestones', 'all') + pick('🔍 Find a task', 'find') + pick('✏️ Edit project', 'edit')
+      + choice('⟳ Sync', { action: 'sync-github', attrs: p.source === 'github' ? '' : ' disabled' }));
+  }
+  if (d === 'remove') return drawer('Remove ' + p.name + '?', '<div class="rm-ask">' + stamp('Back', { action: 'rm-drawer-close' }) + stamp('Remove', { action: 'confirm-remove-project', attrs: ' data-project="' + esc(p.id) + '"' }) + '</div>');
+  const t = ui.rmTask && p.tasks.find((x) => x.id === ui.rmTask);
+  if (!t) return '';
+  if (d === 'move') {
+    const cur = milestoneOf(p, t);
+    return drawer('Move to', r.milestones.map((x) => choice(esc(x.name), { action: 'rm-move-to', attrs: ' data-ms="' + esc(x.id) + '"', on: x.id === cur })).join(''));
+  }
+  if (d === 'task') {
+    const stamps = [['doing', 'Doing', '#B7791F'], ['review', 'Review', '#7B4BB5'], ['done', 'Done', '#2F7A4B']].map(([k, n, c]) => '<button type="button" class="rm-stamp' + (t.status === k ? ' on' : '') + '" style="--s:' + c + '" data-action="rm-task-to" data-status="' + k + '" aria-pressed="' + (t.status === k) + '">' + n + '</button>').join('')
+      + '<button type="button" class="rm-stamp" style="--s:#59627A" data-action="rm-focus">◎ Focus</button>';
+    const mk = subtasksOf(st.projects, t.id).length && !(p.milestones || []).some((x) => x.parentTaskId === t.id) ? choice('🏁 Make it a milestone', { action: 'rm-make', attrs: ' data-id="' + esc(t.id) + '"' }) : '';
+    return drawer(t.title, '<div class="rm-stamps">' + stamps + '</div>' + choice('➜ Other milestone', { action: 'rm-drawer', attrs: ' data-drawer="move"' }) + mk
+      + choice('Details', { action: 'rm-details', small: '›' }));
+  }
+  return '';
+}
+
+function projectView(st, ui, p, hasToken) {
+  const r = roadmapOf(p), s = ui.rmScreen;
+  const screen = s === 'all' ? allMs(p, r) : s === 'find' ? find(st, ui, p) : s === 'set' && ui.rmSet ? renderSettings(ui.rmSet) : s === 'edit' ? edit(st, ui, p, hasToken)
+    : s === 'task' || s === 'ms' || s === 'sec' ? forms(ui, p, s) : main(st, ui, p, r);
+  return screen + drawers(st, ui, p, r) + detail(st, ui, p);
 }
 
 function detail(st, ui, p) {
@@ -65,26 +150,6 @@ function detail(st, ui, p) {
   // the tools go inside the panel's own markup, so on a phone (where Task details fills the screen) they come with it
   const tools = '<div class="rm-detail-tools"><label>Milestone <select data-action="rm-set-milestone" data-id="' + esc(t.id) + '">' + opts + '</select></label>' + mk + '</div>';
   return '<div class="rm-detail">' + renderTaskDetails(st, ui, t.id).replace(/^<aside[^>]*>/, (open) => open + tools) + '</div>';
-}
-
-function projectView(st, ui, p, hasToken) {
-  const r = roadmapOf(p);
-  const secs = r.sections.map((s) => '<section class="rm-sec" data-section-id="' + esc(s.id) + '"' + (s.virtual ? '' : ' data-sec-index="' + (s.n - 1) + '"') + ' aria-label="' + esc(s.name) + '">'
-    + '<h3 class="rm-sec-h">' + (s.virtual ? '' : grip('sec', s.id, s.name, 'Alt plus up or down arrow')) + '<span class="rm-sec-name">' + (s.virtual ? '' : s.n + ' · ') + esc(s.name) + '</span>'
-    + (s.virtual ? '' : '<span class="rm-moves">' + step('rm-sec-step', s.id, -1, s.name) + step('rm-sec-step', s.id, 1, s.name) + '</span>') + '</h3>'
-    + s.milestones.map((m, j) => milestone(Object.assign({ sectionId: s.id, index: j }, m), p, ui, st, r)).join('') + '</section>').join('');
-  const un = r.unplanned ? '<section class="rm-sec rm-unplanned" data-section-id="' + UNPLANNED + '">' + milestone(r.unplanned, p, ui, st, r) + '</section>' : '';
-  const form = (kind, ph) => '<form class="rm-add-form" data-action="rm-add-submit" data-kind="' + kind + '"><input type="text" name="name" maxlength="120" required autofocus placeholder="' + ph + '" aria-label="' + ph + '"><button type="submit" class="btn primary">Add</button><button type="button" class="btn-text" data-action="rm-add-cancel">Cancel</button></form>';
-  const foot = ui.rmAdd && ui.rmAdd.kind === 'milestone' ? form('milestone', 'Milestone name') : ui.rmAdd && ui.rmAdd.kind === 'section' ? form('section', 'Section name')
-    : '<p class="rm-foot"><button type="button" class="link-btn small" data-action="rm-add" data-kind="milestone">+ Add a milestone</button> · <button type="button" class="link-btn small" data-action="rm-add" data-kind="section">+ Add a section</button></p>';
-  const editing = !!(ui.editingProject || {})[p.id];
-  const sync = p.source === 'github' ? '<button type="button" class="btn ghost" data-action="sync-github">Sync now</button>' : '';
-  return '<div class="rm-head"><h2 class="board-title rm-title"><span class="rm-dot" aria-hidden="true"></span>' + esc(p.name) + '</h2><div class="rm-tools">' + sync
-    + '<button type="button" class="btn ghost" data-action="' + (editing ? 'close-project-edit' : 'open-project-edit') + '" data-project="' + esc(p.id) + '">Edit project</button></div></div>'
-    + (editing ? renderProjectEditPanel(p, Object.assign({ pendingRemove: {} }, ui), st.projectCategories || [], hasToken) : '')
-    + '<input type="search" class="project-search rm-find" data-action="set-task-query" value="' + esc(ui.taskQuery || '') + '" placeholder="Find a task…" aria-label="Find a task in this project">'
-    + '<div class="rm-total"><span class="rm-big">' + r.pct + '%</span><span class="rm-total-sub">' + r.done + ' of ' + r.total + ' tasks done</span></div>' + segBar(r)
-    + secs + un + foot + detail(st, ui, p);
 }
 
 // The Roadmap tab shows one project (#262); with none yet it offers New project, which is on the Projects tab.

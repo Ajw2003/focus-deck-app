@@ -521,27 +521,47 @@
    [
     [
      "rm-col",
-     "Pick a column",
+     "Pick a column (a folder tab)",
      "r2"
     ],
     [
      "rm-task",
-     "Tap a task",
+     "Tap a task: its drawer (Doing / Review / Done / Focus)",
      "r4"
     ],
     [
-     "rm-task-step",
-     "Move a task to the next column",
+     "rm-task-to",
+     "Stamp a task Doing, Review or Done",
+     "r4"
+    ],
+    [
+     "rm-focus",
+     "Make a task the Focus",
      "r4"
     ],
     [
      "toggle-task",
      "Tick a task done",
-     "r2 r4"
+     "r2"
+    ],
+    [
+     "rm-drawer",
+     "Open the drawer, Other milestone or Remove project",
+     "r2m r4m r2x"
+    ],
+    [
+     "rm-drawer-close",
+     "Close a drawer / Back out of Remove",
+     "r2m r2x"
+    ],
+    [
+     "rm-move-to",
+     "Move a task to another milestone",
+     "r4m"
     ],
     [
      "rm-set-milestone",
-     "Move a task to another milestone",
+     "Move a task to another milestone (Task details menu)",
      "r4m"
     ],
     [
@@ -550,8 +570,18 @@
      "r4"
     ],
     [
-     "rm-toggle",
-     "Hide or show a milestone's tasks",
+     "rm-details",
+     "Open Task details",
+     "r4"
+    ],
+    [
+     "rm-ms-go",
+     "Step to the previous or next milestone",
+     "r2"
+    ],
+    [
+     "rm-ms-open",
+     "Put a milestone on the clipboard",
      "r2o"
     ],
     [
@@ -565,23 +595,43 @@
      "r2o"
     ],
     [
-     "rm-add",
-     "Add a task, milestone or section",
-     "r3 r2a r2b"
+     "rm-screen",
+     "Open All milestones, Find a task, New task, milestone or section, Edit project",
+     "r2 r2m r2o r3 r2a r2b r2f r2e"
     ],
     [
-     "rm-add-submit",
-     "Save what you added",
-     "r3 r2a r2b"
+     "rm-back",
+     "Back from a Roadmap screen",
+     "r2o r3 r2a r2b r2f r2e"
     ],
     [
-     "rm-add-cancel",
-     "Cancel adding",
-     "r3 r2a r2b"
+     "rm-add-task",
+     "Add a task to the milestone",
+     "r3"
+    ],
+    [
+     "rm-add-more",
+     "Add a task, then open its details",
+     "r3"
+    ],
+    [
+     "rm-add-ms",
+     "Add a milestone to a section",
+     "r2a"
+    ],
+    [
+     "rm-form-sec",
+     "Pick the section for a new milestone",
+     "r2a"
+    ],
+    [
+     "rm-add-sec",
+     "Add a section",
+     "r2b"
     ],
     [
      "add-task",
-     "Add a task",
+     "Add a task (an add row)",
      "r3"
     ],
     [
@@ -592,12 +642,57 @@
     [
      "rm-settings",
      "Milestone settings",
-     "r2m r2s r2t r2u r2v"
+     "r2m r2s"
+    ],
+    [
+     "rm-set-back",
+     "Back in Milestone settings",
+     "r2s r2t r2u r2v"
+    ],
+    [
+     "rm-set-next",
+     "How big a part? to Done means",
+     "r2s"
+    ],
+    [
+     "rm-set-measure",
+     "Choose what done means",
+     "r2t"
+    ],
+    [
+     "rm-set-add",
+     "Add a checklist item",
+     "r2v"
+    ],
+    [
+     "rm-set-save",
+     "Save the milestone settings",
+     "r2t r2u r2v"
     ],
     [
      "set-task-query",
      "Find a task in this project",
      "r2f"
+    ],
+    [
+     "rm-edit-field",
+     "Change the name, area, colour or repo (the pencils)",
+     "r2e"
+    ],
+    [
+     "rm-edit-save",
+     "Save the new name",
+     "r2e"
+    ],
+    [
+     "rm-edit-area",
+     "Change the project's area",
+     "r2e"
+    ],
+    [
+     "rm-edit-color",
+     "Change the project's colour",
+     "r2e"
     ],
     [
      "open-project-edit",

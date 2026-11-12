@@ -1,5 +1,7 @@
 # Roadmap (#257)
 
+> **2026-11-12 (#268):** the Roadmap shows one project, one milestone at a time, on the desk-object clipboard. The sections below that describe four columns side by side, collapsed milestone rows, the inline add boxes, the Edit panel and the settings dialog are history; "How it works now" and "Milestone settings in two steps" replace them. The view tape picks the project; the Roadmap opens on the last-used one.
+
 > **2026-11-12 (#267):** the group view (a row per project, the "+ New project" button and the New panel) is gone from the Roadmap. The project list and New project are the Projects tab: see [projects-tab.md](./projects-tab.md). The Roadmap is one project; its menu has no "+ New project". Read the "Group view" and "+ New project" lines below as history.
 
 > **2026-11-12 (#259):** there are now five tabs; Tidy up and Triage sit under Organize on the wide rail too. The phone-only Organize wording below is history. See [tabs.md](./tabs.md).
@@ -7,7 +9,7 @@
 ## What it owns
 
 `js/roadmap.js` (pure: the data model, `roadmapOf`, `percent`, add / move / step functions), `js/roadmap-view.js`
-(markup), `js/roadmap-drag.js` (mouse drag and Alt+Arrow), `editRoadmap` and `setTaskMilestone` in
+(markup), `js/milestone-steps.js` (Milestone settings: the two steps; replaces `js/milestone-settings.js`), `js/roadmap-drag.js` (mouse drag and Alt+Arrow), `editRoadmap` and `setTaskMilestone` in
 `js/mutations.js`, the `rm-*` actions in `js/app.js`, the `.rm-*` rules (and `.org-*`) at the end of
 `css/app.css`. Tests: `js/roadmap.test.mjs`; browser check `scripts/check-roadmap-browser.mjs` (390, 360 and 1440
 wide; screenshots in `docs/generated/build-checks/step9/`).
@@ -58,7 +60,25 @@ wide; screenshots in `docs/generated/build-checks/step9/`).
   each of the two screens starts with Tidy up | Triage buttons. A wide screen keeps eight rail entries. Step 11
   regroups into five tabs and removes Board and Projects; until then both stay.
 
-## Milestone settings (#258)
+## How it works now (#268)
+
+- **The clipboard** (`main` in `js/roadmap-view.js`): the milestone's name, a progress ruler (`roadmapOf` `pct`), four folder tabs (Up next / Doing / Review / Done = status `next` / `doing` / `review` / `done`, each with its count; the tab per milestone is `ui.rmCol`), the tasks of the chosen tab as tick rows (the tick is `toggle-task`; the title opens the task's drawer), then `‹` and `›` flags (previous / next milestone in section order, Unplanned last), an "All milestones" flag and a "+ Add a task" stamp. The milestone shown is `ui.rmMs`, else the first with open tasks (`currentOf`). The state (`ui.rmMs`, `rmScreen`, `rmDrawer`, `rmTask`, `rmForm`, `rmSet`, `rmEditField`) is memory only and resets when the project changes.
+- **The ⋯ drawer** (the brass pull on the clipboard): ⚙ Milestone (not for Unplanned), 🗺 All milestones, 🔍 Find a task, ✏️ Edit project, ⟳ Sync (GitHub projects only).
+- **A task's drawer** (tap a title, also from Find): stamps Doing / Review / Done (`setTaskStatus`, exactly the Board's move) and ◎ Focus (`setFocus`, then the Focus tab); ➜ Other milestone (a Move to drawer: `setTaskMilestone`, Unplanned clears it); 🏁 Make it a milestone (`makeMilestone`; only for a task with subtasks that is not one already); Details › (Task details, whose Milestone menu and "Make this a milestone" are as before).
+- **All milestones**: sections with ↑↓ keys, each milestone with its ruler and ↑↓ keys (`stepSection`, `stepMilestone`); tapping one puts it on the clipboard; "+ Section" and "+ Milestone" stamps.
+- **New task / New milestone / New section**: a jotter field and an Add stamp (off until there is a name). A task goes in the milestone on the clipboard, Up next (`addTask` then `setTaskMilestone`; no priority is asked, as with the Jot; set it in Task details). "More…" adds the task and opens Task details. shortcut: the Sort steps work on tray thoughts, so they are not run for full details; upgrade if Sort should take an existing task. A new milestone picks its section from a list (default the last).
+- **Find a task**: a field and the matching tasks of this project; each opens its drawer.
+- **Edit project**: a receipt (name, area, colour, repo); a pencil opens a one-question screen (`renameProject` is new, `setProjectCategory`, `setProjectColor`, `link-repo` for a project not yet on GitHub; a linked repo is shown, not changed). "Remove project" asks first in a drawer (Back / Remove, `removeProject`) and then lands on the Projects tab.
+- **Computer**: the grips show where there is a mouse. Drag a task by its grip onto a folder tab (`setTaskStatus`), a milestone onto another milestone or a section, a section onto another section (`js/roadmap-drag.js`, unchanged); Alt+Arrow on a grip as before. A phone uses the stamps and the ↑↓ keys.
+- **Dropped on purpose**: the collapsed milestone rows and their toggle (`rm-toggle`); the ← → buttons on each task (`rm-task-step`; the stamps do it); the priority and due chips on a task row (they are in Task details, and Find shows the priority); the inline add boxes; the project percent and segmented bar on the Roadmap (the Projects tab's ruler shows the percent); the old Edit panel on this screen. `renderProjectEditPanel` and `renderAddTaskRow` in `js/render.js` are no longer used by the Roadmap.
+- The first column is named "Doing" here (`COLS`), not "In progress"; status values are unchanged.
+- Text is never under 13px: `.screen-roadmap` lifts `--text-sm` to 13px, which also fixes `.link-btn.small` (12.8px) wherever it shows on the Roadmap.
+
+## Milestone settings in two steps (#268)
+
+Menu, ⚙ Milestone opens a draft (`ui.rmSet`, `settingsDraft`); nothing changes until Save. Step 1 "How big a part?": a ruler slider with the % under it (`sharesAfter` rescales the others from the shares at open). Step 2 "Done means…": Tasks done and Task size choose and Save; A number goes to a name and "done so far of target" fields; A checklist to a tick list (tick, edit, remove) and an Add field. Save is `applyMilestoneSettings`, the same mutation as #258. Back steps back; Escape is Back. The #258 text follows as history.
+
+## Milestone settings (#258, the dialog is replaced by #268)
 
 Clicking a milestone's name on the project view opens "Milestone: <name>" (subline "<project> · <section number> · <section name>"): a centred dialog on a wide screen, a bottom sheet on a phone (`js/milestone-settings.js`, on `<body>` like the move dialog; Escape, Close or Cancel discard, focus is trapped and returns to the name). It works on a draft; nothing changes until "Save milestone".
 

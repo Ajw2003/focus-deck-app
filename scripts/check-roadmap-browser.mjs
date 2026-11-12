@@ -1,9 +1,8 @@
-// scripts/check-roadmap-browser.mjs -- the Roadmap (#257) in real Chromium at 390x844, 360x780 and 1440x900:
-// the Projects tab's cards and percents (All, Area), the project view (sections, four columns, collapsed rows),
-// a task moved between columns (mouse drag + Alt+Arrow on desktop, the arrow buttons and the column buttons on a
-// phone), a milestone moved between sections and sections reordered (drag / Alt+Up/Down, or the up/down buttons),
-// add a task / milestone / section, Make this a milestone, Edit project, New project (on the Projects tab, #267), a reload keeps it all,
-// the 8-tab phone bar fits, no page errors, no sideways scroll.
+// scripts/check-roadmap-browser.mjs -- the Roadmap (#257, one milestone at a time since #268) in real Chromium at 390x844, 360x780 and 1440x900:
+// the Projects tab's cards and percents (All, Area), the clipboard (ruler, four folder tabs, tick rows, the flags), a task moved by the
+// drawer's stamps, the tick, and on a computer a drag onto a folder tab and Alt+Arrow, a task to another milestone, milestones and
+// sections reordered (↑↓ keys, or drag / Alt+Up/Down on a computer), add a task / milestone / section, Make it a milestone, Edit project
+// and Remove asking first, New project (on the Projects tab, #267), a reload keeps it all, the 6-tab phone bar fits, no page errors, no sideways scroll.
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux/chrome node scripts/check-roadmap-browser.mjs
 // Serves the repo root on 127.0.0.1:8141. Screenshots: docs/generated/build-checks/step9/roadmap-*.png
 // A phone has no touch drag here (grips are hidden; scripts/lib/touch.mjs is not used): it moves with buttons.
@@ -92,7 +91,7 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   };
   const secs = async () => (await proj('p0')).sections.slice().sort((a, b) => a.order - b.order).map((s) => s.id).join();
 
-  // eight tabs on the phone bar: every label whole
+  // six tabs on the phone bar: every label whole
   const fit = await page.evaluate(() => {
     const items = [...document.querySelectorAll('.rail-item')].filter((i) => i.offsetParent);
     return { n: items.length, clipped: items.filter((i) => i.querySelector('.rail-label').scrollWidth > i.clientWidth).map((i) => i.textContent.trim()).join() };
@@ -109,74 +108,79 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   check((await page.$$('.pj-card')).length === 3, tag + 'Area Apps: three cards');
   check((await page.getAttribute('.pj-card[data-project="p0"] .pj-ruler', 'aria-label')) === '37% done', tag + 'Focus Deck says 37% done (equal milestone shares: 40, 50, 33, 25)');
   check((await page.getAttribute('.pj-card[data-project="p1"] .pj-ruler', 'aria-label')) === '50% done', tag + 'second project 50%');
-  check((await page.isVisible('#new-panel-toggle')) && (await page.textContent('#new-panel-toggle')) === '+ New project', tag + '+ New project is on the Projects tab');
   await noScroll('projects'); await shot('projects');
-  await page.click('.pj-card[data-project="p0"]'); await page.waitForSelector('.rm-project');
-  check(!(await page.$('#new-panel-toggle')) && !(await page.textContent('.rm-head')).includes('New project'), tag + 'the Roadmap has no + New project (Projects owns it)');
+  await page.click('.pj-card[data-project="p0"]'); await page.waitForSelector('.rm-main');
+  check(!(await page.$('#new-panel-toggle')), tag + 'the Roadmap has no + New project (Projects owns it)');
 
-  // project view
-  await page.waitForSelector('.rm-project');
-  check((await page.textContent('.rm-big')) === '37%' && (await page.textContent('.rm-title')).trim() === 'Focus Deck', tag + 'project view: name and big 37%', await page.textContent('.rm-big'));
-  check((await page.$$eval('.rm-sec-name', (e) => e.map((x) => x.textContent).join('|'))) === '1 · Foundations|2 · Plan tools', tag + 'sections in order');
-  check((await page.$$('.rm-ms.is-open')).length === 1 && (await page.$$eval('.rm-ms.is-open .rm-col', (c) => c.map((x) => x.dataset.status).join())) === 'next,doing,review,done', tag + 'the open milestone has the four columns');
-  check((await page.$$('.rm-ms:not(.is-open)')).length === 3, tag + 'the other milestones (and Unplanned) are collapsed rows');
-  check((await page.textContent('.rm-ms[data-ms-id="m3"] .rm-ms-count')).trim().startsWith('tasks 1 of 3'), tag + 'collapsed row says tasks 1 of 3');
-  if (phone) {
-    check((await page.$$eval('.rm-coltab', (b) => b.map((x) => x.textContent).join('|'))) === 'Up next|In progress|Review|Done', tag + 'phone: four column buttons');
-    check((await page.$$eval('.rm-ms.is-open .rm-col', (c) => c.filter((x) => x.offsetParent).map((x) => x.dataset.status).join())) === 'next', tag + 'phone: one column visible at a time');
-    await page.click('.rm-coltab[data-col="review"]');
-    check((await page.$$eval('.rm-ms.is-open .rm-col', (c) => c.filter((x) => x.offsetParent).map((x) => x.dataset.status + ':' + x.querySelectorAll('.rm-task').length).join())) === 'review:1', tag + 'phone: Review shows its one task');
-    await page.click('.rm-coltab[data-col="next"]');
-  } else {
-    check((await page.$$eval('.rm-ms.is-open .rm-col', (c) => c.filter((x) => x.offsetParent).length)) === 4, tag + 'desktop: all four columns visible');
-  }
-  await page.click('.rm-ms-toggle[data-id="mg2"]');
-  check((await page.$$('.rm-ms.is-open')).length === 2 && (await page.$$eval('.rm-ms[data-ms-id="mg2"] .rm-task-title', (e) => e.map((x) => x.textContent).join('|'))) === 'Areas from GitHub|Areas shipped', tag + 'clicking a collapsed milestone opens it; the GitHub-milestone tasks are in it');
-  await page.click('.rm-ms-toggle[data-id="mg2"]');
-  check((await page.$$('.rm-ms.is-open')).length === 1, tag + 'and closes it again');
-  await noScroll('project'); await shot('project');
+  // the milestone on the clipboard
+  check((await page.textContent('.sort-q')) === 'Start here screen', tag + 'the clipboard opens on the first milestone with open tasks');
+  check((await page.$$eval('.rm-tab', (b) => b.map((x) => x.dataset.status).join())) === 'next,doing,review,done' && (await page.$$eval('.rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Test on phone', tag + 'four folder tabs; Up next lists its task');
+  await page.click('.rm-tab[data-col="review"]');
+  check((await page.$$eval('.rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Pick one for me', tag + 'the Review tab shows its one task');
+  await page.click('.rm-tab[data-col="next"]');
+  await page.click('.rm-flag[aria-label="Next milestone"]');
+  check((await page.textContent('.sort-q')) === 'Areas' && (await page.$$eval('.rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Areas from GitHub', tag + '› steps to Areas; the GitHub-milestone task is in it');
+  await page.click('.rm-flag[aria-label="Previous milestone"]');
+  await noScroll('clipboard'); await shot('project');
 
-  // a task between columns
-  if (phone) {
-    await page.click('.rm-task[data-task-id="s1"] [data-action="rm-task-step"][data-dir="1"]');
-    check((await task('s1')).status === 'doing', tag + 'the → button moves Test on phone to In progress');
-    await page.click('.rm-coltab[data-col="doing"]');
-    await page.click('.rm-task[data-task-id="s1"] [data-action="rm-task-step"][data-dir="1"]');
-    await page.click('.rm-coltab[data-col="review"]');
-    await page.click('.rm-task[data-task-id="s1"] [data-action="rm-task-step"][data-dir="1"]');
-    const s1 = await task('s1');
-    check(s1.status === 'done' && typeof s1.completedAt === 'number', tag + '→ again, twice: Review, then Done (completedAt set)');
-    await page.click('.rm-coltab[data-col="done"]'); await shot('done-column');
-    await page.click('.rm-task[data-task-id="s1"] [data-action="rm-task-step"][data-dir="-1"]');
-    check((await task('s1')).status === 'review' && (await task('s1')).completedAt === undefined, tag + '← moves back, any direction');
-    await page.click('.rm-coltab[data-col="next"]');
-  } else {
-    await drag('.rm-task[data-task-id="s1"] .rm-grip', '.rm-col[data-ms="m1"][data-status="doing"]');
-    check((await task('s1')).status === 'doing', tag + 'mouse drag: Test on phone to In progress');
-    await drag('.rm-task[data-task-id="s1"] .rm-grip', '.rm-col[data-ms="m1"][data-status="done"]');
-    const s1 = await task('s1');
-    check(s1.status === 'done' && typeof s1.completedAt === 'number', tag + 'mouse drag to Done sets completedAt');
-    await drag('.rm-task[data-task-id="s1"] .rm-grip', '.rm-col[data-ms="m1"][data-status="next"]');
-    check((await task('s1')).status === 'next', tag + 'and back to Up next (any direction)');
+  // a task between columns: the drawer's stamps and the tick, then (on a computer) drag and Alt+Arrow
+  await page.click('.rm-task-title[data-id="s1"]');
+  await page.click('.rm-stamp[data-status="doing"]');
+  check((await task('s1')).status === 'doing', tag + 'the Doing stamp moves Test on phone to Doing');
+  await page.click('.rm-tab[data-col="doing"]');
+  await page.click('.rm-task-title[data-id="s1"]');
+  await page.click('.rm-stamp[data-status="review"]');
+  check((await task('s1')).status === 'review', tag + 'the Review stamp moves it on');
+  await page.click('.rm-tab[data-col="review"]');
+  await page.click('.rm-task-title[data-id="s1"]');
+  await page.click('.rm-stamp[data-status="done"]');
+  const s1 = await task('s1');
+  check(s1.status === 'done' && typeof s1.completedAt === 'number', tag + 'the Done stamp sets completedAt');
+  await page.click('.rm-tab[data-col="done"]');
+  await page.click('.rm-task[data-task-id="s1"] .rm-tick');
+  check((await task('s1')).status === 'next' && (await task('s1')).completedAt === undefined, tag + 'unticking a done task puts it back in Up next');
+  await page.click('.rm-tab[data-col="next"]');
+  await page.click('.rm-task[data-task-id="s1"] .rm-tick');
+  check((await task('s1')).status === 'done', tag + 'ticking a task finishes it');
+  await page.click('.rm-tab[data-col="done"]');
+  await page.click('.rm-task[data-task-id="s1"] .rm-tick');
+  await page.click('.rm-tab[data-col="next"]');
+  if (!phone) {
+    await drag('.rm-task[data-task-id="s1"] .rm-grip', '.rm-tab[data-status="doing"]');
+    check((await task('s1')).status === 'doing', tag + 'mouse drag onto the Doing tab');
+    await page.click('.rm-tab[data-col="doing"]');
+    await drag('.rm-task[data-task-id="s1"] .rm-grip', '.rm-tab[data-status="next"]');
+    check((await task('s1')).status === 'next', tag + 'and back onto Up next (any direction)');
+    await page.click('.rm-tab[data-col="next"]');
     await page.focus('.rm-task[data-task-id="s1"] .rm-grip');
     await page.keyboard.press('Alt+ArrowRight');
-    check((await task('s1')).status === 'doing' && (await page.evaluate(() => document.activeElement.dataset.id)) === 's1', tag + 'Alt+Right moves it one column, focus stays');
+    check((await task('s1')).status === 'doing', tag + 'Alt+Right moves it one column');
+    await page.click('.rm-tab[data-col="doing"]');
+    await page.focus('.rm-task[data-task-id="s1"] .rm-grip');
     await page.keyboard.press('Alt+ArrowLeft');
     check((await task('s1')).status === 'next', tag + 'Alt+Left moves it back');
+    await page.click('.rm-tab[data-col="next"]');
   }
-  await page.reload(); await page.waitForSelector('.rm-project');
-  check((await task('s1')).status === (phone ? 'review' : 'next') && (await page.textContent('.rm-title')).trim() === 'Focus Deck', tag + 'a reload keeps the move and the view');
+  // to another milestone
+  await page.click('.rm-task-title[data-id="s1"]');
+  await page.click('.sort-drawer [data-action="rm-drawer"][data-drawer="move"]');
+  await page.click('.sort-drawer [data-action="rm-move-to"][data-ms="mg2"]');
+  check((await task('s1')).milestoneId === 'mg2', tag + 'Other milestone moves the task to Areas');
+  await page.reload(); await page.waitForSelector('.rm-main');
+  check((await task('s1')).milestoneId === 'mg2' && (await page.textContent('.vs-tape')).includes('Focus Deck'), tag + 'a reload keeps the move and the view');
 
-  // milestone between sections, section reorder
+  // milestones between sections, section reorder (All milestones)
+  await page.click('.rm-all'); await page.waitForSelector('.rm-all-screen');
+  await noScroll('all milestones'); await shot('all');
   if (phone) {
     await page.click('.rm-ms[data-ms-id="m3"] [data-action="rm-ms-step"][data-dir="-1"]');
-    check((await proj('p0')).milestones.find((m) => m.id === 'm3').sectionId === 'sec1', tag + 'up button moves Tidy up and Triage into section 1');
+    check((await proj('p0')).milestones.find((m) => m.id === 'm3').sectionId === 'sec1', tag + 'up key moves Tidy up and Triage into section 1');
     await page.click('.rm-ms[data-ms-id="m3"] [data-action="rm-ms-step"][data-dir="1"]');
-    check((await proj('p0')).milestones.find((m) => m.id === 'm3').sectionId === 'sec2', tag + 'down button moves it back');
+    check((await proj('p0')).milestones.find((m) => m.id === 'm3').sectionId === 'sec2', tag + 'down key moves it back');
     await page.click('.rm-sec[data-section-id="sec2"] [data-action="rm-sec-step"][data-dir="-1"]');
-    check((await secs()) === 'sec2,sec1', tag + 'up button reorders the sections');
+    check((await secs()) === 'sec2,sec1', tag + 'up key reorders the sections');
     await page.click('.rm-sec[data-section-id="sec2"] [data-action="rm-sec-step"][data-dir="1"]');
-    check((await secs()) === 'sec1,sec2', tag + 'down button puts them back');
+    check((await secs()) === 'sec1,sec2', tag + 'down key puts them back');
   } else {
     await drag('.rm-ms[data-ms-id="m3"] .rm-grip', '.rm-sec[data-section-id="sec1"] .rm-sec-h');
     check((await proj('p0')).milestones.find((m) => m.id === 'm3').sectionId === 'sec1', tag + 'drag moves a milestone into another section');
@@ -185,65 +189,65 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
     await drag('.rm-sec[data-section-id="sec2"] .rm-sec-h .rm-grip', '.rm-sec[data-section-id="sec1"] .rm-sec-h');
     check((await secs()) === 'sec2,sec1', tag + 'dragging a section reorders them');
     await shot('sections-swapped');
-    await page.focus('.rm-sec[data-section-id="sec2"] .rm-grip'); // the full-page screenshot blurs the grip now the page is taller (Find a task box)
+    await page.focus('.rm-sec[data-section-id="sec2"] .rm-grip');
     await page.keyboard.press('Alt+ArrowDown');
     check((await secs()) === 'sec1,sec2', tag + 'Alt+Down reorders them back');
   }
 
   // add a task, a milestone, a section
-  await page.click('[data-action="rm-add"][data-kind="task"][data-ms="m1"]');
-  await page.fill('.rm .add-row input[name="title"]', 'Brand new task');
-  await page.click('.rm .add-row [data-field="priority"][data-value="high"]');
-  await page.click('.rm .add-row button[type="submit"]');
+  await page.click('.rm-ms-open[data-id="m1"]');
+  await page.click('.sort-foot [data-action="rm-screen"][data-screen="task"]');
+  await page.fill('.pj-field', 'Brand new task');
+  await page.click('.sort-foot .dk-btn');
   const nt = (await proj('p0')).tasks.find((x) => x.title === 'Brand new task');
   check(!!nt && nt.milestoneId === 'm1' && nt.status === 'next', tag + '+ Add a task puts it in that milestone, Up next');
-  await page.click('[data-action="rm-add"][data-kind="milestone"]');
-  await page.fill('.rm-add-form input', 'Polish');
-  await page.click('.rm-add-form button[type="submit"]');
+  await page.click('.rm-all');
+  await page.click('.sort-foot [data-action="rm-screen"][data-screen="ms"]');
+  await page.fill('.pj-field', 'Polish');
+  await page.click('.sort-foot .dk-btn');
   const nm = (await proj('p0')).milestones.find((m) => m.name === 'Polish');
-  check(!!nm && nm.sectionId === 'sec2', tag + '+ Add a milestone: in the last section');
-  await page.click('[data-action="rm-add"][data-kind="section"]');
-  await page.fill('.rm-add-form input', 'Launch');
-  await page.click('.rm-add-form button[type="submit"]');
-  check((await proj('p0')).sections.some((s) => s.name === 'Launch'), tag + '+ Add a section');
-  check((await page.$$eval('.rm-sec-name', (e) => e.map((x) => x.textContent).join('|'))) === '1 · Foundations|2 · Plan tools|3 · Launch', tag + 'the new section shows, numbered 3');
+  check(!!nm && nm.sectionId === 'sec2', tag + '+ Milestone: in the last section by default');
+  await page.click('.sort-foot [data-action="rm-screen"][data-screen="sec"]');
+  await page.fill('.pj-field', 'Launch');
+  await page.click('.sort-foot .dk-btn');
+  check((await proj('p0')).sections.some((s) => s.name === 'Launch'), tag + '+ Section');
+  check((await page.$$eval('.rm-sec-name', (e) => e.map((x) => x.textContent).join('|'))) === 'Foundations|Plan tools|Launch', tag + 'the new section shows');
 
-  // Make this a milestone, from a task's details
-  await page.click('.rm-ms-toggle[data-id="unplanned"]');
+  // Make it a milestone, from a task's drawer
+  await page.click('.rm-ms-open[data-id="unplanned"]');
   await page.click('.rm-task-title[data-id="par2"]');
-  await page.waitForSelector('.rm-detail [data-action="rm-make"]');
-  await shot('details');
-  await page.click('.rm-detail [data-action="rm-make"]');
+  await page.click('.sort-drawer [data-action="rm-make"]');
   const mk = (await proj('p0')).milestones.find((m) => m.parentTaskId === 'par2');
-  await page.keyboard.press('Escape'); // Task details fills a phone's screen; Escape closes it
-  check(!!mk && mk.name === 'Android app', tag + 'Make this a milestone on a task with subtasks');
-  check((await page.textContent('.rm-ms[data-ms-id="' + (mk || {}).id + '"] .rm-ms-count')).trim().startsWith('tasks 1 of 2'), tag + 'its subtasks are its tasks (1 of 2)');
-  check((await page.textContent('.rm-big')) === '28%', tag + 'project percent: equal shares again after Polish (empty) and Android app are added (#258)', await page.textContent('.rm-big'));
+  check(!!mk && mk.name === 'Android app', tag + 'Make it a milestone on a task with subtasks');
+  await page.click('.rm-ms-open[data-id="' + (mk || {}).id + '"]');
+  check((await page.getAttribute('.pj-ruler', 'aria-label')) === '50% done' && (await page.$$eval('.rm-tab b', (b) => b.map((x) => x.textContent).join())) === '1,0,0,1', tag + 'its subtasks are its tasks (1 of 2)');
   await noScroll('after adds'); await shot('after-adds');
 
-  // Edit project (the existing panel) and New project
-  await page.click('[data-action="open-project-edit"]');
-  await page.waitForSelector('.project-edit-panel');
-  const ed = await page.textContent('.project-edit-panel');
-  check(ed.includes('Remove project') && ed.includes('Area') && (await page.$$('.project-edit-panel input[type="color"]')).length >= 1, tag + 'Edit project opens the rename/colour/area/Remove panel');
+  // Edit project: the receipt, then Remove asks first
+  await page.click('.pj-pull'); await page.click('.sort-drawer [data-screen="edit"]');
+  check((await page.$$('.dk-pencil')).length === 4 && (await page.textContent('.dk-choice.danger')) === 'Remove project', tag + 'Edit project is a receipt with a pencil a line and Remove project');
   await shot('edit-project');
-  await page.click('[data-action="close-project-edit"]');
+  await page.click('.dk-choice.danger');
+  check((await page.$$eval('.rm-ask .dk-btn', (b) => b.map((x) => x.textContent.trim()).join('|'))) === 'Back|Remove', tag + 'Remove asks first: Back / Remove');
+  await page.click('.rm-ask .dk-btn:first-child');
+  check(!!(await proj('p0')), tag + 'Back keeps the project');
+  await page.click('.dk-back');
   await goProjects();
   await page.click('#new-panel-toggle');
   await page.fill('[data-np-name]', 'Fresh start');
   for (let i = 0; i < 3; i++) await page.click('.dk-btn[data-action="np-next"]');
   await page.click('.dk-btn[data-action="add-new-project"]');
-  await page.waitForSelector('.rm-project');
-  check((await st()).projects.some((p) => p.name === 'Fresh start') && (await page.textContent('.rm-title')).includes('Fresh start'), tag + 'New project makes it and opens its Roadmap');
+  await page.waitForSelector('.rm-main');
+  check((await st()).projects.some((p) => p.name === 'Fresh start') && (await page.textContent('.sort-q')) === 'Fresh start', tag + 'New project makes it and opens its Roadmap');
   await goProjects();
   check((await page.$$('.pj-card')).length === 5, tag + 'the new project is on the list');
   await noScroll('projects after new project'); await shot('all-with-new');
 
   // everything persists
   await page.reload(); await page.waitForSelector('.pj');
-  await goProjects();
   check((await page.$$('.pj-card')).length === 5, tag + 'after a reload: five cards');
-  await page.click('.pj-card[data-project="p0"]'); await page.waitForSelector('.rm-project');
+  await page.click('.pj-card[data-project="p0"]'); await page.waitForSelector('.rm-main');
+  await page.click('.rm-all');
   check((await page.$$eval('.rm-sec-name', (e) => e.length)) === 3 && !!(await page.$('.rm-ms[data-ms-id="' + (nm || {}).id + '"]')), tag + 'after a reload: sections and milestones are still there');
   await noScroll('reload');
   await ctx.close();

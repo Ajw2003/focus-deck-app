@@ -538,6 +538,16 @@ export function setProjectColor(projectId, color) {
   persist();
 }
 
+// Edit project's name pencil (#268): the one project field that had no way to change.
+export function renameProject(projectId, name) {
+  const project = state.projects.find((p) => p.id === projectId);
+  name = String(name || '').trim();
+  if (!project || !name) return false;
+  project.name = name;
+  persist();
+  return true;
+}
+
 export function excludeRepo(fullName) {
   if (!state.excludedRepos.includes(fullName)) state.excludedRepos.push(fullName);
   state.projects = state.projects.filter((p) => !(p.source === 'github' && p.repoFullName === fullName));

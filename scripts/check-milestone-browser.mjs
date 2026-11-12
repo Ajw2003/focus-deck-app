@@ -1,7 +1,7 @@
-// scripts/check-milestone-browser.mjs -- Milestone settings (#258) in real Chromium at 360x780, 390x844 and 1440x900:
-// open from a milestone name, move the share slider (keyboard and mouse) and see the rest rescale to 100, pick each
-// of the four measures and see the progress text and project percent change after Save, Cancel discards, it all
-// persists after a reload, the segmented project bar, a task's size, no page errors, no sideways scroll.
+// scripts/check-milestone-browser.mjs -- Milestone settings (#258, two steps since #268) in real Chromium at 360x780, 390x844 and 1440x900:
+// open from the drawer, move the ruler slider (keyboard and mouse) and see the %, Back discards, pick each of the four "done means"
+// (tasks, size, a number, a checklist) and see the milestone's ruler change after Save, the stored shares add up to 100, it all
+// persists after a reload, a task's size, the Projects ruler, no page errors, no sideways scroll.
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux/chrome node scripts/check-milestone-browser.mjs
 // Serves the repo root on 127.0.0.1:8142. Screenshots: docs/generated/build-checks/step10/milestone-*.png
 import { createRequire } from 'node:module';
@@ -58,91 +58,82 @@ for (const [w, h] of [[360, 780], [390, 844], [1440, 900]]) {
   await page.waitForSelector('.rail');
   const shot = (n) => page.screenshot({ path: OUT + 'milestone-' + w + '-' + n + '.png' });
   const st = async () => (await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')))).projects[0];
-  const noScroll = async (n) => check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth && (!document.querySelector('.ms-dialog') || document.querySelector('.ms-dialog').scrollWidth <= document.querySelector('.ms-dialog').clientWidth)), tag + 'no sideways scroll ' + n);
+  const noScroll = async (n) => check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), tag + 'no sideways scroll ' + n);
   const text = async (sel) => ((await page.textContent(sel)) || '').replace(/\s+/g, ' ').trim();
-  const openIt = async (id) => { await page.click('.rm-ms-name[data-id="' + id + '"]'); await page.waitForSelector('.ms-dialog'); };
-  const sumShown = async () => page.$$eval('.ms-others b', (b) => b.map((x) => parseInt(x.textContent, 10)).reduce((a, c) => a + c, 0));
-  const slider = async () => Number(await page.inputValue('.ms-slider'));
-  const save = async () => { await page.click('[data-ms-save]'); await page.waitForSelector('.ms-dialog', { state: 'detached' }); };
-  const countA = async () => text('.rm-ms[data-ms-id="a"] .rm-ms-count');
+  const openIt = async () => { await page.click('.pj-pull'); await page.click('.sort-drawer [data-action="rm-settings"]'); await page.waitForSelector('.rm-slider'); };
+  const next = async () => { await page.click('[data-action="rm-set-next"]'); await page.waitForSelector('[data-action="rm-set-measure"]'); };
+  const save = async () => { await page.click('[data-action="rm-set-save"]'); await page.waitForSelector('.rm-main'); };
+  const slider = async () => Number(await page.inputValue('.rm-slider'));
+  const ruler = async () => page.getAttribute('.pj-ruler', 'aria-label'); // the open milestone's own ruler
 
   await page.click('[data-screen="roadmap"]'); await page.waitForSelector('.rm');
   await page.click('.vs-tape'); await page.click('[data-action="view-step"][data-step="project"]'); await page.click('[data-action="view-pick"][data-id="p0"]'); // the view tape
-  await page.waitForSelector('.rm-project');
-  check((await text('.rm-big')) === '23%', tag + 'start: equal shares of 4, tasks 3 of 5 / 1 of 3 -> 23%', await text('.rm-big'));
+  await page.waitForSelector('.rm-main');
+  check((await text('.sort-q')) === 'Alpha' && (await ruler()) === '60% done', tag + 'start: Alpha, 3 of 5 tasks done = 60%', await ruler());
 
-  // open, close with Escape (focus returns), open again
-  await openIt('a');
-  check((await text('.ms-title')) === 'Milestone: Alpha' && (await text('.ms-sub')) === 'Focus Deck · 1 · Foundations', tag + 'title and subline', (await text('.ms-title')) + ' / ' + (await text('.ms-sub')));
-  check(await page.evaluate(() => !!document.activeElement.closest('.ms-dialog')), tag + 'focus is inside the dialog');
-  const dlg = await (await page.$('.ms-dialog')).boundingBox();
-  check(phone ? Math.abs(dlg.y + dlg.height - h) < 2 && Math.abs(dlg.width - w) < 2 : Math.abs(dlg.x + dlg.width / 2 - w / 2) < 2 && dlg.y > 20, tag + (phone ? 'bottom sheet' : 'centred dialog'), JSON.stringify(dlg));
-  check((await text('[data-ms-mine]')) === '25% of the project' && (await text('[data-ms-rest]')) === 'the rest share 75%', tag + 'old save: equal shares of 4 (3 milestones + Unplanned)', await text('[data-ms-mine]'));
-  for (let i = 0; i < 40; i++) await page.keyboard.press('Tab');
-  check(await page.evaluate(() => !!document.activeElement.closest('.ms-dialog')), tag + 'Tab stays inside');
-  await page.keyboard.press('Escape');
-  check(!(await page.$('.ms-dialog')) && (await page.evaluate(() => document.activeElement.matches('.rm-ms-name[data-id="a"]'))), tag + 'Escape closes and focus is back on the name');
-
-  // the slider: keyboard, then mouse; the rest rescale and the total stays 100
-  await openIt('a');
-  await page.focus('.ms-slider');
+  // step 1: open, the slider by keyboard then mouse; Back leaves it unsaved
+  await openIt();
+  check((await text('.sort-q')) === 'How big a part?' && (await slider()) === 25 && (await text('[data-rm-pct]')) === '25%', tag + 'old save: equal shares of 4 (3 milestones + Unplanned) = 25%', await text('[data-rm-pct]'));
+  await page.focus('.rm-slider');
   for (let i = 0; i < 15; i++) await page.keyboard.press('ArrowRight');
-  check((await slider()) === 40 && (await text('[data-ms-mine]')) === '40% of the project' && (await text('[data-ms-rest]')) === 'the rest share 60%', tag + 'keyboard: 40% / rest 60%', await text('[data-ms-mine]'));
-  check((await sumShown()) === 60 && (await text('[data-ms-total]')) === '100', tag + 'others add up to 60, total 100');
-  const sb = await (await page.$('.ms-slider')).boundingBox();
+  check((await slider()) === 40 && (await text('[data-rm-pct]')) === '40%', tag + 'keyboard: 40%', await text('[data-rm-pct]'));
+  const sb = await (await page.$('.rm-slider')).boundingBox();
   await page.mouse.click(sb.x + sb.width * 0.7, sb.y + sb.height / 2);
   const v = await slider();
-  check(v >= 60 && v <= 80 && (await sumShown()) === 100 - v && (await text('[data-ms-total]')) === '100', tag + 'mouse: slider at ' + v + ', others ' + (100 - v) + ', total 100');
-  await shot('slider');
-  await noScroll('dialog open');
-  await page.click('.ms-actions [data-ms-cancel]');
-  check(!(await page.$('.ms-dialog')) && (await st()).milestones.every((m) => m.weight === undefined && !m.measureBy), tag + 'Cancel changed nothing');
-  await openIt('a'); await page.focus('.ms-slider'); await page.keyboard.press('End'); await page.click('.ms-top [data-ms-cancel]');
-  check((await st()).milestones.every((m) => m.weight === undefined), tag + 'the close control discards');
+  check(v >= 60 && v <= 80 && (await text('[data-rm-pct]')) === v + '%', tag + 'mouse: slider and % agree at ' + v);
+  await shot('slider'); await noScroll('step 1');
+  await page.click('.dk-back');
+  check((await text('.sort-q')) === 'Alpha' && (await st()).milestones.every((m) => m.weight === undefined && !m.measureBy), tag + 'Back changed nothing');
+  await openIt(); await page.keyboard.press('Escape');
+  check((await text('.sort-q')) === 'Alpha', tag + 'Escape leaves too');
 
-  // each measure, saved
-  await openIt('a');
-  await page.focus('.ms-slider'); await page.keyboard.press('Home'); for (let i = 0; i < 40; i++) await page.keyboard.press('ArrowRight');
-  check((await text('.ms-card.is-on .ms-card-hint')) === '3 of 5 tasks', tag + 'Tasks done card says 3 of 5 tasks');
+  // step 2: each measure, saved
+  await openIt();
+  await page.focus('.rm-slider'); await page.keyboard.press('Home'); for (let i = 0; i < 40; i++) await page.keyboard.press('ArrowRight');
+  await next();
+  check((await text('.sort-q')) === 'Done means…' && (await page.$$eval('.sort-body .dk-choice', (b) => b.map((x) => x.textContent.trim()).join('|'))) === '✓ Tasks done|⚖ Task size|🔢 A number|☑ A checklist' && (await page.$$('.dk-choice.on')).length === 1, tag + 'four choices, the current one marked');
+  await page.click('.dk-choice[data-value="tasks"]');
   await save();
-  check((await countA()).startsWith('tasks 3 of 5') && (await text('.rm-big')) === '31%', tag + 'tasks: 3 of 5, project 31%', (await countA()) + ' ' + (await text('.rm-big')));
-  check(await page.evaluate(() => document.activeElement.matches('.rm-ms-name[data-id="a"]')), tag + 'after Save focus is on the name');
+  check((await ruler()) === '60% done' && (await st()).milestones.find((m) => m.id === 'a').weight === 40, tag + 'tasks: 3 of 5 = 60%, share 40');
+  await page.click('.pj-pull'); await page.click('.sort-drawer [data-action="rm-screen"][data-screen="all"]');
+  check((await page.getAttribute('.rm-ms[data-ms-id="a"] .pj-ruler', 'aria-label')) === '60% done', tag + 'All milestones shows the same ruler');
+  await page.click('.rm-ms-open[data-id="a"]');
 
-  await openIt('a'); check((await slider()) === 40, tag + 'the saved share is 40');
-  await page.check('input[type="radio"][value="size"]');
-  check((await text('.ms-card.is-on .ms-card-hint')) === 'small 1, medium 2, large 3', tag + 'Task size card text');
-  await save();
-  check((await countA()).startsWith('5 of 8 points') && (await text('.rm-big')) === '32%', tag + 'size: 5 of 8 points, project 32%', (await countA()) + ' ' + (await text('.rm-big')));
+  await openIt(); check((await slider()) === 40, tag + 'the saved share is 40');
+  await next(); await page.click('.dk-choice[data-value="size"]'); await save();
+  check((await ruler()) === '63% done', tag + 'size: 5 of 8 points = 63%', await ruler());
 
-  await openIt('a'); await page.check('input[type="radio"][value="number"]');
-  await page.fill('[data-ms-num="name"]', 'screens tested'); await page.fill('[data-ms-num="current"]', '2'); await page.fill('[data-ms-num="target"]', '4');
+  await openIt(); await next(); await page.click('.dk-choice[data-value="number"]');
+  await page.fill('[data-rm-num="name"]', 'screens tested'); await page.fill('[data-rm-num="current"]', '2'); await page.fill('[data-rm-num="target"]', '4');
   await shot('number'); await noScroll('number measure');
   await save();
-  check((await countA()).startsWith('screens tested 2 of 4') && (await text('.rm-big')) === '27%', tag + 'own number: screens tested 2 of 4, project 27%', (await countA()) + ' ' + (await text('.rm-big')));
+  const mn = (await st()).milestones.find((m) => m.id === 'a');
+  check((await ruler()) === '50% done' && mn.measureBy === 'number' && mn.number.name === 'screens tested', tag + 'own number: screens tested 2 of 4 = 50%', await ruler());
 
-  await openIt('a'); await page.check('input[type="radio"][value="checklist"]');
-  for (const item of ['write', 'test', 'ship']) { await page.fill('[data-ms-new]', item); await page.keyboard.press('Enter'); }
-  await page.check('[data-ms-tick="0"]');
-  check((await page.$$('.ms-item')).length === 3, tag + 'three checklist items');
+  await openIt(); await next(); await page.click('.dk-choice[data-value="checklist"]');
+  for (const item of ['write', 'test', 'ship']) { await page.fill('[data-rm-new]', item); await page.keyboard.press('Enter'); }
+  await page.check('.rm-tick[data-rm-tick="0"]');
+  check((await page.$$('.rm-item')).length === 3, tag + 'three checklist items');
+  await page.click('[data-rm-drop="2"]');
+  check((await page.$$('.rm-item')).length === 2, tag + 'a remove key drops one');
+  await page.fill('[data-rm-new]', 'ship'); await page.keyboard.press('Enter');
   await shot('checklist'); await noScroll('checklist measure');
   await save();
-  check((await countA()).startsWith('1 of 3 items') && (await text('.rm-big')) === '20%', tag + 'checklist: 1 of 3 items, project 20%', (await countA()) + ' ' + (await text('.rm-big')));
+  check((await ruler()) === '33% done', tag + 'checklist: 1 of 3 items = 33%', await ruler());
 
-  // the segmented bar names each milestone's contribution
-  const segs = await page.$$eval('.rm-segs i', (i) => i.map((x) => x.getAttribute('title')));
-  check(segs.length === 2 && segs[0] === 'Alpha: 13.2% of the project' && segs[1].startsWith('Beta: '), tag + 'segments name the milestone and its contribution', segs.join(' | '));
-  await shot('bar'); await noScroll('project view');
-
-  // saved data: shares add up to 100, stamped; survives a reload
+  // saved data: shares add up to 100, stamped; the Projects ruler follows; survives a reload
   const p1 = await st();
   const total = p1.milestones.reduce((a, m) => a + m.weight, 0) + p1.unplannedWeight;
   check(total === 100 && p1.milestones.find((m) => m.id === 'a').weight === 40 && p1.milestones.every((m) => m.updatedAt > 1), tag + 'stored shares add up to 100 and are stamped', JSON.stringify(p1.milestones.map((m) => m.weight)) + ' +' + p1.unplannedWeight);
-  await page.reload(); await page.waitForSelector('.rm-project');
-  check((await countA()).startsWith('1 of 3 items') && (await text('.rm-big')) === '20%', tag + 'after a reload the same', (await countA()) + ' ' + (await text('.rm-big')));
-  await openIt('a'); check((await slider()) === 40 && (await page.$$('.ms-item')).length === 3, tag + 'reopened: 40% and the checklist'); await page.keyboard.press('Escape');
+  await page.reload(); await page.waitForSelector('.rm-main');
+  check((await ruler()) === '33% done', tag + 'after a reload the same', await ruler());
+  await openIt(); check((await slider()) === 40, tag + 'reopened: 40%'); await next(); await page.click('.dk-choice[data-value="checklist"]');
+  check((await page.$$('.rm-item')).length === 3 && (await page.$$('.rm-tick:checked')).length === 1, tag + 'reopened: the checklist and its tick'); for (let i = 0; i < 3; i++) await page.keyboard.press('Escape'); // checklist, step 2, step 1
 
-  // a task's size
-  await page.click('.rm-task-title[data-id="a4"]'); await page.click('[data-action="detail-fold"][data-key="when"]');
+  // a task's size, in Task details (the drawer's Details card)
+  await page.click('.rm-tab[data-col="next"]');
+  await page.click('.rm-task-title[data-id="a4"]'); await page.click('.sort-drawer [data-action="rm-details"]');
+  await page.click('[data-action="detail-fold"][data-key="when"]');
   await page.selectOption('[data-detail-size]', 'large');
   check(((await st()).tasks.find((x) => x.id === 'a4') || {}).size === 'large', tag + 'task details: size saved on the task');
 

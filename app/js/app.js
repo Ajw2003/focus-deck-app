@@ -28,11 +28,11 @@ import { tidyGroups, confirmIds, GROUPS } from './tidy.js';
 import { renderTriage } from './triage-view.js';
 import { triageLists, moveId, NOW_SIZE, NEXT_SIZE } from './triage.js';
 import { initTriageDrag } from './triage-drag.js';
-import { renderRoadmap } from './roadmap-view.js';
+import { renderRoadmap, currentOf } from './roadmap-view.js';
 import { renderProjects } from './projects-view.js';
 import { initRoadmapDrag } from './roadmap-drag.js';
-import { openMilestoneSettings } from './milestone-settings.js';
-import { COLS, roadmapOf, applyMilestoneSettings, stepMilestone, stepSection, moveMilestone, moveSection, addSection, addMilestone, makeMilestone } from './roadmap.js';
+import { settingsDraft } from './milestone-steps.js';
+import { COLS, UNPLANNED, roadmapOf, sharesAfter, applyMilestoneSettings, stepMilestone, stepSection, moveMilestone, moveSection, addSection, addMilestone, makeMilestone } from './roadmap.js';
 import { reviewLists } from './board.js';
 import { notesSummary, renderTaskDetails } from './task-details.js';
 import { canSetParent, canWaitOn } from './task-links.js';
@@ -127,6 +127,7 @@ function loadView() {
 }
 function setView(view) {
   ui.view = normalizeView(view, state);
+  ui.rmMs = null; ui.rmScreen = null; ui.rmDrawer = null; ui.rmEditField = null; // another project: the Roadmap starts at its own milestone
   try {
     localStorage.setItem(VIEW_KEY, JSON.stringify(ui.view));
     if (ui.view.mode === 'project') localStorage.setItem(LAST_PROJECT_KEY, ui.view.id);
@@ -148,7 +149,7 @@ export const ui = {
   // Task details (#201): the open row, a subtask being typed, the link search, the label list open
   boardOpen: null, boardAddSub: false, boardLink: null, boardPicker: false,
   onboarding: loadOnboarding(),
-  rmOpen: {}, rmCol: {}, rmAdd: null, // the Roadmap (#257), memory only: milestones opened/closed by hand, the phone's column per milestone, the add form open
+  rmCol: {}, rmMs: null, rmScreen: null, rmDrawer: null, rmTask: null, rmForm: {}, rmSet: null, rmEditField: null, // the Roadmap (#257, #268), memory only: the folder tab per milestone, the milestone on the clipboard, the screen over it (all / find / task / ms / sec / set / edit), the open drawer and its task, the form being typed, the settings draft, the Edit project field
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectQuery: '', taskQuery: '', projectSort: loadProjectSort(), // the Roadmap's Find boxes and project order
@@ -303,6 +304,84 @@ function rmTaskStep(id, dir) {
 }
 const rmProject = () => (ui.view.mode === 'project' ? ui.view.id : null);
 function rmEdit(kind, id, fn) { M.editRoadmap(rmProject(), fn); paint(); rmFocus(kind, id); }
+const rmData = () => { const p = state.projects.find((x) => x.id === rmProject()); return p ? { p, r: roadmapOf(p) } : null; };
+function rmAddTask(more) {
+  const title = (ui.rmForm.title || '').trim(), d = rmData();
+  if (!title || !d) return;
+  const m = currentOf(d.r, ui), task = M.addTask(d.p.id, title);
+  if (!task) return;
+  if (m && !m.unplanned) { M.setTaskMilestone(task.id, m.id); ui.rmCol[m.id] = 'next'; } // the task goes in the milestone on the clipboard
+  createIssueIfGithubProject(task, d.p.id);
+  ui.rmForm = {}; ui.rmScreen = null;
+  if (more) selectBoardTask(task.id); // no toast: the task shows in its tab. shortcut: More… opens Task details after adding, not the Sort steps (they work on the tray)
+  paint();
+}
+// Returns true when the action is the Roadmap's own (#268).
+function onRoadmapAction(action, el) {
+  const d = rmData(), s = ui.rmSet, id = el.getAttribute('data-id');
+  const go = (screen) => { ui.rmScreen = screen; ui.rmDrawer = null; ui.rmForm = {}; ui.rmEditField = null; paint(); window.scrollTo(0, 0); focusLater('.pj-field'); return true; };
+  if (!action.startsWith('rm-') || !d) return false;
+  if (action === 'rm-screen') {
+    const to = el.getAttribute('data-screen'), from = ui.rmScreen;
+    if (to === 'find') ui.taskQuery = '';
+    ui.rmFrom = from === 'all' ? 'all' : null;
+    return go(to);
+  }
+  if (action === 'rm-back') {
+    if (ui.rmEditField) { ui.rmEditField = null; ui.rmForm = {}; ui.linkPanel = null; paint(); return true; }
+    ui.taskQuery = '';
+    return go(ui.rmFrom === 'all' && ['ms', 'sec'].includes(ui.rmScreen) ? 'all' : null);
+  }
+  if (action === 'rm-drawer') { const to = el.getAttribute('data-drawer'); ui.rmDrawer = ui.rmDrawer === to && to === 'menu' ? null : to; paint(); focusLater('.sort-drawer'); return true; }
+  if (action === 'rm-drawer-close') { ui.rmDrawer = null; paint(); return true; }
+  if (action === 'rm-col') { ui.rmCol[el.getAttribute('data-ms')] = el.getAttribute('data-col'); paint(); return true; }
+  if (action === 'rm-task') { ui.rmTask = id; ui.rmDrawer = 'task'; paint(); focusLater('.sort-drawer'); return true; }
+  if (action === 'rm-task-to') { ui.rmDrawer = null; rmTask(ui.rmTask, el.getAttribute('data-status')); return true; }
+  if (action === 'rm-focus') { M.setFocus(ui.rmTask); ui.rmDrawer = null; setScreen('focus'); paint(); window.scrollTo(0, 0); return true; }
+  if (action === 'rm-move-to') { const to = el.getAttribute('data-ms'); M.setTaskMilestone(ui.rmTask, to === UNPLANNED ? '' : to); ui.rmDrawer = null; paint(); return true; }
+  if (action === 'rm-details') { selectBoardTask(ui.rmTask); ui.rmDrawer = null; paint(); return true; }
+  if (action === 'rm-make') { const m = M.editRoadmap(d.p.id, (p) => makeMilestone(p, p.tasks.find((t) => t.id === id))); ui.notice = m ? '“' + m.name + '” is now a milestone.' : 'It already is one.'; ui.rmDrawer = null; ui.rmScreen = 'all'; paint(); return true; }
+  if (action === 'rm-ms-go') { const all = d.r.milestones, n = all[all.indexOf(currentOf(d.r, ui)) + Number(el.getAttribute('data-dir'))]; if (n) ui.rmMs = n.id; paint(); return true; }
+  if (action === 'rm-ms-open') { ui.rmMs = id; ui.rmScreen = null; paint(); window.scrollTo(0, 0); return true; }
+  if (action === 'rm-ms-step') { const dir = Number(el.getAttribute('data-dir')); rmEdit('ms', id, (p) => stepMilestone(p, id, dir)); return true; }
+  if (action === 'rm-sec-step') { const dir = Number(el.getAttribute('data-dir')); rmEdit('sec', id, (p) => stepSection(p, id, dir)); return true; }
+  if (action === 'rm-add-task') { rmAddTask(false); return true; }
+  if (action === 'rm-add-more') { rmAddTask(true); return true; }
+  if (action === 'rm-form-sec') { ui.rmForm.sec = id; paint(); return true; }
+  if (action === 'rm-add-ms' || action === 'rm-add-sec') {
+    const name = (ui.rmForm.name || '').trim();
+    if (!name) return true;
+    const sec = ui.rmForm.sec, m = M.editRoadmap(d.p.id, (p) => (action === 'rm-add-sec' ? addSection(p, name) : addMilestone(p, name, sec)));
+    if (m && action === 'rm-add-ms') ui.rmMs = m.id;
+    return go('all');
+  }
+  // Milestone settings, two steps on a draft; nothing is saved until Save
+  if (action === 'rm-settings') { const m = d.r.milestones.find((x) => x.id === id); if (!m || m.unplanned) return true; ui.rmSet = settingsDraft(d.r, m); return go('set'); }
+  if (action.startsWith('rm-set-')) {
+    if (!s) return true;
+    if (action === 'rm-set-back') { if (s.sub) s.sub = null; else if (s.step === 2) s.step = 1; else { ui.rmSet = null; ui.rmScreen = null; } }
+    else if (action === 'rm-set-next') s.step = 2;
+    else if (action === 'rm-set-measure') { s.measureBy = el.getAttribute('data-value'); if (s.measureBy === 'number' || s.measureBy === 'checklist') s.sub = s.measureBy; }
+    else if (action === 'rm-set-add') {
+      const f = document.querySelector('[data-rm-new]'), text = f ? f.value.trim() : '';
+      if (text) s.checklist.push({ id: 'ck_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, done: false });
+      paint(); focusLater('[data-rm-new]'); return true;
+    }
+    else if (action === 'rm-set-save') { M.editRoadmap(d.p.id, (p) => applyMilestoneSettings(p, s.id, s)); ui.rmMs = s.id; ui.rmSet = null; ui.rmScreen = null; }
+    paint(); window.scrollTo(0, 0); focusLater('.pj-field'); return true;
+  }
+  // Edit project, a receipt with a pencil per line
+  if (action === 'rm-edit-field') {
+    ui.rmEditField = el.getAttribute('data-field'); ui.rmForm = {};
+    if (ui.rmEditField === 'repo' && d.p.source !== 'github' && getToken()) { ui.linkPanel = { projectId: d.p.id, open: true, repos: null, error: null }; fetchLinkPanelRepos(d.p.id); }
+    paint(); focusLater('.pj-field'); return true;
+  }
+  const done = () => { ui.rmEditField = null; ui.rmForm = {}; paint(); return true; };
+  if (action === 'rm-edit-save') { M.renameProject(d.p.id, ui.rmForm.pname !== undefined ? ui.rmForm.pname : d.p.name); return done(); }
+  if (action === 'rm-edit-area') { M.setProjectCategory(d.p.id, id || null); return done(); }
+  if (action === 'rm-edit-color') { M.setProjectColor(d.p.id, el.getAttribute('data-color')); return done(); }
+  return false;
+}
 
 // The + Jot screen (#263), drawn into #jot-screen on its own so a sync repaint never eats the draft.
 function paintJot() { document.getElementById('jot-screen').innerHTML = R.renderJotScreen(state, ui); }
@@ -551,7 +630,8 @@ document.addEventListener('click', (e) => {
 
 function onAppClick(e) {
   const el = e.target.closest('[data-action]');
-  if (ui.rmAdd && ui.rmAdd.kind === 'task' && !e.target.closest('.add-row, .rm-add-link')) { ui.rmAdd = null; paint(); } // click away closes the Roadmap's add box
+  const rmDrop = e.target.closest('[data-rm-drop]'); // the settings checklist's remove key
+  if (rmDrop && ui.rmSet) { ui.rmSet.checklist.splice(Number(rmDrop.getAttribute('data-rm-drop')), 1); paint(); focusLater('[data-rm-new]'); return; }
   if (!el) return;
   const action = el.getAttribute('data-action');
   const taskId = el.getAttribute('data-task');
@@ -623,25 +703,7 @@ function onAppClick(e) {
     setScreen('triage'); paint(); window.scrollTo(0, 0); return; // Confirm, then Triage
   }
   if (action === 'rm-open') { setScreen('roadmap'); setView({ mode: 'project', id: el.getAttribute('data-project') }); paint(); window.scrollTo(0, 0); return; }
-  if (action === 'rm-settings') {
-    const pid = rmProject(), p = state.projects.find((x) => x.id === pid), id = el.getAttribute('data-id'), r = p && roadmapOf(p);
-    const sec = r && r.sections.find((s) => s.milestones.some((x) => x.id === id)), m = sec && sec.milestones.find((x) => x.id === id);
-    if (!m) return;
-    const sel = '.rm-ms-name[data-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]';
-    openMilestoneSettings({ project: p, m, sub: [p.name, sec.virtual ? null : sec.n, sec.name].filter((x) => x !== null).join(' · '), returnTo: sel,
-      others: r.milestones.filter((x) => x.id !== id).map((x) => ({ id: x.id, name: x.name, share: x.share })) },
-    (draft) => { M.editRoadmap(pid, (pr) => applyMilestoneSettings(pr, id, draft)); paint(); });
-    return;
-  }
-  if (action === 'rm-toggle') { const id = el.getAttribute('data-id'), was = el.getAttribute('aria-expanded') === 'true'; ui.rmOpen[id] = !was; paint(); return; }
-  if (action === 'rm-col') { ui.rmCol[el.getAttribute('data-ms')] = el.getAttribute('data-col'); paint(); return; }
-  if (action === 'rm-task') { const id = el.getAttribute('data-id'); selectBoardTask(ui.boardSelected === id ? null : id); paint(); return; }
-  if (action === 'rm-task-step') { rmTaskStep(el.getAttribute('data-id'), Number(el.getAttribute('data-dir'))); return; }
-  if (action === 'rm-ms-step') { const id = el.getAttribute('data-id'), d = Number(el.getAttribute('data-dir')); rmEdit('ms', id, (p) => stepMilestone(p, id, d)); return; }
-  if (action === 'rm-sec-step') { const id = el.getAttribute('data-id'), d = Number(el.getAttribute('data-dir')); rmEdit('sec', id, (p) => stepSection(p, id, d)); return; }
-  if (action === 'rm-add') { ui.rmAdd = { kind: el.getAttribute('data-kind'), ms: el.getAttribute('data-ms') }; if (ui.rmAdd.kind === 'task') ui.rmOpen[ui.rmAdd.ms] = true; paint(); const f = document.querySelector('.rm-add-form input, .rm .add-row input[name="title"]'); if (f) f.focus(); return; }
-  if (action === 'rm-add-cancel') { ui.rmAdd = null; paint(); return; }
-  if (action === 'rm-make') { const m = M.editRoadmap(rmProject(), (p) => makeMilestone(p, p.tasks.find((t) => t.id === el.getAttribute('data-id')))); ui.notice = m ? '“' + m.name + '” is now a milestone.' : 'It already is one.'; paint(); return; }
+  if (onRoadmapAction(action, el)) return;
   if (action === 'triage-later') { ui.triageStep = 'later'; ui.triageFind = ''; paint(); window.scrollTo(0, 0); return; }
   if (action === 'triage-go') {
     const to = el.getAttribute('data-to'), from = el.getAttribute('data-from'), l = triageLists(state, ui.view, dueDates().today);
@@ -735,7 +797,7 @@ function onAppClick(e) {
   }
   else if (action === 'remove-project') { ui.pendingRemove[projectId] = true; paint(); }
   else if (action === 'cancel-remove-project') { delete ui.pendingRemove[projectId]; paint(); }
-  else if (action === 'confirm-remove-project') { delete ui.editingProject[projectId]; M.removeProject(projectId); }
+  else if (action === 'confirm-remove-project') { delete ui.editingProject[projectId]; ui.rmDrawer = null; ui.rmScreen = null; ui.rmEditField = null; if (ui.screen === 'roadmap') setScreen('projects'); M.removeProject(projectId); }
   else if (action === 'open-project-edit') { ui.editingProject[projectId] = true; paint(); }
   else if (action === 'close-project-edit') { delete ui.editingProject[projectId]; delete ui.pendingRemove[projectId]; ui.linkPanel = null; paint(); }
   else if (action === 'toggle-link-panel') {
@@ -753,7 +815,7 @@ function onAppClick(e) {
     if (!forProjectId || !repo) return;
     linkProjectToRepoOnGithub(forProjectId, repo, ui).then((result) => {
       if (result.error) { ui.linkPanel.error = result.error; paint(); return; }
-      ui.linkPanel = null;
+      ui.linkPanel = null; ui.rmEditField = null;
       delete ui.editingProject[forProjectId];
       paint();
     });
@@ -771,7 +833,7 @@ function onAppClick(e) {
   }
   else if (action === 'toggle-inbox') { ui.inboxOpen = !ui.inboxOpen; paint(); }
   else if (action === 'toggle-done') { ui.doneOpen[projectId] = !ui.doneOpen[projectId]; paint(); }
-  else if (action === 'sync-github') { ui.syncOpen = false; manualSyncGithub(); }
+  else if (action === 'sync-github') { ui.syncOpen = false; ui.rmDrawer = null; manualSyncGithub(); }
   else if (action === 'rm-project-step') {
     const ids = visibleRoadmapProjects().map((p) => p.id), i = ids.indexOf(el.getAttribute('data-project')), dir = el.getAttribute('data-dir');
     moveProjectTo(ids[i], i + Number(dir), ids);
@@ -1029,6 +1091,7 @@ function onAppChange(e) {
     step.querySelector('input[name="dueStepChosen"]').value = '1';
     return;
   }
+  if (ui.rmSet && e.target.matches && e.target.hasAttribute('data-rm-tick')) { ui.rmSet.checklist[Number(e.target.getAttribute('data-rm-tick'))].done = e.target.checked; return; }
   if (e.target.matches && e.target.matches('.label-picker input[name="categoryIds"]')) {
     const picker = e.target.closest('.label-picker');
     picker.querySelector('summary').textContent = R.labelPickerSummary(picker.querySelectorAll('input[name="categoryIds"]:checked').length);
@@ -1062,6 +1125,20 @@ function onAppInput(e) {
     return;
   }
   if (e.target.matches && e.target.matches('[data-action="set-task-query"]')) { ui.taskQuery = e.target.value; paint(); return; }
+  // the Roadmap's typed fields (#268): kept without a repaint (it would lose the caret); only the stamp's state changes
+  const rmField = e.target.matches && e.target.getAttribute('data-rm-field');
+  if (rmField) {
+    ui.rmForm[rmField] = e.target.value;
+    const ok = !!e.target.value.trim(), stampBtn = document.querySelector('.pj .sort-foot .dk-btn');
+    if (stampBtn) { stampBtn.disabled = !ok; stampBtn.classList.toggle('off', !ok); }
+    return;
+  }
+  if (ui.rmSet && e.target.matches) {
+    const t = e.target, d = ui.rmSet;
+    if (t.matches('[data-rm-slider]')) { d.shares = sharesAfter(d.base, d.id, t.value); const pct = document.querySelector('[data-rm-pct]'); if (pct) pct.textContent = d.shares[d.id] + '%'; return; }
+    if (t.hasAttribute('data-rm-num')) { const k = t.getAttribute('data-rm-num'); d.number[k] = k === 'name' ? t.value : Math.max(0, Number(t.value) || 0); return; }
+    if (t.hasAttribute('data-rm-text')) { d.checklist[Number(t.getAttribute('data-rm-text'))].text = t.value; return; }
+  }
   // the slip's title and notes are kept in the scratch without a repaint (it would lose the caret);
   // innerText, not textContent, so a line break typed into the title is kept
   if (e.target.matches && e.target.matches('[data-slip-title]')) { ui.unsorted.title = e.target.innerText; return; }
@@ -1480,14 +1557,6 @@ function onAppSubmit(e) {
     focusLater('#ob-task-title');
     return;
   }
-  const rmForm = e.target.closest('[data-action="rm-add-submit"]');
-  if (rmForm) {
-    e.preventDefault();
-    const name = String(new FormData(rmForm).get('name') || '').trim(), kind = rmForm.getAttribute('data-kind');
-    if (name) M.editRoadmap(rmProject(), (p) => (kind === 'section' ? addSection(p, name) : addMilestone(p, name)));
-    ui.rmAdd = null; paint();
-    return;
-  }
   const addTaskForm = e.target.closest('[data-action="add-task"]');
   if (addTaskForm) {
     e.preventDefault();
@@ -1496,8 +1565,6 @@ function onAppSubmit(e) {
     if (!String(fd.get('title') || '').trim()) return;
     const task = M.addTaskPicked(projectId, fd.get('title'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'), dueStagesFromForm(fd));
     if (!task) return; // no priority picked: nothing is added (#249)
-    const inMs = fd.get('milestone'); if (inMs && inMs !== 'unplanned') M.setTaskMilestone(task.id, String(inMs)); // added from a Roadmap milestone
-    // the Roadmap's add box stays open, empty and focused for the next task; Escape or a click away closes it
     createIssueIfGithubProject(task, projectId);
     delete ui.addDraft[projectId]; delete ui.addingTask[projectId]; delete ui.addPick[projectId];
     paint(); focusAddTitle(projectId);
@@ -1540,6 +1607,18 @@ function onAppKeydown(e) {
     e.stopPropagation(); closePick(); paint(); focusPickChip(field, taskId);
     return;
   }
+  // Roadmap forms (#268): Enter presses the stamp (or adds the checklist item); Escape is the Back corner
+  if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-rm-field], [data-rm-new]')) {
+    e.preventDefault();
+    const b = e.target.hasAttribute('data-rm-new') ? document.querySelector('[data-action="rm-set-add"]') : document.querySelector('.pj .sort-foot .dk-btn:not([disabled])');
+    if (b) b.click();
+    return;
+  }
+  if (e.key === 'Escape' && (ui.rmDrawer || ui.rmScreen) && e.target.closest && e.target.closest('.rm')) {
+    e.stopPropagation();
+    if (ui.rmDrawer) { ui.rmDrawer = null; paint(); } else { const b = document.querySelector('.pj .dk-back'); if (b) b.click(); }
+    return;
+  }
   // a typed date: Enter reads it instead of submitting the row
   if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-pick-type]')) { e.preventDefault(); onPickDate(e.target, e.target.value); return; }
   // 1-4 pick Urgent/High/Medium/Low while focus is on a button in the add row (not in a box, where digits are typing)
@@ -1572,7 +1651,6 @@ function onAppKeydown(e) {
     const form = e.target.closest && e.target.closest('.add-task-form');
     const pid = form && form.getAttribute('data-project');
     if (form && ui.addingTask[pid]) { delete ui.addingTask[pid]; paint(); focusAddTitle(pid); }
-    else if (form && ui.rmAdd && ui.rmAdd.kind === 'task') { ui.rmAdd = null; paint(); }
   }
   // Escape inside New project steps back (and out of the first step), like the Back corner.
   if (e.key === 'Escape' && e.target.closest && e.target.closest('.pj-flow') && ui.np) {
@@ -1678,6 +1756,7 @@ function init() {
     if ((e.key === 'j' || e.key === 'J') && !typing && !ui.jotOpen && !e.ctrlKey && !e.metaKey && !e.altKey && isWideScreen()) { e.preventDefault(); openJot(); }
     else if (e.key === 'Escape' && ui.jotOpen) { e.preventDefault(); if (ui.jotPick) { keepJotDraft(); ui.jotPick = false; paintJot(); document.querySelector('.jot-where').focus(); } else closeJot(); }
     else if (e.key === 'Escape' && ui.unsorted.menu) { e.preventDefault(); ui.unsorted.menu = false; paint(); const b = document.querySelector('.slip-more'); if (b) b.focus(); }
+    else if (e.key === 'Escape' && ui.screen === 'roadmap' && !ui.boardSelected && (ui.rmDrawer || ui.rmScreen)) { e.preventDefault(); if (ui.rmDrawer) { ui.rmDrawer = null; paint(); } else { const b = document.querySelector('.pj .dk-back'); if (b) b.click(); } } // Escape is Back on a Roadmap screen (#268)
     else if (e.key === 'Escape' && ui.boardSelected && !typing) { selectBoardTask(null); paint(); }
   });
   paintHeaderControls();
