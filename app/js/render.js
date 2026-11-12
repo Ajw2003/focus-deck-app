@@ -631,9 +631,9 @@ export function renderAddTaskRow(project, categories, isMoreOpen, draft, placeho
     + '<div class="add-line"><span class="add-plus" aria-hidden="true">+</span>'
       + '<input type="text" name="title" maxlength="280" required placeholder="' + esc(placeholder || 'Add a task…') + '" aria-label="Add a task to ' + esc(project.name) + '" value="' + esc(draft || '') + '">'
       + '<button type="button" class="btn-text" data-action="toggle-add-more" data-project="' + id + '" aria-expanded="' + !!isMoreOpen + '">' + (isMoreOpen ? 'Less' : 'More') + '</button>'
-      + '<button type="submit" class="btn primary"' + (S.priority ? '' : ' disabled') + '>' + (S.priority ? 'Add' : 'Pick a priority to add') + '</button></div>'
+      + '<button type="submit" class="btn primary"' + (S.priority ? '' : ' disabled') + '>' + 'Add</button></div>'
     // priority (required) and due date, shown once there is a title (#249); app.js keeps them in ui.addPick
-    + renderPickBlocks(S, 'add', { project: project.id }, !String(draft || '').trim())
+    + renderPickBlocks(S, 'add', { project: project.id }, !String(draft || '').trim(), undefined, 'Pick a priority to add')
     + (isMoreOpen
       ? '<div class="add-more">'
           + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'

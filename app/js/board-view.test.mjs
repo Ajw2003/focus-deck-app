@@ -105,9 +105,9 @@ const UI = { boardProject: null, boardCol: 'next' };
   assert.ok(date.includes('gl-glance') && date.includes('deadline-chip') && date.includes('>Priority ▾<'), 'date only: priority shows the quiet chip');
   assert.ok(renderBoard(mk({}), UI, now).includes('>Priority ▾<') && renderBoard(mk({}), UI, now).includes('>Due ▾<'), 'neither: both quiet chips');
   const pk = renderBoard(mk({ priority: 'high', deadline: '2099-01-01' }, ['priority']), UI, now);
-  assert.ok(!pk.includes('data-field="priority"') && pk.includes('deadline-chip'), 'priority key: no priority in the line, date stays');
+  assert.ok(pk.includes('data-field="priority"') && pk.includes('data-field="due"'), 'priority key: both chips stay, they are the controls');
   const dk = renderBoard(mk({ priority: 'high', deadline: '2099-01-01' }, ['due']), UI, now);
-  assert.ok(dk.includes('data-field="priority"') && !dk.includes('deadline-chip'), 'due key: no date chip in the line');
+  assert.ok(dk.includes('data-field="priority"') && dk.includes('data-field="due"'), 'due key: both chips stay');
   const done = renderBoard(mk({ status: 'done', deadline: '2020-01-01', updatedAt: now - 3600e3 }), { ...UI, boardCol: 'done' }, now);
   assert.ok(done.includes('data-task-id="g1"') && !done.includes('deadline-chip') && !done.includes('gl-glance'), 'done task: no date');
 }
