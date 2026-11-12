@@ -3,7 +3,7 @@
  "eyebrow": "Proposal · every screen drawn · nothing built yet",
  "approval": "Design approved: step by step",
  "short": {
-  "lead": "The app failed QA because it shows too much at once. This plan keeps every feature and asks one question per screen. This version draws every screen and step, 83 of them, as a clickable prototype you can tap through. I checked all 125 things the app does today against it, and each one has a screen. The pictures and the prototype are drawings. Nothing is built yet, and your app hasn't changed.",
+  "lead": "The app failed QA because it shows too much at once. This plan keeps every feature and asks one question per screen. This version draws every screen and step, 83 of them, as a clickable prototype you can tap through, and every button, field and line of text is now a real desk object. Labels and kinds of work are a carousel, like projects. I checked all 125 things the app does today against it, and each one has a screen. The pictures and the prototype are drawings. Nothing is built yet, and your app hasn't changed.",
   "hint": "Tap each row to see its picture.",
   "key": [
    [
@@ -42,7 +42,7 @@
     "Prototype",
     "Click through every screen yourself",
     "",
-    "Every screen in this page is also in a clickable prototype, published as the page "Step by step prototype" (its link is in the chat, not in the repo). Tap a button and it goes where the real app would go. The list on the left jumps to any of the 83 screens. It is a drawing, not the app, so nothing you tap changes your tasks.",
+    "Every screen in this page is also in a clickable prototype, published as the page 'Step by step prototype' (its link is in the chat, not in the repo). Tap a button and it goes where the real app would go. The list on the left jumps to any of the 83 screens. It is a drawing, not the app, so nothing you tap changes your tasks.",
     "Open the prototype on your phone and try sorting one thought from start to finish."
    ],
    [
@@ -52,6 +52,19 @@
     "",
     "I listed every action the app can do today, 125 of them, straight from the app's code, and gave each one a screen in the prototype. A check script fails if any action has no screen, or points to a screen that doesn't exist. It passes. Two features I had left out of the first drawings are back: 'Part of a bigger task' and 'Subtasks', which are in today's third Sort step, and the due-date warning ('When should it warn you?'). Settings, the welcome and sync setup are unchanged, because they are already calm. The full list is in docs/generated/friction-steps/feature-map.json.",
     "If you use something that isn't on any screen here, tell me its name."
+   ],
+   [
+    "list",
+    "Look",
+    "Every control is a real object",
+    "you",
+    "No plain buttons are left. Each kind of control has one desk object, the same on every screen, and they match the objects the app already has (folders, index cards, the sticky note, jotter slips). The next step is an ink-stamped card. Back is a page corner folded back. Skip and links are sticky flags. A choice is an index card, and the one you picked gets a paperclip. Priority is coloured page flags, due dates are tear-off calendar pages, and status, Looks good and Done are rubber stamps. Tidy up keeps things in a tray, closes them in a bin and merges them with a stapler. Search is a magnifying glass, typing goes on a jotter strip, the check screen is a till receipt you change in pencil, and menus are a card-index drawer. Every question sits on a clipboard, the tabs are ring-binder dividers, and 'Showing' is label-maker tape.",
+    "Check that each object reads as what it does. Tell me any that don't.",
+    {
+     "src": "docs/generated/friction-steps/p-kit.png",
+     "alt": "A grid of 27 controls drawn as desk objects",
+     "caption": "The object kit: each kind of control and the desk object it becomes."
+    }
    ],
    [
     "list",
@@ -71,7 +84,7 @@
     "Sort",
     "One thought, nine steps",
     "you",
-    "Your order, with the two link steps from today put back: project, priority, labels, due date (with an optional 'when to warn you'), part of, subtasks, waits on, holds up, then check. Priority can't be skipped; every other step after it has Skip. The ⋯ on the thought holds Add notes, Done already, Later and Delete. Labels has Find, 'Show all 45 kinds' and '+ New label'. Project has '+ New project'. The check screen shows every answer with Change.",
+    "Your order, with the two link steps from today put back: project, priority, labels, due date (with an optional 'when to warn you'), part of, subtasks, waits on, holds up, then check. Priority can't be skipped; every other step after it has Skip. The ⋯ on the thought holds Add notes, Done already, Later and Delete. Labels are now a carousel of index cards, like projects: you flip through them and tap to pick, a paperclip marks each one you picked, and the picked ones collect as tags underneath. Find narrows the cards, 'A to Z' opens the card drawer, and the last card is '+ New label'. Project has '+ New project'. The check screen shows every answer with Change.",
     "Check that nine steps isn't too long. If it is, option 2 of the first choice below offers a shorter way.",
     {
      "src": "docs/generated/friction-steps/p-sort.png",
@@ -149,7 +162,7 @@
     "Focus",
     "Two questions, then one task",
     "you",
-    "Which project (or Pick for me), then what kind of work (Skip means any; Unlabelled and Surprise me are in the folders). Then one task with 'I've done it' and 'Not this one'. The More button lists: start it, subtasks (tick, or tap to focus on one), details, go to the project, and clear. When you finish, the note peels away as today and you pick again.",
+    "Which project (or Pick for me), then what kind of work (Skip means any; Unlabelled and Surprise me are in the folders). Kinds of work are index cards, as in the app today. Then one task on its sticky note, with two rubber stamps: 'I've done it' and 'Not this one'. The More button lists: start it, subtasks (tick, or tap to focus on one), details, go to the project, and clear. When you finish, the note peels away as today and you pick again.",
     "Check that More is the right place for Start it.",
     {
      "src": "docs/generated/friction-steps/p-focus.png",
@@ -162,7 +175,7 @@
     "Review",
     "One task at a time",
     "you",
-    "Review asks 'Is it finished?' one task at a time: Looks good or Needs more work, with Open details. Done this week keeps Undo on each task.",
+    "Review asks 'Is it finished?' one task at a time, with two rubber stamps: Looks good or Needs more work, and Open details. Done this week keeps Undo on each task.",
     "Check that one at a time suits Review too.",
     {
      "src": "docs/generated/friction-steps/p-review.png",

@@ -597,3 +597,7 @@ Click a milestone's name on the Roadmap: a dialog (a bottom sheet on a phone) se
 ## 2026-11-12, later: jot choice made, on the mock-up only
 
 Eden picked the "+ Jot" button for the step-by-step proposal, placed in the header on every screen. I misread that as approval to build it and started a builder; Eden said it was meant for the mock-up only, so the build was stopped before anything was merged (issue #260 is on hold). The proposal page and drawings now show + Jot in the header. Waiting on Eden's review of the rest of the design and the two remaining choices.
+
+## 2026-11-12, later still: every control drawn as a real desk object
+
+Eden asked that nothing in the prototype be a plain button or plain text, and that labels use the carousel. prototype.html now draws each kind of control as one desk object (its "Every control is a real object" section lists all 27), and labels and kinds of work are index-card carousels like the project folders. The checks still pass: 83 screens, no broken taps, nothing cut off, all 125 actions mapped. Waiting on Eden's review.
