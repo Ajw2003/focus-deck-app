@@ -4,6 +4,23 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-11-12 — Design approved: friction plan part 3, tabs as steps (1-1 2-1 3-1 4-1)
+
+**Context.** Eden asked for tabs that follow their flow: Capture from anywhere, then Sort, Organize,
+Roadmap, Focus and Review (`docs/plans/friction-part3.html`, every page drawn in
+`docs/generated/friction-audit/part3-pages.html`).
+
+**Decision.** Eden, 01:27 UTC: "Design approved: friction plan part 3, tabs as steps 11 21 31 41".
+The jot box sits on every tab; the tabs are Sort, Organize (Tidy up, Triage), Roadmap, Focus, Review.
+Focus stays the part 2 carousel and Sort picks its project from it. The Roadmap holds sections and
+milestones, each with Up next / In progress / Review / Done columns and drag in any direction. Answers:
+Review becomes a real fourth status (sets and reads the GitHub Needs review label); new milestones start
+with equal shares; Start here becomes the link 'Or let me pick for you' on Focus; the Board is removed.
+
+**Replaces.** The Board screen (`BOARD_COLS`, `app/js/board-view.js:16`) and the Projects screen; part 2's
+"nav" question (a fifth Plan tab) is answered by these tabs. Part 2's jot, multi and order questions
+are still open.
+
 ## 2026-10-29 — Design and build plan approved: room to jot (1A)
 
 **Context.** In aj's phone test of #243, the jotter's writing, its new "To:" stamp and Add shared one
