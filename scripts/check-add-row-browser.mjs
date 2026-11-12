@@ -114,6 +114,8 @@ for (const size of ['phone', 'desktop']) {
     await other.goto(BASE);
     await other.waitForSelector('.add-row[data-project="pSchool"] input[name="title"]');
     await other.fill('.add-row[data-project="pSchool"] input[name="title"]', 'From the other tab');
+    await other.click('.add-row[data-project="pSchool"] [data-field="priority"][data-value="low"]');
+    await other.click('.add-row[data-project="pSchool"] input[name="title"]');
     await other.press('.add-row[data-project="pSchool"] input[name="title"]', 'Enter');
     await other.waitForTimeout(200);
     await page.bringToFront();
