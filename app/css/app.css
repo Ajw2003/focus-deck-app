@@ -1653,3 +1653,5 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
   .rail-org-part{display:none;}
   .org-tabs{display:flex;}
 }
+/* seven tabs on a 360 bar: a little less padding and type so "Organize" and "Roadmap" do not touch */
+@media (max-width:399.98px){ .rail{padding-left:2px; padding-right:2px;} .rail-item{font-size:.66rem;} }
