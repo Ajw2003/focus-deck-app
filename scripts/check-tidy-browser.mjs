@@ -66,7 +66,7 @@ for (const phone of [true, false]) {
   const noScroll = async (n) => check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), tag + 'no sideways scroll ' + n);
   const pickArea = async (id) => { await page.click('[data-action="view-mode"][data-mode="area"]'); await page.click('[data-action="view-pick"][data-id="' + id + '"]'); };
   const doneIds = () => page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).projects.flatMap((p) => p.tasks).filter((x) => x.status === 'done').map((x) => x.id).sort().join());
-  const goScreen = async (k) => { const d = page.locator('.rail-item[data-screen="' + k + '"]'); if (await d.isVisible()) return d.click(); if (!(await page.locator('.org-tab[data-screen="' + k + '"]').count())) await page.click('.rail-organize'); await page.click('.org-tab[data-screen="' + k + '"]'); };
+  const goScreen = async (k) => { const d = page.locator('.rail-sub[data-screen="' + k + '"]'); if (await d.isVisible()) return d.click(); if (!(await page.locator('.org-tab[data-screen="' + k + '"]').count())) await page.click('.rail-item[data-go]'); await page.click('.org-tab[data-screen="' + k + '"]'); };
   await goScreen('tidy');
   await page.waitForSelector('.td-layout');
   check((await page.textContent('.board-title')) === 'Tidy up: All', tag + 'title says All');

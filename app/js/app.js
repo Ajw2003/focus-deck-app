@@ -1204,11 +1204,10 @@ document.addEventListener('input', (e) => {
   document.querySelectorAll('.vs-pop .vs-grp').forEach((g) => { g.hidden = ![...g.querySelectorAll('li')].some((li) => !li.hidden); });
 });
 
-// After adding a project from the "+ New" panel (Q29a, Q12d): open it on the Roadmap's Project view.
+// After adding a project from the "+ New" panel (Q29a, Q12d): the Roadmap shows its new row (back to All if the switch hides it).
 function afterProjectAdded(projectId) {
-  setView({ mode: 'project', id: projectId });
+  showInView(projectId);
   paint();
-  window.scrollTo(0, 0);
 }
 
 // The projects the Roadmap's group view lists, in the order it shows them (Find box and sort control).
