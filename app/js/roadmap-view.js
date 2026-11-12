@@ -1,13 +1,11 @@
-// focus-deck-app/js/roadmap-view.js -- the Roadmap screen's markup (#257). Group view (switch on All or Area):
-// a row per project with a card per milestone. Project view: sections, each holding milestones; the open one
-// shows four columns. The data is roadmapOf (js/roadmap.js); moves are js/roadmap-drag.js + app.js.
+// focus-deck-app/js/roadmap-view.js -- the Roadmap screen's markup (#257): one project, sections each holding
+// milestones; the open one shows four columns. The project list and New project are the Projects tab (js/projects-view.js). The data is roadmapOf (js/roadmap.js); moves are js/roadmap-drag.js + app.js.
 // See docs/4-systems/roadmap.md and docs/4-systems/styling.md
 import { esc, PRIORITY, deadlineChip } from './state.js';
 import { effectivePriority } from './areas.js';
-import { viewProjects, viewLabel } from './view-switch.js';
 import { roadmapOf, COLS, UNPLANNED } from './roadmap.js';
-import { renderProjectEditPanel, renderNewPanel, renderAddTaskRow, projectSortSelect } from './render.js';
-import { filterAndSortProjects } from './project-filter.js';
+import { renderProjectEditPanel, renderAddTaskRow } from './render.js';
+import { noProject } from './projects-view.js';
 import { renderTaskDetails } from './task-details.js';
 import { subtasksOf } from './task-links.js';
 
@@ -15,21 +13,6 @@ const count = (m) => m.text;
 const bar = (pct, cls) => '<span class="rm-bar' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><i style="width:' + pct + '%"></i></span>';
 // The project bar: one segment per milestone, as wide as it added to the project (share x progress).
 const segBar = (r) => '<span class="rm-bar rm-bar-big rm-segs" role="img" aria-label="' + r.pct + '% done">' + r.milestones.filter((m) => m.contribution > 0).map((m) => '<i style="width:' + m.contribution + '%" title="' + esc(m.name + ': ' + Math.round(m.contribution * 10) / 10 + '% of the project') + '"></i>').join('') + '</span>';
-const newBtn = '<button type="button" class="btn ghost rm-new" id="new-panel-toggle" data-action="toggle-new-panel" aria-controls="new-panel">+ New project</button>';
-
-function groupRow(p, reorder) {
-  const r = roadmapOf(p), ms = r.sections.flatMap((s) => s.milestones).concat(r.unplanned ? [r.unplanned] : []);
-  const cur = ms.find((m) => m.id === r.currentId);
-  const cards = ms.map((m) => '<button type="button" class="rm-card" data-action="rm-open" data-project="' + esc(p.id) + '"><span class="rm-card-name">' + esc(m.name) + '</span><span class="rm-card-count">' + esc(count(m)) + '</span>' + bar(m.pct) + '</button>').join('')
-    || '<p class="rm-none">No milestones yet.</p>';
-  const mv = (d) => '<button type="button" class="btn ghost rm-step" data-action="rm-project-step" data-project="' + esc(p.id) + '" data-dir="' + d + '" aria-label="Move ' + (d < 0 ? 'up' : 'down') + ': ' + esc(p.name) + '">' + (d < 0 ? '↑' : '↓') + '</button>';
-  return '<section class="rm-row" style="--c:' + esc(p.color) + '" data-project="' + esc(p.id) + '">'
-    + (reorder ? '<span class="rm-moves rm-pmoves">' + mv(-1) + mv(1) + '</span>' : '')
-    + '<button type="button" class="rm-proj" data-action="rm-open" data-project="' + esc(p.id) + '"><span class="rm-dot" aria-hidden="true"></span><span class="rm-proj-name">' + esc(p.name) + '</span><span class="rm-proj-pct">' + r.pct + '% done</span></button>'
-    + '<div class="rm-cards">' + cards + '</div>'
-    + '<button type="button" class="rm-phone" data-action="rm-open" data-project="' + esc(p.id) + '"><span class="rm-phone-top"><b>' + esc(p.name) + '</b><span>' + r.pct + '% <small>done</small></span></span>'
-    + '<span class="rm-now">' + (cur ? 'Now: ' + esc(cur.name) + ' · ' + esc(count(cur)) : 'Nothing planned yet') + '</span>' + bar(r.pct) + '</button></section>';
-}
 
 const grip = (kind, id, label, keys) => '<button type="button" class="rm-grip" data-kind="' + kind + '" data-id="' + esc(id) + '" aria-label="Move ' + esc(label) + '" title="Drag, or ' + keys + '">⋮⋮</button>';
 const step = (action, id, dir, label) => '<button type="button" class="btn ghost rm-step" data-action="' + action + '" data-id="' + esc(id) + '" data-dir="' + dir + '" aria-label="Move ' + (dir < 0 ? 'up' : 'down') + ': ' + esc(label) + '">' + (dir < 0 ? '↑' : '↓') + '</button>';
@@ -97,22 +80,16 @@ function projectView(st, ui, p, hasToken) {
   const editing = !!(ui.editingProject || {})[p.id];
   const sync = p.source === 'github' ? '<button type="button" class="btn ghost" data-action="sync-github">Sync now</button>' : '';
   return '<div class="rm-head"><h2 class="board-title rm-title"><span class="rm-dot" aria-hidden="true"></span>' + esc(p.name) + '</h2><div class="rm-tools">' + sync
-    + '<button type="button" class="btn ghost" data-action="' + (editing ? 'close-project-edit' : 'open-project-edit') + '" data-project="' + esc(p.id) + '">Edit project</button>' + newBtn + '</div></div>'
-    + (ui.newPanelOpen ? renderNewPanel(ui, hasToken) : '')
+    + '<button type="button" class="btn ghost" data-action="' + (editing ? 'close-project-edit' : 'open-project-edit') + '" data-project="' + esc(p.id) + '">Edit project</button></div></div>'
     + (editing ? renderProjectEditPanel(p, Object.assign({ pendingRemove: {} }, ui), st.projectCategories || [], hasToken) : '')
     + '<input type="search" class="project-search rm-find" data-action="set-task-query" value="' + esc(ui.taskQuery || '') + '" placeholder="Find a task…" aria-label="Find a task in this project">'
     + '<div class="rm-total"><span class="rm-big">' + r.pct + '%</span><span class="rm-total-sub">' + r.done + ' of ' + r.total + ' tasks done</span></div>' + segBar(r)
     + secs + un + foot + detail(st, ui, p);
 }
 
-// group: the Projects tab, which always shows the project list; the Roadmap tab shows one project (#262).
-export function renderRoadmap(st, ui, hasToken = false, group = false) {
-  const view = ui.view || { mode: 'all' }, name = view.mode === 'all' ? 'All' : viewLabel(st, view);
-  const p = !group && view.mode === 'project' && (st.projects || []).find((x) => x.id === view.id);
-  if (p) return '<div class="rm rm-project" style="--c:' + esc(p.color) + '">' + projectView(st, ui, p, hasToken) + '</div>';
-  const ps = filterAndSortProjects(viewProjects(st, view), { query: ui.projectQuery, sortBy: ui.projectSort });
-  return '<div class="rm"><div class="rm-head"><h2 class="board-title">' + (group ? 'Projects' : 'Roadmap') + ': ' + esc(name) + '</h2><div class="rm-tools">' + newBtn + '</div></div>'
-    + (ui.newPanelOpen ? renderNewPanel(ui, hasToken) : '')
-    + '<div class="rm-finds"><input type="search" class="project-search rm-find" data-action="set-project-query" value="' + esc(ui.projectQuery || '') + '" placeholder="Find a project…" aria-label="Find a project">' + projectSortSelect(ui) + '</div>'
-    + (ps.length ? '<div class="rm-group">' + ps.map((p) => groupRow(p, ui.projectSort === 'custom' && !ui.projectQuery)).join('') + '</div>' : '<p class="calm-empty">No projects here yet. Use + New project.</p>') + '</div>';
+// The Roadmap tab shows one project (#262); with none yet it offers New project, which is on the Projects tab.
+export function renderRoadmap(st, ui, hasToken = false) {
+  const view = ui.view || { mode: 'all' };
+  const p = view.mode === 'project' && (st.projects || []).find((x) => x.id === view.id);
+  return p ? '<div class="rm rm-project" style="--c:' + esc(p.color) + '">' + projectView(st, ui, p, hasToken) + '</div>' : '<div class="rm">' + noProject() + '</div>';
 }
