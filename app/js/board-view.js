@@ -11,6 +11,7 @@ import { getChunk, getColourBy } from './comfort.js';
 import { cardKey, NO_CATEGORY, PRIORITY_COLOURS } from './card-key.js';
 import { renderTaskDetails } from './task-details.js';
 import { renderAddTaskRow } from './render.js';
+import { pickChip } from './pick-bits.js';
 import { tieSummary, tieLineHtml, subtasksOf } from './task-links.js';
 
 export const BOARD_COLS = ['next', 'doing', 'done'];
@@ -51,9 +52,10 @@ function keyChip(key) {
 // Every card with a priority or a date says so on one line under its label; the chip's own
 // field is left out so nothing shows twice (#211).
 function glanceLine(t, key) {
+  if (t.status === 'done') return '';
   const bits = [];
-  if (t.priority && PRIORITY[t.priority] && key.source !== 'priority') bits.push('<span class="gl-prio" style="--c:' + PRIORITY_COLOURS[t.priority] + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>' + PRIORITY[t.priority].label + '</span>');
-  if (t.deadline && t.status !== 'done' && key.source !== 'due') bits.push(deadlineChip(t.deadline, t));
+  if (t.priority && PRIORITY[t.priority] && key.source !== 'priority') bits.push(pickChip('priority', t));
+  if (t.deadline && key.source !== 'due') bits.push(pickChip('due', t));
   return bits.length ? '<span class="board-card-due gl-glance">' + bits.join('') + '</span>' : '';
 }
 
@@ -100,7 +102,7 @@ export function renderBoard(st, ui, now = Date.now()) {
   // With one project chosen, Up next gets that project's add row: type and add, nothing to pick
   // (#241, docs/4-systems/quick-add.md). New tasks land in Up next, so the other tabs don't get it.
   const addRow = narrowedTo && tab === 'next'
-    ? renderAddTaskRow(narrowedTo, st.categories || [], !!(ui.addingTask || {})[narrowedTo.id], (ui.addDraft || {})[narrowedTo.id] || '', 'Add a task to ' + narrowedTo.name + '…')
+    ? renderAddTaskRow(narrowedTo, st.categories || [], !!(ui.addingTask || {})[narrowedTo.id], (ui.addDraft || {})[narrowedTo.id] || '', 'Add a task to ' + narrowedTo.name + '…', (ui.addPick || {})[narrowedTo.id])
     : '';
   const projColor = narrowedTo ? esc(narrowedTo.color || 'var(--accent)') : '';
   const heading = narrowedTo

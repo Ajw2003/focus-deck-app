@@ -8,6 +8,7 @@ import { esc, relTime } from './state.js';
 import { CHOOSING_MODE_INFO, wording } from './wallet.js';
 import { orderTray, flagCards, folderCards, pickedSlips, bulkBlocker } from './in-tray.js';
 import { canWaitOn, subtasksOf } from './task-links.js';
+import { renderPickBlocks } from './pick-bits.js';
 import { sleeve, walletInner, mutedChip, focusChoosingMode, unsortedQueue } from './render.js';
 
 function slipFlags(cards, selected) {
@@ -140,17 +141,21 @@ function renderTray(st, u, ordered, mode, head = '') {
     ? (project ? '<button type="button" class="file-btn" data-action="sort-next">Next: labels →</button>' : '<button type="button" class="file-btn" disabled>Choose a project first</button>')
     : step === 2 ? '<button type="button" class="file-btn" data-action="sort-next">Next: link to other tasks →</button>'
     : isThought
-      ? '<button type="button" class="file-btn" data-action="unsorted-file" data-inbox="' + cur.item.id + '">File it in ' + esc(project.name) + ' →</button>'
+      ? (u.priority
+        ? '<button type="button" class="file-btn" data-action="unsorted-file" data-inbox="' + cur.item.id + '">File it in ' + esc(project.name) + ' →</button>'
+        : '<button type="button" class="file-btn" disabled>Pick a priority to file</button>')
       : '<button type="button" class="file-btn" data-action="unsorted-save" ' + ids + '>Save in ' + esc(project.name) + ' →</button>';
   // .tray-side holds the slip and its buttons: on a wide Sort screen it stays in view beside the
   // choices; on a phone it dissolves (display:contents) so the buttons come after the choices
+  // a thought needs a priority and may take a due date (#249); a task already has its own
+  const picks = isThought ? '<div class="sort-picks">' + renderPickBlocks(u, 'sort') + '</div>' : '';
   return '<div class="tray-side"><div class="tray-head"><p class="tray-count muted small">' + (n === 1 ? '1 to sort' : n + ' to sort') + '</p>' + head + '</div>'
     + '<div class="tray"><div class="tray-stack">'
     + (n >= 2 ? '<div class="slip-behind"></div>' : '') + (n >= 3 ? '<div class="slip-behind two"></div>' : '')
     + '<div class="jot-slip"><div class="slip-flags">' + slipFlags(allCards, u.selected) + '</div>'
     + '<p class="slip-text"' + (editable ? ' contenteditable="true" spellcheck="false" data-slip-title' : '') + '>' + esc(text) + '</p><div class="slip-dest">' + dest + '</div>' + when + noteBox + '</div>'
     + '</div>' + lip + '</div>'
-    + '<div class="sort-acts">' + main
+    + '<div class="sort-acts">' + picks + main
     + '<div class="sort-small">' + (step > 1 ? '<button type="button" data-action="sort-back">← Back</button>' : '')
     + '<button type="button" data-action="unsorted-complete" ' + ids + '>Done already</button>'
     + '<button type="button" data-action="unsorted-skip">Later</button>'
@@ -198,6 +203,7 @@ function renderBulk(st, b, ordered) {
     + '<div class="bulk-panel"><label class="bulk-field"><b>1. Project</b><select data-bulk-project aria-label="Project for the ticked items">' + options + '</select></label>'
     + '<div class="bulk-field"><b>2. Labels</b><div class="bulk-flags">' + flags + '</div>'
     + '<div class="bulk-addrow"><input type="text" data-bulk-newlabel value="' + esc(b.newLabel || '') + '" placeholder="New label…" aria-label="New label"><button type="button" data-action="bulk-new-flag">Add</button></div></div>'
+    + (thoughts ? '<div class="bulk-field"><b>Priority for the thoughts</b><div class="sort-picks">' + renderPickBlocks(b, 'bulk') + '</div></div>' : '')
     + '<label class="bulk-field"><b>3. Group them under one task <span class="muted small">(optional)</span></b>'
     + '<input type="text" data-bulk-group value="' + esc(b.groupTitle || '') + '" placeholder="Name of the task to group them under…"></label>'
     + (why || b.why ? '<p class="step-why" role="status">' + esc(b.why || why) + '</p>' : '')
