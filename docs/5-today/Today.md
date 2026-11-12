@@ -593,3 +593,7 @@ Click a milestone's name on the Roadmap: a dialog (a bottom sheet on a phone) se
 
 - 2026-11-12: all 11 steps of "tabs that follow the flow" built (#249 to #259, all labelled needs review); QA page docs/plans/flow-build-qa.html, test copy docs/generated/flow-qa/seed.html; waiting on Eden's QA and the pull request branch choice.
 - 2026-11-12: QA failed (too busy). Step-by-step proposal docs/plans/friction-steps.html sent for approval.
+
+## 2026-11-12, later: jot choice made, on the mock-up only
+
+Eden picked the "+ Jot" button for the step-by-step proposal, placed in the header on every screen. I misread that as approval to build it and started a builder; Eden said it was meant for the mock-up only, so the build was stopped before anything was merged (issue #260 is on hold). The proposal page and drawings now show + Jot in the header. Waiting on Eden's review of the rest of the design and the two remaining choices.

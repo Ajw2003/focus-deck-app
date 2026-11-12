@@ -312,12 +312,12 @@ const PAGE = {
         "Everywhere",
         "Less on screen before your work",
         "you",
-        "The header keeps only the name and the settings cog. The jot box shrinks to a '+ Jot' button that opens a screen with only the box on it. The All / Area / Project switch becomes one line, 'Showing All tasks ▾', which opens the switch when tapped. Every screen gets the same shape: a question at the top, the answers below, and one big button at the bottom. On a phone, 3 things (the name, the cog and the 'Showing' line) sit above your work instead of 14.",
+        "The header keeps only the name, a '+ Jot' button and the settings cog, on every screen. You picked this: the jot box becomes the '+ Jot' button, and pressing it opens a screen with only the box on it. The All / Area / Project switch becomes one line, 'Showing All tasks ▾', which opens the switch when tapped. Every screen gets the same shape: a question at the top, the answers below, and one big button at the bottom. On a phone, 4 things (the name, + Jot, the cog and the 'Showing' line) sit above your work instead of 14.",
         "Check that one line saying what you're looking at is enough.",
         {
           "src": "friction-steps-pics/m-chrome.png",
           "alt": "Today's Sort screen beside the proposed one with a + Jot button",
-          "caption": "Left: today. Middle: proposed. Right: + Jot opens its own screen."
+          "caption": "Left: today. Middle: proposed. Right: + Jot, top right on every screen, opens its own screen."
         }
       ],
       [
@@ -391,7 +391,7 @@ const PAGE = {
     [
       "chg",
       "Header, jot box and switch",
-      "Shrink to the name, a '+ Jot' button and one 'Showing …' line.",
+      "Shrink to the name, a '+ Jot' button at the top and one 'Showing …' line. You picked this.",
       null,
       "Everything still works; it's one tap away instead of always open."
     ],
@@ -461,25 +461,6 @@ const PAGE = {
   ],
   "choices": [
     [
-      "jot",
-      "Where should the jot box go?",
-      [
-        [
-          "1",
-          "A '+ Jot' button on every tab",
-          1,
-          "It opens a screen with only the box on it, so it's always one tap away but never in the way."
-        ],
-        [
-          "2",
-          "Keep the full box at the top",
-          0,
-          "Always visible, but it takes a quarter of a phone screen on every tab."
-        ]
-      ],
-      "I suggest the button, because the box is the biggest single thing above your work today."
-    ],
-    [
       "optional",
       "How should the optional steps (labels, due date, waits on, holds up) work?",
       [
@@ -521,10 +502,10 @@ const PAGE = {
   "wrapup": {
     "summary": "Every screen becomes one question at a time: a seven-step flow for sorting and adding tasks, two steps for Focus, one task at a time in Tidy up, Now only in Triage, and one milestone at a time on the Roadmap. The header shrinks so your work starts near the top. No feature is removed.",
     "changing": "Changed: how much each screen shows at once, Sort, adding a task, Focus, Tidy up, Triage, the Roadmap, Task details and Milestone settings. Kept: every feature, your data, the five tabs, Review and Settings.",
-    "blocking": "Waiting on your three choices and your approval.",
+    "blocking": "Waiting on your two remaining choices and your approval. The jot choice is made: a '+ Jot' button at the top.",
     "next": "After you approve, I'll write the build plan as GitHub issues and build it on the same test link. Nothing goes into the app you use until you've tested it.",
     "todo": [
-      "Make the three choices at the bottom.",
+      "Make the two choices at the bottom.",
       "Tap <b>Copy my reply<\/b> and send it: \"Design approved: step by step\", or say what to change."
     ]
   }
