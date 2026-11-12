@@ -34,10 +34,10 @@ test('a saved order wins over the rules; a new task slots in by the rules', () =
   [['a', 1], ['b', 2], ['c', 3]].forEach(([id, r]) => { a.find((t) => t.id === id).triageRank = r; });
   const st = mk(a);
   assert.deepEqual(flat(triageLists(st, all, T)), ['a', 'b', 'c']);
-  st.projects[0].tasks.push(task('new', { priority: 'urgent' })); // first by the rules; the saved three keep their order
-  assert.deepEqual(flat(triageLists(st, all, T)), ['new', 'a', 'b', 'c']);
+  st.projects[0].tasks.push(task('new', { priority: 'urgent' })); // the rules put it where the saved Urgent one sat; the saved three keep their order
+  assert.deepEqual(flat(triageLists(st, all, T)), ['a', 'new', 'b', 'c']);
   st.projects[0].tasks.push(task('late', { priority: 'low' }));
-  assert.deepEqual(flat(triageLists(st, all, T)), ['new', 'a', 'b', 'c', 'late']);
+  assert.deepEqual(flat(triageLists(st, all, T)), ['a', 'new', 'b', 'c', 'late']);
 });
 
 test('the view narrows the list', () => {
