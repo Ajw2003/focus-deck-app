@@ -188,6 +188,7 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
     await drag('.rm-sec[data-section-id="sec2"] .rm-sec-h .rm-grip', '.rm-sec[data-section-id="sec1"] .rm-sec-h');
     check((await secs()) === 'sec2,sec1', tag + 'dragging a section reorders them');
     await shot('sections-swapped');
+    await page.focus('.rm-sec[data-section-id="sec2"] .rm-grip'); // the full-page screenshot blurs the grip now the page is taller (Find a task box)
     await page.keyboard.press('Alt+ArrowDown');
     check((await secs()) === 'sec1,sec2', tag + 'Alt+Down reorders them back');
   }
