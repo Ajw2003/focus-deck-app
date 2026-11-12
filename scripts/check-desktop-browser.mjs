@@ -85,7 +85,9 @@ for (const scheme of ['dark', 'light']) {
   await page.screenshot({ path: OUT + `desktop-${scheme}.png` });
 
   // one click picks a folder: the categories narrow to it, nothing drawn yet
-  await click(page, 'projects', 'p3'); // Band: one task, category c3 (Art)
+  await page.focus('[data-wallet="projects"]'); // Band is the sixth card, past the strip's five: type its name to jump (was: click it)
+  await page.keyboard.type('band'); // Band: one task, category c3 (Art)
+  await page.waitForTimeout(500);
   check(`${tag} one click picks the folder`, (await page.$eval('[data-wallet="projects"] .sleeve.is-centre', (e) => e.dataset.key)) === 'p3' && !(await page.$('.focus-active')));
   const narrowed = await keys(page, 'categories');
   check(`${tag} the categories narrow to that folder`, narrowed.includes('c3') && !narrowed.includes('c1'), narrowed.join());
