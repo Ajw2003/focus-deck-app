@@ -32,6 +32,46 @@ It reuses the #120 wallets (`js/wallet.js`, `docs/4-systems/wallets.md`) for "1.
 Known: the flag tabs on the slip's edge are 46px wide, so a long name is clipped ("Reminder" shows
 its end). The full name is in the tab's `title` and on the flag card.
 
+## Nine steps, one per screen (#264, built 2026-11-12)
+
+Design approved by Eden ("Design approved: step by step 11 2*", choice 1: each optional step asked with a Skip).
+Prototype and visual reference: `docs/generated/friction-steps/prototype.html` (screens s0 to s11, `?all=sort`);
+every action the Sort tab had is in `docs/generated/friction-steps/feature-map.json`, "Sort" (checked by
+`check-feature-map.cjs`). Only the screens changed: the mutations are the ones above (`fileSlip` ->
+`M.fileInboxItem` / `updateTaskFields` / `applyTaskMove`, `applyTies`, `labelIdByName`).
+
+- **Start (s0).** "N to sort", one thought on a jotter slip (text editable unless GitHub-linked) with a **⋯**
+  drawer pull (`sort-menu`: Add notes, Done already, Later, Delete, in a `.dk-sheet` card-index drawer), a
+  **Sort several** flag (`bulk-toggle`, the existing Select many, below, until #265 redesigns it) and a stamped
+  **Sort this one** card. Nothing left: "All sorted ✓" and an **Organize** card.
+- **Steps 1 to 9**, each on the clipboard with nine progress dots, a Back corner, a Skip flag (steps 3 to 8 only,
+  `canSkip`) and a stamped Next card: 1 project (the `tray-folders` carousel, Find, **+ New project** page),
+  2 priority (page flags; a thought must have one, a task may pick None), 3 labels (the `tray-flags` carousel,
+  picked tags under it, Find, **A–Z** card drawer with letter tabs, **+ New label** page), 4 due date
+  (tear-off calendar pages, **Another date** month page with a typed-date box, then **When should it warn you?**
+  = `warnPlan`, the same lead times as the add form's due step), 5 part of a bigger task, 6 smaller steps (type
+  a new one or pick a task), 7 what has to happen first (waits on), 8 what is waiting on this (holds up),
+  9 the receipt "All good?" with a pencil per line (`sort-step`, `data-step`) that jumps to that step and
+  returns to the receipt on Next/Skip/Back (`fromReceipt`), then **Save to <project>** (`unsorted-file` for a
+  thought, `unsorted-save` for a task).
+- A task that is part of another cannot have steps of its own (two levels only, `canSetParent`), so step 6 says so
+  instead of offering them.
+- After Save the notice reads "Filed to <project> ✓" with **Open** (`open-added-task`), and the next thought
+  shows at its start screen. A task saved with no label still goes to the back (`later`).
+- Files: `js/sort-flow.js` (pure: `navigate`, `monthGrid`, `shiftMonth`, `formatDue`, `warnPlan`),
+  `js/sort-flow-view.js` (the markup), `js/in-tray-view.js` (the card, plus Select many), `js/app.js`
+  (`onSortAction`; `ui.unsorted` gains `step` 0 to 9, `sub`, `menu`, `month`, `letter`, `dueStages`,
+  `fromReceipt`). `fileSlip` and `M.fileInboxItem` now carry `dueStages`; a task slip also saves a changed
+  priority and due date. `css/app.css`, "Sort in nine steps (#264)", uses the `dk-*` kit.
+- Every screen fits a 390x844 phone without the page scrolling and has no text under 13px
+  (`scripts/shoot-sort-264.mjs` measures both and writes `docs/generated/sort-264/`). Known: "Sort several" (Select many)
+  still has 12px meta text; #265 redesigns it.
+- Tests: `js/sort-flow.test.mjs`, `js/in-tray.test.mjs`, `js/in-tray-priority.test.mjs`. Browser checks that drive
+  Sort: `check-in-tray-browser.mjs`, `check-priority-browser.mjs`, `check-carousel-browser.mjs`,
+  `check-category-filter-browser.mjs`, `check-bulk-sort-browser.mjs`, `check-desktop-browser.mjs`.
+- Superseded below: the step bar and its tabs ("Three parts"), the "File to <project>" button and the pickers on the
+  slip itself ("A thought needs a priority": now step 2 and step 4). The rules in those sections still hold.
+
 ## Delete asks first (#219, #220, #221; built 2026-10-20, design 1A on `docs/plans/tray-delete.html`)
 
 Delete under a thought used to discard it in one tap (`unsorted-delete` in `app/js/app.js:531`), while a
