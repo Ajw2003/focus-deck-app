@@ -66,7 +66,7 @@ export function renderRail(screen, unsortedCount, reviewCount = 0) {
   const sub = (k) => '<button type="button" class="rail-sub' + (screen === k ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + k + '"' + (screen === k ? ' aria-current="page"' : '') + '>' + SCREEN_INFO[k].label + '</button>';
   return '<nav class="rail dk-tabs" aria-label="What to do">'
     + tab('Sort', 'sort', screen === 'sort', 'data-screen="sort"', unsortedCount, 'to sort')
-    + tab('Organize', 'tidy', org, 'data-go="' + (screen === 'triage' ? 'triage' : 'tidy') + '"', 0, '')
+    + tab('Organize', 'tidy', org, 'data-go="tidy"', 0, '')
     + '<div class="rail-subs">' + sub('tidy') + sub('triage') + '</div>'
     + tab('Projects', 'projects', screen === 'projects', 'data-screen="projects"', 0, '')
     + tab('Roadmap', 'roadmap', screen === 'roadmap', 'data-screen="roadmap"', 0, '')

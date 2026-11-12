@@ -309,7 +309,7 @@ assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds:
   assert.strictEqual((rail.match(/rail-count/g) || []).length, 2, 'badges on Sort and Review only');
   assert.ok(rail.includes('>2</b>') && rail.includes('>3</b>'));
   assert.ok(!renderRail('focus', 0).includes('rail-count'), 'no count when nothing waits');
-  assert.ok(renderRail('triage', 0).includes('data-go="triage"') && renderRail('tidy', 0).includes('rail-sub is-on'), 'Organize holds Tidy up and Triage');
+  assert.ok(renderRail('triage', 0).includes('data-go="tidy"') && renderRail('tidy', 0).includes('rail-sub is-on'), 'Organize holds Tidy up and Triage');
   assert.ok(!renderRail('focus', 0).includes('rail-tools'), 'sync and Settings moved to the header');
   assert.strictEqual(normalizeScreen('nonsense'), 'focus');
   assert.strictEqual(normalizeScreen('board'), 'projects');

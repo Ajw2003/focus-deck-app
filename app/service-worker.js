@@ -51,6 +51,7 @@ const SHELL_ASSETS = [
   './js/sort-flow.js',
   './js/sort-flow-view.js',
   './js/sort-many-view.js',
+  './js/desk-objects.js',
   './js/pick-bits.js',
   './js/onboarding.js',
   './js/onboarding-view.js',

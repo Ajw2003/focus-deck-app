@@ -23,8 +23,8 @@ import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js'
 import { renderOnboarding } from './onboarding-view.js';
 import { pickState, dueDates, parseDue } from './pick-bits.js';
 import { renderReview } from './review-view.js';
-import { renderTidy } from './tidy-view.js';
-import { tidyGroups, confirmIds } from './tidy.js';
+import { renderTidy, TIDY_STEPS } from './tidy-view.js';
+import { tidyGroups, confirmIds, GROUPS } from './tidy.js';
 import { renderTriage } from './triage-view.js';
 import { triageLists, moveId, NOW_SIZE, NEXT_SIZE } from './triage.js';
 import { initTriageDrag } from './triage-drag.js';
@@ -267,6 +267,14 @@ export function renderApp(st) {
   return screen('focus', R.renderFocus(st, findTaskWithProject, ui));
 }
 
+// Tidy up: the current tick screen's tasks, and the move to the next screen (after the last, "Close these?", or Triage when nothing is marked).
+const tidyItems = () => { const g = tidyGroups(state, ui.view).groups.find((x) => x.key === GROUPS[(ui.tidyStep || 1) - 1].key); return g ? g.items : []; };
+function tidyAdvance(step) {
+  ui.tidyTicks = {};
+  if (step > TIDY_STEPS && !confirmIds(state, ui.view, ui.tidyMarks || {}).length) { ui.tidyStep = 0; ui.triageStep = 'top'; setScreen('triage'); } else ui.tidyStep = step;
+  paint(); window.scrollTo(0, 0);
+}
+
 // Triage: a drop, Alt+Arrow or an up/down button. `to` is the place to end at, or (when null) `by` steps
 // from where it is now. The new order is saved at once (every task in the view gets a triageRank).
 function moveTriage(id, to, by) {
@@ -275,7 +283,6 @@ function moveTriage(id, to, by) {
   const at = Math.max(0, Math.min(ids.length - 1, to === null ? from + by : to));
   if (from < 0 || at === from) return;
   M.saveTriageOrder(moveId(ids, id, at));
-  if (at >= NOW_SIZE + NEXT_SIZE) ui.triageLaterOpen = true;
   paint();
   const again = document.querySelector('.tr-row[data-task-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
   if (again) again.focus({ preventScroll: true });
@@ -574,6 +581,7 @@ function onAppClick(e) {
     setScreen(el.getAttribute('data-screen') || el.getAttribute('data-go'));
     ui.jotTo = undefined;
     ui.projectQuery = ''; ui.taskQuery = '';
+    ui.tidyStep = 0; ui.tidyTicks = {}; ui.triageStep = 'top'; ui.tidyClosed = []; // Organize opens on its two cards
     paint();
     window.scrollTo(0, 0);
     return;
@@ -594,19 +602,24 @@ function onAppClick(e) {
     if (to) { to.scrollIntoView({ block: 'center' }); const f = to.querySelector('button, input, [tabindex]'); if (f) f.focus({ preventScroll: true }); }
     return;
   }
-  if (action === 'tidy-mark') {
-    const id = el.getAttribute('data-task'), m = el.getAttribute('data-mark');
-    ui.tidyMarks = Object.assign({}, ui.tidyMarks); // marks only; nothing is closed until tidy-confirm
-    if (ui.tidyMarks[id] === m) delete ui.tidyMarks[id]; else ui.tidyMarks[id] = m;
-    paint(); return;
+  if (action === 'tidy-step') { ui.tidyStep = Number(el.getAttribute('data-step')); ui.tidyTicks = {}; paint(); window.scrollTo(0, 0); return; }
+  if (action === 'tidy-skip') { tidyAdvance(Number(el.getAttribute('data-step'))); return; }
+  if (action === 'tidy-all') { ui.tidyTicks = Object.fromEntries(tidyItems().map((i) => [i.id, true])); paint(); return; }
+  if (action === 'tidy-none') { ui.tidyTicks = {}; paint(); return; }
+  if (action === 'tidy-mark') { // the desk object a tick list ends on: marks every ticked task (nothing closes until Confirm), then the next screen
+    const m = el.getAttribute('data-mark'), marks = Object.assign({}, ui.tidyMarks);
+    tidyItems().forEach((i) => { if (ui.tidyTicks[i.id]) marks[i.id] = m; });
+    ui.tidyMarks = marks;
+    tidyAdvance(ui.tidyStep + 1); return;
   }
   if (action === 'tidy-confirm') {
     const ids = confirmIds(state, ui.view, ui.tidyMarks || {});
     const titles = new Map(); state.projects.forEach((p) => p.tasks.forEach((t) => titles.set(t.id, t.title)));
     M.confirmTidy(ids);
-    ui.tidyClosed = ids.map((id) => ({ id, title: titles.get(id) })).concat(ui.tidyClosed || []);
+    ui.tidyClosed = ids.map((id) => ({ id, title: titles.get(id) })); // the "Closed N ✓ / Undo" slip on Triage
     ids.forEach((id) => delete ui.tidyMarks[id]);
-    setScreen('triage'); paint(); window.scrollTo(0, 0); return; // "Confirm N, then Triage"
+    ui.tidyStep = 0; ui.triageStep = 'top';
+    setScreen('triage'); paint(); window.scrollTo(0, 0); return; // Confirm, then Triage
   }
   if (action === 'rm-open') { setScreen('roadmap'); setView({ mode: 'project', id: el.getAttribute('data-project') }); paint(); window.scrollTo(0, 0); return; }
   if (action === 'rm-settings') {
@@ -628,10 +641,18 @@ function onAppClick(e) {
   if (action === 'rm-add') { ui.rmAdd = { kind: el.getAttribute('data-kind'), ms: el.getAttribute('data-ms') }; if (ui.rmAdd.kind === 'task') ui.rmOpen[ui.rmAdd.ms] = true; paint(); const f = document.querySelector('.rm-add-form input, .rm .add-row input[name="title"]'); if (f) f.focus(); return; }
   if (action === 'rm-add-cancel') { ui.rmAdd = null; paint(); return; }
   if (action === 'rm-make') { const m = M.editRoadmap(rmProject(), (p) => makeMilestone(p, p.tasks.find((t) => t.id === el.getAttribute('data-id')))); ui.notice = m ? '“' + m.name + '” is now a milestone.' : 'It already is one.'; paint(); return; }
-  if (action === 'triage-later') { ui.triageLaterOpen = !ui.triageLaterOpen; paint(); return; }
+  if (action === 'triage-later') { ui.triageStep = 'later'; ui.triageFind = ''; paint(); window.scrollTo(0, 0); return; }
+  if (action === 'triage-go') {
+    const to = el.getAttribute('data-to'), from = el.getAttribute('data-from'), l = triageLists(state, ui.view, dueDates().today);
+    if (to === 'move') ui.triageMoveIds = (from === 'next' ? l.next : from === 'later' ? l.later.filter((r) => r.task.title.toLowerCase().includes((ui.triageFind || '').toLowerCase())) : l.now).map((r) => r.id); // Move works on the list it was opened from
+    ui.triageStep = to; paint(); window.scrollTo(0, 0); return;
+  }
   if (action === 'triage-move') { moveTriage(el.getAttribute('data-task'), null, Number(el.getAttribute('data-dir'))); return; }
-  if (action === 'triage-reset') { const l = triageLists(state, ui.view, dueDates().today); M.resetTriageOrder(l.now.concat(l.next, l.later).map((r) => r.id)); paint(); return; }
-  if (action === 'tidy-undo') { const id = el.getAttribute('data-task'); M.undoDone(id); ui.tidyClosed = (ui.tidyClosed || []).filter((c) => c.id !== id); paint(); return; }
+  if (action === 'triage-reset') { const l = triageLists(state, ui.view, dueDates().today); M.resetTriageOrder(l.now.concat(l.next, l.later).map((r) => r.id)); ui.triageStep = 'top'; paint(); return; }
+  if (action === 'tidy-undo') { // the slip's Undo brings every closed task back; with data-task, one
+    const one = el.getAttribute('data-task'), back = (ui.tidyClosed || []).filter((c) => !one || c.id === one);
+    back.forEach((c) => M.undoDone(c.id)); ui.tidyClosed = (ui.tidyClosed || []).filter((c) => !back.includes(c)); paint(); return;
+  }
   if (action === 'review-done') { M.setTaskStatus(el.getAttribute('data-task'), 'done'); paint(); return; }
   if (action === 'review-more') { M.setTaskStatus(el.getAttribute('data-task'), 'doing'); paint(); return; }
   if (action === 'review-undo') { M.undoDone(el.getAttribute('data-task')); paint(); return; }
@@ -990,6 +1011,12 @@ function onDetailFocusOut(e) {
 function onAppChange(e) {
   const colorEl = colorInputTarget(e);
   if (colorEl) { onColorChange(colorEl); return; }
+  if (e.target.matches && e.target.matches('[data-tidy-tick]')) {
+    const id = e.target.getAttribute('data-tidy-tick');
+    ui.tidyTicks = Object.assign({}, ui.tidyTicks); if (e.target.checked) ui.tidyTicks[id] = true; else delete ui.tidyTicks[id];
+    paintKeepingFocus('[data-tidy-tick="' + CSS.escape(id) + '"]');
+    return;
+  }
   if (e.target.matches && e.target.matches('[data-bulk-key]')) {
     const key = e.target.getAttribute('data-bulk-key');
     ui.bulk.picked = e.target.checked ? ui.bulk.picked.filter((k) => k !== key).concat(key) : ui.bulk.picked.filter((k) => k !== key);
@@ -1081,6 +1108,13 @@ function onAppInput(e) {
     ui.focusFind = e.target.value;
     const slot = document.getElementById('project-wallet');
     if (slot) { slot.innerHTML = R.renderProjectWalletInner(viewState(state), ui); mountWallets(slot, walletHooks); }
+    return;
+  }
+  if (e.target.matches && e.target.matches('[data-triage-find]')) {
+    ui.triageFind = e.target.value;
+    paintKeepingFocus('[data-triage-find]');
+    const box = document.querySelector('[data-triage-find]');
+    if (box) box.setSelectionRange(box.value.length, box.value.length);
     return;
   }
   if (e.target.matches && e.target.matches('[data-bulk-find]')) {

@@ -4,11 +4,12 @@
 import { inView } from './areas.js';
 
 export const STALE_DAYS = 60;
+// One screen per reason, in this order (#266): Finished?, Replaced?, The same?, Still want it?
 export const GROUPS = [
-  { key: 'review', title: 'Built, waiting for your review', reason: 'Their status is Review: the work is built and only needs your look.' },
-  { key: 'replaced', title: 'Replaced by newer work', reason: 'The title or notes say "replaced by" or "superseded by", point with "see #N" to a newer open task, or the task has a superseded, replaced or obsolete label.' },
-  { key: 'same', title: 'Looks the same as another', reason: 'Two open tasks with the same title once case, punctuation and spacing are ignored, or one title inside the other, or one or two letters apart.' },
-  { key: 'stale', title: 'Not touched in ' + STALE_DAYS + ' days', reason: 'Open, and not changed for over ' + STALE_DAYS + ' days.' },
+  { key: 'review', title: 'Finished?' },
+  { key: 'replaced', title: 'Replaced?' },
+  { key: 'same', title: 'The same?' },
+  { key: 'stale', title: 'Still want it?' },
 ];
 
 export const normTitle = (s) => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
@@ -40,17 +41,20 @@ export function tidyGroups(st, view, now = Date.now()) {
   const mine = all.filter((t) => t.status !== 'done' && inView(st, view, owner.get(t.id)));
   const newerIssue = (t, n) => all.some((o) => o.status !== 'done' && o.id !== t.id && String(o.issueNumber) === n && o.issueNumber > (t.issueNumber || 0));
   const catNames = new Map((st.categories || []).map((c) => [c.id, c.name]));
-  const isReplaced = (t) => {
+  // '' = replaced by something unnamed; a string = the "new" half of "old ➜ new" (a task title, or the words after "replaced by")
+  const replacedBy = (t) => {
     const text = (t.title || '') + ' ' + (t.notes || '');
-    if (/\b(replaced|superseded) by\b/i.test(text)) return true;
     const m = /\bsee #(\d+)/i.exec(text);
-    if (m && newerIssue(t, m[1])) return true;
-    return (t.categoryIds || []).some((id) => /superseded|replaced|obsolete/i.test(catNames.get(id) || ''));
+    const newer = m && newerIssue(t, m[1]) ? all.find((o) => o.status !== 'done' && String(o.issueNumber) === m[1]) : null;
+    if (newer) return newer.title;
+    const w = /\b(?:replaced|superseded) by\s+([^.;\n]{1,40})/i.exec(text);
+    if (w) return w[1].trim();
+    return (t.categoryIds || []).some((id) => /superseded|replaced|obsolete/i.test(catNames.get(id) || '')) ? '' : null;
   };
   const taken = new Set(), out = {};
   const take = (key, t, extra) => { taken.add(t.id); (out[key] = out[key] || []).push(Object.assign({ id: t.id, task: t, project: owner.get(t.id) }, extra)); };
   mine.filter((t) => t.status === 'review').forEach((t) => take('review', t));
-  mine.filter((t) => !taken.has(t.id) && isReplaced(t)).forEach((t) => take('replaced', t));
+  mine.filter((t) => !taken.has(t.id) && replacedBy(t) !== null).forEach((t) => take('replaced', t, { to: replacedBy(t) }));
   const rest = mine.filter((t) => !taken.has(t.id)), norms = new Map(rest.map((t) => [t.id, normTitle(t.title)]));
   for (let i = 0; i < rest.length; i++) { // shortcut: O(n^2) pair scan, fine for a few hundred open tasks
     if (taken.has(rest[i].id)) continue;
@@ -67,11 +71,14 @@ export function tidyGroups(st, view, now = Date.now()) {
   return { groups, owner, open: mine.length };
 }
 
-// marks: { [taskId]: 'keep' | 'close' | 'merge' }. The ids Confirm closes: marked close/merge AND listed in this view now.
-export function confirmIds(st, view, marks, now = Date.now()) {
-  const ids = [];
+// marks: { [taskId]: 'keep' | 'close' | 'merge' }. What Confirm closes: marked close/merge AND listed in this view now.
+// [{ id, task, merge }]: merge is true for the older half of a "same" pair (the "Close these?" screen draws it with a 📎).
+export function confirmItems(st, view, marks, now = Date.now()) {
+  const out = [];
   tidyGroups(st, view, now).groups.forEach((g) => g.items.forEach((i) => {
-    if (marks[i.id] === 'close' || (marks[i.id] === 'merge' && g.key === 'same')) ids.push(i.id);
+    const merge = marks[i.id] === 'merge' && g.key === 'same';
+    if (marks[i.id] === 'close' || merge) out.push({ id: i.id, task: i.task, merge });
   }));
-  return ids;
+  return out;
 }
+export const confirmIds = (st, view, marks, now) => confirmItems(st, view, marks, now).map((i) => i.id);
