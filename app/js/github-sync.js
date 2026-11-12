@@ -8,6 +8,7 @@ import { persist } from './sync.js';
 import { ensureSortOrder } from './project-filter.js';
 import { ensureTaskSortOrder } from './task-move.js';
 import { canSetParent, canWaitOn } from './task-links.js';
+import { syncGithubMilestones } from './roadmap.js';
 
 function normLabel(s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); }
 
@@ -580,17 +581,20 @@ export function upsertRepoProject(repo, issues, ui) {
       // it was marked done locally by an earlier sync (issue closed) but the issue is back in
       // the open set now, so it was reopened on GitHub — reflect that here too
       if (existing.status === 'done') { existing.status = statusFromLabels(iss.labels); delete existing.completedAt; }
+      if (iss.milestone) existing.githubMilestone = iss.milestone; else delete existing.githubMilestone;
       applyLabels(existing, iss.labels, iss.labelColors);
       dropStaleCompletedLabel(existing, iss.labels);
     } else if (project && iss.labels && iss.labels.length > 0) {
       importIssueAsTask(repo, iss, project);
     }
   });
+  if (project) syncGithubMilestones(project);
   return newlyClosed;
 }
 
 function importIssueAsTask(repo, iss, project) {
   const task = { id: uid('t'), title: iss.title, status: statusFromLabels(iss.labels), deadline: null, categoryIds: [], source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, issueId: iss.id, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
+  if (iss.milestone) task.githubMilestone = iss.milestone;
   applyLabels(task, iss.labels, iss.labelColors);
   project.tasks.push(task);
   ensureTaskSortOrder([project]); // a task new from GitHub goes to the end of its group
