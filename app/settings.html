@@ -27,22 +27,30 @@
     </fieldset>
     </div>
   </section>
-  <section class="set" id="category-colors-section">
-    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-category-colors"><span class="set-title">Category colors</span><span class="set-value" id="val-category-colors"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
-    <div class="set-body" id="fold-category-colors">
+  <section class="set" id="areas-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-areas"><span class="set-title">Areas</span><span class="set-value" id="val-areas"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-areas">
     <p class="muted small" style="margin-bottom:6px;">
-      Pick a color for each category. It updates everywhere that category's chip appears, and syncs to your other devices like any other change.
+      Areas group your projects: Home, Work, School and so on. Each project is in one area. A project with no area counts as Unsorted. Colours show wherever the area&rsquo;s chip appears and sync to your other devices.
     </p>
-    <p class="cat-color-group-label">Project categories</p>
     <div id="proj-cat-list" class="cat-color-list"></div>
     <form class="add-project-form cat-add-form" id="add-proj-cat-form" style="margin-top:10px;">
-      <input type="text" name="name" placeholder="New project category…" maxlength="40" required>
-      <button type="submit">+ Add</button>
+      <input type="text" name="name" placeholder="+ Add an area…" aria-label="Name of a new area" maxlength="40" required>
+      <button type="submit">+ Add an area</button>
     </form>
-    <p class="cat-color-group-label">Task categories</p>
+    <div id="area-projects" class="area-projects" aria-live="polite"></div>
+    </div>
+  </section>
+  <section class="set" id="kinds-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-kinds"><span class="set-title">Kinds of work</span><span class="set-value" id="val-kinds"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-kinds">
+    <p class="muted small" style="margin-bottom:6px;">
+      Tick the labels that are a kind of work. Ticked ones are offered on the Focus screen. Unticked labels stay on your tasks and on GitHub, they just are not offered as picks. A label can also count as a priority: a task with no priority of its own takes it.
+    </p>
+    <div class="kind-head muted small" aria-hidden="true"><span>Kind of work</span><span>Counts as</span></div>
     <div id="task-cat-list" class="cat-color-list"></div>
     <form class="add-project-form cat-add-form" id="add-task-cat-form" style="margin-top:10px;">
-      <input type="text" name="name" placeholder="New task category…" maxlength="40" required>
+      <input type="text" name="name" placeholder="New label…" maxlength="40" required>
       <button type="submit">+ Add</button>
     </form>
     </div>
@@ -282,85 +290,141 @@
   });
 </script>
 <script type="module">
-  // Uses the shared `state` singleton (not loadState(), which returns a fresh, disconnected
-  // object) and the mutations.js setters, so every edit here goes through the same persist()/
-  // Gist-sync pipeline as everything else in the app instead of silently bypassing it.
-  import { state, esc, cssColorToHex } from './js/state.js';
+  // Settings > Areas and Kinds of work (docs/4-systems/areas.md). Uses the shared `state` singleton
+  // (never loadState(): a fresh copy would revert anything saved since) and the mutations.js setters,
+  // so every edit goes through persist() and the Gist sync.
+  import { state, esc, cssColorToHex, onExternalStateChange } from './js/state.js';
   import {
-    setCategoryColor, setProjectCategoryColor,
-    addCategory, addProjectCategory, removeCategory, removeProjectCategory,
+    setCategoryColor, setProjectCategoryColor, renameProjectCategory, setProjectCategory,
+    addCategory, addProjectCategory, removeCategory, removeProjectCategory, setKindOfWork, setLabelPriority,
   } from './js/mutations.js';
-
-  function renderCategoryList(container, categories) {
-    container.innerHTML = categories.map((c) => (
-      '<div class="cat-color-row">'
-        + '<span class="chip cat-chip" style="--chip-color:' + esc(c.color) + '">' + esc(c.name) + '</span>'
-        + '<div class="cat-color-row-actions">'
-          + '<input type="color" class="cat-color-input" data-id="' + c.id + '" value="' + cssColorToHex(c.color) + '">'
-          + '<button type="button" class="mini-x cat-remove-btn" data-id="' + c.id + '" aria-label="Remove ' + esc(c.name) + '">×</button>'
-        + '</div>'
-      + '</div>'
-    )).join('') || '<p class="muted small">None yet.</p>';
-  }
-
-  // How many projects (or tasks, for task categories) currently reference this category — shown
-  // in the removal confirmation so a category in use isn't dropped by accident.
-  function usageCount(type, id) {
-    if (type === 'project') return state.projects.filter((p) => p.categoryId === id).length;
-    let count = 0;
-    state.projects.forEach((p) => p.tasks.forEach((t) => { if ((t.categoryIds || []).includes(id)) count++; }));
-    return count;
-  }
-
-  // 'input' fires continuously while the native color picker is open (including on every drag
-  // tick across the gradient) — it must only touch the preview chip in place, never rebuild the
-  // list, or it destroys and recreates the open <input> mid-drag and closes the picker. 'change'
-  // fires once, when the picker is closed/committed, which is when it's safe to persist.
-  function wireList(container, categoriesOf, type, setColorFn, removeFn) {
-    container.addEventListener('input', (e) => {
-      if (!e.target.matches('.cat-color-input')) return;
-      const chip = e.target.closest('.cat-color-row').querySelector('.cat-chip');
-      if (chip) chip.style.setProperty('--chip-color', e.target.value);
-    });
-    container.addEventListener('change', (e) => {
-      if (!e.target.matches('.cat-color-input')) return;
-      setColorFn(e.target.getAttribute('data-id'), e.target.value);
-    });
-    container.addEventListener('click', (e) => {
-      if (!e.target.matches('.cat-remove-btn')) return;
-      const id = e.target.getAttribute('data-id');
-      const cat = categoriesOf().find((c) => c.id === id);
-      if (!cat) return;
-      const count = usageCount(type, id);
-      const noun = type === 'project' ? 'project' : 'task';
-      const warning = count > 0 ? ' It\'s currently on ' + count + ' ' + noun + (count === 1 ? '' : 's') + ' — removing it clears that assignment.' : '';
-      if (!confirm('Remove "' + cat.name + '"?' + warning)) return;
-      removeFn(id);
-      renderCategoryList(container, categoriesOf());
-    });
-  }
+  import { UNSORTED_ID, areaIdOf, areaCount, isKindOfWork } from './js/areas.js';
+  import { PRIORITY, PRIORITY_ORDER } from './js/state.js';
 
   const projCatList = document.getElementById('proj-cat-list');
   const taskCatList = document.getElementById('task-cat-list');
-  renderCategoryList(projCatList, state.projectCategories);
-  renderCategoryList(taskCatList, state.categories);
-  wireList(projCatList, () => state.projectCategories, 'project', setProjectCategoryColor, removeProjectCategory);
-  wireList(taskCatList, () => state.categories, 'task', setCategoryColor, removeCategory);
+  const areaProjects = document.getElementById('area-projects');
+  let selected = UNSORTED_ID; // the area whose projects are listed underneath
+  let editing = null;         // the area id being renamed/recoloured
 
+  // 'input' fires continuously while the native colour picker is open: it only previews the swatch in
+  // place and never rebuilds the list (which would close the picker mid-drag). 'change' commits.
+  function wireColour(container, setColorFn, previewSel) {
+    container.addEventListener('input', (e) => {
+      if (!e.target.matches('.cat-color-input')) return;
+      const p = e.target.closest('.cat-color-row').querySelector(previewSel);
+      if (p) p.style.setProperty('--chip-color', e.target.value);
+    });
+    container.addEventListener('change', (e) => {
+      if (e.target.matches('.cat-color-input')) setColorFn(e.target.getAttribute('data-id'), e.target.value);
+    });
+  }
+
+  // --- Areas ---
+  function renderAreas() {
+    if (!state.projectCategories.some((c) => c.id === selected)) selected = UNSORTED_ID;
+    projCatList.innerHTML = state.projectCategories.map((c) => {
+      const n = areaCount(state, c.id), fixed = c.id === UNSORTED_ID, edit = editing === c.id;
+      const head = edit
+        ? '<span class="area-edit">' + (fixed ? '<b>' + esc(c.name) + '</b>' : '<input type="text" class="area-name-input" data-id="' + c.id + '" value="' + esc(c.name) + '" maxlength="40" aria-label="Area name">')
+          + '<input type="color" class="cat-color-input" data-id="' + c.id + '" value="' + cssColorToHex(c.color) + '" aria-label="Colour of ' + esc(c.name) + '"></span>'
+        : '<button type="button" class="area-pick" data-pick="' + c.id + '" aria-pressed="' + (selected === c.id) + '">'
+          + '<span class="area-swatch" style="--chip-color:' + esc(c.color) + '"></span><span class="area-name">' + esc(c.name) + '</span><span class="muted small area-count">' + n + (n === 1 ? ' project' : ' projects') + '</span></button>';
+      return '<div class="cat-color-row area-row' + (selected === c.id ? ' is-selected' : '') + '" data-id="' + c.id + '">' + head
+        + '<div class="cat-color-row-actions">'
+        + '<button type="button" class="btn-text" data-edit="' + c.id + '">' + (edit ? 'Done' : 'Edit') + '</button>'
+        + (fixed ? '' : '<button type="button" class="mini-x cat-remove-btn" data-id="' + c.id + '" aria-label="Delete ' + esc(c.name) + '">×</button>')
+        + '</div></div>';
+    }).join('');
+    const area = state.projectCategories.find((c) => c.id === selected);
+    const here = state.projects.filter((p) => areaIdOf(state, p) === selected);
+    const moves = (p) => '<select class="area-move" data-move="' + p.id + '" aria-label="Move ' + esc(p.name) + ' to another area"><option value="">Move ▾</option>'
+      + state.projectCategories.filter((c) => c.id !== selected).map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('') + '</select>';
+    areaProjects.innerHTML = '<p class="cat-color-group-label">Projects in ' + esc(area ? area.name : 'Unsorted') + '</p>'
+      + (here.length ? here.map((p) => '<div class="area-proj"><span class="pdot" style="background:' + esc(p.color) + '"></span><span class="area-proj-name">' + esc(p.name) + '</span>' + moves(p) + '</div>').join('')
+        : '<p class="muted small">No projects here.</p>');
+  }
+  projCatList.addEventListener('click', (e) => {
+    const pick = e.target.closest('[data-pick]');
+    const edit = e.target.closest('[data-edit]');
+    const del = e.target.closest('.cat-remove-btn');
+    if (pick) { selected = pick.dataset.pick; renderAreas(); }
+    else if (edit) {
+      const id = edit.dataset.edit;
+      if (editing === id) {
+        const input = projCatList.querySelector('.area-name-input');
+        if (input && input.value.trim() && !renameProjectCategory(id, input.value)) input.value = '';
+        editing = null;
+      } else { editing = id; selected = id; }
+      renderAreas();
+    } else if (del) {
+      const id = del.dataset.id, area = state.projectCategories.find((c) => c.id === id);
+      if (!area) return;
+      const n = areaCount(state, id);
+      if (!confirm('Delete the area "' + area.name + '"?' + (n ? ' Its ' + n + ' project' + (n === 1 ? '' : 's') + ' will go to Unsorted.' : ''))) return;
+      if (removeProjectCategory(id)) { if (editing === id) editing = null; renderAreas(); }
+    }
+  });
+  projCatList.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('.area-name-input')) { e.preventDefault(); projCatList.querySelector('[data-edit="' + editing + '"]').click(); } });
+  wireColour(projCatList, setProjectCategoryColor, '.area-swatch');
+  areaProjects.addEventListener('change', (e) => {
+    if (!e.target.matches('[data-move]') || !e.target.value) return;
+    setProjectCategory(e.target.dataset.move, e.target.value);
+    renderAreas();
+  });
   document.getElementById('add-proj-cat-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = e.target.elements.name;
-    addProjectCategory(input.value);
+    const name = input.value.trim();
+    if (!name) return;
+    selected = addProjectCategory(name).id;
     input.value = '';
-    renderCategoryList(projCatList, state.projectCategories);
+    renderAreas();
   });
+
+  // --- Kinds of work ---
+  // How many tasks carry this label: shown in the removal confirmation.
+  const usage = (id) => state.projects.reduce((n, p) => n + p.tasks.filter((t) => (t.categoryIds || []).includes(id)).length, 0);
+  function renderKinds() {
+    taskCatList.innerHTML = state.categories.map((c) => (
+      '<div class="cat-color-row kind-row" data-id="' + c.id + '">'
+        + '<label class="kind-tick"><input type="checkbox" data-kind="' + c.id + '"' + (isKindOfWork(c) ? ' checked' : '') + '>'
+        + '<span class="chip cat-chip" style="--chip-color:' + esc(c.color) + '">' + esc(c.name) + '</span></label>'
+        + '<div class="cat-color-row-actions">'
+          + '<select class="kind-prio" data-prio="' + c.id + '" aria-label="Priority that ' + esc(c.name) + ' counts as"><option value="">No priority</option>'
+            + PRIORITY_ORDER.map((l) => '<option value="' + l + '"' + (c.priority === l ? ' selected' : '') + '>' + PRIORITY[l].label + '</option>').join('') + '</select>'
+          + '<input type="color" class="cat-color-input" data-id="' + c.id + '" value="' + cssColorToHex(c.color) + '" aria-label="Colour of ' + esc(c.name) + '">'
+          + '<button type="button" class="mini-x cat-remove-btn" data-id="' + c.id + '" aria-label="Remove ' + esc(c.name) + '">×</button>'
+        + '</div></div>'
+    )).join('') || '<p class="muted small">None yet.</p>';
+  }
+  taskCatList.addEventListener('change', (e) => {
+    if (e.target.matches('[data-kind]')) setKindOfWork(e.target.dataset.kind, e.target.checked);
+    else if (e.target.matches('[data-prio]')) setLabelPriority(e.target.dataset.prio, e.target.value);
+  });
+  taskCatList.addEventListener('click', (e) => {
+    const del = e.target.closest('.cat-remove-btn');
+    if (!del) return;
+    const id = del.dataset.id, cat = state.categories.find((c) => c.id === id);
+    if (!cat) return;
+    const n = usage(id);
+    if (!confirm('Remove "' + cat.name + '"?' + (n ? ' It\'s currently on ' + n + ' task' + (n === 1 ? '' : 's') + ' — removing it clears that assignment.' : ''))) return;
+    removeCategory(id);
+    renderKinds();
+  });
+  wireColour(taskCatList, setCategoryColor, '.cat-chip');
   document.getElementById('add-task-cat-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = e.target.elements.name;
     addCategory(input.value);
     input.value = '';
-    renderCategoryList(taskCatList, state.categories);
+    renderKinds();
   });
+
+  renderAreas();
+  renderKinds();
+  // a sync from another device repaints, unless a name or colour is being edited right now
+  onExternalStateChange(() => { if (!editing) { renderAreas(); renderKinds(); } });
 </script>
 <script type="module">
   // Settings > Due dates (#106). Same rules as the category script above: the shared `state`
@@ -484,6 +548,7 @@
   import { NOTE_FACE_INFO, normalizeNoteFace } from './js/note-face.js';
   import { CHOOSING_MODE_INFO, normalizeChoosingMode } from './js/wallet.js';
   import { normalizeDueDefaults } from './js/due-stage.js';
+  import { isKindOfWork } from './js/areas.js';
 
   const $ = (id) => document.getElementById(id);
   const MOTION = { system: 'Follow my computer’s setting', off: 'No movement', on: 'Allow movement' };
@@ -571,8 +636,9 @@
     setText('val-chunk', chunkText(getChunk(state)));
     setText('val-overdue', OVERDUE[getOverdue(state)]);
     setText('val-note-face', NOTE_FACE_INFO[normalizeNoteFace(state.noteFace && state.noteFace.face)].label);
-    const n = state.categories.length + state.projectCategories.length;
-    setText('val-category-colors', n + (n === 1 ? ' category' : ' categories'));
+    const na = state.projectCategories.length, nk = state.categories.filter(isKindOfWork).length;
+    setText('val-areas', na + (na === 1 ? ' area' : ' areas'));
+    setText('val-kinds', nk + (nk === 1 ? ' kind of work' : ' kinds of work'));
     setText('val-choosing', CHOOSING_MODE_INFO[normalizeChoosingMode(state.choosingMode && state.choosingMode.mode)].label);
     const d = normalizeDueDefaults(state.dueDefaults);
     setText('val-due', 'Yellow at ' + d.yellowPct + '%, red at ' + d.redPct + '%');
