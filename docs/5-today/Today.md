@@ -50,6 +50,10 @@ Part 3 after Eden's review (2026-11-12): Focus stays the part 2 carousel; Sort p
 same carousel; Start here becomes the link 'Or let me pick for you'; pages carry fewer labels. Every page
 is drawn on desktop and phone in `docs/generated/friction-audit/part3-pages.html` (`shoot-pages.mjs`).
 
+Parts 2 and 3 approved 2026-11-12 (see Decisions). Build plan `docs/plans/friction-build.html` is
+waiting on Eden's approval: parent issue #248, steps #249 to #259 in Eden's order (priority, Review
+status, Areas, view switch, carousel, Review tab, Tidy up, Triage, Roadmap, milestone settings, tabs).
+
 # Today — 2026-10-21
 
 ## Calm build: QA passed
