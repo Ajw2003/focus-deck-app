@@ -50,6 +50,9 @@ function saveFocusFilter() {
   catch (e) { console.error('Could not save the focus pick filter:', e); }
 }
 
+// J focuses the jot box only from the wide layout up (mirrors the 1100px media queries in css/app.css).
+const isWideScreen = () => typeof matchMedia === 'function' && matchMedia('(min-width:1100px)').matches;
+
 // The project sort is a per-device choice too (PR 9): a drag switches it to "custom", and it has to
 // still be "custom" after a reload, or the person's order would look lost.
 const PROJECT_SORT_KEY = 'focusdeck-project-sort';
@@ -129,8 +132,7 @@ function setView(view) {
 export const ui = {
   screen: loadScreen(),
   view: loadView(), viewOpen: false,
-  // The Board's own state (#200), memory only: boardCol is the open tab; boardShown the cards shown so
-  // far (null = one group); boardSelected the selected card's id, which Task details (#201) renders from.
+  // boardSelected: the open task's id, which Task details (#201) renders from, on any tab.
   boardSelected: null,
   // Task details (#201): the open row, a subtask being typed, the link search, the label list open
   boardOpen: null, boardAddSub: false, boardLink: null, boardPicker: false,
