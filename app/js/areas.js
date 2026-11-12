@@ -40,7 +40,7 @@ export function areaIdOf(st, project) {
 export const areaCount = (st, areaId) => (st.projects || []).filter((p) => areaIdOf(st, p) === areaId).length;
 
 // Labels that mean a workflow state or a priority, not a kind of work: unticked until the user ticks them.
-const WORKFLOW = /^(needsreview|duplicate|ajsagentcreatedthis|inprogress|wip|(priority:?\/?)?(urgent|high|medium|low)(priority)?|p[0-4]|asap)$/;
+const WORKFLOW = /^(needsreview|duplicate|ajsagentcreatedthis|inprogress|wip|(priority:?\/?)?(urgent|highest|high|medium|low|lowest)(priority)?|p[0-4]|asap)$/;
 export const isWorkflowLabel = (name) => WORKFLOW.test(norm(name).replace(/[\s_-]+/g, ''));
 
 // A kind of work: ticked by the user (c.kind), else by default unless it is a workflow label.
