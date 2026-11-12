@@ -15,7 +15,7 @@ export function openMilestoneSettings(ctx, onSave) {
   const m = ctx.m, before = document.activeElement;
   const d = { shares: Object.assign({ [m.id]: m.share }, ...ctx.others.map((o) => ({ [o.id]: o.share }))), measureBy: m.measureBy,
     number: Object.assign({ name: '', current: 0, target: 0 }, m.number), checklist: (m.checklist || []).map((i) => Object.assign({}, i)) };
-  const alone = !ctx.others.length;
+  const base = Object.assign({}, d.shares), alone = !ctx.others.length; // the slider always rescales from the shares at open, so rounding cannot drift
   const cards = [['tasks', 'Tasks done', m.total ? m.done + ' of ' + m.total + ' tasks' : 'no tasks yet'], ['size', 'Task size', 'small ' + SIZE_POINTS.small + ', medium ' + SIZE_POINTS.medium + ', large ' + SIZE_POINTS.large],
     ['number', 'Your own number', 'a name and a target, like “screens tested” 2 of 4'], ['checklist', 'A checklist', 'tick what done means']];
 
@@ -87,7 +87,7 @@ export function openMilestoneSettings(ctx, onSave) {
   backdrop.addEventListener('input', (e) => {
     const t = e.target;
     if (t.matches('.ms-slider')) {
-      d.shares = sharesAfter(d.shares, m.id, t.value);
+      d.shares = sharesAfter(base, m.id, t.value);
       q('[data-ms-shares]').innerHTML = sharesHtml();
     } else if (t.matches('[data-ms-num]')) d.number[t.getAttribute('data-ms-num')] = t.getAttribute('data-ms-num') === 'name' ? t.value : num(t.value);
     else if (t.matches('[data-ms-text]')) d.checklist[Number(t.getAttribute('data-ms-text'))].text = t.value;
