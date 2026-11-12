@@ -113,7 +113,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 // 2. In the task editor: Home's labels, ticked ones, then Show all
 {
   const { ctx, page } = await open();
-  await page.click('.rail [data-screen="roadmap"]');
+  await page.click('.rail [data-screen="projects"]'); // the project rows live on the Projects tab since #262
   await page.click('.rm-row[data-project="pHome"] .rm-phone');
   await page.waitForSelector('.rm-project');
   await page.click('.rm-task-title[data-id="h2"]');
@@ -147,7 +147,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   await chooseFolder(page, 'pHome');
   await toLabels(page);
   check('off: Home offers every category, no More card', (await flagKeys(page)).length === kinds.length + 6);
-  await page.click('.rail [data-screen="roadmap"]');
+  await page.click('.rail [data-screen="projects"]'); // the project rows live on the Projects tab since #262
   await page.click('.rm-row[data-project="pHome"] .rm-phone');
   await page.click('.rm-task-title[data-id="h1"]');
   await page.waitForSelector('.cw-detail');
