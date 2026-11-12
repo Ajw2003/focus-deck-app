@@ -350,7 +350,7 @@ export function openTasksMatching({ categoryId, projectId } = {}) {
     p.tasks.forEach((t) => {
       if (t.status === 'done') return;
       const cats = t.categoryIds || [];
-      if (categoryId === UNLABELLED ? cats.length : (categoryId && !cats.includes(categoryId))) return;
+      if (categoryId === UNLABELLED ? cats.some((id) => kindIds.has(id)) : (categoryId && !cats.includes(categoryId))) return;
       ids.push(t.id);
     });
   });

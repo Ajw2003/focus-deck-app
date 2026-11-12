@@ -129,7 +129,8 @@ export function renderCategoryWalletInner(st, ui) {
     .filter((x) => x.matches.length)
     .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
   // Tasks with no label get their own card (neutral colour), and "Surprise me" (no type at all) is the last card.
-  const unlabelled = openWhere(st, null, projectId).filter(({ t }) => !(t.categoryIds || []).length);
+  const kindIds = new Set(kindsOfWork(st).map((c) => c.id)); // a task with only unticked labels counts as unlabelled
+  const unlabelled = openWhere(st, null, projectId).filter(({ t }) => !(t.categoryIds || []).some((id) => kindIds.has(id)));
   if (unlabelled.length) labels.push({ id: UNLABELLED, name: 'Unlabelled', color: 'var(--ink-faint)', matches: unlabelled });
   labels.push({ id: ANY_CATEGORY_KEY, name: 'Surprise me', color: 'var(--accent)', matches: openWhere(st, null, projectId) });
   const cards = labels.map((x) => {
