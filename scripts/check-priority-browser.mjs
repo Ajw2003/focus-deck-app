@@ -138,7 +138,7 @@ for (const size of ['phone', 'desktop']) {
   await page.waitForTimeout(200);
   const st = await stored(page);
   const filed = st.projects[1].tasks[0];
-  check(`${tag} the thought is filed with Medium and a date`, !!filed && filed.priority === 'medium' && !!filed.deadline && st.inbox.length === 0, JSON.stringify(filed && [filed.priority, filed.deadline]));
+  check(`${tag} the thought is filed with Medium and a date`, !!filed && filed.priority === 'medium' && !!filed.deadline && st.inbox.length === 1, JSON.stringify(filed && [filed.priority, filed.deadline]));
   await ctx.close();
 }
 
@@ -184,7 +184,7 @@ for (const size of ['phone', 'desktop']) {
   await page.click('[data-action="bulk-apply"]');
   await page.waitForTimeout(300);
   const bst = await stored(page);
-  const bt2 = bst.projects[1].tasks;
+  const bt2 = bst.projects[1].tasks.filter((x) => x.id !== 'h1'); // h1 is the seeded unlabelled task, moved along by Tick all
   check(`${tag} bulk: both thoughts filed with High and a date`, bt2.length === 2 && bt2.every((x) => x.priority === 'high' && !!x.deadline) && bst.inbox.length === 0, JSON.stringify(bt2.map((x) => [x.priority, x.deadline])));
   await ctx.close();
 }

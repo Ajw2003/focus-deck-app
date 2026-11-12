@@ -1120,7 +1120,7 @@ function onBulkAction(action, el) {
     if (blocked) { b.why = blocked; paint(); return; }
     // a copy of everything as it stands, first: the same backup list a load or a shrinking save uses
     try { backupRaw(localStorage.getItem(STORAGE_KEY), 'before sorting many at once'); } catch (err) { console.error('Could not back up before sorting many at once:', err); }
-    const done = bulkSort(slips, b, {
+    const done = bulkSort(slips, Object.assign({}, b, { deadline: b.due }), {
       fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove, addTask: M.addTask, projects: state.projects,
       createIssue: createIssueIfGithubProject, labelIdByName,
     });
