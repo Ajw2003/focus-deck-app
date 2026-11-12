@@ -10,6 +10,7 @@ import { normalizeChoosingMode, CHOOSING_MODE_INFO } from './wallet.js';
 import { splitCategories } from './category-filter.js';
 import { effectivePriority, kindsOfWork, UNSORTED_ID } from './areas.js';
 import { viewState } from './view-switch.js';
+import { findFilter } from './wallet.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -158,25 +159,36 @@ function renderFocusPicker(full, ui) {
       + '</section>';
   }
   const mode = focusChoosingMode(st);
-  // Folders: All projects first, then busiest first. A project with nothing open is left out unless it is the one facing you.
-  const projects = st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, matches: openWhere(st, null, p.id) }))
+  return '<section class="card focus-card focus-empty wallet-root">'
+    + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
+    + '<p class="muted"><span class="only-narrow">Flip to a project</span><span class="only-wide">Pick a project</span> and a kind of work, and I&rsquo;ll surface one task.</p>'
+    + '<input type="search" class="car-find" data-car-find value="' + esc((ui && ui.focusFind) || '') + '" placeholder="Find a project…" aria-label="Find a project">'
+    + '<div class="wallet" id="project-wallet">' + renderProjectWalletInner(st, ui) + '</div>'
+    + '<div class="wallet" id="category-wallet">' + renderCategoryWalletInner(st, ui) + '</div>'
+    + '<div class="flip-hint">' + CHOOSING_MODE_INFO[mode].hint + '</div>'
+    + '<p class="car-alt"><button type="button" class="link-btn" data-action="pick-for-me">Or let me pick for you</button></p>'
+    + '<div class="sr-only" id="wallet-live" aria-live="polite"></div>'
+    + '</section>';
+}
+
+// The project wallet's contents, narrowed by the Find box (ui.focusFind). Re-rendered on its own as
+// the Find text changes, so the box keeps its caret. Folders: All projects first, then busiest first;
+// a project with nothing open is left out unless it is the one facing you.
+export function renderProjectWalletInner(st, ui) {
+  const projectId = focusProjectId(st, ui);
+  const q = (ui && ui.focusFind) || '';
+  const projects = findFilter(st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, matches: openWhere(st, null, p.id) })), q)
     .filter((x) => x.matches.length || x.id === projectId)
     .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
   const all = openWhere(st, null, null);
-  const folders = [sleeve({ key: ALL_PROJECTS_KEY, name: 'All projects', color: 'var(--lamp-dot)', kind: 'project', detail: focusCardDetail(all, false), speak: 'All projects, ' + focusCardDetail(all, false) })]
+  const folders = (q.trim() ? [] : [sleeve({ key: ALL_PROJECTS_KEY, name: 'All projects', color: 'var(--lamp-dot)', kind: 'project', detail: focusCardDetail(all, false), speak: 'All projects, ' + focusCardDetail(all, false) })])
     .concat(projects.map((x) => {
       const detail = focusCardDetail(x.matches, false);
       return sleeve({ key: x.id, name: x.name, color: x.color, kind: 'project', detail, speak: x.name + ', ' + detail });
     }));
-
-  return '<section class="card focus-card focus-empty wallet-root">'
-    + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
-    + '<p class="muted"><span class="only-narrow">Flip to a project</span><span class="only-wide">Pick a project</span> and a kind of work, and I&rsquo;ll surface one task.</p>'
-    + '<div class="wallet" id="project-wallet">' + walletInner({ wallet: 'projects', label: 'Project', aria: 'Projects. Arrow keys flip, Enter chooses.', items: folders, facing: projectId || ALL_PROJECTS_KEY, mode }) + '</div>'
-    + '<div class="wallet" id="category-wallet">' + renderCategoryWalletInner(st, ui) + '</div>'
-    + '<div class="flip-hint">' + CHOOSING_MODE_INFO[mode].hint + '</div>'
-    + '<div class="sr-only" id="wallet-live" aria-live="polite"></div>'
-    + '</section>';
+  if (!folders.length) return '<p class="muted small find-empty">No project matches &ldquo;' + esc(q) + '&rdquo;.</p>';
+  const facing = projects.some((x) => x.id === projectId) ? projectId : (q.trim() ? projects[0].id : ALL_PROJECTS_KEY);
+  return walletInner({ wallet: 'projects', label: 'Project', aria: 'Projects. Arrow keys flip, Enter chooses.', items: folders, facing, mode: focusChoosingMode(st) });
 }
 
 // "3 open · top: High · 2 projects": the count, the highest priority present, and (when not
@@ -236,7 +248,7 @@ function focusMetaParts(st, t) {
   if (focus.pool && !(focus.filter && focus.filter.categoryId)) {
     if (focus.allBlocked) parts.push('Everything here is waiting on something');
     else if (n > 0) reason = '<span><b class="unblocks">Unblocks ' + n + (n === 1 ? ' task' : ' tasks') + '</b></span>';
-    else parts.push('Random pick');
+    else parts.push(focus.ordered ? 'Picked for you' : 'Random pick');
   }
   const lvl = effectivePriority(t, st);
   if (lvl) parts.push(PRIORITY[lvl].label);

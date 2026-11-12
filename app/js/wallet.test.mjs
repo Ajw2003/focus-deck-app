@@ -8,7 +8,7 @@ import assert from 'node:assert';
 import {
   CHOOSING_MODES, DEFAULT_CHOOSING_MODE, CHOOSING_MODE_INFO, normalizeChoosingMode, cornerHint,
   facingIndex, tiltFor, scrollLeftFor, pointerAxis, tapOutcome, swipeOutcome, shouldDisarm, keyAction, clampIndex,
-  SWIPE_DRAW_PX, mountWallets, liveWalletCount,
+  SWIPE_DRAW_PX, mountWallets, liveWalletCount, windowStart, countText, findFilter, jumpTo, wheelStep,
 } from './wallet.js';
 
 test('the modes: two, tap twice by default, unknown values read as the default', () => {
@@ -20,6 +20,26 @@ test('the modes: two, tap twice by default, unknown values read as the default',
   });
   for (const bad of [undefined, null, '', 'double', 5, {}]) assert.strictEqual(normalizeChoosingMode(bad), 'twice');
   assert.strictEqual(normalizeChoosingMode('swipe'), 'tap', 'the retired Swipe up mode reads as Tap, which now behaves as it did plus taps (#132)');
+});
+
+test('strip: window, count, find, typing jump, wheel (#253)', () => {
+  assert.equal(windowStart(0, 27), 0);
+  assert.equal(windowStart(13, 27), 11);
+  assert.equal(windowStart(26, 27), 22);
+  assert.equal(windowStart(1, 3), 0);
+  assert.equal(countText(2, 27), '3 of 27');
+  const items = [{ name: 'Garden shed' }, { name: 'Taxes' }, { name: 'Shed roof' }];
+  const names = items.map((x) => x.name);
+  assert.deepEqual(findFilter(items, 'shed').map((x) => x.name), ['Garden shed', 'Shed roof']);
+  assert.deepEqual(findFilter(items, 'gar shed').map((x) => x.name), ['Garden shed']);
+  assert.equal(findFilter(items, '  ').length, 3);
+  assert.equal(jumpTo(names, 't'), 1);
+  assert.equal(jumpTo(names, 'shed'), 2);
+  assert.equal(jumpTo(names, 'oof'), 2);
+  assert.equal(jumpTo(names, 'zz'), -1);
+  assert.deepEqual(wheelStep(0, 0, 10), { acc: 10, step: 0 });
+  assert.deepEqual(wheelStep(30, 0, 15), { acc: 0, step: 1 });
+  assert.deepEqual(wheelStep(0, -50, 3), { acc: 0, step: -1 });
 });
 
 test('the corner hint follows the mode, and "Tap again" only once armed', () => {

@@ -1,5 +1,7 @@
 // focus-deck-app/js/mutations.js
 import { rankFocusPool, isBlocked } from './task-links.js';
+import { pickOrder } from './pick-order.js';
+import { dueDates } from './pick-bits.js';
 import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER, splitLongThought } from './state.js';
 import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriorityToIssue, pushReviewToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
 // The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
@@ -301,6 +303,17 @@ export function pickFocus(filter) {
   return true;
 }
 
+// "Or let me pick for you": the best open task in the current view by js/pick-order.js. The pool is
+// kept in that order, so "Not this one" (reroll) offers the next one down.
+export function pickForMe() {
+  const ids = openTasksMatching({ view: state._ui && state._ui.view });
+  if (!ids.length) return false;
+  const ordered = pickOrder(ids.map((id) => { const f = findTaskWithProject(id); return { t: f.task, p: f.project }; }), state, dueDates().today).map((x) => x.t.id);
+  state.focus = { taskId: ordered[0], pool: ordered, ordered: true, filter: { categoryId: null, projectId: null }, startedAt: Date.now() };
+  persist();
+  return true;
+}
+
 // "Not this one": swaps to a different task from the same pool the pick built. Only shown in the
 // UI when the pool has more than one candidate.
 // Was previously called (as M.reroll) but never exported.
@@ -311,6 +324,12 @@ export function reroll() {
     return found && found.task.status !== 'done'; // skip tasks finished since the pick
   });
   if (!others.length) return;
+  if (state.focus.ordered) { // picked for you: the next one down the order, wrapping round
+    const pool = state.focus.pool, at = pool.indexOf(state.focus.taskId);
+    state.focus.taskId = pool.slice(at + 1).concat(pool.slice(0, at)).find((id) => others.includes(id));
+    persist();
+    return;
+  }
   const free = others.filter((id) => !isBlocked(state.projects, id)); // prefer a task that can be started
   const from = free.length ? free : others;
   state.focus.taskId = from[Math.floor(Math.random() * from.length)];

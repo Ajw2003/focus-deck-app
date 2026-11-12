@@ -663,6 +663,7 @@ function onAppClick(e) {
     }
   }
   else if (action === 'reroll') M.reroll();
+  else if (action === 'pick-for-me') { if (!M.pickForMe()) { ui.notice = 'Nothing open to pick from here.'; paint(); } }
   else if (action === 'clear-focus') M.clearFocus();
   else if (action === 'focus-doing') {
     // same path as a board drop: lands at the end of In progress; the task stays in focus
@@ -1050,6 +1051,12 @@ function onAppInput(e) {
     paint();
     const box = document.querySelector('[data-tie-find]');
     if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
+    return;
+  }
+  if (e.target.matches && e.target.matches('.car-find')) {
+    ui.focusFind = e.target.value;
+    const slot = document.getElementById('project-wallet');
+    if (slot) { slot.innerHTML = R.renderProjectWalletInner(viewState(state), ui); mountWallets(slot, walletHooks); }
     return;
   }
   if (e.target.matches && e.target.matches('.sort-find')) {

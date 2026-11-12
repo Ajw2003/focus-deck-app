@@ -55,7 +55,7 @@ task's folder is its own project until another is chosen, and saving moves it
 categories", and offers "+ New flag" when no category name matches exactly. The slip text is editable
 unless the task is GitHub-linked (`issueNumber`), and a `.slip-notes` box holds notes; both are kept
 in the scratch without repainting and saved by `fileSlip` (`fileInboxItem(..., { title, notes })` for a
-thought, `updateTaskFields` for a task). The main button is Next on parts 1 and 2 and File/Save on 3.
+thought, `updateTaskFields` for a task). The main button for a **thought** is "File to <project>" on parts 1 and 3 (disabled until a project and a priority are picked, #253) and Next on part 2; for a **task** slip it is Next on parts 1 and 2 and Save on 3. Part 1 is the project wallet ("Which project?"), a five-card strip on a wide screen (see wallets.md#the-wide-screen-strip-253); the priority and due pickers sit under it, then "File to <project>" and Done already / Later / Delete.
 
 Since #205 (2026-10-19) every step tab can be tapped while its step is allowed. With no folder chosen
 yet, tabs 2 and 3 are `aria-disabled` rather than `disabled`, so a tap on one shows "Choose a project

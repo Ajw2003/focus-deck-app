@@ -53,8 +53,8 @@ async function open(scheme, viewport = { width: 1440, height: 900 }) {
 }
 const keys = (page, w) => page.$$eval(`[data-wallet="${w}"] .sleeve`, (els) => els.map((e) => e.dataset.key));
 const visibleCards = (page, w) => page.$$eval(`[data-wallet="${w}"] .sleeve`, (els) => {
-  const vw = innerWidth;
-  return els.filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left >= 0 && r.right <= vw; }).length;
+  const row = els[0].parentElement.getBoundingClientRect(); // the strip clips what is past its edge (#253)
+  return els.filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left >= row.left - 2 && r.right <= row.right + 2; }).length;
 });
 const click = async (page, w, key) => {
   const b = await (await page.$(`[data-wallet="${w}"] .sleeve[data-key="${key}"] .icard`)).boundingBox();
@@ -79,13 +79,15 @@ for (const scheme of ['dark', 'light']) {
   // wallets laid flat: every card showing at once
   const projKeys = await keys(page, 'projects');
   const catKeys = await keys(page, 'categories');
-  check(`${tag} every folder shows at once`, (await visibleCards(page, 'projects')) === projKeys.length, projKeys.length + ' folders');
-  check(`${tag} every category card shows at once`, (await visibleCards(page, 'categories')) === catKeys.length, catKeys.length + ' cards');
+  check(`${tag} five folders show at once (was: every folder)`, (await visibleCards(page, 'projects')) === Math.min(5, projKeys.length), projKeys.length + ' folders');
+  check(`${tag} five category cards show at once (was: every card)`, (await visibleCards(page, 'categories')) === Math.min(5, catKeys.length), catKeys.length + ' cards');
   check(`${tag} the hint says click`, ((await page.$eval('.focus-empty .flip-hint', (e) => e.textContent)) || '') === 'Click a project to pick it, then a card to draw');
   await page.screenshot({ path: OUT + `desktop-${scheme}.png` });
 
   // one click picks a folder: the categories narrow to it, nothing drawn yet
-  await click(page, 'projects', 'p3'); // Band: one task, category c3 (Art)
+  await page.focus('[data-wallet="projects"]'); // Band is the sixth card, past the strip's five: type its name to jump (was: click it)
+  await page.keyboard.type('band'); // Band: one task, category c3 (Art)
+  await page.waitForTimeout(500);
   check(`${tag} one click picks the folder`, (await page.$eval('[data-wallet="projects"] .sleeve.is-centre', (e) => e.dataset.key)) === 'p3' && !(await page.$('.focus-active')));
   const narrowed = await keys(page, 'categories');
   check(`${tag} the categories narrow to that folder`, narrowed.includes('c3') && !narrowed.includes('c1'), narrowed.join());
@@ -116,7 +118,7 @@ for (const scheme of ['dark', 'light']) {
   await page.waitForTimeout(300);
   check('Sort: its own screen, the tray alone', !!(await page.$('.screen-sort .inbox-card')) && !(await page.$('.focus-card')) && !(await page.$('.project-card')));
   await click(page, 'tray-folders', 'p1');
-  await page.click('.file-btn[data-action="sort-next"]');
+  await page.click('.step-tab[data-step="2"]'); // a thought is filed from part 1 now; labels is its tab (was: Next)
   await page.waitForSelector('[data-wallet="tray-flags"]');
   await page.waitForTimeout(300);
   await click(page, 'tray-flags', 'c1');

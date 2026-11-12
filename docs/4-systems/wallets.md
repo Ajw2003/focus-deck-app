@@ -1,5 +1,35 @@
 # Wallets
 
+## The wide-screen strip (#253)
+
+On a wide screen (>= 1100px, `SPREAD_QUERY`) the project and kind-of-work wallets on Focus and Sort's
+project wallet (`tray-folders`, "Which project?") are **a strip of five cards** instead of every card laid
+flat. It is the same wallet (`js/wallet.js` `spreadOut`, `STRIP_WALLETS`); a phone keeps the flip wallet
+exactly as before (flip, Tap / Tap twice, push up to draw, the hint line).
+
+- Added by `spreadOut` only (nothing in the phone markup changes): ‹ › `.wallet-arrow` buttons either side
+  of the track, a "3 of 27" count in `.wallet-count`, and the track scrolls (`.is-strip`, CSS "Wallet strip")
+  so `windowStart` keeps the picked card inside the five showing.
+- Keys on the focused track: Left/Right/Home/End move the pick, Enter draws (or, on Sort, picks the project
+  again to clear), typing letters jumps to the first name starting with them (else containing them,
+  `jumpTo`), a wheel or sideways trackpad scroll moves one card per 40px (`wheelStep`). Pure helpers
+  (`windowStart`, `countText`, `findFilter`, `jumpTo`, `wheelStep`) are tested in `js/wallet.test.mjs`.
+- A click on a card other than the pick picks it (the other row narrows); a click on the picked card draws,
+  as in the spread-out layout. Sort's label wallet (`tray-flags`) still lies flat as a grid.
+- The strip's own scrolling must not re-pick the middle card, so the track's scroll listener only runs the
+  tilt when the wallet is not spread.
+- **Find a project** (`.car-find`, `ui.focusFind`, `renderProjectWalletInner`) narrows the folders live on
+  Focus; Sort's existing `.sort-find` does the same for its wallet. Both respect the All / Area / Project
+  switch (`viewState`).
+- **Or let me pick for you** (`data-action="pick-for-me"`, `M.pickForMe`): orders the open tasks in the view
+  with `pickOrder` (`js/pick-order.js`: in progress, past its date or due today, Urgent, High, due soonest,
+  then oldest) and opens the first as if picked by hand. The ordered ids are the pool, so "Not this one"
+  (`M.reroll`) offers the next in that order (wrapping). shortcut: tasks have no created time, so "oldest" is
+  the order they sit in.
+- Focus shows only kinds of work (the step 3 ticks, `kindsOfWork`).
+- Checked by `scripts/check-carousel-browser.mjs` (screenshots in `docs/generated/build-checks/step5/`),
+  `check-desktop-browser.mjs`, `check-wallets-browser.mjs` and `check-wallet-touch-browser.mjs`.
+
 ## What it owns
 
 The focus picker's two wallets (#120, part of #116): a sideways strip of **manila folders** for
@@ -54,6 +84,7 @@ shows at once, with no scrolling and no tilt.
   wallet, a click chooses at once. The arrow keys move the pick and Enter chooses.
 - **Only the folder wallet outlines its picked card.** The in-tray marks its choices with
   `.is-picked`.
+- **Superseded for Focus and Sort's project wallet by the strip above (#253)**; the flat grid remains for Sort's label wallet.
 - **Which layout a wallet gets is decided when it mounts.** `onSpreadChange` repaints when the window
   crosses the width, so a resize swaps the layout.
 - Tap and tap-twice (the setting) apply only to the flip-through wallets on a narrow screen.

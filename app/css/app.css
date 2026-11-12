@@ -1465,3 +1465,22 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
   .vs-x{border:0; background:none; color:var(--ink-soft); font-size:1.6rem; line-height:1; min-width:44px; min-height:44px; cursor:pointer;}
 }
 @media (min-width:600px){.vs-x{display:none;}}
+
+/* ==== Wallet strip on a wide screen (#253) ===============================================
+   js/wallet.js spreadOut: the project and kind-of-work wallets (and Sort's project wallet) show five
+   cards at once in a row that the arrows, keys, typing and the wheel move; the count says "3 of 27".
+   The slip's label wallet keeps the flat grid above. */
+.flip:has(.is-strip){display:flex; align-items:center; gap:6px;}
+.flip-track.is-spread.is-strip{flex:1 1 auto; min-width:0; display:flex; gap:16px; overflow-x:hidden; overflow-y:visible; padding:18px 4px 6px;}
+.flip-track.is-strip .sleeve{flex:0 0 calc((100% - 64px) / 5);}
+.flip-track.is-strip:focus-visible{box-shadow:inset 0 0 0 2px var(--accent); border-radius:14px;}
+.flip-track.is-strip .icard{cursor:pointer;}
+.flip-track.is-strip .sleeve.is-centre .icard{box-shadow:0 0 0 3px var(--accent), 0 14px 26px -14px var(--paper-shadow);}
+.wallet:has(.is-strip) .wallet-count{display:inline;}
+.wallet-arrow{flex:0 0 auto; width:40px; height:40px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:1.5rem; line-height:1; cursor:pointer;}
+.wallet-arrow:disabled{opacity:.35; cursor:default;}
+.wallet-arrow:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.car-find{width:100%; padding:10px 12px 10px 36px; margin:6px 0 2px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 11px center / 16px;}
+.car-find:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.car-alt{margin:6px 0 0; text-align:center;}
+/* ==== end Wallet strip ==== */
