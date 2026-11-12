@@ -157,7 +157,7 @@ test('the card: count, top slip, folder on it, flags on it, wallets, quiet links
   assert.ok(html.includes('data-wallet="tray-folders"') && html.includes('data-verb="use"'));
   const part2 = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 2, projectId: 'pB', selected: ['c_art'] }) });
   assert.ok(part2.includes('data-wallet="tray-flags"') && !part2.includes('tray-folders') && part2.includes('>Next: link to other tasks →<') && part2.includes('data-action="sort-back">← Back<'));
-  html = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3, projectId: 'pB', selected: ['c_art'] }) });
+  html = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3, priority: 'high', projectId: 'pB', selected: ['c_art'] }) });
   assert.ok(/icard project is-picked/.test(renderInTrayCard(state, ui)) && /icard is-picked/.test(part2), 'chosen cards are marked');
   assert.ok(html.includes('data-action="unsorted-file" data-inbox="th1">File it in Home →<'));
   assert.ok(html.includes('>Done already<') && html.includes('data-action="unsorted-skip">Later<') && html.includes('>Delete<'));
