@@ -45,7 +45,8 @@ export function roadmapOf(p) {
     COLS.forEach(([k]) => { cols[k] = ts.filter((t) => colOf(t) === k); });
     return { id: m.id, name: m.name, measure: m.measure || 'tasks', cols, done: cols.done.length, total: ts.length, pct: percent(cols.done.length, ts.length), parentTaskId: m.parentTaskId, unplanned: !!unplanned };
   };
-  const sections = sectionsOf(p).map((s, i) => ({ id: s.id, name: s.name, virtual: !!s.virtual, n: i + 1, milestones: milestonesIn(p, s.id).map((m) => build(m)) }));
+  let k = 0; // sections are numbered 1.., the virtual one has no number
+  const sections = sectionsOf(p).map((s) => ({ id: s.id, name: s.name, virtual: !!s.virtual, n: s.virtual ? 0 : ++k,milestones: milestonesIn(p, s.id).map((m) => build(m)) }));
   const un = by.get(UNPLANNED) ? build({ id: UNPLANNED, name: 'Unplanned' }, true) : null;
   const all = sections.flatMap((s) => s.milestones).concat(un ? [un] : []);
   const cur = all.find((m) => m.done < m.total || m.total === 0);

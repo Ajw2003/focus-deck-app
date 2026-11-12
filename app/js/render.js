@@ -42,7 +42,7 @@ export function renderSyncButton(st) {
 // One activity at a time (#135): the screens, and the rail that switches between them (a column
 // on the left on a wide screen, a bar along the bottom on a phone). Adding stays on every screen:
 // it is the jotter in the topbar. See docs/4-systems/styling.md#one-screen-at-a-time
-export const SCREENS = ['focus', 'sort', 'board', 'projects', 'review', 'tidy', 'triage'];
+export const SCREENS = ['focus', 'sort', 'board', 'projects', 'review', 'tidy', 'triage', 'roadmap'];
 const SCREEN_INFO = {
   focus: { label: 'Focus', icon: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>' },
   sort: { label: 'Sort', icon: '<path d="M4 7h16M4 12h10M4 17h6"/>' },
@@ -51,6 +51,7 @@ const SCREEN_INFO = {
   review: { label: 'Review', icon: '<path d="M5 12.5l4.5 4.5L19 7.5"/>' },
   tidy: { label: 'Tidy up', icon: '<path d="M4 6h16M7 6l1 13h8l1-13M10 6V4h4v2"/>' },
   triage: { label: 'Triage', icon: '<path d="M4 6h16M4 12h11M4 18h6"/><path d="M19 14v6M16.5 17.5L19 20l2.5-2.5"/>' },
+  roadmap: { label: 'Roadmap', icon: '<path d="M4 6h9M4 12h14M4 18h7"/><circle cx="17" cy="6" r="2"/><circle cx="21" cy="18" r="1.5"/>' },
 };
 export function normalizeScreen(value) { return SCREENS.includes(value) ? value : 'focus'; }
 // The Board screen's markup is in js/board-view.js (#144).
@@ -513,7 +514,7 @@ function renderNewRepoTab(ui, hasToken) {
     + '<div class="new-panel-section"><h4 class="group-label">Paste</h4>' + renderPasteRepo(ui) + '</div>'
     + '<div class="new-panel-section">' + renderCreateRepo(ui) + '</div>';
 }
-function renderNewPanel(ui, hasToken) {
+export function renderNewPanel(ui, hasToken) {
   if (!ui.newPanelOpen) return '';
   const tab = ui.newPanelTab === 'repo' ? 'repo' : 'project';
   const tabBtn = (value, label) => '<button type="button" class="filter-pill' + (tab === value ? ' active' : '') + '" data-action="set-new-panel-tab" data-tab="' + value + '" aria-pressed="' + (tab === value) + '">' + label + '</button>';
@@ -584,7 +585,7 @@ function renderPasteRepoForLink() {
     + '<button type="submit">Link</button>'
     + '</form>';
 }
-function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
+export function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
   const total = p.tasks.length;
   const pendingRemove = !!ui.pendingRemove[p.id];
   const projCatOptions = projectCategories.filter((c) => c.id !== UNSORTED_ID).map((c) => '<option value="' + c.id + '"' + (p.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
