@@ -171,3 +171,7 @@ re-exports it. Its old private copy saved locally but never pushed.
   pushed last, and a fresh device never adopted the Gist's colors. Fixed by stamping every
   record kind automatically (`stampChanges`) and merging newest-wins across all of them.
   Covered by `js/storage-safety.test.mjs`.
+
+## Areas and kinds of work (#251)
+
+`projectCategories` still merges by id; the default areas have fixed ids so two devices migrating separately converge. `areasMigrated` is OR-merged. Label `kind` / `priority` fields ride on the `categories` records. See [areas.md](./areas.md).

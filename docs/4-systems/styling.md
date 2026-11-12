@@ -850,3 +850,5 @@ actual intended one-line change on top of it. `js/style-contract.test.mjs` and
 gaps above unable to repeat silently: a class losing its rule now fails a test, a large unexplained
 deletion now blocks the commit, and both now run in CI before every deploy
 (`.github/workflows/deploy.yml`).
+
+Settings now has "Areas" and "Kinds of work" rows instead of "Category colors" (see [areas.md](./areas.md)).
