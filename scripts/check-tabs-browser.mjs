@@ -116,11 +116,11 @@ for (const [tag, w, h] of sizes) {
   await page.selectOption('.rm-finds .project-sort-select', 'name');
   await page.reload(); await page.waitForSelector('.rm-row');
   check(`[${tag}] row Projects grid sort: the sort choice is remembered`, (await page.$eval('.project-sort-select', (e) => e.value)) === 'name');
-  check(`[${tag}] row Projects grid area filter: the All | Area | Project switch is on the Roadmap`, !!(await page.$('.vs-pick')));
+  check(`[${tag}] row Projects grid area filter: the All | Area | Project switch is on the Roadmap`, !!(await page.$('.vs-row')));
   check(`[${tag}] row Projects: + New project is on the Roadmap`, !!(await page.$('#new-panel-toggle')));
 
   // Roadmap, project view
-  await go(page, '.rm-proj[data-project="pHome"]');
+  await go(page, '.rm-row[data-project="pHome"] button:visible');
   await page.waitForSelector('.rm-project');
   check(`[${tag}] row Projects one project (task list, add a task, done list): add link and Done column`, !!(await page.$('.rm-add-link')) && (await page.$$('.rm-col[data-status="done"]')).length === 1);
   check(`[${tag}] row Projects New project, link or create a repo, edit, remove: Edit project`, !!(await page.$('[data-action="open-project-edit"]')));
