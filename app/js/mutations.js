@@ -556,3 +556,14 @@ export function unpinRepo(fullName) {
   if (idx !== -1) state.pinnedRepos.splice(idx, 1);
   persist();
 }
+
+// Triage (#256): saves a dragged order as a per-task triageRank (1..n), stamped so it syncs and merges like
+// any task field; clearing it hands the tasks back to the rules.
+export function saveTriageOrder(ids) {
+  ids.forEach((id, i) => { const f = findTaskWithProject(id); if (f && f.task.triageRank !== i + 1) { f.task.triageRank = i + 1; f.task.updatedAt = Date.now(); } });
+  persist();
+}
+export function resetTriageOrder(ids) {
+  ids.forEach((id) => { const f = findTaskWithProject(id); if (f && "triageRank" in f.task) { delete f.task.triageRank; f.task.updatedAt = Date.now(); } });
+  persist();
+}

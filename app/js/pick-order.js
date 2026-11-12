@@ -6,10 +6,13 @@ import { effectivePriority } from './areas.js';
 
 // entries: [{ t, p }]; today: 'YYYY-MM-DD'. Returns a new array, best first.
 export function pickOrder(entries, st, today) {
+  const holds = holdCounts(st);
   const rank = ({ t }) => [
+    t.status === 'review' ? 0 : 1,
     t.status === 'doing' ? 0 : 1,
     t.deadline && t.deadline <= today ? 0 : 1,
-    { urgent: 0, high: 1 }[effectivePriority(t, st)] ?? 2,
+    { urgent: 0, high: 1, low: 3 }[effectivePriority(t, st)] ?? 2,
+    -(holds.get(t.id) || 0),
     t.deadline || '9999-99-99',
   ];
   return entries.map((e, i) => ({ e, i, r: rank(e) })).sort((a, b) => {
