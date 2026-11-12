@@ -7,6 +7,7 @@
 // There are no archived projects in state; inbox items are not tasks, so they never appear.
 import { sortTasks } from './task-move.js';
 import { subtasksOf, holdsUp, isBlocked } from './task-links.js';
+import { UNSORTED_ID } from './areas.js';
 
 export function weekStart(now) {
   const d = new Date(now);
@@ -57,7 +58,7 @@ export function boardList(st, opts, now) {
   const shown = (t) => {
     const p = owner.get(t.id);
     if (o.project && p.id !== o.project) return false;
-    if (o.pcat && p.categoryId !== o.pcat) return false;
+    if (o.pcat && (p.categoryId || UNSORTED_ID) !== o.pcat) return false;
     if (q && !(t.title.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)
       || (t.categoryIds || []).some((id) => labelName(id).toLowerCase().includes(q)))) return false;
     if (o.show === 'subs' && !subtasksOf(st.projects, t.id).length) return false;

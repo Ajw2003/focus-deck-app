@@ -2,6 +2,7 @@
 // It is the first entry in Settings > Comfort > Card colour that the task has: `category` (the task's
 // first label), `priority`, `due`, or `label:<id>`. Pure; spec: docs/generated/calm-test/index.html.
 import { PRIORITY } from './state.js';
+import { effectivePriority } from './areas.js';
 
 export const NO_CATEGORY = { name: 'No category', color: '#9aa3ad' };
 export const PRIORITY_COLOURS = { urgent: '#b42318', high: '#C2731E', medium: '#4D6FB8', low: '#7F8C8D' };
@@ -26,7 +27,8 @@ export function cardKey(t, st, colourBy, now = Date.now()) {
       const c = cats.find((x) => x.id === (t.categoryIds || [])[0]);
       if (c) return { name: c.name, color: c.color, source };
     } else if (source === 'priority') {
-      if (t.priority && PRIORITY[t.priority]) return { name: PRIORITY[t.priority].label + ' priority', color: PRIORITY_COLOURS[t.priority], source };
+      const lvl = effectivePriority(t, st || {});
+      if (lvl) return { name: PRIORITY[lvl].label + ' priority', color: PRIORITY_COLOURS[lvl], source };
     } else if (source === 'due') {
       const d = dueKey(t, st && st.comfort && st.comfort.overdue && st.comfort.overdue.value, now);
       if (d) return Object.assign(d, { source });

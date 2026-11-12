@@ -1420,3 +1420,20 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 /* beat .add-task-form button (accent fill) so unpicked options read as unpicked */
 .add-task-form .pick-opt{border:1.5px solid var(--line); background:var(--surface); color:var(--ink); padding:6px 12px; border-radius:var(--r-pill); font-weight:600;}
 .add-task-form .pick-opt.on{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+
+/* Areas and Kinds of work in Settings (docs/4-systems/areas.md) */
+.area-row.is-selected{background:color-mix(in srgb, var(--accent) 10%, transparent); border-radius:var(--r-control);}
+.area-pick{display:flex; align-items:center; gap:10px; flex:1; min-width:0; padding:8px 4px; border:0; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer;}
+.area-swatch{flex:none; width:18px; height:18px; border-radius:50%; background:var(--chip-color);}
+.area-name{font-weight:600; overflow-wrap:anywhere;}
+.area-count{margin-left:auto; white-space:nowrap;}
+.area-edit{display:flex; align-items:center; gap:8px; flex:1; min-width:0;}
+.area-name-input{flex:1; min-width:0; padding:6px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit;}
+.area-projects{margin-top:14px;}
+.area-proj{display:flex; align-items:center; gap:10px; padding:6px 0; border-top:1px solid var(--line);}
+.area-proj-name{flex:1; min-width:0; overflow-wrap:anywhere;}
+.kind-head{display:flex; justify-content:space-between; margin-bottom:4px;}
+.kind-tick{flex:1; min-width:0;}
+.kind-row{flex-wrap:wrap;}
+.kind-row .kind-prio{max-width:9em;}
+.area-move{max-width:9em;}

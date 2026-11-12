@@ -8,6 +8,7 @@ import { leadChoices, suggestLead, normalizeDueDefaults } from './due-stage.js';
 import { phaseClasses } from './focus-complete.js';
 import { normalizeChoosingMode, CHOOSING_MODE_INFO } from './wallet.js';
 import { splitCategories } from './category-filter.js';
+import { effectivePriority, kindsOfWork, UNSORTED_ID } from './areas.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -124,11 +125,12 @@ export function focusChoosingMode(st) {
 // wallet flips, so the project wallet's scroll animation is not cut off by a whole repaint.
 export function renderCategoryWalletInner(st, ui) {
   const projectId = focusProjectId(st, ui);
-  const labels = st.categories.map((c) => ({ id: c.id, name: formatLabelName(c.name), color: mutedChip(c.color), matches: openWhere(st, c.id, projectId) }))
+  const labels = kindsOfWork(st).map((c) => ({ id: c.id, name: formatLabelName(c.name), color: mutedChip(c.color), matches: openWhere(st, c.id, projectId) }))
     .filter((x) => x.matches.length)
     .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
   // Tasks with no label get their own card (neutral colour), and "Surprise me" (no type at all) is the last card.
-  const unlabelled = openWhere(st, null, projectId).filter(({ t }) => !(t.categoryIds || []).length);
+  const kindIds = new Set(kindsOfWork(st).map((c) => c.id)); // a task with only unticked labels counts as unlabelled
+  const unlabelled = openWhere(st, null, projectId).filter(({ t }) => !(t.categoryIds || []).some((id) => kindIds.has(id)));
   if (unlabelled.length) labels.push({ id: UNLABELLED, name: 'Unlabelled', color: 'var(--ink-faint)', matches: unlabelled });
   labels.push({ id: ANY_CATEGORY_KEY, name: 'Surprise me', color: 'var(--accent)', matches: openWhere(st, null, projectId) });
   const cards = labels.map((x) => {
@@ -179,7 +181,7 @@ function renderFocusPicker(st, ui) {
 // narrowed to one project) how many projects the tasks come from.
 function focusCardDetail(matches, acrossProjects) {
   const parts = [matches.length + ' open'];
-  const top = PRIORITY_ORDER.find((lvl) => matches.some(({ t }) => t.priority === lvl));
+  const top = PRIORITY_ORDER.find((lvl) => matches.some(({ t }) => effectivePriority(t, state) === lvl));
   if (top) parts.push('top: ' + PRIORITY[top].label);
   const projects = new Set(matches.map(({ p }) => p.id)).size;
   if (acrossProjects && projects > 1) parts.push(projects + ' projects');
@@ -234,7 +236,8 @@ function focusMetaParts(st, t) {
     else if (n > 0) reason = '<span><b class="unblocks">Unblocks ' + n + (n === 1 ? ' task' : ' tasks') + '</b></span>';
     else parts.push('Random pick');
   }
-  if (t.priority && PRIORITY[t.priority]) parts.push(PRIORITY[t.priority].label);
+  const lvl = effectivePriority(t, st);
+  if (lvl) parts.push(PRIORITY[lvl].label);
   return reason + parts.map((x) => '<span>' + esc(x) + '</span>').join('');
 }
 
@@ -396,7 +399,7 @@ export function renderTaskRow(t, p, categories, ui, projects = [], isSub = false
     : '';
   // the chips open a small picker (js/pick-bits.js); a done task shows what it had, not editable
   const priorityChip = isDone
-    ? (t.priority && PRIORITY[t.priority] ? '<span class="chip priority-chip small" style="--chip-color:var(--prio-' + t.priority + ')">' + PRIORITY[t.priority].label + '</span>' : '')
+    ? (effectivePriority(t, state) ? '<span class="chip priority-chip small" style="--chip-color:var(--prio-' + effectivePriority(t, state) + ')">' + PRIORITY[effectivePriority(t, state)].label + '</span>' : '')
     : pickChip('priority', t);
   // Open rows carry a drag grip before the checkbox (PR 11); done rows don't drag. The grip is a real
   // button so the arrow keys work on it (js/project-drag.js). See docs/4-systems/styling.md#dragging-tasks
@@ -419,8 +422,8 @@ function projectFilterPills(st, ui) {
   const usedCategoryIds = new Set(st.projects.map((p) => p.categoryId).filter(Boolean));
   const hasUncategorized = st.projects.some((p) => !p.categoryId);
   const pills = [{ key: '', label: 'All' }]
-    .concat(st.projectCategories.filter((c) => usedCategoryIds.has(c.id)).map((c) => ({ key: c.id, label: c.name })))
-    .concat(hasUncategorized ? [{ key: '__uncat__', label: 'Uncategorized' }] : []);
+    .concat(st.projectCategories.filter((c) => c.id !== UNSORTED_ID && usedCategoryIds.has(c.id)).map((c) => ({ key: c.id, label: c.name })))
+    .concat(hasUncategorized ? [{ key: '__uncat__', label: 'Unsorted' }] : []);
   const activeKey = ui.projectFilter === undefined ? '' : (ui.projectFilter === null ? '__uncat__' : ui.projectFilter);
   const pillsHTML = pills.map((pill) => {
     const active = pill.key === activeKey;
@@ -576,16 +579,16 @@ function renderPasteRepoForLink() {
 function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
   const total = p.tasks.length;
   const pendingRemove = !!ui.pendingRemove[p.id];
-  const projCatOptions = projectCategories.map((c) => '<option value="' + c.id + '"' + (p.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
-  const catSelect = '<label class="project-edit-cat">Category '
-    + '<select data-action="set-project-category" data-project="' + p.id + '"><option value="">No category</option>' + projCatOptions + '<option value="__new__">+ Add new…</option></select>'
+  const projCatOptions = projectCategories.filter((c) => c.id !== UNSORTED_ID).map((c) => '<option value="' + c.id + '"' + (p.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
+  const catSelect = '<label class="project-edit-cat">Area '
+    + '<select data-action="set-project-category" data-project="' + p.id + '"><option value="">Unsorted</option>' + projCatOptions + '<option value="__new__">+ Add an area…</option></select>'
     + '</label>';
   // Colour without right-click (#95): native colour inputs, wired in app.js (input previews, change commits).
   const colorInput = (kind, id, color, label) => '<label class="project-edit-cat">' + label
     + ' <input type="color" class="cat-color-input" data-color-for="' + kind + '" data-id="' + id + '" value="' + cssColorToHex(color) + '"></label>';
   const projCat = projectCategories.find((c) => c.id === p.categoryId);
   const colorRows = colorInput('project', p.id, p.color, 'Colour')
-    + (projCat ? colorInput('project-category', projCat.id, projCat.color, 'Category colour') : '');
+    + (projCat ? colorInput('project-category', projCat.id, projCat.color, 'Area colour') : '');
   const removeControl = pendingRemove
     ? '<span class="remove-confirm">Remove' + (total ? (' &amp; ' + total + ' task' + (total === 1 ? '' : 's')) : '') + '? <button type="button" class="btn-text danger" data-action="confirm-remove-project" data-project="' + p.id + '">Yes</button><button type="button" class="btn-text" data-action="cancel-remove-project" data-project="' + p.id + '">No</button></span>'
     : '<button type="button" class="btn-text danger" data-action="remove-project" data-project="' + p.id + '">Remove project</button>';
@@ -663,7 +666,7 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
   const isSelected = isOneView && ui.selectedProjectId === p.id;
   const ghBadge = p.source === 'github' ? '<a class="chip gh-chip small" href="' + esc(p.htmlUrl || '#') + '" target="_blank" rel="noopener">' + (p.private ? 'Private · ' : '') + 'GitHub ↗</a>' : '';
   const projCat = projectCategories.find((c) => c.id === p.categoryId);
-  const projCatChip = projCat ? '<span class="chip cat-chip small" data-cat-id="' + projCat.id + '" data-cat-type="project" title="Right-click to change color" style="--chip-color:' + projCat.color + '">' + esc(projCat.name) + '</span>' : '';
+  const projCatChip = projCat ? '<span class="chip cat-chip small" data-cat-id="' + projCat.id + '" data-cat-type="project" title="Area. Right-click to change color" style="--chip-color:' + projCat.color + '">' + esc(projCat.name) + '</span>' : '';
   const editingPanel = !!ui.editingProject[p.id];
   // The minimise button is hidden in the "One" view along with "Collapse all" (collapseAllButton,
   // above) -- there's only ever one card on screen there.

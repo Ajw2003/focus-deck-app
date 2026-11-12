@@ -87,7 +87,7 @@ for (const size of ['phone', 'desktop']) for (const scheme of ['dark', 'light'])
     const list = await items(page);
     check('fresh: the checklist row says 0 of 3 done', (await page.textContent('#checklist-title')) === '0 of 3 done');
     const heads = await page.$$eval('.set-head', (els) => els.length);
-    check('fresh: every setting is one folded row, all closed', heads === 13 && (await page.$$('.set.open')).length === 0 && !(await page.isVisible('#due-yellow-pct')), 'rows ' + heads);
+    check('fresh: every setting is one folded row, all closed', heads === 14 && (await page.$$('.set.open')).length === 0 && !(await page.isVisible('#due-yellow-pct')), 'rows ' + heads);
     await openRow(page, '#due-yellow-pct'); await openRow(page, '.choosing-modes input');
     check('fresh: opening a row closes the other', (await page.$$('.set.open')).length === 1 && !(await page.isVisible('#due-yellow-pct')) && (await page.isVisible('#choosing-section input')));
     check('fresh: each item links to its step', JSON.stringify(list.map((i) => i.href)) === JSON.stringify(['./?welcome', './?welcome', 'setup.html', 'setup.html']), JSON.stringify(list));
@@ -107,7 +107,7 @@ for (const size of ['phone', 'desktop']) for (const scheme of ['dark', 'light'])
   check('set up: Note writing shows its saved face', await page.$eval('input[value="dyslexic"]', (i) => i.checked));
   check('set up: Choosing a card shows its saved mode', await page.$eval('#choosing-section input[value="tap"]', (i) => i.checked));
   check('set up: Due dates show their saved cut-offs', (await page.inputValue('#due-yellow-pct')) === '40' && (await page.inputValue('#due-red-pct')) === '15');
-  check('set up: category colours list both kinds', (await page.$$('#task-cat-list .cat-color-row')).length === 1 && (await page.$$('#proj-cat-list .cat-color-row')).length === 1);
+  check('set up: category colours list both kinds', (await page.$$('#task-cat-list .cat-color-row')).length === 1 && (await page.$$('#proj-cat-list .cat-color-row')).length === 8);
   check('set up: the sync status names the Gist', ((await page.textContent('#gist-status')) || '').includes('gOLD'));
 
   await openRow(page, 'input[value="print"]'); await page.check('input[value="print"]');

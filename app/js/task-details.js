@@ -5,7 +5,8 @@
 // .set-head, .set-body). Every control carries a data attribute that app.js turns into an existing mutation,
 // so changes save as they are made. The summaries are pure and exported for tests. Spec: the test site's
 // detail(); see docs/4-systems/calm-board.md
-import { esc, formatLabelName, PRIORITY, PRIORITY_ORDER } from './state.js';
+import { esc, formatLabelName, PRIORITY, PRIORITY_ORDER, state } from './state.js';
+import { effectivePriority } from './areas.js';
 import { renderLabelPicker, mutedChip } from './render.js';
 import { dueKey } from './card-key.js';
 import { subtasksOf, holdsUp, isBlocked, canSetParent, canWaitOn } from './task-links.js';
@@ -21,7 +22,8 @@ export function notesSummary(notes) {
 }
 export function whenSummary(t, overdue, now = Date.now()) {
   const due = dueKey(t, overdue, now);
-  return [t.priority && PRIORITY[t.priority] ? PRIORITY[t.priority].label + ' priority' : '', due ? due.name : ''].filter(Boolean).join(' · ') || 'None set';
+  const lvl = effectivePriority(t, state);
+  return [lvl ? PRIORITY[lvl].label + ' priority' : '', due ? due.name : ''].filter(Boolean).join(' · ') || 'None set';
 }
 export function labelsSummary(t, cats) {
   return (t.categoryIds || []).map((id) => (cats.find((c) => c.id === id) || {}).name).filter(Boolean).map(formatLabelName).join(', ') || 'None';
