@@ -76,7 +76,11 @@ export function mergeStates(local, remote) {
   // merge one by one from both copies, so a task edit is never lost to a project edit.
   const mergeProject = (lp, rp) => {
     const winner = newer(lp, rp);
-    return Object.assign({}, winner, { tasks: mergeRecordList(lp.tasks, rp.tasks, merged.deletedTaskIds) });
+    const out = Object.assign({}, winner, { tasks: mergeRecordList(lp.tasks, rp.tasks, merged.deletedTaskIds) });
+    // Roadmap sections and milestones (docs/4-systems/roadmap.md) merge one by one, newest copy wins.
+    // shortcut: no tombstones, so there is no delete yet; add them with a delete.
+    ['sections', 'milestones'].forEach((k) => { if (lp[k] || rp[k]) out[k] = mergeRecordList(lp[k], rp[k], {}); });
+    return out;
   };
   merged.projects = mergeRecordList(l.projects, r.projects, {}, mergeProject)
     .map((p) => Object.assign(p, { tasks: (p.tasks || []).filter((t) => survives(t, merged.deletedTaskIds)) }))
