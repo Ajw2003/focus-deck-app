@@ -16,23 +16,23 @@ const allTasks = (st) => st.projects.flatMap((p) => p.tasks.map((t) => ({ t, p }
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 // ---- the pieces every screen shares ---------------------------------------------------------------
-const stamp = (label, { action = 'sort-next', disabled = false, attrs = '', cls = '' } = {}) =>
+export const stamp = (label, { action = 'sort-next', disabled = false, attrs = '', cls = '' } = {}) =>
   '<button type="button" class="dk-btn file-btn' + (disabled ? ' off' : '') + cls + '" data-action="' + action + '"' + attrs + (disabled ? ' disabled' : '') + '>' + esc(label) + '</button>';
-const foot = (parts) => '<div class="sort-foot">' + parts.join('') + '</div>';
-const back = () => '<button type="button" class="dk-back" data-action="sort-back">‹ Back</button>';
-const skip = () => '<button type="button" class="dk-skip" data-action="sort-skip">Skip</button>';
-const choice = (label, { action, attrs = '', on = false, small = '', cls = '', toggle = false } = {}) =>
+export const foot = (parts) => '<div class="sort-foot">' + parts.join('') + '</div>';
+export const back = () => '<button type="button" class="dk-back" data-action="sort-back">‹ Back</button>';
+export const skip = () => '<button type="button" class="dk-skip" data-action="sort-skip">Skip</button>';
+export const choice = (label, { action, attrs = '', on = false, small = '', cls = '', toggle = false } = {}) =>
   '<button type="button" class="dk-choice' + (on ? ' on' : '') + cls + '" data-action="' + action + '"' + attrs + (toggle ? ' aria-pressed="' + on + '"' : '') + '><span>' + label + '</span>' + (small ? '<small>' + small + '</small>' : '') + '</button>';
-const why = (text) => text ? '<p class="step-why" role="status">' + esc(text) + '</p>' : '';
-const dots = (step) => '<div class="dk-prog sort-dots" role="img" aria-label="Step ' + step + ' of ' + LAST_STEP + '">'
-  + Array.from({ length: LAST_STEP }, (_, i) => '<i' + (i < step ? ' class="on"' : '') + '></i>').join('') + '</div>';
+export const why = (text) => text ? '<p class="step-why" role="status">' + esc(text) + '</p>' : '';
+export const dots = (step, total = LAST_STEP) => '<div class="dk-prog sort-dots" role="img" aria-label="Step ' + step + ' of ' + total + '">'
+  + Array.from({ length: total }, (_, i) => '<i' + (i < step ? ' class="on"' : '') + '></i>').join('') + '</div>';
 
 // the slip: the thought (or task) in handwriting, the project it is going in, and the ⋯ drawer pull
 function slipHtml(c, full) {
   const { u, cur, isThought, project, text, allCards } = c;
   const editable = full && (isThought || cur.task.issueNumber == null);
   const chip = (p) => '<span class="folder-chip" style="--c:' + p.color + '">' + esc(p.name) + '</span>';
-  const dest = (project ? (isThought ? 'Going in ' : 'In ') + chip(project) : 'No project yet')
+  const dest = (project ? chip(project) : 'No project yet')
     + (!isThought && cur.task.issueNumber != null ? ' <span class="slip-issue">#' + cur.task.issueNumber + '</span>' : '');
   const flags = u.selected.map((token) => allCards.find((x) => x.token === token)).filter(Boolean)
     .map((x) => '<span class="slip-flag" title="' + esc(x.name) + '" style="--c:' + mutedChip(x.color) + '">' + esc(x.name) + '</span>').join('');
@@ -130,14 +130,13 @@ function labelsStep(c) {
     const items = cards.map((x) => {
       if (x.more) return sleeve({ key: x.token, name: x.name, color: x.color, detail: x.more + ' more', speak: x.more + ' more categories. Choose to show them all.' });
       const picked = u.selected.includes(x.token);
-      const detail = picked ? 'label on the slip' : 'no label yet';
-      return sleeve({ key: x.token, name: x.name, color: mutedChip(x.color), picked, detail, speak: x.name + ', ' + detail });
+      return sleeve({ key: x.token, name: x.name, color: mutedChip(x.color), picked, detail: '', speak: x.name + (picked ? ', on the slip' : ', not on the slip') });
     });
     const facing = cards.some((x) => x.token === u.facingFlag) ? u.facingFlag : cards[0].token;
     html += '<div class="wallet" id="tray-flag-wallet">' + walletInner({ wallet: 'tray-flags', label: '', aria: 'Kinds of work. Arrow keys flip, Enter adds or removes.', items, facing, mode, verb: 'use' }) + '</div>';
   } else html += '<p class="muted small find-empty">No label matches “' + esc(q) + '”.</p>';
   const picked = u.selected.map((t) => allCards.find((x) => x.token === t)).filter(Boolean);
-  html += '<div class="sort-picked">' + (picked.length ? '📎 ' + picked.map((x) => '<button type="button" class="dk-tag" data-action="sort-flag" data-token="' + esc(x.token) + '" aria-label="Take off ' + esc(x.name) + '">' + esc(x.name) + ' ×</button>').join('') : '<span class="muted small">Nothing picked yet.</span>') + '</div>'
+  html += '<div class="sort-picked">' + (picked.length ? '📎 ' + picked.map((x) => '<button type="button" class="dk-tag" data-action="sort-flag" data-token="' + esc(x.token) + '" aria-label="Take off ' + esc(x.name) + '">' + esc(x.name) + ' ×</button>').join('') : '') + '</div>'
     + '<div class="sort-row2"><button type="button" class="dk-link" data-action="sort-azl">A–Z</button><button type="button" class="dk-link" data-action="sort-new-label">+ New label</button></div>';
   return html;
 }

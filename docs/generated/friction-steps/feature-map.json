@@ -271,12 +271,12 @@
     ],
     [
      "bulk-all",
-     "Tick all",
+     "✓ All: tick every thought",
      "m1"
     ],
     [
      "bulk-none",
-     "Clear ticks",
+     "Clear: untick them",
      "m1"
     ],
     [
@@ -291,8 +291,33 @@
     ],
     [
      "bulk-apply",
-     "Sort the ticked ones, grouped under a task",
-     "m4 m5"
+     "Sort N stamp: file the ticked ones, grouped under a task",
+     "m5"
+    ],
+    [
+     "bulk-next",
+     "Next, to the following Sort several screen",
+     "m1 m2 m3 m4"
+    ],
+    [
+     "bulk-skip",
+     "Skip labels or the group task",
+     "m3 m4"
+    ],
+    [
+     "bulk-back",
+     "Back a screen, or out to one at a time",
+     "m1 m2 m3 m4 m5"
+    ],
+    [
+     "bulk-step",
+     "Pencil on the receipt: change one answer",
+     "m5"
+    ],
+    [
+     "bulk-new-label",
+     "+ New label (then Add)",
+     "m3"
     ]
    ]
   ],

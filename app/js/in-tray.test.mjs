@@ -173,7 +173,7 @@ test('step 1 project carousel, step 2 priority flags: Next waits for each, a tas
   const p1 = card({ step: 1, projectId: 'pB' });
   assert.ok(p1.includes('Which project?') && p1.includes('data-wallet="tray-folders"') && p1.includes('data-verb="use"') && /icard project is-picked/.test(p1), 'the chosen folder is marked');
   assert.ok(p1.includes('data-action="sort-new-project">+ New project<') && p1.includes('data-action="sort-back"') && !p1.includes('sort-skip'), 'Back and a new project; no Skip');
-  assert.ok(p1.includes('Going in <span class="folder-chip"') && p1.includes('data-action="sort-next"'), 'the folder shows on the slip');
+  assert.ok(p1.includes('<span class="folder-chip"') && !p1.includes('Going in') && p1.includes('data-action="sort-next"'), 'the folder shows on the slip');
   const none = card({ step: 1 });
   assert.ok(none.includes('disabled>Next<') && none.includes('Choose a project first.'), 'no folder: Next is off and says why');
   const p2 = card({ step: 2, projectId: 'pB' });
@@ -182,7 +182,7 @@ test('step 1 project carousel, step 2 priority flags: Next waits for each, a tas
   assert.ok(card({ step: 2, projectId: 'pB', priority: 'high' }).includes('class="sort-flag on" data-level="high"') && !card({ step: 2, projectId: 'pB', priority: 'high' }).includes('disabled>Next<'));
   state.inbox.length = 0;
   const t = card({ step: 1 });
-  assert.ok(/icard project is-picked/.test(t) && t.includes('In <span class="folder-chip"') && t.includes('Unlabelled A') && !t.includes('disabled>Next<'), 'a task is in its own project');
+  assert.ok(/icard project is-picked/.test(t) && t.includes('<span class="folder-chip"') && !t.includes('>In <') && t.includes('Unlabelled A') && !t.includes('disabled>Next<'), 'a task is in its own project');
   assert.ok(card({ step: 2 }).includes('data-value="none"'), 'a task may have no priority');
 });
 
@@ -433,14 +433,21 @@ test('select many: a slip that went away meanwhile is skipped, not errored', () 
   assert.strictEqual(out.filed, 1);
 });
 
-test('the select many list and panel render, with the ticks and the reason Apply waits', () => {
+test('Sort several: five screens, the tick list, the carousels, the receipt and Sort N', () => {
   seed();
-  const html = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh(), bulk: { on: true, picked: ['i:th1'], projectId: null, selected: [], groupTitle: '', newLabel: '', why: '' } });
-  assert.match(html, /1 of 3 ticked/);
-  assert.strictEqual((html.match(/data-bulk-key=/g) || []).length, 3, 'one row per slip');
-  assert.match(html, /data-bulk-key="i:th1" checked/);
-  assert.match(html, /Choose a project for the thoughts you ticked/);
-  assert.match(html, /data-action="bulk-apply" disabled/);
+  const bulk = (o) => renderInTrayCard(state, { inboxOpen: true, unsorted: fresh(), bulk: Object.assign({ on: true, step: 1, picked: ['i:th1'], projectId: null, selected: [], groupTitle: '', newLabel: '', why: '' }, o) });
+  const one = bulk({});
+  assert.strictEqual((one.match(/data-bulk-key=/g) || []).length, 3, 'one row per slip');
+  assert.match(one, /data-bulk-key="i:th1" checked/);
+  assert.ok(one.includes('data-action="bulk-all">✓ All<') && one.includes('data-action="bulk-none">Clear<') && one.includes('data-action="bulk-back"'));
+  assert.ok(bulk({ picked: [] }).includes('disabled>Next<'), 'Next waits for a tick');
+  const two = bulk({ step: 2 });
+  assert.ok(two.includes('data-wallet="tray-folders"') && two.includes('data-bulk-find') && two.includes('disabled>Next<'), 'a ticked thought needs a project and a priority');
+  assert.ok(bulk({ step: 3 }).includes('data-wallet="tray-flags"') && !/no label yet|Nothing picked/.test(bulk({ step: 3 })));
+  assert.ok(bulk({ step: 4, groupTitle: 'Week' }).includes('data-bulk-group value="Week"') && bulk({ step: 4 }).includes('data-action="bulk-skip"'));
+  const five = bulk({ step: 5, projectId: 'pB', priority: 'high', selected: ['c_art'], groupTitle: 'Week' });
+  assert.ok(five.includes('All good?') && (five.match(/data-action="bulk-step"/g) || []).length === 5 && /data-action="bulk-apply"[^>]*>Sort 1</.test(five) && !/bulk-apply"[^>]*disabled/.test(five));
+  assert.match(bulk({ step: 5 }), /data-action="bulk-apply" disabled>Sort 1</);
   const off = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh(), bulk: { on: false } });
   assert.match(off, /data-action="bulk-toggle">Sort several/, 'the one-at-a-time tray offers Sort several');
 });

@@ -819,6 +819,10 @@ body.is-dragging-task .empty-note{display:none;}
 .dk-btn.file-btn:disabled{background:var(--dk-paper); color:var(--dk-ink-stamp); font-weight:800; cursor:default; opacity:.45; box-shadow:0 2px 4px rgba(0,0,0,.25),inset 0 0 0 3px var(--dk-paper),inset 0 0 0 5px var(--dk-ink-stamp),inset 0 0 0 7px var(--dk-paper),inset 0 0 0 8px var(--dk-ink-stamp);}
 .sort-row2{display:flex; justify-content:space-between; gap:8px;}
 .sort-several{align-self:flex-start; margin:6px 0 0;}
+/* Sort several (#265): the tick list scrolls inside the clipboard, never the page */
+.many-list{display:grid; gap:6px; max-height:calc(100dvh - 460px); overflow-y:auto;}
+.many-group{min-height:56px; field-sizing:fixed;}
+.dk-link:disabled{opacity:.45; cursor:default;}
 .step-why{margin:0; font-size:13px; color:var(--ink-soft);}
 .sortflow .muted.small{font-size:13px;}
 /* the thought: a torn jotter slip, holes along its top, ruled lines, the pen's colour */

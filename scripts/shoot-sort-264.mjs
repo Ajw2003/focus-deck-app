@@ -102,7 +102,7 @@ await click('[data-action="sort-notes-done"]');
 await click('[data-action="sort-next"]');
 await shot('s1');
 await choose('tray-folders', 'pHome');
-check('s1: choosing a folder puts it on the slip', (await page.textContent('.slip-dest')).includes('Going in') && (await page.textContent('.slip-dest')).includes('Home'));
+check('s1: choosing a folder puts the chip on the slip, with no words before it', (await page.textContent('.slip-dest')).trim() === 'Home');
 await click('[data-action="sort-next"]');
 await shot('s2');
 check('s2: Next is off until a priority is picked', await page.$eval('.file-btn', (b) => b.disabled));
