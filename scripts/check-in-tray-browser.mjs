@@ -93,7 +93,7 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
   check(`${tag} the start screen is the slip and a Sort this one stamp, no choices yet`, (await stamp(page)).text === 'Sort this one' && !(await page.$('[data-wallet]')));
   await page.click('[data-action="sort-next"]');
   await page.waitForSelector('[data-wallet="tray-folders"]');
-  check(`${tag} step 1 has a folder wallet and Next is off until a folder is chosen`, (await stamp(page)).text === 'Next' && (await stamp(page)).disabled && ((await page.textContent('.step-why')) || '').startsWith('Choose a project first'));
+  check(`${tag} step 1 has a folder wallet and Next is off until a folder is chosen`, (await stamp(page)).text === 'Next' && (await stamp(page)).disabled && !(await page.$('.step-why')));
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
   await page.screenshot({ path: OUT + `${scheme}-${mode}-thought.png` });

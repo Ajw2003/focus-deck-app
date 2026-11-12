@@ -126,8 +126,8 @@ for (const scheme of ['dark', 'light']) {
   const { ctx, page } = await open('dark');
   await page.click('[data-action="ob-skip"]');
   await page.waitForTimeout(200);
-  check('skip: the app shows its Focus screen, pointing to the Roadmap', !(await onboardingShown(page)) && ((await page.$eval('.desk-empty', (e) => e.textContent)) || '').includes('Make your first project on the Roadmap'));
-  await page.click('.desk-empty [data-screen="roadmap"]');
+  check('skip: the app shows its Focus screen, pointing to the Roadmap', !(await onboardingShown(page)) && ((await page.$eval('.focusflow', (e) => e.textContent)) || '').includes('Your desk is clear'));
+  await page.click('.focusflow [data-screen="roadmap"]');
   await page.waitForTimeout(200);
   check('skip: Go to Roadmap shows the empty spot with + New project', ((await page.$eval('.pj .muted', (e) => e.textContent)) || '').includes('No projects yet') && !!(await page.$('#new-panel-toggle')));
   await page.screenshot({ path: OUT + 'dark-7-skipped-empty.png' });

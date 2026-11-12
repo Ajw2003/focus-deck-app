@@ -92,7 +92,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   await toLabels(page);
   const home = await flagKeys(page);
   check('in-tray, Home chosen: only Home’s categories, then More categories', JSON.stringify(home) === JSON.stringify([...kinds, 'c_chore', 'c_garden', '__more__']), home.join());
-  check('More categories says how many', ((await page.$eval('[data-key="__more__"] .ct', (e) => e.textContent)) || '') === '4 more');
+  check('More categories says how many', ((await page.$eval('[data-key="__more__"]', (e) => e.dataset.speak)) || '').startsWith('4 more'));
   await page.$eval('.inbox-card', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); });
   await page.screenshot({ path: OUT + 'tray-filtered.png' });
   await chooseFlag(page, '__more__');

@@ -94,7 +94,7 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   await page.check('[data-bulk-key="i:th1"]');
   await page.check('[data-bulk-key="i:th2"]');
   await next();
-  check(`${tag} step 2: ticked thoughts wait for a project and a priority`, await page.$eval('[data-action="bulk-next"]', (b) => b.disabled) && ((await page.textContent('.step-why')) || '').includes('Choose a project'));
+  check(`${tag} step 2: ticked thoughts wait for a project and a priority`, await page.$eval('[data-action="bulk-next"]', (b) => b.disabled) && !(await page.$(".step-why")));
   await card('tray-folders', 'pHome');
   await page.click('[data-scope="bulk"][data-field="priority"][data-value="high"]');
   await next();

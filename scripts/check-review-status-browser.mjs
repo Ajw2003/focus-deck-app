@@ -64,14 +64,14 @@ for (const phone of [true, false]) {
   await stamp('n1', 'done');
   check(await where('done'), tag + 'Review > Done: task is in the Done tab');
   await click('.rm-task-title[data-id="n1"]'); await click('.sort-drawer [data-action="rm-details"]');
-  await page.selectOption('[data-detail-status]', 'review');
-  await page.keyboard.press('Escape');
+  await click('[data-action="detail-status-open"]'); await click('.vs-pop [data-action="detail-status"][data-status="review"]'); // the status stamp's drawer
+  await click('[data-action="detail-close"]');
   check(await where('review'), tag + 'Done > Review (Task details menu): task is in the Review tab');
   await stamp('n1', 'doing');
   check(await where('doing'), tag + 'Review > Doing: task is in the Doing tab');
   await click('.rm-task-title[data-id="n1"]'); await click('.sort-drawer [data-action="rm-details"]');
-  await page.selectOption('[data-detail-status]', 'next');
-  await page.keyboard.press('Escape');
+  await click('[data-action="detail-status-open"]'); await click('.vs-pop [data-action="detail-status"][data-status="next"]'); // the status stamp's drawer
+  await click('[data-action="detail-close"]');
   check(await where('next'), tag + 'Doing > Up next (Task details menu): task is in the Up next tab');
   await shot('board-next');
   await page.reload();

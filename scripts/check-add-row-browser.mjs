@@ -64,101 +64,93 @@ for (const size of ['phone', 'desktop']) {
     const page = await ctx.newPage();
     page.on('pageerror', (e) => check(`${tag} no page error: ` + e.message, false));
     await page.goto(BASE);
-    await page.click('.rm-add-link');
-    await page.waitForSelector(TITLE);
+    const FIELD = '[data-rm-field="title"]', NEWTASK = '[data-action="rm-screen"][data-screen="task"]';
+    await page.click(NEWTASK); // "+ Add a task" opens the New task page (#268); the one-line add row is gone
+    await page.waitForSelector(FIELD);
 
-    check(`${tag} the project's milestone has an add row`, (await page.$$('.rm-project .add-row')).length === 1);
-    check(`${tag} the old "+ Add task" link is gone`, !(await page.$('[data-action="open-add-task"]')));
-    check(`${tag} More starts closed`, !(await page.$(ROW + ' [name="steps"]')));
+    check(`${tag} the New task page has its title field`, (await page.$$(FIELD)).length === 1);
+    check(`${tag} the old add row and "+ Add task" link are gone`, !(await page.$('.add-row, [data-action="open-add-task"], .rm-add-link')));
+    check(`${tag} Add is off until there is a title`, await page.$eval('[data-action="rm-add-task"]', (b) => b.disabled));
 
-    // Title only: type, Enter, the task lands in Home's Up next and the box is empty and focused
-    await page.click(TITLE);
+    // Title only: type, Enter, the task lands in Home's Up next and the list is back
+    await page.click(FIELD);
     await page.keyboard.type('Ring the plumber');
-    await page.click(ROW + ' [data-field="priority"][data-value="high"]'); await page.click(TITLE);
     await page.keyboard.press('Enter');
     await page.waitForTimeout(200);
     let tasks = await homeTasks(page);
     const added = tasks.find((t) => t.title === 'Ring the plumber');
     check(`${tag} Enter adds the task to Home's Up next`, !!added && added.status === 'next');
-    check(`${tag} the box is empty and still focused for the next one`, await page.evaluate((sel) => document.activeElement === document.querySelector(sel) && document.activeElement.value === '', TITLE));
+    check(`${tag} the page is back on the list`, !(await page.$(FIELD)));
     check(`${tag} the new task shows on the Roadmap`, (await page.textContent('.rm-project')).includes('Ring the plumber'));
 
-    // More: priority and a due date go onto the task
-    await page.click(ROW + ' [data-action="toggle-add-more"]');
-    await page.waitForSelector(ROW + ' [name="steps"]');
-    check(`${tag} More opens steps, priority and due date`, !!(await page.$(ROW + ' [name="priority"]')) && !!(await page.$(ROW + ' [name="deadline"]')));
-    await page.fill(TITLE, 'Book the boiler service');
-    await page.click(ROW + ' [data-field="priority"][data-value="high"]');
-    await page.click(ROW + ' [data-field="due"][data-value="date"]');
-    await page.fill(ROW + ' [data-pick-date]', iso(4));
-    await page.waitForTimeout(150);
+    // More…: adds the task and opens Task details, where priority and due date go on
+    await page.click(NEWTASK);
+    await page.waitForSelector(FIELD);
+    await page.fill(FIELD, 'Book the boiler service');
     await page.screenshot({ path: OUT + `built-row-more-${size}-${scheme}.png` });
-    await page.click(ROW + ' button[type="submit"]');
-    await page.waitForTimeout(200);
+    await page.click('[data-action="rm-add-more"]');
+    await page.waitForSelector('.cw-detail');
+    await page.click('.cw-detail [data-action="detail-edit"][data-step="2"]');
+    await page.click('.cw-detail .sort-flag[data-level="high"]');
+    await page.click('.cw-detail [data-action="edit-save"]');
+    await page.click('.cw-detail [data-action="detail-edit"][data-step="4"]');
+    await page.click('.cw-detail .sort-cal-page[data-value="friday"]');
+    await page.click('.cw-detail [data-action="edit-save"]');
     tasks = await homeTasks(page);
     const detailed = tasks.find((t) => t.title === 'Book the boiler service');
-    check(`${tag} a task added with More keeps its priority and date`, !!detailed && detailed.priority === 'high' && detailed.deadline === iso(4));
-    check(`${tag} More closes after adding`, !(await page.$(ROW + ' [name="steps"]')));
+    check(`${tag} a task added with More… keeps its priority and date`, !!detailed && detailed.priority === 'high' && /^\d{4}-\d\d-\d\d$/.test(detailed.deadline || ''));
+    await page.click('[data-action="detail-close"]');
 
-    // Escape closes More
-    await page.click(ROW + ' [data-action="toggle-add-more"]');
-    await page.waitForSelector(ROW + ' [name="steps"]');
-    await page.focus(TITLE);
+    // Escape is the Back corner
+    await page.click(NEWTASK);
+    await page.waitForSelector(FIELD);
+    await page.focus(FIELD);
     await page.keyboard.press('Escape');
     await page.waitForTimeout(150);
-    check(`${tag} Escape closes More`, !(await page.$(ROW + ' [name="steps"]')));
+    check(`${tag} Escape leaves the New task page`, !(await page.$(FIELD)));
 
     // A half-typed title survives another tab saving (the storage event repaints this tab)
-    await page.click(TITLE);
+    await page.click(NEWTASK);
+    await page.waitForSelector(FIELD);
+    await page.click(FIELD);
     await page.keyboard.type('Half-typed thought');
     const other = await ctx.newPage();
     await other.goto(BASE);
-    await other.click('.rm-add-link');
-    await other.waitForSelector('.add-row[data-project="pHome"] input[name="title"]');
-    await other.fill('.add-row[data-project="pHome"] input[name="title"]', 'From the other tab');
-    await other.click('.add-row[data-project="pHome"] [data-field="priority"][data-value="low"]');
-    await other.click('.add-row[data-project="pHome"] input[name="title"]');
-    await other.press('.add-row[data-project="pHome"] input[name="title"]', 'Enter');
-    await other.waitForTimeout(200);
+    await other.click(NEWTASK);
+    await other.waitForSelector(FIELD);
+    await other.fill(FIELD, 'From the other tab');
+    await other.press(FIELD, 'Enter');
+    await other.waitForTimeout(300);
     await page.bringToFront();
-    await page.waitForFunction(() => (document.querySelector('.rm-project') || {}).textContent?.includes('From the other tab'), null, { timeout: 4000 }).catch(() => {});
+    await page.waitForFunction((k) => JSON.parse(localStorage.getItem(k)).projects[0].tasks.some((t) => t.title === 'From the other tab'), STATE_KEY, { timeout: 4000 }).catch(() => {});
+    await page.waitForTimeout(400);
+    check(`${tag} the half-typed title survived the repaint`, (await page.inputValue(FIELD)) === 'Half-typed thought');
+    await page.click('[data-action="rm-back"]');
     check(`${tag} the other tab's task arrived (so this tab repainted)`, (await page.textContent('.rm-project')).includes('From the other tab'));
-    check(`${tag} the half-typed title survived the repaint`, (await page.inputValue(TITLE)) === 'Half-typed thought');
     await other.close();
 
     const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
-    await page.$eval(ROW, (e) => { e.scrollIntoView({ block: 'center' }); });
     await page.screenshot({ path: OUT + `built-row-${size}-${scheme}.png` });
 
-    // The Roadmap (#259): no add row with Project: All; choose School and add a task to its milestone
-    await page.fill(TITLE, '');
-    await page.dispatchEvent(TITLE, 'input');
-    await page.keyboard.press('Escape');
+    // The Roadmap (#259): choose School from the Projects tab and add a task to it
     await page.click('.rail [data-screen="projects"]'); // the project list is the Projects tab (#267); a project opens on the Roadmap
     await page.waitForSelector('.pj-card');
     check(`${tag} the Projects list has no add row`, !(await page.$('.pj .add-row')));
     await page.click('.pj-card[data-project="pSchool"]');
-    await page.click('.rm-project .rm-add-link');
-    const BOARD_TITLE = '.rm-project .add-row[data-project="pSchool"] input[name="title"]';
-    await page.waitForSelector(BOARD_TITLE);
-    check(`${tag} Roadmap with School chosen shows an add box for School`, (await page.getAttribute(BOARD_TITLE, 'placeholder')).startsWith('Add a task to'));
-    await page.click(BOARD_TITLE);
+    await page.click(NEWTASK);
+    await page.waitForSelector(FIELD);
+    await page.click(FIELD);
     await page.keyboard.type('Print the reading list');
-    await page.click('.rm-project .add-row[data-project="pSchool"] [data-field="priority"][data-value="high"]'); await page.click(BOARD_TITLE);
     await page.keyboard.press('Enter');
     await page.waitForTimeout(200);
     const school = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)).projects.find((p) => p.id === 'pSchool').tasks, STATE_KEY);
     check(`${tag} Enter on the Roadmap adds to School's Up next`, school.some((t) => t.title === 'Print the reading list' && t.status === 'next'));
     check(`${tag} the new task shows on the Roadmap`, (await page.textContent('.rm-project')).includes('Print the reading list'));
-    check(`${tag} the Roadmap's box is empty and focused`, await page.evaluate((sel) => document.activeElement === document.querySelector(sel) && document.activeElement.value === '', BOARD_TITLE));
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(100);
-    check(`${tag} Escape closes the Roadmap's add box`, !(await page.$('.rm .add-row')));
-    await page.click('.rm-project .rm-add-link');
-    await page.waitForSelector(BOARD_TITLE);
-    await page.click('.rm-project .rm-title');
-    check(`${tag} a click away closes the add box`, !(await page.$('.rm .add-row')));
+    await page.click(NEWTASK);
+    await page.waitForSelector(FIELD);
+    await page.click('[data-action="rm-back"]');
+    check(`${tag} the Back corner closes the New task page`, !(await page.$(FIELD)));
     const boardWide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     check(`${tag} Roadmap: no sideways page scroll`, boardWide <= 0, 'overflow ' + boardWide + 'px');
     await page.screenshot({ path: OUT + `built-board-${size}-${scheme}.png` });

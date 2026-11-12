@@ -95,8 +95,13 @@ for (const size of ['phone', 'desktop']) {
     // One project: task rows (checkbox, title, chips, grips)
     await page.click('.pj-card[data-project="pHome"]');
     await page.waitForSelector('.rm-project');
-    check(`${tag} task rows keep their grips and checkboxes`, (await page.$$('.rm-task [data-action="toggle-task"]')).length >= 4 && (await page.$$('.rm-task .rm-grip')).length >= 4);
-    check(`${tag} task rows show priority chips`, (await page.$$('.rm-task .priority-chip')).length >= 2);
+    check(`${tag} task rows keep their grips and checkboxes`, (await page.$$('.rm-task [data-action="toggle-task"]')).length >= 3 && (await page.$$('.rm-task .rm-grip')).length >= 3); // Home's Up next list has three tasks, the fourth is Done
+    // a row no longer carries a priority chip (nothing small); the priority is read in Task details
+    await page.click('.rm-task-title[data-id="h1"]');
+    await page.click('.sort-drawer [data-action="rm-details"]');
+    await page.waitForSelector('.cw-detail');
+    check(`${tag} Task details shows the priority a row no longer carries`, (await page.textContent('.cw-detail .sort-receipt > div:nth-child(1) em')).includes('High'));
+    await page.click('[data-action="detail-close"]');
 
     // Task details (the task editor's home now), with its priority and due date row
     await page.click('.rm-task-title[data-id="h3"]');
@@ -112,11 +117,12 @@ for (const size of ['phone', 'desktop']) {
     await page.click('[data-action="detail-close"]');
 
     // The project Edit panel
-    await page.click('[data-action="open-project-edit"][data-project="pHome"]');
-    await page.waitForSelector('.project-edit-panel');
-    await scrollTo(page, '.project-edit-panel');
+    await page.click('[data-action="rm-drawer"][data-drawer="menu"]'); // the Roadmap's ⋯ drawer, then Edit project
+    await page.click('.sort-drawer [data-action="rm-screen"][data-screen="edit"]');
+    await page.waitForSelector('.sort-receipt');
+    await scrollTo(page, '.sort-receipt');
     await shot(page, tag, 'project-edit');
-    await page.click('[data-action="close-project-edit"][data-project="pHome"]');
+    await page.click('[data-action="rm-back"]');
 
     // The move dialog (the one a drag between a GitHub project and another asks)
     await page.evaluate(() => import('./js/move-dialog.js').then((m) => { m.confirmMove('Move "Footer link points to the old blog" to Home? It will be closed on GitHub as moved.'); }));
