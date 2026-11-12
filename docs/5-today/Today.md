@@ -584,3 +584,7 @@ A seventh tab, "Triage", ranks the open tasks in the view into Now (3), Next (8)
 ## Roadmap screen (#257, step 9)
 
 An eighth screen, "Roadmap": a row per project with a card per milestone (All / Area), or one project's sections and milestones with four columns (Up next, In progress, Review, Done) in the open one; drag, Alt+Arrow or phone buttons move tasks, milestones and sections; GitHub issue milestones and parent tasks become milestones. On a phone Tidy up and Triage share an "Organize" tab so seven tabs fit. See docs/4-systems/roadmap.md. Seen in Chromium at 360, 390 and 1440 wide.
+
+## Milestone settings (#258, step 10)
+
+Click a milestone's name on the Roadmap: a dialog (a bottom sheet on a phone) sets how much it counts toward the project (a slider; the others rescale, always 100) and how it is measured (tasks done, task size, your own number, a checklist); the project bar shows what each milestone added. Tasks gain an optional Size. See docs/4-systems/roadmap.md. Seen in Chromium at 360, 390 and 1440 wide.

@@ -53,6 +53,15 @@ wide; screenshots in `docs/generated/build-checks/step9/`).
   each of the two screens starts with Tidy up | Triage buttons. A wide screen keeps eight rail entries. Step 11
   regroups into five tabs and removes Board and Projects; until then both stay.
 
+## Milestone settings (#258)
+
+Clicking a milestone's name on the project view opens "Milestone: <name>" (subline "<project> · <section number> · <section name>"): a centred dialog on a wide screen, a bottom sheet on a phone (`js/milestone-settings.js`, on `<body>` like the move dialog; Escape, Close or Cancel discard, focus is trapped and returns to the name). It works on a draft; nothing changes until "Save milestone".
+
+- Share. A slider sets how much the milestone counts toward the project. Shares are whole numbers that always add up to 100 (`sharesFor`, `sharesAfter`, `split` in `js/roadmap.js`): moving one rescales the others in proportion, from the shares at open, and rounding leftovers go to the largest. Stored as `weight` on the milestone. A milestone with no `weight` (old saves, a milestone added later) makes everyone's share equal again. Unplanned counts as a milestone for shares when it has tasks; its share is kept on the project as `unplannedWeight` and it has no settings of its own.
+- Measure. `measureBy` is `tasks` (done / all, the default), `size` (task `size` small 1, medium 2, large 3, no size counts as small; points done / points), `number` (`number: {name, current, target}`, "screens tested 2 of 4") or `checklist` (`checklist: [{id, text, done}]`, ticked / items). A task's size is set in Task details (Priority and due date row) and stored as `size`. The own-number text replaces step 9's `measure` word, which still shows for a `tasks` milestone that has one.
+- Project progress = the sum over milestones of share x that milestone's progress, rounded. The project bar is one segment per milestone as wide as it added; hover text names it. The group view, "N% done" and the milestone cards use the same numbers (`roadmapOf`: `pct`, `text`, `share`, `contribution`).
+- All of it is stamped `updatedAt` and merges like any milestone (newest copy wins). shortcut: the settings screen is not offered for Unplanned, and a later milestone resets shares to equal.
+
 ## GitHub milestones
 
 `listIssues` now reads `issue.milestone.title` from the issues it already fetches (no new request). A sync stores it
