@@ -891,13 +891,14 @@ body.is-dragging-task .empty-note{display:none;}
 .sort-receipt{margin:2px 0 0; font-size:14px;}
 .sort-receipt>div{padding:2px 10px;}
 .sort-receipt em{white-space:nowrap;}
-.dk-pencil{background:none; min-width:44px; min-height:40px; font:700 20px var(--dk-hand); color:var(--dk-pen);}
+.dk-pencil{background:none; min-width:44px; min-height:34px; font:700 20px var(--dk-hand); color:var(--dk-pen);}
 .sort-done{align-items:center; justify-content:center;}
 /* the ⋯ drawer */
 .sort-drawer{z-index:71;}
 .unsorted-body .vs-backdrop{position:fixed; inset:0; z-index:70;}
 /* the "Filed to X ✓" slip sits above the stamp, not on it */
 .screen-sort + .toast{bottom:calc(150px + env(safe-area-inset-bottom, 0px));}
+.wrap:has(.screen-sort + .toast){padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px));} /* the slip sits over the board, so the page needs no room under it */
 @media (min-width:1100px){
   .screen-sort .sortflow{min-height:0;}
   .sortflow .flip-track.is-spread{grid-template-columns:repeat(2, minmax(0, 1fr));}

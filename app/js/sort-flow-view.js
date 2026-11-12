@@ -216,7 +216,7 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
     return bar + board(body, true, label) + foot([back(), stamp('Add', { action: sub === 'newlabel' ? 'sort-new-flag' : 'sort-add-project', disabled: !(u.find || '').trim() })]) + drawer;
   }
   if (sub === 'azl') return bar + board(azlStep(c), true, 'A–Z') + foot([back(), skip(), stamp('Done', { action: 'sort-back' })]) + drawer;
-  if (sub === 'month') return bar + board(monthStep(c, now), true, 'Pick a date') + foot([back(), stamp(u.due ? 'Use ' + formatDue(u.due) : 'Pick a day', { action: 'sort-use-date', disabled: !u.due })]) + drawer;
+  if (sub === 'month') return bar + board(monthStep(c, now), false, 'Pick a date') + foot([back(), stamp(u.due ? 'Use ' + formatDue(u.due) : 'Pick a day', { action: 'sort-use-date', disabled: !u.due })]) + drawer;
   if (sub === 'warn') return bar + board(warnStep(c, now, st.dueDefaults), true, 'When should it warn you?') + foot([back(), skip(), stamp('Next')]) + drawer;
 
   let body = '', next = stamp('Next'), blocked = '';
