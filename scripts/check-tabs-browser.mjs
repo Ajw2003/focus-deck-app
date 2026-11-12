@@ -78,7 +78,7 @@ for (const [tag, w, h] of sizes) {
 
   const jot = async (name) => check(`[${tag}] jot box at the top of ${name}`, await page.$eval('#capture-input', (e) => { const r = e.getBoundingClientRect(); return r.width > 100 && r.top >= 0 && r.top < 200; }));
   const shot = (name) => page.screenshot({ path: OUT + `${name}-${tag}.png` });
-  const detail = async (name) => { check(`[${tag}] Task details opens from ${name}`, !!(await page.$('.cw-detail h3'))); await go(page, '[data-action="detail-close"]'); };
+  const detail = async (name) => { check(`[${tag}] Task details opens from ${name}`, !!(await page.$('.cw-detail .sort-q'))); await go(page, '[data-action="detail-close"]'); };
 
   // Sort
   await go(page, '.rail-item[data-screen="sort"]');

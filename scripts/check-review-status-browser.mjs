@@ -73,7 +73,7 @@ for (const phone of [true, false]) {
   check(await where('done'), tag + 'Review > Done: card is in Done');
   await show('n1');
   await page.click('.rm-task[data-task-id="n1"] .rm-task-title');
-  await page.selectOption('[data-detail-status]', 'review');
+  await page.click('.cw-detail [data-action="detail-status-open"]'); await page.click('.sort-drawer [data-action="detail-status"][data-status="review"]');
   await page.keyboard.press('Escape'); // phones: the panel covers the list
   check(await where('review'), tag + 'Done > Review (Task details menu): card is in Review');
   await move('n1', 'review', 'doing');

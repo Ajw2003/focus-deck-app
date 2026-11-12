@@ -222,7 +222,7 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
   let body = '', next = edit ? stamp('Save', { action: 'edit-save' }) : stamp('Next'), blocked = '';
   if (step === 1) {
     const q = u.find || '';
-    const folders = folderCards(viewState(st)).filter((f) => has(f.name, q));
+    const folders = folderCards(edit ? st : viewState(st)).filter((f) => has(f.name, q)); // Move (edit) offers every project, not just the view's
     if (!st.projects.length) body = '<p class="muted small">Add a project to file this thought into.</p>';
     else {
       body = '<input type="text" class="sort-find" value="' + esc(q) + '" placeholder="Find a project…" aria-label="Find a project">';

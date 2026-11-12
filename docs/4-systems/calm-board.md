@@ -1,5 +1,7 @@
 # Calm Board, Task details and Comfort settings
 
+> **2026-11-12 (#269):** Task details is a clipboard with a status stamp and a till receipt, and each pencil opens the Sort step. The "Task details (#201)" bullet below (folded rows, status menu, "Changes save as you make them") is history; see [task-details.md](./task-details.md).
+
 > **2026-11-12 (#259):** the Board and Projects screens were removed in the five-tab change; the Roadmap took over their jobs. Where this file describes them as current it is history. See [tabs.md](./tabs.md).
 
 Status: designed and approved (docs/6-decisions/Decisions.md, 2026-10-19) and built on 2026-10-19 under

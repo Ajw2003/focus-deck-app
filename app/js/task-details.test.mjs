@@ -62,6 +62,13 @@ const st = {
   const h = renderTaskDetails(st, { edit }, 't1', now);
   assert.ok(h.includes('How important?') && h.includes('data-action="edit-save"') && h.includes('>Save<') && !h.includes('data-action="sort-next"') && !h.includes('sort-dots') && !h.includes('slip-more'), 'the Sort step in edit mode: Save, no Next, no dots, no slip menu');
 }
+// Move offers every project even when the view tape shows only one
+{
+  const two = { ...st, _ui: { view: { mode: 'project', id: 'p1' } }, projects: [...st.projects, { id: 'p2', name: 'Garden', color: '#C2731E', tasks: [] }] };
+  const edit = { taskId: 't1', step: 1, sub: null, selected: [], priority: null, due: '', projectId: 'p1', find: '', pickQuery: '', parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], notes: '', title: null };
+  const h = renderTaskDetails(two, { edit }, 't1', now);
+  assert.ok(h.includes('data-key="p1"') && h.includes('data-key="p2"'), 'the project step lists Home and Garden');
+}
 // Save writes only what changed, and taking every label off is a change
 {
   const calls = [];

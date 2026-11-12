@@ -1427,7 +1427,7 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 
 .screen-roadmap{min-width:0;}
 .detail-size{display:flex; align-items:center; gap:8px; margin-top:8px;}
-.rm-detail{margin-top:20px; min-width:0;}
+.rm-detail{margin:0; min-width:0;}
 
 /* Organize (#259): Tidy up and Triage share one numbered tab; the sub-items show under it in the wide rail only,
    the Tidy up | Triage buttons sit at the top of both screens. See docs/4-systems/tabs.md */

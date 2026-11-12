@@ -141,7 +141,7 @@ function projectView(st, ui, p, hasToken) {
 }
 
 function detail(st, ui, p) {
-  const t = ui.boardSelected && p.tasks.find((x) => x.id === ui.boardSelected);
+  const t = ui.boardSelected && st.projects.flatMap((x) => x.tasks).find((x) => x.id === ui.boardSelected); // in any project: Move takes the task out of this one
   if (!t) return '';
   return '<div class="rm-detail">' + renderTaskDetails(st, ui, t.id) + '</div>';
 }

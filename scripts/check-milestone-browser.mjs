@@ -133,11 +133,12 @@ for (const [w, h] of [[360, 780], [390, 844], [1440, 900]]) {
   // a task's size, in Task details (the drawer's Details card)
   await page.click('.rm-tab[data-col="next"]');
   await page.click('.rm-task-title[data-id="a4"]'); await page.click('.sort-drawer [data-action="rm-details"]');
-  await page.click('[data-action="detail-fold"][data-key="when"]');
-  await page.selectOption('[data-detail-size]', 'large');
+  await page.click('[data-action="detail-size-open"]');
+  await page.click('[data-action="detail-size"][data-size="large"]');
   check(((await st()).tasks.find((x) => x.id === 'a4') || {}).size === 'large', tag + 'task details: size saved on the task');
 
   // the Projects tab uses the same numbers (the task panel covers the switch on a phone: close it first)
+  await page.click('[data-action="detail-back"]');
   await page.click('[data-action="detail-close"]');
   await page.click('[data-screen="projects"]:visible');
   await page.waitForSelector('.pj-card');

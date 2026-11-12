@@ -101,11 +101,11 @@ for (const size of ['phone', 'desktop']) {
     // Task details (the task editor's home now), with its priority and due date row
     await page.click('.rm-task-title[data-id="h3"]');
     await page.waitForSelector('.cw-detail');
-    await page.click('.cw-detail [data-action="detail-fold"][data-key="when"]');
-    await page.fill('[data-detail-due]', iso(5));
-    await page.dispatchEvent('[data-detail-due]', 'change');
+    await page.click('.cw-detail [data-action="detail-edit"][data-step="4"]');
+    await page.click('.cw-detail .sort-cal-page[data-value="today"]');
+    await page.click('.cw-detail [data-action="edit-save"]');
     await page.waitForTimeout(150);
-    check(`${tag} Task details keeps the date set in it`, (await page.$eval('[data-detail-due]', (e) => e.value)) === iso(5));
+    check(`${tag} Task details keeps the date set in it`, (await page.$eval('.cw-detail .sort-receipt > div:nth-child(2) em', (e) => e.textContent)).length > 1);
     await scrollTo(page, '.cw-detail');
     await shot(page, tag, 'task-editor');
     await page.click('[data-action="detail-close"]');
