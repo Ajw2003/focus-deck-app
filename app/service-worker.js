@@ -2,7 +2,7 @@
 // The prefix is this worker's own: the origin is shared (and the retired root worker used
 // 'focus-deck-shell-'), so activate may only delete caches that start with it.
 const CACHE_PREFIX = 'focus-deck-app-shell-';
-const CACHE_NAME = CACHE_PREFIX + 'v26';
+const CACHE_NAME = CACHE_PREFIX + 'v27';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -31,6 +31,7 @@ const SHELL_ASSETS = [
   './js/roadmap.js',
   './js/roadmap-view.js',
   './js/roadmap-drag.js',
+  './js/milestone-settings.js',
   './js/areas.js',
   './js/view-switch.js',
   './js/card-key.js',

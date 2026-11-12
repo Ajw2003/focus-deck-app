@@ -9,8 +9,10 @@ import { renderProjectEditPanel, renderNewPanel, renderAddTaskRow } from './rend
 import { renderTaskDetails } from './task-details.js';
 import { subtasksOf } from './task-links.js';
 
-const count = (m) => m.measure + ' ' + m.done + ' of ' + m.total;
+const count = (m) => m.text;
 const bar = (pct, cls) => '<span class="rm-bar' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><i style="width:' + pct + '%"></i></span>';
+// The project bar: one segment per milestone, as wide as it added to the project (share x progress).
+const segBar = (r) => '<span class="rm-bar rm-bar-big rm-segs" role="img" aria-label="' + r.pct + '% done">' + r.milestones.filter((m) => m.contribution > 0).map((m) => '<i style="width:' + m.contribution + '%" title="' + esc(m.name + ': ' + Math.round(m.contribution * 10) / 10 + '% of the project') + '"></i>').join('') + '</span>';
 const newBtn = '<button type="button" class="btn ghost rm-new" id="new-panel-toggle" data-action="toggle-new-panel" aria-controls="new-panel">+ New project</button>';
 
 function groupRow(p) {
@@ -42,7 +44,8 @@ function milestone(m, p, ui, st, at) {
   const open = (ui.rmOpen || {})[m.id] !== undefined ? !!ui.rmOpen[m.id] : m.id === at.currentId;
   const col = (ui.rmCol || {})[m.id] || 'next';
   const head = '<div class="rm-ms-head">' + (m.unplanned ? '' : grip('ms', m.id, m.name, 'Alt plus up or down arrow'))
-    + '<button type="button" class="rm-ms-toggle" data-action="rm-toggle" data-id="' + esc(m.id) + '" aria-expanded="' + open + '"><span class="rm-ms-name">' + esc(m.name) + '</span><span class="rm-ms-count">' + esc(count(m)) + ' <span aria-hidden="true">' + (open ? '▾' : '▸') + '</span></span></button>'
+    + (m.unplanned ? '<span class="rm-ms-name">' + esc(m.name) + '</span>' : '<button type="button" class="rm-ms-name" data-action="rm-settings" data-id="' + esc(m.id) + '" title="Milestone settings">' + esc(m.name) + '</button>')
+    + '<button type="button" class="rm-ms-toggle" data-action="rm-toggle" data-id="' + esc(m.id) + '" aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' tasks: ' + esc(m.name) + '"><span class="rm-ms-count">' + esc(count(m)) + ' <span aria-hidden="true">' + (open ? '▾' : '▸') + '</span></span></button>'
     + (m.unplanned ? '' : '<span class="rm-moves">' + step('rm-ms-step', m.id, -1, m.name) + step('rm-ms-step', m.id, 1, m.name) + '</span>') + '</div>';
   let body = '';
   if (open) {
@@ -86,7 +89,7 @@ function projectView(st, ui, p, hasToken) {
     + '<button type="button" class="btn ghost" data-action="' + (editing ? 'close-project-edit' : 'open-project-edit') + '" data-project="' + esc(p.id) + '">Edit project</button>' + newBtn + '</div></div>'
     + (ui.newPanelOpen ? renderNewPanel(ui, hasToken) : '')
     + (editing ? renderProjectEditPanel(p, Object.assign({ pendingRemove: {} }, ui), st.projectCategories || [], hasToken) : '')
-    + '<div class="rm-total"><span class="rm-big">' + r.pct + '%</span><span class="rm-total-sub">' + r.done + ' of ' + r.total + ' tasks done</span></div>' + bar(r.pct, 'rm-bar-big')
+    + '<div class="rm-total"><span class="rm-big">' + r.pct + '%</span><span class="rm-total-sub">' + r.done + ' of ' + r.total + ' tasks done</span></div>' + segBar(r)
     + secs + un + foot + detail(st, ui, p);
 }
 

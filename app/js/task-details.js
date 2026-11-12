@@ -9,6 +9,7 @@ import { esc, formatLabelName, PRIORITY, PRIORITY_ORDER, state } from './state.j
 import { effectivePriority } from './areas.js';
 import { renderLabelPicker, mutedChip } from './render.js';
 import { dueKey } from './card-key.js';
+import { SIZE_POINTS } from './roadmap.js';
 import { subtasksOf, holdsUp, isBlocked, canSetParent, canWaitOn } from './task-links.js';
 
 export const DETAIL_ROWS = ['notes', 'when', 'labels', 'subtasks', 'links'];
@@ -100,7 +101,8 @@ export function renderTaskDetails(st, ui, id, now = Date.now()) {
     + row('notes', 'Notes', notesSummary(t.notes), '<textarea data-detail-notes placeholder="Notes…" aria-label="Notes">' + esc(t.notes || '') + '</textarea>')
     + row('when', 'Priority and due date', whenSummary(t, st.comfort && st.comfort.overdue && st.comfort.overdue.value, now),
       '<div class="grid"><select aria-label="Priority" data-detail-priority><option value="">No priority</option>' + PRIORITY_ORDER.slice().reverse().map((k) => '<option value="' + k + '"' + (t.priority === k ? ' selected' : '') + '>' + PRIORITY[k].label + '</option>').join('')
-      + '</select><input type="date" aria-label="Due date" data-detail-due value="' + esc(t.deadline || '') + '"></div>')
+      + '</select><input type="date" aria-label="Due date" data-detail-due value="' + esc(t.deadline || '') + '"></div>'
+      + '<label class="detail-size">Size <select aria-label="Size" data-detail-size><option value="">Not set (counts as small)</option>' + Object.keys(SIZE_POINTS).map((k) => '<option value="' + k + '"' + (t.size === k ? ' selected' : '') + '>' + k.charAt(0).toUpperCase() + k.slice(1) + ' (' + SIZE_POINTS[k] + ')</option>').join('') + '</select></label>')
     + row('labels', 'Labels', labelsSummary(t, cats), labelRows + '<div class="detail-labels">' + picker + '</div>')
     + row('subtasks', 'Subtasks', subtasksSummary(subs), (subRows || '<p class="calm-meta">No subtasks yet.</p>') + (parent ? '' : addSub))
     + row('links', 'Linked tasks', linksSummary(!!parent, waits.length, holds.length), (links || '<p class="calm-meta">Not linked to any task.</p>') + '<div class="bm-row">' + linkBtns + '</div>' + finder)
