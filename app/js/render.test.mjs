@@ -104,9 +104,10 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
   assert.deepStrictEqual(keys(narrowed, 'categories'), ['c_art', 'c_chore', 'any'], 'and the index cards to that project');
   assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('data-car="projects" data-facing="all"'), 'a remembered project that no longer exists falls back to All projects');
   assert.ok(renderFocus(st, () => null, { focusFilter: {}, focusCategory: 'c_chore' }).includes('data-car="categories" data-facing="c_chore"'), 'the facing category is kept across a repaint');
-  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'tap' } }, () => null, { focusFilter: {} }).includes('data-mode="tap"'), 'the Choosing a card setting is written into the markup');
-  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'swipe' } }, () => null, { focusFilter: {} }).includes('data-mode="tap"'), 'a save from the retired Swipe up mode draws as Tap');
-  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'junk' } }, () => null, { focusFilter: {} }).includes('data-mode="twice"'), 'an unknown mode reads as the default');
+  // the Choosing a card setting no longer touches Focus (the carousels take every gesture); Find narrows the project row
+  assert.ok(!renderFocus(st, () => null, { focusFilter: {} }).includes('data-mode='), 'no choosing mode on Focus');
+  assert.deepStrictEqual(keys(renderFocus(st, () => null, { focusFilter: {}, focusFind: 'chor' }), 'projects'), ['pB'], 'Find a project narrows the row');
+  assert.ok(renderFocus(st, () => null, { focusFilter: {} }).includes('data-action="pick-for-me">Or let me pick for you<'), 'the quiet pick-for-me link');
   // every project is in the wallet however many there are (it scrolls)
   const many = { ...st, projects: Array.from({ length: 9 }, (_, i) => ({ id: 'p' + i, name: 'project-' + i, color: '#123456', tasks: [task('t' + i, ['c_art'])] })) };
   assert.strictEqual(keys(renderFocus(many, () => null, { focusFilter: {} }), 'projects').length, 10, 'All projects plus all nine folders');
