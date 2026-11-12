@@ -13,7 +13,7 @@ const { state, loadState, openTasksMatching, UNLABELLED } = await import('./stat
 const { mergeStates } = await import('./merge.js');
 const M = await import('./mutations.js');
 const A = await import('./areas.js');
-const { renderCategoryWalletInner } = await import('./render.js');
+const { renderCategoryWalletInner } = await import('./focus-view.js');
 const { cardKey } = await import('./card-key.js');
 
 const names = (st) => st.projectCategories.map((c) => c.name);

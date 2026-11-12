@@ -1,4 +1,4 @@
-// scripts/check-focus-doing-browser.mjs -- "Mark in progress" under the sticky note on Focus (#146, part of #140).
+// scripts/check-focus-doing-browser.mjs -- "▶ Start it" in the sticky note's ⋯ drawer on Focus (#146, #270).
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/check-focus-doing-browser.mjs
 // Serves the repo root on 127.0.0.1:8137. Screenshots: docs/generated/pr140/focus-doing-*.png
 import { createRequire } from 'node:module';
@@ -43,12 +43,17 @@ for (const [tag, vp] of [['1440', { width: 1440, height: 900 }], ['390', { width
     localStorage.setItem('focusdeck-state-v1', JSON.stringify(s));
   }, seed);
   await page.goto(BASE);
-  await page.waitForSelector('.desk-focus');
-  check(await page.locator('[data-action="focus-doing"]').count() === 1, tag + ': Mark in progress button shown for a next task');
+  await page.waitForSelector('.focus-active');
+  check(await page.locator('[data-action="focus-doing"]').count() === 0, tag + ': the note itself has no Start it, only the drawer does');
+  await page.click('[data-action="focus-menu"]');
+  check(await page.locator('.sort-drawer [data-action="focus-doing"]').count() === 1, tag + ': Start it is in the ⋯ drawer for a next task');
   await page.screenshot({ path: OUT + 'focus-doing-' + tag + '.png' });
   await page.click('[data-action="focus-doing"]');
   await page.waitForTimeout(300);
-  check(await page.locator('[data-action="focus-doing"]').count() === 0 && await page.locator('.focus-doing-mark').count() === 1, tag + ': button became the In progress marker');
+  check(await page.locator('.sort-drawer').count() === 0, tag + ': choosing Start it closes the drawer');
+  await page.click('[data-action="focus-menu"]');
+  check(await page.locator('[data-action="focus-doing"]').count() === 0, tag + ': a task in progress has no Start it');
+  await page.click('.sort-drawer .vs-x');
   check((await page.locator('.focus-title').innerText()).includes('Mop the kitchen'), tag + ': task still in focus');
   check((await page.locator('.toast').allInnerTexts()).join(' ').includes('Moved to In progress'), tag + ': toast shown');
   const order = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).projects[0].tasks.filter((x) => x.status === 'doing').sort((a, b) => a.sortOrder - b.sortOrder).map((x) => x.id));

@@ -1,5 +1,7 @@
 # Wallets
 
+> **2026-11-12 (#270):** Focus is now two screens (project, then kind of work) and one task; see [focus.md](./focus.md). The cards no longer carry the "N open" line or the "Tap to use" corner text anywhere (Sort and Sort several share them), and the hint line under the carousels is gone. Where this file describes those it is history.
+
 ## The wide-screen strip (#253)
 
 On a wide screen (>= 1100px, `SPREAD_QUERY`) the project and kind-of-work wallets on Focus and Sort's
@@ -18,7 +20,7 @@ exactly as before (flip, Tap / Tap twice, push up to draw, the hint line).
   as in the spread-out layout. Sort's label wallet (`tray-flags`) still lies flat as a grid.
 - The strip's own scrolling must not re-pick the middle card, so the track's scroll listener only runs the
   tilt when the wallet is not spread.
-- **Find a project** (`.car-find`, `ui.focusFind`, `renderProjectWalletInner`) narrows the folders live on
+- **Find a project** (`[data-car-find="projects"]`, `ui.focusFind`, `renderProjectWalletInner` in `js/focus-view.js`) narrows the folders live on
   Focus; Sort's existing `.sort-find` does the same for its wallet. Both respect the All / Area / Project
   switch (`viewState`).
 - **Or let me pick for you** (`data-action="pick-for-me"`, `M.pickForMe`): takes **Now** from Triage for the
@@ -40,9 +42,8 @@ card is picked. The agreed look is the "Your pick" section of `docs/plans/redesi
 
 ## How it works
 
-- **Markup (`js/render.js`).** `renderFocusPicker` writes `.wallet-root` holding two `.wallet`s
-  (`#project-wallet`, `#category-wallet`), one shared `.flip-hint` and an `aria-live` region
-  (`#wallet-live`). Each strip is `.flip-track[data-wallet][data-mode][data-facing]` with a
+- **Markup (`js/render.js` for `sleeve` and `walletInner`, `js/focus-view.js` for Focus).** Focus draws `#project-wallet` on
+  step 1 and `#category-wallet` on step 2, with an `aria-live` region (`#wallet-live`). Each strip is `.flip-track[data-wallet][data-mode][data-facing]` with a
   `.sleeve[data-key][data-speak]` per card. The facing card is in the markup as `data-facing`, so a
   repaint puts the same card back in the middle.
 - **Decisions (`js/wallet.js`, top half).** Pure functions, tested in `js/wallet.test.mjs`: which card
@@ -52,13 +53,10 @@ card is picked. The agreed look is the "Your pick" section of `docs/plans/redesi
   mount.
 - **What a flip and a choice do (`js/app.js`, `walletHooks`).** Flipping the project wallet saves the
   facing folder to `focusdeck-focus-filter` (`projectId`, the key the old project pills used, so it is
-  remembered per device) and re-renders **only** `#category-wallet`
-  (`renderCategoryWalletInner`), so the project wallet's scroll animation is not cut off by a whole
-  repaint. The facing category is kept in `ui.focusCategory` across that. Choosing a category card
-  draws from it within the facing folder (`M.pickFocus`); choosing a folder draws from that folder.
+  remembered per device); the facing category is kept in `ui.focusCategory`. Choosing a folder card goes to
+  the kind question; choosing a category card draws within the facing folder (`M.pickFocus`).
   Keys: `all` is All projects, `any` is Surprise me, `__none__` (`UNLABELLED`) is Unlabelled.
-- **Card text.** "3 open · top: High · 2 projects": the count, the highest priority present, and how
-  many projects when not narrowed to one. Every project and category is in its wallet however many
+- **Card text.** The name only (#270). Every project and category is in its wallet however many
   there are; the wallet scrolls.
 
 ## The "Choosing a card" setting

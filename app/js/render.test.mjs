@@ -1,5 +1,6 @@
 // focus-deck-app/js/render.test.mjs — run with: node app/js/render.test.mjs
-import { renderTaskRow, chipsMaxPct, renderToast, jotTarget, renderJotScreen, renderFocus, renderCategoryWalletInner, renderTaskEditForm, unsortedQueue, renderProjectEditPanel, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderTaskRow, chipsMaxPct, renderToast, jotTarget, renderJotScreen, renderTaskEditForm, unsortedQueue, renderProjectEditPanel, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderFocus, renderCategoryWalletInner } from './focus-view.js';
 import { renderProjects } from './projects-view.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import assert from 'node:assert';
@@ -96,27 +97,32 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
     const end = track.indexOf('<div class="flip-pad"></div></div>', 10);
     return [...track.slice(0, end).matchAll(/class="sleeve" data-key="([^"]*)"/g)].map((m) => m[1]);
   };
-  const html = renderFocus(st, () => null, { focusFilter: {} });
-  assert.deepStrictEqual(keys(html, 'categories'), ['c_art', 'c_chore', 'any'], 'category cards busiest first, labels with nothing open left out, "Surprise me" last');
-  assert.deepStrictEqual(keys(html, 'projects'), ['all', 'pA', 'pB'], 'All projects first, then the folders busiest first');
-  assert.ok(html.includes('data-wallet="projects" data-mode="twice" data-facing="all"'), 'the folder wallet faces All projects by default, in the default choosing mode (tap twice)');
-  assert.ok(html.includes('data-wallet="categories" data-mode="twice" data-facing="c_art"'), 'the category wallet faces its first card');
-  assert.ok(html.includes('>3 open · top: Urgent · 2 projects<'), 'a card says how many are open, the highest priority present, and across how many projects');
-  assert.ok(!html.includes('<select') && !html.includes('data-action="pick-focus"'), 'no dropdowns, and no per-card action: the wallets choose');
-  assert.ok(!html.includes('more<') && !html.includes('Show all'), 'no "+N more" or "Show all N labels": the wallets scroll through everything');
+  const one = renderFocus(st, () => null, { focusFilter: {} });
+  const two = (ui) => renderFocus(st, () => null, { focusFilter: {}, focusQ: 2, ...ui });
+  assert.ok(one.includes('Which project?') && !one.includes('data-wallet="categories"'), 'step 1 asks for the project only');
+  assert.ok(two().includes('What kind of work?') && !two().includes('data-wallet="projects"'), 'step 2 asks for the kind of work only');
+  assert.deepStrictEqual(keys(two(), 'categories'), ['c_art', 'c_chore', 'any'], 'category cards busiest first, labels with nothing open left out, "Surprise me" last');
+  assert.deepStrictEqual(keys(one, 'projects'), ['all', 'pA', 'pB'], 'All projects first, then the folders busiest first');
+  assert.ok(one.includes('data-wallet="projects" data-mode="twice" data-facing="all"'), 'the folder wallet faces All projects by default, in the default choosing mode (tap twice)');
+  assert.ok(two().includes('data-wallet="categories" data-mode="twice" data-facing="c_art"'), 'the category wallet faces its first card');
+  assert.ok(!/ open|Tap to use|class="ct"|class="go"/.test(one + two()), 'cards carry only their name: no "N open" line, no "Tap to use"');
+  assert.ok(one.includes('data-action="pick-for-me"') && one.includes('data-action="focus-next"') && two().includes('data-action="focus-show"') && two().includes('data-action="focus-skip"') && two().includes('data-action="focus-back"'), 'Pick for me and Next on step 1; Back, Skip and Show me one on step 2');
+  assert.ok(!one.includes('<select') && !one.includes('data-action="pick-focus"'), 'no dropdowns, and no per-card action: the wallets choose');
   const narrowed = renderFocus(st, () => null, { focusFilter: { projectId: 'pB' } });
   assert.ok(narrowed.includes('data-wallet="projects" data-mode="twice" data-facing="pB"'), 'the remembered folder faces you');
-  assert.ok(narrowed.includes('>1 open<') && !narrowed.includes('2 projects'), 'the facing folder narrows the counts');
-  assert.deepStrictEqual(keys(narrowed, 'categories'), ['c_art', 'c_chore', 'any'], 'and the index cards to that project');
+  assert.deepStrictEqual(keys(two({ focusFilter: { projectId: 'pB' } }), 'categories'), ['c_art', 'c_chore', 'any'], 'and the index cards narrow to that project');
   assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('data-wallet="projects" data-mode="twice" data-facing="all"'), 'a remembered project that no longer exists falls back to All projects');
-  assert.ok(renderFocus(st, () => null, { focusFilter: {}, focusCategory: 'c_chore' }).includes('data-wallet="categories" data-mode="twice" data-facing="c_chore"'), 'the facing category is kept across a repaint');
+  assert.ok(two({ focusCategory: 'c_chore' }).includes('data-wallet="categories" data-mode="twice" data-facing="c_chore"'), 'the facing category is kept across a repaint');
   assert.ok(renderFocus({ ...st, choosingMode: { mode: 'tap' } }, () => null, { focusFilter: {} }).includes('data-mode="tap"'), 'the Choosing a card setting is written into the markup');
   assert.ok(renderFocus({ ...st, choosingMode: { mode: 'swipe' } }, () => null, { focusFilter: {} }).includes('data-mode="tap"'), 'a save from the retired Swipe up mode draws as Tap');
   assert.ok(renderFocus({ ...st, choosingMode: { mode: 'junk' } }, () => null, { focusFilter: {} }).includes('data-mode="twice"'), 'an unknown mode reads as the default');
   // every project is in the wallet however many there are (it scrolls)
   const many = { ...st, projects: Array.from({ length: 9 }, (_, i) => ({ id: 'p' + i, name: 'project-' + i, color: '#123456', tasks: [task('t' + i, ['c_art'])] })) };
   assert.strictEqual(keys(renderFocus(many, () => null, { focusFilter: {} }), 'projects').length, 10, 'All projects plus all nine folders');
-  // the category wallet renders alone for a project flip
+  // the Find boxes narrow their own wallet
+  assert.deepStrictEqual(keys(renderFocus(st, () => null, { focusFilter: {}, focusFind: 'chor' }), 'projects'), ['pB'], 'Find narrows the folders (and drops All projects)');
+  assert.deepStrictEqual(keys(two({ focusKindFind: 'chor' }), 'categories'), ['c_chore'], 'Find narrows the kinds (and drops Surprise me)');
+  // the category wallet renders alone for the Find box
   assert.ok(renderCategoryWalletInner(st, { focusFilter: { projectId: 'pB' } }).includes('data-wallet="categories"') && !renderCategoryWalletInner(st, { focusFilter: {} }).includes('data-wallet="projects"'), 'the category wallet slot renders on its own');
 }
 
@@ -128,11 +134,11 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
     categories: [{ id: 'c_art', name: 'art', color: '#d000ff' }, { id: 'c_fix', name: 'Fix', color: '#ff0000' }],
     projects: [{ id: 'pA', name: 'PlunderSpell', color: 'red', tasks: [task('a1', ['c_art']), task('u1', []), task('u2', [], { priority: 'urgent' }), task('u3', [], { status: 'done' })] }],
   };
-  const picker = renderFocus(st, () => null, { focusFilter: {} });
-  assert.ok(picker.includes('data-key="__none__"') && picker.includes('>Unlabelled<') && picker.includes('>2 open · top: Urgent<'), 'an Unlabelled card counts open tasks with no label');
+  const picker = renderFocus(st, () => null, { focusFilter: {}, focusQ: 2 });
+  assert.ok(picker.includes('data-key="__none__"') && picker.includes('>Unlabelled<'), 'an Unlabelled card for open tasks with no label');
   assert.ok(!picker.includes('start-sort'), 'the old "Sort N unlabelled" link is gone -- the Unsorted card below handles it now');
   const noneLeft = { ...st, projects: [{ id: 'pA', name: 'P', color: 'red', tasks: [task('a1', ['c_art'])] }] };
-  assert.ok(!renderFocus(noneLeft, () => null, { focusFilter: {} }).includes('Unlabelled'), 'no Unlabelled card when every task has a label');
+  assert.ok(!renderFocus(noneLeft, () => null, { focusFilter: {}, focusQ: 2 }).includes('Unlabelled'), 'no Unlabelled card when every task has a label');
 }
 
 // unsortedQueue: captured thoughts (oldest first), then every open unlabelled task, project order
@@ -159,31 +165,37 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
 
 // The in-tray card itself is tested in in-tray.test.mjs.
 
-// the focus note says what the pick frees, or the next subtask (#191)
+// the focus note is the task and nothing else (#270); the project, Details, Start it and Smaller steps are in the ⋯ drawer
 {
-  const projects = [{ id: 'pZ', name: 'H', tasks: [
-    { id: 'u', title: 'Blocker', status: 'next' }, { id: 'w1', title: 'W1', status: 'next', waitsOn: ['u'] }, { id: 'w2', title: 'W2', status: 'next', waitsOn: ['u'] },
-    { id: 'par', title: 'Parent', status: 'next' }, { id: 's1', title: 'Order <it>', status: 'next', parentId: 'par' }, { id: 's2', title: 'S2', status: 'next', parentId: 'par' },
+  const projects = [{ id: 'pZ', name: 'PlunderSpell', color: 'red', tasks: [
+    { id: 'u', title: 'Blocker', status: 'next' }, { id: 'w1', title: 'W1', status: 'next', waitsOn: ['u'] },
+    { id: 'par', title: 'Parent', status: 'next' }, { id: 's1', title: 'Order <it>', status: 'next', parentId: 'par' }, { id: 's2', title: 'S2', status: 'done', parentId: 'par' },
+    { id: 'dn', title: 'Going', status: 'doing' },
   ] }];
   const find = (id) => ({ task: projects[0].tasks.find((t) => t.id === id), project: projects[0] });
-  const draw = (focus) => renderFocus({ focus, categories: [], projects }, find, { focusFilter: {} });
+  const draw = (focus, ui) => renderFocus({ focus, categories: [], projects }, find, { focusFilter: {}, ...ui });
   const a = draw({ taskId: 'u', pool: ['u', 'par'] });
-  assert.ok(a.includes('<b class="unblocks">Unblocks 2 tasks</b>') && !a.includes('Random pick'), 'Unblocks N replaces Random pick');
-  assert.ok(draw({ taskId: 's1', pool: ['s1', 'u'] }).includes('Unblocks 1 task</b>'), 'singular for one');
-  const b = draw({ taskId: 'par', pool: ['par', 'u'] });
-  assert.ok(b.includes('<p class="next-sub">Next step: <b>Order &lt;it&gt;</b> · 2 subtasks left') && b.includes('data-action="focus-subtask" data-task="s1"'), 'next step line with a Start it button');
-  assert.ok(draw({ taskId: 'w1', pool: ['w1'], allBlocked: true }).includes('Everything here is waiting on something'), 'all-blocked is said in words');
+  assert.ok(!a.includes('Unblocks') && !a.includes('Random pick') && !a.includes('note-meta') && !a.includes('next-sub'), 'no captions on the note');
+  assert.ok(!a.includes('class="vs-pop') && a.includes('data-action="focus-menu"'), 'the drawer is closed until the ⋯ tag is tapped');
+  const open = draw({ taskId: 'par', pool: ['par', 'u'] }, { focusMenu: 'par' });
+  assert.ok(open.includes('data-action="focus-doing"') && open.includes('data-action="focus-steps"') && open.includes('data-action="task-open" data-task="par"') && open.includes('data-action="rm-open" data-project="pZ"') && open.includes('PlunderSpell') && open.includes('data-action="clear-focus"'), 'the drawer: Start it, Smaller steps, Details, the project, Clear');
+  assert.ok(!draw({ taskId: 'u' }, { focusMenu: 'u' }).includes('data-action="focus-steps"'), 'no Smaller steps row when the task has none');
+  assert.ok(!draw({ taskId: 'dn' }, { focusMenu: 'dn' }).includes('data-action="focus-doing"'), 'no Start it for a task already in progress');
+  assert.ok(!draw({ taskId: 'u' }, { focusMenu: 'par' }).includes('class="vs-pop'), 'a drawer left open for another task does not show');
+  const steps = draw({ taskId: 'par' }, { focusSteps: 'par' });
+  assert.ok(steps.includes('Smaller steps') && steps.includes('data-focus-tick="s1"') && steps.includes('Order &lt;it&gt;') && !steps.includes('data-focus-tick="s2"'), 'Smaller steps is a tick list of the open steps');
+  assert.ok(steps.includes('data-action="focus-subtask" disabled') && steps.includes('Focus on one'), 'Focus on one waits for a tick');
+  assert.ok(draw({ taskId: 'par' }, { focusSteps: 'par', focusTick: 's1' }).includes('data-action="focus-subtask" data-task="s1"'), 'and then focuses that step');
 }
 
-// a picked task's project chip jumps to that project
+// after Done: the note crossed out, and Next one
 {
-  const st = { focus: { taskId: 'x1', pool: ['x1'] }, categories: [], projects: [{ id: 'pZ', name: 'PlunderSpell', color: 'red', tasks: [{ id: 'x1', title: 'Pick me', status: 'next', categoryIds: [] }] }] };
-  const find = (id) => ({ task: st.projects[0].tasks.find((t) => t.id === id), project: st.projects[0] });
-  const active = renderFocus(st, find, { focusFilter: {} });
-  assert.ok(active.includes('<button type="button" class="note-project" data-action="rm-open" data-project="pZ"'), 'the picked task\'s project, on the note, is a button that opens it on the Roadmap');
+  const st = { focus: null, categories: [], projects: [{ id: 'pZ', name: 'H', tasks: [{ id: 'x', title: 'Renew <passport>', status: 'next' }] }] };
+  const html = renderFocus(st, () => null, { focusFilter: {}, focusDone: { title: 'Renew <passport>' } });
+  assert.ok(html.includes('class="note is-crossed is-done"') && html.includes('Renew &lt;passport&gt;') && html.includes('data-action="focus-next-one"') && html.includes('Next one'), 'Done leaves the crossed-out note and a Next one stamp');
 }
 
-// the focus area as a sticky note with a paper checkbox and a ticket stub (#119)
+// the focus area as a sticky note with two rubber stamps (#119, #270)
 {
   const cats = [{ id: 'c_bug', name: 'bug', color: '#f00' }, { id: 'c_art', name: 'art', color: '#0f0' }];
   const task = (id, extra) => ({ id, title: 'Reply to <Sam>', status: 'next', categoryIds: ['c_bug'], priority: 'high', ...extra });
@@ -192,29 +204,21 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   const st = mk({ taskId: 'x1', pool: ['x1', 'x2'], filter: { categoryId: 'c_bug', projectId: null } }, [task('x1'), task('x2', { title: 'b' })]);
   const html = renderFocus(st, findIn(st), { focusFilter: {} });
   assert.ok(html.includes('<div class="note-shadow"><div class="note">'), 'the shadow sits on a wrapper around the clipped note');
-  assert.ok(/<div class="note-meta">.*Home ↓<\/button><span>Bug<\/span><span>High<\/span>/.test(html), 'project, labels and priority form the line above the title');
   assert.ok(html.includes('<h2 class="focus-title"><span class="ink">Reply to &lt;Sam&gt;</span></h2>'), 'the title is escaped and wrapped in the span the biro line is drawn on');
-  assert.ok(html.indexOf('note-meta') < html.indexOf('focus-title'), 'the meta line is above the title');
-  assert.ok(html.includes('class="check-btn" data-action="complete-focus"') && html.includes('I&rsquo;ve done it') && html.includes('<path class="tick"'), '"I\'ve done it" is the paper checkbox with its tick');
-  assert.ok(html.includes('class="slip-btn" data-action="reroll"') && html.includes('pick another task'), '"Not this one" is the ticket stub');
-  assert.ok(html.includes('data-action="clear-focus">Clear<'), 'Clear is still there');
-  // no pool to re-roll from: no stub
+  assert.ok(html.includes('data-action="complete-focus"') && html.includes('✓ Done') && !html.includes('I&rsquo;ve done it'), 'Done is a rubber stamp');
+  assert.ok(html.includes('data-action="reroll"') && html.includes('↻ Another') && !html.includes('data-action="reroll" disabled'), 'Another is the second stamp');
+  // no pool to re-roll from: the Another stamp is off
   const single = mk({ taskId: 'x1', pool: ['x1'] }, [task('x1')]);
-  const one = renderFocus(single, findIn(single), { focusFilter: {} });
-  assert.ok(!one.includes('data-action="reroll"') && one.includes('desk-acts is-single'), 'with nothing to swap to there is no stub');
-  assert.ok(one.includes('<span>Random pick</span>'), 'a pick with no label filter says it was a random pick');
-  // deadline chip still shows on the note
-  const dated = mk({ taskId: 'x1' }, [task('x1', { deadline: '2999-01-01' })]);
-  assert.ok(renderFocus(dated, findIn(dated), { focusFilter: {} }).includes('deadline-chip'), 'the deadline chip is on the note');
+  assert.ok(renderFocus(single, findIn(single), { focusFilter: {} }).includes('data-action="reroll" disabled'), 'with nothing to swap to Another is off');
   // a repaint mid-sequence redraws the phase it had reached, only for that task
   const mid = renderFocus(st, findIn(st), { focusFilter: {}, completing: { taskId: 'x1', phase: 'crossed' } });
-  assert.ok(mid.includes('class="note is-crossed"') && mid.includes('class="check-btn is-ticked"'), 'a repaint keeps the tick and the cross-out');
+  assert.ok(mid.includes('class="note is-crossed"') && mid.includes('focus-done is-ticked'), 'a repaint keeps the tick and the cross-out');
   const other = renderFocus(st, findIn(st), { focusFilter: {}, completing: { taskId: 'zzz', phase: 'peeling' } });
-  assert.ok(!other.includes('is-peeling') && !other.includes('is-ticked'), 'another task\'s sequence does not leak onto this note');
-  // nothing open: the empty desk says what to do next
+  assert.ok(!other.includes('is-peeling') && !other.includes('is-ticked'), "another task's sequence does not leak onto this note");
+  // nothing open: the empty desk, with the way on
   const empty = mk(null, [task('x1', { status: 'done' })]);
   const emptyHtml = renderFocus(empty, () => null, { focusFilter: {} });
-  assert.ok(emptyHtml.includes('desk-empty') && emptyHtml.includes('Add a task to a project on the Roadmap') && emptyHtml.includes('data-action="set-screen" data-screen="roadmap"') && emptyHtml.includes('jot a thought'), 'the empty desk names the next step');
+  assert.ok(emptyHtml.includes('Your desk is clear') && emptyHtml.includes('data-action="set-screen" data-screen="roadmap"'), 'the empty desk names the next step');
 }
 
 // GitHub controls: the row shows nothing at all; unlink / link / create / Open issue / Focus /

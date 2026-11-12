@@ -15,6 +15,8 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
   deletion tombstones (`js/sync.js`).
 - [due-dates.md](./due-dates.md) — the white/yellow/red stage of a task's deadline chip, the lead-time
   step under the date field, and the Settings defaults (`js/due-stage.js`).
+- [focus.md](./focus.md) — the Focus tab: which project, what kind of work, then one task with Done, Another and
+  the ⋯ drawer (`js/focus-view.js`).
 - [wallets.md](./wallets.md) — the focus picker's folder and index-card wallets, the "Choosing a card"
   setting (`js/wallet.js`, `js/render.js`, `js/app.js`).
 - [task-links.md](./task-links.md) — subtasks, "waits on" links, task notes, the three-step Sort

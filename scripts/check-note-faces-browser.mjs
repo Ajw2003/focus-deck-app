@@ -61,7 +61,7 @@ const size = (page, sel) => page.$eval(sel, (e) => parseFloat(getComputedStyle(e
 async function draw(page) {
   await page.waitForSelector('.flip-track');
   await page.waitForTimeout(300);
-  await page.click('[data-wallet="categories"] .sleeve.is-centre .icard').catch(() => {});
+  await page.click('[data-action="pick-for-me"]').catch(() => {}); // #270: Pick for me opens a task from the first question
   await page.waitForSelector('.focus-active', { timeout: 4000 }).catch(() => {});
 }
 
