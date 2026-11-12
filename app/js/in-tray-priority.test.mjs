@@ -48,3 +48,20 @@ test('Sort priority step and bulk panel carry the pickers; Next waits for a prio
   const bulk = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh(), bulk: { on: true, picked: ['i:th1'], projectId: 'pB', selected: [], groupTitle: '', newLabel: '', why: '' } });
   assert.ok(bulk.includes('data-scope="bulk"') && bulk.includes('Pick a priority for the thoughts'));
 });
+
+test('the steps carry the warn stages and a task\'s priority and due date to what they save', () => {
+  seed();
+  const stages = { yellow: { leadHours: 72 }, red: { leadHours: 24 } };
+  const out = fileSlip(unsortedQueue(state)[0], { projectId: 'pB', selected: [], priority: 'high', deadline: '2026-12-15', dueStages: stages }, deps());
+  assert.deepStrictEqual(out.task.dueStages, stages, 'a thought keeps the lead times chosen on the warn page');
+  const none = fileSlip(unsortedQueue(state)[0], { projectId: 'pB', selected: [], priority: 'high', dueStages: stages }, deps());
+  assert.ok(!('dueStages' in none.task), 'no date, no stages');
+  const calls = [];
+  const task = { id: 't1', title: 'Fix', status: 'next', categoryIds: [], priority: 'low' };
+  const cur = { kind: 'task', task, project: { id: 'pB' } };
+  const d = Object.assign(deps(), { updateTaskFields: (...a) => calls.push(a) });
+  fileSlip(cur, { projectId: 'pB', selected: [], priority: 'low', deadline: '' }, d);
+  assert.deepStrictEqual(calls, [], 'unchanged priority and date write nothing');
+  fileSlip(cur, { projectId: 'pB', selected: [], priority: 'urgent', deadline: '2026-12-15', dueStages: stages }, d);
+  assert.deepStrictEqual(calls[0], ['t1', { priority: 'urgent', deadline: '2026-12-15', dueStages: stages }]);
+});
