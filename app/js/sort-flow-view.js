@@ -47,7 +47,7 @@ function slipHtml(c, full) {
 // the ⋯ drawer: Add notes, Done already, Later, Delete (the same four actions the old buttons did)
 function menuDrawer(c) {
   const { cur, isThought, ids } = c;
-  const card = (label, action, extra = '', cls = '') => '<button type="button" class="dk-choice' + cls + '" data-action="' + action + '" ' + extra + '>' + label + '</button>';
+  const card = (label, action, extra = '', cls = '') => '<button type="button" class="dk-choice' + cls + '" data-action="' + action + '"' + (extra ? ' ' + extra : '') + '>' + label + '</button>';
   return '<div class="vs-backdrop" data-action="sort-menu"></div><div class="vs-pop dk-sheet sort-drawer" role="dialog" aria-modal="true" aria-label="This ' + (isThought ? 'thought' : 'task') + '" tabindex="-1">'
     + '<div class="vs-pop-head"><b>This ' + (isThought ? 'thought' : 'task') + '</b><button type="button" class="vs-x" data-action="sort-menu" aria-label="Close">×</button></div>'
     + '<div class="vs-pop-body">' + card('📝 Add notes', 'sort-add-notes') + card('✓ Done already', 'unsorted-complete', ids) + card('⏭ Later', 'unsorted-skip') + card('Delete', 'unsorted-delete', ids, ' danger') + '</div></div>';
