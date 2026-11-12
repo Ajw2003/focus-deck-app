@@ -30,7 +30,7 @@ const SHELL_ASSETS = [
   './js/roadmap-view.js',
   './js/projects-view.js',
   './js/roadmap-drag.js',
-  './js/milestone-settings.js',
+  './js/milestone-steps.js',
   './js/areas.js',
   './js/view-switch.js',
   './js/card-key.js',
