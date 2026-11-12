@@ -86,25 +86,24 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
       { id: 'pB', name: 'Chores', color: 'hsl(140 58% 40%)', tasks: [task('b1', ['c_chore', 'c_art'])] },
     ],
   };
-  const keys = (html, wallet) => {
-    const track = html.slice(html.indexOf('data-wallet="' + wallet + '"'));
-    const end = track.indexOf('<div class="flip-pad"></div></div>', 10);
-    return [...track.slice(0, end).matchAll(/class="sleeve" data-key="([^"]*)"/g)].map((m) => m[1]);
+  const keys = (html, car) => {
+    const row = html.slice(html.indexOf('data-car="' + car + '"'));
+    return [...row.slice(0, row.indexOf('</div></div></div>')).matchAll(/class="car-card" data-key="([^"]*)"/g)].map((m) => m[1]);
   };
   const html = renderFocus(st, () => null, { focusFilter: {} });
   assert.deepStrictEqual(keys(html, 'categories'), ['c_art', 'c_chore', 'any'], 'category cards busiest first, labels with nothing open left out, "Surprise me" last');
   assert.deepStrictEqual(keys(html, 'projects'), ['all', 'pA', 'pB'], 'All projects first, then the folders busiest first');
-  assert.ok(html.includes('data-wallet="projects" data-mode="twice" data-facing="all"'), 'the folder wallet faces All projects by default, in the default choosing mode (tap twice)');
-  assert.ok(html.includes('data-wallet="categories" data-mode="twice" data-facing="c_art"'), 'the category wallet faces its first card');
+  assert.ok(html.includes('data-car="projects" data-facing="all"'), 'the project row faces All projects by default');
+  assert.ok(html.includes('data-car="categories" data-facing="c_art"'), 'the kind-of-work row faces its first card');
   assert.ok(html.includes('>3 open · top: Urgent · 2 projects<'), 'a card says how many are open, the highest priority present, and across how many projects');
   assert.ok(!html.includes('<select') && !html.includes('data-action="pick-focus"'), 'no dropdowns, and no per-card action: the wallets choose');
   assert.ok(!html.includes('more<') && !html.includes('Show all'), 'no "+N more" or "Show all N labels": the wallets scroll through everything');
   const narrowed = renderFocus(st, () => null, { focusFilter: { projectId: 'pB' } });
-  assert.ok(narrowed.includes('data-wallet="projects" data-mode="twice" data-facing="pB"'), 'the remembered folder faces you');
+  assert.ok(narrowed.includes('data-car="projects" data-facing="pB"'), 'the remembered folder faces you');
   assert.ok(narrowed.includes('>1 open<') && !narrowed.includes('2 projects'), 'the facing folder narrows the counts');
   assert.deepStrictEqual(keys(narrowed, 'categories'), ['c_art', 'c_chore', 'any'], 'and the index cards to that project');
-  assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('data-wallet="projects" data-mode="twice" data-facing="all"'), 'a remembered project that no longer exists falls back to All projects');
-  assert.ok(renderFocus(st, () => null, { focusFilter: {}, focusCategory: 'c_chore' }).includes('data-wallet="categories" data-mode="twice" data-facing="c_chore"'), 'the facing category is kept across a repaint');
+  assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('data-car="projects" data-facing="all"'), 'a remembered project that no longer exists falls back to All projects');
+  assert.ok(renderFocus(st, () => null, { focusFilter: {}, focusCategory: 'c_chore' }).includes('data-car="categories" data-facing="c_chore"'), 'the facing category is kept across a repaint');
   assert.ok(renderFocus({ ...st, choosingMode: { mode: 'tap' } }, () => null, { focusFilter: {} }).includes('data-mode="tap"'), 'the Choosing a card setting is written into the markup');
   assert.ok(renderFocus({ ...st, choosingMode: { mode: 'swipe' } }, () => null, { focusFilter: {} }).includes('data-mode="tap"'), 'a save from the retired Swipe up mode draws as Tap');
   assert.ok(renderFocus({ ...st, choosingMode: { mode: 'junk' } }, () => null, { focusFilter: {} }).includes('data-mode="twice"'), 'an unknown mode reads as the default');
@@ -112,7 +111,7 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
   const many = { ...st, projects: Array.from({ length: 9 }, (_, i) => ({ id: 'p' + i, name: 'project-' + i, color: '#123456', tasks: [task('t' + i, ['c_art'])] })) };
   assert.strictEqual(keys(renderFocus(many, () => null, { focusFilter: {} }), 'projects').length, 10, 'All projects plus all nine folders');
   // the category wallet renders alone for a project flip
-  assert.ok(renderCategoryCarousel(st, { focusFilter: { projectId: 'pB' } }).includes('data-wallet="categories"') && !renderCategoryCarousel(st, { focusFilter: {} }).includes('data-wallet="projects"'), 'the category wallet slot renders on its own');
+  assert.ok(renderCategoryCarousel(st, { focusFilter: { projectId: 'pB' } }).includes('data-car="categories"') && !renderCategoryCarousel(st, { focusFilter: {} }).includes('data-car="projects"'), 'the category wallet slot renders on its own');
 }
 
 // unlabelled tasks: the focus picker keeps its Unlabelled card but no longer links to a sort flow

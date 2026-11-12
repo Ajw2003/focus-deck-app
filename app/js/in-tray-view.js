@@ -141,7 +141,7 @@ function renderTray(st, u, ordered, mode, head = '') {
   const fileBtn = isThought
     ? (project && u.priority
       ? '<button type="button" class="file-btn" data-action="unsorted-file" data-inbox="' + cur.item.id + '">File to ' + esc(project.name) + ' →</button>'
-      : '<button type="button" class="file-btn" disabled>' + (project ? 'Pick a priority to file' : 'File to… (pick a project and priority)') + '</button>')
+      : '<button type="button" class="file-btn" disabled>' + (project ? 'Pick a priority to file' : 'Choose a project first') + '</button>')
     : '<button type="button" class="file-btn" data-action="unsorted-save" ' + ids + '>Save in ' + (project ? esc(project.name) : '') + ' →</button>';
   const main = isThought
     ? (step === 2 ? '<button type="button" class="file-btn" data-action="sort-next">Next: link to other tasks →</button>' : fileBtn)
