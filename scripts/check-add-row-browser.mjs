@@ -73,6 +73,7 @@ for (const size of ['phone', 'desktop']) {
     // Title only: type, Enter, the task lands in Home's Up next and the box is empty and focused
     await page.click(TITLE);
     await page.keyboard.type('Ring the plumber');
+    await page.click(ROW + ' [data-field="priority"][data-value="high"]'); await page.click(TITLE);
     await page.keyboard.press('Enter');
     await page.waitForTimeout(200);
     let tasks = await homeTasks(page);
@@ -86,9 +87,9 @@ for (const size of ['phone', 'desktop']) {
     await page.waitForSelector(ROW + ' [name="steps"]');
     check(`${tag} More opens steps, priority and due date`, !!(await page.$(ROW + ' [name="priority"]')) && !!(await page.$(ROW + ' [name="deadline"]')));
     await page.fill(TITLE, 'Book the boiler service');
-    await page.selectOption(ROW + ' [name="priority"]', 'high');
-    await page.fill(ROW + ' [name="deadline"]', iso(4));
-    await page.dispatchEvent(ROW + ' [name="deadline"]', 'input');
+    await page.click(ROW + ' [data-field="priority"][data-value="high"]');
+    await page.click(ROW + ' [data-field="due"][data-value="date"]');
+    await page.fill(ROW + ' [data-pick-date]', iso(4));
     await page.waitForTimeout(150);
     await page.screenshot({ path: OUT + `built-row-more-${size}-${scheme}.png` });
     await page.click(ROW + ' button[type="submit"]');
@@ -138,6 +139,7 @@ for (const size of ['phone', 'desktop']) {
     check(`${tag} Board with School chosen shows "Add a task to School…"`, (await page.getAttribute(BOARD_TITLE, 'placeholder')) === 'Add a task to School…');
     await page.click(BOARD_TITLE);
     await page.keyboard.type('Print the reading list');
+    await page.click('.screen-board .add-row[data-project="pSchool"] [data-field="priority"][data-value="high"]'); await page.click(BOARD_TITLE);
     await page.keyboard.press('Enter');
     await page.waitForTimeout(200);
     const school = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)).projects.find((p) => p.id === 'pSchool').tasks, STATE_KEY);

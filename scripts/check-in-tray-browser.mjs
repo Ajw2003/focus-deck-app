@@ -117,6 +117,7 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
 
   await page.click('.step-tab[data-step="3"]');
   await page.waitForTimeout(200);
+  await page.click('.sort-picks [data-field="priority"][data-value="high"]');
   await page.click('.file-btn');
   await page.waitForTimeout(300);
   let st = await stored(page);

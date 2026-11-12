@@ -123,6 +123,7 @@ for (const scheme of ['dark', 'light']) {
   check('in-tray: a click picks the folder and one sticks a flag', ((await page.$eval('.slip-dest', (e) => e.textContent)) || '').includes('School') && (await page.$$('.slip-flag')).length === 1);
   await page.screenshot({ path: OUT + 'desktop-dark-tray.png' });
   await page.click('.file-btn[data-action="sort-next"]');
+  await page.click('.sort-picks [data-field="priority"][data-value="high"]');
   await page.click('.file-btn[data-action="unsorted-file"]');
   await page.waitForTimeout(300);
   const st = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), STATE_KEY));
