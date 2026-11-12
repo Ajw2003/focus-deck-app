@@ -98,7 +98,7 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
 
   await choose(page, 'tray-folders', 'pSchool', mode);
   check(`${tag} choosing a folder puts it on the slip`, (await page.$eval('.slip-dest', (e) => e.textContent)).includes('Going in School'), await page.$eval('.slip-dest', (e) => e.textContent));
-  check(`${tag} Next is on`, await page.$eval('.file-btn', (b) => !b.disabled && b.textContent === 'Next: labels →'));
+  check(`${tag} the file button now waits for a priority (was: Next is on)`, await page.$eval('.file-btn', (b) => b.disabled && b.textContent === 'Pick a priority to file'));
   await choose(page, 'tray-folders', 'pSchool', mode);
   check(`${tag} choosing the folder again clears it`, (await page.$eval('.slip-dest', (e) => e.textContent)) === 'No project yet');
   await choose(page, 'tray-folders', 'pHome', mode);
