@@ -23,6 +23,8 @@ import { renderOnboarding } from './onboarding-view.js';
 import { pickState, dueDates, parseDue } from './pick-bits.js';
 import { normalizeBoardCol } from './board-view.js';
 import { renderReview } from './review-view.js';
+import { renderTidy } from './tidy-view.js';
+import { tidyGroups, confirmIds } from './tidy.js';
 import { reviewLists } from './board.js';
 import { notesSummary } from './task-details.js';
 import { canSetParent, canWaitOn } from './task-links.js';
@@ -267,11 +269,12 @@ export function renderApp(st) {
   if (ui.projectView === 'one') ui.selectedProjectId = ui.view.id;
   const hasToken = !!getToken();
   // one activity at a time (#135): the rail, then only the chosen screen
-  const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, R.renderSyncButton(st), reviewLists(st, null, Date.now()).waiting.length);
+  const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, R.renderSyncButton(st), reviewLists(st, null, Date.now()).waiting.length, tidyGroups(st, null).groups.reduce((n, g) => n + g.items.length, 0));
   const toast = R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
   if (ui.screen === 'focus') return rail + '<div class="screen screen-focus">' + sw + R.renderFocus(st, findTaskWithProject, ui) + '</div>' + toast;
   // the Sort screen is the tray, always open (its header can't fold it away here)
   if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + sw + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
+  if (ui.screen === 'tidy') return rail + '<div class="screen screen-tidy">' + sw + renderTidy(st, ui) + '</div>' + toast;
   if (ui.screen === 'review') return rail + '<div class="screen screen-review">' + sw + renderReview(st, ui) + '</div>' + toast;
   if (ui.screen === 'board') return rail + '<div class="screen screen-board">' + sw + R.renderBoard(st, ui) + '</div>' + toast;
   return rail + R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
@@ -559,6 +562,21 @@ function onAppClick(e) {
     if (to) { to.scrollIntoView({ block: 'center' }); const f = to.querySelector('button, input, [tabindex]'); if (f) f.focus({ preventScroll: true }); }
     return;
   }
+  if (action === 'tidy-mark') {
+    const id = el.getAttribute('data-task'), m = el.getAttribute('data-mark');
+    ui.tidyMarks = Object.assign({}, ui.tidyMarks); // marks only; nothing is closed until tidy-confirm
+    if (ui.tidyMarks[id] === m) delete ui.tidyMarks[id]; else ui.tidyMarks[id] = m;
+    paint(); return;
+  }
+  if (action === 'tidy-confirm') {
+    const ids = confirmIds(state, ui.view, ui.tidyMarks || {});
+    const titles = new Map(); state.projects.forEach((p) => p.tasks.forEach((t) => titles.set(t.id, t.title)));
+    M.confirmTidy(ids);
+    ui.tidyClosed = ids.map((id) => ({ id, title: titles.get(id) })).concat(ui.tidyClosed || []);
+    ids.forEach((id) => delete ui.tidyMarks[id]);
+    paint(); return;
+  }
+  if (action === 'tidy-undo') { const id = el.getAttribute('data-task'); M.undoDone(id); ui.tidyClosed = (ui.tidyClosed || []).filter((c) => c.id !== id); paint(); return; }
   if (action === 'review-done') { M.setTaskStatus(el.getAttribute('data-task'), 'done'); paint(); return; }
   if (action === 'review-more') { M.setTaskStatus(el.getAttribute('data-task'), 'doing'); paint(); return; }
   if (action === 'review-undo') { M.undoDone(el.getAttribute('data-task')); paint(); return; }
