@@ -440,15 +440,43 @@ export function addProjectCategory(name, color) {
 // in which case the override wins and the category is assigned without touching the color.
 // Explicit, confirmed removal from Settings. Projects keep their color; they just lose the
 // category assignment.
+// Unsorted is fixed: refused, returns false. Projects in a removed area go to Unsorted (no area).
 export function removeProjectCategory(id) {
+  if (id === UNSORTED_ID) return false;
   state.projectCategories = (state.projectCategories || []).filter((c) => c.id !== id);
   state.projects.forEach((p) => { if (p.categoryId === id) p.categoryId = null; });
+  persist();
+  return true;
+}
+
+// Unsorted cannot be renamed. Returns false when nothing changed.
+export function renameProjectCategory(id, name) {
+  const cat = (state.projectCategories || []).find((c) => c.id === id);
+  name = String(name || '').trim();
+  if (!cat || !name || id === UNSORTED_ID) return false;
+  cat.name = name;
+  persist();
+  return true;
+}
+
+// Kinds of work (Settings): tick = offered on Focus's kinds row; level = the priority this label counts as.
+export function setKindOfWork(id, on) {
+  const cat = state.categories.find((c) => c.id === id);
+  if (!cat || typeof on !== 'boolean') return;
+  cat.kind = on;
+  persist();
+}
+export function setLabelPriority(id, level) {
+  const cat = state.categories.find((c) => c.id === id);
+  if (!cat) return;
+  if (LEVELS.includes(level)) cat.priority = level; else delete cat.priority;
   persist();
 }
 
 export function setProjectCategory(projectId, categoryId) {
   const project = state.projects.find((p) => p.id === projectId);
   if (!project) return;
+  if (categoryId === UNSORTED_ID) categoryId = null; // Unsorted is "no area"
   project.categoryId = categoryId || null;
   if (categoryId && !project.colorLocked) {
     const cat = (state.projectCategories || []).find((c) => c.id === categoryId);

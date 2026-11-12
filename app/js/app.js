@@ -1030,7 +1030,7 @@ function onAppChange(e) {
     const projectId = e.target.getAttribute('data-project');
     let categoryId = e.target.value;
     if (categoryId === '__new__') {
-      const name = prompt('New project category name:');
+      const name = prompt('Name of the new area:');
       categoryId = name ? M.addProjectCategory(name).id : '';
     }
     M.setProjectCategory(projectId, categoryId || null);

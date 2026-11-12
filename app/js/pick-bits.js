@@ -2,7 +2,8 @@
 // The priority and due-date pickers (#249): one set of buttons used by the add row, the Sort slip,
 // bulk sort and the chips on task rows and Board cards, plus the small pure date helpers behind
 // them. What a tap does is in js/app.js ('pick-set'). See docs/4-systems/quick-add.md
-import { esc, PRIORITY, PRIORITY_ORDER, deadlineChip } from './state.js';
+import { esc, PRIORITY, PRIORITY_ORDER, deadlineChip, state } from './state.js';
+import { effectivePriority } from './areas.js';
 
 // The chip that is open on a task row or Board card: { field, taskId, dateOpen }. app.js uses this
 // same object as ui.pick, so renderers need no extra argument.
@@ -79,11 +80,12 @@ export function pickChip(field, t, now = new Date()) {
   const open = pickState.field === field && pickState.taskId === t.id;
   const ctx = { scope: 'task', task: t.id };
   const isPrio = field === 'priority';
-  const has = isPrio ? !!(t.priority && PRIORITY[t.priority]) : !!t.deadline;
-  const label = isPrio ? (has ? PRIORITY[t.priority].label : 'Priority') : 'Due';
+  const prio = effectivePriority(t, state); // own priority, else a mapped label's (Settings > Kinds of work)
+  const has = isPrio ? !!prio : !!t.deadline;
+  const label = isPrio ? (has ? PRIORITY[prio].label : 'Priority') : 'Due';
   const inner = !isPrio && has ? deadlineChip(t.deadline, t).replace(/<\/span>$/, ' ▾</span>') : esc(label) + ' ▾';
   const cls = !isPrio && has ? 'pick-bare' : 'chip pick-chip small' + (isPrio ? ' priority-chip' : '') + (has ? '' : ' is-empty');
-  const style = isPrio && has ? ' style="--chip-color:var(--prio-' + t.priority + ')"' : '';
+  const style = isPrio && has ? ' style="--chip-color:var(--prio-' + prio + ')"' : '';
   const btn = '<button type="button" class="' + cls + '" data-action="open-pick" data-field="' + field + '" data-task="' + esc(t.id) + '" aria-haspopup="true" aria-expanded="' + open + '"'
     + ' title="' + (isPrio ? 'Priority' : 'Due date') + ' — tap to change"' + style + '>' + inner + '</button>';
   const body = isPrio ? priorityButtons({ priority: t.priority }, ctx) : dueButtons({ due: t.deadline, dateOpen: pickState.dateOpen }, ctx, now);

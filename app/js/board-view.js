@@ -5,7 +5,8 @@
 // A card shows its project's name only on "Project: All"; subtasks show inside their parent as "1/2 done".
 // The right-hand column is the empty-panel hint, or Task details (js/task-details.js, #201) for ui.boardSelected. The list comes from js/board.js. Ticking a card is the same `toggle-task` checkbox
 // the task rows use. See docs/4-systems/calm-board.md and docs/4-systems/styling.md#the-board-144
-import { esc, deadlineChip, PRIORITY } from './state.js';
+import { esc, deadlineChip, PRIORITY, state } from './state.js';
+import { effectivePriority } from './areas.js';
 import { boardList } from './board.js';
 import { getChunk, getColourBy } from './comfort.js';
 import { cardKey, NO_CATEGORY, PRIORITY_COLOURS } from './card-key.js';
@@ -58,9 +59,9 @@ function keyChip(key) {
 // field is left out so nothing shows twice (#211).
 function glanceLine(t, key) {
   const bits = [];
-  const prio = t.priority && PRIORITY[t.priority];
+  const lvl = effectivePriority(t, state), prio = lvl && PRIORITY[lvl];
   // a done task keeps its priority (static) but shows no date (calm-board.md, #211)
-  if (t.status === 'done') { if (prio && key.source !== 'priority') bits.push('<span class="gl-prio" style="--c:' + PRIORITY_COLOURS[t.priority] + '">' + PRIORITY[t.priority].label + '</span>'); }
+  if (t.status === 'done') { if (prio && key.source !== 'priority') bits.push('<span class="gl-prio" style="--c:' + PRIORITY_COLOURS[lvl] + '">' + PRIORITY[lvl].label + '</span>'); }
   else {
     bits.push(pickChip('priority', t), pickChip('due', t)); // always: the chips are the controls, whatever the card's label shows
   }
@@ -96,7 +97,7 @@ export function renderBoard(st, ui, now = Date.now()) {
   const active = (pcat ? 1 : 0) + (show !== 'all' ? 1 : 0);
   const open = !!ui.boardFilterOpen;
   const drawer = open
-    ? '<div class="calm-drawer"><p class="calm-h">Category</p><div class="bm-row">' + chip(!pcat, 'board-pcat', 'data-pcat', '', 'All')
+    ? '<div class="calm-drawer"><p class="calm-h">Area</p><div class="bm-row">' + chip(!pcat, 'board-pcat', 'data-pcat', '', 'All')
       + (st.projectCategories || []).map((c) => chip(pcat === c.id, 'board-pcat', 'data-pcat', c.id, c.name, c.color)).join('') + '</div>'
       + '<p class="calm-h">Show</p><div class="bm-row">' + SHOW_INFO.map(([k, l]) => chip(show === k, 'board-show', 'data-show', k, l)).join('') + '</div>'
       + '<button type="button" class="btn primary" data-action="board-filter">Show ' + tasks.length + ' task' + (tasks.length === 1 ? '' : 's') + '</button></div>'
