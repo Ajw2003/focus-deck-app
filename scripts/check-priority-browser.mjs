@@ -48,8 +48,7 @@ async function open(size, screen) {
   await ctx.addInitScript(([s, key, scr]) => {
     localStorage.setItem('focusdeck-onboarding', 'done');
     if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', scr);
-    if (scr === 'board') localStorage.setItem('focusdeck-board-project', 'pHome');
-    if (!localStorage.getItem('focusdeck-project-view')) localStorage.setItem('focusdeck-project-view', 'all');
+    if (scr === 'board') localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pHome' }));
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
   }, [seed(), STATE_KEY, screen]);
   const page = await ctx.newPage();

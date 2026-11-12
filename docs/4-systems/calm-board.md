@@ -11,10 +11,12 @@ Status: designed and approved (docs/6-decisions/Decisions.md, 2026-10-19) and bu
   sync at its foot. Phones keep the bottom bar. (`.rail`, `app/css/app.css:1090`; `renderRail`,
   `app/js/render.js:53`)
 - **The Board (#200).** One tab at a time: Up next, In progress, Review, Done (this week's), each with its count (the tab says just "Done" so all four fit a 360px phone).
-  Above the tabs: Find (task, project or label), a Project menu, and Filter (Category; Show: Everything,
-  Has subtasks, Waiting on something, Holding others up). Cards come in groups of "Cards at once"
+  Above the tabs: Find (task, project or label) and Filter (Show: Everything, Has subtasks, Waiting on
+  something, Holding others up). Which tasks the Board shows by area or project is the All | Area | Project
+  switch above the Board (#252, [view-switch.md](./view-switch.md)); the Board's own Project menu and Category
+  filter were removed. Cards come in groups of "Cards at once"
   with "Show N more". Up next cards carry "→ In progress"; In progress cards "← Up next" and "→ Review"; Review cards "← In progress"; ticking a card marks it done, and Task details' status menu moves between all four (#250: Review is the fourth status, between In progress and Done; project cards get a Review group between In progress and Up next). A
-  card shows its project's name only on "Project: All". Subtasks show inside their parent, not as cards.
+  card shows its project's name unless the switch is on one Project. Subtasks show inside their parent, not as cards.
   Built: `boardList` (`app/js/board.js:46`) makes the list, `renderBoard` (`app/js/board-view.js:64`) the markup;
   the Board's memory-only state is `ui.board*` in `app/js/app.js` (tab, find, filter, shown, and
   `boardSelected`, which Task details renders from). The move buttons go through `moveTaskTo`, so they
@@ -23,10 +25,10 @@ Status: designed and approved (docs/6-decisions/Decisions.md, 2026-10-19) and bu
   serves Projects.
 - **Board project view (#216, #217, #218; built 2026-10-20, design 1B 2A on
   `docs/plans/board-project.html`).** Each tab's number counts the cards that tab would show under everything the list is
-  narrowed by: the Project menu, Find, Category and Show. Subtasks are still left out. So with Home
-  picked, Up next counts only Home's tasks. With a project picked, the heading above Find becomes
+  narrowed by: the switch, Find and Show. Subtasks are still left out. So with Home
+  picked, Up next counts only Home's tasks. With one Project picked in the switch, the heading above Find becomes
   that project's name, after a dot in its colour, with a bar in its colour down its left edge and a
-  small "Board · one project" line under it. The Project menu gets a border in the same colour. With "Project: All" the heading stays "Board".
+  small "Board · one project" line under it. With anything else the heading stays "Board".
   The counts and the list share one filter, `shown`, in `boardList` (`app/js/board.js:46`). The
   heading and the menu's `is-picked` class are set in `renderBoard` (`app/js/board-view.js:99`), and
   styled at `app/css/app.css:1178`. `scripts/check-board-browser.mjs` checks both, with Home picked.
