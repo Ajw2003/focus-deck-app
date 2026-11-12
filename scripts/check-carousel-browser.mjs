@@ -90,25 +90,28 @@ const visible = (page, id) => page.$$eval(W[id] + ' .sleeve', (els, sel) => {
   check('desktop: the row scrolled so the active card is in view', (await visible(page, 'projects')) === 5 && await page.$eval('[data-wallet="projects"] .sleeve.is-centre', (e) => { const r = e.closest('.flip-track').getBoundingClientRect(), b = e.getBoundingClientRect(); return b.left >= r.left - 2 && b.right <= r.right + 2; }));
   await page.screenshot({ path: OUT + 'focus-desk-garden.png' });
   await page.keyboard.press('Enter');
+  await page.waitForSelector('[data-wallet="categories"]'); // #270: choosing a project asks the second question
+  check('desktop: Enter chooses the project and asks "What kind of work?"', (await page.textContent('.sort-q')).includes('What kind of work?'));
+  await page.click('[data-action="focus-skip"]');
   await page.waitForSelector('.focus-active');
-  check('desktop: Enter picks the project and a task opens', (await page.textContent('.focus-title')).includes('Garden task'), await page.textContent('.focus-title'));
+  check('desktop: Skip (any kind) opens a task from that project', (await page.textContent('.focus-title')).includes('Garden task'), await page.textContent('.focus-title'));
   await page.close();
 }
 
 // ---- desktop: Find, pick for me ----------------------------------------------------------------
 {
   const page = await open({ width: 1440, height: 900 }, 'focus');
-  await page.fill('.car-find', 'hot');
+  await page.fill('[data-car-find]', 'hot');
   check('Find a project narrows the row to Hotel', (await countOf(page, 'projects')).trim() === '1 of 1', await countOf(page, 'projects'));
-  await page.fill('.car-find', 'zzz');
+  await page.fill('[data-car-find]', 'zzz');
   check('Find with no match says so', !!(await page.$('.find-empty')));
-  await page.fill('.car-find', '');
+  await page.fill('[data-car-find]', '');
   check('clearing Find brings every project back', (await countOf(page, 'projects')).trim().endsWith('of 13'));
   await page.click('[data-action="pick-for-me"]');
   await page.waitForSelector('.focus-active');
-  check('Or let me pick for you opens the task in progress', (await page.textContent('.focus-title')).includes('Hotel task'), await page.textContent('.focus-title'));
+  check('Pick for me opens the task in progress', (await page.textContent('.focus-title')).includes('Hotel task'), await page.textContent('.focus-title'));
   await page.click('[data-action="reroll"]');
-  check('"Not this one" offers the next by the same order (urgent)', (await page.textContent('.focus-title')).includes('Charlie task'), await page.textContent('.focus-title'));
+  check('"Another" offers the next by the same order (urgent)', (await page.textContent('.focus-title')).includes('Charlie task'), await page.textContent('.focus-title'));
   await page.close();
 }
 
@@ -142,20 +145,22 @@ const visible = (page, id) => page.$$eval(W[id] + ' .sleeve', (els, sel) => {
 // ---- phone ------------------------------------------------------------------------------------
 {
   const page = await open({ width: 390, height: 844 }, 'focus', true);
-  check('phone: the flip wallet is as before (no strip, no arrows, hint line)', !(await page.$('.is-strip')) && !(await page.$('.wallet-arrow')) && (await page.textContent('.flip-hint')).includes('Swipe sideways to flip'));
+  check('phone: the flip wallet has no strip, no arrows, no hint line and no card text but the name', !(await page.$('.is-strip')) && !(await page.$('.wallet-arrow')) && !(await page.$('.flip-hint')) && !(await page.$('.icard .ct')) && !(await page.$('.icard .go')));
   await page.screenshot({ path: OUT + 'focus-phone.png', fullPage: true });
   const box = await (await page.$('[data-wallet="projects"]')).boundingBox();
   await swipe(page, { x: box.x + box.width * 0.8, y: box.y + box.height / 2 }, { x: box.x + box.width * 0.1, y: box.y + box.height / 2 });
   const c = (await countOf(page, 'projects')).trim();
   check('phone: a swipe flips the wallet (count is no longer 1 of 13)', c !== '1 of 13' && c.endsWith(' of 13'), c);
-  await page.fill('.car-find', 'kil');
+  await page.fill('[data-car-find]', 'kil');
   await page.waitForTimeout(300);
   check('phone: Find narrows the wallet to Kilo', (await countOf(page, 'projects')).trim() === '1 of 1');
   await page.click('[data-wallet="projects"] .sleeve .icard');
   await page.waitForTimeout(450);
   await page.click('[data-wallet="projects"] .sleeve .icard');
+  await page.waitForSelector('[data-wallet="categories"]');
+  await page.click('[data-action="focus-skip"]');
   await page.waitForSelector('.focus-active');
-  check('phone: tapping the card twice opens a task', (await page.textContent('.focus-title')).includes('Kilo task'), await page.textContent('.focus-title'));
+  check('phone: tapping the card twice chooses the project; Skip opens a task from it', (await page.textContent('.focus-title')).includes('Kilo task'), await page.textContent('.focus-title'));
   await page.screenshot({ path: OUT + 'focus-phone-task.png' });
   await page.close();
 }

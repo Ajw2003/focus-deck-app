@@ -871,32 +871,72 @@
    [
     [
      "pick-for-me",
-     "Pick for me",
+     "🎲 Pick for me",
      "f1"
     ],
     [
+     "focus-next",
+     "Next: the project is chosen",
+     "f1"
+    ],
+    [
+     "focus-back",
+     "Back to the project question",
+     "f2"
+    ],
+    [
+     "focus-skip",
+     "Skip: any kind of work",
+     "f2"
+    ],
+    [
+     "focus-show",
+     "Show me one",
+     "f2"
+    ],
+    [
      "reroll",
-     "Not this one",
+     "↻ Another",
      "f3"
     ],
     [
      "complete-focus",
-     "I've done it",
+     "✓ Done",
      "f3 f5"
     ],
     [
+     "focus-next-one",
+     "Next one",
+     "f5"
+    ],
+    [
+     "focus-menu",
+     "⋯ tag: the card-index drawer",
+     "f3 f4"
+    ],
+    [
      "focus-doing",
-     "Start it",
+     "▶ Start it",
      "f4"
     ],
     [
+     "focus-steps",
+     "🪜 Smaller steps",
+     "f4 f4s"
+    ],
+    [
+     "focus-steps-back",
+     "Back from Smaller steps",
+     "f4s"
+    ],
+    [
      "focus-subtask",
-     "Focus on a subtask",
+     "◎ Focus on one",
      "f4s"
     ],
     [
      "clear-focus",
-     "Clear, pick again",
+     "✕ Clear",
      "f4"
     ]
    ]

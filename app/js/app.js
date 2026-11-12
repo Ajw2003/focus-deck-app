@@ -14,6 +14,7 @@ import { taskOrderChanges, sortTasks, planTaskMove } from './task-move.js';
 import { confirmMove } from './move-dialog.js';
 import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
+import { renderFocus, renderProjectWalletInner, renderCategoryWalletInner } from './focus-view.js';
 import { mountWallets, onSpreadChange } from './wallet.js';
 import { tiesOf } from './task-links.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
@@ -186,8 +187,6 @@ const walletHooks = {
     if (name === 'projects') {
       ui.focusFilter.projectId = key === R.ALL_PROJECTS_KEY ? null : key;
       saveFocusFilter();
-      const slot = document.getElementById('category-wallet');
-      if (slot) { slot.innerHTML = R.renderCategoryWalletInner(viewState(state), ui); mountWallets(slot, walletHooks); }
     } else if (name === 'categories') {
       ui.focusCategory = key;
     } else if (name === 'tray-folders') {
@@ -219,16 +218,31 @@ const walletHooks = {
       paint();
       return true;
     }
-    const projectId = name === 'projects'
-      ? (key === R.ALL_PROJECTS_KEY ? null : key)
-      : R.focusProjectId(state, ui);
-    const categoryId = name === 'categories' && key !== R.ANY_CATEGORY_KEY ? key : null;
-    if (M.pickFocus({ categoryId, projectId })) return true;
-    ui.notice = 'No open tasks match that label and project.';
-    paint();
-    return false;
+    // Focus: choosing a project card is Next; choosing a kind card is Show me one
+    if (name === 'projects') {
+      ui.focusFilter.projectId = key === R.ALL_PROJECTS_KEY ? null : key;
+      saveFocusFilter();
+      ui.focusQ = 2; ui.focusCategory = undefined; ui.focusKindFind = '';
+      paint();
+      return true;
+    }
+    ui.focusCategory = key;
+    return showFocus(key);
   },
 };
+
+// Focus (#270): "Show me one" and the kind cards draw a task from the chosen project and kind (key 'any' or none: any kind).
+// Returns false, with a notice, when no open task matches.
+// The card in the middle of a Focus carousel: a card nobody flipped to (the first one after Find narrowed the row) never
+// reached the facing hook, so Next and Show me one read it off the page.
+const facingKey = (wallet) => { const c = document.querySelector('[data-wallet="' + wallet + '"] .sleeve.is-centre'); return c ? c.getAttribute('data-key') : undefined; };
+function showFocus(key) {
+  const categoryId = key && key !== R.ANY_CATEGORY_KEY ? key : null;
+  if (M.pickFocus({ categoryId, projectId: R.focusProjectId(state, ui) })) { ui.focusQ = 1; ui.focusDone = null; return true; }
+  ui.notice = 'No open tasks match that label and project.';
+  paint();
+  return false;
+}
 
 // The notice's Open button belongs to one notice text; any other notice replaces it (#242).
 function noticeAction() {
@@ -251,7 +265,7 @@ export function renderApp(st) {
   if (ui.onboarding && ui.onboarding.step === 'welcome' && !ui.onboarding.forced && st.projects.length) ui.onboarding = null;
   if (ui.onboarding) {
     return '<div class="main-col onboarding-col">'
-      + renderOnboarding(st, ui.onboarding, () => R.renderFocus(st, findTaskWithProject, ui))
+      + renderOnboarding(st, ui.onboarding, () => renderFocus(st, findTaskWithProject, ui))
       + '</div>' + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
   }
   ui.view = normalizeView(ui.view, st); // a gone area or project is All
@@ -271,7 +285,7 @@ export function renderApp(st) {
   if (ui.screen === 'roadmap') return rail + '<div class="screen screen-roadmap">' + sw + renderRoadmap(st, ui, hasToken) + '</div>' + toast;
   if (ui.screen === 'triage') return screen('triage', renderTriage(st, ui));
   if (ui.screen === 'review') return rail + '<div class="screen screen-review">' + sw + renderReview(st, ui) + '</div>' + toast;
-  return screen('focus', R.renderFocus(st, findTaskWithProject, ui));
+  return screen('focus', renderFocus(st, findTaskWithProject, ui));
 }
 
 // Tidy up: the current tick screen's tasks, and the move to the next screen (after the last, "Close these?", or Triage when nothing is marked).
@@ -561,7 +575,7 @@ function completeFocusWithNote() {
     reduceMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     setPhase: drawCompletePhase,
     isCurrent: () => !!state.focus && state.focus.taskId === taskId,
-    complete: () => M.completeFocus(findProjectIdForTask),
+    complete: () => { const f = findTaskWithProject(taskId); ui.focusDone = { title: f ? f.task.title : '', filter: state.focus.filter, ordered: !!state.focus.ordered }; M.completeFocus(findProjectIdForTask); },
     finish: paint,
     wait: (ms, fn) => setTimeout(fn, ms),
   });
@@ -571,7 +585,7 @@ function completeFocusWithNote() {
 // transitions only run when a class is added to an element already on the page).
 function drawCompletePhase(phase) {
   const want = phaseClasses(phase);
-  const button = document.querySelector('.focus-active .check-btn');
+  const button = document.querySelector('.focus-active .focus-done');
   const note = document.querySelector('.focus-active .note');
   if (button) button.classList.toggle('is-ticked', want.button.includes('is-ticked'));
   if (note) ['is-crossed', 'is-peeling'].forEach((c) => note.classList.toggle(c, want.note.includes(c)));
@@ -648,6 +662,7 @@ function onAppClick(e) {
     return;
   }
   if (action.startsWith('ob-')) { onOnboardingClick(action, el); return; }
+  if (ui.focusMenu && action !== 'focus-menu') ui.focusMenu = null; // any choice in Focus's ⋯ drawer closes it
   if (action === 'pick-set') { onPickSet(el); return; }
   if (action === 'open-pick') {
     const same = pickState.field === el.getAttribute('data-field') && pickState.taskId === taskId;
@@ -790,8 +805,19 @@ function onAppClick(e) {
     }
   }
   else if (action === 'reroll') M.reroll();
-  else if (action === 'pick-for-me') { if (!M.pickForMe()) { ui.notice = 'Nothing open to pick from here.'; paint(); } }
-  else if (action === 'clear-focus') M.clearFocus();
+  else if (action === 'pick-for-me') { if (M.pickForMe()) { ui.focusQ = 1; ui.focusDone = null; } else { ui.notice = 'Nothing open to pick from here.'; paint(); } }
+  else if (action === 'focus-next') { const k = facingKey('projects'); if (k) { ui.focusFilter.projectId = k === R.ALL_PROJECTS_KEY ? null : k; saveFocusFilter(); } ui.focusQ = 2; ui.focusCategory = undefined; ui.focusKindFind = ''; paint(); } // Focus (#270): project chosen, now the kind of work
+  else if (action === 'focus-back') { ui.focusQ = 1; paint(); }
+  else if (action === 'focus-show') showFocus(facingKey('categories') || ui.focusCategory);
+  else if (action === 'focus-skip') showFocus(null); // Skip = any kind
+  else if (action === 'focus-next-one') { // after Done: pick again the way the last one was picked, else start over at the project question
+    const d = ui.focusDone; ui.focusDone = null; ui.focusQ = 1;
+    if (!(d && (d.ordered ? M.pickForMe() : M.pickFocus(d.filter)))) paint();
+  }
+  else if (action === 'focus-menu') { const f = state.focus; ui.focusMenu = f && ui.focusMenu !== f.taskId ? f.taskId : null; paint(); }
+  else if (action === 'focus-steps') { const f = state.focus; ui.focusMenu = null; ui.focusSteps = f ? f.taskId : null; ui.focusTick = null; paint(); }
+  else if (action === 'focus-steps-back') { ui.focusSteps = null; paint(); }
+  else if (action === 'clear-focus') { M.clearFocus(); ui.focusQ = 1; ui.focusDone = null; }
   else if (action === 'focus-doing') {
     // same path as a board drop: lands at the end of In progress; the task stays in focus
     const f = state.focus && findTaskWithProject(state.focus.taskId);
@@ -805,7 +831,7 @@ function onAppClick(e) {
   // M.setFocusTask doesn't exist -- the correct exported function is setFocus.
   // "Focus on this" lives in the edit form now (Q14a, Q12f) -- picking a task closes the form.
   else if (action === 'focus-task') { ui.editingTask = null; M.setFocus(taskId); }
-  else if (action === 'focus-subtask') M.setFocus(taskId);
+  else if (action === 'focus-subtask') { ui.focusSteps = null; M.setFocus(taskId); }
   else if (action === 'delete-task') {
     if (confirmDeleteTask(taskId, projectId)) { ui.editingTask = null; M.deleteTask(taskId, projectId); }
   }
@@ -1033,6 +1059,12 @@ function onAppChange(e) {
     paintKeepingFocus('[data-tidy-tick="' + CSS.escape(id) + '"]');
     return;
   }
+  if (e.target.matches && e.target.matches('[data-focus-tick]')) { // Smaller steps: one tick at a time
+    const id = e.target.getAttribute('data-focus-tick');
+    ui.focusTick = e.target.checked ? id : null;
+    paintKeepingFocus('[data-focus-tick="' + CSS.escape(id) + '"]');
+    return;
+  }
   if (e.target.matches && e.target.matches('[data-bulk-key]')) {
     const key = e.target.getAttribute('data-bulk-key');
     ui.bulk.picked = e.target.checked ? ui.bulk.picked.filter((k) => k !== key).concat(key) : ui.bulk.picked.filter((k) => k !== key);
@@ -1119,10 +1151,11 @@ function onAppInput(e) {
     if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
     return;
   }
-  if (e.target.matches && e.target.matches('.car-find')) {
-    ui.focusFind = e.target.value;
-    const slot = document.getElementById('project-wallet');
-    if (slot) { slot.innerHTML = R.renderProjectWalletInner(viewState(state), ui); mountWallets(slot, walletHooks); }
+  if (e.target.matches && e.target.matches('[data-car-find]')) { // Focus's Find boxes narrow their own carousel and keep the caret
+    const kinds = e.target.getAttribute('data-car-find') === 'kinds';
+    if (kinds) ui.focusKindFind = e.target.value; else ui.focusFind = e.target.value;
+    const slot = document.getElementById(kinds ? 'category-wallet' : 'project-wallet');
+    if (slot) { slot.innerHTML = (kinds ? renderCategoryWalletInner : renderProjectWalletInner)(viewState(state), ui); mountWallets(slot, walletHooks); }
     return;
   }
   if (e.target.matches && e.target.matches('[data-triage-find]')) {
@@ -1720,6 +1753,7 @@ function init() {
     // J opens the + Jot screen from anywhere on a wide screen (not while typing); Escape closes it (#263)
     if ((e.key === 'j' || e.key === 'J') && !typing && !ui.jotOpen && !e.ctrlKey && !e.metaKey && !e.altKey && isWideScreen()) { e.preventDefault(); openJot(); }
     else if (e.key === 'Escape' && ui.jotOpen) { e.preventDefault(); if (ui.jotPick) { keepJotDraft(); ui.jotPick = false; paintJot(); document.querySelector('.jot-where').focus(); } else closeJot(); }
+    else if (e.key === 'Escape' && ui.focusMenu) { e.preventDefault(); ui.focusMenu = null; paint(); const b = document.querySelector('.focus-tag'); if (b) b.focus(); }
     else if (e.key === 'Escape' && ui.unsorted.menu) { e.preventDefault(); ui.unsorted.menu = false; paint(); const b = document.querySelector('.slip-more'); if (b) b.focus(); }
     else if (e.key === 'Escape' && ui.screen === 'roadmap' && !ui.boardSelected && (ui.rmDrawer || ui.rmScreen)) { e.preventDefault(); if (ui.rmDrawer) { ui.rmDrawer = null; paint(); } else { const b = document.querySelector('.pj .dk-back'); if (b) b.click(); } } // Escape is Back on a Roadmap screen (#268)
     else if (e.key === 'Escape' && ui.boardSelected && !typing) { selectBoardTask(null); paint(); }

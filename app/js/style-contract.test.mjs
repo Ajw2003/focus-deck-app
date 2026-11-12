@@ -22,13 +22,12 @@ const root = path.join(here, '..');
 const css = fs.readFileSync(path.join(root, 'css/app.css'), 'utf8');
 
 // Markup sources whose class="..." attributes are the app's real contract with the stylesheet.
-const MARKUP_SOURCES = ['js/render.js', 'js/app.js', 'js/in-tray-view.js', 'js/onboarding-view.js', 'js/sync-setup.js', 'index.html', 'settings.html', 'setup.html'];
+const MARKUP_SOURCES = ['js/render.js', 'js/app.js', 'js/in-tray-view.js', 'js/focus-view.js', 'js/onboarding-view.js', 'js/sync-setup.js', 'index.html', 'settings.html', 'setup.html'];
 
 // doc-ref f152 docs/4-systems/styling.md
 const ALLOWED_WITHOUT_RULE = new Set([
   'cat-add-form',       // js hook only (settings.html form submit handler)
   'cat-remove-btn',     // js hook only (settings.html: e.target.matches('.cat-remove-btn'))
-  'focus-card',   // modifier stacked on .card, which carries the styling
   'focus-active', // pure state marker read by app.js, never styled directly
 ]);
 
