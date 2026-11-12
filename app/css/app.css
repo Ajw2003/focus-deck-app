@@ -1137,7 +1137,7 @@ body.is-dragging-task .empty-note{display:none;}
    screen is drawn. Wide: a column fixed on the left under the topbar. Phone: a bar fixed along the
    bottom. Focus and Sort are one centred column; Projects keeps the project list and folders.
    The jotter (adding) stays in the topbar on every screen. See docs/4-systems/styling.md#one-screen-at-a-time */
-.rail{position:fixed; z-index:15; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(7,minmax(0,1fr));
+.rail{position:fixed; z-index:15; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(8,minmax(0,1fr));
   background:var(--surface); border-top:1px solid var(--line); padding:6px 8px calc(6px + env(safe-area-inset-bottom, 0px));}
 .rail-item{display:flex; flex-direction:column; align-items:center; gap:3px; border:0; background:none; color:var(--ink-soft); font:600 .72rem var(--font-ui); padding:6px 0; border-radius:12px; cursor:pointer;}
 .rail-item.is-on{color:var(--accent); background:var(--surface-2);}

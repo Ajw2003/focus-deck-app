@@ -73,7 +73,7 @@ export function renderRail(screen, unsortedCount, syncHTML = '', reviewCount = 0
 // Projects' single selected project); a project that no longer exists falls back to '' (Unsorted).
 export function jotTarget(st, ui) {
   let id = ui.jotTo;
-  if (id === undefined) id = (ui.view && ui.view.mode === 'project' && (ui.screen === 'board' || ui.screen === 'projects') && ui.view.id) || '';
+  if (id === undefined) id = (ui.view && ui.view.mode === 'project' && (ui.screen === 'board' || ui.screen === 'projects' || ui.screen === 'roadmap') && ui.view.id) || '';
   return st.projects.some((p) => p.id === id) ? id : '';
 }
 

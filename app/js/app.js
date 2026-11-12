@@ -28,6 +28,9 @@ import { tidyGroups, confirmIds } from './tidy.js';
 import { renderTriage } from './triage-view.js';
 import { triageLists, moveId, NOW_SIZE, NEXT_SIZE } from './triage.js';
 import { initTriageDrag } from './triage-drag.js';
+import { renderRoadmap } from './roadmap-view.js';
+import { initRoadmapDrag } from './roadmap-drag.js';
+import { COLS, stepMilestone, stepSection, moveMilestone, moveSection, addSection, addMilestone, makeMilestone } from './roadmap.js';
 import { reviewLists } from './board.js';
 import { notesSummary } from './task-details.js';
 import { canSetParent, canWaitOn } from './task-links.js';
@@ -165,6 +168,7 @@ export const ui = {
   // Task details (#201): the open row, a subtask being typed, the link search, the label list open
   boardOpen: null, boardAddSub: false, boardLink: null, boardPicker: false,
   onboarding: loadOnboarding(),
+  rmOpen: {}, rmCol: {}, rmAdd: null, // the Roadmap (#257), memory only: milestones opened/closed by hand, the phone's column per milestone, the add form open
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectFilter: undefined, projectQuery: '', projectSort: loadProjectSort(), projectCollapsed: loadCollapsedProjects(),
@@ -278,6 +282,7 @@ export function renderApp(st) {
   // the Sort screen is the tray, always open (its header can't fold it away here)
   if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + sw + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
   if (ui.screen === 'tidy') return rail + '<div class="screen screen-tidy">' + sw + renderTidy(st, ui) + '</div>' + toast;
+  if (ui.screen === 'roadmap') return rail + '<div class="screen screen-roadmap">' + sw + renderRoadmap(st, ui, hasToken) + '</div>' + toast;
   if (ui.screen === 'triage') return rail + '<div class="screen screen-triage">' + sw + renderTriage(st, ui) + '</div>' + toast;
   if (ui.screen === 'review') return rail + '<div class="screen screen-review">' + sw + renderReview(st, ui) + '</div>' + toast;
   if (ui.screen === 'board') return rail + '<div class="screen screen-board">' + sw + R.renderBoard(st, ui) + '</div>' + toast;
@@ -300,6 +305,21 @@ function moveTriage(id, to, by) {
   const again = document.querySelector('.tr-row[data-task-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
   if (again) again.focus({ preventScroll: true });
 }
+
+// Roadmap (#257). A column move is a status change, exactly as the Board makes one (setTaskStatus: the
+// "needs review" label, closing the issue on done). The others edit the project's sections and milestones.
+const rmFocus = (kind, id) => { const g = document.querySelector('.rm-grip[data-kind="' + kind + '"][data-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]'); if (g) g.focus({ preventScroll: true }); };
+function rmTask(id, status) {
+  const f = findTaskWithProject(id);
+  if (f && COLS.some((c) => c[0] === status) && f.task.status !== status) M.setTaskStatus(id, status);
+  paint(); rmFocus('task', id);
+}
+function rmTaskStep(id, dir) {
+  const f = findTaskWithProject(id), i = f ? COLS.findIndex((c) => c[0] === f.task.status) : -1;
+  if (i >= 0 && COLS[i + dir]) rmTask(id, COLS[i + dir][0]);
+}
+const rmProject = () => (ui.view.mode === 'project' ? ui.view.id : null);
+function rmEdit(kind, id, fn) { M.editRoadmap(rmProject(), fn); paint(); rmFocus(kind, id); }
 
 // The topbar's sync button and Projects toggle live outside #app (see index.html), so paint()
 // updates them directly instead of through the innerHTML replace below.
@@ -594,6 +614,16 @@ function onAppClick(e) {
     ids.forEach((id) => delete ui.tidyMarks[id]);
     setScreen('triage'); paint(); window.scrollTo(0, 0); return; // "Confirm N, then Triage"
   }
+  if (action === 'rm-open') { setView({ mode: 'project', id: el.getAttribute('data-project') }); paint(); window.scrollTo(0, 0); return; }
+  if (action === 'rm-toggle') { const id = el.getAttribute('data-id'), was = el.getAttribute('aria-expanded') === 'true'; ui.rmOpen[id] = !was; paint(); return; }
+  if (action === 'rm-col') { ui.rmCol[el.getAttribute('data-ms')] = el.getAttribute('data-col'); paint(); return; }
+  if (action === 'rm-task') { const id = el.getAttribute('data-id'); selectBoardTask(ui.boardSelected === id ? null : id); paint(); return; }
+  if (action === 'rm-task-step') { rmTaskStep(el.getAttribute('data-id'), Number(el.getAttribute('data-dir'))); return; }
+  if (action === 'rm-ms-step') { const id = el.getAttribute('data-id'), d = Number(el.getAttribute('data-dir')); rmEdit('ms', id, (p) => stepMilestone(p, id, d)); return; }
+  if (action === 'rm-sec-step') { const id = el.getAttribute('data-id'), d = Number(el.getAttribute('data-dir')); rmEdit('sec', id, (p) => stepSection(p, id, d)); return; }
+  if (action === 'rm-add') { ui.rmAdd = { kind: el.getAttribute('data-kind'), ms: el.getAttribute('data-ms') }; if (ui.rmAdd.kind === 'task') ui.rmOpen[ui.rmAdd.ms] = true; paint(); const f = document.querySelector('.rm-add-form input, .rm .add-row input[name="title"]'); if (f) f.focus(); return; }
+  if (action === 'rm-add-cancel') { ui.rmAdd = null; paint(); return; }
+  if (action === 'rm-make') { const m = M.editRoadmap(rmProject(), (p) => makeMilestone(p, p.tasks.find((t) => t.id === el.getAttribute('data-id')))); ui.notice = m ? '“' + m.name + '” is now a milestone.' : 'It already is one.'; paint(); return; }
   if (action === 'triage-later') { ui.triageLaterOpen = !ui.triageLaterOpen; paint(); return; }
   if (action === 'triage-move') { moveTriage(el.getAttribute('data-task'), null, Number(el.getAttribute('data-dir'))); return; }
   if (action === 'triage-reset') { const l = triageLists(state, ui.view, dueDates().today); M.resetTriageOrder(l.now.concat(l.next, l.later).map((r) => r.id)); paint(); return; }
@@ -1060,6 +1090,8 @@ function onAppChange(e) {
     ui.projectSort = e.target.value;
     saveProjectSort();
     paint();
+  } else if (e.target.matches && e.target.matches('[data-action="rm-set-milestone"]')) {
+    M.setTaskMilestone(e.target.getAttribute('data-id'), e.target.value); paint();
   } else if (e.target.matches && e.target.matches('[data-action="set-project-category"]')) {
     const projectId = e.target.getAttribute('data-project');
     let categoryId = e.target.value;
@@ -1380,6 +1412,14 @@ function onAppSubmit(e) {
     focusLater('#ob-task-title');
     return;
   }
+  const rmForm = e.target.closest('[data-action="rm-add-submit"]');
+  if (rmForm) {
+    e.preventDefault();
+    const name = String(new FormData(rmForm).get('name') || '').trim(), kind = rmForm.getAttribute('data-kind');
+    if (name) M.editRoadmap(rmProject(), (p) => (kind === 'section' ? addSection(p, name) : addMilestone(p, name)));
+    ui.rmAdd = null; paint();
+    return;
+  }
   const addTaskForm = e.target.closest('[data-action="add-task"]');
   if (addTaskForm) {
     e.preventDefault();
@@ -1388,6 +1428,8 @@ function onAppSubmit(e) {
     if (!String(fd.get('title') || '').trim()) return;
     const task = M.addTaskPicked(projectId, fd.get('title'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'), dueStagesFromForm(fd));
     if (!task) return; // no priority picked: nothing is added (#249)
+    const inMs = fd.get('milestone'); if (inMs && inMs !== 'unplanned') M.setTaskMilestone(task.id, String(inMs)); // added from a Roadmap milestone
+    ui.rmAdd = null;
     createIssueIfGithubProject(task, projectId);
     delete ui.addDraft[projectId]; delete ui.addingTask[projectId]; delete ui.addPick[projectId];
     paint(); focusAddTitle(projectId);
@@ -1660,6 +1702,11 @@ function init() {
   app.addEventListener('focusout', onDetailFocusOut);
   app.addEventListener('contextmenu', onAppContextMenu);
   initTriageDrag(app, (id, to) => moveTriage(id, to, 0));
+  initRoadmapDrag(app, {
+    task: rmTask, taskStep: rmTaskStep,
+    ms: (id, sec, i) => rmEdit('ms', id, (p) => moveMilestone(p, id, sec, i)), msStep: (id, d) => rmEdit('ms', id, (p) => stepMilestone(p, id, d)),
+    sec: (id, i) => rmEdit('sec', id, (p) => moveSection(p, id, i)), secStep: (id, d) => rmEdit('sec', id, (p) => stepSection(p, id, d)),
+  });
   initProjectDrag(app, {
     move: moveProjectTo,
     moveTask: moveTaskTo,
@@ -1672,7 +1719,7 @@ function init() {
   if (topbar) topbar.addEventListener('click', onAppClick);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && ui.projectsDrawerOpen) setProjectsDrawerOpen(false);
-    else if (e.key === 'Escape' && (ui.screen === 'board' || ui.screen === 'review') && ui.boardSelected) { selectBoardTask(null); paint(); }
+    else if (e.key === 'Escape' && (ui.screen === 'board' || ui.screen === 'review' || ui.screen === 'roadmap') && ui.boardSelected) { selectBoardTask(null); paint(); }
   });
   const captureForm = document.getElementById('capture-form');
   const captureInput = document.getElementById('capture-input');
