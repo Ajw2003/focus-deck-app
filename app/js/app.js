@@ -50,7 +50,7 @@ function saveFocusFilter() {
   catch (e) { console.error('Could not save the focus pick filter:', e); }
 }
 
-// J focuses the jot box only from the wide layout up (mirrors the 1100px media queries in css/app.css).
+// J opens the + Jot screen only from the wide layout up (mirrors the 1100px media queries in css/app.css).
 const isWideScreen = () => typeof matchMedia === 'function' && matchMedia('(min-width:1100px)').matches;
 
 // The project sort is a per-device choice too (PR 9): a drag switches it to "custom", and it has to
@@ -290,19 +290,32 @@ function rmTaskStep(id, dir) {
 const rmProject = () => (ui.view.mode === 'project' ? ui.view.id : null);
 function rmEdit(kind, id, fn) { M.editRoadmap(rmProject(), fn); paint(); rmFocus(kind, id); }
 
+// The + Jot screen (#263), drawn into #jot-screen on its own so a sync repaint never eats the draft.
+function paintJot() { document.getElementById('jot-screen').innerHTML = R.renderJotScreen(state, ui); }
+function keepJotDraft() { const box = document.getElementById('jot-input'); if (box) ui.jotDraft = box.value; }
+function openJot() { ui.jotOpen = true; ui.jotPick = false; paintJot(); document.getElementById('jot-input').focus(); }
+function closeJot() { ui.jotOpen = false; ui.jotPick = false; ui.jotDraft = ''; paintJot(); const b = document.getElementById('jot-open'); if (b) b.focus(); }
+// Files the thought exactly as the old topbar jot box did: Sort, or a task in the stamped project.
+function saveJot() {
+  keepJotDraft();
+  const target = R.jotTarget(state, ui), title = (ui.jotDraft || '').trim();
+  if (!title) { document.getElementById('jot-input').focus(); return; }
+  if (!target) { M.addCapture(ui.jotDraft); ui.notice = 'Saved ✓'; ui.noticeAction = null; }
+  else {
+    const task = M.addTask(target, title);
+    createIssueIfGithubProject(task, target);
+    ui.notice = 'Saved ✓';
+    ui.noticeAction = { text: ui.notice, label: 'Open', action: 'open-added-task', attrs: { 'data-task': task.id, 'data-project': target } };
+  }
+  closeJot();
+  paint();
+}
+
 // The topbar's sync button and Projects toggle live outside #app (see index.html), so paint()
 // updates them directly instead of through the innerHTML replace below.
 function paintHeaderControls() {
   const syncSlot = document.getElementById('topbar-sync');
   if (syncSlot) syncSlot.innerHTML = R.renderSyncButton(state);
-  const to = document.getElementById('capture-to');
-  if (to) {
-    const target = R.jotTarget(state, ui);
-    to.innerHTML = '<option value="">To: Unsorted</option>' + state.projects.map((p) => '<option value="' + esc(p.id) + '">To: ' + esc(p.name) + '</option>').join('');
-    to.value = target;
-    const addBtn = document.querySelector('#capture-form .jot-add');
-    if (addBtn) addBtn.textContent = target ? 'Add task' : 'Add';
-  }
 }
 
 // Puts focus (and caret, else the end) in a project's add-row title box.
@@ -343,7 +356,7 @@ export function paint() {
 // Notes and thoughts have no length limit, so their boxes grow with the text. CSS field-sizing does
 // it where supported; elsewhere (Safari, Firefox at the time of writing) this sets the height from
 // the content. The jotter's 40vh cap is in its CSS max-height.
-const GROWING_BOXES = '#capture-input, .slip-notes, [data-detail-notes]';
+const GROWING_BOXES = '.slip-notes, [data-detail-notes]';
 const growsByItself = typeof CSS !== 'undefined' && CSS.supports && CSS.supports('field-sizing', 'content');
 function autoGrow(box) {
   if (growsByItself || !box) return;
@@ -561,7 +574,11 @@ function onAppClick(e) {
   if (action === 'view-step') { ui.viewOpen = el.getAttribute('data-step'); paint(); focusViewPop(); return; }
   if (action === 'view-open') { ui.viewOpen = ui.viewOpen ? false : 'menu'; paint(); focusViewPop(); return; }
   if (action === 'sync-drawer') { ui.syncOpen = !ui.syncOpen; paint(); return; }
-  if (action === 'jot-open') { const box = document.getElementById('capture-input'); if (box) { box.scrollIntoView({ block: 'nearest' }); box.focus(); } return; } // #263 replaces this with the + Jot sheet
+  if (action === 'jot-open') { openJot(); return; }
+  if (action === 'jot-close') { closeJot(); return; }
+  if (action === 'jot-where') { keepJotDraft(); ui.jotPick = !ui.jotPick; paintJot(); const f = document.querySelector(ui.jotPick ? '.jot-drawer .vs-search' : '.jot-where'); if (f) f.focus(); return; }
+  if (action === 'jot-pick') { ui.jotTo = el.getAttribute('data-id'); keepJotDraft(); ui.jotPick = false; paintJot(); document.querySelector('.jot-where').focus(); return; }
+  if (action === 'jot-save') { saveJot(); return; }
   if (action === 'view-close') { closeViewPop(); return; }
   if (action === 'view-pick') { setView({ mode: el.getAttribute('data-mode'), id: el.getAttribute('data-id') }); closeViewPop(); return; }
   if (action === 'scroll-to-task') {
@@ -1609,37 +1626,19 @@ function init() {
   // only acts on data-action values it recognizes
   const topbar = document.querySelector('.topbar');
   if (topbar) topbar.addEventListener('click', onAppClick);
-  const captureForm = document.getElementById('capture-form');
-  const captureInput = document.getElementById('capture-input');
+  const jotScreen = document.getElementById('jot-screen');
+  jotScreen.addEventListener('click', onAppClick);
+  jotScreen.addEventListener('input', (e) => {
+    if (e.target.id === 'jot-input') ui.jotDraft = e.target.value;
+    else if (e.target.matches('[data-jot-search]')) { const q = e.target.value.trim().toLowerCase(); jotScreen.querySelectorAll('[data-jot-name]').forEach((x) => { x.hidden = !x.getAttribute('data-jot-name').includes(q); }); }
+  });
   document.addEventListener('keydown', (e) => {
     const tag = e.target && e.target.tagName, typing = e.target && (e.target.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target.closest && e.target.closest('[data-wallet]'))); // a wallet takes typed letters to find a card
-    // J jumps to the jot box from anywhere on a wide screen (not while typing); Escape leaves it (#259)
-    if ((e.key === 'j' || e.key === 'J') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && isWideScreen()) { e.preventDefault(); captureInput.focus(); }
-    else if (e.key === 'Escape' && e.target === captureInput) captureInput.blur();
+    // J opens the + Jot screen from anywhere on a wide screen (not while typing); Escape closes it (#263)
+    if ((e.key === 'j' || e.key === 'J') && !typing && !ui.jotOpen && !e.ctrlKey && !e.metaKey && !e.altKey && isWideScreen()) { e.preventDefault(); openJot(); }
+    else if (e.key === 'Escape' && ui.jotOpen) { e.preventDefault(); if (ui.jotPick) { keepJotDraft(); ui.jotPick = false; paintJot(); document.querySelector('.jot-where').focus(); } else closeJot(); }
     else if (e.key === 'Escape' && ui.boardSelected && !typing) { selectBoardTask(null); paint(); }
   });
-  captureForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const target = R.jotTarget(state, ui), title = captureInput.value.trim();
-    if (!target) M.addCapture(captureInput.value);
-    else if (!title) return;
-    else {
-      const task = M.addTask(target, title);
-      createIssueIfGithubProject(task, target);
-      ui.notice = 'Added "' + title + '" to ' + state.projects.find((q) => q.id === target).name;
-      ui.noticeAction = { text: ui.notice, label: 'Open', action: 'open-added-task', attrs: { 'data-task': task.id, 'data-project': target } };
-      paint();
-    }
-    captureInput.value = '';
-    autoGrow(captureInput);
-    captureInput.focus();
-  });
-  // Enter adds the thought, as it did when the jotter was a one-line input; Shift+Enter is a new line
-  captureInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); captureForm.requestSubmit(); }
-  });
-  captureInput.addEventListener('input', () => autoGrow(captureInput));
-  document.getElementById('capture-to').addEventListener('change', (e) => { ui.jotTo = e.target.value; paint(); });
   paintHeaderControls();
 }
 

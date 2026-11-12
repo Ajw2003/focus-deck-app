@@ -83,6 +83,28 @@ export function jotTarget(st, ui) {
   return st.projects.some((p) => p.id === id) ? id : '';
 }
 
+// The + Jot screen (#263): a clipboard over the current tab with the jotter, a "where it goes" index card
+// and a Save stamp; ui.jotPick opens the card-index drawer of destinations. Not repainted by paint().
+export function renderJotScreen(st, ui) {
+  if (!ui.jotOpen) return '';
+  const target = jotTarget(st, ui), proj = st.projects.find((p) => p.id === target);
+  const dest = proj ? '📁 ' + esc(proj.name) : '📥 Sort';
+  const card = (id, label, on) => '<button type="button" class="dk-choice' + (on ? ' on' : '') + '" data-action="jot-pick" data-id="' + esc(id) + '" aria-pressed="' + on + '">' + label + '</button>';
+  const drawer = ui.jotPick
+    ? '<div class="vs-backdrop" data-action="jot-where"></div><div class="vs-pop dk-sheet jot-drawer" role="dialog" aria-modal="true" aria-label="Where should it go?" tabindex="-1">'
+      + '<div class="vs-pop-head"><b>Where should it go?</b><button type="button" class="vs-x" data-action="jot-where" aria-label="Close">×</button></div>'
+      + '<div class="vs-pop-body">' + card('', '📥 Sort', !target)
+      + '<input type="search" class="vs-search" data-jot-search placeholder="Find a project…" aria-label="Find a project">'
+      + st.projects.map((p) => '<span data-jot-name="' + esc(p.name.toLowerCase()) + '">' + card(p.id, '📁 ' + esc(p.name), p.id === target) + '</span>').join('')
+      + '</div></div>'
+    : '';
+  return '<div class="jot-screen" role="dialog" aria-modal="true" aria-label="Jot a thought"><div class="dk-board jot-board">'
+    + '<div class="vs-pop-head"><b>Jot a thought</b><button type="button" class="vs-x" data-action="jot-close" aria-label="Close">×</button></div>'
+    + '<div class="dk-paper jot-paper"><div class="jotter"><textarea id="jot-input" rows="5" placeholder="Type it here…" aria-label="Your thought">' + esc(ui.jotDraft || '') + '</textarea></div>'
+    + '<button type="button" class="dk-choice jot-where" data-action="jot-where" aria-haspopup="dialog" aria-expanded="' + !!ui.jotPick + '">Where it goes <small>' + dest + ' ▾</small></button>'
+    + '<button type="button" class="dk-btn jot-save" data-action="jot-save">Save</button></div></div>' + drawer + '</div>';
+}
+
 // action (optional): { label, action, attrs } renders a button before the close button.
 export function renderToast(text, kind, action) {
   if (!text) return '';

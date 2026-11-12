@@ -15,6 +15,19 @@ way gets the same fields, sort order and GitHub issue.
 
 ## Status
 
+**#263: the jotter moved onto the + Jot screen (supersedes the topbar jotter below).** The topbar no longer
+holds a jot box. The header's `+ Jot` (`data-action="jot-open"`, also `J` on screens 1100px and wider) opens
+`#jot-screen` (`renderJotScreen` in `js/render.js`; open/close/save in `js/app.js`: `openJot`, `closeJot`,
+`saveJot`): a clipboard titled "Jot a thought" with the lined jotter (`#jot-input`), a "Where it goes" index card
+(default 📥 Sort; `▾` opens the "Where should it go?" card-index drawer: Sort, a Find a project box, the projects)
+and a stamped Save. Save files exactly as before (Sort: `M.addCapture`; a project: `M.addTask` plus
+`createIssueIfGithubProject`), closes the screen and shows a "Saved ✓" toast (with Open for a project). The
+`jotTarget` rule is unchanged: the card follows the Roadmap's project until you pick, `ui.jotTo` holds a pick until
+you change screen. The draft lives in `ui.jotDraft`; the screen is painted into its own container so a sync repaint
+never eats it. Escape closes the drawer, then the screen. Enter adds a new line (Save is the button). In the text
+below, "stamp", "`#capture-to`", "`.to-stamp`" and "Add" describe the earlier topbar form, now replaced by the
+destination card and Save. Checks: `scripts/check-add-row-browser.mjs`, `check-bulk-sort-browser.mjs`.
+
 **#240 (project-card row), #241 (Board row) and #242 (jotter stamp) built.** Tracked by #239.
 #242: `#capture-to` in `index.html`, `.to-stamp` in `css/app.css`, `jotTarget` and `renderToast`'s optional action in `js/render.js`, stamp painting in `paintHeaderControls`, submit, `open-added-task` and `ui.jotTo`/`ui.noticeAction` in `js/app.js`. Tests: `js/render.test.mjs` (target resolution, toast action) and the jotter steps in `scripts/check-add-row-browser.mjs`; screenshots `docs/generated/quick-add/built-jotter-*.png` (native select open is not capturable, so shown chosen with the notice).
 #241: `renderBoard` in `js/board-view.js` puts `renderAddTaskRow` above Up next when one project is

@@ -16,8 +16,8 @@
     ],
     [
      "jot-open",
-     "+ Jot (for now focuses the jot box; #263 replaces it)",
-     "g1"
+     "+ Jot: opens the Jot a thought screen",
+     "j1"
     ],
     [
      "sync-drawer",
@@ -55,9 +55,24 @@
    "Jot",
    [
     [
-     "capture (form)",
-     "Jot a thought, To: Unsorted or a project",
-     "j1 j2 j3"
+     "jot-save",
+     "Save the thought to Sort or a project",
+     "j1 j3"
+    ],
+    [
+     "jot-where",
+     "Where it goes: open the card-index drawer",
+     "j1 j2"
+    ],
+    [
+     "jot-pick",
+     "Pick Sort or a project in the drawer",
+     "j2"
+    ],
+    [
+     "jot-close",
+     "Close the Jot screen (×)",
+     "j1"
     ],
     [
      "open-added-task",
