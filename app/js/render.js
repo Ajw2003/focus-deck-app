@@ -224,7 +224,8 @@ export function renderFocus(st, findTaskWithProject, ui) {
   return '<section class="focus-card focus-active desk-focus">'
     + '<div class="note-shadow"><div class="note' + leaving.note + '">'
       + '<div class="note-meta">'
-        + '<button type="button" class="note-project" data-action="scroll-project" data-project="' + p.id + '" title="Go to ' + esc(p.name) + '">' + esc(p.name) + ' ↓</button>'
+        + '<button type="button" class="note-project" data-action="rm-open" data-project="' + p.id + '" title="Open on the Roadmap: ' + esc(p.name) + '">' + esc(p.name) + ' ↓</button>'
+        + '<button type="button" class="btn-text task-open" data-action="task-open" data-task="' + esc(t.id) + '" aria-label="Task details: ' + esc(t.title) + '">Details</button>'
         + focusMetaParts(st, t)
         + deadlineHTML
       + '</div>'
