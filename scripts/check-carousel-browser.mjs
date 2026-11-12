@@ -1,4 +1,4 @@
-// scripts/check-carousel-browser.mjs -- real-Chromium check of the one carousel (#253) at 1440x900 and 390x844.
+// scripts/check-carousel-browser.mjs -- real-Chromium check of the wallet strip and Find / pick-for-me (#253) at 1440x900 and 390x844.
 // Desktop: five cards, arrows, keys, wheel, typing, Enter picks and a task opens. Phone: a swipe moves the row.
 // Both: Find narrows the row; Sort files a thought by picking a project in the carousel plus a priority;
 // "Or let me pick for you" opens the task the Start here order names, and "Not this one" the next.
@@ -9,6 +9,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { swipe } from './lib/touch.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -52,39 +53,40 @@ async function open(vp, screen, touch) {
     localStorage.setItem('focusdeck-onboarding', 'done');
   }, [STATE_KEY, JSON.stringify(seed()), screen]);
   await page.goto(BASE);
-  await page.waitForSelector('.car');
+  await page.waitForSelector('.flip-track');
   return page;
 }
-const count = (page, id) => page.textContent('.car[data-car="' + id + '"] .car-count');
-const visible = (page, id) => page.$$eval('.car[data-car="' + id + '"] .car-card', (els, id) => {
-  const r = document.querySelector('.car[data-car="' + id + '"] .car-row').getBoundingClientRect();
+const W = { projects: '[data-wallet="projects"]', categories: '[data-wallet="categories"]', 'tray-projects': '[data-wallet="tray-folders"]' };
+const countOf = (page, id) => page.$eval(W[id], (t) => t.closest('.wallet').querySelector('.wallet-count').textContent);
+const visible = (page, id) => page.$$eval(W[id] + ' .sleeve', (els, sel) => {
+  const r = document.querySelector(sel).getBoundingClientRect();
   return els.filter((e) => { const b = e.getBoundingClientRect(); return b.left >= r.left - 2 && b.right <= r.right + 2; }).length;
-}, id);
+}, W[id]);
 
 // ---- desktop -------------------------------------------------------------------------------
 {
   const page = await open({ width: 1440, height: 900 }, 'focus');
   check('desktop: five project cards show at once', (await visible(page, 'projects')) === 5, 'visible=' + (await visible(page, 'projects')));
-  check('desktop: count reads "1 of 13" (All projects + 12)', (await count(page, 'projects')).trim() === '1 of 13', await count(page, 'projects'));
-  check('desktop: arrow buttons, a labelled row and a count are there', !!(await page.$('.car[data-car="projects"] button.car-arrow[aria-label="Next project"]')) && !!(await page.$('.car[data-car="projects"] .car-row[role="group"][aria-label]')));
+  check('desktop: count reads "1 of 13" (All projects + 12)', (await countOf(page, 'projects')).trim() === '1 of 13', await countOf(page, 'projects'));
+  check('desktop: arrow buttons, a labelled row and a count are there', !!(await page.$('#project-wallet .wallet-arrow[aria-label="Next"]')) && !!(await page.$('[data-wallet="projects"][role="group"][aria-label]')));
   await page.screenshot({ path: OUT + 'focus-desk.png', fullPage: true });
-  await page.click('.car[data-car="projects"] button[aria-label="Next project"]');
-  check('desktop: the › arrow moves to 2 of 13', (await count(page, 'projects')).trim() === '2 of 13');
-  await page.focus('.car[data-car="projects"] .car-row');
+  await page.click('#project-wallet .wallet-arrow[aria-label="Next"]');
+  check('desktop: the next arrow moves to 2 of 13', (await countOf(page, 'projects')).trim() === '2 of 13');
+  await page.focus('[data-wallet="projects"]');
   await page.keyboard.press('ArrowRight');
-  check('desktop: Right arrow key moves to 3 of 13', (await count(page, 'projects')).trim() === '3 of 13');
+  check('desktop: Right arrow key moves to 3 of 13', (await countOf(page, 'projects')).trim() === '3 of 13');
   await page.keyboard.press('ArrowLeft');
-  check('desktop: Left arrow key moves back to 2 of 13', (await count(page, 'projects')).trim() === '2 of 13');
-  const box = await (await page.$('.car[data-car="projects"] .car-row')).boundingBox();
+  check('desktop: Left arrow key moves back to 2 of 13', (await countOf(page, 'projects')).trim() === '2 of 13');
+  const box = await (await page.$('[data-wallet="projects"]')).boundingBox();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.wheel(120, 0);
   await page.waitForTimeout(150);
-  check('desktop: a sideways wheel over the row moves it to 3 of 13', (await count(page, 'projects')).trim() === '3 of 13', await count(page, 'projects'));
-  await page.focus('.car[data-car="projects"] .car-row');
+  check('desktop: a sideways wheel over the row moves it to 3 of 13', (await countOf(page, 'projects')).trim() === '3 of 13', await countOf(page, 'projects'));
+  await page.focus('[data-wallet="projects"]');
   await page.keyboard.type('gar');
-  check('desktop: typing "gar" jumps to Garden (9 of 13)', (await count(page, 'projects')).trim() === '9 of 13', await count(page, 'projects'));
+  check('desktop: typing "gar" jumps to Garden (9 of 13)', (await countOf(page, 'projects')).trim() === '9 of 13', await countOf(page, 'projects'));
   await page.waitForTimeout(600); // the smooth scroll settles
-  check('desktop: the row scrolled so the active card is in view', (await visible(page, 'projects')) === 5 && await page.$eval('.car[data-car="projects"] .car-card.is-active', (e) => { const r = e.closest('.car-row').getBoundingClientRect(), b = e.getBoundingClientRect(); return b.left >= r.left - 2 && b.right <= r.right + 2; }));
+  check('desktop: the row scrolled so the active card is in view', (await visible(page, 'projects')) === 5 && await page.$eval('[data-wallet="projects"] .sleeve.is-centre', (e) => { const r = e.closest('.flip-track').getBoundingClientRect(), b = e.getBoundingClientRect(); return b.left >= r.left - 2 && b.right <= r.right + 2; }));
   await page.screenshot({ path: OUT + 'focus-desk-garden.png' });
   await page.keyboard.press('Enter');
   await page.waitForSelector('.focus-active');
@@ -96,11 +98,11 @@ const visible = (page, id) => page.$$eval('.car[data-car="' + id + '"] .car-card
 {
   const page = await open({ width: 1440, height: 900 }, 'focus');
   await page.fill('.car-find', 'hot');
-  check('Find a project narrows the row to Hotel', (await count(page, 'projects')).trim() === '1 of 1', await count(page, 'projects'));
+  check('Find a project narrows the row to Hotel', (await countOf(page, 'projects')).trim() === '1 of 1', await countOf(page, 'projects'));
   await page.fill('.car-find', 'zzz');
   check('Find with no match says so', !!(await page.$('.find-empty')));
   await page.fill('.car-find', '');
-  check('clearing Find brings every project back', (await count(page, 'projects')).trim().endsWith('of 13'));
+  check('clearing Find brings every project back', (await countOf(page, 'projects')).trim().endsWith('of 13'));
   await page.click('[data-action="pick-for-me"]');
   await page.waitForSelector('.focus-active');
   check('Or let me pick for you opens the task in progress', (await page.textContent('.focus-title')).includes('Hotel task'), await page.textContent('.focus-title'));
@@ -112,11 +114,11 @@ const visible = (page, id) => page.$$eval('.car[data-car="' + id + '"] .car-card
 // ---- desktop: Sort ----------------------------------------------------------------------------
 {
   const page = await open({ width: 1440, height: 900 }, 'sort');
-  await page.waitForSelector('.car[data-car="tray-projects"]');
-  check('Sort desktop: "Which project?" carousel shows five cards', (await visible(page, 'tray-projects')) === 5 && (await page.textContent('.car[data-car="tray-projects"] .car-h .q')).includes('Which project?'), 'visible=' + (await visible(page, 'tray-projects')));
+  await page.waitForSelector('[data-wallet="tray-folders"]');
+  check('Sort desktop: "Which project?" carousel shows five cards', (await visible(page, 'tray-projects')) === 5 && (await page.textContent('#tray-folder-wallet .wallet-h .q')).includes('Which project?'), 'visible=' + (await visible(page, 'tray-projects')));
   check('Sort: File button is off before a project and priority', await page.$eval('.file-btn', (b) => b.disabled));
   await page.screenshot({ path: OUT + 'sort-desk.png', fullPage: true });
-  await page.focus('.car[data-car="tray-projects"] .car-row');
+  await page.focus('[data-wallet="tray-folders"]');
   await page.keyboard.type('ju');
   await page.keyboard.press('Enter');
   await page.waitForSelector('.folder-chip');
@@ -135,32 +137,33 @@ const visible = (page, id) => page.$$eval('.car[data-car="' + id + '"] .car-card
 // ---- phone ------------------------------------------------------------------------------------
 {
   const page = await open({ width: 390, height: 844 }, 'focus', true);
-  const w = await page.$eval('.car[data-car="projects"] .car-row', (r) => r.clientWidth);
-  const cw = await page.$eval('.car[data-car="projects"] .car-card', (c) => c.getBoundingClientRect().width);
-  check('phone: about 1.5 cards show (card is 55-75% of the row)', cw / w > 0.55 && cw / w < 0.75, (cw / w).toFixed(2));
-  check('phone: arrows are hidden', !(await page.$eval('.car-arrow', (a) => a.offsetParent !== null)));
+  check('phone: the flip wallet is as before (no strip, no arrows, hint line)', !(await page.$('.is-strip')) && !(await page.$('.wallet-arrow')) && (await page.textContent('.flip-hint')).includes('Swipe sideways to flip'));
   await page.screenshot({ path: OUT + 'focus-phone.png', fullPage: true });
-  const box = await (await page.$('.car[data-car="projects"] .car-row')).boundingBox();
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Input.synthesizeScrollGesture', { x: box.x + box.width / 2, y: box.y + box.height / 2, xDistance: -Math.round(cw * 3), yDistance: 0, gestureSourceType: 'touch', speed: 800 });
-  await page.waitForTimeout(500);
-  const c = (await count(page, 'projects')).trim() + ' scrollLeft=' + (await page.$eval('.car[data-car="projects"] .car-row', (r) => Math.round(r.scrollLeft)));
-  check('phone: a swipe moves the row (count is no longer 1 of 13)', !c.startsWith('1 of 13') && c.includes(' of 13'), c);
+  const box = await (await page.$('[data-wallet="projects"]')).boundingBox();
+  await swipe(page, { x: box.x + box.width * 0.8, y: box.y + box.height / 2 }, { x: box.x + box.width * 0.1, y: box.y + box.height / 2 });
+  const c = (await countOf(page, 'projects')).trim();
+  check('phone: a swipe flips the wallet (count is no longer 1 of 13)', c !== '1 of 13' && c.endsWith(' of 13'), c);
   await page.fill('.car-find', 'kil');
-  check('phone: Find narrows the row', (await count(page, 'projects')).trim() === '1 of 1');
-  await page.click('.car[data-car="projects"] .car-card');
+  await page.waitForTimeout(300);
+  check('phone: Find narrows the wallet to Kilo', (await countOf(page, 'projects')).trim() === '1 of 1');
+  await page.click('[data-wallet="projects"] .sleeve .icard');
+  await page.waitForTimeout(450);
+  await page.click('[data-wallet="projects"] .sleeve .icard');
   await page.waitForSelector('.focus-active');
-  check('phone: tapping a card opens a task', (await page.textContent('.focus-title')).includes('Kilo task'), await page.textContent('.focus-title'));
+  check('phone: tapping the card twice opens a task', (await page.textContent('.focus-title')).includes('Kilo task'), await page.textContent('.focus-title'));
   await page.screenshot({ path: OUT + 'focus-phone-task.png' });
   await page.close();
 }
 {
   const page = await open({ width: 390, height: 844 }, 'sort', true);
-  await page.waitForSelector('.car[data-car="tray-projects"]');
+  await page.waitForSelector('[data-wallet="tray-folders"]');
   await page.screenshot({ path: OUT + 'sort-phone.png', fullPage: true });
   await page.fill('.sort-find', 'lim');
-  check('phone Sort: Find narrows the project row', (await count(page, 'tray-projects')).trim() === '1 of 1');
-  await page.click('.car[data-car="tray-projects"] .car-card');
+  check('phone Sort: Find narrows the project row', (await countOf(page, 'tray-projects')).trim() === '1 of 1');
+  await page.click('[data-wallet="tray-folders"] .sleeve .icard');
+  await page.waitForTimeout(450);
+  await page.click('[data-wallet="tray-folders"] .sleeve .icard');
+  await page.waitForTimeout(300);
   await page.click('[data-action="pick-set"][data-field="priority"][data-value="medium"]');
   check('phone Sort: File to Lima enabled', (await page.textContent('.file-btn')).trim() === 'File to Lima →' && !(await page.$eval('.file-btn', (b) => b.disabled)));
   await page.screenshot({ path: OUT + 'sort-phone-ready.png', fullPage: true });
