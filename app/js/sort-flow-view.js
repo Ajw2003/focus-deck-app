@@ -136,7 +136,8 @@ function labelsStep(c) {
     html += '<div class="wallet" id="tray-flag-wallet">' + walletInner({ wallet: 'tray-flags', label: '', aria: 'Kinds of work. Arrow keys flip, Enter adds or removes.', items, facing, mode, verb: 'use' }) + '</div>';
   } else html += '<p class="muted small find-empty">No label matches “' + esc(q) + '”.</p>';
   const picked = u.selected.map((t) => allCards.find((x) => x.token === t)).filter(Boolean);
-  html += '<div class="sort-picked">' + (picked.length ? '📎 ' + picked.map((x) => '<button type="button" class="dk-tag" data-action="sort-flag" data-token="' + esc(x.token) + '" aria-label="Take off ' + esc(x.name) + '">' + esc(x.name) + ' ×</button>').join('') : '') + '</div>'
+  html += '<div class="sort-picked">' + (picked.length ? '📎 ' + picked.map((x, i) => '<button type="button" class="dk-tag" data-action="sort-flag" data-token="' + esc(x.token) + '" aria-label="Take off ' + esc(x.name) + '">' + esc(x.name) + ' ×</button>'
+      + (c.edit ? '<button type="button" class="dk-tag td-cat' + (i === 0 ? ' on' : '') + '" data-action="sort-make-cat" data-token="' + esc(x.token) + '" aria-pressed="' + (i === 0) + '" aria-label="Make ' + esc(x.name) + ' the category">★</button>' : '')).join('') : '') + '</div>'
     + '<div class="sort-row2"><button type="button" class="dk-link" data-action="sort-azl">A–Z</button><button type="button" class="dk-link" data-action="sort-new-label">+ New label</button></div>';
   return html;
 }
@@ -171,8 +172,7 @@ function receipt(c) {
     ['📝', 'Notes', note ? note.replace(/\s+/g, ' ') : '—', 'notes'],
   ];
   return '<div class="dk-summary sort-receipt">' + rows.map(([icon, label, val, step]) => '<div><span aria-hidden="true">' + icon + '</span><b class="sr-only">' + label + ': </b><em>' + esc(val) + '</em>'
-    + '<button type="button" class="dk-pencil" data-action="sort-step" data-step="' + step + '" aria-label="Change ' + label.toLowerCase() + '">✎</button></div>').join('') + '</div>'
-    + (cur.kind === 'task' && !u.selected.length ? '<p class="muted small">No label yet, so this task stays in Sort.</p>' : '');
+    + '<button type="button" class="dk-pencil" data-action="sort-step" data-step="' + step + '" aria-label="Change ' + label.toLowerCase() + '">✎</button></div>').join('') + '</div>';
 }
 
 // ---- the whole tab -------------------------------------------------------------------------------------
@@ -219,7 +219,7 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
   if (sub === 'month') return bar + board(monthStep(c, now), false, 'Pick a date') + foot([back(), stamp(u.due ? 'Use ' + formatDue(u.due) : 'Pick a day', { action: 'sort-use-date', disabled: !u.due })]) + drawer;
   if (sub === 'warn') return bar + board(warnStep(c, now, st.dueDefaults), true, 'When should it warn you?') + foot([back(), skip(), stamp('Next')]) + drawer;
 
-  let body = '', next = edit ? stamp('Save', { action: 'edit-save' }) : stamp('Next'), blocked = '';
+  let body = '', next = edit ? stamp('Save', { action: 'edit-save' }) : stamp('Next');
   if (step === 1) {
     const q = u.find || '';
     const folders = folderCards(edit ? st : viewState(st)).filter((f) => has(f.name, q)); // Move (edit) offers every project, not just the view's
@@ -237,12 +237,12 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
       } else body += '<p class="muted small find-empty">No project matches “' + esc(q) + '”.</p>';
     }
     body += '<div class="sort-row2"><button type="button" class="dk-link" data-action="sort-new-project">+ New project</button></div>';
-    if (!project) { next = stamp('Next', { disabled: true }); blocked = 'Choose a project first.'; }
+    if (!project) { next = stamp('Next', { disabled: true }); }
   } else if (step === 2) {
     const flag = (l) => '<button type="button" class="sort-flag' + (u.priority === l ? ' on' : '') + '" data-level="' + l + '" data-action="pick-set" data-scope="sort" data-field="priority" data-value="' + l + '" aria-pressed="' + (u.priority === l) + '">' + esc(PRIORITY[l].label) + '</button>';
     body = '<div class="sort-picks sort-flags" role="group" aria-label="Priority">' + PRIORITY_ORDER.map(flag).join('')
       + (isThought ? '' : '<button type="button" class="sort-flag none' + (!u.priority ? ' on' : '') + '" data-action="pick-set" data-scope="sort" data-field="priority" data-value="none" aria-pressed="' + !u.priority + '">None</button>') + '</div>';
-    if (isThought && !u.priority) { next = stamp('Next', { disabled: true }); blocked = 'Pick a priority to go on.'; }
+    if (isThought && !u.priority) { next = stamp('Next', { disabled: true }); }
   } else if (step === 3) body = labelsStep(c);
   else if (step === 4) body = dueStep(c, now);
   else if (step >= 5 && step <= 8) body = tieStep(c, ['parent', 'subtasks', 'waitsOn', 'holdsUp'][step - 5]);
@@ -252,7 +252,7 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
     const save = isThought
       ? stamp(label, { action: 'unsorted-file', attrs: ' data-inbox="' + cur.item.id + '"', disabled: !ready })
       : stamp(label, { action: 'unsorted-save', attrs: ' ' + c.ids, disabled: !ready });
-    return bar + board(receipt(c) + (ready ? '' : why(!project ? 'Choose a project first.' : 'Pick a priority first.')), false, STEP_TITLES[9]) + foot([back(), save]) + drawer;
+    return bar + board(receipt(c), false, STEP_TITLES[9]) + foot([back(), save]) + drawer;
   }
-  return bar + board(body + why(u.why || blocked) + '<div class="sr-only" id="tray-live" aria-live="polite"></div>', true, STEP_TITLES[step]) + foot([back()].concat(canSkip(step) && !edit ? [skip()] : [], [next])) + drawer;
+  return bar + board(body + why(u.why) + '<div class="sr-only" id="tray-live" aria-live="polite"></div>', true, STEP_TITLES[step]) + foot([back()].concat(canSkip(step) && !edit ? [skip()] : [], [next])) + drawer;
 }

@@ -1014,6 +1014,7 @@ function onDetailAction(action, el) {
   const { task, project } = d;
   const toggle = (name) => { ui.boardDrawer = ui.boardDrawer === name ? null : name; paint(); };
   if (action === 'detail-close') { selectBoardTask(null); paint(); }
+  else if (action === 'detail-goto') { selectBoardTask(el.getAttribute('data-task-id')); paint(); }
   else if (action === 'detail-status-open') toggle('status');
   else if (action === 'detail-more') toggle('more');
   else if (action === 'detail-status') { ui.boardDrawer = null; M.setTaskStatus(task.id, el.getAttribute('data-status')); paint(); }
@@ -1244,6 +1245,7 @@ function onSortAction(action, el) {
   }
   else if (action === 'sort-azl') { u.sub = 'azl'; u.find = ''; paint(); }
   else if (action === 'sort-letter') { u.letter = el.getAttribute('data-letter'); u.find = ''; paint(); }
+  else if (action === 'sort-make-cat') { const t = el.getAttribute('data-token'); u.selected = [t].concat(u.selected.filter((x) => x !== t)); paint(); } // the first label is the category (Task details)
   else if (action === 'sort-flag') { u.selected = toggleToken(u.selected, el.getAttribute('data-token')); paint(); }
   else if (action === 'sort-month') { u.month = shiftMonth(u.month || (u.due || dueDates().today).slice(0, 7), +el.getAttribute('data-dir')); paint(); }
   else if (action === 'sort-use-date') { u.dateOpen = false; paint(); }

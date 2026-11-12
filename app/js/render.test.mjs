@@ -247,7 +247,7 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   const doneForm = renderTaskEditForm({ ...base, status: 'done' }, p, cats);
   assert.ok(!doneForm.includes('>Focus on this<'), 'a done task has nothing to focus on');
   const inbox = renderInTrayCard({ inbox: [{ id: 'i1', text: 'idea', createdAt: Date.now() }], projects: [{ id: 'p1', name: 'P', color: 'red', tasks: [] }], categories: cats }, { inboxOpen: true, unsorted: Object.assign(freshUnsorted(), { step: 1 }) });
-  assert.ok(inbox.includes('Which project?') && inbox.includes('data-key="p1"') && inbox.includes('Choose a project first'), 'a captured thought is guided to a folder before it can be filed');
+  assert.ok(inbox.includes('Which project?') && inbox.includes('data-key="p1"'), 'a captured thought is guided to a folder before it can be filed');
 }
 
 // New project (#267): four steps, then the GitHub choices; the Edit panel's Link to GitHub repo row.

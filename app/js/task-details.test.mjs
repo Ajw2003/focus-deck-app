@@ -31,10 +31,11 @@ const st = {
   assert.ok(h.includes('data-action="detail-close"') && h.includes('aria-label="Close task details"'), 'the x close');
   assert.ok(h.includes('Boiler &lt;b&gt;') && h.includes('>Home<'), 'title (escaped) and project');
   assert.ok(h.includes('data-action="detail-status-open"') && h.includes('>Up next<'), 'the status stamp');
-  assert.strictEqual((h.match(/class="dk-pencil"/g) || []).length, 8, 'one pencil per receipt line');
+  assert.strictEqual((h.match(/class="dk-pencil"/g) || []).length, 9, 'one pencil per receipt line');
   ['High', 'Study, Bug', '1 of 2', 'Book it soon'].forEach((v) => assert.ok(h.includes('<em>' + v + '</em>'), 'line ' + v));
   assert.ok(h.includes('<em>Due in 2 days</em>'), 'due line');
-  assert.ok(renderTaskDetails(st, {}, 't3', now).includes('<em>Boiler &lt;b&gt;</em>'), 'waits on names the task');
+  assert.ok(renderTaskDetails(st, {}, 't3', now).includes('data-action="detail-goto" data-task-id="t1">Boiler &lt;b&gt;</button>'), 'waits on names the task, and tapping it opens that task');
+  assert.ok(h.includes('data-action="detail-goto" data-task-id="t3">Get quote</button>'), 'holds up lists the task that waits on this one');
   assert.ok(['2', '4', '3', '7', 'notes'].every((n) => h.includes('data-action="detail-edit" data-step="' + n + '"')), 'pencils open the Sort steps');
   assert.ok(h.includes('data-action="detail-subs"') && h.includes('data-action="detail-github"'), 'smaller steps and GitHub have their own screens');
   assert.ok(h.includes('data-action="detail-more"') && h.includes('>◎ Focus<') && !h.includes('vs-pop'), 'the more tag and the Focus stamp, drawer shut');

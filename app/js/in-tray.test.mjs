@@ -175,10 +175,10 @@ test('step 1 project carousel, step 2 priority flags: Next waits for each, a tas
   assert.ok(p1.includes('data-action="sort-new-project">+ New project<') && p1.includes('data-action="sort-back"') && !p1.includes('sort-skip'), 'Back and a new project; no Skip');
   assert.ok(p1.includes('<span class="folder-chip"') && !p1.includes('Going in') && p1.includes('data-action="sort-next"'), 'the folder shows on the slip');
   const none = card({ step: 1 });
-  assert.ok(none.includes('disabled>Next<') && none.includes('Choose a project first.'), 'no folder: Next is off and says why');
+  assert.ok(none.includes('disabled>Next<'), 'no folder: Next is off');
   const p2 = card({ step: 2, projectId: 'pB' });
   assert.ok(p2.includes('How important?') && p2.includes('data-value="urgent"') && !p2.includes('data-value="none"') && !p2.includes('sort-skip'), 'a thought has to have a priority: no None, no Skip');
-  assert.ok(p2.includes('disabled>Next<') && p2.includes('Pick a priority to go on.'));
+  assert.ok(p2.includes('disabled>Next<'));
   assert.ok(card({ step: 2, projectId: 'pB', priority: 'high' }).includes('class="sort-flag on" data-level="high"') && !card({ step: 2, projectId: 'pB', priority: 'high' }).includes('disabled>Next<'));
   state.inbox.length = 0;
   const t = card({ step: 1 });
@@ -230,7 +230,7 @@ test('the receipt: a line and a pencil for each step, then Save to the project',
   assert.ok(card({ step: 9, projectId: 'pB' }).includes('disabled>Save to Home<'), 'no priority: Save is off');
   state.inbox.length = 0;
   const t = card({ step: 9 });
-  assert.ok(t.includes('data-action="unsorted-save" data-task="a2" data-project="pA">Save to School<') && t.includes('No label yet, so this task stays in Sort.'));
+  assert.ok(t.includes('data-action="unsorted-save" data-task="a2" data-project="pA">Save to School<'));
 });
 
 test('folder search filters folders; flag search filters flags and shows all', () => {
