@@ -900,8 +900,7 @@ body.is-dragging-task .empty-note{display:none;}
 .screen-sort + .toast{bottom:calc(150px + env(safe-area-inset-bottom, 0px));}
 .wrap:has(.screen-sort + .toast){padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px));} /* the slip sits over the board, so the page needs no room under it */
 @media (min-width:1100px){
-  .screen-sort .sortflow{min-height:0;}
-  .sortflow .flip-track.is-spread{grid-template-columns:repeat(2, minmax(0, 1fr));}
+  .screen-sort .sortflow{min-height:0; max-width:680px;}
 }
 
 .task-find{margin:-2px 0 12px; padding:8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface);}
