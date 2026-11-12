@@ -121,10 +121,10 @@ function applyTies(task, projectId, pick, deps) {
 }
 
 export function fileSlip(cur, pick, deps) {
-  if (cur.kind === 'thought' && !pick.projectId) return { outcome: 'none' };
+  if (cur.kind === 'thought' && (!pick.projectId || !pick.priority)) return { outcome: 'none' }; // a thought needs a priority (#249)
   const ids = selectionToIds(pick.selected, deps.labelIdByName);
   if (cur.kind === 'thought') {
-    const task = deps.fileInboxItem(cur.item.id, pick.projectId, ids, { title: pick.title, notes: pick.notes });
+    const task = deps.fileInboxItem(cur.item.id, pick.projectId, ids, { title: pick.title, notes: pick.notes, priority: pick.priority, deadline: pick.deadline });
     deps.createIssue(task, pick.projectId);
     if (task) applyTies(task, pick.projectId, pick, deps);
     return { outcome: 'filed', task, projectId: pick.projectId };
@@ -169,6 +169,7 @@ export function bulkBlocker(slips, pick) {
   const group = (pick.groupTitle || '').trim();
   if (slips.some((x) => x.kind === 'thought') && !pick.projectId) return 'Choose a project for the thoughts you ticked.';
   if (group && !target) return 'Choose a project to group them in.';
+  if (slips.some((x) => x.kind === 'thought') && !pick.priority) return 'Pick a priority for the thoughts you ticked.';
   if (!pick.projectId && !(pick.selected || []).length && !group) return 'Choose a project, a label or a group name.';
   return '';
 }
@@ -186,7 +187,7 @@ export function bulkSort(slips, pick, deps) {
   const sorted = [];
   slips.forEach((x) => {
     if (x.kind === 'thought') {
-      const task = deps.fileInboxItem(x.item.id, pick.projectId, ids);
+      const task = deps.fileInboxItem(x.item.id, pick.projectId, ids, { priority: pick.priority, deadline: pick.deadline });
       if (!task) { out.skipped++; return; }
       deps.createIssue(task, pick.projectId);
       out.filed++;

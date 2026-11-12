@@ -63,6 +63,18 @@ first. Labels and links open once the thought has a project." in a `.step-why` l
 and `stepBar`, `app/js/in-tray-view.js:66-69`). A long note ends above the tray's lip, because
 `.jot-slip` keeps 34px of padding at its foot (`app/css/app.css:827`).
 
+## A thought needs a priority (#249)
+
+Filing a thought needs a priority; a due date is optional. The slip carries the same Priority and
+Due buttons as the project add row (`renderPickBlocks` in `js/pick-bits.js`, held in
+`ui.unsorted.priority/due/dateOpen`, so they reset with each slip). Until one is picked the file
+button on step 3 is disabled and reads "Pick a priority to file". `fileSlip` returns `none` and
+`M.fileInboxItem` returns nothing without a valid priority, whatever the button says; both store
+`priority` and `deadline` from `extra`. Tasks already in a project keep their own priority and show
+no pickers. In "Select many" the pickers appear once a thought is ticked, one priority (and optional
+date) for the whole batch, applied to the ticked thoughts only; `bulkBlocker` says "Pick a priority
+for the thoughts you ticked." The jotter itself is exempt: jotting into Unsorted needs no priority.
+
 ## Sort many at once
 
 Built 2026-10-24 (Aj asked for it with "skip design"). A **Select many** button beside the tray's

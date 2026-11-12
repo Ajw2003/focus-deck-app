@@ -37,6 +37,7 @@ const SHELL_ASSETS = [
   './js/in-tray.js',
   './js/task-links.js',
   './js/in-tray-view.js',
+  './js/pick-bits.js',
   './js/onboarding.js',
   './js/onboarding-view.js',
   './js/key-check.js',

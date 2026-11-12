@@ -20,6 +20,7 @@ import { renderInTrayCard, unsortedCurrent, STEP_LOCKED_WHY } from './in-tray-vi
 import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY, orderTray, pickedSlips, bulkBlocker, bulkSort } from './in-tray.js';
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
 import { renderOnboarding } from './onboarding-view.js';
+import { pickState, dueDates, parseDue } from './pick-bits.js';
 import { normalizeBoardCol } from './board-view.js';
 import { notesSummary } from './task-details.js';
 import { canSetParent, canWaitOn } from './task-links.js';
@@ -103,11 +104,11 @@ function saveProjectSort() {
 // "Select many" on the Sort screen: memory only, and kept apart from ui.unsorted, which resets
 // whenever the top slip changes. `picked` holds queue keys.
 function freshBulk(on) {
-  return { on: !!on, picked: [], projectId: null, selected: [], groupTitle: '', newLabel: '', why: '' };
+  return { on: !!on, priority: null, due: '', dateOpen: false, picked: [], projectId: null, selected: [], groupTitle: '', newLabel: '', why: '' };
 }
 
 function freshUnsortedScratch(later) {
-  return { later: later || [], projectId: null, selected: [], step: 1, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null,
+  return { later: later || [], priority: null, due: '', dateOpen: false, projectId: null, selected: [], step: 1, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null,
     parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '', why: '' };
 }
 
@@ -174,7 +175,7 @@ export const ui = {
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectFilter: undefined, projectQuery: '', projectSort: loadProjectSort(), projectCollapsed: loadCollapsedProjects(),
-  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, addDraft: {}, unsorted: freshUnsortedScratch(), bulk: freshBulk(false),
+  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, addDraft: {}, addPick: {}, unsorted: freshUnsortedScratch(), bulk: freshBulk(false),
   projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: resolveProjectView(loadProjectView(), isWideScreen()),
   // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
   // (Q30c) -- neither persisted, both reset to closed on load.
@@ -345,7 +346,13 @@ function autoGrow(box) {
   box.style.height = 'auto';
   box.style.height = box.scrollHeight + 'px';
 }
-document.addEventListener('input', (e) => { if (e.target.matches && e.target.matches('.add-row input[name="title"]')) ui.addDraft[e.target.closest('.add-row').getAttribute('data-project')] = e.target.value; });
+document.addEventListener('input', (e) => {
+  if (!(e.target.matches && e.target.matches('.add-row input[name="title"]'))) return;
+  const row = e.target.closest('.add-row');
+  ui.addDraft[row.getAttribute('data-project')] = e.target.value;
+  const blocks = row.querySelector('.pick-blocks'); // shown once there is a title (#249)
+  if (blocks) blocks.hidden = !e.target.value.trim();
+});
 document.addEventListener('input', (e) => { if (e.target.matches && e.target.matches(GROWING_BOXES)) autoGrow(e.target); });
 function growAll() { document.querySelectorAll(GROWING_BOXES).forEach(autoGrow); }
 
@@ -452,6 +459,61 @@ function drawCompletePhase(phase) {
   if (note) ['is-crossed', 'is-peeling'].forEach((c) => note.classList.toggle(c, want.note.includes(c)));
 }
 
+// ---- Priority and due pickers (#249; js/pick-bits.js) --------------------------------------------
+const PICK_FIELD = { priority: 'priority', due: 'deadline' };
+function focusPickChip(field, taskId) {
+  const c = document.querySelector('[data-action="open-pick"][data-field="' + field + '"][data-task="' + CSS.escape(taskId) + '"]');
+  if (c) c.focus();
+}
+function closePick() { Object.assign(pickState, { field: null, taskId: null, dateOpen: false }); }
+// The state a pick edits: the add row's, the Sort slip's or the bulk panel's.
+function pickTarget(el) {
+  const scope = el.getAttribute('data-scope');
+  if (scope === 'add') { const id = el.getAttribute('data-project'); return ui.addPick[id] || (ui.addPick[id] = {}); }
+  return scope === 'sort' ? ui.unsorted : scope === 'bulk' ? ui.bulk : null;
+}
+function onPickSet(el) {
+  const field = el.getAttribute('data-field'), value = el.getAttribute('data-value'), scope = el.getAttribute('data-scope');
+  const val = field === 'priority' || value === 'date' ? value : value === 'none' ? '' : dueDates()[value];
+  if (scope === 'task') {
+    const id = el.getAttribute('data-task');
+    if (value === 'date') { pickState.dateOpen = true; paint(); const d = document.querySelector('.pick-pop [data-pick-date]'); if (d) d.focus(); return; }
+    M.updateTaskFields(id, { [PICK_FIELD[field]]: val || null });
+    closePick(); paint(); focusPickChip(field, id);
+    return;
+  }
+  const S = pickTarget(el);
+  if (!S) return;
+  if (value === 'date') S.dateOpen = true;
+  else { if (field === 'priority') S.priority = val; else { S.due = val; S.dateOpen = false; } }
+  const q = '[data-action="pick-set"][data-scope="' + scope + '"][data-field="' + field + '"][data-value="' + value + '"]' + (scope === 'add' ? '[data-project="' + CSS.escape(el.getAttribute('data-project')) + '"]' : '');
+  paint();
+  const next = value === 'date' ? document.querySelector('[data-pick-date][data-scope="' + scope + '"]') : document.querySelector(q);
+  if (next) next.focus();
+}
+// A date from the date box or typed ("fri", "15 dec"); an unreadable typed one is left alone.
+function onPickDate(el, text) {
+  const iso = el.matches('[data-pick-type]') ? parseDue(text) : text;
+  if (el.matches('[data-pick-type]') && !iso) { el.setAttribute('aria-invalid', 'true'); return; }
+  if (el.getAttribute('data-scope') === 'task') {
+    const id = el.getAttribute('data-task');
+    M.updateTaskFields(id, { deadline: iso || null });
+    closePick(); paint(); focusPickChip('due', id);
+    return;
+  }
+  const S = pickTarget(el);
+  if (!S) return;
+  S.due = iso || ''; S.dateOpen = !!iso && el.matches('[data-pick-date]');
+  paint();
+}
+document.addEventListener('change', (e) => { if (e.target.matches && e.target.matches('[data-pick-date], [data-pick-type]')) onPickDate(e.target, e.target.value); });
+// click-away closes an open chip picker (a tap on another action then repaints as usual)
+document.addEventListener('click', (e) => {
+  if (!pickState.field || e.target.closest('.pick-wrap')) return;
+  closePick();
+  document.querySelectorAll('.pick-pop').forEach((n) => n.remove());
+}, true);
+
 function onAppClick(e) {
   const el = e.target.closest('[data-action]');
   if (!el) return;
@@ -465,6 +527,14 @@ function onAppClick(e) {
     return;
   }
   if (action.startsWith('ob-')) { onOnboardingClick(action, el); return; }
+  if (action === 'pick-set') { onPickSet(el); return; }
+  if (action === 'open-pick') {
+    const same = pickState.field === el.getAttribute('data-field') && pickState.taskId === taskId;
+    Object.assign(pickState, same ? { field: null, taskId: null, dateOpen: false } : { field: el.getAttribute('data-field'), taskId, dateOpen: false });
+    paint();
+    focusPickChip(el.getAttribute('data-field'), taskId);
+    return;
+  }
   if (action === 'label-show-all') {
     // Settings > Category choices hid some labels in this form (#133): show them, without a repaint
     const picker = el.closest('.label-picker');
@@ -510,7 +580,7 @@ function onAppClick(e) {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
     const cur = unsortedCurrent(state, ui.unsorted);
     if (!cur) return;
-    const pick = { projectId: ui.unsorted.projectId, selected: ui.unsorted.selected, title: ui.unsorted.title, notes: ui.unsorted.notes,
+    const pick = { priority: ui.unsorted.priority, deadline: ui.unsorted.due, projectId: ui.unsorted.projectId, selected: ui.unsorted.selected, title: ui.unsorted.title, notes: ui.unsorted.notes,
       parent: ui.unsorted.parent, subtasks: ui.unsorted.subtasks, waitsOn: ui.unsorted.waitsOn, holdsUp: ui.unsorted.holdsUp, newSubtasks: ui.unsorted.newSubtasks };
     const done = fileSlip(cur, pick, {
       fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove, addTask: M.addTask, projects: state.projects,
@@ -610,7 +680,6 @@ function onAppClick(e) {
   // "Focus on this" lives in the edit form now (Q14a, Q12f) -- picking a task closes the form.
   else if (action === 'focus-task') { ui.editingTask = null; M.setFocus(taskId); }
   else if (action === 'focus-subtask') M.setFocus(taskId);
-  else if (action === 'cycle-priority') M.cyclePriority(taskId);
   else if (action === 'delete-task') {
     if (confirmDeleteTask(taskId, projectId)) { ui.editingTask = null; M.deleteTask(taskId, projectId); }
   }
@@ -1241,9 +1310,10 @@ function onAppSubmit(e) {
     const fd = new FormData(addTaskForm);
     const projectId = addTaskForm.getAttribute('data-project');
     if (!String(fd.get('title') || '').trim()) return;
-    const task = M.addTask(projectId, fd.get('title'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'), dueStagesFromForm(fd));
+    const task = M.addTaskPicked(projectId, fd.get('title'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'), dueStagesFromForm(fd));
+    if (!task) return; // no priority picked: nothing is added (#249)
     createIssueIfGithubProject(task, projectId);
-    delete ui.addDraft[projectId]; delete ui.addingTask[projectId];
+    delete ui.addDraft[projectId]; delete ui.addingTask[projectId]; delete ui.addPick[projectId];
     paint(); focusAddTitle(projectId);
     return;
   }
@@ -1335,6 +1405,20 @@ function onAppSubmit(e) {
 }
 
 function onAppKeydown(e) {
+  // an open chip picker: Escape closes it and gives focus back to its chip
+  if (e.key === 'Escape' && pickState.field) {
+    const { field, taskId } = pickState;
+    e.stopPropagation(); closePick(); paint(); focusPickChip(field, taskId);
+    return;
+  }
+  // a typed date: Enter reads it instead of submitting the row
+  if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-pick-type]')) { e.preventDefault(); onPickDate(e.target, e.target.value); return; }
+  // 1-4 pick Urgent/High/Medium/Low while focus is on a button in the add row (not in a box, where digits are typing)
+  if ('1234'.includes(e.key) && e.key.length === 1 && e.target.tagName === 'BUTTON' && e.target.closest && e.target.closest('.add-row')) {
+    const row = e.target.closest('.add-row');
+    const b = row.querySelector('.pick-opt[data-field="priority"][data-value="' + ['urgent', 'high', 'medium', 'low'][+e.key - 1] + '"]');
+    if (b && !row.querySelector('.pick-blocks').hidden) { e.preventDefault(); b.click(); return; }
+  }
   // Task details: Enter finishes the title (saved on leaving it) or adds the typed subtask
   if (e.key === 'Enter' && e.target.matches) {
     if (e.target.matches('[data-detail-title]')) { e.preventDefault(); e.target.blur(); return; }

@@ -1,4 +1,5 @@
 // focus-deck-app/js/render.js
+import { pickChip, renderPickBlocks } from './pick-bits.js';
 import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED } from './state.js';
 import { ICON_SYNC, ICON_SETTINGS, ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
 import { unblockCount, subtasksOf, tieSummary, tieLineHtml } from './task-links.js';
@@ -392,9 +393,10 @@ export function renderTaskRow(t, p, categories, ui, projects = [], isSub = false
   const claudeChip = t.claudeCreated
     ? '<span class="chip cat-chip claude-chip small" title="Claude created" aria-label="Claude created" style="--chip-color:var(--ink-soft)">Claude created</span>'
     : '';
-  const priorityChip = t.priority && PRIORITY[t.priority]
-    ? '<button type="button" class="chip priority-chip small" data-action="cycle-priority" data-task="' + t.id + '" title="Priority — tap to change" style="--chip-color:var(--prio-' + t.priority + ')"' + (isDone ? ' disabled' : '') + '>' + PRIORITY[t.priority].label + '</button>'
-    : '';
+  // the chips open a small picker (js/pick-bits.js); a done task shows what it had, not editable
+  const priorityChip = isDone
+    ? (t.priority && PRIORITY[t.priority] ? '<span class="chip priority-chip small" style="--chip-color:var(--prio-' + t.priority + ')">' + PRIORITY[t.priority].label + '</span>' : '')
+    : pickChip('priority', t);
   // Open rows carry a drag grip before the checkbox (PR 11); done rows don't drag. The grip is a real
   // button so the arrow keys work on it (js/project-drag.js). See docs/4-systems/styling.md#dragging-tasks
   const grip = isDone ? '' : '<button type="button" class="task-grip" data-task="' + t.id + '" data-project="' + p.id + '" aria-label="Move ' + esc(t.title) + '" title="Drag to move, or use the arrow keys">' + ICON_GRIP + '</button>';
@@ -405,7 +407,7 @@ export function renderTaskRow(t, p, categories, ui, projects = [], isSub = false
     // right 25% (kept even when there are no chips, so the title never grows into it) -- #97, #92
     + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + claudeMarks(t) + tieLineHtml(ties) + '</span>'
     + '<div class="task-chips">' + priorityChip + catChips + claudeChip
-    + (t.deadline ? deadlineChip(t.deadline, t) : '')
+    + (isDone ? (t.deadline ? deadlineChip(t.deadline, t) : '') : (t.deadline ? pickChip('due', t) : ''))
     + '</div>'
     + '</div>';
 }
@@ -623,18 +625,18 @@ export function renderMoveDialog(message, actionLabel = 'Move') {
 
 // The one-line add row at a project card's foot (docs/4-systems/quick-add.md). "More" opens the
 // old boxes underneath; `draft` is the title typed so far, so a repaint does not lose it (#235).
-export function renderAddTaskRow(project, categories, isMoreOpen, draft, placeholder) {
-  const id = esc(project.id);
+export function renderAddTaskRow(project, categories, isMoreOpen, draft, placeholder, pick) {
+  const id = esc(project.id), S = pick || {};
   return '<form class="add-task-form add-row" data-action="add-task" data-project="' + id + '">'
     + '<div class="add-line"><span class="add-plus" aria-hidden="true">+</span>'
       + '<input type="text" name="title" maxlength="280" required placeholder="' + esc(placeholder || 'Add a task…') + '" aria-label="Add a task to ' + esc(project.name) + '" value="' + esc(draft || '') + '">'
       + '<button type="button" class="btn-text" data-action="toggle-add-more" data-project="' + id + '" aria-expanded="' + !!isMoreOpen + '">' + (isMoreOpen ? 'Less' : 'More') + '</button>'
-      + '<button type="submit" class="btn primary">Add</button></div>'
+      + '<button type="submit" class="btn primary"' + (S.priority ? '' : ' disabled') + '>' + (S.priority ? 'Add' : 'Pick a priority to add') + '</button></div>'
+    // priority (required) and due date, shown once there is a title (#249); app.js keeps them in ui.addPick
+    + renderPickBlocks(S, 'add', { project: project.id }, !String(draft || '').trim())
     + (isMoreOpen
       ? '<div class="add-more">'
           + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
-          + renderPrioritySelect(null)
-          + '<input type="date" name="deadline">'
           + renderLabelPicker(categories, [], project)
         + '</div>'
       : '')
@@ -669,7 +671,7 @@ export function renderProjectCard(p, ui, categories, projectCategories, hasToken
   // the order, and there's a single card. A real button, so the arrow keys work on it too
   // (js/project-drag.js). See docs/4-systems/styling.md#dragging-projects
   const gripBtn = isOneView ? '' : '<button type="button" class="drag-grip" data-project="' + p.id + '" aria-label="Move ' + esc(p.name) + '" title="Drag to reorder, or use the arrow keys">' + ICON_GRIP + '</button>';
-  const addTaskBlock = renderAddTaskRow(p, categories, !!ui.addingTask[p.id], (ui.addDraft || {})[p.id] || '');
+  const addTaskBlock = renderAddTaskRow(p, categories, !!ui.addingTask[p.id], (ui.addDraft || {})[p.id] || '', undefined, (ui.addPick || {})[p.id]);
   return '<section class="card project-card' + (collapsed ? ' is-collapsed' : '') + (isSelected ? ' is-selected' : '') + '" id="proj-' + p.id + '" style="--proj-color:' + p.color + '">'
     // Line 1: dot, name (wraps, never truncated), collapse toggle + Edit -- always on this line,
     // whatever the name's length (#83). Line 2 (badges) always renders, even empty, so a card's

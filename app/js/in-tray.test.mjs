@@ -104,10 +104,10 @@ test('filing a thought: the same task in that project with those labels, then th
   const cur = unsortedQueue(state)[0];
   assert.deepStrictEqual(fileSlip(cur, { projectId: null, selected: ['c_art'] }, deps), { outcome: 'none' }, 'no folder: nothing happens');
   assert.strictEqual(calls.length, 0);
-  const out = fileSlip(cur, { projectId: 'pB', selected: ['c_art', 'c_chore'] }, deps);
+  const out = fileSlip(cur, { priority: 'high', projectId: 'pB', selected: ['c_art', 'c_chore'] }, deps);
   assert.strictEqual(out.outcome, 'filed');
   assert.deepStrictEqual(calls.map((c) => c[0]), ['file', 'issue'], 'file first, then the issue hook, nothing else');
-  assert.deepStrictEqual(calls[0].slice(1), ['th1', 'pB', ['c_art', 'c_chore'], { title: undefined, notes: undefined }]);
+  assert.deepStrictEqual(calls[0].slice(1), ['th1', 'pB', ['c_art', 'c_chore'], { title: undefined, notes: undefined, priority: 'high', deadline: undefined }]);
   assert.deepStrictEqual(calls[1], ['issue', 'Buy a card', 'pB']);
   const filed = state.projects[1].tasks.at(-1);
   assert.strictEqual(filed.title, 'Buy a card');
@@ -120,7 +120,7 @@ test('filing a thought: the same task in that project with those labels, then th
 
 test('filing with no flags is allowed for a thought (as before)', () => {
   seed();
-  const out = fileSlip(unsortedQueue(state)[0], { projectId: 'pA', selected: [] }, { labelIdByName: () => 'x', fileInboxItem: M.fileInboxItem, updateTaskFields: () => assert.fail('not for a thought'), createIssue: () => {} });
+  const out = fileSlip(unsortedQueue(state)[0], { priority: 'high', projectId: 'pA', selected: [] }, { labelIdByName: () => 'x', fileInboxItem: M.fileInboxItem, updateTaskFields: () => assert.fail('not for a thought'), createIssue: () => {} });
   assert.strictEqual(out.outcome, 'filed');
   assert.deepStrictEqual(state.projects[0].tasks.at(-1).categoryIds, []);
 });
@@ -157,7 +157,7 @@ test('the card: count, top slip, folder on it, flags on it, wallets, quiet links
   assert.ok(html.includes('data-wallet="tray-folders"') && html.includes('data-verb="use"'));
   const part2 = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 2, projectId: 'pB', selected: ['c_art'] }) });
   assert.ok(part2.includes('data-wallet="tray-flags"') && !part2.includes('tray-folders') && part2.includes('>Next: link to other tasks →<') && part2.includes('data-action="sort-back">← Back<'));
-  html = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3, projectId: 'pB', selected: ['c_art'] }) });
+  html = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3, priority: 'high', projectId: 'pB', selected: ['c_art'] }) });
   assert.ok(/icard project is-picked/.test(renderInTrayCard(state, ui)) && /icard is-picked/.test(part2), 'chosen cards are marked');
   assert.ok(html.includes('data-action="unsorted-file" data-inbox="th1">File it in Home →<'));
   assert.ok(html.includes('>Done already<') && html.includes('data-action="unsorted-skip">Later<') && html.includes('>Delete<'));
@@ -199,7 +199,7 @@ test('step bar: three tabs, later ones off, finished ones tappable, summaries', 
   const lk = card({ why: 'x' });
   assert.ok(lk.includes('step-tab locked" data-action="sort-step" data-step="2" aria-disabled="true"') && lk.includes('class="step-why"'), 'no folder: 2 and 3 are locked and say why');
   assert.ok(p1.includes('<small>Home</small>'), 'part 1 summary is the folder');
-  const p3 = card({ step: 3, projectId: 'pB', selected: ['c_art', 'c_chore'] });
+  const p3 = card({ step: 3, priority: 'high', projectId: 'pB', selected: ['c_art', 'c_chore'] });
   assert.ok(p3.includes('class="step-tab done" data-action="sort-step" data-step="1"') && !p3.includes('data-step="2" aria-disabled'));
   assert.ok(p3.includes('<small>Art, Chore</small>') && p3.includes('<small>optional</small>') && p3.includes('>Across all projects<'));
   assert.ok(!p3.includes('data-wallet=') && p3.includes('File it in Home →') && p3.includes('data-action="sort-back"'));
@@ -237,10 +237,10 @@ test('the slip: editable title unless GitHub-linked, notes box or link', () => {
 test('saving a thought: edited title and notes go to the new task', () => {
   seed();
   const deps = { labelIdByName: (n) => n, fileInboxItem: M.fileInboxItem, updateTaskFields: () => assert.fail(), createIssue: () => {} };
-  const out = fileSlip(unsortedQueue(state)[0], { projectId: 'pB', selected: [], title: '  Buy two cards ', notes: ' for Gran ' }, deps);
+  const out = fileSlip(unsortedQueue(state)[0], { priority: 'high', projectId: 'pB', selected: [], title: '  Buy two cards ', notes: ' for Gran ' }, deps);
   assert.strictEqual(out.task.title, 'Buy two cards');
   assert.strictEqual(out.task.notes, 'for Gran');
-  const blank = fileSlip(unsortedQueue(state)[0], { projectId: 'pB', selected: [], title: '   ', notes: '' }, deps);
+  const blank = fileSlip(unsortedQueue(state)[0], { priority: 'high', projectId: 'pB', selected: [], title: '   ', notes: '' }, deps);
   assert.strictEqual(blank.task.title, 'Email Ms Patel', 'an empty title keeps the text');
   assert.ok(!('notes' in blank.task), 'empty notes set nothing');
 });
@@ -285,7 +285,7 @@ test('saving ties through fileSlip: parent, waits-on, holds-up, new subtask; ref
   seed();
   const deps = { labelIdByName: (n) => n, fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove, addTask: M.addTask, projects: state.projects, createIssue: () => {} };
   const find = (id) => state.projects.flatMap((p) => p.tasks).find((x) => x.id === id);
-  const out = fileSlip(unsortedQueue(state)[0], { projectId: 'pA', selected: [], parent: 'a1', waitsOn: ['b1', 'nope'], holdsUp: ['b2'], subtasks: [], newSubtasks: [] }, deps);
+  const out = fileSlip(unsortedQueue(state)[0], { priority: 'high', projectId: 'pA', selected: [], parent: 'a1', waitsOn: ['b1', 'nope'], holdsUp: ['b2'], subtasks: [], newSubtasks: [] }, deps);
   const t = out.task;
   assert.strictEqual(out.outcome, 'filed');
   assert.strictEqual(t.parentId, 'a1');
@@ -337,7 +337,7 @@ test('select many: files every ticked thought, moves and labels tasks, in one go
   seed();
   const issues = [];
   const slips = unsortedQueue(state); // th1, th2, a2
-  const out = bulkSort(slips, { projectId: 'pB', selected: ['c_art', 'kind:fix'], groupTitle: '' }, bulkDeps(issues));
+  const out = bulkSort(slips, { priority: 'high', projectId: 'pB', selected: ['c_art', 'kind:fix'], groupTitle: '' }, bulkDeps(issues));
   assert.deepStrictEqual({ ...out, parent: !!out.parent }, { filed: 2, moved: 1, labelled: 1, grouped: 0, parent: false, skipped: 0 });
   assert.strictEqual(state.inbox.length, 0, 'both thoughts left the inbox');
   const home = state.projects.find((p) => p.id === 'pB');
@@ -354,7 +354,7 @@ test('select many: files every ticked thought, moves and labels tasks, in one go
 test('select many: groups the ticked items under one new task', () => {
   seed();
   const slips = unsortedQueue(state).filter((x) => x.kind === 'thought');
-  const out = bulkSort(slips, { projectId: 'pA', selected: [], groupTitle: '  Errands  ' }, bulkDeps());
+  const out = bulkSort(slips, { priority: 'high', projectId: 'pA', selected: [], groupTitle: '  Errands  ' }, bulkDeps());
   assert.strictEqual(out.filed, 2);
   assert.strictEqual(out.grouped, 2);
   assert.strictEqual(out.parent.title, 'Errands');
@@ -367,7 +367,7 @@ test('select many: labels only, tasks stay in their own projects', () => {
   seed();
   state.projects[1].tasks.push({ id: 'b3', title: 'Unlabelled B', status: 'next', categoryIds: [] });
   const slips = unsortedQueue(state).filter((x) => x.kind === 'task');
-  const out = bulkSort(slips, { projectId: null, selected: ['c_study'] }, bulkDeps());
+  const out = bulkSort(slips, { priority: 'high', projectId: null, selected: ['c_study'] }, bulkDeps());
   assert.strictEqual(out.labelled, 2);
   assert.strictEqual(out.moved, 0);
   assert.ok(state.projects[0].tasks.some((t) => t.id === 'a2'), 'a2 still in School');
@@ -378,7 +378,7 @@ test('select many: labels only, tasks stay in their own projects', () => {
 test('select many: blocked picks change nothing', () => {
   seed();
   const before = JSON.stringify({ p: state.projects, i: state.inbox });
-  const out = bulkSort(unsortedQueue(state), { projectId: null, selected: ['c_art'] }, bulkDeps());
+  const out = bulkSort(unsortedQueue(state), { priority: 'high', projectId: null, selected: ['c_art'] }, bulkDeps());
   assert.strictEqual(out.filed + out.moved + out.labelled, 0);
   assert.strictEqual(JSON.stringify({ p: state.projects, i: state.inbox }), before);
 });
@@ -387,7 +387,7 @@ test('select many: a slip that went away meanwhile is skipped, not errored', () 
   seed();
   const slips = unsortedQueue(state);
   M.discardInbox('th1');
-  const out = bulkSort(slips, { projectId: 'pB', selected: [] }, bulkDeps());
+  const out = bulkSort(slips, { priority: 'high', projectId: 'pB', selected: [] }, bulkDeps());
   assert.strictEqual(out.skipped, 1);
   assert.strictEqual(out.filed, 1);
 });
@@ -417,6 +417,6 @@ test('long thoughts: nothing is cut off when filed', () => {
   assert.deepStrictEqual(splitLongThought(lines), { title: 'Shopping', notes: lines });
   seed();
   state.inbox.push({ id: 'big', text: long.trim(), createdAt: Date.now() });
-  const t = M.fileInboxItem('big', 'pA', [], { notes: 'my own note' });
+  const t = M.fileInboxItem('big', 'pA', [], { notes: 'my own note', priority: 'high' });
   assert.strictEqual(t.notes, long.trim() + '\n\nmy own note', 'the text and any typed notes both survive');
 });

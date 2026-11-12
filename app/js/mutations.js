@@ -109,6 +109,13 @@ export function addTask(projectId, title, deadline, categoryIds, steps, priority
   return task;
 }
 
+// The add row's submit: a priority is required there (#249), so no task is made without one even if
+// the disabled button was bypassed. Other callers (jotter stamp, subtasks) use addTask as before.
+export function addTaskPicked(projectId, title, deadline, categoryIds, steps, priority, dueStages) {
+  if (!PRIORITY_ORDER.includes(priority)) return;
+  return addTask(projectId, title, deadline, categoryIds, steps, priority, dueStages);
+}
+
 export function updateTaskFields(taskId, fields) {
   const found = findTaskWithProject(taskId);
   if (!found) return;
@@ -205,15 +212,6 @@ export function toggleTask(taskId, projectId) {
   setTaskStatus(taskId, found.task.status === 'done' ? 'next' : 'done');
 }
 
-// The priority chip on a task row: none -> low -> medium -> high -> urgent -> none.
-const PRIORITY_CYCLE = [null, 'low', 'medium', 'high', 'urgent'];
-export function cyclePriority(taskId) {
-  const found = findTaskWithProject(taskId);
-  if (!found) return;
-  const idx = PRIORITY_CYCLE.indexOf(found.task.priority || null);
-  updateTaskFields(taskId, { priority: PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length] });
-}
-
 // Removing a project removes all of its tasks too, so each one needs the same deletion tombstone
 // deleteTask writes — see the Traps note in docs/4-systems/gist-sync.md about any "remove this
 // task" path needing this or a stale Gist pull can resurrect them.
@@ -244,13 +242,15 @@ export function addCapture(text) {
 // Was previously called (as M.fileInboxItem) but never exported -- filing an inbox item into a
 // project has been silently broken since it was added.
 // categoryIds: the labels ticked on the Unsorted item. Returns the new task.
-// extra: { title, notes } typed on the slip; a non-empty trimmed title replaces the text, notes become task.notes.
+// extra: { title, notes, priority, deadline } typed on the slip; a non-empty trimmed title replaces the text,
+// notes become task.notes. A thought needs a priority (#249): without a valid one nothing is filed.
 export function fileInboxItem(inboxId, projectId, categoryIds, extra) {
   const item = state.inbox.find((i) => i.id === inboxId);
   const project = state.projects.find((p) => p.id === projectId);
-  if (!item || !project) return;
-  const task = { id: uid('t'), title: item.text, status: 'next', deadline: null, categoryIds: categoryIds || [], priority: null, source: 'manual', updatedAt: Date.now() };
-  const { title, notes } = extra || {};
+  const { title, notes, priority, deadline } = extra || {};
+  if (!item || !project || !PRIORITY_ORDER.includes(priority)) return;
+  const task = { id: uid('t'), title: item.text, status: 'next', deadline: deadline || null, categoryIds: categoryIds || [], priority, source: 'manual', updatedAt: Date.now() };
+  if (task.deadline) task.dueSetAt = Date.now();
   const long = splitLongThought(title && title.trim() ? title : item.text);
   task.title = long.title;
   const typed = notes && notes.trim() ? notes.trim() : '';

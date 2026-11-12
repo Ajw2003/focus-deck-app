@@ -52,6 +52,30 @@ the old boxes underneath (steps, priority, due date and its stage step, labels),
 lost. `ui.addingTask[projectId]` now means "More is open" rather than "form is open". Escape
 closes More. After Add, the title box empties and keeps focus so you can add the next one.
 
+## Priority and due date on every add (#249)
+
+Rows 2 and 3 (the project and Board add rows) ask for a priority. Once the title box has text a
+**Priority · needed** block (Urgent, High, Medium, Low) and a **Due** block (Today, Tomorrow, Friday,
+Next week, Pick a date…, None; None is the default) appear under the line. The Add button is
+disabled and reads "Pick a priority to add" until a priority is picked, then reads "Add".
+`M.addTaskPicked` (`js/mutations.js`) is what the submit calls and refuses (no task made) without a
+valid priority even if the disabled state is bypassed; `M.addTask` itself is unchanged, so the
+jotter stamp (exempt, like jotting into Unsorted) and subtasks still add without one. The More panel
+keeps steps and labels; its old priority select and plain date box are gone (the blocks are not
+shown twice).
+- Keys 1-4 pick Urgent/High/Medium/Low while focus is on a button in the row (in the title box a
+  digit is just typing).
+- "Pick a date…" shows the date box plus a text box that reads "fri", "tomorrow", "15 dec" through
+  `parseDue` in `js/pick-bits.js` (pure, tested in `js/pick-bits.test.mjs`). Friday and Next week are
+  the coming Friday and Monday, never today.
+- Picked priority and due live in `ui.addPick[projectId]` beside `ui.addDraft`, so a repaint while
+  typing keeps them; they reach the form as hidden `priority` and `deadline` inputs.
+- On task rows and Board cards the priority chip reads "High ▾" ("Priority ▾", quiet, when none) and
+  the due chip carries a ▾; each opens a small picker (`pickChip`, one component for rows and cards,
+  state in `pickState`): one tap sets it, Escape or a click away closes. The old `cycle-priority`
+  chip is gone. A task with no date shows no due chip, so its date is still set in Edit.
+- Checks: `scripts/check-priority-browser.mjs`; screenshots `docs/generated/build-checks/step1/`.
+
 ## Traps
 
 - A repaint (a sync arriving, a toggle elsewhere) rebuilds `#app`, which would wipe a half-typed
