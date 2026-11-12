@@ -4,6 +4,17 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-11-12 — Design approved: friction plan part 2 (1-1, 2 own answer, 3-1, 4-1)
+
+**Context.** Part 2 (`docs/plans/friction-part2.html`): priority needed on every add, one-tap due dates,
+Needs review ranked first, one shared carousel, Tidy up, Triage, Roadmap, Areas and the view switch.
+
+**Decision.** Eden, 01:30 UTC: "Design approved: friction plan part 2 11 2* 31 41. Choice 2, my own
+answer: a fifth tab for tidy and triage, and a 6th tab for roadmap/milestones". So: a jotter thought
+gets its priority in Sort, not when jotted; Tidy up and Triage share a tab and the Roadmap has its own,
+which is part 3's Organize and Roadmap tabs; a project is in one area; Priority and Review are built
+first, then Tidy up, Triage and Roadmap.
+
 ## 2026-11-12 — Design approved: friction plan part 3, tabs as steps (1-1 2-1 3-1 4-1)
 
 **Context.** Eden asked for tabs that follow their flow: Capture from anywhere, then Sort, Organize,
@@ -18,8 +29,7 @@ Review becomes a real fourth status (sets and reads the GitHub Needs review labe
 with equal shares; Start here becomes the link 'Or let me pick for you' on Focus; the Board is removed.
 
 **Replaces.** The Board screen (`BOARD_COLS`, `app/js/board-view.js:16`) and the Projects screen; part 2's
-"nav" question (a fifth Plan tab) is answered by these tabs. Part 2's jot, multi and order questions
-are still open.
+"nav" question (a fifth Plan tab) is answered by these tabs. Part 2's other questions are answered in the entry above.
 
 ## 2026-10-29 — Design and build plan approved: room to jot (1A)
 
