@@ -25,6 +25,9 @@ import { normalizeBoardCol } from './board-view.js';
 import { renderReview } from './review-view.js';
 import { renderTidy } from './tidy-view.js';
 import { tidyGroups, confirmIds } from './tidy.js';
+import { renderTriage } from './triage-view.js';
+import { triageLists, moveId, NOW_SIZE, NEXT_SIZE } from './triage.js';
+import { initTriageDrag } from './triage-drag.js';
 import { reviewLists } from './board.js';
 import { notesSummary } from './task-details.js';
 import { canSetParent, canWaitOn } from './task-links.js';
@@ -275,12 +278,27 @@ export function renderApp(st) {
   // the Sort screen is the tray, always open (its header can't fold it away here)
   if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + sw + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
   if (ui.screen === 'tidy') return rail + '<div class="screen screen-tidy">' + sw + renderTidy(st, ui) + '</div>' + toast;
+  if (ui.screen === 'triage') return rail + '<div class="screen screen-triage">' + sw + renderTriage(st, ui) + '</div>' + toast;
   if (ui.screen === 'review') return rail + '<div class="screen screen-review">' + sw + renderReview(st, ui) + '</div>' + toast;
   if (ui.screen === 'board') return rail + '<div class="screen screen-board">' + sw + R.renderBoard(st, ui) + '</div>' + toast;
   return rail + R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
     + '<div class="main-col view-' + ui.projectView + '">'
       + sw + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken)
     + '</div>' + toast;
+}
+
+// Triage: a drop, Alt+Arrow or an up/down button. `to` is the place to end at, or (when null) `by` steps
+// from where it is now. The new order is saved at once (every task in the view gets a triageRank).
+function moveTriage(id, to, by) {
+  const l = triageLists(state, ui.view, dueDates().today);
+  const ids = l.now.concat(l.next, l.later).map((r) => r.id), from = ids.indexOf(id);
+  const at = Math.max(0, Math.min(ids.length - 1, to === null ? from + by : to));
+  if (from < 0 || at === from) return;
+  M.saveTriageOrder(moveId(ids, id, at));
+  if (at >= NOW_SIZE + NEXT_SIZE) ui.triageLaterOpen = true;
+  paint();
+  const again = document.querySelector('.tr-row[data-task-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+  if (again) again.focus({ preventScroll: true });
 }
 
 // The topbar's sync button and Projects toggle live outside #app (see index.html), so paint()
@@ -574,8 +592,11 @@ function onAppClick(e) {
     M.confirmTidy(ids);
     ui.tidyClosed = ids.map((id) => ({ id, title: titles.get(id) })).concat(ui.tidyClosed || []);
     ids.forEach((id) => delete ui.tidyMarks[id]);
-    paint(); return;
+    setScreen('triage'); paint(); window.scrollTo(0, 0); return; // "Confirm N, then Triage"
   }
+  if (action === 'triage-later') { ui.triageLaterOpen = !ui.triageLaterOpen; paint(); return; }
+  if (action === 'triage-move') { moveTriage(el.getAttribute('data-task'), null, Number(el.getAttribute('data-dir'))); return; }
+  if (action === 'triage-reset') { const l = triageLists(state, ui.view, dueDates().today); M.resetTriageOrder(l.now.concat(l.next, l.later).map((r) => r.id)); paint(); return; }
   if (action === 'tidy-undo') { const id = el.getAttribute('data-task'); M.undoDone(id); ui.tidyClosed = (ui.tidyClosed || []).filter((c) => c.id !== id); paint(); return; }
   if (action === 'review-done') { M.setTaskStatus(el.getAttribute('data-task'), 'done'); paint(); return; }
   if (action === 'review-more') { M.setTaskStatus(el.getAttribute('data-task'), 'doing'); paint(); return; }
@@ -1638,6 +1659,7 @@ function init() {
   app.addEventListener('keydown', onAppKeydown);
   app.addEventListener('focusout', onDetailFocusOut);
   app.addEventListener('contextmenu', onAppContextMenu);
+  initTriageDrag(app, (id, to) => moveTriage(id, to, 0));
   initProjectDrag(app, {
     move: moveProjectTo,
     moveTask: moveTaskTo,
