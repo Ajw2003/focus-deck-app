@@ -143,13 +143,7 @@ function projectView(st, ui, p, hasToken) {
 function detail(st, ui, p) {
   const t = ui.boardSelected && p.tasks.find((x) => x.id === ui.boardSelected);
   if (!t) return '';
-  const all = roadmapOf(p).sections.flatMap((s) => s.milestones);
-  const opts = '<option value="">Unplanned</option>' + all.map((m) => '<option value="' + esc(m.id) + '"' + (m.id === t.milestoneId ? ' selected' : '') + '>' + esc(m.name) + '</option>').join('');
-  const mk = subtasksOf(st.projects, t.id).length && !(p.milestones || []).some((m) => m.parentTaskId === t.id)
-    ? '<button type="button" class="btn ghost" data-action="rm-make" data-id="' + esc(t.id) + '">Make this a milestone</button>' : '';
-  // the tools go inside the panel's own markup, so on a phone (where Task details fills the screen) they come with it
-  const tools = '<div class="rm-detail-tools"><label>Milestone <select data-action="rm-set-milestone" data-id="' + esc(t.id) + '">' + opts + '</select></label>' + mk + '</div>';
-  return '<div class="rm-detail">' + renderTaskDetails(st, ui, t.id).replace(/^<aside[^>]*>/, (open) => open + tools) + '</div>';
+  return '<div class="rm-detail">' + renderTaskDetails(st, ui, t.id) + '</div>';
 }
 
 // The Roadmap tab shows one project (#262); with none yet it offers New project, which is on the Projects tab.
