@@ -66,7 +66,7 @@ async function open(size, scheme, path = '', view = 'all') {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => check(`[${size}/${scheme}] no page error: ` + e.message, false));
   await page.addInitScript(([s, key, v]) => {
-    if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'projects'); // the folders' screen (#135)
+    if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'roadmap'); // the Roadmap took the Projects screen (#259)
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
     // the old All/One toggle is now the All | Area | Project switch: One = Project mode (#252)
     if (!localStorage.getItem('focusdeck-view') && v === 'one') localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pHome' }));
@@ -87,23 +87,28 @@ for (const size of ['phone', 'desktop']) {
     const tag = `[${size}/${scheme}]`;
     let { ctx, page } = await open(size, scheme);
 
-    // The All view: project cards, task rows (checkbox, title, chips, deadline stages, grips)
-    await scrollTo(page, '.project-card');
-    check(`${tag} project cards render`, (await page.$$('.project-card')).length === 3);
-    check(`${tag} task rows keep their grips and checkboxes`, (await page.$$('.task-row [data-action="toggle-task"]')).length >= 5 && (await page.$$('.task-row .task-grip, .task-row [class*="grip"]')).length >= 5);
+    // The All view of the Roadmap: a row per project (the old project cards)
+    await scrollTo(page, '.rm-row');
+    check(`${tag} project rows render`, (await page.$$('.rm-row')).length === 3);
     await shot(page, tag, 'all-view');
 
-    // The task editor, and the due-date step that appears when a new date is set
-    await page.click('.task-title[data-task="h3"]');
-    await page.waitForSelector('.task-edit-form');
-    await page.fill('.task-edit-form input[name="deadline"]', iso(5));
-    await page.dispatchEvent('.task-edit-form input[name="deadline"]', 'input');
-    await page.dispatchEvent('.task-edit-form input[name="deadline"]', 'change');
+    // One project: task rows (checkbox, title, chips, grips)
+    await page.click('.rm-row[data-project="pHome"] ' + (size === 'phone' ? '.rm-phone' : '.rm-proj'));
+    await page.waitForSelector('.rm-project');
+    check(`${tag} task rows keep their grips and checkboxes`, (await page.$$('.rm-task [data-action="toggle-task"]')).length >= 4 && (await page.$$('.rm-task .rm-grip')).length >= 4);
+    check(`${tag} task rows show priority chips`, (await page.$$('.rm-task .priority-chip')).length >= 2);
+
+    // Task details (the task editor's home now), with its priority and due date row
+    await page.click('.rm-task-title[data-id="h3"]');
+    await page.waitForSelector('.cw-detail');
+    await page.click('.cw-detail [data-action="detail-fold"][data-key="when"]');
+    await page.fill('[data-detail-due]', iso(5));
+    await page.dispatchEvent('[data-detail-due]', 'change');
     await page.waitForTimeout(150);
-    check(`${tag} the due-date step appears in the editor`, !!(await page.$('.task-edit-form .due-step')));
-    await scrollTo(page, '.task-edit-form');
+    check(`${tag} Task details keeps the date set in it`, (await page.$eval('[data-detail-due]', (e) => e.value)) === iso(5));
+    await scrollTo(page, '.cw-detail');
     await shot(page, tag, 'task-editor');
-    await page.click('[data-action="cancel-task-edit"]');
+    await page.click('[data-action="detail-close"]');
 
     // The project Edit panel
     await page.click('[data-action="open-project-edit"][data-project="pHome"]');
@@ -125,13 +130,11 @@ for (const size of ['phone', 'desktop']) {
     await shot(page, tag, 'toast');
     await page.click('.toast-close');
 
-    // The project list: the sidebar on desktop, the drawer on a phone, and its "+ New" panel
-    if (size === 'phone') {
-      await page.click('#projects-btn');
-      await page.waitForTimeout(300);
-    }
+    // The project list: the Roadmap's group view, and its "+ New" panel
+    await page.click('.vs-seg[data-mode="all"]');
+    await page.waitForSelector('.rm-row');
     await page.evaluate(() => window.scrollTo(0, 0));
-    check(`${tag} the project list shows every project`, (await page.$$('.sidebar-project')).length === 3);
+    check(`${tag} the project list shows every project`, (await page.$$('.rm-row')).length === 3);
     await shot(page, tag, 'project-list');
     await page.click('#new-panel-toggle');
     await page.waitForSelector('#new-panel');
@@ -140,9 +143,9 @@ for (const size of ['phone', 'desktop']) {
 
     // The One view (the switch on Project mode)
     ({ ctx, page } = await open(size, scheme, '', 'one'));
-    const oneCards = await page.$$eval('.project-card', (els) => els.filter((e) => e.offsetParent !== null).length);
+    const oneCards = await page.$$eval('.rm-project', (els) => els.filter((e) => e.offsetParent !== null).length);
     check(`${tag} the One view shows one project`, oneCards === 1, oneCards + ' visible');
-    await scrollTo(page, '.project-card');
+    await scrollTo(page, '.rm-project');
     await shot(page, tag, 'one-view');
     await ctx.close();
 
