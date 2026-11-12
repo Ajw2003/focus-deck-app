@@ -46,6 +46,10 @@ sections, milestones and per-milestone Up next / In progress / Review / Done col
 direction; each milestone has a user-set weight and measure. Four questions: Review as a fourth column,
 starting weights, where Start here lives, removing the Board. The Capture/Plan/Start version is superseded.
 
+Part 3 after Eden's review (2026-11-12): Focus stays the part 2 carousel; Sort picks its project from the
+same carousel; Start here becomes the link 'Or let me pick for you'; pages carry fewer labels. Every page
+is drawn on desktop and phone in `docs/generated/friction-audit/part3-pages.html` (`shoot-pages.mjs`).
+
 # Today — 2026-10-21
 
 ## Calm build: QA passed
