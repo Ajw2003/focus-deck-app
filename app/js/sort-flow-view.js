@@ -175,6 +175,10 @@ function receipt(c) {
     + '<button type="button" class="dk-pencil" data-action="sort-step" data-step="' + step + '" aria-label="Change ' + label.toLowerCase() + '">✎</button></div>').join('') + '</div>';
 }
 
+// The nine steps as a list, drawn beside the panel on a computer (>= 1100px; hidden on a phone by CSS): done ✓, current ●.
+const STEP_NAMES = ['Project', 'Priority', 'Labels', 'Due date', 'Part of', 'Smaller steps', 'Waits on', 'Holds up', 'Check'];
+const stepList = (step) => '<ol class="sort-steps" aria-label="Steps">' + STEP_NAMES.map((n, i) => '<li' + (i + 1 === step ? ' class="on" aria-current="step"' : '') + '>' + (i + 1 < step ? '✓ ' : i + 1 === step ? '● ' : '') + n + '</li>').join('') + '</ol>';
+
 // ---- the whole tab -------------------------------------------------------------------------------------
 // `head` is "N to sort"; `many` the Sort several flag (only with more than one slip). `edit` (#269, Task details) draws
 // the same step on an existing task: no dots, no slip menu, no Skip, and Save (edit-save) where Next was.
@@ -205,7 +209,7 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
       + (many ? '<button type="button" class="dk-link sort-several" data-action="bulk-toggle">Sort several</button>' : '') + '</div></div>'
       + foot([stamp('Sort this one')]) + drawer;
   }
-  const bar = edit ? '' : dots(Math.max(step, 1));
+  const bar = edit ? '' : dots(Math.max(step, 1)) + stepList(Math.max(step, 1));
   if (sub === 'notes') {
     const body = '<textarea class="slip-notes" name="slipNotes" placeholder="Type it here…" aria-label="Notes">' + esc(c.notes) + '</textarea>';
     return bar + board(body, true, 'Notes') + foot([back(), stamp(edit ? 'Save' : 'Save notes', { action: edit ? 'edit-save' : 'sort-notes-done' })]) + drawer;
