@@ -8,7 +8,7 @@ import {
   untrackedRepos, isValidRepoName, linkProjectToRepo, linkProjectToRepoOnGithub,
 } from './github-sync.js';
 import { state } from './state.js';
-import { deleteTask, setTaskStatus } from './mutations.js';
+import { deleteTask, setTaskStatus, applyTaskMove } from './mutations.js';
 import assert from 'node:assert';
 
 // wip / in progress status labels
@@ -223,6 +223,24 @@ assert.strictEqual(parseRepoInput('someone/somerepo'), 'someone/somerepo', '"som
     setTaskStatus('tm', to);
     assert.strictEqual(state.projects[0].tasks[0].status, to, 'moved to ' + to);
   }
+  // a linked task moved to another project: same repo adds/removes the label itself; a transfer's caller
+  // (app.js relabel) calls pushReviewToIssue(task, status !== 'review') once the issue has moved
+  const wr = () => calls.filter((c) => c.method !== 'GET').map((c) => c.method + ' ' + c.url + (c.body ? ' ' + c.body : ''));
+  const link = { id: 'tl', title: 'l', status: 'doing', source: 'github', repoFullName: 'o/r', issueNumber: 9 };
+  state.projects.length = 0;
+  state.projects.push({ id: 'pa', name: 'a', repoFullName: 'o/r', tasks: [link] }, { id: 'pb', name: 'b', repoFullName: 'o/r', tasks: [] });
+  calls.length = 0;
+  applyTaskMove({ taskId: 'tl', toProjectId: 'pb', status: 'review', changes: {} });
+  await new Promise((r) => setTimeout(r, 20));
+  assert.ok(wr().includes('POST /repos/o/r/issues/9/labels {"labels":["needs review"]}'), 'cross-project into review adds the label: ' + wr().join(' | '));
+  calls.length = 0;
+  applyTaskMove({ taskId: 'tl', toProjectId: 'pa', status: 'next', changes: {} });
+  await new Promise((r) => setTimeout(r, 20));
+  assert.deepStrictEqual(wr(), ['DELETE /repos/o/r/issues/9/labels/needs%20review'], 'cross-project out of review removes it');
+  calls.length = 0;
+  link.repoFullName = 'o/other'; link.issueNumber = 3; link.status = 'review'; // after a transfer
+  await pushReviewToIssue(link, link.status !== 'review');
+  assert.ok(wr().includes('POST /repos/o/other/issues/3/labels {"labels":["needs review"]}'), 'after the transfer the label goes on the new issue: ' + wr().join(' | '));
   state.projects.length = 0;
   state.categories.splice(state.categories.findIndex((c) => c.id === 'cat_art'), 2);
   delete globalThis.document;
