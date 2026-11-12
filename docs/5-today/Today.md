@@ -572,3 +572,7 @@ and wallets 42 checks all pass. Open with the user: space below Focus, margins a
 At the user's request the wide-screen topbar is part of the desk: brand larger in the corner above
 the rail, sync and Settings at the foot of the rail, jotter unchanged, no band or rule. Phone
 unchanged. Seen in Chromium at 1366, 1440 (light), 1920 and 2560 wide and 390 (phone).
+
+## Tidy up screen (#255, step 7)
+
+A sixth tab, "Tidy up", groups open tasks that look finished, repeated or forgotten (review, replaced, same, 60 days untouched). Keep/Close/Merge only mark; Confirm closes the marked ones in the chosen view like Done, with Undo. See docs/4-systems/tidy-up.md. Seen in Chromium at 390 and 1440 wide.
