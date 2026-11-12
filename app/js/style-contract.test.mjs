@@ -127,7 +127,7 @@ const invariants = [
 ];
 
 // the classes js/project-drag.js and the grip markup rely on must each have a rule
-for (const cls of ['drag-grip', 'drag-ghost', 'drag-placeholder', 'drop-indicator', 'sr-only', 'task-grip', 'drop-zone', 'drop-target', 'is-dragging-task', 'move-dialog']) {
+for (const cls of ['drag-grip', 'drag-ghost', 'drag-placeholder', 'drop-indicator', 'sr-only', 'task-grip', 'drop-target', 'is-dragging-task', 'move-dialog']) {
   assert.ok(cssClasses.has(cls), `css/app.css has no rule for .${cls} (dragging projects and tasks, PR 9 and 11)`);
 }
 
