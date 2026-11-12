@@ -1405,11 +1405,12 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .pick-opt:focus-visible, .pick-chip:focus-visible, .pick-bare:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 .pick-date{display:flex; flex-wrap:wrap; gap:6px; flex:1 1 100%;}
 .pick-date input{min-width:0;}
-.pick-wrap{position:relative; display:inline-block;}
+.pick-wrap{display:inline-block;}
+.task-row:has(.pick-pop), .board-card:has(.pick-pop){position:relative;}
 .pick-chip{cursor:pointer;}
 .chip.pick-chip.is-empty{background:transparent; color:var(--ink-soft); border-color:var(--line); font-weight:500;}
 .pick-bare{border:0; background:none; padding:0; cursor:pointer; font:inherit; color:var(--ink-soft);}
-.pick-pop{position:absolute; right:0; top:100%; z-index:20; margin-top:4px; width:max-content; max-width:min(320px, 86vw); display:flex; flex-direction:column; gap:6px; padding:8px; background:var(--surface); border:1.5px solid var(--line); border-radius:var(--r-control); box-shadow:0 6px 18px rgb(0 0 0 / .18);}
+.pick-pop{position:absolute; left:8px; right:8px; top:100%; z-index:20; margin-top:2px; display:flex; flex-direction:column; gap:6px; padding:8px; background:var(--surface); border:1.5px solid var(--line); border-radius:var(--r-control); box-shadow:0 6px 18px rgb(0 0 0 / .18);}
 .sort-picks{display:flex; flex-direction:column; gap:6px; margin-bottom:8px;}
 .sort-picks .pick-blocks{border-top:0; padding-top:0;}
 .add-row .btn.primary:disabled{opacity:.6; cursor:default;}
