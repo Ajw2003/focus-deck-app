@@ -2,6 +2,8 @@
 
 > **2026-11-12 (#264):** Sort is one thought at a time in nine steps (slip, then project, priority, labels, due date, part of, smaller steps, waits on, holds up, the receipt). Only the screens changed. See `docs/4-systems/in-tray.md`.
 
+> **2026-11-12 (#267):** the Projects tab is back as the project list (a clipboard with Find, Sort by, My order) and New project in four steps; the Roadmap is one project. See `docs/4-systems/projects-tab.md`.
+
 > **2026-11-12 (#259):** step 11 built: five tabs (Sort, Organize, Roadmap, Focus, Review); the Board and Projects screens are removed and the Roadmap has their features (Find a project, project order, Find a task). Mentions of the Board and Projects screens below are history. See `docs/4-systems/tabs.md`.
 
 ## Headline: milestones 1-5 done, 6 started, 7-13 not started

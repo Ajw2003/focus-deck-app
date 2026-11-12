@@ -4,11 +4,11 @@ import * as M from './mutations.js';
 import * as R from './render.js';
 import { registerPaint, initSyncLifecycle } from './sync.js';
 import {
-  syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask,
-  parseRepoInput, listYourRepos, untrackedRepos, isValidRepoName, REPO_NAME_RULE,
-  createRepoAndTrack, linkProjectToRepoOnGithub, linkProjectToRepoByInput, transferTaskIssue, pushReviewToIssue,
+  syncGithub, linkTaskToIssue, unlinkTask, createGithubIssueFromTask,
+  parseRepoInput, listYourRepos, untrackedRepos, isValidRepoName,
+  linkProjectToRepoOnGithub, linkProjectToRepoByInput, transferTaskIssue, pushReviewToIssue,
 } from './github-sync.js';
-import { getToken } from './github.js';
+import { getToken, createRepo } from './github.js';
 import { initProjectDrag, isDragging } from './project-drag.js';
 import { taskOrderChanges, sortTasks, planTaskMove } from './task-move.js';
 import { confirmMove } from './move-dialog.js';
@@ -29,6 +29,7 @@ import { renderTriage } from './triage-view.js';
 import { triageLists, moveId, NOW_SIZE, NEXT_SIZE } from './triage.js';
 import { initTriageDrag } from './triage-drag.js';
 import { renderRoadmap } from './roadmap-view.js';
+import { renderProjects } from './projects-view.js';
 import { initRoadmapDrag } from './roadmap-drag.js';
 import { openMilestoneSettings } from './milestone-settings.js';
 import { COLS, roadmapOf, applyMilestoneSettings, stepMilestone, stepSection, moveMilestone, moveSection, addSection, addMilestone, makeMilestone } from './roadmap.js';
@@ -155,8 +156,8 @@ export const ui = {
  
   // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
   // (Q30c) -- neither persisted, both reset to closed on load.
-  newPanelOpen: false, newPanelTab: 'project', newPanelRepos: null, newPanelRepoFilter: '',
-  newPanelCreateOpen: false, newPanelCreating: false, newPanelCreateError: null, newPanelPasteError: null,
+  np: null, projSortOpen: false, projOrder: false, // New project (#267): the open flow (memory only), the Sort by drawer, the My order screen
+  newPanelRepos: null, newPanelRepoFilter: '', // the repos "My repo" lists
   linkPanel: null,
 };
 
@@ -260,7 +261,7 @@ export function renderApp(st) {
   const screen = (name, body) => rail + '<div class="screen screen-' + name + '">' + sw + body + details + '</div>' + toast;
   if (ui.screen === 'sort') return screen('sort', renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true }))); // the tray, always open
   if (ui.screen === 'tidy') return screen('tidy', renderTidy(st, ui));
-  if (ui.screen === 'projects') return rail + '<div class="screen screen-roadmap">' + sw + renderRoadmap(st, ui, hasToken, true) + '</div>' + toast;
+  if (ui.screen === 'projects') return screen('projects', renderProjects(st, ui, hasToken));
   if (ui.screen === 'roadmap') return rail + '<div class="screen screen-roadmap">' + sw + renderRoadmap(st, ui, hasToken) + '</div>' + toast;
   if (ui.screen === 'triage') return screen('triage', renderTriage(st, ui));
   if (ui.screen === 'review') return rail + '<div class="screen screen-review">' + sw + renderReview(st, ui) + '</div>' + toast;
@@ -659,7 +660,8 @@ function onAppClick(e) {
   if (action === 'review-open') { selectBoardTask(el.getAttribute('data-task')); paint(); return; }
   if (action === 'task-open') { const id = el.getAttribute('data-task'); selectBoardTask(ui.boardSelected === id ? null : id); paint(); return; }
   if (action.startsWith('detail-')) { onDetailAction(action, el); return; }
-  if (action === 'start-new-project') { openFirstProjectPanel(); return; }
+  if (action === 'start-new-project') { openNewProject(); return; }
+  if (onProjectsAction(action, el)) return;
   if (action === 'unsorted-file' || action === 'unsorted-save') {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
     const cur = unsortedCurrent(state, ui.unsorted);
@@ -736,33 +738,6 @@ function onAppClick(e) {
   else if (action === 'confirm-remove-project') { delete ui.editingProject[projectId]; M.removeProject(projectId); }
   else if (action === 'open-project-edit') { ui.editingProject[projectId] = true; paint(); }
   else if (action === 'close-project-edit') { delete ui.editingProject[projectId]; delete ui.pendingRemove[projectId]; ui.linkPanel = null; paint(); }
-  else if (action === 'toggle-new-panel') {
-    if (ui.newPanelOpen) {
-      closeNewPanel();
-      paint();
-      document.getElementById('new-panel-toggle') && document.getElementById('new-panel-toggle').focus();
-    } else {
-      ui.newPanelOpen = true;
-      if (ui.newPanelTab === 'repo') fetchNewPanelRepos();
-      paint();
-      focusNewPanelFirstField();
-    }
-  }
-  else if (action === 'set-new-panel-tab') {
-    ui.newPanelTab = el.getAttribute('data-tab') === 'repo' ? 'repo' : 'project';
-    if (ui.newPanelTab === 'repo' && !ui.newPanelRepos) fetchNewPanelRepos();
-    paint();
-    focusNewPanelFirstField();
-  }
-  else if (action === 'retry-new-panel-repos') fetchNewPanelRepos();
-  else if (action === 'track-repo') {
-    const fullName = el.getAttribute('data-repo');
-    addRepoManually(fullName, ui).then(() => {
-      const project = state.projects.find((p) => p.source === 'github' && p.repoFullName === fullName);
-      closeNewPanel();
-      if (project) afterProjectAdded(project.id); else paint();
-    });
-  }
   else if (action === 'toggle-link-panel') {
     if (ui.linkPanel && ui.linkPanel.projectId === projectId && ui.linkPanel.open) { ui.linkPanel = null; paint(); return; }
     ui.linkPanel = { projectId, open: true, repos: null, error: null };
@@ -797,7 +772,12 @@ function onAppClick(e) {
   else if (action === 'toggle-inbox') { ui.inboxOpen = !ui.inboxOpen; paint(); }
   else if (action === 'toggle-done') { ui.doneOpen[projectId] = !ui.doneOpen[projectId]; paint(); }
   else if (action === 'sync-github') { ui.syncOpen = false; manualSyncGithub(); }
-  else if (action === 'rm-project-step') { const ids = visibleRoadmapProjects().map((p) => p.id), i = ids.indexOf(el.getAttribute('data-project')); moveProjectTo(ids[i], i + Number(el.getAttribute('data-dir')), ids); }
+  else if (action === 'rm-project-step') {
+    const ids = visibleRoadmapProjects().map((p) => p.id), i = ids.indexOf(el.getAttribute('data-project')), dir = el.getAttribute('data-dir');
+    moveProjectTo(ids[i], i + Number(dir), ids);
+    const again = document.querySelector('.pj-key[data-project="' + el.getAttribute('data-project') + '"][data-dir="' + dir + '"]');
+    if (again && !again.disabled) again.focus(); else { const o = document.querySelector('.pj-key[data-project="' + el.getAttribute('data-project') + '"]:not(:disabled)'); if (o) o.focus(); }
+  }
   else if (action === 'edit-task') { ui.editingTask = { taskId, projectId }; paint(); scrollOpenedFormIntoView('.task-edit-form'); }
   else if (action === 'cancel-task-edit') { ui.editingTask = null; paint(); }
   else if (action === 'link-github-issue') {
@@ -1054,10 +1034,6 @@ function onAppChange(e) {
     picker.querySelector('summary').textContent = R.labelPickerSummary(picker.querySelectorAll('input[name="categoryIds"]:checked').length);
   } else if (e.target.matches && e.target.matches('[data-action="toggle-task"]')) {
     M.toggleTask(e.target.getAttribute('data-task'), e.target.getAttribute('data-project'));
-  } else if (e.target.matches && e.target.matches('[data-action="set-project-sort"]')) {
-    ui.projectSort = e.target.value;
-    saveProjectSort();
-    paint();
   } else if (e.target.matches && e.target.matches('[data-action="rm-set-milestone"]')) {
     M.setTaskMilestone(e.target.getAttribute('data-id'), e.target.value); paint();
   } else if (e.target.matches && e.target.matches('[data-action="set-project-category"]')) {
@@ -1124,7 +1100,7 @@ function onAppInput(e) {
     if (box) box.setSelectionRange(box.value.length, box.value.length);
     return;
   }
-  if (e.target.matches && e.target.matches('.sort-find:not([data-bulk-newlabel])')) {
+  if (e.target.matches && e.target.matches('.sort-find:not([data-bulk-newlabel]):not(.pj-find)')) {
     ui.unsorted.find = e.target.value;
     paint();
     const box = document.querySelector('.sort-find');
@@ -1134,6 +1110,17 @@ function onAppInput(e) {
   if (e.target.matches && e.target.matches('[data-action="set-project-query"]')) {
     ui.projectQuery = e.target.value;
     paint();
+  }
+  const npField = ui.np && e.target.matches && [['data-np-name', 'name'], ['data-np-areaname', 'areaName'], ['data-np-reponame', 'repoName'], ['data-np-link', 'link']].find(([a]) => e.target.hasAttribute(a));
+  if (npField) { // no repaint: it would lose the caret; only the stamp's state changes
+    ui.np[npField[1]] = e.target.value;
+    const v = e.target.value.trim(), next = document.querySelector('.pj-flow .sort-foot .dk-btn');
+    const ok = { name: !!v, areaName: !!v, repoName: isValidRepoName(v), link: !!parseRepoInput(v) }[npField[1]];
+    if (next) { next.disabled = !ok; next.classList.toggle('off', !ok); }
+    if (npField[1] === 'repoName') { // the rule under the field shows or goes, so this one repaints and puts the caret back
+      const at = e.target.selectionStart; paint();
+      const box = document.querySelector('[data-np-reponame]'); if (box) { box.focus(); box.setSelectionRange(at, at); }
+    }
   }
   if (e.target.matches && e.target.matches('.repo-filter')) {
     ui.newPanelRepoFilter = e.target.value;
@@ -1292,12 +1279,6 @@ function createIssueIfGithubProject(task, projectId) {
   }
 }
 
-// A project the switch hides (a new one, or one linked from a Focus card) is shown by going back to All.
-function showInView(projectId) {
-  const p = state.projects.find((q) => q.id === projectId);
-  if (p && !inView(state, ui.view, p)) setView(VIEW_ALL);
-}
-
 // The switch's list (a bottom sheet on a phone, a dropdown on desktop): focus goes in, Tab stays in,
 // Escape or the backdrop closes it and focus returns to the button.
 function focusViewPop() {
@@ -1324,19 +1305,12 @@ document.addEventListener('input', (e) => {
   document.querySelectorAll('.vs-pop .vs-grp').forEach((g) => { g.hidden = ![...g.querySelectorAll('li')].some((li) => !li.hidden); });
 });
 
-// After adding a project from the "+ New" panel (Q29a, Q12d): the Roadmap shows its new row (back to All if the switch hides it).
-function afterProjectAdded(projectId) {
-  showInView(projectId);
-  paint();
-}
-
-// The projects the Roadmap's group view lists, in the order it shows them (Find box and sort control).
+// The projects the Projects tab lists, in the order it shows them (Find box and sort order).
 function visibleRoadmapProjects() {
-  return filterAndSortProjects(viewProjects(state, ui.view), { query: ui.projectQuery, sortBy: ui.projectSort });
+  return filterAndSortProjects(viewProjects(state, ui.view.mode === 'project' ? VIEW_ALL : ui.view), { query: ui.projectQuery, sortBy: ui.projectSort });
 }
 
-// The "+ New" panel's "Your repos" tab (Q29a): fetched once when the tab first opens, cached in
-// ui.newPanelRepos until closed. Errors show inline with a Retry (retry-new-panel-repos).
+// New project's "My repo" step: fetched when it opens, cached in ui.newPanelRepos until the flow closes. Errors show inline with a Retry (retry-new-panel-repos).
 function fetchNewPanelRepos() {
   ui.newPanelRepos = { loading: true };
   paint();
@@ -1362,23 +1336,76 @@ function fetchLinkPanelRepos(projectId) {
   });
 }
 
-function closeNewPanel() {
-  ui.newPanelOpen = false;
-  ui.newPanelTab = 'project';
-  ui.newPanelRepos = null;
-  ui.newPanelRepoFilter = '';
-  ui.newPanelCreateOpen = false;
-  ui.newPanelCreateError = null;
-  ui.newPanelPasteError = null;
+// ---- Projects tab (#267): the list's drawer and My order, and New project in four steps ----------------------
+function freshNew(extra) { return Object.assign({ step: 1, name: '', areaId: null, addArea: false, areaName: '', color: null, gh: 'no', sub: null, repo: null, repoName: '', priv: true, link: '', error: null, busy: false }, extra); }
+function closeNewProject() { ui.np = null; ui.newPanelRepos = null; ui.newPanelRepoFilter = ''; }
+function openNewProject(extra) {
+  ui.np = freshNew(extra); ui.projSortOpen = false; setScreen('projects');
+  if (ui.np.sub === 'mine') fetchNewPanelRepos(); else paint();
+  window.scrollTo(0, 0); focusLater('.pj-field');
+}
+const slug = (n) => n.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
+const refuse = (e) => (e.status === 403 || e.status === 404) ? 'GitHub refused: your token needs Administration: Read and write to create repos. See Settings.' + (e.githubMessage ? ' (' + e.githubMessage + ')' : '') : e.message;
+
+// Make it / Link it / Create it / Track it: the project is added with addProject, then linked to its repo with the same
+// functions the Edit panel uses; if the link fails the new project is taken back out and the error shows on the step.
+async function makeNewProject(how) {
+  const np = ui.np;
+  if (!np || np.busy) return;
+  np.busy = true; np.error = null; paint();
+  let repo = null, fullName = null;
+  try {
+    if (how === 'new') { repo = await createRepo(np.repoName.trim(), np.priv, ''); fullName = repo.full_name; }
+    if (how === 'mine') { repo = ((ui.newPanelRepos || {}).list || []).find((r) => r.full_name === np.repo); fullName = np.repo; }
+    if (how === 'other') fullName = parseRepoInput(np.link);
+  } catch (e) { np.busy = false; np.error = refuse(e); paint(); return; }
+  const project = M.addProject(np.name.trim() || (fullName || '').split('/')[1] || 'New project', null);
+  let res = { project };
+  if (how === 'mine' || how === 'new') res = await linkProjectToRepoOnGithub(project.id, repo, ui);
+  else if (how === 'other') res = await linkProjectToRepoByInput(project.id, np.link, ui);
+  ui.syncError = null;
+  if (res.error) { M.removeProject(project.id); if (fullName) M.unpinRepo(fullName); np.busy = false; np.error = res.error; paint(); return; }
+  const areaId = np.addArea && np.areaName.trim() ? M.addProjectCategory(np.areaName.trim()).id : np.areaId;
+  if (areaId) M.setProjectCategory(project.id, areaId);
+  if (np.color) M.setProjectColor(project.id, np.color);
+  closeNewProject();
+  setScreen('roadmap'); setView({ mode: 'project', id: project.id });
+  ui.notice = 'Made ✓'; paint(); window.scrollTo(0, 0);
 }
 
-// Escape inside the panel closes it and returns focus to "+ New" (Q29a).
-function focusNewPanelFirstField() {
-  requestAnimationFrame(() => {
-    const panel = document.getElementById('new-panel');
-    const field = panel && panel.querySelector('input, textarea, select');
-    if (field) field.focus();
-  });
+// Returns true when the action is the Projects tab's own.
+function onProjectsAction(action, el) {
+  const np = ui.np;
+  if (action === 'proj-sort-menu') { ui.projSortOpen = !ui.projSortOpen; paint(); focusLater(ui.projSortOpen ? '.sort-drawer' : '.pj-pull'); return true; }
+  if (action === 'set-project-sort') {
+    ui.projectSort = el.getAttribute('data-value'); saveProjectSort(); ui.projSortOpen = false;
+    if (ui.projectSort === 'custom') { ui.projOrder = true; ui.projectQuery = ''; }
+    paint(); return true;
+  }
+  if (action === 'proj-order-done') { ui.projOrder = false; paint(); return true; }
+  if (action === 'toggle-new-panel') { openNewProject(); return true; }
+  if (!np || !action.match(/^(np-|add-new-project$|link-new-repo$|create-repo$|track-repo$|retry-new-panel-repos$)/)) return false;
+  if (action === 'np-back') {
+    if (np.sub) { np.sub = null; np.gh = 'no'; np.error = null; np.repo = null; }
+    else if (np.step > 1) np.step -= 1;
+    else closeNewProject();
+    paint(); focusLater('.pj-field'); return true;
+  }
+  if (action === 'np-next') { np.step = Math.min(4, np.step + 1); paint(); focusLater('.pj-field'); return true; }
+  if (action === 'np-area') { const id = el.getAttribute('data-id'); np.areaId = np.areaId === id && !np.addArea ? null : id; np.addArea = false; paint(); return true; }
+  if (action === 'np-area-new') { np.addArea = !np.addArea; if (np.addArea) np.areaId = null; paint(); focusLater('.pj-field'); return true; }
+  if (action === 'np-color') { const c = el.getAttribute('data-color'); np.color = np.color === c ? null : c; paint(); return true; }
+  if (action === 'np-gh') {
+    np.gh = el.getAttribute('data-mode'); np.sub = np.gh === 'no' ? null : np.gh; np.error = null;
+    if (np.gh === 'new' && !np.repoName) np.repoName = slug(np.name);
+    if (np.gh === 'mine') { np.repo = null; fetchNewPanelRepos(); } else { paint(); focusLater('.pj-field'); }
+    return true;
+  }
+  if (action === 'np-repo') { np.repo = el.getAttribute('data-repo'); paint(); return true; }
+  if (action === 'np-private') { np.priv = el.getAttribute('data-value') === '1'; paint(); return true; }
+  if (action === 'retry-new-panel-repos') { fetchNewPanelRepos(); return true; }
+  makeNewProject({ 'add-new-project': 'no', 'link-new-repo': 'mine', 'create-repo': 'new', 'track-repo': 'other' }[action]);
+  return true;
 }
 
 // The skippable due-date step (#106). Shown when a date is first set in the add or edit form, only
@@ -1401,17 +1428,6 @@ function dueStagesFromForm(fd) {
   const yellow = Number(fd.get('dueYellow')), red = Number(fd.get('dueRed'));
   if (!(yellow > 0 && red > 0)) return undefined;
   return { yellow: { leadHours: yellow }, red: { leadHours: red } };
-}
-
-// No projects yet (#124): the empty main column opens the "+ New" panel in place, since the sidebar
-// that normally holds it isn't drawn until there is a project.
-function openFirstProjectPanel() {
-  ui.newPanelOpen = true;
-  ui.newPanelTab = 'project';
-  paint();
-  const spot = document.querySelector('.projects-empty');
-  if (spot) spot.scrollIntoView({ block: 'center' });
-  focusNewPanelFirstField();
 }
 
 function onOnboardingClick(action, el) {
@@ -1487,63 +1503,6 @@ function onAppSubmit(e) {
     paint(); focusAddTitle(projectId);
     return;
   }
-  // The "+ New" panel's "New project" tab (Q29a): a plain name, no category -- set afterward
-  // through the project's own Edit panel.
-  const addNewProject = e.target.closest('[data-action="add-new-project"]');
-  if (addNewProject) {
-    e.preventDefault();
-    const name = String(new FormData(addNewProject).get('name') || '').trim();
-    if (!name) return;
-    const project = M.addProject(name, null);
-    closeNewPanel();
-    afterProjectAdded(project.id);
-    return;
-  }
-  // The "+ New" panel's "GitHub repo" tab, Paste field: same track-repo path as picking one from
-  // Your repos (addRepoManually) -- parseRepoInput's error shows inline instead of in the toast.
-  const pasteRepo = e.target.closest('[data-action="paste-repo"]');
-  if (pasteRepo) {
-    e.preventDefault();
-    const val = String(new FormData(pasteRepo).get('value') || '').trim();
-    if (!parseRepoInput(val)) { ui.newPanelPasteError = 'Enter it as "owner/repo" or a full github.com URL.'; paint(); return; }
-    ui.newPanelPasteError = null;
-    const repoFullName = parseRepoInput(val);
-    addRepoManually(val, ui).then(() => {
-      if (ui.syncError) { ui.newPanelPasteError = ui.syncError; ui.syncError = null; paint(); return; }
-      const project = state.projects.find((p) => p.source === 'github' && p.repoFullName === repoFullName);
-      closeNewPanel();
-      if (project) afterProjectAdded(project.id); else paint();
-    });
-    return;
-  }
-  // The "+ New" panel's "Create a new repo on GitHub" disclosure (Q31a, #39).
-  const createRepoForm = e.target.closest('[data-action="create-repo"]');
-  if (createRepoForm) {
-    e.preventDefault();
-    const fd = new FormData(createRepoForm);
-    const name = String(fd.get('name') || '').trim();
-    if (!isValidRepoName(name)) { ui.newPanelCreateError = 'Repo name: ' + REPO_NAME_RULE + '.'; ui.newPanelCreateOpen = true; paint(); return; }
-    ui.newPanelCreateOpen = true;
-    ui.newPanelCreateError = null;
-    ui.newPanelCreating = true;
-    paint();
-    createRepoAndTrack(name, !!fd.get('private'), String(fd.get('description') || '').trim(), ui).then((repo) => {
-      ui.newPanelCreating = false;
-      if (ui.syncError) { ui.newPanelCreateError = ui.syncError; ui.syncError = null; paint(); return; }
-      const project = state.projects.find((p) => p.source === 'github' && p.repoFullName === repo.full_name);
-      closeNewPanel();
-      if (project) afterProjectAdded(project.id); else paint();
-    }).catch((e) => {
-      ui.newPanelCreating = false;
-      if (e.status === 403 || e.status === 404) {
-        ui.newPanelCreateError = 'GitHub refused: your token needs Administration: Read and write to create repos. See Settings.' + (e.githubMessage ? ' (' + e.githubMessage + ')' : '');
-      } else {
-        ui.newPanelCreateError = e.message;
-      }
-      paint();
-    });
-    return;
-  }
   // The Edit panel's "Link to GitHub repo" chooser (Q30c), Paste field.
   const pasteLinkRepo = e.target.closest('[data-action="paste-link-repo"]');
   if (pasteLinkRepo) {
@@ -1615,15 +1574,10 @@ function onAppKeydown(e) {
     if (form && ui.addingTask[pid]) { delete ui.addingTask[pid]; paint(); focusAddTitle(pid); }
     else if (form && ui.rmAdd && ui.rmAdd.kind === 'task') { ui.rmAdd = null; paint(); }
   }
-  // Escape inside the "+ New" panel closes it and returns focus to "+ New" (Q29a).
-  // Each Escape closes only the innermost thing: stopPropagation keeps it from also reaching the
-  // document-level handler that closes the phone drawer the panel sits in.
-  if (e.key === 'Escape' && e.target.closest && e.target.closest('#new-panel')) {
+  // Escape inside New project steps back (and out of the first step), like the Back corner.
+  if (e.key === 'Escape' && e.target.closest && e.target.closest('.pj-flow') && ui.np) {
     e.stopPropagation();
-    closeNewPanel();
-    paint();
-    const btn = document.getElementById('new-panel-toggle');
-    if (btn) btn.focus();
+    onProjectsAction('np-back', e.target);
   }
   // Escape inside the Edit panel's inline repo chooser closes just that.
   if (e.key === 'Escape' && e.target.closest && e.target.closest('.link-repo-panel')) {
@@ -1681,10 +1635,7 @@ function init() {
   // Settings' checklist links here to link a first GitHub repo (#126): open "+ New" on its repo tab
   const params = new URLSearchParams(location.search);
   if (params.get('new') === 'repo') {
-    setScreen('projects'); // the + New panel is on Projects
-    ui.newPanelOpen = true;
-    ui.newPanelTab = 'repo';
-    fetchNewPanelRepos();
+    openNewProject({ step: 4, gh: 'mine', sub: 'mine' }); // New project's "My repo" step
     history.replaceState(null, '', location.pathname);
   }
   paint();

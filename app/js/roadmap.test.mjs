@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import { split, sharesFor, sharesAfter, applyShares, applyMilestoneSettings, progressOf, roadmapOf, percent, addSection, addMilestone, moveMilestone, moveSection, stepMilestone, stepSection, makeMilestone, syncGithubMilestones, UNPLANNED } from './roadmap.js';
 import { mergeStates } from './merge.js';
 import { renderRoadmap } from './roadmap-view.js';
+import { renderProjects } from './projects-view.js';
 import { state } from './state.js';
 import { setTaskStatus } from './mutations.js';
 
@@ -85,9 +86,10 @@ test('an old save (no sections, milestones or milestoneId) loads: every task is 
   const r = roadmapOf(p);
   assert.deepEqual([r.sections.length, r.unplanned.total, r.pct], [0, 2, 50]);
   const st = { projects: [p], projectCategories: [], categories: [] };
-  const h = renderRoadmap(st, { view: { mode: 'all' } });
-  assert.ok(h.includes('Roadmap: All') && h.includes('50% done') && h.includes('Unplanned'));
-  assert.ok(renderRoadmap(st, { view: { mode: 'project', id: 'p' } }).includes('data-status="next"'));
+  const h = renderProjects(st, { view: { mode: 'all' } });
+  assert.ok(h.includes('Projects') && h.includes('aria-label="50% done"') && h.includes('data-project="p"'), 'the Projects tab shows a card with its ruler');
+  const pv = renderRoadmap(st, { view: { mode: 'project', id: 'p' } });
+  assert.ok(pv.includes('data-status="next"') && pv.includes('Unplanned') && !pv.includes('New project'), 'the Roadmap is one project, with no + New project (Projects owns it)');
 });
 
 // ---- milestone settings (#258) ----

@@ -1,5 +1,7 @@
 # Roadmap (#257)
 
+> **2026-11-12 (#267):** the group view (a row per project, the "+ New project" button and the New panel) is gone from the Roadmap. The project list and New project are the Projects tab: see [projects-tab.md](./projects-tab.md). The Roadmap is one project; its menu has no "+ New project". Read the "Group view" and "+ New project" lines below as history.
+
 > **2026-11-12 (#259):** there are now five tabs; Tidy up and Triage sit under Organize on the wide rail too. The phone-only Organize wording below is history. See [tabs.md](./tabs.md).
 
 ## What it owns
@@ -31,7 +33,7 @@ wide; screenshots in `docs/generated/build-checks/step9/`).
 ## How it works
 
 - Screen "Roadmap" after Triage (rail entry and phone tab). It follows the All | Area | Project switch.
-- Group view (All, Area): title "Roadmap: <view>", "+ New project" top right (the existing New panel: name, or
+- (History, removed in #267) Group view (All, Area): title "Roadmap: <view>", "+ New project" top right (the existing New panel: name, or
   link/create a GitHub repo). One row per project: dot, name, "N% done", then a card per milestone (name, count,
   bar in the project's colour). Clicking a row or card switches the view to that project. On a phone each project is
   one card: "N% done", "Now: <current milestone> · X of Y", a bar.
@@ -41,7 +43,7 @@ wide; screenshots in `docs/generated/build-checks/step9/`).
   `milestoneId`; it needs a priority like every add row, so Add stays off with "Pick a priority to add"; the box stays open, empty and
   focused after each add, and Escape or a click away closes it), "+ Add a milestone" (end of the last section), "+ Add a section". Top right: "Edit project" (the
   existing edit panel: rename is not there today, area, colours, link to a GitHub repo, Remove), "Sync now" for a
-  GitHub project, "+ New project". Each task row shows a read-only priority chip (when set) and a due chip (open tasks); clicking the chip or the title opens Task details, where both change. Clicking a task opens Task details under the sections, with a Milestone menu and
+  GitHub project (a "+ New project" button was here until #267). Each task row shows a read-only priority chip (when set) and a due chip (open tasks); clicking the chip or the title opens Task details, where both change. Clicking a task opens Task details under the sections, with a Milestone menu and
   "Make this a milestone" (a task with subtasks becomes a milestone; its subtasks are its tasks).
 - Phone project view: the four columns become four buttons (Up next / In progress / Review / Done), one column
   visible at a time (`ui.rmCol`, per milestone).
@@ -62,7 +64,7 @@ Clicking a milestone's name on the project view opens "Milestone: <name>" (subli
 
 - Share. A slider sets how much the milestone counts toward the project. Shares are whole numbers that always add up to 100 (`sharesFor`, `sharesAfter`, `split` in `js/roadmap.js`): moving one rescales the others in proportion, from the shares at open, and rounding leftovers go to the largest. Stored as `weight` on the milestone. A milestone with no `weight` (old saves, a milestone added later) makes everyone's share equal again. Unplanned counts as a milestone for shares when it has tasks; its share is kept on the project as `unplannedWeight` and it has no settings of its own.
 - Measure. `measureBy` is `tasks` (done / all, the default), `size` (task `size` small 1, medium 2, large 3, no size counts as small; points done / points), `number` (`number: {name, current, target}`, "screens tested 2 of 4") or `checklist` (`checklist: [{id, text, done}]`, ticked / items). A task's size is set in Task details (Priority and due date row) and stored as `size`. The own-number text replaces step 9's `measure` word, which still shows for a `tasks` milestone that has one.
-- Project progress = the sum over milestones of share x that milestone's progress, rounded. The project bar is one segment per milestone as wide as it added; hover text names it. The group view, "N% done" and the milestone cards use the same numbers (`roadmapOf`: `pct`, `text`, `share`, `contribution`).
+- Project progress = the sum over milestones of share x that milestone's progress, rounded. The project bar is one segment per milestone as wide as it added; hover text names it. The Projects tab's ruler, "N% done" and the milestone cards use the same numbers (`roadmapOf`: `pct`, `text`, `share`, `contribution`).
 - All of it is stamped `updatedAt` and merges like any milestone (newest copy wins). shortcut: the settings screen is not offered for Unplanned, and a later milestone resets shares to equal.
 
 ## GitHub milestones

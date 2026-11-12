@@ -28,6 +28,7 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
   sync offer), when it shows, and the no-projects empty states (`js/onboarding.js`,
   `js/onboarding-view.js`).
 - [view-switch.md](./view-switch.md) — the All | Area | Project switch on every screen (`js/view-switch.js`).
+- [projects-tab.md](./projects-tab.md) — the Projects tab: the project list, Sort by, My order, New project in four steps (`js/projects-view.js`).
 - [roadmap.md](./roadmap.md) — the Roadmap: sections, milestones, four columns per milestone (`js/roadmap.js`,
   `js/roadmap-view.js`, `js/roadmap-drag.js`).
 - [calm-board.md](./calm-board.md) — the calm frame, the one-tab Board, card colour, Task details and

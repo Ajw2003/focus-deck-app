@@ -1,5 +1,6 @@
 // focus-deck-app/js/render.test.mjs — run with: node app/js/render.test.mjs
-import { renderTaskRow, chipsMaxPct, renderToast, jotTarget, renderJotScreen, renderFocus, renderCategoryWalletInner, renderTaskEditForm, unsortedQueue, renderNewPanel, renderProjectEditPanel, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderTaskRow, chipsMaxPct, renderToast, jotTarget, renderJotScreen, renderFocus, renderCategoryWalletInner, renderTaskEditForm, unsortedQueue, renderProjectEditPanel, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderProjects } from './projects-view.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import assert from 'node:assert';
 
@@ -245,34 +246,41 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   assert.ok(inbox.includes('Which project?') && inbox.includes('data-key="p1"') && inbox.includes('Choose a project first'), 'a captured thought is guided to a folder before it can be filed');
 }
 
-// The "+ New" panel (PR 7, Q29a/Q30c): always in the header, opens under it, two tabs, the
-// no-token line, and the Edit panel's Link to GitHub repo row.
+// New project (#267): four steps, then the GitHub choices; the Edit panel's Link to GitHub repo row.
 {
   const projects = [{ id: 'p1', name: 'Alpha', color: 'red', tasks: [] }];
-  const baseUi = {};
-  const panel = (ui, tok) => renderNewPanel(ui, tok);
+  const st = { projects, projectCategories: [{ id: 'a1', name: 'Home' }, { id: 'pcat_unsorted', name: 'Unsorted' }] };
+  const flow = (np, extra, tok = true) => renderProjects(st, { np: Object.assign({ step: 1, name: '', areaId: null, addArea: false, areaName: '', color: null, gh: 'no', sub: null, repo: null, repoName: '', priv: true, link: '', error: null, busy: false }, np), ...extra }, tok);
 
-  const openUi = { ...baseUi, newPanelOpen: true };
-  const open = panel(openUi, true);
-  assert.ok(open.includes('id="new-panel"'), 'the panel renders when open');
-  assert.ok(open.includes('New project') && open.includes('GitHub repo'), 'the panel has both tabs');
-  assert.ok(open.includes('data-action="add-new-project"'), 'the New project tab defaults open with its add form');
+  const one = flow({}, {});
+  assert.ok(one.includes('Name it') && one.includes('data-np-name') && one.includes('aria-label="Step 1 of 4"'), 'step 1 is Name it, with progress dots');
+  assert.ok(/data-action="np-next" disabled/.test(one), 'Next is off until the project has a name');
+  assert.ok(!/data-action="np-next" disabled/.test(flow({ name: 'Shed' }, {})), 'Next is on once it has a name');
+  const two = flow({ step: 2 }, {});
+  assert.ok(two.includes('Which area?') && two.includes('>Home<') && two.includes('+ New area') && !two.includes('Unsorted'), 'step 2 lists the areas and + New area');
+  assert.ok(flow({ step: 3 }, {}).includes('Pick a colour') && flow({ step: 3 }, {}).includes('data-action="np-color"'), 'step 3 is swatches');
+  const four = flow({ step: 4 }, {});
+  assert.ok(four.includes('On GitHub?') && four.includes('Make it') && four.includes('My repo') && four.includes('New repo') && four.includes('Someone else'), 'step 4 offers the four choices and Make it');
+  const noTok = flow({ step: 4 }, {}, false);
+  assert.ok(noTok.includes('href="settings.html"') && noTok.includes('data-mode="mine" disabled'), 'no token -- only No is usable, plus the Settings link');
 
-  const repoTabUi = { ...openUi, newPanelTab: 'repo' };
-  const repoTabNoToken = panel(repoTabUi, false);
-  assert.ok(repoTabNoToken.includes('Connect GitHub in') && repoTabNoToken.includes('href="settings.html"'), 'no token -- just the Settings line, nothing else');
-  assert.ok(!repoTabNoToken.includes('data-action="track-repo"') && !repoTabNoToken.includes('data-action="create-repo"'), 'no repo picker or Create when there is no token');
+  const repos = flow({ step: 4, sub: 'mine', gh: 'mine', repo: 'me/two' }, { newPanelRepos: { list: [{ full_name: 'me/one', private: false }, { full_name: 'me/two', private: true }] } });
+  assert.ok(repos.includes('Which repo?') && repos.includes('me/one') && repos.includes('Private') && repos.includes('data-action="np-repo" data-repo="me/one"'), 'Which repo? lists the untracked repos, with Private');
+  assert.ok(repos.includes('Link it') && !/data-action="link-new-repo" disabled/.test(repos), 'Link it is on once one is chosen');
+  assert.ok(flow({ step: 4, sub: 'mine' }, { newPanelRepos: { loading: true } }).includes('Loading your repos…'), 'a loading state shows while the fetch is in flight');
+  const errored = flow({ step: 4, sub: 'mine' }, { newPanelRepos: { error: 'boom' } });
+  assert.ok(errored.includes('boom') && errored.includes('data-action="retry-new-panel-repos"'), 'an error shows the message and a Retry card');
+  const made = flow({ step: 4, sub: 'new', gh: 'new', repoName: 'shed rebuild' }, {});
+  assert.ok(made.includes('New repo') && made.includes('Private') && made.includes('Public') && made.includes('Create it') && /data-action="create-repo" disabled/.test(made), 'New repo: name, Private / Public, Create it (off for a bad name)');
+  assert.ok(/data-action="track-repo" disabled/.test(flow({ step: 4, sub: 'other', gh: 'other' }, {})) && !/data-action="track-repo" disabled/.test(flow({ step: 4, sub: 'other', gh: 'other', link: 'github.com/me/x' }, {})), 'Track it needs a link GitHub can read');
 
-  const repoTabWithToken = panel({ ...repoTabUi, newPanelRepos: { list: [{ full_name: 'me/one', private: false }, { full_name: 'me/two', private: true }] } }, true);
-  assert.ok(repoTabWithToken.includes('me/one') && repoTabWithToken.includes('me/two') && repoTabWithToken.includes('>Private<'), 'Your repos lists the untracked repos, with a Private chip');
-  assert.ok(repoTabWithToken.includes('data-action="track-repo" data-repo="me/one"'), 'each row has a Track button');
-  assert.ok(repoTabWithToken.includes('data-action="paste-repo"') && repoTabWithToken.includes('owner/repo or URL'), 'the paste field is present');
-  assert.ok(repoTabWithToken.includes('Create a new repo on GitHub') && repoTabWithToken.includes('data-action="create-repo"'), 'the create-a-repo disclosure is present');
-
-  const loading = panel({ ...repoTabUi, newPanelRepos: { loading: true } }, true);
-  assert.ok(loading.includes('Loading your repos…'), 'a loading state shows while the fetch is in flight');
-  const errored = panel({ ...repoTabUi, newPanelRepos: { error: 'boom' } }, true);
-  assert.ok(errored.includes('boom') && errored.includes('data-action="retry-new-panel-repos"'), 'an error shows the message and a Retry link');
+  // the list: a card per project, the sort drawer, My order
+  const list = renderProjects(st, { projectSort: 'name' }, true);
+  assert.ok(list.includes('data-action="rm-open" data-project="p1"') && list.includes('+ New project') && list.includes('Find a project') && !list.includes('role="dialog"'), 'the list: a card, Find, + New project, the drawer shut');
+  const drawer = renderProjects(st, { projectSort: 'custom', projSortOpen: true }, true);
+  assert.ok(['A–Z', 'Most tasks', 'Due soonest', 'Last synced', 'My order'].every((x) => drawer.includes(x)) && drawer.includes('data-action="set-project-sort" data-value="custom"'), 'the drawer has the five orders');
+  const order = renderProjects(st, { projectSort: 'custom', projOrder: true }, true);
+  assert.ok(order.includes('My order') && order.includes('data-action="rm-project-step" data-project="p1" data-dir="-1"') && order.includes('proj-order-done'), 'My order: up and down keys per project, and Done');
 
   // Edit panel: Link to GitHub repo row for a hand-made project, nothing new for a repo project
   const cardUi = () => ({ doneOpen: {}, pendingRemove: {}, projectCollapsed: {}, editingProject: { p1: true }, addingTask: {}, selectedProjectId: null, editingTask: null, projectView: 'all' });

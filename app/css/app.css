@@ -1432,19 +1432,9 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .rm-head{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 16px; margin-bottom:12px;}
 .rm-head .board-title{margin:0;}
 .rm-tools{display:flex; flex-wrap:wrap; gap:8px;}
-.rm-new, .rm-tools .btn{min-height:40px;}
+.rm-tools .btn{min-height:40px;}
 .rm-title{display:flex; align-items:center; gap:10px;}
 .rm-dot{flex:none; width:12px; height:12px; border-radius:50%; background:var(--c);}
-.rm-group{display:flex; flex-direction:column; gap:14px;}
-.rm-row{display:grid; grid-template-columns:200px minmax(0,1fr); gap:12px 16px; align-items:center;}
-.rm-proj{display:grid; grid-template-columns:auto minmax(0,1fr); gap:2px 8px; align-items:center; text-align:left; border:0; background:none; color:inherit; font:inherit; padding:4px; cursor:pointer;}
-.rm-proj-name{font-weight:700; overflow-wrap:anywhere;}
-.rm-proj-pct{grid-column:2; color:var(--ink-soft); font-size:.85rem;}
-.rm-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; min-width:0;}
-.rm-card{display:flex; flex-direction:column; gap:4px; text-align:left; border:1px solid var(--line); border-top:4px solid var(--c); border-radius:14px; background:var(--surface); color:inherit; font:inherit; padding:10px 14px; cursor:pointer; min-width:0;}
-.rm-card-name{font-weight:700; overflow-wrap:anywhere;}
-.rm-card-count, .rm-now{color:var(--ink-soft); font-size:.85rem;}
-.rm-none{margin:0; color:var(--ink-soft);}
 .rm-bar{display:block; height:7px; border-radius:999px; background:var(--line); overflow:hidden;}
 .rm-bar i{display:block; height:100%; background:var(--c); border-radius:999px;}
 .rm-bar-big{height:12px; margin-bottom:16px;}
@@ -1452,9 +1442,6 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .rm-segs i{flex:none; border-radius:0; box-shadow:inset -2px 0 0 var(--surface);}
 .rm-segs i:first-child{border-radius:999px 0 0 999px;}
 .detail-size{display:flex; align-items:center; gap:8px; margin-top:8px;}
-.rm-phone{display:none; text-align:left; border:1px solid var(--line); border-left:6px solid var(--c); border-radius:14px; background:var(--surface); color:inherit; font:inherit; padding:12px 14px; flex-direction:column; gap:6px; cursor:pointer;}
-.rm-phone-top{display:flex; justify-content:space-between; gap:8px;}
-.rm-phone-top small{color:var(--ink-soft);}
 .rm-total{display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
 .rm-big{font:700 2.4rem var(--font-ui); color:var(--ink);}
 .rm-total-sub{color:var(--ink-soft);}
@@ -1496,9 +1483,7 @@ button.rm-ms-name:hover{text-decoration-color:var(--c);}
 .rm-detail-tools{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; margin-bottom:10px;}
 .rm-detail-tools select{min-height:36px;}
 @media (max-width:899.98px){
-  .rm-row{grid-template-columns:minmax(0,1fr);}
-  .rm-proj, .rm-cards, .rm-grip{display:none;}
-  .rm-phone{display:flex;}
+  .rm-grip{display:none;}
   .rm-moves, .rm-tmoves, .rm-coltabs{display:flex;}
   .rm-cols{grid-template-columns:minmax(0,1fr);}
   .rm-col:not(.is-on){display:none;}
@@ -1552,11 +1537,9 @@ button.rm-ms-name:hover{text-decoration-color:var(--c);}
   .ms-dialog{max-width:none; max-height:90dvh; border-radius:16px 16px 0 0;}
 }
 
-/* Roadmap Find boxes and the project order control (#259) */
-.rm-finds{display:flex; flex-wrap:wrap; gap:10px; margin:0 0 14px;}
+/* Roadmap Find box (#259) */
 .rm-find{flex:1 1 220px; min-width:0; box-sizing:border-box; min-height:40px; padding:0 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit;}
 .rm-find + .rm-total{margin-top:12px;}
-.rm-pmoves{display:flex; gap:4px; margin-bottom:6px;}
 
 /* ---- Desk-object kit (#262): ported from docs/generated/friction-steps/prototype.html (its <style> block). Every class
    is prefixed dk- so it cannot collide with the app's own; colours are --dk-* so the old palette is untouched.
@@ -1670,3 +1653,30 @@ a.dk-choice{text-decoration:none;}
 .jot-save{flex:none; font-size:15px; padding:12px 8px; cursor:pointer; border:0;}
 .jot-drawer{z-index:71;}
 .jot-screen .vs-backdrop{z-index:70;}
+
+/* Projects tab (#267): the Projects clipboard (a card per project, a sort drawer, My order) and New project in four steps.
+   Same clipboard, stamps and dots as the Sort steps. Nothing under 13px, no page scroll on a 390x844 phone (a long list
+   scrolls inside its own box). See docs/4-systems/projects-tab.md */
+.screen-projects .pj{--text-sm:13px; display:flex; flex-direction:column; max-width:560px; margin:0 auto; width:100%; min-height:calc(100dvh - 240px - env(safe-area-inset-bottom, 0px));}
+.pj .dk-board{flex:1; min-height:0;}
+.pj-paper{position:relative;}
+.pj-pull{top:2px;}
+.pj-scroll{display:flex; flex-direction:column; gap:8px; min-height:0; overflow-y:auto; padding:2px 2px 6px; max-height:calc(100dvh - 400px);}
+.pj-flow .pj-scroll:has(+ .pj-field){max-height:calc(100dvh - 470px);}
+.pj-card{flex:none; display:block; width:100%; text-align:left; border:0; border-top:4px solid var(--c); border-radius:2px; padding:8px 10px 10px 24px; color:var(--dk-ink); cursor:pointer; box-shadow:0 1px 3px rgba(40,52,80,.25);
+  background:linear-gradient(90deg,transparent 16px,var(--dk-margin) 16px,var(--dk-margin) 17px,transparent 17px),var(--dk-paper);}
+.pj-card:focus-visible{outline:2px solid var(--dk-accent); outline-offset:2px;}
+.pj-name{margin:0 0 6px; font:700 17px/1.25 var(--font-ui); overflow-wrap:anywhere;}
+.pj-ruler{display:block; height:14px; border-radius:2px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.25);
+  background:repeating-linear-gradient(90deg,#8C7A55 0 1px,transparent 1px 10%) 0 100%/100% 6px no-repeat,#EED9A0;}
+.pj-ruler i{display:block; height:100%; background:var(--c); opacity:.7;}
+.pj-field{flex:none; display:block; width:100%; min-height:48px; border:0; border-radius:2px; padding:14px 12px 6px; color:var(--dk-pen); outline:none; font:700 16px/28px var(--dk-hand); box-shadow:0 1px 3px rgba(40,52,80,.25);
+  background:radial-gradient(circle at 8px 5px, var(--bg) 2.5px, transparent 3px) 0 0/16px 10px repeat-x, repeating-linear-gradient(transparent 0 27px, var(--dk-rule) 27px 28px), var(--dk-paper); background-position:0 0, 0 12px, 0 0;}
+.pj-field:focus{box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent);}
+.pj-swatches{display:flex; flex-wrap:wrap; gap:14px; padding:6px 4px;}
+.pj-swatch{position:relative; width:48px; height:64px; border:0; border-radius:2px; background:var(--c); cursor:pointer; box-shadow:0 2px 3px rgba(0,0,0,.3);}
+.pj-swatch::after{content:""; position:absolute; left:0; right:0; bottom:0; height:16px; background:var(--dk-paper);}
+.pj-swatch.on{outline:3px solid var(--dk-ink); outline-offset:3px;}
+.pj-row{justify-content:space-between; align-items:center; cursor:default;}
+.pj .dk-choice[disabled]{opacity:.45; cursor:default;}
+.pj a.dk-choice{text-decoration:none; color:inherit;}

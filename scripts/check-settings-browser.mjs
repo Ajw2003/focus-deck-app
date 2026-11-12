@@ -142,13 +142,13 @@ for (const size of ['phone', 'desktop']) for (const scheme of ['dark', 'light'])
   await ctx.close();
 }
 
-// 4. "Link a repo" opens the + New panel on its repo tab
+// 4. "Link a repo" opens New project on its Which repo? step
 {
   const { ctx, page } = await open('phone', 'dark', { [STATE_KEY]: JSON.stringify(setUp), 'focusdeck-github-token': KEY, 'focusdeck-gist-id': 'gOLD' });
   await openRow(page, '#checklist-items'); await page.click('[data-item="issues"] a');
-  await page.waitForSelector('#new-panel');
+  await page.waitForSelector('.pj-flow');
   await page.waitForTimeout(300);
-  check('repo link: the Roadmap opens on the repo tab', !!(await page.$('.screen-roadmap')) && ((await page.textContent('#new-panel')) || '').includes('aj/site'));
+  check('repo link: Projects opens New project on Which repo?', !!(await page.$('.screen-projects')) && ((await page.textContent('.pj-flow')) || '').includes('Which repo?') && ((await page.textContent('.pj-flow')) || '').includes('aj/site'));
   check('repo link: the address is tidied', !page.url().includes('new=repo'));
   await page.screenshot({ path: OUT + 'phone-dark-repo-link.png' });
   await ctx.close();

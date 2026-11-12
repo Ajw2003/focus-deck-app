@@ -12,7 +12,7 @@ Tidy up and Triage show Tidy up | Triage buttons at the top of both screens.
   replaces it), the **sync light** (a green dot; amber while syncing, red after an error; `renderSyncButton`) and the **settings dial**
   (link to `settings.html`). Tapping the light opens a small drawer (`ui.syncOpen`) with **Sync now** (`sync-github`) and **Sync settings**
   (`settings.html#sync-section`). The old header sync button, the settings icon and the rail's foot (sync + Settings) are gone.
-- **Projects** shows the group view (All / Area project list, Find a project, sort, + New project); tapping a project opens it on the
+- **Projects** shows the project list on a clipboard (Find a project, a card and ruler per project, the Sort by drawer, My order, a + New project stamp that starts the four steps of New project: see `projects-tab.md`); tapping a project opens it on the
   **Roadmap** tab, which shows one project. The Roadmap opens the last project picked (localStorage `focusdeck-last-project`, else the
   first); a view that is not one project is turned into it on this tab (`renderApp`). Later issues redesign the insides of both.
 - Screen ids: `sort`, `tidy`, `triage`, `projects`, `roadmap`, `focus`, `review` (`SCREENS`). A saved `board` screen (localStorage
@@ -21,8 +21,7 @@ Tidy up and Triage show Tidy up | Triage buttons at the top of both screens.
   typing in a field or a wallet; **Escape** leaves it (`app/js/app.js`, the document keydown in `init`).
 - Task details opens from a task on every tab: a "Details" button on a Sort task slip, a Tidy up row, a Triage row and the Focus note;
   a task title on the Roadmap and Review. Sort, Tidy up, Triage and Focus draw the panel under the screen (`renderApp`).
-- The Roadmap took what the Board and Projects screens did: the group view (All / Area) has a "Find a project" box, the project sort
-  control (Custom order gives up/down buttons per row) and + New project; the project view has "Find a task" across its milestones,
+- The Roadmap took what the Board and Projects screens did; since #267 the project list, its sort and + New project are the Projects tab again, and the project view has "Find a task" across its milestones,
   Edit project, Sync now, the four columns per milestone, adding and ticking tasks. See `roadmap.md`.
 - Removed: the Board and Projects screens, the topbar Projects button and drawer, project cards, the sidebar. The code is kept in
   `_to_delete/app/js/` (`board-view.js`, `board-swipe.js`, `render-projects-screen.removed.js`).

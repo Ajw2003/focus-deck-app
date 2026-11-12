@@ -396,18 +396,18 @@
     ],
     [
      "set-project-sort",
-     "Sort projects",
+     "Sort by: A-Z, Most tasks, Due soonest, Last synced, My order",
      "r0m"
     ],
     [
      "rm-project-step",
-     "Move a project in my own order",
+     "Move a project up or down in My order",
      "r0o"
     ],
     [
      "toggle-new-panel",
-     "New project",
-     "r0 r2m"
+     "New project (the + New project stamp)",
+     "r0"
     ],
     [
      "start-new-project",
@@ -416,18 +416,13 @@
     ],
     [
      "add-new-project",
-     "Add the new project",
-     "r5 r9"
-    ],
-    [
-     "set-new-panel-tab",
-     "New, link or create a repo",
-     "r8"
+     "Make it: add the new project",
+     "r8 r9"
     ],
     [
      "link-repo",
-     "Link to one of my repos",
-     "r8a"
+     "Link one of my repos to a project (Edit project)",
+     "r2e r8a"
     ],
     [
      "retry-new-panel-repos",
@@ -436,37 +431,87 @@
     ],
     [
      "retry-link-panel-repos",
-     "Retry loading repos",
-     "r8a"
+     "Retry loading repos (Edit project)",
+     "r2e"
     ],
     [
      "create-repo",
-     "Create a new repo",
+     "Create it: make a new repo and link it",
      "r8b"
     ],
     [
      "track-repo",
-     "Track someone else's repo",
-     "r8c"
-    ],
-    [
-     "paste-repo",
-     "Paste a repo link",
+     "Track it: someone else's repo, by its pasted link",
      "r8c"
     ],
     [
      "paste-link-repo",
-     "Paste a link to link",
-     "r8c"
+     "Paste a link to link (Edit project)",
+     "r2e r8c"
     ],
     [
      "toggle-link-panel",
-     "Open the GitHub link choices",
-     "r8 r2e"
+     "Open the GitHub link choices (Edit project)",
+     "r2e"
     ],
     [
      "set-repo-filter",
      "Filter my repos",
+     "r8a"
+    ],
+    [
+     "proj-sort-menu",
+     "Open or close the Sort by drawer (the handle, top right)",
+     "r0 r0m"
+    ],
+    [
+     "proj-order-done",
+     "Done with My order",
+     "r0o"
+    ],
+    [
+     "np-back",
+     "Back one step (the first step leaves New project)",
+     "r5 r6 r7 r8 r8a r8b r8c"
+    ],
+    [
+     "np-next",
+     "Next step",
+     "r5 r6 r7"
+    ],
+    [
+     "np-area",
+     "Pick an area",
+     "r6"
+    ],
+    [
+     "np-area-new",
+     "+ New area",
+     "r6"
+    ],
+    [
+     "np-color",
+     "Pick a colour",
+     "r7"
+    ],
+    [
+     "np-gh",
+     "On GitHub?: No, My repo, New repo, Someone else’s",
+     "r8"
+    ],
+    [
+     "np-repo",
+     "Pick one of my repos",
+     "r8a"
+    ],
+    [
+     "np-private",
+     "New repo: Private or Public",
+     "r8b"
+    ],
+    [
+     "link-new-repo",
+     "Link it: link the new project to my repo",
      "r8a"
     ]
    ]
