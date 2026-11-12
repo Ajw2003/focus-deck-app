@@ -101,8 +101,8 @@ function taskTargetAt(d) {
 // A Board card is a task like a row: same `task` drag, same opts.moveTask. The columns are the
 // "groups" (data-col = the status); a task keeps its own project, and within a column it is ordered
 // among that project's own cards (the order sortTasks gives a project). Done takes the top.
-export const BOARD_COLS = ['next', 'doing', 'done'];
-const BOARD_LABEL = { next: 'Up next', doing: 'In progress', done: 'Done' };
+export const BOARD_COLS = ['next', 'doing', 'review', 'done'];
+const BOARD_LABEL = { next: 'Up next', doing: 'In progress', review: 'Review', done: 'Done' };
 
 function projectCardsIn(col, projectId, exceptId) {
   return Array.from(col.querySelectorAll('.board-card'))
@@ -158,7 +158,7 @@ export function boardStepRequest(card, delta) {
   const others = projectCardsIn(col, projectId, taskId);
   const titleEl = card.querySelector('.board-card-title');
   return {
-    req: { taskId, fromProjectId: projectId, toProjectId: projectId, status, toIndex: status === 'doing' ? others.length : 0, orderedIds: others.map((c) => c.getAttribute('data-task-id')) },
+    req: { taskId, fromProjectId: projectId, toProjectId: projectId, status, toIndex: status === 'doing' || status === 'review' ? others.length : 0, orderedIds: others.map((c) => c.getAttribute('data-task-id')) },
     title: titleEl ? titleEl.textContent.trim() : 'Task', label: BOARD_LABEL[status],
   };
 }
@@ -321,7 +321,7 @@ function endPending() {
   pending = null;
 }
 
-const GROUP_LABEL = { doing: 'In progress', next: 'Up next' };
+const GROUP_LABEL = { doing: 'In progress', review: 'Review', next: 'Up next' };
 
 // ArrowUp/ArrowDown on a task's grip (PR 11): one place within its group, crossing into the
 // neighbouring group at the ends (Up next's top -> In progress's bottom, and back). Moving to
@@ -335,11 +335,12 @@ function keyboardTaskMove(e, grip, opts) {
   if (!card || !row) return;
   const taskId = grip.getAttribute('data-task');
   const projectId = grip.getAttribute('data-project');
-  const ids = { doing: [], next: [] };
+  const ORDER = ['doing', 'review', 'next']; // the groups' order on the card
+  const ids = { doing: [], review: [], next: [] };
   card.querySelectorAll('.task-group[data-group]').forEach((g) => {
     ids[g.getAttribute('data-group')] = Array.from(g.querySelectorAll('.task-row')).map((r) => r.getAttribute('data-task'));
   });
-  const from = ['doing', 'next'].find((g) => ids[g].includes(taskId));
+  const from = ORDER.find((g) => ids[g].includes(taskId));
   if (!from) return;
   const i = ids[from].indexOf(taskId);
   const titleEl = row.querySelector('.task-title');
@@ -347,11 +348,11 @@ function keyboardTaskMove(e, grip, opts) {
   let status = from;
   let toIndex = i + delta;
   if (toIndex < 0) {
-    if (from === 'next') { status = 'doing'; toIndex = ids.doing.length; }
-    else { opts.announce(title + ' is already first'); return; }
+    if (from === ORDER[0]) { opts.announce(title + ' is already first'); return; }
+    status = ORDER[ORDER.indexOf(from) - 1]; toIndex = ids[status].length;
   } else if (toIndex >= ids[from].length) {
-    if (from === 'doing') { status = 'next'; toIndex = 0; }
-    else { opts.announce(title + ' is already last'); return; }
+    if (from === ORDER[ORDER.length - 1]) { opts.announce(title + ' is already last'); return; }
+    status = ORDER[ORDER.indexOf(from) + 1]; toIndex = 0;
   }
   const others = ids[status].filter((id) => id !== taskId);
   if (!opts.moveTask({ taskId, fromProjectId: projectId, toProjectId: projectId, status, toIndex, orderedIds: others })) return;

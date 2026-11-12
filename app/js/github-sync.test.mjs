@@ -3,18 +3,21 @@ import {
   statusFromLabels, parseRepoInput,
   applyLabels, CLAUDE_CREATED_LABEL, CLAUDE_COMPLETED_LABEL,
   dropStaleCompletedLabel, refreshClosedTaskLabels, syncIssueCompletion, upsertRepoProject,
-  priorityFromLabels, pushCategoriesToIssue, pushPriorityToIssue, closeIssueForDeletedTask,
+  priorityFromLabels, pushCategoriesToIssue, pushPriorityToIssue, pushReviewToIssue, closeIssueForDeletedTask,
   sameIssueTitle, createGithubIssueFromTask,
   untrackedRepos, isValidRepoName, linkProjectToRepo, linkProjectToRepoOnGithub,
 } from './github-sync.js';
 import { state } from './state.js';
-import { deleteTask } from './mutations.js';
+import { deleteTask, setTaskStatus, applyTaskMove } from './mutations.js';
 import assert from 'node:assert';
 
 // wip / in progress status labels
 assert.strictEqual(statusFromLabels(['wip']), 'doing', '"wip" label should map to doing status');
 assert.strictEqual(statusFromLabels(['in progress']), 'doing', '"in progress" (spaces) should normalize to inprogress -> doing');
 assert.strictEqual(statusFromLabels(['In-Progress']), 'doing', '"In-Progress" (mixed case + hyphen) should normalize to inprogress -> doing');
+assert.strictEqual(statusFromLabels(['needs review']), 'review', '"needs review" maps to review');
+assert.strictEqual(statusFromLabels(['Needs-Review']), 'review', 'the label is normalised');
+assert.strictEqual(statusFromLabels(['wip', 'needs review']), 'review', 'review beats in progress');
 assert.strictEqual(statusFromLabels(['enhancement']), 'next', 'unrecognized status label should default to next');
 
 // parseRepoInput: owner/repo shorthand, full GitHub URLs, and invalid input
@@ -198,6 +201,47 @@ assert.strictEqual(parseRepoInput('someone/somerepo'), 'someone/somerepo', '"som
   writes = calls.filter((c) => c.method !== 'GET').map((c) => c.method + ' ' + c.url);
   assert.deepStrictEqual(writes, ['DELETE /repos/o/r/issues/5/labels/priority%3A%20urgent'], 'clearing the priority only removes its label');
   assert.strictEqual(t.priorityLabel, null);
+
+  // moving into Review adds "needs review"; out removes it; app-only tasks touch nothing
+  calls.length = 0;
+  t = { source: 'github', repoFullName: 'o/r', issueNumber: 5, status: 'review' };
+  await pushReviewToIssue(t, false);
+  writes = calls.filter((c) => c.method !== 'GET').map((c) => c.method + ' ' + c.url + (c.body ? ' ' + c.body : ''));
+  assert.ok(writes.includes('POST /repos/o/r/issues/5/labels {"labels":["needs review"]}'), 'into review adds the label: ' + writes.join(' | '));
+  calls.length = 0;
+  t.status = 'done';
+  await pushReviewToIssue(t, true);
+  writes = calls.filter((c) => c.method !== 'GET').map((c) => c.method + ' ' + c.url);
+  assert.deepStrictEqual(writes, ['DELETE /repos/o/r/issues/5/labels/needs%20review'], 'out of review removes it');
+  calls.length = 0;
+  await pushReviewToIssue({ source: 'manual', status: 'review' }, false);
+  assert.strictEqual(calls.length, 0, 'a task that is not on GitHub makes no calls');
+  // all four statuses reach each other through setTaskStatus
+  state.projects.length = 0;
+  state.projects.push({ id: 'pm', name: 'm', tasks: [{ id: 'tm', title: 'm', status: 'next', source: 'manual' }] });
+  for (const to of ['doing', 'review', 'done', 'review', 'next', 'review', 'doing', 'done', 'next']) {
+    setTaskStatus('tm', to);
+    assert.strictEqual(state.projects[0].tasks[0].status, to, 'moved to ' + to);
+  }
+  // a linked task moved to another project: same repo adds/removes the label itself; a transfer's caller
+  // (app.js relabel) calls pushReviewToIssue(task, status !== 'review') once the issue has moved
+  const wr = () => calls.filter((c) => c.method !== 'GET').map((c) => c.method + ' ' + c.url + (c.body ? ' ' + c.body : ''));
+  const link = { id: 'tl', title: 'l', status: 'doing', source: 'github', repoFullName: 'o/r', issueNumber: 9 };
+  state.projects.length = 0;
+  state.projects.push({ id: 'pa', name: 'a', repoFullName: 'o/r', tasks: [link] }, { id: 'pb', name: 'b', repoFullName: 'o/r', tasks: [] });
+  calls.length = 0;
+  applyTaskMove({ taskId: 'tl', toProjectId: 'pb', status: 'review', changes: {} });
+  await new Promise((r) => setTimeout(r, 20));
+  assert.ok(wr().includes('POST /repos/o/r/issues/9/labels {"labels":["needs review"]}'), 'cross-project into review adds the label: ' + wr().join(' | '));
+  calls.length = 0;
+  applyTaskMove({ taskId: 'tl', toProjectId: 'pa', status: 'next', changes: {} });
+  await new Promise((r) => setTimeout(r, 20));
+  assert.deepStrictEqual(wr(), ['DELETE /repos/o/r/issues/9/labels/needs%20review'], 'cross-project out of review removes it');
+  calls.length = 0;
+  link.repoFullName = 'o/other'; link.issueNumber = 3; link.status = 'review'; // after a transfer
+  await pushReviewToIssue(link, link.status !== 'review');
+  assert.ok(wr().includes('POST /repos/o/other/issues/3/labels {"labels":["needs review"]}'), 'after the transfer the label goes on the new issue: ' + wr().join(' | '));
+  state.projects.length = 0;
   state.categories.splice(state.categories.findIndex((c) => c.id === 'cat_art'), 2);
   delete globalThis.document;
   delete globalThis.getComputedStyle;

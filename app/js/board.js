@@ -24,18 +24,20 @@ export function boardColumns(st, projectId, now) {
   const since = weekStart(now);
   const next = [];
   const doing = [];
+  const review = [];
   const done = [];
   projects.forEach((p) => {
     const tasks = p.tasks || [];
     sortTasks(tasks.filter((t) => t.status === 'next')).forEach((t) => next.push(t));
     sortTasks(tasks.filter((t) => t.status === 'doing')).forEach((t) => doing.push(t));
+    sortTasks(tasks.filter((t) => t.status === 'review')).forEach((t) => review.push(t));
     tasks.forEach((t) => {
       const at = finishedAt(t);
       if (t.status === 'done' && at >= since && at <= now) done.push(t);
     });
   });
   done.sort((a, b) => finishedAt(b) - finishedAt(a));
-  return { next, doing, done, counts: { next: next.length, doing: doing.length, done: done.length } };
+  return { next, doing, review, done, counts: { next: next.length, doing: doing.length, review: review.length, done: done.length } };
 }
 
 export const SHOW_FILTERS = ['all', 'subs', 'waits', 'holds'];
@@ -64,7 +66,7 @@ export function boardList(st, opts, now) {
     return true;
   };
   const tab = (k) => cols[k].filter(top).filter(shown);
-  const counts = { next: tab('next').length, doing: tab('doing').length, done: tab('done').length };
+  const counts = { next: tab('next').length, doing: tab('doing').length, review: tab('review').length, done: tab('done').length };
   const tasks = tab(cols[o.tab] ? o.tab : 'next');
   return { tasks, counts };
 }

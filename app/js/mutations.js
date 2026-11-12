@@ -1,7 +1,7 @@
 // focus-deck-app/js/mutations.js
 import { rankFocusPool, isBlocked } from './task-links.js';
 import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER, splitLongThought } from './state.js';
-import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriorityToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
+import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriorityToIssue, pushReviewToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
 // The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
 // used to have its own copy that saved locally but never pushed, so most edits never reached the
 // Gist. See doc-ref 2425 docs/4-systems/gist-sync.md
@@ -68,12 +68,15 @@ export function applyTaskMove({ taskId, toProjectId, status, changes }) {
   if (!found || !to) return false;
   const { task, project: from } = found;
   const crossing = from.id !== to.id;
+  const wasReview = task.status === 'review';
   if (!crossing && status && task.status !== status) setTaskStatus(taskId, status);
   if (crossing) {
     withTiePush(() => detachForMove(state.projects, taskId)); // a subtask can't stay in another folder than its parent
     from.tasks = from.tasks.filter((t) => t.id !== taskId);
     to.tasks.push(task);
     if (status) task.status = status;
+    // within one repo the label moves with the task; a transfer or new issue is handled by the caller (app.js moveTaskTo)
+    if (status && String(task.repoFullName || '').toLowerCase() === String(to.repoFullName || '').toLowerCase()) pushReviewToIssue(task, wasReview);
   }
   Object.keys(changes || {}).forEach((id) => {
     const t = to.tasks.find((x) => x.id === id);
@@ -166,6 +169,7 @@ export function setTaskStatus(taskId, status) {
   if (!found) return;
   const { task, project } = found;
   const wasDone = task.status === 'done';
+  const wasReview = task.status === 'review';
   task.status = status;
   task.updatedAt = Date.now();
   if (status === 'done' && !wasDone) {
@@ -178,6 +182,7 @@ export function setTaskStatus(taskId, status) {
   }
   persist();
   syncIssueCompletion(task); // fire-and-forget
+  pushReviewToIssue(task, wasReview);
 }
 
 export function deleteTask(taskId, projectId) {

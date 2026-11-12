@@ -20,7 +20,7 @@ const UI = { boardProject: null, boardCol: 'next' };
 
 {
   const h = renderBoard(st, UI, now);
-  assert.ok(h.includes('Up next <b>1</b>') && h.includes('In progress <b>1</b>') && h.includes('Done this week <b>1</b>'), 'three tabs with counts');
+  assert.ok(h.includes('Up next <b>1</b>') && h.includes('In progress <b>1</b>') && h.includes('Done <b>1</b>'), 'three tabs with counts');
   assert.ok(h.includes('aria-selected="true" class="calm-tab on" data-action="board-col" data-col="next"'), 'default tab is Up next');
   assert.deepStrictEqual(ids(h), ['t1'], 'only the open tab shows cards');
   assert.ok(h.includes('<option value="">Project: All</option>') && h.includes('<option value="pa">Home</option>'), 'Project menu');

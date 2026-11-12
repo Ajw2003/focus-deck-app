@@ -6,7 +6,7 @@ import { registerPaint, initSyncLifecycle } from './sync.js';
 import {
   syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask,
   parseRepoInput, listYourRepos, untrackedRepos, isValidRepoName, REPO_NAME_RULE,
-  createRepoAndTrack, linkProjectToRepoOnGithub, linkProjectToRepoByInput, transferTaskIssue,
+  createRepoAndTrack, linkProjectToRepoOnGithub, linkProjectToRepoByInput, transferTaskIssue, pushReviewToIssue,
 } from './github-sync.js';
 import { getToken } from './github.js';
 import { initProjectDrag, isDragging } from './project-drag.js';
@@ -395,17 +395,20 @@ function moveTaskTo(req) {
     const dest = state.projects.find((p) => p.id === req.toProjectId);
     if (!now || !dest) return;
     const order = taskOrderChanges(sortTasks(dest.tasks.filter((t) => t.status === req.status)), req.taskId, req.toIndex);
+    const wasR = now.task.status === 'review';
     M.applyTaskMove({ taskId: req.taskId, toProjectId: dest.id, status: req.status, changes: order });
+    const relabel = () => { const t = findTaskWithProject(req.taskId); if (t && (wasR || t.task.status === 'review')) pushReviewToIssue(t.task, t.task.status !== 'review'); };
     const title = now.task.title;
     if (plan.kind === 'create-issue') {
       createGithubIssueFromTask(req.taskId, dest.repoFullName, ui).then(() => {
+        relabel();
         const t = findTaskWithProject(req.taskId);
         if (ui.syncError) ui.syncError = 'Moved “' + title + '” to ' + dest.name + ', but it stays unlinked. ' + ui.syncError;
         else if (t && t.task.source === 'github') ui.notice = 'Moved “' + title + '” to ' + dest.name + ' and linked it to ' + t.task.repoFullName + '#' + t.task.issueNumber + '.';
         paint();
       });
     } else if (plan.kind === 'transfer') {
-      transferTaskIssue(req.taskId, dest.repoFullName, ui, dest.name).then(paint);
+      transferTaskIssue(req.taskId, dest.repoFullName, ui, dest.name).then((ok) => { if (ok) relabel(); paint(); });
     }
   };
   if (!plan.confirm) { run(); return true; }
@@ -564,9 +567,9 @@ function onAppClick(e) {
     // the same path as a drop used to take: lands at the end of the other group, saves and syncs
     const f = findTaskWithProject(taskId);
     const to = el.getAttribute('data-to');
-    if (f && (to === 'doing' || to === 'next')) {
+    if (f && ['next', 'doing', 'review'].includes(to)) {
       moveTaskTo({ taskId, toProjectId: f.project.id, status: to, toIndex: f.project.tasks.filter((t) => t.status === to).length });
-      ui.notice = 'Moved to ' + (to === 'doing' ? 'In progress' : 'Up next');
+      ui.notice = 'Moved to ' + ({ doing: 'In progress', review: 'Review' }[to] || 'Up next');
     }
     paint();
     return;

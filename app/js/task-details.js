@@ -11,7 +11,7 @@ import { dueKey } from './card-key.js';
 import { subtasksOf, holdsUp, isBlocked, canSetParent, canWaitOn } from './task-links.js';
 
 export const DETAIL_ROWS = ['notes', 'when', 'labels', 'subtasks', 'links'];
-const STATUSES = [['next', 'Up next'], ['doing', 'In progress'], ['done', 'Done']];
+const STATUSES = [['next', 'Up next'], ['doing', 'In progress'], ['review', 'Review'], ['done', 'Done']];
 export const LINK_FIELDS = { parent: 'Part of', waitsOn: 'Waits on', holdsUp: 'Holds up' };
 
 export function notesSummary(notes) {
