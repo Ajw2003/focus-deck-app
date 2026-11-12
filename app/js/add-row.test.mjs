@@ -9,8 +9,11 @@ test('add row, More closed: one line, no extra boxes, no autofocus', () => {
   assert.match(h, /<form class="add-task-form add-row" data-action="add-task" data-project="p1">/);
   assert.match(h, /name="title" maxlength="280" required placeholder="Add a task…"/);
   assert.match(h, /data-action="toggle-add-more" data-project="p1" aria-expanded="false">More</);
-  assert.match(h, /<button type="submit" class="btn primary">Add</);
-  assert.ok(!h.includes('name="steps"') && !h.includes('name="deadline"') && !h.includes('autofocus'));
+  assert.match(h, /<button type="submit" class="btn primary" disabled>Pick a priority to add</);
+  assert.match(h, /class="pick-blocks" hidden/, 'pickers hidden until there is a title');
+  assert.ok(!h.includes('name="steps"') && !h.includes('autofocus'));
+  assert.match(renderAddTaskRow(p, [], false, 'Hi', undefined, { priority: 'low' }), /<button type="submit" class="btn primary">Add</);
+  assert.ok(!/class="pick-blocks" hidden/.test(renderAddTaskRow(p, [], false, 'Hi')), 'pickers show once there is a title');
 });
 
 test('add row, More open: steps, priority, date and labels; button reads Less', () => {

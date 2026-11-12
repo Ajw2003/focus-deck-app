@@ -107,7 +107,7 @@ test('filing a thought: the same task in that project with those labels, then th
   const out = fileSlip(cur, { priority: 'high', projectId: 'pB', selected: ['c_art', 'c_chore'] }, deps);
   assert.strictEqual(out.outcome, 'filed');
   assert.deepStrictEqual(calls.map((c) => c[0]), ['file', 'issue'], 'file first, then the issue hook, nothing else');
-  assert.deepStrictEqual(calls[0].slice(1), ['th1', 'pB', ['c_art', 'c_chore'], { title: undefined, notes: undefined }]);
+  assert.deepStrictEqual(calls[0].slice(1), ['th1', 'pB', ['c_art', 'c_chore'], { title: undefined, notes: undefined, priority: 'high', deadline: undefined }]);
   assert.deepStrictEqual(calls[1], ['issue', 'Buy a card', 'pB']);
   const filed = state.projects[1].tasks.at(-1);
   assert.strictEqual(filed.title, 'Buy a card');
@@ -199,7 +199,7 @@ test('step bar: three tabs, later ones off, finished ones tappable, summaries', 
   const lk = card({ why: 'x' });
   assert.ok(lk.includes('step-tab locked" data-action="sort-step" data-step="2" aria-disabled="true"') && lk.includes('class="step-why"'), 'no folder: 2 and 3 are locked and say why');
   assert.ok(p1.includes('<small>Home</small>'), 'part 1 summary is the folder');
-  const p3 = card({ step: 3, projectId: 'pB', selected: ['c_art', 'c_chore'] });
+  const p3 = card({ step: 3, priority: 'high', projectId: 'pB', selected: ['c_art', 'c_chore'] });
   assert.ok(p3.includes('class="step-tab done" data-action="sort-step" data-step="1"') && !p3.includes('data-step="2" aria-disabled'));
   assert.ok(p3.includes('<small>Art, Chore</small>') && p3.includes('<small>optional</small>') && p3.includes('>Across all projects<'));
   assert.ok(!p3.includes('data-wallet=') && p3.includes('File it in Home →') && p3.includes('data-action="sort-back"'));
