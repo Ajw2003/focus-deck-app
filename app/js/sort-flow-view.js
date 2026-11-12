@@ -36,7 +36,7 @@ function slipHtml(c, full) {
     + (!isThought && cur.task.issueNumber != null ? ' <span class="slip-issue">#' + cur.task.issueNumber + '</span>' : '');
   const flags = u.selected.map((token) => allCards.find((x) => x.token === token)).filter(Boolean)
     .map((x) => '<span class="slip-flag" title="' + esc(x.name) + '" style="--c:' + mutedChip(x.color) + '">' + esc(x.name) + '</span>').join('');
-  return '<div class="jot-slip' + (full ? '' : ' compact') + '"><button type="button" class="slip-more" data-action="sort-menu" aria-haspopup="dialog" aria-expanded="' + !!u.menu + '" aria-label="More: add notes, done already, later, delete">⋯</button>'
+  return '<div class="jot-slip' + (full ? '' : ' compact') + '"><button type="button" class="slip-more" data-action="sort-menu" aria-haspopup="dialog" aria-expanded="' + !!u.menu + '" aria-label="More: add notes, done already, later, delete"></button>'
     + '<p class="slip-text"' + (editable ? ' contenteditable="true" spellcheck="false" data-slip-title' : '') + '>' + esc(text) + '</p>'
     + '<div class="slip-dest">' + dest + '</div>' + (flags ? '<div class="slip-flags">' + flags + '</div>' : '')
     + (full && isThought ? '<div class="slip-when">Thought · ' + relTime(cur.item.createdAt) + '</div>' : '')
@@ -75,6 +75,8 @@ function tieStep(c, field) {
     return x ? choice(esc(x.t.title), { action: 'tie-remove', attrs: ' data-field="' + field + '" data-id="' + esc(id) + '"', on: true, small: x.p.id !== project.id ? esc(x.p.name) : '' }) : '';
   });
   if (field === 'subtasks') (u.newSubtasks || []).forEach((s, i) => chosen.push(choice(esc(s), { action: 'tie-remove', attrs: ' data-field="newSubtasks" data-id="' + i + '"', on: true, small: 'new' })));
+  // a task that is part of another cannot have steps of its own (two levels only), so say so rather than offer them
+  if (field === 'subtasks' && u.parent) return '<p class="muted">This is part of another task, so it can’t have smaller steps of its own. Go back to change that, or Skip.</p>';
   const hits = allTasks(st).filter(ok).filter(({ t, p }) => !q || t.title.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)).slice(0, 4);
   const typed = (u.pickQuery || '').trim();
   const rows = (field === 'subtasks' && typed ? [choice('+ Add “' + esc(typed) + '”', { action: 'tie-new-sub' })] : [])

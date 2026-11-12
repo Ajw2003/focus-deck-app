@@ -318,6 +318,8 @@ test('steps 5 to 8: a find box and task rows, the picked ones clipped; folder-on
   html = step(6, { pickQuery: 'Esx', newSubtasks: ['Draft'] });
   assert.ok(html.includes('data-action="tie-new-sub"') && html.includes('+ Add “Esx”') && html.includes('data-field="newSubtasks" data-id="0"'), 'a new step from the typed text, the earlier one listed');
   assert.ok(!step(6, { pickQuery: '' }).includes('tie-new-sub'));
+  html = step(6, { parent: 'a1', pickQuery: 'Esx' });
+  assert.ok(html.includes('can’t have smaller steps') && !html.includes('tie-new-sub') && !html.includes('data-tie-find'), 'a task that is part of another has no steps of its own');
 });
 
 test('saving ties through fileSlip: parent, waits-on, holds-up, new subtask; refused ones skipped', () => {

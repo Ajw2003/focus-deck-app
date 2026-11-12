@@ -135,8 +135,8 @@ await page.selectOption('[data-warn="yellow"]', { index: 1 });
 await page.waitForTimeout(250);
 await click('[data-action="sort-next"]');
 await shot('s5');
-await click('[data-action="tie-add"][data-field="parent"][data-id="h3"]');
-await click('[data-action="sort-next"]');
+await click('.sort-foot .dk-skip'); // no bigger task for this one (a task that is part of another cannot have steps)
+
 await page.fill('.sort-find', 'Measure the door');
 await page.waitForTimeout(250);
 await click('[data-action="tie-new-sub"]');
@@ -154,7 +154,7 @@ await shot('s8');
 await click('[data-action="sort-next"]');
 await shot('s9');
 const receipt = await page.textContent('.sort-receipt');
-check('s9: the receipt lists the choices', ['Home', 'High', 'Repair', 'Measure', 'Sort out the garden', 'Measure the door', 'Pay council tax', 'Order seeds', 'Ask for three quotes'].every((w) => receipt.includes(w)), receipt.split(/\s+/).join(' ').slice(0, 200));
+check('s9: the receipt lists the choices', ['Home', 'High', 'Repair', 'Measure', 'Measure the door', 'Pay council tax', 'Order seeds', 'Ask for three quotes'].every((w) => receipt.includes(w)), receipt.split(/\s+/).join(' ').slice(0, 200));
 // a pencil jumps back to its step and Next comes straight back to the receipt
 await click('.sort-receipt [data-step="2"]');
 check('s9: the priority pencil opens step 2', (await page.textContent('.sort-q')).includes('How important?'));
@@ -169,11 +169,22 @@ const filed = st.projects[0].tasks.find((t) => t.title.startsWith('Get three quo
 const sub = st.projects[0].tasks.find((t) => t.title === 'Measure the door');
 check('filed: Home, Urgent, labels, due date, notes', !!filed && filed.priority === 'urgent' && filed.categoryIds.length === 2 && !!filed.deadline && filed.notes === 'Ask for three quotes, any day after 5', JSON.stringify(filed && [filed.priority, filed.categoryIds, filed.deadline, filed.dueStages]));
 check('filed: warn stages kept', !!filed && !!filed.dueStages && filed.dueStages.yellow.leadHours > filed.dueStages.red.leadHours, JSON.stringify(filed && filed.dueStages));
-check('filed: part of Sort out the garden, waits on tax, holds up Order seeds, one new subtask', !!filed && filed.parentId === 'h3' && JSON.stringify(filed.waitsOn) === '["h2"]' && JSON.stringify(st.projects[1].tasks[0].waitsOn) === JSON.stringify([filed.id]) && !!sub && sub.parentId === filed.id);
+check('filed: waits on tax, holds up Order seeds, one new subtask', !!filed && !filed.parentId && JSON.stringify(filed.waitsOn) === '["h2"]' && JSON.stringify(st.projects[1].tasks[0].waitsOn) === JSON.stringify([filed.id]) && !!sub && sub.parentId === filed.id);
+// part of: a task that is part of another says it cannot have steps of its own
+await click('[data-action="sort-next"]');
+await choose('tray-folders', 'pHome');
+await click('[data-action="sort-next"]');
+await click('.sort-flags [data-level="low"]');
+await click('[data-action="sort-next"]');
+await click('.sort-foot .dk-skip');
+await click('.sort-foot .dk-skip');
+await click('[data-action="tie-add"][data-field="parent"][data-id="h1"]');
+await click('[data-action="sort-next"]');
+check('s6: with a bigger task chosen there are no smaller steps to add', (await body()).includes('can’t have smaller steps') && !(await page.$('[data-tie-find]')));
 // clear the rest with Done already (the drawer) until nothing is left
 for (let i = 0; i < 3; i++) { await click('[data-action="sort-menu"]'); await click('.sort-drawer [data-action="unsorted-complete"]'); }
 await shot('s11');
-check('s11: All sorted with an Organize card', (await page.textContent('.tray-count')).includes('All sorted ✓') && (await page.textContent('[data-action="set-screen"][data-screen="tidy"]')).trim() === 'Organize');
+check('s11: All sorted with an Organize card', (await page.textContent('.tray-count')).includes('All sorted ✓') && (await page.textContent('.sortflow [data-action="set-screen"][data-screen="tidy"]')).trim() === 'Organize');
 await browser.close();
 server.close();
 const failed = results.filter((ok) => !ok).length;
