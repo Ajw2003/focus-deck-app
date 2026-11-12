@@ -30,7 +30,8 @@ import { triageLists, moveId, NOW_SIZE, NEXT_SIZE } from './triage.js';
 import { initTriageDrag } from './triage-drag.js';
 import { renderRoadmap } from './roadmap-view.js';
 import { initRoadmapDrag } from './roadmap-drag.js';
-import { COLS, stepMilestone, stepSection, moveMilestone, moveSection, addSection, addMilestone, makeMilestone } from './roadmap.js';
+import { openMilestoneSettings } from './milestone-settings.js';
+import { COLS, roadmapOf, applyMilestoneSettings, stepMilestone, stepSection, moveMilestone, moveSection, addSection, addMilestone, makeMilestone } from './roadmap.js';
 import { reviewLists } from './board.js';
 import { notesSummary } from './task-details.js';
 import { canSetParent, canWaitOn } from './task-links.js';
@@ -615,6 +616,16 @@ function onAppClick(e) {
     setScreen('triage'); paint(); window.scrollTo(0, 0); return; // "Confirm N, then Triage"
   }
   if (action === 'rm-open') { setView({ mode: 'project', id: el.getAttribute('data-project') }); paint(); window.scrollTo(0, 0); return; }
+  if (action === 'rm-settings') {
+    const pid = rmProject(), p = state.projects.find((x) => x.id === pid), id = el.getAttribute('data-id'), r = p && roadmapOf(p);
+    const sec = r && r.sections.find((s) => s.milestones.some((x) => x.id === id)), m = sec && sec.milestones.find((x) => x.id === id);
+    if (!m) return;
+    const sel = '.rm-ms-name[data-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]';
+    openMilestoneSettings({ project: p, m, sub: [p.name, sec.virtual ? null : sec.n, sec.name].filter((x) => x !== null).join(' · '), returnTo: sel,
+      others: r.milestones.filter((x) => x.id !== id).map((x) => ({ id: x.id, name: x.name, share: x.share })) },
+    (draft) => { M.editRoadmap(pid, (pr) => applyMilestoneSettings(pr, id, draft)); paint(); });
+    return;
+  }
   if (action === 'rm-toggle') { const id = el.getAttribute('data-id'), was = el.getAttribute('aria-expanded') === 'true'; ui.rmOpen[id] = !was; paint(); return; }
   if (action === 'rm-col') { ui.rmCol[el.getAttribute('data-ms')] = el.getAttribute('data-col'); paint(); return; }
   if (action === 'rm-task') { const id = el.getAttribute('data-id'); selectBoardTask(ui.boardSelected === id ? null : id); paint(); return; }
@@ -1030,6 +1041,7 @@ function onDetailChange(t) {
   if (t.matches('[data-detail-status]')) M.setTaskStatus(task.id, t.value);
   else if (t.matches('[data-detail-notes]')) M.updateTaskFields(task.id, { notes: t.value.trim() });
   else if (t.matches('[data-detail-priority]')) M.editTask(task.id, project.id, { priority: t.value });
+  else if (t.matches('[data-detail-size]')) M.updateTaskFields(task.id, { size: t.value || null });
   else if (t.matches('[data-detail-due]')) M.editTask(task.id, project.id, { deadline: t.value });
   else if (t.matches('.detail-labels input[name="categoryIds"]')) {
     const checked = Array.from(t.closest('.label-options').querySelectorAll('input[name="categoryIds"]:checked')).map((i) => i.value);
