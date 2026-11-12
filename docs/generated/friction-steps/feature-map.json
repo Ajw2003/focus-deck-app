@@ -746,13 +746,68 @@
     ],
     [
      "detail-close",
-     "Close",
+     "Close (the × on the clipboard)",
      "d0"
     ],
     [
-     "detail-fold",
-     "Open a section",
+     "detail-status-open",
+     "Open the Status drawer (tap the stamp)",
+     "d1"
+    ],
+    [
+     "detail-status",
+     "Change the status",
+     "d1"
+    ],
+    [
+     "detail-edit",
+     "Change a detail (a pencil): priority, labels, due, waits on, notes, move, part of, holds up",
+     "s2 s3 s4 s7 s0n s1 s5 s8"
+    ],
+    [
+     "edit-save",
+     "Save a detail",
+     "s2 s3 s4 s7 s0n s1 s5 s8"
+    ],
+    [
+     "detail-subs",
+     "Smaller steps (own screen)",
+     "d2"
+    ],
+    [
+     "detail-size-open",
+     "Size (not in the design: the Roadmap Task size reads it)",
      "d0"
+    ],
+    [
+     "detail-size",
+     "Choose the size",
+     "d0"
+    ],
+    [
+     "detail-github",
+     "GitHub (own screen)",
+     "d3"
+    ],
+    [
+     "detail-more",
+     "The ⋯ drawer",
+     "d4"
+    ],
+    [
+     "detail-rename",
+     "Rename",
+     "d4"
+    ],
+    [
+     "detail-rename-save",
+     "Save the new name",
+     "d4"
+    ],
+    [
+     "detail-back",
+     "Back to the receipt",
+     "d2 d3"
     ],
     [
      "edit-task",
@@ -770,43 +825,13 @@
      "d0"
     ],
     [
-     "detail-add-sub-open",
-     "Start adding a subtask",
-     "d2"
-    ],
-    [
      "detail-add-sub",
-     "Add a subtask",
+     "Add a smaller step",
      "d2"
-    ],
-    [
-     "detail-link-open",
-     "Start linking a task",
-     "s7 s8"
-    ],
-    [
-     "detail-link-add",
-     "Link a task",
-     "s7 s8"
-    ],
-    [
-     "detail-unlink",
-     "Unlink a task",
-     "s9"
-    ],
-    [
-     "detail-goto",
-     "Go to a linked task",
-     "d0"
-    ],
-    [
-     "detail-make-cat",
-     "Make a new label",
-     "s3b"
     ],
     [
      "detail-focus",
-     "Focus on this",
+     "Focus on this (the ◎ Focus stamp)",
      "d0"
     ],
     [
@@ -816,7 +841,7 @@
     ],
     [
      "detail-delete",
-     "Delete",
+     "Delete (asks first)",
      "d4"
     ],
     [

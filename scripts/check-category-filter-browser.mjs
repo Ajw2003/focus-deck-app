@@ -1,7 +1,6 @@
 // scripts/check-category-filter-browser.mjs -- real-Chromium check of Settings > Category choices
 // (#133) at a phone width: the in-tray's flag cards offer only the folder's own categories plus
-// "More categories", which shows the rest; Task details' label picker hides the others behind
-// "Show all N categories" (ticked ones always show); turning the setting off in Settings shows every
+// "More categories", which shows the rest; Task details' labels step (the Sort step) does the same; turning the setting off in Settings shows every
 // category everywhere, and the choice is stored.
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/check-category-filter-browser.mjs
 // Serves the repo root itself on 127.0.0.1:8133 for the length of the run (no separate server).
@@ -110,25 +109,24 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   await ctx.close();
 }
 
-// 2. In the task editor: Home's labels, ticked ones, then Show all
+// 2. In Task details: the labels pencil is the Sort labels step, so Home's labels, then More categories
 {
   const { ctx, page } = await open();
   await page.click('.rail [data-screen="projects"]'); // the project rows live on the Projects tab since #262
   await page.click('.pj-card[data-project="pHome"]');
   await page.waitForSelector('.rm-project');
   await page.click('.rm-task-title[data-id="h2"]');
+  await page.click('.sort-drawer [data-action="rm-details"]');
   await page.waitForSelector('.cw-detail');
-  await page.click('.cw-detail [data-action="detail-fold"][data-key="labels"]');
-  await page.waitForSelector('.cw-detail .label-picker');
-  if (!(await page.$('.cw-detail .label-picker[open]'))) await page.click('.cw-detail .label-picker summary');
-  const visible = () => page.$$eval('.cw-detail .label-option', (els) => els.filter((e) => e.offsetParent !== null).map((e) => e.textContent.trim()));
-  check('Task details: only Home’s labels show', (await visible()).join() === 'Chore,Garden', (await visible()).join());
-  await page.$eval('.cw-detail', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); });
+  await page.click('.cw-detail [data-action="detail-edit"][data-step="3"]');
+  await page.waitForSelector('.cw-detail [data-wallet="tray-flags"]');
+  await page.waitForTimeout(300);
+  const home = await flagKeys(page);
+  check('Task details: only Home’s labels, then More categories', JSON.stringify(home) === JSON.stringify([...kinds, 'c_chore', 'c_garden', '__more__']), home.join());
   await page.screenshot({ path: OUT + 'editor-filtered.png' });
-  await page.click('.cw-detail [data-action="label-show-all"]');
-  // typed after Show all: blurring the title box repaints the panel, which folds Show all back and swallows a click on it
-  await page.fill('.cw-detail [data-detail-title]', 'Mop the kitchen floor');
-  check('Task details: Show all reveals all six, and keeps what was typed', (await visible()).length === 6 && (await page.$eval('.cw-detail [data-detail-title]', (e) => e.textContent)) === 'Mop the kitchen floor');
+  await chooseFlag(page, '__more__');
+  const all = await flagKeys(page);
+  check('Task details: More categories reveals all six', all.length === kinds.length + 6 && !all.includes('__more__'), all.join());
   await ctx.close();
 }
 
@@ -150,10 +148,12 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   await page.click('.rail [data-screen="projects"]'); // the project rows live on the Projects tab since #262
   await page.click('.pj-card[data-project="pHome"]');
   await page.click('.rm-task-title[data-id="h1"]');
+  await page.click('.sort-drawer [data-action="rm-details"]');
   await page.waitForSelector('.cw-detail');
-  await page.click('.cw-detail [data-action="detail-fold"][data-key="labels"]');
-  await page.waitForSelector('.cw-detail .label-picker');
-  check('off: Task details has no Show all', !(await page.$('.cw-detail [data-action="label-show-all"]')));
+  await page.click('.cw-detail [data-action="detail-edit"][data-step="3"]');
+  await page.waitForSelector('.cw-detail [data-wallet="tray-flags"]');
+  await page.waitForTimeout(300);
+  check('off: Task details offers every category, no More card', (await flagKeys(page)).length === kinds.length + 6);
   await ctx.close();
 }
 

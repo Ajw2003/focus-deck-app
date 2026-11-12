@@ -103,7 +103,10 @@ function applyTies(task, projectId, pick, deps) {
   if ((task.parentId || null) !== parent && (parent || task.parentId)) set(task.id, { parentId: parent || undefined });
   const subs = (pick.subtasks || []);
   subtasksOf(ps, task.id).filter((s) => !subs.includes(s.id)).forEach((s) => set(s.id, { parentId: undefined }));
-  subs.forEach((id) => { if (canSetParent(ps, id, task.id)) set(id, { parentId: task.id }); });
+  subs.forEach((id) => {
+    const sub = ps.flatMap((p) => p.tasks).find((x) => x.id === id);
+    if (sub && sub.parentId !== task.id && canSetParent(ps, id, task.id)) set(id, { parentId: task.id }); // an unchanged step is not restamped
+  });
   (pick.newSubtasks || []).forEach((title) => {
     const sub = deps.addTask(projectId, title);
     if (sub && canSetParent(ps, sub.id, task.id)) set(sub.id, { parentId: task.id });
@@ -145,6 +148,26 @@ export function fileSlip(cur, pick, deps) {
   if (Object.keys(fields).length) deps.updateTaskFields(task.id, fields);
   applyTies(task, pick.projectId || cur.project.id, pick, deps);
   return ids.length ? { outcome: 'saved', taskId: task.id } : { outcome: 'later' };
+}
+
+// Task details' Save (#269): the same step screens as Sort, on a task that already exists. `e` is the edit
+// scratch (same shape as the Sort scratch); only what changed is written, on the same mutations fileSlip uses.
+// Unlike a Sort save, taking every label off is a change. `deps` as fileSlip's.
+export function saveTaskEdit(task, project, e, deps) {
+  if (e.projectId && e.projectId !== project.id) deps.applyTaskMove({ taskId: task.id, toProjectId: e.projectId });
+  const fields = {};
+  const title = (e.title || '').trim();
+  if (title && title !== task.title) fields.title = title;
+  if (e.notes != null && (e.notes.trim() || undefined) !== (task.notes || undefined)) fields.notes = e.notes.trim() || undefined;
+  const ids = selectionToIds(e.selected, deps.labelIdByName);
+  if (JSON.stringify(ids) !== JSON.stringify(task.categoryIds || [])) fields.categoryIds = ids;
+  if ((e.priority || null) !== (task.priority || null)) fields.priority = e.priority || null;
+  if ((e.due || null) !== (task.deadline || null)) {
+    fields.deadline = e.due || null;
+    if (e.due && e.dueStages) fields.dueStages = e.dueStages;
+  }
+  if (Object.keys(fields).length) deps.updateTaskFields(task.id, fields);
+  applyTies(task, e.projectId || project.id, e, deps);
 }
 
 // ---- Sort many at once ("Select many") ----------------------------------------------------------

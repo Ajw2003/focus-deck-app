@@ -1433,9 +1433,7 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 
 .screen-roadmap{min-width:0;}
 .detail-size{display:flex; align-items:center; gap:8px; margin-top:8px;}
-.rm-detail{margin-top:20px; min-width:0;}
-.rm-detail-tools{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; margin-bottom:10px;}
-.rm-detail-tools select{min-height:36px;}
+.rm-detail{margin:0; min-width:0;}
 
 /* Organize (#259): Tidy up and Triage share one numbered tab; the sub-items show under it in the wide rail only,
    the Tidy up | Triage buttons sit at the top of both screens. See docs/4-systems/tabs.md */
@@ -1645,3 +1643,20 @@ a.dk-choice{text-decoration:none;}
 .rm-flow .pj-scroll{max-height:calc(100dvh - 470px);}
 .rm-nav .rm-flag{font-size:22px; line-height:1;}
 .rm-nav .rm-all{font-size:15px;}
+
+/* Task details (#269): a clipboard over the screen (a side panel on a computer), the Sort steps drawn inside it.
+   See docs/4-systems/task-details.md */
+.cw-detail.td-panel{display:flex; flex-direction:column; position:fixed; inset:0 0 0 auto; width:min(480px,100%); z-index:60; box-sizing:border-box; margin:0; padding:8px 4px; background:var(--bg); border:0; border-radius:0; box-shadow:-4px 0 18px rgba(0,0,0,.25); overflow:hidden; max-height:none;}
+.td-panel .sortflow{display:flex; flex-direction:column; flex:1; min-height:0; --text-sm:13px; background:none; border:0; box-shadow:none; padding:0; margin:0; width:100%;}
+.td-panel .unsorted-body{display:flex; flex-direction:column; flex:1; min-height:0;}
+.td-x{position:absolute; top:0; right:2px; z-index:2; min-width:44px; min-height:44px; border:0; background:none; color:var(--dk-ink); font-size:30px; line-height:1; cursor:pointer;}
+.td-panel .sort-q{padding-right:44px; overflow-wrap:anywhere;}
+.td-stamp-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.td-stamp-row .rm-stamp{flex:none; padding:0 16px; min-height:48px;}
+.td-more{min-width:56px;}
+.td-tick{display:flex; align-items:center; gap:10px; justify-content:flex-start;}
+.td-tick input{width:24px; height:24px; flex:none;}
+.td-add{display:flex; align-items:center; gap:8px;}
+.td-add .sort-find{flex:1; min-width:0;}
+.td-panel .sort-body{overflow-y:auto;}
+.td-tick span{flex:1; text-align:left;}

@@ -36,7 +36,7 @@ function slipHtml(c, full) {
     + (!isThought && cur.task.issueNumber != null ? ' <span class="slip-issue">#' + cur.task.issueNumber + '</span>' : '');
   const flags = u.selected.map((token) => allCards.find((x) => x.token === token)).filter(Boolean)
     .map((x) => '<span class="slip-flag" title="' + esc(x.name) + '" style="--c:' + mutedChip(x.color) + '">' + esc(x.name) + '</span>').join('');
-  return '<div class="jot-slip' + (full ? '' : ' compact') + '"><button type="button" class="slip-more" data-action="sort-menu" aria-haspopup="dialog" aria-expanded="' + !!u.menu + '" aria-label="More: add notes, done already, later, delete"></button>'
+  return '<div class="jot-slip' + (full ? '' : ' compact') + '">' + (c.edit ? '' : '<button type="button" class="slip-more" data-action="sort-menu" aria-haspopup="dialog" aria-expanded="' + !!u.menu + '" aria-label="More: add notes, done already, later, delete"></button>')
     + '<p class="slip-text"' + (editable ? ' contenteditable="true" spellcheck="false" data-slip-title' : '') + '>' + esc(text) + '</p>'
     + '<div class="slip-dest">' + dest + '</div>' + (flags ? '<div class="slip-flags">' + flags + '</div>' : '')
     + (full && isThought ? '<div class="slip-when">Thought · ' + relTime(cur.item.createdAt) + '</div>' : '')
@@ -176,8 +176,9 @@ function receipt(c) {
 }
 
 // ---- the whole tab -------------------------------------------------------------------------------------
-// `head` is "N to sort"; `many` the Sort several flag (only with more than one slip).
-export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = false } = {}) {
+// `head` is "N to sort"; `many` the Sort several flag (only with more than one slip). `edit` (#269, Task details) draws
+// the same step on an existing task: no dots, no slip menu, no Skip, and Save (edit-save) where Next was.
+export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = false, edit = false } = {}) {
   const cur = ordered[0];
   if (!cur) {
     return '<h2 class="tray-count sort-title">All sorted ✓</h2><div class="dk-board sort-board"><div class="dk-paper sort-paper sort-done"><div class="jot-slip ghost" aria-hidden="true">&nbsp;</div><p class="muted">Jot a thought and it lands here.</p></div></div>'
@@ -186,7 +187,7 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
   const isThought = cur.kind === 'thought';
   const project = u.projectId ? st.projects.find((p) => p.id === u.projectId) : (isThought ? null : cur.project); // a task slip is in its own project until another is chosen
   const c = {
-    st, u, cur, isThought, project, mode, tid: isThought ? null : cur.task.id,
+    st, u, cur, isThought, project, mode, edit, tid: isThought ? null : cur.task.id,
     allCards: flagCards(st, project, { selected: u.selected, showAll: true }),
     text: u.title != null ? u.title : (isThought ? cur.item.text : cur.task.title),
     notes: u.notes != null ? u.notes : (isThought ? '' : cur.task.notes || ''),
@@ -204,24 +205,24 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
       + (many ? '<button type="button" class="dk-link sort-several" data-action="bulk-toggle">Sort several</button>' : '') + '</div></div>'
       + foot([stamp('Sort this one')]) + drawer;
   }
-  const bar = dots(Math.max(step, 1));
+  const bar = edit ? '' : dots(Math.max(step, 1));
   if (sub === 'notes') {
     const body = '<textarea class="slip-notes" name="slipNotes" placeholder="Type it here…" aria-label="Notes">' + esc(c.notes) + '</textarea>';
-    return bar + board(body, true, 'Notes') + foot([back(), stamp('Save notes', { action: 'sort-notes-done' })]) + drawer;
+    return bar + board(body, true, 'Notes') + foot([back(), stamp(edit ? 'Save' : 'Save notes', { action: edit ? 'edit-save' : 'sort-notes-done' })]) + drawer;
   }
   if (sub === 'newlabel' || sub === 'newproject') {
     const label = sub === 'newlabel' ? 'New label' : 'New project';
     const body = '<input type="text" class="sort-find sort-type" value="' + esc(u.find || '') + '" placeholder="' + (sub === 'newlabel' ? 'Name the label…' : 'Name the project…') + '" aria-label="' + label + '">';
     return bar + board(body, true, label) + foot([back(), stamp('Add', { action: sub === 'newlabel' ? 'sort-new-flag' : 'sort-add-project', disabled: !(u.find || '').trim() })]) + drawer;
   }
-  if (sub === 'azl') return bar + board(azlStep(c), true, 'A–Z') + foot([back(), skip(), stamp('Done', { action: 'sort-back' })]) + drawer;
+  if (sub === 'azl') return bar + board(azlStep(c), true, 'A–Z') + foot([back()].concat(edit ? [] : [skip()], [stamp('Done', { action: 'sort-back' })])) + drawer;
   if (sub === 'month') return bar + board(monthStep(c, now), false, 'Pick a date') + foot([back(), stamp(u.due ? 'Use ' + formatDue(u.due) : 'Pick a day', { action: 'sort-use-date', disabled: !u.due })]) + drawer;
   if (sub === 'warn') return bar + board(warnStep(c, now, st.dueDefaults), true, 'When should it warn you?') + foot([back(), skip(), stamp('Next')]) + drawer;
 
-  let body = '', next = stamp('Next'), blocked = '';
+  let body = '', next = edit ? stamp('Save', { action: 'edit-save' }) : stamp('Next'), blocked = '';
   if (step === 1) {
     const q = u.find || '';
-    const folders = folderCards(viewState(st)).filter((f) => has(f.name, q));
+    const folders = folderCards(edit ? st : viewState(st)).filter((f) => has(f.name, q)); // Move (edit) offers every project, not just the view's
     if (!st.projects.length) body = '<p class="muted small">Add a project to file this thought into.</p>';
     else {
       body = '<input type="text" class="sort-find" value="' + esc(q) + '" placeholder="Find a project…" aria-label="Find a project">';
@@ -253,5 +254,5 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
       : stamp(label, { action: 'unsorted-save', attrs: ' ' + c.ids, disabled: !ready });
     return bar + board(receipt(c) + (ready ? '' : why(!project ? 'Choose a project first.' : 'Pick a priority first.')), false, STEP_TITLES[9]) + foot([back(), save]) + drawer;
   }
-  return bar + board(body + why(u.why || blocked) + '<div class="sr-only" id="tray-live" aria-live="polite"></div>', true, STEP_TITLES[step]) + foot([back()].concat(canSkip(step) ? [skip()] : [], [next])) + drawer;
+  return bar + board(body + why(u.why || blocked) + '<div class="sr-only" id="tray-live" aria-live="polite"></div>', true, STEP_TITLES[step]) + foot([back()].concat(canSkip(step) && !edit ? [skip()] : [], [next])) + drawer;
 }

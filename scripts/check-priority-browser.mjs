@@ -90,14 +90,16 @@ for (const size of ['phone', 'desktop']) {
   await page.$eval(rowSel, (e) => e.scrollIntoView({ block: 'center' }));
   await page.click(rowSel + ' .priority-chip');
   await page.waitForSelector('.cw-detail');
-  await page.click('.cw-detail [data-action="detail-fold"][data-key="when"]');
-  check(`${tag} the chip opens Task details with High selected`, (await page.$eval('[data-detail-priority]', (e) => e.value)) === 'high');
+  await page.click('.cw-detail [data-action="detail-edit"][data-step="2"]');
+  check(`${tag} the chip opens Task details with High selected`, (await page.$eval('.cw-detail .sort-flag.on', (e) => e.getAttribute('data-level'))) === 'high');
   await page.screenshot({ path: OUT + `${size}-chip-picker.png` });
-  await page.selectOption('[data-detail-priority]', 'urgent');
+  await page.click('.cw-detail .sort-flag[data-level="urgent"]');
+  await page.click('.cw-detail [data-action="edit-save"]');
   t = (await stored(page)).projects[0].tasks.find((x) => x.title === 'Ring the plumber');
   check(`${tag} Task details sets the new priority and the row chip follows`, t.priority === 'urgent' && (await page.$eval(rowSel + ' .priority-chip', (e) => e.textContent.trim())) === 'Urgent');
-  await page.fill('[data-detail-due]', '');
-  await page.$eval('[data-detail-due]', (i) => i.dispatchEvent(new Event('change', { bubbles: true })));
+  await page.click('.cw-detail [data-action="detail-edit"][data-step="4"]');
+  await page.click('.cw-detail .sort-cal-page[data-value="none"]');
+  await page.click('.cw-detail [data-action="edit-save"]');
   check(`${tag} clearing the date in Task details clears it`, !(await stored(page)).projects[0].tasks.find((x) => x.id === t.id).deadline);
   if (size === 'desktop') {
     await page.click('.rm-add-link'); // the clicks above were away from the add box, which closed it
@@ -166,8 +168,9 @@ for (const size of ['phone', 'desktop']) {
   check(`${tag} Roadmap row with nothing set shows no priority or due chip`, !(await page.$(card + ' .priority-chip')) && !(await page.$(card + ' .deadline-chip')));
   await page.click(card + ' .rm-task-title');
   await page.waitForSelector('.cw-detail');
-  await page.click('.cw-detail [data-action="detail-fold"][data-key="when"]');
-  await page.selectOption('[data-detail-priority]', 'low');
+  await page.click('.cw-detail [data-action="detail-edit"][data-step="2"]');
+  await page.click('.cw-detail .sort-flag[data-level="low"]');
+  await page.click('.cw-detail [data-action="edit-save"]');
   check(`${tag} one choice in Task details sets Low`, (await stored(page)).projects[0].tasks.find((x) => x.id === 'h1').priority === 'low');
   check(`${tag} the Roadmap row now shows the Low chip`, (await page.$eval(card + ' .priority-chip', (e) => e.textContent.trim())) === 'Low');
   await page.$eval(card, (e) => e.scrollIntoView({ block: 'center' }));

@@ -18,7 +18,7 @@ import { mountWallets, onSpreadChange } from './wallet.js';
 import { tiesOf } from './task-links.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import { navigate, shiftMonth, warnPlan } from './sort-flow.js';
-import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY, orderTray, pickedSlips, bulkBlocker, bulkSort } from './in-tray.js';
+import { sendToBack, toggleToken, toggleFolder, fileSlip, saveTaskEdit, MORE_FLAGS_KEY, orderTray, pickedSlips, bulkBlocker, bulkSort } from './in-tray.js';
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
 import { renderOnboarding } from './onboarding-view.js';
 import { pickState, dueDates, parseDue } from './pick-bits.js';
@@ -34,8 +34,8 @@ import { initRoadmapDrag } from './roadmap-drag.js';
 import { settingsDraft } from './milestone-steps.js';
 import { COLS, UNPLANNED, roadmapOf, sharesAfter, applyMilestoneSettings, stepMilestone, stepSection, moveMilestone, moveSection, addSection, addMilestone, makeMilestone } from './roadmap.js';
 import { reviewLists } from './board.js';
-import { notesSummary, renderTaskDetails } from './task-details.js';
-import { canSetParent, canWaitOn } from './task-links.js';
+import { renderTaskDetails } from './task-details.js';
+import { canSetParent } from './task-links.js';
 import { applyNoteFace } from './note-face.js';
 import { applyComfort, getChunk } from './comfort.js';
 import { VIEW_ALL, renderViewSwitch, normalizeView, viewProjects, viewState, inView } from './view-switch.js';
@@ -147,8 +147,9 @@ export const ui = {
   view: loadView(), viewOpen: false,
   // boardSelected: the open task's id, which Task details (#201) renders from, on any tab.
   boardSelected: null,
-  // Task details (#201): the open row, a subtask being typed, the link search, the label list open
-  boardOpen: null, boardAddSub: false, boardLink: null, boardPicker: false,
+  // Task details (#269): the step open on it (the Sort scratch's shape, so the Sort steps draw it), the screen of its own
+  // (subs / github / rename) and the drawer over it (status / more); memory only
+  edit: null, boardScreen: null, boardDrawer: null,
   onboarding: loadOnboarding(),
   rvDone: 0, rvLast: null, rvList: false, // Review (#271), memory only: tasks stamped this visit, the last stamp (for its Undo slip), the Done this week screen
   rmCol: {}, rmMs: null, rmScreen: null, rmDrawer: null, rmTask: null, rmForm: {}, rmSet: null, rmEditField: null, // the Roadmap (#257, #268), memory only: the folder tab per milestone, the milestone on the clipboard, the screen over it (all / find / task / ms / sec / set / edit), the open drawer and its task, the form being typed, the settings draft, the Edit project field
@@ -175,7 +176,9 @@ function announceWallet(text) {
 }
 
 // The Sort tab's carousels write to the one-thought flow, or to Sort several when that is open.
-const trayScratch = () => (ui.bulk.on ? ui.bulk : ui.unsorted);
+// Task details' steps (#269) are the same screens, so while one is open they write to ui.edit instead.
+const sortScratch = () => ui.edit || ui.unsorted;
+const trayScratch = () => ui.edit || (ui.bulk.on ? ui.bulk : ui.unsorted);
 
 const walletHooks = {
   announce: announceWallet,
@@ -451,7 +454,7 @@ export function paint() {
 // Notes and thoughts have no length limit, so their boxes grow with the text. CSS field-sizing does
 // it where supported; elsewhere (Safari, Firefox at the time of writing) this sets the height from
 // the content. The jotter's 40vh cap is in its CSS max-height.
-const GROWING_BOXES = '.slip-notes, [data-detail-notes]';
+const GROWING_BOXES = '.slip-notes';
 const growsByItself = typeof CSS !== 'undefined' && CSS.supports && CSS.supports('field-sizing', 'content');
 function autoGrow(box) {
   if (growsByItself || !box) return;
@@ -585,7 +588,7 @@ function closePick() { Object.assign(pickState, { field: null, taskId: null, dat
 function pickTarget(el) {
   const scope = el.getAttribute('data-scope');
   if (scope === 'add') { const id = el.getAttribute('data-project'); return ui.addPick[id] || (ui.addPick[id] = {}); }
-  return scope === 'sort' ? ui.unsorted : scope === 'bulk' ? ui.bulk : null;
+  return scope === 'sort' ? sortScratch() : scope === 'bulk' ? ui.bulk : null;
 }
 function onPickSet(el) {
   const field = el.getAttribute('data-field'), value = el.getAttribute('data-value'), scope = el.getAttribute('data-scope');
@@ -734,6 +737,7 @@ function onAppClick(e) {
   if (action.startsWith('detail-')) { onDetailAction(action, el); return; }
   if (action === 'start-new-project') { openNewProject(); return; }
   if (onProjectsAction(action, el)) return;
+  if (action === 'edit-save') { saveEdit(); return; }
   if (action === 'unsorted-file' || action === 'unsorted-save') {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
     const cur = unsortedCurrent(state, ui.unsorted);
@@ -954,64 +958,57 @@ function onColorChange(el) {
   else M.setCategoryColor(id, el.value);
 }
 
-// ---- Board > Task details (#201, js/task-details.js) -------------------------------------------
-// Selecting a card (or none) starts the panel afresh: no row open, no half-made subtask or link.
+// ---- Task details (#269, js/task-details.js) ---------------------------------------------------
+// Selecting a task (or none) starts the panel afresh: no step, screen or drawer open.
 function selectBoardTask(id) {
-  ui.boardSelected = id; ui.boardOpen = null; ui.boardAddSub = false; ui.boardLink = null; ui.boardPicker = false;
+  ui.boardSelected = id; ui.edit = null; ui.boardScreen = null; ui.boardDrawer = null;
 }
 function detailTask() {
   const found = ui.boardSelected && findTaskWithProject(ui.boardSelected);
   return found ? { task: found.task, project: found.project } : null;
 }
-// Each change goes through the same mutations Projects' task editor uses, so it is stamped, synced and,
-// for a GitHub-linked task, pushed (updateTaskFields / setTaskStatus do the push).
-function addDetailTie(task, field, otherId) {
-  const ps = state.projects;
-  if (field === 'parent' && canSetParent(ps, task.id, otherId)) M.updateTaskFields(task.id, { parentId: otherId });
-  else if (field === 'waitsOn' && canWaitOn(ps, task.id, otherId)) M.updateTaskFields(task.id, { waitsOn: (task.waitsOn || []).concat(otherId) });
-  else if (field === 'holdsUp' && canWaitOn(ps, otherId, task.id)) {
-    const other = findTaskWithProject(otherId);
-    if (other) M.updateTaskFields(otherId, { waitsOn: (other.task.waitsOn || []).concat(task.id) });
-  }
+// A pencil opens the Sort step on a scratch seeded from the task. step 'notes' is the notes page, which has no number.
+function openEdit(task, project, step) {
+  const notes = step === 'notes';
+  ui.edit = Object.assign(freshUnsortedScratch(), {
+    taskId: task.id, step: notes ? 2 : +step, sub: notes ? 'notes' : null, rootSub: notes ? 'notes' : null,
+    priority: task.priority || null, due: task.deadline || '', projectId: project.id, selected: (task.categoryIds || []).slice(), notes: task.notes || '',
+  }, tiesOf(state.projects, task.id));
+}
+// Save: only what changed is written, on the same mutations Sort's save uses (updateTaskFields, applyTaskMove), so a
+// GitHub-linked task still pushes.
+function saveEdit() {
+  const d = detailTask();
+  if (d && ui.edit) saveTaskEdit(d.task, d.project, ui.edit, { updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove, addTask: M.addTask, projects: state.projects, labelIdByName });
+  ui.edit = null; paint();
 }
 function onDetailAction(action, el) {
   const d = detailTask();
   if (!d) return;
   const { task, project } = d;
+  const toggle = (name) => { ui.boardDrawer = ui.boardDrawer === name ? null : name; paint(); };
   if (action === 'detail-close') { selectBoardTask(null); paint(); }
-  else if (action === 'detail-fold') {
-    const key = el.getAttribute('data-key');
-    ui.boardOpen = ui.boardOpen === key ? null : key; ui.boardAddSub = false; ui.boardLink = null; ui.boardPicker = false;
-    paint();
+  else if (action === 'detail-status-open') toggle('status');
+  else if (action === 'detail-more') toggle('more');
+  else if (action === 'detail-status') { ui.boardDrawer = null; M.setTaskStatus(task.id, el.getAttribute('data-status')); paint(); }
+  else if (action === 'detail-edit') { ui.boardDrawer = null; openEdit(task, project, el.getAttribute('data-step')); paint(); const box = document.querySelector('.slip-notes'); if (box) box.focus(); }
+  else if (action === 'detail-subs') { ui.boardScreen = 'subs'; paint(); }
+  else if (action === 'detail-size-open') { ui.boardScreen = 'size'; paint(); }
+  else if (action === 'detail-size') { M.updateTaskFields(task.id, { size: el.getAttribute('data-size') || null }); paint(); }
+  else if (action === 'detail-github') { ui.boardScreen = 'github'; paint(); }
+  else if (action === 'detail-rename') { ui.boardDrawer = null; ui.boardScreen = 'rename'; paint(); const box = document.querySelector('[data-detail-rename]'); if (box) box.focus(); }
+  else if (action === 'detail-rename-save') {
+    const box = document.querySelector('[data-detail-rename]'), title = box ? box.value.trim() : '';
+    if (!title) { if (box) box.focus(); return; } // an empty title is not saved
+    if (title !== task.title) M.editTask(task.id, project.id, { title });
+    ui.boardScreen = null; paint();
   }
-  else if (action === 'detail-goto') { selectBoardTask(el.getAttribute('data-task-id')); paint(); }
-  else if (action === 'detail-make-cat') {
-    const id = el.getAttribute('data-cat');
-    M.updateTaskFields(task.id, { categoryIds: [id].concat((task.categoryIds || []).filter((c) => c !== id)) });
-  }
-  else if (action === 'detail-add-sub-open') {
-    ui.boardAddSub = true; paint();
-    const box = document.querySelector('[data-detail-newsub]');
-    if (box) box.focus();
-  }
+  else if (action === 'detail-back') { ui.boardScreen = null; paint(); }
   else if (action === 'detail-add-sub') addDetailSubtask(task, project);
-  else if (action === 'detail-link-open') {
-    const f = el.getAttribute('data-field');
-    ui.boardLink = ui.boardLink && ui.boardLink.field === f ? null : { field: f, query: '' };
-    paint();
-    const box = document.querySelector('[data-detail-find]');
-    if (box) box.focus();
-  }
-  else if (action === 'detail-link-add') { addDetailTie(task, el.getAttribute('data-field'), el.getAttribute('data-id')); ui.boardLink = null; paint(); }
-  else if (action === 'detail-unlink') {
-    const f = el.getAttribute('data-field'), id = el.getAttribute('data-id');
-    if (f === 'parent') M.updateTaskFields(task.id, { parentId: undefined });
-    else if (f === 'waitsOn') { const w = (task.waitsOn || []).filter((x) => x !== id); M.updateTaskFields(task.id, { waitsOn: w.length ? w : undefined }); }
-    else if (f === 'holdsUp') { const o = findTaskWithProject(id); if (o) { const w = (o.task.waitsOn || []).filter((x) => x !== task.id); M.updateTaskFields(id, { waitsOn: w.length ? w : undefined }); } }
-  }
   else if (action === 'detail-focus') { M.setFocus(task.id); ui.notice = 'Focus is now “' + task.title + '”.'; paint(); }
   else if (action === 'detail-delete') {
-    if (confirmDeleteTask(task.id, project.id)) { selectBoardTask(null); M.deleteTask(task.id, project.id); }
+    ui.boardDrawer = null;
+    if (confirmDeleteTask(task.id, project.id)) { selectBoardTask(null); M.deleteTask(task.id, project.id); } else paint();
   }
 }
 function addDetailSubtask(task, project) {
@@ -1022,42 +1019,9 @@ function addDetailSubtask(task, project) {
   if (!sub) return;
   createIssueIfGithubProject(sub, project.id);
   if (canSetParent(state.projects, sub.id, task.id)) M.updateTaskFields(sub.id, { parentId: task.id });
-  ui.boardAddSub = true; // ready for the next one
-  paint();
+  paint(); // ready for the next one
   const next = document.querySelector('[data-detail-newsub]');
   if (next) next.focus();
-}
-// Fields that save when they change or are left (the Notes summary follows each keystroke, see onAppInput).
-function onDetailChange(t) {
-  const d = detailTask();
-  if (!d) return false;
-  const { task, project } = d;
-  if (t.matches('[data-detail-status]')) M.setTaskStatus(task.id, t.value);
-  else if (t.matches('[data-detail-notes]')) M.updateTaskFields(task.id, { notes: t.value.trim() });
-  else if (t.matches('[data-detail-priority]')) M.editTask(task.id, project.id, { priority: t.value });
-  else if (t.matches('[data-detail-size]')) M.updateTaskFields(task.id, { size: t.value || null });
-  else if (t.matches('[data-detail-due]')) M.editTask(task.id, project.id, { deadline: t.value });
-  else if (t.matches('.detail-labels input[name="categoryIds"]')) {
-    const checked = Array.from(t.closest('.label-options').querySelectorAll('input[name="categoryIds"]:checked')).map((i) => i.value);
-    const kept = (task.categoryIds || []).filter((c) => checked.includes(c));
-    ui.boardPicker = true;
-    M.updateTaskFields(task.id, { categoryIds: kept.concat(checked.filter((c) => !kept.includes(c))) });
-  } else if (t.matches('.detail-labels input[name="newLabels"]')) {
-    const ids = (task.categoryIds || []).slice();
-    t.value.split(',').map((s) => s.trim()).filter(Boolean).forEach((name) => { const id = labelIdByName(name); if (!ids.includes(id)) ids.push(id); });
-    ui.boardPicker = true;
-    M.updateTaskFields(task.id, { categoryIds: ids });
-  } else return false;
-  return true;
-}
-// The title is edited in place and saved when it is left.
-function onDetailFocusOut(e) {
-  if (!e.target.matches || !e.target.matches('[data-detail-title]')) return;
-  const d = detailTask();
-  if (!d) return;
-  const title = e.target.textContent.trim();
-  if (title && title !== d.task.title) M.editTask(d.task.id, d.project.id, { title });
-  else if (!title) paint(); // an empty title is not saved; the old one comes back
 }
 
 function onAppChange(e) {
@@ -1090,7 +1054,6 @@ function onAppChange(e) {
     paint();
     return;
   }
-  if (e.target.matches && onDetailChange(e.target)) return;
   if (e.target.matches && e.target.matches('.add-task-form input[name="deadline"], .task-edit-form input[name="deadline"]')) { syncDueStageStep(e.target); return; }
   if (e.target.matches && e.target.matches('.due-step select')) {
     const step = e.target.closest('.due-step');
@@ -1123,17 +1086,6 @@ function onAppChange(e) {
 function onAppInput(e) {
   const colorEl = colorInputTarget(e);
   if (colorEl) { onColorInput(colorEl); return; }
-  if (e.target.matches && e.target.matches('[data-detail-notes]')) {
-    const v = document.querySelector('[data-summary="notes"]');
-    if (v) v.textContent = notesSummary(e.target.value);
-    return;
-  }
-  if (e.target.matches && e.target.matches('[data-detail-find]')) {
-    ui.boardLink.query = e.target.value; paint();
-    const box = document.querySelector('[data-detail-find]');
-    if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
-    return;
-  }
   if (e.target.matches && e.target.matches('[data-action="set-task-query"]')) { ui.taskQuery = e.target.value; paint(); return; }
   // the Roadmap's typed fields (#268): kept without a repaint (it would lose the caret); only the stamp's state changes
   const rmField = e.target.matches && e.target.getAttribute('data-rm-field');
@@ -1151,7 +1103,7 @@ function onAppInput(e) {
   }
   // the slip's title and notes are kept in the scratch without a repaint (it would lose the caret);
   // innerText, not textContent, so a line break typed into the title is kept
-  if (e.target.matches && e.target.matches('[data-slip-title]')) { ui.unsorted.title = e.target.innerText; return; }
+  if (e.target.matches && e.target.matches('[data-slip-title]')) { sortScratch().title = e.target.innerText; return; }
   if (e.target.matches && e.target.matches('[data-bulk-group]')) { ui.bulk.groupTitle = e.target.value; refreshBulkApply(); return; }
   if (e.target.matches && e.target.matches('[data-bulk-newlabel]')) {
     ui.bulk.newLabel = e.target.value;
@@ -1159,9 +1111,9 @@ function onAppInput(e) {
     if (add) add.disabled = !e.target.value.trim();
     return;
   }
-  if (e.target.matches && e.target.matches('.slip-notes')) { ui.unsorted.notes = e.target.value; return; }
+  if (e.target.matches && e.target.matches('.slip-notes')) { sortScratch().notes = e.target.value; return; }
   if (e.target.matches && e.target.matches('[data-tie-find]')) {
-    ui.unsorted.pickQuery = e.target.value;
+    sortScratch().pickQuery = e.target.value;
     paint();
     const box = document.querySelector('[data-tie-find]');
     if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
@@ -1187,8 +1139,8 @@ function onAppInput(e) {
     if (box) box.setSelectionRange(box.value.length, box.value.length);
     return;
   }
-  if (e.target.matches && e.target.matches('.sort-find:not([data-bulk-newlabel]):not(.pj-find)')) {
-    ui.unsorted.find = e.target.value;
+  if (e.target.matches && e.target.matches('.sort-find:not([data-bulk-newlabel]):not(.pj-find):not([data-detail-rename]):not([data-detail-newsub])')) {
+    sortScratch().find = e.target.value;
     paint();
     const box = document.querySelector('.sort-find');
     if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
@@ -1219,8 +1171,12 @@ function onAppInput(e) {
 
 // ---- The Sort tab's steps (js/sort-flow.js decides the order, js/sort-flow-view.js draws them) ---
 function onSortAction(action, el) {
-  const u = ui.unsorted;
-  const cur = unsortedCurrent(state, u);
+  const u = sortScratch();
+  const cur = ui.edit ? null : unsortedCurrent(state, u);
+  if (ui.edit && action === 'sort-back') { // Back leaves a sub-page, then the step (back to the receipt); the notes page is the step
+    if ((u.sub && u.sub !== u.rootSub) || (u.step === 4 && u.dateOpen)) Object.assign(u, { sub: null, dateOpen: false }); else ui.edit = null;
+    paint(); return;
+  }
   const hasProject = !!u.projectId || !!(cur && cur.kind === 'task');
   const go = (how) => {
     const patch = navigate(u, how, { hasProject, needsPriority: !!cur && cur.kind === 'thought', now: Date.now(), defaults: state.dueDefaults });
@@ -1637,9 +1593,9 @@ function onAppKeydown(e) {
     const b = row.querySelector('.pick-opt[data-field="priority"][data-value="' + ['urgent', 'high', 'medium', 'low'][+e.key - 1] + '"]');
     if (b && !row.querySelector('.pick-blocks').hidden) { e.preventDefault(); b.click(); return; }
   }
-  // Task details: Enter finishes the title (saved on leaving it) or adds the typed subtask
+  // Task details: Enter saves the new name or adds the typed smaller step
   if (e.key === 'Enter' && e.target.matches) {
-    if (e.target.matches('[data-detail-title]')) { e.preventDefault(); e.target.blur(); return; }
+    if (e.target.matches('[data-detail-rename]')) { e.preventDefault(); onDetailAction('detail-rename-save', e.target); return; }
     if (e.target.matches('[data-detail-newsub]')) { e.preventDefault(); const d = detailTask(); if (d) addDetailSubtask(d.task, d.project); return; }
   }
   // Escape in the due-date step skips just the step; it must not also close the form around it.
@@ -1736,7 +1692,6 @@ function init() {
   app.addEventListener('input', onAppInput);
   app.addEventListener('submit', onAppSubmit);
   app.addEventListener('keydown', onAppKeydown);
-  app.addEventListener('focusout', onDetailFocusOut);
   app.addEventListener('contextmenu', onAppContextMenu);
   initTriageDrag(app, (id, to) => moveTriage(id, to, 0));
   initRoadmapDrag(app, {
