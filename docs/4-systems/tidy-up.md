@@ -22,7 +22,7 @@
   4. Not touched in 60 days: open, `updatedAt` (else `createdAt`) over 60 days ago. Tasks with neither are left out.
 - Keep / Close / Merge only mark (`ui.tidyMarks`, memory only; pressing again unmarks). The side panel (a sticky
   bar above the tabs on a phone) shows "open now → open after" and "Confirm N".
-- Confirm closes the marked Close/Merge tasks that are listed in the current view (`confirmIds`), through
+- Confirm ("Confirm N, then Triage", #256) closes the marked Close/Merge tasks that are listed in the current view (`confirmIds`), through
   `setTaskStatus(id, 'done')`: the same route as ticking Done, so GitHub closes the issue as completed (there is
   no "not planned" route). They move to a "Closed" list (`ui.tidyClosed`, memory only) with Undo = `undoDone`,
   which restores `statusBeforeDone`.
