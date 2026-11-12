@@ -57,7 +57,7 @@ test('counts match the columns', () => {
   const st = state();
   st.projects[0].tasks.push(task('x', 'done', { completedAt: NOW - 1 }));
   const c = boardColumns(st, null, NOW);
-  assert.deepStrictEqual(c.counts, { next: c.next.length, doing: c.doing.length, done: c.done.length });
+  assert.deepStrictEqual(c.counts, { next: c.next.length, doing: c.doing.length, review: c.review.length, done: c.done.length });
   assert.deepStrictEqual(c.counts, { next: 4, doing: 2, review: 0, done: 1 });
 });
 
