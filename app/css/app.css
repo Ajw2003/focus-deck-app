@@ -1137,7 +1137,7 @@ body.is-dragging-task .empty-note{display:none;}
    screen is drawn. Wide: a column fixed on the left under the topbar. Phone: a bar fixed along the
    bottom. Focus and Sort are one centred column; Projects keeps the project list and folders.
    The jotter (adding) stays in the topbar on every screen. See docs/4-systems/styling.md#one-screen-at-a-time */
-.rail{position:fixed; z-index:15; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(6,minmax(0,1fr));
+.rail{position:fixed; z-index:15; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(7,minmax(0,1fr));
   background:var(--surface); border-top:1px solid var(--line); padding:6px 8px calc(6px + env(safe-area-inset-bottom, 0px));}
 .rail-item{display:flex; flex-direction:column; align-items:center; gap:3px; border:0; background:none; color:var(--ink-soft); font:600 .72rem var(--font-ui); padding:6px 0; border-radius:12px; cursor:pointer;}
 .rail-item.is-on{color:var(--accent); background:var(--surface-2);}
@@ -1522,4 +1522,48 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
   .td-count{display:none;}
   .td-nums{font-size:1.1rem;}
   .screen-tidy{padding-bottom:70px;}
+}
+
+/* Triage (#256): Now / Next / Later cards, numbered rows, the rules column. See docs/4-systems/triage.md */
+.screen-triage{min-width:0;}
+.tr-sub{margin:0 0 16px; color:var(--ink-soft); display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px;}
+.tr-layout{display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:24px; align-items:start;}
+.tr-main{min-width:0; display:flex; flex-direction:column; gap:16px;}
+.tr-card{background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--line); border-radius:16px; padding:12px 16px;}
+.tr-now{border-left-color:var(--prio-urgent);}
+.tr-next{border-left-color:var(--due-amber);}
+.tr-later{border-left-color:var(--prio-low);}
+.tr-h{margin:0 0 4px;}
+.tr-fold{display:flex; align-items:center; gap:8px; width:100%; border:0; background:none; color:inherit; font:inherit; padding:4px 0; cursor:pointer; text-align:left;}
+.tr-caret{margin-left:auto; color:var(--ink-soft);}
+.tr-list{list-style:none; margin:0; padding:0;}
+.tr-list[hidden]{display:none;}
+.tr-row{display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--line);}
+.tr-row:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.tr-row.is-dragging{opacity:.5;}
+.tr-dragging{cursor:grabbing; user-select:none;}
+.tr-grip{color:var(--ink-faint); cursor:grab; touch-action:none; padding:4px 2px; letter-spacing:-2px;}
+.tr-num{min-width:1.6em; font-weight:700; color:var(--ink-soft); text-align:right;}
+.tr-text{min-width:0; flex:1 1 auto; display:flex; flex-direction:column; gap:2px;}
+.tr-title{font-weight:600; overflow-wrap:anywhere;}
+.tr-meta{color:var(--ink-soft); font-size:.82rem;}
+.tr-chip{flex:none; padding:3px 10px; border-radius:var(--r-pill); background:var(--surface-2); border:1px solid var(--line); font-size:.78rem; font-weight:600; white-space:nowrap;}
+.tr-moves{display:none; gap:4px;}
+.tr-move{min-height:40px; min-width:40px; padding:0;}
+.tr-side{position:sticky; top:calc(var(--topbar-h, 64px) + 16px); background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:10px;}
+.tr-side-h{margin:0; font-size:.78rem; letter-spacing:.06em; color:var(--ink-soft);}
+.tr-rules{margin:0; padding-left:1.4em; display:flex; flex-direction:column; gap:6px;}
+.tr-side-note{margin:0; color:var(--ink-soft); font-size:.85rem;}
+.tr-reset, .tr-reset-phone{min-height:44px;}
+.tr-reset-phone{display:none;}
+@media (max-width:899.98px){
+  .tr-layout{grid-template-columns:minmax(0,1fr);}
+  .tr-side, .tr-grip, .tr-hint{display:none;}
+  .tr-moves{display:flex;}
+  .tr-reset-phone{display:inline-flex;}
+  .tr-row{display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"num text moves" "num chip moves"; gap:4px 10px; align-items:center;}
+  .tr-num{grid-area:num;}
+  .tr-text{grid-area:text;}
+  .tr-chip{grid-area:chip; justify-self:start;}
+  .tr-moves{grid-area:moves;}
 }

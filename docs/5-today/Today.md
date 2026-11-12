@@ -576,3 +576,7 @@ unchanged. Seen in Chromium at 1366, 1440 (light), 1920 and 2560 wide and 390 (p
 ## Tidy up screen (#255, step 7)
 
 A sixth tab, "Tidy up", groups open tasks that look finished, repeated or forgotten (review, replaced, same, 60 days untouched). Keep/Close/Merge only mark; Confirm closes the marked ones in the chosen view like Done, with Undo. See docs/4-systems/tidy-up.md. Seen in Chromium at 390 and 1440 wide.
+
+## Triage screen (#256, step 8)
+
+A seventh tab, "Triage", ranks the open tasks in the view into Now (3), Next (8) and Later (the rest, folded) by seven rules, one ranking shared with Focus (`pick-order.js`). Drag, Alt+Up/Down or the phone buttons save your own order, which wins; "Reset to the rules" clears it. "Or let me pick for you" now picks from Now. Tidy up's Confirm leads here. See docs/4-systems/triage.md. Seen in Chromium at 360, 390 and 1440 wide.

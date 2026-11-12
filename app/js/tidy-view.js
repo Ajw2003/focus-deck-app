@@ -24,7 +24,7 @@ export function renderTidy(st, ui, now = Date.now()) {
   const cards = groups.map((g) => '<section class="td-group" data-group="' + g.key + '" aria-labelledby="td-h-' + g.key + '"><h3 class="calm-h" id="td-h-' + g.key + '">' + esc(g.title) + ' <b>' + g.items.length + '</b></h3>'
     + '<p class="td-reason">' + esc(g.reason) + '</p><ul class="td-list">' + g.items.map((i) => row(i, g, marks)).join('') + '</ul></section>').join('');
   const side = '<aside class="td-side" aria-label="Confirm"><p class="td-count">Open in ' + esc(name) + '</p><p class="td-nums" data-open>' + open + ' <span aria-hidden="true">→</span><span class="sr-only"> becomes </span> ' + (open - n) + '</p>'
-    + '<button type="button" class="btn primary td-confirm" data-action="tidy-confirm"' + (n ? '' : ' disabled') + '>Confirm ' + n + '</button></aside>';
+    + '<button type="button" class="btn primary td-confirm" data-action="tidy-confirm"' + (n ? '' : ' disabled') + '>Confirm ' + n + ', then Triage</button></aside>';
   const closedList = closed.length
     ? '<details class="td-closed" open><summary>Closed <b>' + closed.length + '</b></summary><ul class="td-list">' + closed.map((c) => '<li class="td-row" data-closed-id="' + esc(c.id) + '"><div class="td-row-text"><span class="td-row-title">' + esc(c.title) + '</span></div>'
       + '<div class="td-btns"><button type="button" class="btn ghost td-btn" data-action="tidy-undo" data-task="' + esc(c.id) + '" aria-label="Undo: ' + esc(c.title) + '">Undo</button></div></li>').join('') + '</ul></details>' : '';

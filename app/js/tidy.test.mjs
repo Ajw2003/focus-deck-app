@@ -82,7 +82,7 @@ test('markup: title, counts, Confirm N, escapes', () => {
   const h = renderTidy(st, { view: { mode: 'all', id: null }, tidyMarks: { r1: 'close' }, tidyClosed: [] }, now);
   assert.match(h, /Tidy up: All/);
   assert.match(h, /Nothing closes until you press Confirm/);
-  assert.match(h, /Confirm 1</);
+  assert.match(h, /Confirm 1, then Triage</);
   assert.match(h, /&lt;b&gt;x/);
   assert.ok(!h.includes('<b>x'));
   assert.match(renderTidy(st, { view: { mode: 'area', id: 'a2' }, tidyMarks: {} }, now), /Tidy up: Work/);

@@ -42,7 +42,7 @@ export function renderSyncButton(st) {
 // One activity at a time (#135): the screens, and the rail that switches between them (a column
 // on the left on a wide screen, a bar along the bottom on a phone). Adding stays on every screen:
 // it is the jotter in the topbar. See docs/4-systems/styling.md#one-screen-at-a-time
-export const SCREENS = ['focus', 'sort', 'board', 'projects', 'review', 'tidy'];
+export const SCREENS = ['focus', 'sort', 'board', 'projects', 'review', 'tidy', 'triage'];
 const SCREEN_INFO = {
   focus: { label: 'Focus', icon: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>' },
   sort: { label: 'Sort', icon: '<path d="M4 7h16M4 12h10M4 17h6"/>' },
@@ -50,6 +50,7 @@ const SCREEN_INFO = {
   projects: { label: 'Projects', icon: '<path d="M3 7h7l2 2h9v10H3z"/>' },
   review: { label: 'Review', icon: '<path d="M5 12.5l4.5 4.5L19 7.5"/>' },
   tidy: { label: 'Tidy up', icon: '<path d="M4 6h16M7 6l1 13h8l1-13M10 6V4h4v2"/>' },
+  triage: { label: 'Triage', icon: '<path d="M4 6h16M4 12h11M4 18h6"/><path d="M19 14v6M16.5 17.5L19 20l2.5-2.5"/>' },
 };
 export function normalizeScreen(value) { return SCREENS.includes(value) ? value : 'focus'; }
 // The Board screen's markup is in js/board-view.js (#144).

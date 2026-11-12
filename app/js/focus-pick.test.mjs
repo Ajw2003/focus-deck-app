@@ -29,7 +29,7 @@ test('pickForMe opens the first task by the Start here order, and "Not this one"
   assert.strictEqual(state.focus.taskId, 'dn');
   M.reroll(); assert.strictEqual(state.focus.taskId, 'ur');
   M.reroll(); assert.strictEqual(state.focus.taskId, 'hi');
-  M.reroll(); M.reroll(); assert.strictEqual(state.focus.taskId, 'dn', 'wraps round');
+  M.reroll(); assert.strictEqual(state.focus.taskId, 'dn', 'wraps round: the 4th task is not in Now, so it is never offered');
   seed([]);
   assert.strictEqual(M.pickForMe(), false);
 });

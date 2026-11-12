@@ -21,11 +21,11 @@ exactly as before (flip, Tap / Tap twice, push up to draw, the hint line).
 - **Find a project** (`.car-find`, `ui.focusFind`, `renderProjectWalletInner`) narrows the folders live on
   Focus; Sort's existing `.sort-find` does the same for its wallet. Both respect the All / Area / Project
   switch (`viewState`).
-- **Or let me pick for you** (`data-action="pick-for-me"`, `M.pickForMe`): orders the open tasks in the view
-  with `pickOrder` (`js/pick-order.js`: in progress, past its date or due today, Urgent, High, due soonest,
-  then oldest) and opens the first as if picked by hand. The ordered ids are the pool, so "Not this one"
-  (`M.reroll`) offers the next in that order (wrapping). shortcut: tasks have no created time, so "oldest" is
-  the order they sit in.
+- **Or let me pick for you** (`data-action="pick-for-me"`, `M.pickForMe`): takes **Now** from Triage for the
+  view (`triageLists`, `js/triage.js`: the seven rules of `pickOrder` in `js/pick-order.js`, then your saved
+  Triage order on top; Now is the top 3) and opens the first as if picked by hand. The Now ids are the pool, so
+  "Not this one" (`M.reroll`) offers the next of those three (wrapping); the rest of the view is not offered.
+  See [triage.md](./triage.md). shortcut: tasks have no created time, so "oldest" is the order they sit in.
 - Focus shows only kinds of work (the step 3 ticks, `kindsOfWork`).
 - Checked by `scripts/check-carousel-browser.mjs` (screenshots in `docs/generated/build-checks/step5/`),
   `check-desktop-browser.mjs`, `check-wallets-browser.mjs` and `check-wallet-touch-browser.mjs`.

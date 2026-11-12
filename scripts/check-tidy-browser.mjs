@@ -78,9 +78,9 @@ for (const phone of [true, false]) {
   await mark('h1', 'close'); await mark('h2', 'keep'); await mark('h3', 'merge'); await mark('h5', 'close');
   check((await page.$$('.td-btn.is-marked')).length === 4, tag + 'four marks visible');
   check(await nums() === '6 → 3', tag + 'N → M is 6 → 3', await nums());
-  check((await page.textContent('.td-confirm')) === 'Confirm 3', tag + 'Confirm 3');
+  check((await page.textContent('.td-confirm')) === 'Confirm 3, then Triage', tag + 'Confirm 3, then Triage');
   await mark('h5', 'close');
-  check((await page.textContent('.td-confirm')) === 'Confirm 2', tag + 'pressing again unmarks');
+  check((await page.textContent('.td-confirm')) === 'Confirm 2, then Triage', tag + 'pressing again unmarks');
   await mark('h5', 'close');
   check(await doneIds() === '', tag + 'nothing closed before Confirm');
   await noScroll('marked'); await shot('marked');
@@ -88,6 +88,8 @@ for (const phone of [true, false]) {
   await pickArea('a2'); await mark('w1', 'close');
   await pickArea('a1');
   await page.click('.td-confirm');
+  check(await page.isVisible('.tr-layout'), tag + 'Confirm leads to Triage');
+  await page.click('[data-screen="tidy"]');
   check(await doneIds() === 'h1,h3,h5', tag + 'Confirm closed only the three Home marks', await doneIds());
   check(await counts() === 'replaced:1', tag + 'closed tasks leave the groups', await counts());
   check((await page.$$('.td-closed .td-row')).length === 3, tag + 'Closed list has 3');
@@ -99,7 +101,7 @@ for (const phone of [true, false]) {
   await pickArea('a2');
   check(await counts() === 'review:1,replaced:1,same:1,stale:1', tag + 'Work shows its tasks', await counts());
   check((await page.$$('.td-row[data-task-id^="h"]')).length === 0, tag + 'no Home task in Work');
-  check((await page.textContent('.td-confirm')) === 'Confirm 1', tag + 'Work keeps its own mark');
+  check((await page.textContent('.td-confirm')) === 'Confirm 1, then Triage', tag + 'Work keeps its own mark');
   await ctx.close();
 }
 await browser.close();
