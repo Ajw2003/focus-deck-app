@@ -114,6 +114,8 @@ for (const size of ['phone', 'desktop']) {
     check(`${tag} Focus kinds row: Chore (unticked) is gone, Bug stays`, !keys.includes('c_chore') && keys.includes('c_bug'), keys.join());
     check(`${tag} Focus: the unticked-only-label task is not lost (Unlabelled card)`, keys.includes('__none__'), keys.join());
     // Asap is mapped to Urgent above: its task (Paint, no priority of its own) shows the Urgent chip
+    await page.click('[data-action="set-screen"][data-screen="projects"]');
+    await page.waitForSelector('.task-row', { state: 'attached' });
     const urgent = await page.$$eval('.task-row', (rows) => rows.filter((r) => r.textContent.includes('Paint')).map((r) => (r.querySelector('.priority-chip') || {}).textContent || ''));
     check(`${tag} a task labelled Asap (mapped to Urgent) shows the Urgent chip`, urgent.length > 0 && urgent.every((x) => x.includes('Urgent')), JSON.stringify(urgent));
     await page.screenshot({ path: OUT + `${size}-focus.png` });
