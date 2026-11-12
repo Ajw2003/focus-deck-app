@@ -5,7 +5,7 @@
 The Unsorted card restyled as an in-tray of torn-off jotter slips (#121, part of #116). The look is the
 second phone ("Sorting the Unsorted in-tray") in the "Your pick" section of
 `docs/plans/redesign-directions.html`, screenshots `docs/generated/redesign-mockup/r5-sort-*.png`.
-It reuses the #120 wallets (`js/wallet.js`, `docs/4-systems/wallets.md`) for "1. Which folder?" and
+It reuses the carousel (`js/carousel.js`, `docs/4-systems/wallets.md`) for "1. Which project?" and the #120 wallet (`js/wallet.js`) for
 "2. Stick on category flags", so both follow the "Choosing a card" setting.
 
 ## Status
@@ -19,8 +19,8 @@ It reuses the #120 wallets (`js/wallet.js`, `docs/4-systems/wallets.md`) for "1.
 - `js/render.js` — `unsortedQueue` (unchanged); the old pills (`renderInbox`,
   `unsortedKindsAndLabels`, `unsortedProjectPills`) are gone.
 - `js/app.js` — `ui.unsorted` is `{ later, projectId, selected, step, find, title, notes, notesOpen,
-  facingFolder, facingFlag, showAllFlags, currentKey }` (three parts, #189: see below). `walletHooks.onFacing` remembers the facing card of `tray-folders` / `tray-flags` so
-  a repaint keeps it; `walletHooks.onChoose` toggles the folder or flag and repaints. `unsorted-file`
+  facingFolder, facingFlag, showAllFlags, currentKey }` (three parts, #189: see below). `carouselHooks.onActive` remembers the facing project (`tray-projects`) and `walletHooks.onFacing` the facing flag (`tray-flags`) so
+  a repaint keeps it; `carouselHooks.onChoose` toggles the project and `walletHooks.onChoose` the flag, then repaint. `unsorted-file`
   and `unsorted-save` both go through `fileSlip`; `unsorted-skip` is Later (`sendToBack`). The
   wallets announce into `#tray-live` when the focus wallets' `#wallet-live` isn't on the page.
 - `css/app.css`, the "In-tray (#121)" section.
@@ -55,7 +55,9 @@ task's folder is its own project until another is chosen, and saving moves it
 categories", and offers "+ New flag" when no category name matches exactly. The slip text is editable
 unless the task is GitHub-linked (`issueNumber`), and a `.slip-notes` box holds notes; both are kept
 in the scratch without repainting and saved by `fileSlip` (`fileInboxItem(..., { title, notes })` for a
-thought, `updateTaskFields` for a task). The main button is Next on parts 1 and 2 and File/Save on 3.
+thought, `updateTaskFields` for a task). The main button for a **thought** is "File to <project>" on part 1 and on 3 (disabled until a project and a priority are picked, #253) and Next on part 2; for a **task** slip it is Next on parts 1 and 2 and Save on 3.
+
+**Part 1 is the shared carousel (#253).** The project step is `js/carousel.js` (`data-car="tray-projects"`, heading "Which project?"), not a wallet: five cards at once with arrows, a "3 of 27" count, keys, typing and the wheel on a wide screen; a swipe row on a phone. The Find box above it (`.sort-find`, `ui.unsorted.find`) filters it with `findFilter`. A click or Enter picks the project, and picking it again clears it (`carouselHooks.onChoose` in `js/app.js`, `toggleFolder`); the active card is `ui.unsorted.facingFolder`. The priority and due pickers sit under it, and "File to <project>", then Done already / Later / Delete. Part 2 (flags) is still the `tray-flags` wallet. Checked by `scripts/check-carousel-browser.mjs`.
 
 Since #205 (2026-10-19) every step tab can be tapped while its step is allowed. With no folder chosen
 yet, tabs 2 and 3 are `aria-disabled` rather than `disabled`, so a tap on one shows "Choose a project

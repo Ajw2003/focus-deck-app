@@ -1,5 +1,40 @@
 # Wallets
 
+> **Focus and Sort's project step no longer use wallets (#253).** They use one carousel, `js/carousel.js`,
+> described next. The wallet sections below still describe `js/wallet.js`, which now only drives Sort's
+> label step (`tray-flags`). `scripts/check-wallets-browser.mjs` and `scripts/check-wallet-touch-browser.mjs`
+> still test the retired Focus wallets and fail until rewritten or retired (see the end of this file).
+
+## The carousel (#253)
+
+One component for Focus (project row and kind-of-work row) and Sort (project row, "Which project?").
+
+- **Markup** (`carouselHtml`): `.car[data-car][data-facing]` with a heading, a `.car-count` ("3 of 27", `aria-live`),
+  ‹ › `.car-arrow` buttons and a `.car-row[role=group][aria-label]` of `.car-card[data-key]` holding the same
+  `.icard` paper/folder look as before. Ids: `projects`, `categories` (Focus), `tray-projects` (Sort).
+- **Pure logic** (top of `js/carousel.js`, tested in `js/carousel.test.mjs`): `clampIndex`, `windowStart`,
+  `keyOutcome`, `findFilter`, `jumpTo`, `wheelStep`. `mountCarousels` only measures and listens.
+- **Phone**: a scroll-snap row, cards 64% wide (about 1.5 showing), swipe; the card at the left edge is active.
+  **From 1100px** (the old spread breakpoint): five cards (`SHOW`), arrows, Left/Right/Home/End move the active
+  card, Enter picks, typing letters jumps to the first name starting with them (else containing them), a
+  wheel or sideways scroll over the row moves it one card per 40px.
+- **Hooks** (`carouselHooks`, `js/app.js`): `onActive` on Focus's project row saves the project to
+  `focusdeck-focus-filter` and re-renders only `#category-car`; `onChoose` draws a task (`M.pickFocus`) for a
+  project or a kind of work, so a click or Enter on a project draws from it (it no longer "picks" first).
+- **Find a project** (`.car-find`, `ui.focusFind`) filters the project row live and re-renders only `#project-car`.
+- **All / Area / Project**: both rows are built from `viewState(st)`, and `pickFocus`/`pickForMe` read `ui.view`.
+- **Or let me pick for you** (`data-action="pick-for-me"`, `M.pickForMe`): orders the open tasks in the view with
+  `pickOrder` (`js/pick-order.js`: in progress, past its date or due today, Urgent, High, due soonest, then
+  oldest) and opens the first as if picked by hand. The ordered ids are the focus pool, so "Not this one"
+  (`M.reroll`) offers the next in that order (wrapping). shortcut: tasks have no created time, so "oldest" is
+  the order they sit in.
+- **Removed from Focus**: the flip/tilt wallets, the long all-cards desktop page, the "Choosing a card" hint line
+  on Focus (the setting still governs Sort's label wallet), and `renderCategoryWalletInner`.
+- Focus shows only kinds of work (the step 3 ticks, `kindsOfWork`); no workflow label cards.
+- Checked by `scripts/check-carousel-browser.mjs` (screenshots in `docs/generated/build-checks/step5/`).
+  Known gap at the time of writing: its phone-swipe assertion failed under CDP `synthesizeScrollGesture`
+  (scrollLeft stayed at 4) and was not resolved; see the issue notes.
+
 ## What it owns
 
 The focus picker's two wallets (#120, part of #116): a sideways strip of **manila folders** for
