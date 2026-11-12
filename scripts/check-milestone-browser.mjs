@@ -67,7 +67,7 @@ for (const [w, h] of [[360, 780], [390, 844], [1440, 900]]) {
   const countA = async () => text('.rm-ms[data-ms-id="a"] .rm-ms-count');
 
   await page.click('[data-screen="roadmap"]'); await page.waitForSelector('.rm');
-  await page.click('[data-action="view-mode"][data-mode="project"]'); await page.click('[data-action="view-pick"][data-id="p0"]');
+  await page.click('.vs-tape'); await page.click('[data-action="view-step"][data-step="project"]'); await page.click('[data-action="view-pick"][data-id="p0"]'); // the view tape
   await page.waitForSelector('.rm-project');
   check((await text('.rm-big')) === '23%', tag + 'start: equal shares of 4, tasks 3 of 5 / 1 of 3 -> 23%', await text('.rm-big'));
 
