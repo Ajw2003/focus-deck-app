@@ -55,9 +55,8 @@ const UI = { view: { mode: 'all', id: null }, boardCol: 'next' };
   assert.ok(renderBoard({ projects: [] }, { boardCol: 'doing' }, now).includes('Nothing in progress. Press'), 'empty tab line');
 }
 {
-  const withCat = { ...st, projectCategories: [{ id: 'pc1', name: 'Home life', color: '#3E8E5E' }] };
-  const open = renderBoard(withCat, { ...UI, boardFilterOpen: true, boardShow: 'subs' }, now);
-  assert.ok(open.includes('Filter (1)') && open.includes('calm-drawer') && open.includes('>Home life</button>'), 'drawer with Category');
+  const open = renderBoard(st, { ...UI, boardFilterOpen: true, boardShow: 'subs' }, now);
+  assert.ok(open.includes('Filter (1)') && open.includes('calm-drawer') && !open.includes('Area</p>'), 'drawer has Show only (the area filter moved to the switch)');
   ['Everything', 'Has subtasks', 'Waiting on something', 'Holding others up'].forEach((l) => assert.ok(open.includes('>' + l + '</button>'), l));
   assert.ok(open.includes('Nothing matches.') && open.includes('Show 0 tasks'), 'Has subtasks narrows the list');
 }

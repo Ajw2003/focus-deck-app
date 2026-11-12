@@ -79,7 +79,7 @@ test('completedAt wins over updatedAt for Done this week; updatedAt is the fallb
 test('boardList: tab, project, Find, Show and subtasks (#200)', () => {
   const st = {
     categories: [{ id: 'c1', name: 'Garden' }],
-    projectCategories: [],
+    projectCategories: [{ id: 'pc1', name: 'Garden area', color: '#0a0' }],
     projects: [
       proj('p', [
         task('a', 'next', { sortOrder: 1 }),
