@@ -8,7 +8,7 @@ import assert from 'node:assert';
 import {
   CHOOSING_MODES, DEFAULT_CHOOSING_MODE, CHOOSING_MODE_INFO, normalizeChoosingMode, cornerHint,
   facingIndex, tiltFor, scrollLeftFor, pointerAxis, tapOutcome, swipeOutcome, shouldDisarm, keyAction, clampIndex,
-  SWIPE_DRAW_PX, mountWallets, liveWalletCount,
+  SWIPE_DRAW_PX, mountWallets, liveWalletCount, windowStart, countText, findFilter, jumpTo, wheelStep,
 } from './wallet.js';
 
 test('the modes: two, tap twice by default, unknown values read as the default', () => {

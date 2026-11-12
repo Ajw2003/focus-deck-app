@@ -116,6 +116,36 @@ export function spreadHint(name, verb) {
   return wording('Click a card to draw', verb);
 }
 
+// On a wide screen the project and kind-of-work wallets (and Sort's project wallet) are a strip of
+// SHOW cards with arrows, a "3 of 27" count, keys, typing to jump and the wheel (#253). The
+// slip's label wallet still lies flat.
+export const SHOW = 5;
+export const STRIP_WALLETS = ['projects', 'categories', 'tray-folders'];
+// first visible card when `i` is the pick: keep it in the middle of the SHOW cards
+export const windowStart = (i, n, show = SHOW) => Math.max(0, Math.min(n - show, i - Math.floor(show / 2)));
+export const countText = (i, n) => (n ? (i + 1) + ' of ' + n : '0');
+
+// The cards whose name has every typed word in it (the Find a project box).
+export function findFilter(items, q) {
+  const words = String(q || '').toLowerCase().split(/\s+/).filter(Boolean);
+  return words.length ? items.filter((x) => words.every((w) => x.name.toLowerCase().includes(w))) : items;
+}
+
+// Typing letters on a strip: the first card whose name starts with them (else contains them), -1 for none.
+export function jumpTo(names, typed) {
+  const q = String(typed || '').toLowerCase();
+  if (!q) return -1;
+  const lower = names.map((n) => n.toLowerCase());
+  const at = lower.findIndex((n) => n.startsWith(q));
+  return at >= 0 ? at : lower.findIndex((n) => n.includes(q));
+}
+
+// A wheel or sideways trackpad scroll: small deltas add up, a step of one card comes at 40.
+export function wheelStep(acc, dx, dy) {
+  const sum = acc + (Math.abs(dx) > Math.abs(dy) ? dx : dy);
+  return Math.abs(sum) >= 40 ? { acc: 0, step: Math.sign(sum) } : { acc: sum, step: 0 };
+}
+
 // Flipping away from a lifted card puts it back, unless the flip is the one its own tap asked for.
 export function shouldDisarm({ armed, nearest, flipTarget }) {
   return armed !== null && nearest !== armed && flipTarget !== armed;
@@ -346,9 +376,24 @@ const matchesSpread = () => typeof matchMedia === 'function' && matchMedia(SPREA
 // The wide-screen version of a mounted wallet: no scrolling, no tilt, the picked card outlined.
 function spreadOut(w, hooks, { keys, countEl, hintEl, verb }) {
   const { track, name, sleeves } = w;
+  const strip = STRIP_WALLETS.includes(name);
   w.spread = true;
   track.classList.add('is-spread');
+  if (strip) track.classList.add('is-strip');
   if (countEl) countEl.textContent = '';
+  const arrow = (dir, glyph, label) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'wallet-arrow'; b.textContent = glyph; b.setAttribute('aria-label', label);
+    b.addEventListener('click', () => face(w.facing + dir));
+    return b;
+  };
+  const arrows = strip ? [arrow(-1, '\u2039', 'Previous'), arrow(1, '\u203a', 'Next')] : [];
+  if (strip) { track.parentElement.insertBefore(arrows[0], track); track.parentElement.appendChild(arrows[1]); }
+  const reveal = (instant) => {
+    if (!strip) return;
+    const first = sleeves[windowStart(w.facing, sleeves.length)];
+    track.scrollTo({ left: first.offsetLeft - sleeves[0].offsetLeft, behavior: instant || reducedMotion() ? 'auto' : 'smooth' });
+  };
   // the focus picker's two wallets share one hint line: the folder wallet's says both steps
   const sharesWithFolders = name !== 'projects' && hintEl && hintEl.closest('.wallet-root').querySelector('[data-wallet="projects"]');
   if (hintEl && !sharesWithFolders) hintEl.textContent = spreadHint(name, verb);
@@ -358,16 +403,39 @@ function spreadOut(w, hooks, { keys, countEl, hintEl, verb }) {
     const go = sleeve.querySelector('.go');
     if (go) go.textContent = spreadCorner(name, i === w.facing, verb);
   });
+  const paintStrip = () => {
+    if (!strip) return;
+    if (countEl) countEl.textContent = countText(w.facing, sleeves.length);
+    arrows[0].disabled = w.facing === 0; arrows[1].disabled = w.facing >= sleeves.length - 1;
+  };
   const face = (index) => {
     w.facing = clampIndex(index, sleeves.length);
-    paint();
+    paint(); paintStrip(); reveal(false);
     hooks.onFacing(name, keys[w.facing]);
     hooks.announce(sleeves[w.facing].dataset.speak || '');
   };
   w.flipTo = face; // the arrow keys move the pick
-  w.recentre = () => {};
+  w.recentre = () => reveal(true);
   w.tap = (index) => (spreadClick(name, index, w.facing) === 'face' ? face(index) : w.choose(index));
-  paint();
+  if (strip) {
+    const names = sleeves.map((x) => (x.querySelector('.nm') || {}).textContent || '');
+    let typed = '', typedTimer = 0, acc = 0;
+    track.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1 || e.key === ' ') return;
+      typed += e.key; clearTimeout(typedTimer); typedTimer = setTimeout(() => { typed = ''; }, 700);
+      const at = jumpTo(names, typed);
+      if (at >= 0) { e.preventDefault(); face(at); }
+    });
+    track.addEventListener('wheel', (e) => {
+      if (sleeves.length < 2) return;
+      e.preventDefault();
+      const r = wheelStep(acc, e.deltaX, e.deltaY);
+      acc = r.acc;
+      if (r.step) face(w.facing + r.step);
+    }, { passive: false });
+  }
+  paint(); paintStrip();
+  reveal(true);
   return w;
 }
 
