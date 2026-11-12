@@ -340,7 +340,7 @@ function keyboardTaskMove(e, grip, opts) {
   card.querySelectorAll('.task-group[data-group]').forEach((g) => {
     ids[g.getAttribute('data-group')] = Array.from(g.querySelectorAll('.task-row')).map((r) => r.getAttribute('data-task'));
   });
-  const from = ['doing', 'next'].find((g) => ids[g].includes(taskId));
+  const from = ORDER.find((g) => ids[g].includes(taskId));
   if (!from) return;
   const i = ids[from].indexOf(taskId);
   const titleEl = row.querySelector('.task-title');
@@ -348,11 +348,11 @@ function keyboardTaskMove(e, grip, opts) {
   let status = from;
   let toIndex = i + delta;
   if (toIndex < 0) {
-    if (from === 'next') { status = 'doing'; toIndex = ids.doing.length; }
-    else { opts.announce(title + ' is already first'); return; }
+    if (from === ORDER[0]) { opts.announce(title + ' is already first'); return; }
+    status = ORDER[ORDER.indexOf(from) - 1]; toIndex = ids[status].length;
   } else if (toIndex >= ids[from].length) {
-    if (from === 'doing') { status = 'next'; toIndex = 0; }
-    else { opts.announce(title + ' is already last'); return; }
+    if (from === ORDER[ORDER.length - 1]) { opts.announce(title + ' is already last'); return; }
+    status = ORDER[ORDER.indexOf(from) + 1]; toIndex = 0;
   }
   const others = ids[status].filter((id) => id !== taskId);
   if (!opts.moveTask({ taskId, fromProjectId: projectId, toProjectId: projectId, status, toIndex, orderedIds: others })) return;

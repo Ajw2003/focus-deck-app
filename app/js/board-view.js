@@ -19,7 +19,7 @@ const COL_INFO = {
   next: { title: 'Up next', empty: 'Nothing up next.' },
   doing: { title: 'In progress', empty: 'Nothing in progress. Press “In progress” on an Up next card to start one.' },
   review: { title: 'Review', empty: 'Nothing waiting for review.' },
-  done: { title: 'Done this week', empty: 'Nothing finished yet this week.' },
+  done: { title: 'Done', empty: 'Nothing finished yet this week.' },
 };
 const SHOW_INFO = [['all', 'Everything'], ['subs', 'Has subtasks'], ['waits', 'Waiting on something'], ['holds', 'Holding others up']];
 const ARROW_RIGHT = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h12M13 7l5 5-5 5"/></svg>';

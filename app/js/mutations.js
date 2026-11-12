@@ -68,6 +68,7 @@ export function applyTaskMove({ taskId, toProjectId, status, changes }) {
   if (!found || !to) return false;
   const { task, project: from } = found;
   const crossing = from.id !== to.id;
+  const wasReview = task.status === 'review';
   if (!crossing && status && task.status !== status) setTaskStatus(taskId, status);
   if (crossing) {
     withTiePush(() => detachForMove(state.projects, taskId)); // a subtask can't stay in another folder than its parent

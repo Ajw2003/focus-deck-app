@@ -6,7 +6,7 @@ import { registerPaint, initSyncLifecycle } from './sync.js';
 import {
   syncGithub, addRepoManually, linkTaskToIssue, unlinkTask, createGithubIssueFromTask,
   parseRepoInput, listYourRepos, untrackedRepos, isValidRepoName, REPO_NAME_RULE,
-  createRepoAndTrack, linkProjectToRepoOnGithub, linkProjectToRepoByInput, transferTaskIssue,
+  createRepoAndTrack, linkProjectToRepoOnGithub, linkProjectToRepoByInput, transferTaskIssue, pushReviewToIssue,
 } from './github-sync.js';
 import { getToken } from './github.js';
 import { initProjectDrag, isDragging } from './project-drag.js';
