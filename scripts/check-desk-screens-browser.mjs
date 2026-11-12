@@ -66,7 +66,7 @@ async function open(size, scheme, path = '', view = 'all') {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => check(`[${size}/${scheme}] no page error: ` + e.message, false));
   await page.addInitScript(([s, key, v]) => {
-    if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'roadmap'); // the Roadmap took the Projects screen (#259)
+    if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', v === 'one' ? 'roadmap' : 'projects'); // the project list is the Projects tab (#267); one project is the Roadmap
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
     // the old All/One toggle is now the All | Area | Project switch: One = Project mode (#252)
     if (!localStorage.getItem('focusdeck-view') && v === 'one') localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pHome' }));
@@ -87,13 +87,13 @@ for (const size of ['phone', 'desktop']) {
     const tag = `[${size}/${scheme}]`;
     let { ctx, page } = await open(size, scheme);
 
-    // The All view of the Roadmap: a row per project (the old project cards)
-    await scrollTo(page, '.rm-row');
-    check(`${tag} project rows render`, (await page.$$('.rm-row')).length === 3);
+    // The Projects tab: a card per project (#267)
+    await scrollTo(page, '.pj-card');
+    check(`${tag} project cards render`, (await page.$$('.pj-card')).length === 3);
     await shot(page, tag, 'all-view');
 
     // One project: task rows (checkbox, title, chips, grips)
-    await page.click('.rm-row[data-project="pHome"] ' + (size === 'phone' ? '.rm-phone' : '.rm-proj'));
+    await page.click('.pj-card[data-project="pHome"]');
     await page.waitForSelector('.rm-project');
     check(`${tag} task rows keep their grips and checkboxes`, (await page.$$('.rm-task [data-action="toggle-task"]')).length >= 4 && (await page.$$('.rm-task .rm-grip')).length >= 4);
     check(`${tag} task rows show priority chips`, (await page.$$('.rm-task .priority-chip')).length >= 2);
@@ -130,15 +130,15 @@ for (const size of ['phone', 'desktop']) {
     await shot(page, tag, 'toast');
     await page.click('.toast-close');
 
-    // The project list: the Roadmap's group view, and its "+ New" panel
-    await page.click('.vs-seg[data-mode="all"]');
-    await page.waitForSelector('.rm-row');
+    // The project list (the Projects tab), and New project
+    await page.click('.rail [data-screen="projects"]');
+    await page.waitForSelector('.pj-card');
     await page.evaluate(() => window.scrollTo(0, 0));
-    check(`${tag} the project list shows every project`, (await page.$$('.rm-row')).length === 3);
+    check(`${tag} the project list shows every project`, (await page.$$('.pj-card')).length === 3);
     await shot(page, tag, 'project-list');
     await page.click('#new-panel-toggle');
-    await page.waitForSelector('#new-panel');
-    await shot(page, tag, 'new-panel');
+    await page.waitForSelector('.pj-flow');
+    await shot(page, tag, 'new-project');
     await ctx.close();
 
     // The One view (the switch on Project mode)

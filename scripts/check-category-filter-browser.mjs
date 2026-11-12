@@ -114,7 +114,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 {
   const { ctx, page } = await open();
   await page.click('.rail [data-screen="projects"]'); // the project rows live on the Projects tab since #262
-  await page.click('.rm-row[data-project="pHome"] .rm-phone');
+  await page.click('.pj-card[data-project="pHome"]');
   await page.waitForSelector('.rm-project');
   await page.click('.rm-task-title[data-id="h2"]');
   await page.waitForSelector('.cw-detail');
@@ -148,7 +148,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   await toLabels(page);
   check('off: Home offers every category, no More card', (await flagKeys(page)).length === kinds.length + 6);
   await page.click('.rail [data-screen="projects"]'); // the project rows live on the Projects tab since #262
-  await page.click('.rm-row[data-project="pHome"] .rm-phone');
+  await page.click('.pj-card[data-project="pHome"]');
   await page.click('.rm-task-title[data-id="h1"]');
   await page.waitForSelector('.cw-detail');
   await page.click('.cw-detail [data-action="detail-fold"][data-key="labels"]');

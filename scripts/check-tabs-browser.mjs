@@ -104,31 +104,32 @@ for (const [tag, w, h] of sizes) {
   await go(page, '.tr-card');
   await detail('Triage');
 
-  // Projects tab (the group view)
+  // Projects tab (the clipboard list, #267)
   await go(page, '.rail-item[data-screen="projects"]');
-  await page.waitForSelector('.rm-row');
+  await page.waitForSelector('.pj-card');
   await jot('Projects'); check(`[${tag}] Projects: no sideways scroll`, await noSideways(page)); await shot('3-projects');
-  check(`[${tag}] row Projects grid: the Projects tab lists every project`, (await page.$$('.rm-row')).length === 3);
-  await page.fill('.rm-finds .project-search', 'rep');
+  check(`[${tag}] row Projects grid: the Projects tab lists every project`, (await page.$$('.pj-card')).length === 3);
+  await page.fill('.pj-find', 'rep');
   await page.waitForTimeout(100);
-  check(`[${tag}] row Projects grid search: Find a project narrows the rows live`, (await page.$$('.rm-row')).length === 2, 'Report + Repo');
-  await page.fill('.rm-finds .project-search', '');
-  await page.selectOption('.rm-finds .project-sort-select', 'custom');
-  await page.waitForTimeout(100);
-  const order = () => page.$$eval('.rm-row .rm-proj-name', (els) => els.map((e) => e.textContent));
+  check(`[${tag}] row Projects grid search: Find a project narrows the rows live`, (await page.$$('.pj-card')).length === 2, 'Report + Repo');
+  await page.fill('.pj-find', '');
+  const sortBy = async (label) => { await page.click('.pj-pull'); await page.click('.sort-drawer .dk-choice:has-text("' + label + '")'); await page.waitForTimeout(100); };
+  await sortBy('My order');
+  const order = () => page.$$eval('.pj-row > span:first-child', (els) => els.map((e) => e.textContent.replace('📁', '').trim()));
   const before = await order();
   await page.evaluate(() => document.querySelectorAll('[data-action="rm-project-step"][data-dir="1"]')[0].click());
   await page.waitForTimeout(150);
   const after = await order();
   check(`[${tag}] row Projects grid sort and your own order: custom order, reordered with a button`, before.join() === 'Home,Report,Repo' && after.join() === 'Report,Home,Repo', before.join() + ' -> ' + after.join());
-  await page.selectOption('.rm-finds .project-sort-select', 'name');
-  await page.reload(); await page.waitForSelector('.rm-row');
-  check(`[${tag}] row Projects grid sort: the sort choice is remembered`, (await page.$eval('.project-sort-select', (e) => e.value)) === 'name');
+  await page.click('.dk-btn[data-action="proj-order-done"]');
+  await sortBy('A–Z');
+  await page.reload(); await page.waitForSelector('.pj-card');
+  check(`[${tag}] row Projects grid sort: the sort choice is remembered`, (await page.evaluate(() => localStorage.getItem('focusdeck-project-sort'))) === 'name');
   check(`[${tag}] row Projects grid area filter: the view tape is on Projects`, !!(await page.$('.vs-tape')));
   check(`[${tag}] row Projects: + New project is on the Projects tab`, !!(await page.$('#new-panel-toggle')));
 
   // Roadmap tab, project view: a project opened from Projects, then the Roadmap tab reopens the last one
-  await go(page, '.rm-row[data-project="pHome"] button:visible');
+  await go(page, '.pj-card[data-project="pHome"]');
   await page.waitForSelector('.rm-project');
   check(`[${tag}] opening a project from Projects lands on the Roadmap tab`, (await page.$eval('.rail-item.is-on .rail-label', (e) => e.textContent)) === 'Roadmap');
   await go(page, '.rail-item[data-screen="projects"]'); await go(page, '.rail-item[data-screen="roadmap"]'); await page.waitForSelector('.rm-project');
@@ -188,7 +189,7 @@ for (const [tag, w, h] of sizes) {
     await page.keyboard.press('Escape');
     check(`[${tag}] Escape leaves the jot box`, await page.evaluate(() => document.activeElement.id !== 'capture-input'));
     await go(page, '.rail-item[data-screen="projects"]');
-    await page.focus('.rm-finds .project-search');
+    await page.focus('.pj-find');
     await page.keyboard.press('j');
     check(`[${tag}] J does not steal focus from another field`, await page.evaluate(() => document.activeElement.classList.contains('project-search')));
   } else {

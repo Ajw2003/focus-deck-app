@@ -146,13 +146,12 @@ for (const [w, h] of [[360, 780], [390, 844], [1440, 900]]) {
   await page.selectOption('[data-detail-size]', 'large');
   check(((await st()).tasks.find((x) => x.id === 'a4') || {}).size === 'large', tag + 'task details: size saved on the task');
 
-  // group view uses the same numbers (the task panel covers the switch on a phone: close it first)
+  // the Projects tab uses the same numbers (the task panel covers the switch on a phone: close it first)
   await page.click('[data-action="detail-close"]');
-  await page.click('[data-action="view-mode"][data-mode="all"]');
-  const row = await text('.rm-row[data-project="p0"] ' + (phone ? '.rm-phone' : '.rm-proj'));
-  check(row.includes('20%'), tag + 'group view says 20% done', row);
-  if (!phone) check((await text('.rm-row[data-project="p0"] .rm-cards')).includes('1 of 3 items'), tag + 'milestone card uses the measure text');
-  await noScroll('group'); await shot('group');
+  await page.click('[data-screen="projects"]:visible');
+  await page.waitForSelector('.pj-card');
+  check((await page.getAttribute('.pj-card[data-project="p0"] .pj-ruler', 'aria-label')) === '20% done', tag + 'the Projects tab says 20% done');
+  await noScroll('projects'); await shot('projects');
   await ctx.close();
 }
 await browser.close();

@@ -46,7 +46,7 @@ const data = {
 const HOME = ['Paint the shed', 'Fix the door', 'Mow the lawn'];
 const sizes = [['360', 360, 780], ['390', 390, 844], ['desk', 1440, 900]];
 const screen = async (page, name) => { await page.click(`[data-action="set-screen"][data-screen="${name}"]`); await page.waitForSelector('.vs-row'); };
-const rmNames = (page) => page.$$eval('.rm-row .rm-proj-name', (els) => els.map((e) => e.textContent));
+const rmNames = (page) => page.$$eval('.pj-card .pj-name', (els) => els.map((e) => e.textContent.replace('📁', '').trim()));
 const rmTaskTitles = (page) => page.$$eval('.rm-project .rm-task-title', (els) => els.map((e) => e.textContent));
 const folderKeys = (page) => page.$$eval('[data-wallet="tray-folders"] .sleeve', (els) => els.map((e) => e.dataset.key));
 const wallet = (page) => page.$$eval('[data-wallet="projects"] .sleeve', (els) => els.map((e) => e.dataset.key));

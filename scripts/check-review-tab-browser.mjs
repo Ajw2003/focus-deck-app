@@ -82,7 +82,7 @@ for (const phone of [true, false]) {
   await page.click('.rv-card[data-task-id="r2"] [data-action="review-more"]');
   check(await ids('waiting') === 'r3', tag + 'Needs more work removes r2 from the list');
   // the Board's columns are inside each milestone on the Roadmap (#259): open Home's project view, look in the column, switch back to All
-  const col = async (c, id) => { await page.click('[data-screen="roadmap"]'); await page.click('.rm-row[data-project="p0"] button:visible'); await page.waitForSelector('.rm-project'); const ok = (await page.$$('.rm-col[data-status="' + c + '"] .rm-task[data-task-id="' + id + '"]')).length === 1; await page.click('.vs-row [data-mode="all"]'); return ok; };
+  const col = async (c, id) => { await page.click('[data-screen="projects"]'); await page.click('.pj-card[data-project="p0"]'); await page.waitForSelector('.rm-project'); const ok = (await page.$$('.rm-col[data-status="' + c + '"] .rm-task[data-task-id="' + id + '"]')).length === 1; return ok; };
   check(await col('doing', 'r2'), tag + 'r2 is in the Roadmap In progress column');
   check(await col('done', 'r1'), tag + 'r1 is in the Roadmap Done column');
   await page.click('[data-screen="review"]');

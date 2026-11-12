@@ -135,10 +135,10 @@ for (const size of ['phone', 'desktop']) {
     await page.fill(TITLE, '');
     await page.dispatchEvent(TITLE, 'input');
     await page.keyboard.press('Escape');
-    await page.click('.vs-seg[data-mode="all"]');
-    await page.waitForSelector('.rm-row');
-    check(`${tag} Roadmap with the switch on All has no add row`, !(await page.$('.rm .add-row')));
-    await page.click('.vs-seg[data-mode="project"]'); await page.click('.vs-item[data-id="pSchool"]');
+    await page.click('.rail [data-screen="projects"]'); // the project list is the Projects tab (#267); a project opens on the Roadmap
+    await page.waitForSelector('.pj-card');
+    check(`${tag} the Projects list has no add row`, !(await page.$('.pj .add-row')));
+    await page.click('.pj-card[data-project="pSchool"]');
     await page.click('.rm-project .rm-add-link');
     const BOARD_TITLE = '.rm-project .add-row[data-project="pSchool"] input[name="title"]';
     await page.waitForSelector(BOARD_TITLE);

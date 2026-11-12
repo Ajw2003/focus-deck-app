@@ -1,8 +1,8 @@
 // scripts/check-roadmap-browser.mjs -- the Roadmap (#257) in real Chromium at 390x844, 360x780 and 1440x900:
-// group rows and percents (All, Area), phone cards, the project view (sections, four columns, collapsed rows),
+// the Projects tab's cards and percents (All, Area), the project view (sections, four columns, collapsed rows),
 // a task moved between columns (mouse drag + Alt+Arrow on desktop, the arrow buttons and the column buttons on a
 // phone), a milestone moved between sections and sections reordered (drag / Alt+Up/Down, or the up/down buttons),
-// add a task / milestone / section, Make this a milestone, Edit project, New project, a reload keeps it all,
+// add a task / milestone / section, Make this a milestone, Edit project, New project (on the Projects tab, #267), a reload keeps it all,
 // the 8-tab phone bar fits, no page errors, no sideways scroll.
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux/chrome node scripts/check-roadmap-browser.mjs
 // Serves the repo root on 127.0.0.1:8141. Screenshots: docs/generated/build-checks/step9/roadmap-*.png
@@ -77,7 +77,13 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   const proj = async (id) => (await st()).projects.find((p) => p.id === id);
   const noScroll = async (n) => check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), tag + 'no sideways scroll ' + n);
   const goRoadmap = async () => { await page.click('[data-screen="roadmap"]'); await page.waitForSelector('.rm'); };
-  const pickView = async (mode, id) => { await page.click('[data-action="view-mode"][data-mode="' + mode + '"]'); if (id) await page.click('[data-action="view-pick"][data-id="' + id + '"]'); };
+  const goProjects = async () => { await page.click('[data-screen="projects"]'); await page.waitForSelector('.pj'); };
+  // the view tape: Everything, or One area / One project and then the pick
+  const pickView = async (mode, id) => {
+    await page.click('.vs-tape');
+    if (mode === 'all') await page.click('.vs-pop .dk-choice[data-mode="all"]');
+    else { await page.click('[data-action="view-step"][data-step="' + mode + '"]'); await page.click('.vs-item[data-id="' + id + '"]'); }
+  };
   const box = async (sel) => (await (await page.$(sel)).boundingBox());
   const drag = async (fromSel, toSel, dy = 6) => {
     const g = await box(fromSel), r = await box(toSel);
@@ -91,33 +97,24 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
     const items = [...document.querySelectorAll('.rail-item')].filter((i) => i.offsetParent);
     return { n: items.length, clipped: items.filter((i) => i.querySelector('.rail-label').scrollWidth > i.clientWidth).map((i) => i.textContent.trim()).join() };
   });
-  check(fit.n === 5 && fit.clipped === '', tag + 'five numbered tabs (Tidy up and Triage share Organize), no label clipped', fit.n + ' ' + fit.clipped);
-  check((await page.$$eval('.rail-label', (l) => l.filter((x) => x.offsetParent).map((x) => x.textContent.replace(/\s+/g, ' ').trim()).join())) === '1 Sort,2 Organize,3 Roadmap,4 Focus,5 Review', tag + 'tab order');
+  check(fit.n === 6 && fit.clipped === '', tag + 'six tabs (Projects is its own tab since #262), no label clipped', fit.n + ' ' + fit.clipped);
+  check((await page.$$eval('.rail-label', (l) => l.filter((x) => x.offsetParent).map((x) => x.textContent.replace(/\s+/g, ' ').trim()).join())) === 'Sort,Organize,Projects,Roadmap,Focus,Review', tag + 'tab order');
   if (phone) await page.screenshot({ path: OUT + 'roadmap-' + w + '-tabbar.png', clip: { x: 0, y: h - 90, width: w, height: 90 } });
 
-  // group view: All, then Area
-  await goRoadmap();
-  check((await page.textContent('.board-title')) === 'Roadmap: All', tag + 'title says Roadmap: All');
-  check((await page.$$('.rm-row')).length === 4, tag + 'a row per project on All');
+  // Projects tab: a card and a ruler per project; All, then Area
+  await goProjects();
+  check((await page.textContent('.sort-q')) === 'Projects', tag + 'the Projects clipboard is titled Projects');
+  check((await page.$$('.pj-card')).length === 4, tag + 'a card per project on All');
   await pickView('area', 'a1');
-  check((await page.textContent('.board-title')) === 'Roadmap: Apps' && (await page.$$('.rm-row')).length === 3, tag + 'Area Apps: title and three rows');
-  const row0 = await page.textContent('.rm-row[data-project="p0"] ' + (phone ? '.rm-phone' : '.rm-proj'));
-  check(row0.includes('Focus Deck') && row0.includes('37%'), tag + 'Focus Deck row says 37% done (equal milestone shares: 40, 50, 33, 25)', row0.replace(/\s+/g, ' '));
-  const row1 = await page.textContent('.rm-row[data-project="p1"] ' + (phone ? '.rm-phone' : '.rm-proj'));
-  check(row1.includes('50%'), tag + 'second project 50%', row1.replace(/\s+/g, ' '));
-  if (phone) {
-    check((await page.isVisible('.rm-row[data-project="p0"] .rm-phone')) && !(await page.isVisible('.rm-row[data-project="p0"] .rm-card')), tag + 'phone: one card per project');
-    check((await page.textContent('.rm-row[data-project="p0"] .rm-now')) === 'Now: Start here screen · tasks 2 of 5', tag + 'phone card says Now: milestone · X of Y', await page.textContent('.rm-row[data-project="p0"] .rm-now'));
-    check((await page.textContent('.rm-row[data-project="p1"] .rm-now')) === 'Now: Boss fight · phases built 1 of 2', tag + 'a milestone with its own measure says so');
-  } else {
-    const cards = await page.$$eval('.rm-row[data-project="p0"] .rm-card', (c) => c.map((x) => x.textContent.replace(/\s+/g, ' ')));
-    check(cards.join('|') === 'Start here screentasks 2 of 5|Areastasks 1 of 2|Tidy up and Triagetasks 1 of 3|Unplannedtasks 1 of 4', tag + 'a card per milestone plus Unplanned', cards.join(' | '));
-  }
-  check((await page.isVisible('#new-panel-toggle')) && (await page.textContent('#new-panel-toggle')) === '+ New project', tag + '+ New project is there');
-  await noScroll('group'); await shot('group');
+  check((await page.$$('.pj-card')).length === 3, tag + 'Area Apps: three cards');
+  check((await page.getAttribute('.pj-card[data-project="p0"] .pj-ruler', 'aria-label')) === '37% done', tag + 'Focus Deck says 37% done (equal milestone shares: 40, 50, 33, 25)');
+  check((await page.getAttribute('.pj-card[data-project="p1"] .pj-ruler', 'aria-label')) === '50% done', tag + 'second project 50%');
+  check((await page.isVisible('#new-panel-toggle')) && (await page.textContent('#new-panel-toggle')) === '+ New project', tag + '+ New project is on the Projects tab');
+  await noScroll('projects'); await shot('projects');
+  await page.click('.pj-card[data-project="p0"]'); await page.waitForSelector('.rm-project');
+  check(!(await page.$('#new-panel-toggle')) && !(await page.textContent('.rm-head')).includes('New project'), tag + 'the Roadmap has no + New project (Projects owns it)');
 
   // project view
-  await pickView('project', 'p0');
   await page.waitForSelector('.rm-project');
   check((await page.textContent('.rm-big')) === '37%' && (await page.textContent('.rm-title')).trim() === 'Focus Deck', tag + 'project view: name and big 37%', await page.textContent('.rm-big'));
   check((await page.$$eval('.rm-sec-name', (e) => e.map((x) => x.textContent).join('|'))) === '1 · Foundations|2 · Plan tools', tag + 'sections in order');
@@ -231,18 +228,22 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   check(ed.includes('Remove project') && ed.includes('Area') && (await page.$$('.project-edit-panel input[type="color"]')).length >= 1, tag + 'Edit project opens the rename/colour/area/Remove panel');
   await shot('edit-project');
   await page.click('[data-action="close-project-edit"]');
-  await pickView('all');
+  await goProjects();
   await page.click('#new-panel-toggle');
-  await page.fill('.add-project-form input[name="name"]', 'Fresh start');
-  await page.click('.add-project-form button[type="submit"]');
-  await page.waitForSelector('.rm-row[data-project]');
-  check((await st()).projects.some((p) => p.name === 'Fresh start') && (await page.$$('.rm-row')).length === 5, tag + 'New project adds a row');
-  await noScroll('all after new project'); await shot('all-with-new');
+  await page.fill('[data-np-name]', 'Fresh start');
+  for (let i = 0; i < 3; i++) await page.click('.dk-btn[data-action="np-next"]');
+  await page.click('.dk-btn[data-action="add-new-project"]');
+  await page.waitForSelector('.rm-project');
+  check((await st()).projects.some((p) => p.name === 'Fresh start') && (await page.textContent('.rm-title')).includes('Fresh start'), tag + 'New project makes it and opens its Roadmap');
+  await goProjects();
+  check((await page.$$('.pj-card')).length === 5, tag + 'the new project is on the list');
+  await noScroll('projects after new project'); await shot('all-with-new');
 
   // everything persists
-  await page.reload(); await page.waitForSelector('.rm');
-  check((await page.$$('.rm-row')).length === 5 && (await page.textContent('.board-title')) === 'Roadmap: All', tag + 'after a reload: five rows, same view');
-  await pickView('project', 'p0');
+  await page.reload(); await page.waitForSelector('.pj');
+  await goProjects();
+  check((await page.$$('.pj-card')).length === 5, tag + 'after a reload: five cards');
+  await page.click('.pj-card[data-project="p0"]'); await page.waitForSelector('.rm-project');
   check((await page.$$eval('.rm-sec-name', (e) => e.length)) === 3 && !!(await page.$('.rm-ms[data-ms-id="' + (nm || {}).id + '"]')), tag + 'after a reload: sections and milestones are still there');
   await noScroll('reload');
   await ctx.close();

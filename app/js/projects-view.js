@@ -4,7 +4,7 @@
 // project data is roadmapOf (js/roadmap.js). It reuses the Sort steps' stamp / foot / dots / choice (js/sort-flow-view.js).
 // See docs/4-systems/projects-tab.md
 import { esc } from './state.js';
-import { viewProjects } from './view-switch.js';
+import { viewProjects, VIEW_ALL } from './view-switch.js';
 import { UNSORTED_ID } from './areas.js';
 import { roadmapOf } from './roadmap.js';
 import { filterAndSortProjects } from './project-filter.js';
@@ -18,6 +18,8 @@ export const NEW_STEPS = 4;
 
 const back = () => '<button type="button" class="dk-back" data-action="np-back">‹ Back</button>';
 const field = (attr, value, ph) => '<input type="text" class="pj-field" ' + attr + ' value="' + esc(value) + '" maxlength="200" placeholder="' + esc(ph) + '" aria-label="' + esc(ph) + '" autocomplete="off" spellcheck="false">';
+// the list is every project of the area (or everything): a switch on one project is the Roadmap's, so it does not shrink the list
+const listed = (st, ui) => viewProjects(st, ui.view && ui.view.mode === 'project' ? VIEW_ALL : ui.view);
 const scroll = (inner) => '<div class="pj-scroll">' + inner + '</div>';
 
 // ---- the list ---------------------------------------------------------------------------------------
@@ -34,7 +36,7 @@ function sortDrawer(ui) {
 }
 
 function list(st, ui) {
-  const ps = filterAndSortProjects(viewProjects(st, ui.view), { query: ui.projectQuery, sortBy: ui.projectSort });
+  const ps = filterAndSortProjects(listed(st, ui), { query: ui.projectQuery, sortBy: ui.projectSort });
   const find = '<input type="search" class="sort-find project-search pj-find" data-action="set-project-query" value="' + esc(ui.projectQuery || '') + '" placeholder="Find a project…" aria-label="Find a project">';
   const body = find + scroll(ps.length ? ps.map(card).join('') : '<p class="muted">No projects here yet.</p>');
   return '<div class="pj">' + '<div class="dk-board sort-board"><div class="dk-paper sort-paper pj-paper">'
@@ -45,7 +47,7 @@ function list(st, ui) {
 
 // My order: every project with an up and a down key
 function order(st, ui) {
-  const ps = filterAndSortProjects(viewProjects(st, ui.view), { sortBy: 'custom' });
+  const ps = filterAndSortProjects(listed(st, ui), { sortBy: 'custom' });
   const key = (p, d, off) => '<button type="button" class="tr-move pj-key" data-action="rm-project-step" data-project="' + esc(p.id) + '" data-dir="' + d + '"' + (off ? ' disabled' : '') + ' aria-label="Move ' + (d < 0 ? 'up' : 'down') + ': ' + esc(p.name) + '">' + (d < 0 ? '↑' : '↓') + '</button>';
   const rows = ps.map((p, i) => '<div class="dk-choice pj-row" data-project="' + esc(p.id) + '"><span>📁 ' + esc(p.name) + '</span><span class="tr-moves">' + key(p, -1, i === 0) + key(p, 1, i === ps.length - 1) + '</span></div>').join('');
   return '<div class="pj">' + board('My order', scroll(rows)) + foot([stamp('Done', { action: 'proj-order-done' })]) + '</div>';
@@ -97,4 +99,4 @@ export function renderProjects(st, ui, hasToken = false) {
 }
 
 // the Roadmap tab with no project to show
-export const noProject = () => '<div class="pj">' + board('Roadmap', '<p class="muted">No projects yet.</p>') + foot([stamp('+ New project', { action: 'toggle-new-panel' })]) + '</div>';
+export const noProject = () => '<div class="pj">' + board('Roadmap', '<p class="muted">No projects yet.</p>') + foot([stamp('+ New project', { action: 'toggle-new-panel', attrs: ' id="new-panel-toggle"' })]) + '</div>';

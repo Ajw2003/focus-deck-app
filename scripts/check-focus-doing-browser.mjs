@@ -54,8 +54,8 @@ for (const [tag, vp] of [['1440', { width: 1440, height: 900 }], ['390', { width
   const order = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).projects[0].tasks.filter((x) => x.status === 'doing').sort((a, b) => a.sortOrder - b.sortOrder).map((x) => x.id));
   check(order.join() === 'd1,n2', tag + ': lands at end of In progress (' + order + ')');
   await page.screenshot({ path: OUT + 'focus-doing-' + tag + '-marked.png' });
-  await page.click('[data-screen="roadmap"]:visible');
-  await page.click('.rm-row[data-project="p0"] button:visible');
+  await page.click('[data-screen="projects"]:visible');
+  await page.click('.pj-card[data-project="p0"]');
   await page.waitForSelector('.rm-project');
   check(await page.locator('.rm-col[data-status="doing"] .rm-task[data-task-id="n2"]').count() === 1, tag + ': Roadmap shows the task in In progress');
   await ctx.close();

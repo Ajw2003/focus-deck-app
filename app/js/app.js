@@ -1117,6 +1117,10 @@ function onAppInput(e) {
     const v = e.target.value.trim(), next = document.querySelector('.pj-flow .sort-foot .dk-btn');
     const ok = { name: !!v, areaName: !!v, repoName: isValidRepoName(v), link: !!parseRepoInput(v) }[npField[1]];
     if (next) { next.disabled = !ok; next.classList.toggle('off', !ok); }
+    if (npField[1] === 'repoName') { // the rule under the field shows or goes, so this one repaints and puts the caret back
+      const at = e.target.selectionStart; paint();
+      const box = document.querySelector('[data-np-reponame]'); if (box) { box.focus(); box.setSelectionRange(at, at); }
+    }
   }
   if (e.target.matches && e.target.matches('.repo-filter')) {
     ui.newPanelRepoFilter = e.target.value;
@@ -1303,7 +1307,7 @@ document.addEventListener('input', (e) => {
 
 // The projects the Projects tab lists, in the order it shows them (Find box and sort order).
 function visibleRoadmapProjects() {
-  return filterAndSortProjects(viewProjects(state, ui.view), { query: ui.projectQuery, sortBy: ui.projectSort });
+  return filterAndSortProjects(viewProjects(state, ui.view.mode === 'project' ? VIEW_ALL : ui.view), { query: ui.projectQuery, sortBy: ui.projectSort });
 }
 
 // New project's "My repo" step: fetched when it opens, cached in ui.newPanelRepos until the flow closes. Errors show inline with a Retry (retry-new-panel-repos).
