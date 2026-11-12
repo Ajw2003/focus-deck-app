@@ -6,6 +6,7 @@ import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriori
 // used to have its own copy that saved locally but never pushed, so most edits never reached the
 // Gist. See doc-ref 2425 docs/4-systems/gist-sync.md
 import { persist } from './sync.js';
+import { UNSORTED_ID, LEVELS } from './areas.js';
 import { ensureSortOrder } from './project-filter.js';
 import { ensureTaskSortOrder } from './task-move.js';
 import { DEFAULT_DUE_DEFAULTS } from './due-stage.js';

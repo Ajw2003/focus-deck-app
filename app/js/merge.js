@@ -127,6 +127,9 @@ export function mergeStates(local, remote) {
   // categoryFilter (Settings > Category choices, #133) likewise.
   if (r.categoryFilter && (!l.categoryFilter || stamp(r.categoryFilter) > stamp(l.categoryFilter))) merged.categoryFilter = r.categoryFilter;
 
+  // areasMigrated (docs/4-systems/areas.md): a one-way flag, so true on either side stays true.
+  merged.areasMigrated = !!(l.areasMigrated || r.areasMigrated);
+
   // Done-list entries follow their task: kept only while that task exists and is done. An entry
   // with no taskId is a completed inbox thought (M.completeInboxItem) rather than a task — it never
   // has a task to survive alongside, so it's kept outright instead of being filtered against

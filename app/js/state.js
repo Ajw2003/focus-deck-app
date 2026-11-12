@@ -8,6 +8,7 @@ import { DEFAULT_NOTE_FACE, normalizeNoteFace } from './note-face.js';
 import { defaultComfort, normalizeComfort, getOverdue } from './comfort.js';
 import { normalizeCategoryFilter } from './category-filter.js';
 import { ICON_DUE_RED } from './icons.js';
+import { DEFAULT_AREAS, migrateAreas } from './areas.js';
 
 // Priority, most urgent first. githubLabel is the label Focus Deck writes; color is its GitHub hex.
 export const PRIORITY_ORDER = ['urgent', 'high', 'medium', 'low'];
@@ -41,11 +42,8 @@ function defaultState() {
       { id: 'cat_feature', name: 'Feature', color: 'hsl(150 55% 40%)' },
       { id: 'cat_chore', name: 'Chore', color: 'hsl(210 15% 55%)' },
     ],
-    projectCategories: [
-      { id: 'pcat_work', name: 'Work', color: 'hsl(210 55% 45%)' },
-      { id: 'pcat_personal', name: 'Personal', color: 'hsl(150 50% 40%)' },
-      { id: 'pcat_learning', name: 'Learning', color: 'hsl(35 65% 45%)' },
-    ],
+    projectCategories: DEFAULT_AREAS.map((a) => Object.assign({}, a)), // Areas (docs/4-systems/areas.md)
+    areasMigrated: true, // a fresh user already has the defaults
     githubSync: { user: null, lastSyncedAt: null },
     gistId: null,
     // Settings > Due dates: the percentage cut-offs for the stage colours. updatedAt is its own
@@ -129,7 +127,7 @@ export function disconnectGist() {
 
 function withDefaults(parsed) {
   const d = defaultState();
-  return Object.assign(d, parsed, {
+  const out = Object.assign(d, parsed, {
     projects: parsed.projects || d.projects,
     categories: parsed.categories || d.categories,
     projectCategories: parsed.projectCategories || d.projectCategories,
@@ -149,6 +147,9 @@ function withDefaults(parsed) {
     comfort: normalizeComfort(parsed.comfort),
     categoryFilter: normalizeCategoryFilter(parsed.categoryFilter),
   });
+  // saved data from before Areas: its areas are kept, the missing defaults are added once
+  if (parsed.areasMigrated !== true) { out.areasMigrated = false; migrateAreas(out); }
+  return out;
 }
 
 // Repairs shapes older code saved by mistake, so the data they carried is used instead of being
