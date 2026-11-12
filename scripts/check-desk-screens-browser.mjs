@@ -100,6 +100,7 @@ for (const size of ['phone', 'desktop']) {
 
     // Task details (the task editor's home now), with its priority and due date row
     await page.click('.rm-task-title[data-id="h3"]');
+    await page.click('.sort-drawer [data-action="rm-details"]'); // a Roadmap title opens its drawer (#268); Details is a card in it
     await page.waitForSelector('.cw-detail');
     await page.click('.cw-detail [data-action="detail-edit"][data-step="4"]');
     await page.click('.cw-detail .sort-cal-page[data-value="today"]');

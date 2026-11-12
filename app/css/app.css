@@ -1653,3 +1653,4 @@ a.dk-choice{text-decoration:none;}
 .td-add{display:flex; align-items:center; gap:8px;}
 .td-add .sort-find{flex:1; min-width:0;}
 .td-panel .sort-body{overflow-y:auto;}
+.td-tick span{flex:1; text-align:left;}

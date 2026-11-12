@@ -70,7 +70,7 @@ for (const phone of [true, false]) {
   // title opens details
   await page.click('.rv-card[data-task-id="r1"] .rv-title');
   await page.waitForSelector('.cw-detail');
-  check((await page.$eval('.cw-detail h3', (h) => h.textContent)).includes('Check the quote'), tag + 'title opens Task details');
+  check((await page.$eval('.cw-detail .sort-q', (h) => h.textContent)).includes('Check the quote'), tag + 'title opens Task details');
   await shot('details');
   await page.keyboard.press('Escape');
   // Looks good · Done

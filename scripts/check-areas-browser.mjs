@@ -120,6 +120,7 @@ for (const size of ['phone', 'desktop']) {
     await page.click('[data-action="set-screen"][data-screen="roadmap"]');
     await page.waitForSelector('.rm-task', { state: 'attached' });
     await page.evaluate(() => [...document.querySelectorAll('.rm-task-title')].find((b) => b.textContent.includes('Paint')).click());
+    await page.click('.sort-drawer [data-action="rm-details"]'); // a Roadmap title opens its drawer (#268); Details is a card in it
     await page.waitForSelector('.cw-detail .sort-q');
     const urgent = [await page.textContent('.rm-detail')];
     check(`${tag} a task labelled Asap (mapped to Urgent) shows Urgent in Task details`, urgent.every((x) => x.includes('Urgent')), JSON.stringify(urgent).slice(0, 200));
