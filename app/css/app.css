@@ -1284,6 +1284,7 @@ body.is-dragging-task .empty-note{display:none;}
 .calm-tab{flex:none; border:0; background:none; padding:8px 2px; color:var(--ink-soft); font:600 var(--text-body) var(--font-ui); border-bottom:3px solid transparent; margin-bottom:-1px; cursor:pointer;}
 .calm-tab.on{color:var(--ink); border-bottom-color:var(--accent);}
 .calm-tab b{font-weight:600; color:var(--ink-faint); margin-left:4px;}
+@media (max-width:480px){ .calm-tabs{gap:10px;} .calm-tab{font-size:var(--text-sm);} }
 .calm-cards{display:flex; flex-direction:column; gap:10px;}
 .calm-card{cursor:pointer; border-left-width:6px; border-left-color:color-mix(in srgb, var(--proj-color) 70%, var(--surface));} /* a softer edge; --proj-color still sets it */
 .calm-card.on{box-shadow:0 0 0 3px var(--accent);}

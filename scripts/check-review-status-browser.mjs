@@ -79,6 +79,47 @@ for (const phone of [true, false]) {
   const groups = await page.$$eval('.project-card .task-group', (g) => g.map((x) => x.dataset.group + ':' + x.querySelectorAll('.task-row').length));
   check(groups.join() === 'doing:0,review:1,next:1', tag + 'project card groups', groups.join());
   await shot('project-card');
+  // mouse drag between project-card groups, out of and into Review (r1 starts in Review)
+  const inGroup = (g, id) => page.$$('.task-group[data-group="' + g + '"] .task-row[data-task="' + id + '"]').then((a) => a.length === 1);
+  const dragTo = async (id, group) => {
+    const grip = await (await page.$('.task-grip[data-task="' + id + '"]')).boundingBox();
+    await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(grip.x + 30, grip.y + 30, { steps: 4 });
+    await page.waitForTimeout(100); // an empty group only shows its drop zone once the drag has started
+    const tgt = await (await page.$('.task-group[data-group="' + group + '"]')).boundingBox();
+    await page.mouse.move(tgt.x + tgt.width / 2, tgt.y + tgt.height / 2, { steps: 10 });
+    await page.waitForTimeout(100);
+    await page.mouse.up();
+    await page.waitForTimeout(150);
+  };
+  await dragTo('r1', 'next');
+  check(await inGroup('next', 'r1'), tag + 'drag Review > Up next');
+  await dragTo('r1', 'review');
+  check(await inGroup('review', 'r1'), tag + 'drag Up next > Review');
+  await dragTo('r1', 'doing');
+  check(await inGroup('doing', 'r1'), tag + 'drag Review > In progress');
+  await dragTo('r1', 'review');
+  check(await inGroup('review', 'r1'), tag + 'drag In progress > Review');
+  // keyboard: ArrowDown walks Review > Up next, ArrowUp walks back to Review then In progress
+  await page.focus('.task-grip[data-task="r1"]');
+  await page.keyboard.press('ArrowDown');
+  check(await inGroup('next', 'r1'), tag + 'ArrowDown: Review > Up next');
+  await page.keyboard.press('ArrowUp');
+  check(await inGroup('review', 'r1'), tag + 'ArrowUp: Up next > Review');
+  await page.keyboard.press('ArrowUp');
+  check(await inGroup('doing', 'r1'), tag + 'ArrowUp: Review > In progress');
+  await page.keyboard.press('ArrowDown');
+  check(await inGroup('review', 'r1'), tag + 'ArrowDown: In progress > Review');
+  await page.evaluate(() => localStorage.setItem('focusdeck-screen', 'board'));
+  await page.reload();
+  await page.waitForSelector('.calm-tab');
+  for (const w of phone ? [360, 390] : [1440]) {
+    await page.setViewportSize({ width: w, height: 844 });
+    const fit = await page.$eval('.calm-tabs', (e) => e.scrollWidth <= e.clientWidth);
+    check(fit, tag + 'all four tabs fit at ' + w + 'px');
+    await page.screenshot({ path: OUT + 'review-tabs-' + w + '.png' });
+  }
   await ctx.close();
 }
 await browser.close(); server.close();
