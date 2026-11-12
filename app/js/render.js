@@ -10,6 +10,7 @@ import { normalizeChoosingMode, CHOOSING_MODE_INFO } from './wallet.js';
 import { splitCategories } from './category-filter.js';
 import { effectivePriority, kindsOfWork, UNSORTED_ID } from './areas.js';
 import { viewState } from './view-switch.js';
+import { carouselHtml, findFilter } from './carousel.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -122,9 +123,9 @@ export function focusChoosingMode(st) {
   return normalizeChoosingMode(st.choosingMode && st.choosingMode.mode);
 }
 
-// The category wallet's contents (header and strip). Re-rendered on its own when the project
-// wallet flips, so the project wallet's scroll animation is not cut off by a whole repaint.
-export function renderCategoryWalletInner(st, ui) {
+// The kind-of-work row (a carousel). Re-rendered on its own when the project row's active card
+// changes, so the project row keeps its scroll position.
+export function renderCategoryCarousel(st, ui) {
   const projectId = focusProjectId(st, ui);
   const labels = kindsOfWork(st).map((c) => ({ id: c.id, name: formatLabelName(c.name), color: mutedChip(c.color), matches: openWhere(st, c.id, projectId) }))
     .filter((x) => x.matches.length)
@@ -134,18 +135,30 @@ export function renderCategoryWalletInner(st, ui) {
   const unlabelled = openWhere(st, null, projectId).filter(({ t }) => !(t.categoryIds || []).some((id) => kindIds.has(id)));
   if (unlabelled.length) labels.push({ id: UNLABELLED, name: 'Unlabelled', color: 'var(--ink-faint)', matches: unlabelled });
   labels.push({ id: ANY_CATEGORY_KEY, name: 'Surprise me', color: 'var(--accent)', matches: openWhere(st, null, projectId) });
-  const cards = labels.map((x) => {
-    const detail = focusCardDetail(x.matches, !projectId);
-    return sleeve({ key: x.id, name: x.name, color: x.color, detail, speak: x.name + ', ' + detail });
-  });
-  const wanted = ui && ui.focusCategory;
-  const facing = labels.some((x) => x.id === wanted) ? wanted : labels[0].id;
-  return walletInner({ wallet: 'categories', label: 'Category', aria: 'Categories. Arrow keys flip, Enter chooses.', items: cards, facing, mode: focusChoosingMode(st) });
+  const cards = labels.map((x) => ({ key: x.id, name: x.name, color: x.color, detail: focusCardDetail(x.matches, !projectId) }));
+  return carouselHtml({ id: 'categories', label: 'Kind of work', aria: 'Kinds of work. Left and Right arrow keys move, Enter picks.', noun: 'kind of work', cards, facing: ui && ui.focusCategory });
 }
+
+// The project row, narrowed by the Find box (ui.focusFind). All projects first, then busiest first;
+// a project with nothing open is left out unless it is the one facing you.
+export function renderProjectCarousel(st, ui) {
+  const projectId = focusProjectId(st, ui);
+  const projects = st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, matches: openWhere(st, null, p.id) }))
+    .filter((x) => x.matches.length || x.id === projectId)
+    .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
+  const all = openWhere(st, null, null);
+  const q = (ui && ui.focusFind) || '';
+  const cards = findFilter([{ key: ALL_PROJECTS_KEY, name: 'All projects', color: 'var(--lamp-dot)', kind: 'project', detail: focusCardDetail(all, false) }]
+    .concat(projects.map((x) => ({ key: x.id, name: x.name, color: x.color, kind: 'project', detail: focusCardDetail(x.matches, false) }))), q);
+  if (!cards.length) return '<p class="muted small find-empty">No project matches &ldquo;' + esc(q) + '&rdquo;.</p>';
+  return carouselHtml({ id: 'projects', label: 'Project', aria: 'Projects. Left and Right arrow keys move, Enter picks.', noun: 'project', cards, facing: projectId || ALL_PROJECTS_KEY });
+}
+
+// The Find box sits outside the slot it filters, so typing never loses the caret.
+export const findBox = (id, value) => '<input type="search" class="car-find" data-car-find="' + id + '" value="' + esc(value) + '" placeholder="Find a project…" aria-label="Find a project">';
 
 function renderFocusPicker(full, ui) {
   const st = viewState(full); // only the chosen area/project's tasks are counted and offered
-  const projectId = focusProjectId(st, ui);
   if (!st.projects.some((p) => p.tasks.some((t) => t.status !== 'done'))) {
     // an empty desk, with the next step spelled out (a project can be added from the list; a stray
     // thought can go on the jotter above and be sorted later)
@@ -157,24 +170,13 @@ function renderFocusPicker(full, ui) {
       + '<button type="button" class="btn primary" data-action="set-screen" data-screen="projects">Go to Projects</button>'
       + '</section>';
   }
-  const mode = focusChoosingMode(st);
-  // Folders: All projects first, then busiest first. A project with nothing open is left out unless it is the one facing you.
-  const projects = st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, matches: openWhere(st, null, p.id) }))
-    .filter((x) => x.matches.length || x.id === projectId)
-    .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
-  const all = openWhere(st, null, null);
-  const folders = [sleeve({ key: ALL_PROJECTS_KEY, name: 'All projects', color: 'var(--lamp-dot)', kind: 'project', detail: focusCardDetail(all, false), speak: 'All projects, ' + focusCardDetail(all, false) })]
-    .concat(projects.map((x) => {
-      const detail = focusCardDetail(x.matches, false);
-      return sleeve({ key: x.id, name: x.name, color: x.color, kind: 'project', detail, speak: x.name + ', ' + detail });
-    }));
-
   return '<section class="card focus-card focus-empty wallet-root">'
     + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
-    + '<p class="muted"><span class="only-narrow">Flip to a project</span><span class="only-wide">Pick a project</span> and a kind of work, and I&rsquo;ll surface one task.</p>'
-    + '<div class="wallet" id="project-wallet">' + walletInner({ wallet: 'projects', label: 'Project', aria: 'Projects. Arrow keys flip, Enter chooses.', items: folders, facing: projectId || ALL_PROJECTS_KEY, mode }) + '</div>'
-    + '<div class="wallet" id="category-wallet">' + renderCategoryWalletInner(st, ui) + '</div>'
-    + '<div class="flip-hint">' + CHOOSING_MODE_INFO[mode].hint + '</div>'
+    + '<p class="muted">Pick a project and a kind of work, and I&rsquo;ll surface one task.</p>'
+    + findBox('projects', (ui && ui.focusFind) || '')
+    + '<div id="project-car">' + renderProjectCarousel(st, ui) + '</div>'
+    + '<div id="category-car">' + renderCategoryCarousel(st, ui) + '</div>'
+    + '<p class="car-alt"><button type="button" class="link-btn" data-action="pick-for-me">Or let me pick for you</button></p>'
     + '<div class="sr-only" id="wallet-live" aria-live="polite"></div>'
     + '</section>';
 }

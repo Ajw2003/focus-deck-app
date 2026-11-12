@@ -301,6 +301,17 @@ export function pickFocus(filter) {
   return true;
 }
 
+// "Or let me pick for you": the best open task in the current view by js/pick-order.js. The pool is
+// kept in that order, so "Not this one" (reroll) offers the next one down.
+export function pickForMe() {
+  const ids = openTasksMatching({ view: state._ui && state._ui.view });
+  if (!ids.length) return false;
+  const ordered = pickOrder(ids.map((id) => { const f = findTaskWithProject(id); return { t: f.task, p: f.project }; }), state, dueDates().today).map((x) => x.t.id);
+  state.focus = { taskId: ordered[0], pool: ordered, ordered: true, filter: { categoryId: null, projectId: null }, startedAt: Date.now() };
+  persist();
+  return true;
+}
+
 // "Not this one": swaps to a different task from the same pool the pick built. Only shown in the
 // UI when the pool has more than one candidate.
 // Was previously called (as M.reroll) but never exported.
