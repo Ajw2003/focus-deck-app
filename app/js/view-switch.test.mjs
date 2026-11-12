@@ -54,7 +54,7 @@ test('Focus data (viewState) and Projects (viewProjects)', () => {
 test('Sort: project choices follow the view, thoughts are not filtered', () => {
   const s = st(); s._ui = { view: AREA('pcat_work') };
   assert.deepStrictEqual(folderCards(viewState(s)).map((f) => f.id), ['c']);
-  const html = renderInTrayCard(s, { unsorted: { later: [], selected: [], step: 1 }, inboxOpen: true });
+  const html = renderInTrayCard(s, { unsorted: { later: [], selected: [], step: 1, sub: null }, inboxOpen: true });
   assert.ok(html.includes('thought'), 'the thought is still in the tray');
   assert.ok(html.includes('Report') && !html.includes('Garden'), 'only the area\'s projects are offered');
 });

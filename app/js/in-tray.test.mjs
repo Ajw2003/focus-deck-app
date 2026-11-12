@@ -15,7 +15,7 @@ const { wording, cornerHint } = await import('./wallet.js');
 const { renderInTrayCard } = await import('./in-tray-view.js');
 const { unsortedQueue } = await import('./render.js');
 
-const fresh = () => ({ skipped: [], later: [], projectId: null, selected: [], step: 1, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, currentKey: null });
+const fresh = () => ({ skipped: [], later: [], projectId: null, selected: [], step: 0, sub: null, menu: false, find: '', title: null, notes: null, facingFolder: null, facingFlag: null, currentKey: null, dueStages: null });
 function seed() {
   state.projects.length = 0;
   state.categories.length = 0;
@@ -107,7 +107,7 @@ test('filing a thought: the same task in that project with those labels, then th
   const out = fileSlip(cur, { priority: 'high', projectId: 'pB', selected: ['c_art', 'c_chore'] }, deps);
   assert.strictEqual(out.outcome, 'filed');
   assert.deepStrictEqual(calls.map((c) => c[0]), ['file', 'issue'], 'file first, then the issue hook, nothing else');
-  assert.deepStrictEqual(calls[0].slice(1), ['th1', 'pB', ['c_art', 'c_chore'], { title: undefined, notes: undefined, priority: 'high', deadline: undefined }]);
+  assert.deepStrictEqual(calls[0].slice(1), ['th1', 'pB', ['c_art', 'c_chore'], { title: undefined, notes: undefined, priority: 'high', deadline: undefined, dueStages: undefined }]);
   assert.deepStrictEqual(calls[1], ['issue', 'Buy a card', 'pB']);
   const filed = state.projects[1].tasks.at(-1);
   assert.strictEqual(filed.title, 'Buy a card');
@@ -145,43 +145,59 @@ test('wallet wording: the in-tray uses cards, it does not draw a task', () => {
   assert.strictEqual(cornerHint('twice', true, 'use'), 'Tap again');
 });
 
-test('the card: count, top slip, folder on it, flags on it, wallets, quiet links', () => {
+test('the card: the thought on a slip with the ⋯ drawer, Sort several and a stamped Sort this one', () => {
   seed();
-  const ui = { inboxOpen: true, unsorted: Object.assign(fresh(), { projectId: 'pB', selected: ['c_art'] }) };
-  let html = renderInTrayCard(state, ui);
-  assert.ok(html.includes('>Sort <span class="count">3<'), 'header count is the whole queue');
-  assert.ok(html.includes('3 to sort') && html.includes('slip-behind two'), 'a small stack with a count');
-  assert.ok(html.includes('Buy a card') && html.includes('Going in <span class="folder-chip"') && html.includes('>Home<'), 'the chosen folder shows on the slip');
-  assert.ok(/class="slip-flag"[^>]*>Art</.test(html), 'the chosen flag is stuck on the slip');
-  assert.ok(html.includes('step-tab now') && html.includes('Pick a priority to file<') && !html.includes('tray-flags'), 'part 1: the folder wallet and a file button that waits for a priority');
-  assert.ok(html.includes('data-wallet="tray-folders"') && html.includes('data-verb="use"'));
-  const part2 = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 2, projectId: 'pB', selected: ['c_art'] }) });
-  assert.ok(part2.includes('data-wallet="tray-flags"') && !part2.includes('tray-folders') && part2.includes('>Next: link to other tasks →<') && part2.includes('data-action="sort-back">← Back<'));
-  html = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3, priority: 'high', projectId: 'pB', selected: ['c_art'] }) });
-  assert.ok(/icard project is-picked/.test(renderInTrayCard(state, ui)) && /icard is-picked/.test(part2), 'chosen cards are marked');
-  assert.ok(html.includes('data-action="unsorted-file" data-inbox="th1">File to Home →<'));
-  assert.ok(html.includes('>Done already<') && html.includes('data-action="unsorted-skip">Later<') && html.includes('>Delete<'));
-  const none = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() });
-  assert.ok(none.includes('No project yet') && none.includes('disabled>Choose a project first<') && !none.includes('unsorted-file'), 'no folder: File it is off');
-  assert.ok(!html.includes('sort-more-labels') && !html.includes('unsorted-more-projects'), 'the old pills are not in the in-tray');
+  const html = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() });
+  assert.ok(html.includes('>3 to sort<') && !html.includes('section-toggle'), 'the heading is the whole queue');
+  assert.ok(html.includes('Buy a card') && html.includes('No project yet') && html.includes('class="jot-slip"'), 'the oldest thought is on the slip');
+  assert.ok(html.includes('data-action="sort-menu"') && !html.includes('class="dk-sheet'), 'the ⋯ pull is there, the drawer is shut');
+  assert.ok(html.includes('data-action="bulk-toggle">Sort several<'), 'Sort several keeps the Select many list');
+  assert.ok(html.includes('data-action="sort-next">Sort this one<') && !html.includes('data-wallet='), 'one stamp, no choices yet');
+  const one = (() => { state.inbox.length = 1; state.projects[0].tasks.pop(); return renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() }); })();
+  assert.ok(one.includes('>1 to sort<') && !one.includes('Sort several'), 'nothing to sort several of');
 });
 
-test('the card: a task slip starts in its own project (chosen on part 1), and the tray can be empty or closed', () => {
+test('the ⋯ drawer holds Add notes, Done already, Later and Delete with the ids they act on', () => {
+  seed();
+  const html = card({ menu: true });
+  assert.ok(html.includes('role="dialog"') && html.includes('This thought'));
+  assert.ok(html.includes('data-action="sort-add-notes">📝 Add notes<') && html.includes('data-action="unsorted-complete" data-inbox="th1">✓ Done already<'));
+  assert.ok(html.includes('data-action="unsorted-skip">⏭ Later<') && html.includes('data-action="unsorted-delete" data-inbox="th1">Delete<'));
+  state.inbox.length = 0;
+  const t = card({ menu: true });
+  assert.ok(t.includes('This task') && t.includes('data-action="unsorted-complete" data-task="a2" data-project="pA"'));
+});
+
+test('step 1 project carousel, step 2 priority flags: Next waits for each, a task starts in its own project', () => {
+  seed();
+  const p1 = card({ step: 1, projectId: 'pB' });
+  assert.ok(p1.includes('Which project?') && p1.includes('data-wallet="tray-folders"') && p1.includes('data-verb="use"') && /icard project is-picked/.test(p1), 'the chosen folder is marked');
+  assert.ok(p1.includes('data-action="sort-new-project">+ New project<') && p1.includes('data-action="sort-back"') && !p1.includes('sort-skip'), 'Back and a new project; no Skip');
+  assert.ok(p1.includes('Going in <span class="folder-chip"') && p1.includes('data-action="sort-next"'), 'the folder shows on the slip');
+  const none = card({ step: 1 });
+  assert.ok(none.includes('disabled>Next<') && none.includes('Choose a project first.'), 'no folder: Next is off and says why');
+  const p2 = card({ step: 2, projectId: 'pB' });
+  assert.ok(p2.includes('How important?') && p2.includes('data-value="urgent"') && !p2.includes('data-value="none"') && !p2.includes('sort-skip'), 'a thought has to have a priority: no None, no Skip');
+  assert.ok(p2.includes('disabled>Next<') && p2.includes('Pick a priority to go on.'));
+  assert.ok(card({ step: 2, projectId: 'pB', priority: 'high' }).includes('class="sort-flag on" data-level="high"') && !card({ step: 2, projectId: 'pB', priority: 'high' }).includes('disabled>Next<'));
+  state.inbox.length = 0;
+  const t = card({ step: 1 });
+  assert.ok(/icard project is-picked/.test(t) && t.includes('In <span class="folder-chip"') && t.includes('Unlabelled A') && !t.includes('disabled>Next<'), 'a task is in its own project');
+  assert.ok(card({ step: 2 }).includes('data-value="none"'), 'a task may have no priority');
+});
+
+test('the card: the tray can be empty ("All sorted" with an Organize card), closed, or have no projects', () => {
   seed();
   state.inbox.length = 0;
-  const html = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3 }) });
-  assert.ok(html.includes('Unlabelled A') && html.includes('In <span class="folder-chip"'), 'a task shows its own project');
-  assert.ok(renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() }).includes('icard project is-picked') && renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() }).includes('>Next: labels →<'), 'part 1 shows its folder as chosen');
-  assert.ok(html.includes('data-action="unsorted-save" data-task="a2" data-project="pA">Save in School →<') && html.includes('1 to sort') && !html.includes('slip-behind'));
   state.projects[0].tasks.pop();
   const empty = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() });
-  assert.ok(empty.includes('Nothing left to sort. Everything has a project.') && empty.includes('0 to sort') && !empty.includes('jot-slip'), 'an empty tray says so plainly');
+  assert.ok(empty.includes('All sorted ✓') && empty.includes('data-action="set-screen" data-screen="tidy">Organize<') && !empty.includes('sort-menu'), 'an empty tray says so and offers Organize');
   const closed = renderInTrayCard(state, { inboxOpen: false, unsorted: fresh() });
-  assert.ok(!closed.includes('tray'.concat('-lip')) && closed.includes('Sort'), 'closed: just the header');
+  assert.ok(!closed.includes('to sort') && !closed.includes('jot-slip'), 'closed: nothing');
   seed();
   state.projects.length = 0;
-  const noProjects = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() });
-  assert.ok(noProjects.includes('Add a project below to file this thought into.') && !noProjects.includes('tray-folders'));
+  const noProjects = card({ step: 1 });
+  assert.ok(noProjects.includes('Add a project to file this thought into.') && !noProjects.includes('tray-folders'));
 });
 
 test('Later puts the front slip last in the rendered tray', () => {
@@ -192,46 +208,71 @@ test('Later puts the front slip last in the rendered tray', () => {
 
 const card = (u) => renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), u) });
 
-test('step bar: three tabs, later ones off, finished ones tappable, summaries', () => {
+test('progress dots, Back and Skip: nine dots, Skip only on steps 3 to 8, the receipt has Back and Save', () => {
   seed();
-  const p1 = card({ projectId: 'pB' });
-  assert.ok(p1.includes('class="step-tab now" data-action="sort-step" data-step="1"') && !p1.includes('locked') && !p1.includes('aria-disabled'), 'with a folder every step is open');
-  const lk = card({ why: 'x' });
-  assert.ok(lk.includes('step-tab locked" data-action="sort-step" data-step="2" aria-disabled="true"') && lk.includes('class="step-why"'), 'no folder: 2 and 3 are locked and say why');
-  assert.ok(p1.includes('<small>Home</small>'), 'part 1 summary is the folder');
   const p3 = card({ step: 3, priority: 'high', projectId: 'pB', selected: ['c_art', 'c_chore'] });
-  assert.ok(p3.includes('class="step-tab done" data-action="sort-step" data-step="1"') && !p3.includes('data-step="2" aria-disabled'));
-  assert.ok(p3.includes('<small>Art, Chore</small>') && p3.includes('<small>optional</small>') && p3.includes('>Across all projects<'));
-  assert.ok(!p3.includes('data-wallet=') && p3.includes('File to Home →') && p3.includes('data-action="sort-back"'));
+  assert.strictEqual((p3.match(/<i( class="on")?><\/i>/g) || []).length, 9, 'nine dots');
+  assert.strictEqual((p3.match(/<i class="on"><\/i>/g) || []).length, 3, 'three are punched');
+  assert.ok(p3.includes('aria-label="Step 3 of 9"') && p3.includes('data-action="sort-skip">Skip<') && p3.includes('data-action="sort-back">‹ Back<'));
+  assert.ok(/class="slip-flag"[^>]*>Art</.test(p3) && /class="slip-flag"[^>]*>Chore</.test(p3), 'the chosen labels show on the slip');
+  assert.ok(p3.includes('data-wallet="tray-flags"') && p3.includes('📎') && p3.includes('data-action="sort-flag" data-token="c_art"'), 'a carousel and the picked tags underneath');
+  assert.ok(p3.includes('data-action="sort-azl">A–Z<') && p3.includes('data-action="sort-new-label">+ New label<'));
+  [1, 2, 9].forEach((n) => assert.ok(!card({ step: n, projectId: 'pB', priority: 'high' }).includes('sort-skip'), 'no Skip on step ' + n));
+  [4, 5, 6, 7, 8].forEach((n) => assert.ok(card({ step: n, projectId: 'pB' }).includes('data-action="sort-skip"'), 'Skip on step ' + n));
+});
+
+test('the receipt: a line and a pencil for each step, then Save to the project', () => {
+  seed();
+  const html = card({ step: 9, projectId: 'pB', priority: 'high', selected: ['c_art'], due: '2026-11-13', newSubtasks: ['Draft'], notes: 'for Gran' });
+  assert.ok(html.includes('All good?') && html.includes('>Home<') && html.includes('>High<') && html.includes('>Art<') && html.includes('Fri 13 Nov') && html.includes('>Draft<') && html.includes('>for Gran<'));
+  [1, 2, 3, 4, 5, 6, 7, 8, 'notes'].forEach((n) => assert.ok(html.includes('data-action="sort-step" data-step="' + n + '"'), 'a pencil for ' + n));
+  assert.ok(html.includes('data-action="unsorted-file" data-inbox="th1">Save to Home<') && !html.includes('disabled'));
+  assert.ok(card({ step: 9, projectId: 'pB' }).includes('disabled>Save to Home<'), 'no priority: Save is off');
+  state.inbox.length = 0;
+  const t = card({ step: 9 });
+  assert.ok(t.includes('data-action="unsorted-save" data-task="a2" data-project="pA">Save to School<') && t.includes('No label yet, so this task stays in Sort.'));
 });
 
 test('folder search filters folders; flag search filters flags and shows all', () => {
   seed();
-  const f = card({ find: 'hom' });
+  const f = card({ step: 1, find: 'hom' });
   assert.ok(f.includes('data-key="pB"') && !f.includes('data-key="pA"'), 'only Home is left in the wallet');
-  assert.ok(card({ find: 'zzz' }).includes('No project matches “zzz”.'));
-  const g = card({ step: 2, projectId: 'pB', find: 'st' });
+  assert.ok(card({ step: 1, find: 'zzz' }).includes('No project matches “zzz”.'));
+  const g = card({ step: 3, projectId: 'pB', find: 'st' });
   assert.ok(g.includes('data-key="c_study"') && !g.includes('data-key="c_chore"') && !g.includes('More categories'), 'Study shows though Home never uses it; no More card while searching');
-  assert.ok(card({ step: 2, projectId: 'pB' }).includes('More categories'), 'the More card stays when not searching');
+  assert.ok(card({ step: 3, projectId: 'pB' }).includes('More categories'), 'the More card stays when not searching');
 });
 
-test('+ New label shows only with text and no exact (case-insensitive) match', () => {
+test('+ New label and + New project open their own page with a field and an Add stamp', () => {
   seed();
-  assert.ok(!card({ step: 2, projectId: 'pB' }).includes('new-flag'));
-  assert.ok(card({ step: 2, projectId: 'pB', find: 'Garden' }).includes('data-action="sort-new-flag">+ New label “Garden”<'));
-  assert.ok(card({ step: 2, projectId: 'pB', find: 'ar' }).includes('new-flag'), 'a partial match still offers it');
-  assert.ok(!card({ step: 2, projectId: 'pB', find: 'ART' }).includes('new-flag'), 'exact match ignoring case: no button');
+  const l = card({ step: 3, projectId: 'pB', sub: 'newlabel', find: 'Garden' });
+  assert.ok(l.includes('New label') && l.includes('value="Garden"') && l.includes('data-action="sort-new-flag">Add<') && !l.includes('disabled>Add<'));
+  assert.ok(card({ step: 3, projectId: 'pB', sub: 'newlabel' }).includes('disabled>Add<'), 'nothing typed: Add is off');
+  const p = card({ step: 1, sub: 'newproject', find: 'Shed' });
+  assert.ok(p.includes('New project') && p.includes('data-action="sort-add-project">Add<'));
 });
 
-test('the slip: editable title unless GitHub-linked, notes box or link', () => {
+test('A–Z: letter tabs and the labels under the chosen letter, picked ones clipped', () => {
   seed();
-  assert.ok(card({}).includes('contenteditable="true" spellcheck="false" data-slip-title') && card({}).includes('data-action="sort-add-notes">+ Add notes<'));
-  assert.ok(card({ notesOpen: true }).includes('<textarea class="slip-notes"'));
+  const a = card({ step: 3, projectId: 'pB', sub: 'azl', selected: ['c_art'] });
+  assert.ok(a.includes('data-action="sort-letter" data-letter="A"') && a.includes('data-letter="C"') && a.includes('data-letter="S"'));
+  assert.ok(/dk-choice on" data-action="sort-flag" data-token="c_art"/.test(a) && !a.includes('data-token="c_chore"'), 'only the A labels, Art picked');
+  const c = card({ step: 3, projectId: 'pB', sub: 'azl', letter: 'C' });
+  assert.ok(c.includes('data-token="c_chore"') && !c.includes('data-token="c_art"'));
+});
+
+test('the slip: editable title unless GitHub-linked; notes are their own page', () => {
+  seed();
+  assert.ok(card({}).includes('contenteditable="true" spellcheck="false" data-slip-title'));
+  assert.ok(!card({ step: 1 }).includes('contenteditable'), 'the steps show the slip as a label only');
+  const n = card({ sub: 'notes', notes: 'for Gran' });
+  assert.ok(n.includes('<textarea class="slip-notes"') && n.includes('>for Gran</textarea>') && n.includes('data-action="sort-notes-done">Save notes<'));
   state.inbox.length = 0;
   state.projects[0].tasks[1].issueNumber = 7;
   state.projects[0].tasks[1].notes = 'old note';
   const t = card({});
-  assert.ok(!t.includes('contenteditable') && t.includes('#7') && t.includes('>old note</textarea>'), 'linked task: title fixed, existing notes shown');
+  assert.ok(!t.includes('contenteditable') && t.includes('#7'), 'linked task: title fixed');
+  assert.ok(card({ sub: 'notes' }).includes('>old note</textarea>'), 'existing notes are shown');
 });
 
 test('saving a thought: edited title and notes go to the new task', () => {
@@ -262,23 +303,23 @@ test('saving a task: moves it, sets title and notes, and a linked task keeps its
   assert.strictEqual(moved.title, 'x', 'a GitHub-linked title is not changed');
 });
 
-test('part 3: Inside / Across groups, tags, and the search limited to the folder or not', () => {
+test('steps 5 to 8: a find box and task rows, the picked ones clipped; folder-only for part of and subtasks', () => {
   seed();
   state.projects[0].tasks.push({ id: 'a4', title: 'Essay', status: 'next', categoryIds: [] });
   state.projects[1].tasks[0].waitsOn = ['a1'];
-  const part3 = (over) => renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3, projectId: 'pA', parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '' }, over) });
-  let html = part3({});
-  assert.ok(html.includes('>Inside School<') && html.includes('>Across all projects<'));
-  ['Part of', 'Subtasks', 'Waits on', 'Holds up'].forEach((l) => assert.ok(html.includes('>' + l + '<'), l));
-  assert.strictEqual((html.match(/data-action="tie-open"/g) || []).length, 4);
-  html = part3({ waitsOn: ['b1'], picking: 'parent' });
-  assert.ok(/link-tag[^>]*>Bins <small>· Home<\/small><button[^>]*data-action="tie-remove" data-field="waitsOn" data-id="b1"/.test(html), 'a tag from another folder names it');
+  const step = (n, over) => renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: n, projectId: 'pA', parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], pickQuery: '' }, over) });
+  ['Part of a bigger task?', 'Any smaller steps?', 'What has to happen first?', 'What is waiting on this?'].forEach((h, i) => assert.ok(step(5 + i, {}).includes(h), h));
+  let html = step(5, {});
   assert.ok(html.includes('data-tie-find') && html.includes('data-field="parent" data-id="a4"') && !html.includes('data-field="parent" data-id="b2"'), 'Part of searches this folder only');
-  html = part3({ picking: 'waitsOn', pickQuery: 'home' });
+  html = step(7, { waitsOn: ['b1'] });
+  assert.ok(/dk-choice on" data-action="tie-remove" data-field="waitsOn" data-id="b1"[^>]*><span>Bins<\/span><small>Home<\/small>/.test(html), 'the picked one is clipped and names its folder');
+  html = step(7, { pickQuery: 'home' });
   assert.ok(html.includes('data-field="waitsOn" data-id="b2"') && !html.includes('data-field="waitsOn" data-id="a4"'), 'Waits on searches every folder, by folder name too');
-  html = part3({ picking: 'subtasks', pickQuery: 'Esx' });
-  assert.ok(html.includes('data-action="tie-new-sub"') && html.includes('“Esx”'), 'new subtask from the typed text');
-  assert.ok(!part3({ picking: 'subtasks', pickQuery: '' }).includes('tie-new-sub'));
+  html = step(6, { pickQuery: 'Esx', newSubtasks: ['Draft'] });
+  assert.ok(html.includes('data-action="tie-new-sub"') && html.includes('+ Add “Esx”') && html.includes('data-field="newSubtasks" data-id="0"'), 'a new step from the typed text, the earlier one listed');
+  assert.ok(!step(6, { pickQuery: '' }).includes('tie-new-sub'));
+  html = step(6, { parent: 'a1', pickQuery: 'Esx' });
+  assert.ok(html.includes('can’t have smaller steps') && !html.includes('tie-new-sub') && !html.includes('data-tie-find'), 'a task that is part of another has no steps of its own');
 });
 
 test('saving ties through fileSlip: parent, waits-on, holds-up, new subtask; refused ones skipped', () => {
@@ -401,7 +442,7 @@ test('the select many list and panel render, with the ticks and the reason Apply
   assert.match(html, /Choose a project for the thoughts you ticked/);
   assert.match(html, /data-action="bulk-apply" disabled/);
   const off = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh(), bulk: { on: false } });
-  assert.match(off, /data-action="bulk-toggle">Select many/, 'the one-at-a-time tray offers Select many');
+  assert.match(off, /data-action="bulk-toggle">Sort several/, 'the one-at-a-time tray offers Sort several');
 });
 
 test('long thoughts: nothing is cut off when filed', () => {

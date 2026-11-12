@@ -124,7 +124,7 @@ export function fileSlip(cur, pick, deps) {
   if (cur.kind === 'thought' && (!pick.projectId || !pick.priority)) return { outcome: 'none' }; // a thought needs a priority (#249)
   const ids = selectionToIds(pick.selected, deps.labelIdByName);
   if (cur.kind === 'thought') {
-    const task = deps.fileInboxItem(cur.item.id, pick.projectId, ids, { title: pick.title, notes: pick.notes, priority: pick.priority, deadline: pick.deadline });
+    const task = deps.fileInboxItem(cur.item.id, pick.projectId, ids, { title: pick.title, notes: pick.notes, priority: pick.priority, deadline: pick.deadline, dueStages: pick.dueStages });
     deps.createIssue(task, pick.projectId);
     if (task) applyTies(task, pick.projectId, pick, deps);
     return { outcome: 'filed', task, projectId: pick.projectId };
@@ -136,6 +136,12 @@ export function fileSlip(cur, pick, deps) {
   if (task.issueNumber == null && title && title !== task.title) fields.title = title;
   if (pick.notes != null) fields.notes = pick.notes.trim() || undefined;
   if (ids.length) fields.categoryIds = ids;
+  // the steps now carry a priority and a due date for a task too; only a change is written
+  if ((pick.priority || null) !== (task.priority || null)) fields.priority = pick.priority || null;
+  if ((pick.deadline || null) !== (task.deadline || null)) {
+    fields.deadline = pick.deadline || null;
+    if (pick.deadline && pick.dueStages) fields.dueStages = pick.dueStages;
+  }
   if (Object.keys(fields).length) deps.updateTaskFields(task.id, fields);
   applyTies(task, pick.projectId || cur.project.id, pick, deps);
   return ids.length ? { outcome: 'saved', taskId: task.id } : { outcome: 'later' };

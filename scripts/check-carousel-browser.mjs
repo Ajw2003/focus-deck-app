@@ -53,7 +53,8 @@ async function open(vp, screen, touch) {
     localStorage.setItem('focusdeck-onboarding', 'done');
   }, [STATE_KEY, JSON.stringify(seed()), screen]);
   await page.goto(BASE);
-  await page.waitForSelector('.flip-track');
+  await page.waitForSelector(screen === 'sort' ? '.jot-slip' : '.flip-track');
+  if (screen === 'sort') await page.click('[data-action="sort-next"]'); // the first Sort screen is the slip; step 1 is the project carousel
   return page;
 }
 const W = { projects: '[data-wallet="projects"]', categories: '[data-wallet="categories"]', 'tray-projects': '[data-wallet="tray-folders"]' };
@@ -115,18 +116,22 @@ const visible = (page, id) => page.$$eval(W[id] + ' .sleeve', (els, sel) => {
 {
   const page = await open({ width: 1440, height: 900 }, 'sort');
   await page.waitForSelector('[data-wallet="tray-folders"]');
-  check('Sort desktop: "Which project?" carousel shows five cards', (await visible(page, 'tray-projects')) === 5 && (await page.textContent('#tray-folder-wallet .wallet-h .q')).includes('Which project?'), 'visible=' + (await visible(page, 'tray-projects')));
-  check('Sort: File button is off before a project and priority', await page.$eval('.file-btn', (b) => b.disabled));
+  check('Sort desktop: "Which project?" carousel shows five cards', (await visible(page, 'tray-projects')) === 5 && (await page.textContent('.sort-q')).includes('Which project?'), 'visible=' + (await visible(page, 'tray-projects')));
+  check('Sort: Next is off before a project is chosen', await page.$eval('.sort-foot .file-btn', (b) => b.disabled));
   await page.screenshot({ path: OUT + 'sort-desk.png', fullPage: true });
   await page.focus('[data-wallet="tray-folders"]');
   await page.keyboard.type('ju');
   await page.keyboard.press('Enter');
   await page.waitForSelector('.folder-chip');
   check('Sort: Enter on Juliet puts it on the slip', (await page.textContent('.slip-dest')).includes('Juliet'));
-  check('Sort: still disabled with no priority', await page.$eval('.file-btn', (b) => b.disabled));
+  await page.click('.sort-foot .file-btn');
+  check('Sort: the priority step has Next off until a priority is picked', (await page.textContent('.sort-q')) === 'How important?' && (await page.$eval('.sort-foot .file-btn', (b) => b.disabled)));
   await page.click('[data-action="pick-set"][data-field="priority"][data-value="high"]');
+  await page.click('.sort-foot .file-btn');
+  await page.click('.sort-foot .file-btn');
+  for (let i = 0; i < 5; i++) { await page.click('.sort-foot .dk-skip'); await page.waitForTimeout(100); }
   const label = await page.textContent('.file-btn');
-  check('Sort: the main button reads "File to Juliet →"', label.trim() === 'File to Juliet →', label);
+  check('Sort: the receipt button reads "Save to Juliet"', label.trim() === 'Save to Juliet', label);
   await page.click('.file-btn');
   await page.waitForTimeout(200);
   const filed = await page.evaluate(([k]) => { const s = JSON.parse(localStorage.getItem(k)); const p = s.projects.find((x) => x.name === 'Juliet'); return { has: p.tasks.some((t) => t.title === 'Buy paint' && t.priority === 'high'), inbox: s.inbox.length }; }, [STATE_KEY]);
@@ -164,8 +169,12 @@ const visible = (page, id) => page.$$eval(W[id] + ' .sleeve', (els, sel) => {
   await page.waitForTimeout(450);
   await page.click('[data-wallet="tray-folders"] .sleeve .icard');
   await page.waitForTimeout(300);
+  await page.click('.sort-foot .file-btn');
   await page.click('[data-action="pick-set"][data-field="priority"][data-value="medium"]');
-  check('phone Sort: File to Lima enabled', (await page.textContent('.file-btn')).trim() === 'File to Lima →' && !(await page.$eval('.file-btn', (b) => b.disabled)));
+  await page.click('.sort-foot .file-btn');
+  await page.click('.sort-foot .file-btn');
+  for (let i = 0; i < 5; i++) { await page.click('.sort-foot .dk-skip'); await page.waitForTimeout(100); }
+  check('phone Sort: Save to Lima enabled', (await page.textContent('.file-btn')).trim() === 'Save to Lima' && !(await page.$eval('.file-btn', (b) => b.disabled)));
   await page.screenshot({ path: OUT + 'sort-phone-ready.png', fullPage: true });
   await page.close();
 }

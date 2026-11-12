@@ -268,10 +268,10 @@ export function addCapture(text) {
 export function fileInboxItem(inboxId, projectId, categoryIds, extra) {
   const item = state.inbox.find((i) => i.id === inboxId);
   const project = state.projects.find((p) => p.id === projectId);
-  const { title, notes, priority, deadline } = extra || {};
+  const { title, notes, priority, deadline, dueStages } = extra || {};
   if (!item || !project || !PRIORITY_ORDER.includes(priority)) return;
   const task = { id: uid('t'), title: item.text, status: 'next', deadline: deadline || null, categoryIds: categoryIds || [], priority, source: 'manual', updatedAt: Date.now() };
-  if (task.deadline) task.dueSetAt = Date.now();
+  if (task.deadline) { task.dueSetAt = Date.now(); if (dueStages) task.dueStages = dueStages; }
   const long = splitLongThought(title && title.trim() ? title : item.text);
   task.title = long.title;
   const typed = notes && notes.trim() ? notes.trim() : '';

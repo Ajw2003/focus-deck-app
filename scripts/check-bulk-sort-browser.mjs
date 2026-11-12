@@ -149,21 +149,26 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   check(`${tag} Save closes the jot screen`, !(await page.$('.jot-screen')));
 
   // file it one at a time: short title, whole text in the notes
-  await page.click('[data-action="unsorted-skip"]'); // the charger goes to the back, the brain dump is on top
+  await page.click('[data-action="sort-menu"]'); // the ⋯ drawer: Later sends the charger to the back, the brain dump is on top
+  await page.click('.sort-drawer [data-action="unsorted-skip"]');
   await page.waitForTimeout(200);
   check(`${tag} the long thought shows whole on the slip`, (await page.$eval('.jot-slip .slip-text', (e) => e.innerText)).replace(/\s+/g, ' ').trim() === longText.replace(/\s+/g, ' '));
   await page.$eval('.inbox-card', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); });
   await page.screenshot({ path: OUT + label + '-slip-long.png', fullPage: label === 'phone' });
+  await page.click('[data-action="sort-next"]');
+  await page.waitForSelector('[data-wallet="tray-folders"]');
   const sel = '[data-wallet="tray-folders"] .sleeve[data-key="pSchool"] .icard';
   await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
   await page.waitForTimeout(300);
   const box = await (await page.$(sel)).boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await page.waitForTimeout(500);
-  await page.click('.step-tab[data-step="3"]');
-  await page.waitForTimeout(200);
+  await page.click('.sort-foot .file-btn');
   await page.click('.sort-picks [data-field="priority"][data-value="high"]');
-  await page.click('.file-btn');
+  await page.click('.sort-foot .file-btn');
+  await page.click('.sort-foot .file-btn');
+  for (let i = 0; i < 5; i++) { await page.click('.sort-foot .dk-skip'); await page.waitForTimeout(100); }
+  await page.click('[data-action="unsorted-file"]');
   await page.waitForTimeout(300);
   st = await stored(page);
   const big = all(st).find((t) => t.title === 'Big brain dump');

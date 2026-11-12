@@ -115,15 +115,19 @@ for (const scheme of ['dark', 'light']) {
   await page.click('.rail [data-screen="sort"]');
   await page.waitForTimeout(300);
   check('Sort: its own screen, the tray alone', !!(await page.$('.screen-sort .inbox-card')) && !(await page.$('.focus-card')) && !(await page.$('.rm-row')));
+  await page.click('[data-action="sort-next"]'); // the first Sort screen is the slip; step 1 is the project carousel
+  await page.waitForSelector('[data-wallet="tray-folders"]');
   await click(page, 'tray-folders', 'p1');
-  await page.click('.step-tab[data-step="2"]'); // a thought is filed from part 1 now; labels is its tab (was: Next)
+  await page.click('.sort-foot .file-btn');
+  await page.click('.sort-picks [data-field="priority"][data-value="high"]');
+  await page.click('.sort-foot .file-btn');
   await page.waitForSelector('[data-wallet="tray-flags"]');
   await page.waitForTimeout(300);
   await click(page, 'tray-flags', 'c1');
   check('in-tray: a click picks the folder and one sticks a flag', ((await page.$eval('.slip-dest', (e) => e.textContent)) || '').includes('School') && (await page.$$('.slip-flag')).length === 1);
   await page.screenshot({ path: OUT + 'desktop-dark-tray.png' });
-  await page.click('.file-btn[data-action="sort-next"]');
-  await page.click('.sort-picks [data-field="priority"][data-value="high"]');
+  await page.click('.sort-foot .file-btn');
+  for (let i = 0; i < 5; i++) { await page.click('.sort-foot .dk-skip'); await page.waitForTimeout(100); }
   await page.click('.file-btn[data-action="unsorted-file"]');
   await page.waitForTimeout(300);
   const st = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), STATE_KEY));

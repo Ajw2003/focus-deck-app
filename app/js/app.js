@@ -16,7 +16,8 @@ import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
 import { mountWallets, onSpreadChange } from './wallet.js';
 import { tiesOf } from './task-links.js';
-import { renderInTrayCard, unsortedCurrent, STEP_LOCKED_WHY } from './in-tray-view.js';
+import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
+import { navigate, shiftMonth, warnPlan } from './sort-flow.js';
 import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY, orderTray, pickedSlips, bulkBlocker, bulkSort } from './in-tray.js';
 import { ONBOARDING_KEY, shouldShowOnboarding, nextStep } from './onboarding.js';
 import { renderOnboarding } from './onboarding-view.js';
@@ -76,7 +77,7 @@ function freshBulk(on) {
 }
 
 function freshUnsortedScratch(later) {
-  return { later: later || [], priority: null, due: '', dateOpen: false, projectId: null, selected: [], step: 1, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null,
+  return { later: later || [], priority: null, due: '', dateOpen: false, projectId: null, selected: [], step: 0, sub: null, menu: false, month: null, letter: null, dueStages: null, fromReceipt: false, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null,
     parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '', why: '' };
 }
 
@@ -232,7 +233,7 @@ export function renderApp(st) {
   // changed under us -- a new capture, a task labelled elsewhere) starts with clean scratch
   const currentUnsorted = unsortedCurrent(st, ui.unsorted);
   const currentKey = currentUnsorted ? currentUnsorted.key : null;
-  if (currentKey !== ui.unsorted.currentKey) ui.unsorted = Object.assign(freshUnsortedScratch(ui.unsorted.later), { currentKey }, currentUnsorted && currentUnsorted.kind === 'task' ? tiesOf(st.projects, currentUnsorted.task.id) : {});
+  if (currentKey !== ui.unsorted.currentKey) ui.unsorted = Object.assign(freshUnsortedScratch(ui.unsorted.later), { currentKey }, currentUnsorted && currentUnsorted.kind === 'task' ? Object.assign({ priority: currentUnsorted.task.priority || null, due: currentUnsorted.task.deadline || '' }, tiesOf(st.projects, currentUnsorted.task.id)) : {});
   // A sync that brings projects in while the welcome is still on its first screen means this device
   // already has a life elsewhere: step aside (not when replayed on purpose).
   if (ui.onboarding && ui.onboarding.step === 'welcome' && !ui.onboarding.forced && st.projects.length) ui.onboarding = null;
@@ -494,7 +495,8 @@ function pickTarget(el) {
 }
 function onPickSet(el) {
   const field = el.getAttribute('data-field'), value = el.getAttribute('data-value'), scope = el.getAttribute('data-scope');
-  const val = field === 'priority' || value === 'date' ? value : value === 'none' ? '' : dueDates()[value];
+  const isoDay = field === 'due' && /^\d{4}-\d\d-\d\d$/.test(value);
+  const val = field === 'priority' ? (value === 'none' ? '' : value) : value === 'date' ? value : value === 'none' ? '' : isoDay ? value : dueDates()[value];
   if (scope === 'task') {
     const id = el.getAttribute('data-task');
     if (value === 'date') { pickState.dateOpen = true; paint(); const d = document.querySelector('.pick-pop [data-pick-date]'); if (d) d.focus(); return; }
@@ -505,7 +507,7 @@ function onPickSet(el) {
   const S = pickTarget(el);
   if (!S) return;
   if (value === 'date') S.dateOpen = true;
-  else { if (field === 'priority') S.priority = val; else { S.due = val; S.dateOpen = false; } }
+  else { if (field === 'priority') S.priority = val; else { S.due = val; if (!isoDay) S.dateOpen = false; S.dueStages = null; } } // a day picked on the month page keeps it open until "Use"
   const q = '[data-action="pick-set"][data-scope="' + scope + '"][data-field="' + field + '"][data-value="' + value + '"]' + (scope === 'add' ? '[data-project="' + CSS.escape(el.getAttribute('data-project')) + '"]' : '');
   paint();
   const next = value === 'date' ? document.querySelector('[data-pick-date][data-scope="' + scope + '"]') : document.querySelector(q);
@@ -636,62 +638,25 @@ function onAppClick(e) {
     // filing repaints, and the repaint resets ui.unsorted for the next slip, so read it all first
     const cur = unsortedCurrent(state, ui.unsorted);
     if (!cur) return;
-    const pick = { priority: ui.unsorted.priority, deadline: ui.unsorted.due, projectId: ui.unsorted.projectId, selected: ui.unsorted.selected, title: ui.unsorted.title, notes: ui.unsorted.notes,
-      parent: ui.unsorted.parent, subtasks: ui.unsorted.subtasks, waitsOn: ui.unsorted.waitsOn, holdsUp: ui.unsorted.holdsUp, newSubtasks: ui.unsorted.newSubtasks };
+    const u = ui.unsorted;
+    const pick = { priority: u.priority, deadline: u.due, dueStages: u.dueStages, projectId: u.projectId, selected: u.selected, title: u.title, notes: u.notes,
+      parent: u.parent, subtasks: u.subtasks, waitsOn: u.waitsOn, holdsUp: u.holdsUp, newSubtasks: u.newSubtasks };
     const done = fileSlip(cur, pick, {
       fileInboxItem: M.fileInboxItem, updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove, addTask: M.addTask, projects: state.projects,
       createIssue: createIssueIfGithubProject, labelIdByName,
     });
-    if (done.outcome === 'filed') {
-      const project = state.projects.find((p) => p.id === done.projectId);
-      ui.notice = 'Filed to ' + (project ? project.name : 'project') + '.';
+    if (done.outcome === 'filed' || done.outcome === 'saved') {
+      const project = state.projects.find((p) => p.id === (done.projectId || pick.projectId || cur.project.id));
+      const taskId = done.outcome === 'filed' ? (done.task && done.task.id) : done.taskId;
+      ui.notice = 'Filed to ' + (project ? project.name : 'project') + ' ✓';
+      ui.noticeAction = project && taskId ? { text: ui.notice, label: 'Open', action: 'open-added-task', attrs: { 'data-task': taskId, 'data-project': project.id } } : null;
       paint();
     } else if (done.outcome === 'later') {
       ui.unsorted.later = sendToBack(ui.unsorted.later, cur.key);
       paint();
     }
   }
-  else if (action === 'sort-step' || action === 'sort-next' || action === 'sort-back') {
-    const to = action === 'sort-step' ? +el.getAttribute('data-step') : ui.unsorted.step + (action === 'sort-next' ? 1 : -1);
-    const u = ui.unsorted;
-    const cur = unsortedCurrent(state, u);
-    const hasProject = !!u.projectId || !!(cur && cur.kind === 'task');
-    if (action === 'sort-step' && to > 1 && !hasProject) u.why = STEP_LOCKED_WHY;
-    else if (to >= 1 && to <= 3) { u.step = to; u.find = ''; u.why = ''; }
-    paint();
-  }
-  else if (action === 'sort-add-notes') {
-    ui.unsorted.notesOpen = true;
-    paint();
-    const box = document.querySelector('.slip-notes');
-    if (box) box.focus();
-  }
-  else if (action === 'sort-new-flag') {
-    const name = ui.unsorted.find.trim();
-    if (name) {
-      const id = labelIdByName(name);
-      if (!ui.unsorted.selected.includes(id)) ui.unsorted.selected = ui.unsorted.selected.concat(id);
-      ui.unsorted.find = '';
-    }
-    paint();
-  }
-  else if (action === 'tie-open') {
-    const f = el.getAttribute('data-field');
-    ui.unsorted.picking = ui.unsorted.picking === f ? null : f;
-    ui.unsorted.pickQuery = '';
-    paint();
-    const box = document.querySelector('[data-tie-find]');
-    if (box) box.focus();
-  }
-  else if (action === 'tie-add' || action === 'tie-remove' || action === 'tie-new-sub') {
-    const u = ui.unsorted, f = el.getAttribute('data-field'), id = el.getAttribute('data-id');
-    if (action === 'tie-new-sub') { if (u.pickQuery.trim()) u.newSubtasks = u.newSubtasks.concat(u.pickQuery.trim()); }
-    else if (f === 'parent') u.parent = action === 'tie-add' ? id : null;
-    else if (f === 'newSubtasks') u.newSubtasks = u.newSubtasks.filter((_, i) => i !== +id);
-    else u[f] = action === 'tie-add' ? u[f].concat(id) : u[f].filter((x) => x !== id);
-    u.picking = null; u.pickQuery = '';
-    paint();
-  }
+  else if (action.startsWith('sort-') || action.startsWith('tie-')) onSortAction(action, el);
   else if (action.startsWith('bulk-')) onBulkAction(action, el);
   else if (action === 'unsorted-skip') {
     const cur = unsortedCurrent(state, ui.unsorted);
@@ -1033,6 +998,14 @@ function onAppChange(e) {
     paintKeepingFocus('[data-bulk-project]');
     return;
   }
+  if (e.target.matches && e.target.matches('[data-warn]')) {
+    // red must stay shorter than yellow, so warnPlan re-suggests a red that no longer fits
+    const u = ui.unsorted, hours = (k) => Number(document.querySelector('[data-warn="' + k + '"]').value);
+    const plan = warnPlan(u.due, Date.now(), state.dueDefaults, { yellow: hours('yellow'), red: hours('red') });
+    if (plan) u.dueStages = { yellow: { leadHours: plan.yellow.hours }, red: { leadHours: plan.red.hours } };
+    paint();
+    return;
+  }
   if (e.target.matches && onDetailChange(e.target)) return;
   if (e.target.matches && e.target.matches('.add-task-form input[name="deadline"], .task-edit-form input[name="deadline"]')) { syncDueStageStep(e.target); return; }
   if (e.target.matches && e.target.matches('.due-step select')) {
@@ -1116,6 +1089,58 @@ function onAppInput(e) {
     paint();
     const field = document.querySelector('.repo-filter');
     if (field) { field.focus(); field.setSelectionRange(field.value.length, field.value.length); }
+  }
+}
+
+// ---- The Sort tab's steps (js/sort-flow.js decides the order, js/sort-flow-view.js draws them) ---
+function onSortAction(action, el) {
+  const u = ui.unsorted;
+  const cur = unsortedCurrent(state, u);
+  const hasProject = !!u.projectId || !!(cur && cur.kind === 'task');
+  const go = (how) => {
+    const patch = navigate(u, how, { hasProject, needsPriority: !!cur && cur.kind === 'thought', now: Date.now(), defaults: state.dueDefaults });
+    if (patch.why) u.why = patch.why; else Object.assign(u, patch, { why: '', find: '', pickQuery: '' });
+    paint();
+  };
+  const focusLater = (sel) => { const box = document.querySelector(sel); if (box) box.focus(); };
+  if (action === 'sort-next') go('next');
+  else if (action === 'sort-skip') go('skip');
+  else if (action === 'sort-back') go('back');
+  else if (action === 'sort-step') {
+    // a receipt pencil: open that step (or the notes page) and come back to the receipt
+    const to = el.getAttribute('data-step');
+    if (to === 'notes') { u.sub = 'notes'; paint(); focusLater('.slip-notes'); } else go(+to);
+  }
+  else if (action === 'sort-menu') { u.menu = !u.menu; paint(); focusLater(u.menu ? '.sort-drawer' : '.slip-more'); }
+  else if (action === 'sort-add-notes') { u.menu = false; u.sub = 'notes'; paint(); focusLater('.slip-notes'); }
+  else if (action === 'sort-notes-done') { u.sub = null; paint(); }
+  else if (action === 'sort-new-label' || action === 'sort-new-project') { u.sub = action === 'sort-new-label' ? 'newlabel' : 'newproject'; u.find = ''; paint(); focusLater('.sort-type'); }
+  else if (action === 'sort-new-flag') {
+    const name = u.find.trim();
+    if (name) {
+      const id = labelIdByName(name);
+      if (!u.selected.includes(id)) u.selected = u.selected.concat(id);
+    }
+    u.find = ''; u.sub = null; paint();
+  }
+  else if (action === 'sort-add-project') {
+    const name = u.find.trim();
+    if (name) { const project = M.addProject(name, null); u.projectId = project.id; u.facingFolder = project.id; }
+    u.find = ''; u.sub = null; paint();
+  }
+  else if (action === 'sort-azl') { u.sub = 'azl'; u.find = ''; paint(); }
+  else if (action === 'sort-letter') { u.letter = el.getAttribute('data-letter'); u.find = ''; paint(); }
+  else if (action === 'sort-flag') { u.selected = toggleToken(u.selected, el.getAttribute('data-token')); paint(); }
+  else if (action === 'sort-month') { u.month = shiftMonth(u.month || (u.due || dueDates().today).slice(0, 7), +el.getAttribute('data-dir')); paint(); }
+  else if (action === 'sort-use-date') { u.dateOpen = false; paint(); }
+  else if (action === 'tie-add' || action === 'tie-remove' || action === 'tie-new-sub') {
+    const f = el.getAttribute('data-field'), id = el.getAttribute('data-id');
+    if (action === 'tie-new-sub') { if (u.pickQuery.trim()) u.newSubtasks = u.newSubtasks.concat(u.pickQuery.trim()); }
+    else if (f === 'parent') u.parent = action === 'tie-add' ? id : null;
+    else if (f === 'newSubtasks') u.newSubtasks = u.newSubtasks.filter((_, i) => i !== +id);
+    else u[f] = action === 'tie-add' ? u[f].concat(id) : u[f].filter((x) => x !== id);
+    u.pickQuery = '';
+    paint();
   }
 }
 
@@ -1637,6 +1662,7 @@ function init() {
     // J opens the + Jot screen from anywhere on a wide screen (not while typing); Escape closes it (#263)
     if ((e.key === 'j' || e.key === 'J') && !typing && !ui.jotOpen && !e.ctrlKey && !e.metaKey && !e.altKey && isWideScreen()) { e.preventDefault(); openJot(); }
     else if (e.key === 'Escape' && ui.jotOpen) { e.preventDefault(); if (ui.jotPick) { keepJotDraft(); ui.jotPick = false; paintJot(); document.querySelector('.jot-where').focus(); } else closeJot(); }
+    else if (e.key === 'Escape' && ui.unsorted.menu) { e.preventDefault(); ui.unsorted.menu = false; paint(); const b = document.querySelector('.slip-more'); if (b) b.focus(); }
     else if (e.key === 'Escape' && ui.boardSelected && !typing) { selectBoardTask(null); paint(); }
   });
   paintHeaderControls();

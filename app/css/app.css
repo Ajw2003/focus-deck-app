@@ -605,7 +605,7 @@ a.task-title:hover{text-decoration:underline;}
 .toast-error{border-color:var(--danger);}
 /* room to scroll the last controls clear of the toast while it is showing */
 .wrap:has(.toast){padding-bottom:calc(160px + env(safe-area-inset-bottom, 0px));}
-.toast-text{flex:1; margin:0; font-size:var(--text-sm); line-height:1.4; overflow-wrap:anywhere;}
+.toast-text{flex:1; margin:0; font-size:13px; line-height:1.4; overflow-wrap:anywhere;}
 .toast-close{
   flex:none; min-width:32px; min-height:32px; padding:0;
   border:none; border-radius:var(--r-control); background:none; color:var(--ink-soft); font-size:var(--text-h); line-height:1; cursor:pointer;
@@ -747,51 +747,10 @@ body.is-dragging-task .empty-note{display:none;}
    face and size through the #122 hook: var(--note-font) / var(--note-scale), falling back to the
    note's own face. See docs/4-systems/in-tray.md */
 .tray-count{margin:0 0 4px; text-align:right;}
-.tray{position:relative; padding:4px 6px 0; margin-top:4px;}
-.tray-stack{position:relative; min-height:150px;}
-.slip-behind{position:absolute; left:10px; right:26px; top:10px; height:118px; border-radius:3px; background:var(--paper); opacity:.75; transform:rotate(2.5deg); box-shadow:0 8px 14px -10px var(--paper-shadow);}
-.slip-behind.two{transform:rotate(-3deg); top:16px; opacity:.55;}
-.jot-slip{position:relative; margin-right:20px; min-height:124px; border-radius:2px 2px 4px 4px; padding:18px 34px 34px 14px; color:var(--paper-ink); transform:rotate(-1deg);
-  background-color:var(--paper); box-shadow:0 12px 18px -12px var(--paper-shadow);
-  background-image:radial-gradient(circle, var(--hole) 2.2px, transparent 2.7px), repeating-linear-gradient(transparent 0 25px, var(--rule) 25px 26px);
-  background-size:12px 8px, 100% 100%; background-repeat:repeat-x, no-repeat; background-position:4px 3px, 0 14px;}
-.slip-text{white-space:pre-wrap; margin:0; font-family:var(--note-font, 'Kalam', 'Comic Sans MS', cursive); font-weight:700; font-size:calc(1.25rem * var(--note-scale, 1)); line-height:26px; overflow-wrap:anywhere;}
-.slip-dest{margin-top:10px; font:600 var(--text-sm) var(--font-paper-small); color:var(--paper-soft); display:flex; flex-wrap:wrap; align-items:center; gap:6px;}
-.slip-dest .folder-chip{display:inline-block; padding:1px 8px 1px 7px; border-radius:2px 6px 6px 6px; background:color-mix(in srgb, var(--c) 55%, var(--folder)); color:#1D2733;}
-.slip-issue{font-weight:700;}
-.slip-when{margin-top:2px; font:var(--text-sm) var(--font-paper-small); color:var(--paper-soft);}
-.slip-flags{position:absolute; right:-22px; top:10px; display:grid; gap:5px;}
-.slip-flag{width:46px; height:20px; border-radius:0 3px 3px 0; display:flex; align-items:center; justify-content:flex-end; padding-right:4px; overflow:hidden; white-space:nowrap; font:700 .6rem var(--font-paper-small); color:#FFFFFF; letter-spacing:.02em;
-  background:linear-gradient(90deg, color-mix(in srgb, var(--c) 45%, transparent) 0 40%, var(--c) 40%); animation:flag-on .22s ease-out;}
-@keyframes flag-on{from{transform:translateX(-14px); opacity:0;} to{transform:none; opacity:1;}}
-.tray-lip{position:relative; z-index:3; margin:-22px -6px 0; height:34px; border-radius:4px 4px 10px 10px; display:grid; place-items:center;
-  background:var(--surface-2); border:1px solid var(--line); box-shadow:0 10px 18px -12px var(--paper-shadow);}
-.tray-lip span{font:700 .66rem var(--font-paper-small); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft);}
-.tray-empty{display:grid; place-items:center; align-content:center; min-height:124px; margin-right:20px; border:1.5px dashed var(--line); border-radius:6px; color:var(--ink-soft); font-size:var(--text-body); text-align:center; padding:12px;}
-.tray-empty p{margin:0;}
-.tray-wallets{margin-top:6px;}
 .icard.is-picked{box-shadow:0 0 0 3px var(--accent), 0 14px 26px -14px var(--paper-shadow);}
-.sort-acts{display:grid; gap:8px; margin-top:2px;}
 .file-btn{border:0; cursor:pointer; font:700 var(--text-body) var(--font-paper); color:var(--accent-ink); background:var(--accent); border-radius:var(--r-pill); padding:12px 16px; overflow-wrap:anywhere;}
 .file-btn:disabled{cursor:default; background:transparent; color:var(--ink-soft); box-shadow:inset 0 0 0 1.5px var(--line); font-weight:500;}
-.sort-small{display:flex; justify-content:center; gap:6px; flex-wrap:wrap;}
-.sort-small button{border:0; background:none; font:inherit; font-size:var(--text-sm); color:var(--ink-soft); padding:6px 10px; border-radius:var(--r-control); cursor:pointer; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:3px;}
-.sort-small button:hover{color:var(--ink);}
-.file-btn:focus-visible, .sort-small button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
-@media (prefers-reduced-motion: reduce){.slip-flag{animation:none;}}
-/* the slip and its buttons, then the choices: on a phone the buttons come last (#135) */
-.tray-side{display:contents;}
-.unsorted-body:has(> .tray-side){display:flex; flex-direction:column;}
-.unsorted-body > .tray-side > .sort-acts{order:3;}
-.unsorted-body > .tray-wallets{order:2;}
-/* Sort in three parts (#189): the step bar, the search box, the new-flag button, the editable slip */
-.step-bar{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:0 0 14px;}
-.step-tab{border:0; background:none; text-align:left; padding:6px 2px 8px; border-bottom:3px solid var(--line); color:var(--ink-faint); font:inherit; font-size:var(--text-sm); min-width:0; cursor:pointer;}
-.step-tab b{display:block; font-weight:700; color:inherit;}
-.step-tab small{display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-height:1.3em;}
-.step-tab.done{color:var(--ink-soft); border-bottom-color:color-mix(in srgb, var(--accent) 45%, var(--line));}
-.step-tab.now{color:var(--ink); border-bottom-color:var(--accent);}
-.step-tab.locked{opacity:.6;}
+.file-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 .step-why{margin:-8px 0 12px; font-size:var(--text-sm); color:var(--ink-soft);}
 /* "Select many" (sorting many slips at once): the tray's slips as a list of tick-box rows, then one
    project, labels and an optional group for all the ticked ones. Plain controls on purpose: each row
@@ -832,24 +791,120 @@ body.is-dragging-task .empty-note{display:none;}
   .bulk-panel{position:sticky; top:calc(var(--topbar-h, 64px) + 20px);}
 }
 .screen-sort .unsorted-body:has(> .bulk){display:block;}
-.sort-find{width:100%; padding:10px 12px 10px 36px; margin:4px 0 6px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 11px center / 16px;}
 .find-empty{margin:10px 0;}
-.new-flag{border:1.5px dashed var(--line); background:none; color:var(--ink-soft); border-radius:var(--r-control); padding:8px 12px; font:inherit; font-size:var(--text-sm); cursor:pointer; margin:8px 0;}
-.new-flag:hover{color:var(--ink); border-color:var(--ink-soft);}
+/* ==== Sort in nine steps (#264) ==========================================================
+   One thought on a jotter slip, then one question per screen on the clipboard (.dk-board/.dk-paper),
+   nine progress dots, a Back corner, a Skip flag and a stamped Next card. Everything fits a 390x844
+   phone without scrolling and nothing is under 13px (the type scale's small size is lifted to 13px
+   here). The choices are js/wallet.js's carousels, index-card rows and tear-off calendar pages.
+   See docs/4-systems/in-tray.md */
+.screen-sort .sortflow{--text-sm:13px; background:none; border:0; box-shadow:none; padding:0; display:flex; flex-direction:column; min-height:calc(100dvh - 240px - env(safe-area-inset-bottom, 0px));}
+.screen-sort .sortflow .unsorted-body{display:flex; flex-direction:column; flex:1; min-height:0;}
+.screen-sort .sortflow .unsorted-body:has(> .bulk){display:block;}
+.screen-sort .sortflow{max-width:560px; margin:0 auto; width:100%;}
+.sort-title{text-align:left; margin:2px 12px 0; font-size:20px; line-height:1.2;}
+.sort-board{margin:6px 0 2px;}
+.sort-paper{padding:6px 10px 8px; gap:8px; overflow:hidden;}
+.sort-q{font-size:20px; line-height:1.2; margin:4px 2px 0;}
+.sort-body{display:flex; flex-direction:column; gap:8px; min-height:0; flex:1;}
+.sort-dots{margin:4px 0 0;}
+.sort-dots i{width:10px; height:10px;}
+.sort-foot{display:flex; align-items:center; gap:10px; padding:8px 4px 4px;}
+.sort-foot .dk-btn{min-height:44px;}
+.dk-back,.dk-skip,.dk-link,.dk-pencil,.dk-tag,.dk-letter,.sort-nav,.sort-day,.sort-cal-page,.sort-flag,.slip-more{border:0; cursor:pointer;}
+.dk-back,.dk-skip,.dk-link{min-height:44px; display:inline-flex; align-items:center; font-size:15px;}
+.dk-link{padding-left:12px;}
+.sort-foot .dk-skip{margin-left:auto;}
+.dk-btn.file-btn{border-radius:3px; padding:10px 8px; font:800 14px/1.15 var(--font-ui); letter-spacing:.06em; text-transform:uppercase; color:var(--dk-ink-stamp); background:var(--dk-paper); cursor:pointer;}
+.dk-btn.file-btn:disabled{background:var(--dk-paper); color:var(--dk-ink-stamp); font-weight:800; cursor:default; opacity:.45; box-shadow:0 2px 4px rgba(0,0,0,.25),inset 0 0 0 3px var(--dk-paper),inset 0 0 0 5px var(--dk-ink-stamp),inset 0 0 0 7px var(--dk-paper),inset 0 0 0 8px var(--dk-ink-stamp);}
+.sort-row2{display:flex; justify-content:space-between; gap:8px;}
+.sort-several{align-self:flex-start; margin:6px 0 0;}
+.step-why{margin:0; font-size:13px; color:var(--ink-soft);}
+.sortflow .muted.small{font-size:13px;}
+/* the thought: a torn jotter slip, holes along its top, ruled lines, the pen's colour */
+.jot-slip{position:relative; margin:6px 2px 2px; padding:18px 40px 10px 12px; color:var(--paper-ink); border-radius:2px; border-bottom:2px solid var(--dk-rule);
+  background:radial-gradient(circle at 8px 5px, var(--bg) 2.5px, transparent 3px) 0 0/16px 10px repeat-x, var(--dk-paper); box-shadow:0 2px 5px rgba(40,52,80,.25); max-height:46vh; overflow-y:auto;}
+.jot-slip.compact{padding-top:14px; max-height:none; overflow:visible;}
+.jot-slip.compact .slip-text{font-size:17px; line-height:22px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.jot-slip.ghost{min-height:84px; opacity:.5; transform:rotate(-3deg);}
+.slip-text{white-space:pre-wrap; margin:0; font-family:var(--note-font, 'Kalam', 'Comic Sans MS', cursive); font-weight:700; font-size:calc(1.25rem * var(--note-scale, 1)); line-height:28px; overflow-wrap:anywhere;}
 .slip-text[contenteditable]{outline:none; border-radius:2px;}
-/* a very long thought scrolls inside the slip, so its buttons stay within reach */
-.jot-slip .slip-text{max-height:45vh; overflow-y:auto;}
 .slip-text[contenteditable]:focus{box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent);}
-.slip-notes-link{border:0; background:none; padding:0; margin-top:6px; font:var(--text-sm) var(--font-paper-small); color:var(--paper-soft); text-decoration:underline; cursor:pointer;}
-.slip-notes{display:block; width:100%; margin-top:6px; min-height:58px; border:0; resize:vertical; field-sizing:content; overflow-wrap:anywhere; background:transparent; font:var(--text-body) var(--font-paper-small); color:#1D2733; line-height:24px; outline:none;}
+.slip-dest{margin-top:6px; font:600 13px var(--font-paper-small); color:var(--paper-soft); display:flex; flex-wrap:wrap; align-items:center; gap:6px;}
+.slip-dest .folder-chip{display:inline-block; padding:1px 8px 1px 7px; border-radius:2px 6px 6px 6px; background:color-mix(in srgb, var(--c) 55%, var(--folder)); color:#1D2733;}
+.slip-issue{font-weight:700;}
+.slip-when{margin-top:2px; font:13px var(--font-paper-small); color:var(--paper-soft);}
+.slip-flags{display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;}
+.slip-flag{padding:1px 8px; border-radius:2px 6px 6px 2px; font:700 13px var(--font-paper-small); color:#1D2733; background:color-mix(in srgb, var(--c) 60%, #fff);}
+.slip-more{position:absolute; right:6px; top:6px; width:44px; height:44px; background:none; font-size:0;}
+.slip-more::after{content:""; position:absolute; right:8px; top:16px; width:28px; height:10px; border-radius:5px; background:linear-gradient(#F3E3B0,var(--dk-brass) 55%,#8C6A22); box-shadow:0 1px 2px rgba(0,0,0,.35);}
+.jot-slip .task-open{margin:4px 0 0; padding:2px 0; font-size:13px; display:block;}
+.slip-notes{display:block; width:100%; min-height:150px; border:0; resize:none; field-sizing:content; overflow-wrap:anywhere; font:700 16px/28px var(--dk-hand); color:var(--dk-pen); outline:none;
+  background:radial-gradient(circle at 8px 5px, var(--bg) 2.5px, transparent 3px) 0 0/16px 10px repeat-x, repeating-linear-gradient(transparent 0 27px, var(--dk-rule) 27px 28px), var(--dk-paper); background-position:0 0, 0 12px, 0 0; padding:14px 12px 6px; box-shadow:0 1px 3px rgba(40,52,80,.25);}
 .slip-notes:focus{box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent);}
-.links-step h4{font-size:var(--text-sm); font-weight:700; color:var(--ink-soft); margin:14px 0 8px;}
-.link-row{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:10px;}
-.link-row > .muted{min-width:90px;}
-.link-tag{display:inline-flex; align-items:center; gap:6px; padding:3px 6px 3px 9px; border-radius:2px 6px 6px 6px; background:color-mix(in srgb, var(--c) 55%, var(--folder)); color:#1D2733; font-size:var(--text-sm); font-weight:600;}
-.link-tag small{font-weight:500; opacity:.8;}
-.link-tag button{border:0; background:rgba(0,0,0,.12); color:inherit; width:18px; height:18px; border-radius:50%; cursor:pointer; line-height:1;}
-.link-add{border:0; background:none; color:var(--accent); font:inherit; font-size:var(--text-sm); font-weight:700; cursor:pointer; padding:4px 2px;}
+/* the search strip, and the field a new name is written in */
+.sort-find{flex:none; width:100%; min-height:44px; margin:0; padding:6px 10px 6px 36px; border:0; border-radius:2px; color:var(--dk-ink); font:15px var(--dk-hand); box-shadow:0 1px 2px rgba(40,52,80,.2);
+  background:var(--dk-paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235B4A22' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5' fill='%23BEDCF0'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 9px center / 20px;}
+.sort-find.sort-type{background-image:none; padding-left:12px; font-weight:700; color:var(--dk-pen);}
+.find-empty{margin:6px 0;}
+/* the carousels: a project is a manila folder, a kind of work an index card */
+.sortflow .wallet{flex:none;}
+.sortflow .wallet-h{display:none;}
+.sortflow .flip{margin:-4px -10px 0;}
+.sortflow .flip-track{padding:26px 0 12px;}
+.sortflow .flip-hint{display:none;}
+.sort-picked{display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-height:34px; font:14px var(--dk-hand); color:#6A7184;}
+.dk-tag{min-height:34px; padding:3px 10px 3px 14px; background:var(--dk-manila); color:#2B2210; font:700 14px var(--font-ui); clip-path:polygon(6px 0,100% 0,100% 100%,6px 100%,0 50%);}
+.dk-drawer{background:#E9DFC6; border-radius:3px; padding:8px; display:flex; flex-direction:column; gap:4px; box-shadow:inset 0 2px 4px rgba(0,0,0,.25); min-height:0; overflow:auto;}
+.dk-tabrow{display:flex; flex-wrap:wrap; gap:4px;}
+.dk-letter{min-width:40px; min-height:40px; font:700 14px var(--font-ui); background:var(--dk-manila-dark); color:#2B2210; border-radius:6px 6px 0 0;}
+.dk-letter.on{background:var(--dk-manila); box-shadow:0 0 0 2px var(--dk-accent);}
+/* priority: page flags, the chosen one pulled out */
+.sort-flags{display:flex; flex-direction:column; gap:8px; align-items:flex-start;}
+.sort-flag{display:flex; align-items:center; width:84%; min-height:48px; padding:10px 18px 10px 14px; font:800 17px var(--font-ui); color:#1C2438; opacity:.85; background:#C8CDD6;
+  clip-path:polygon(0 0,100% 0,calc(100% - 12px) 50%,100% 100%,0 100%); box-shadow:inset 0 -2px 0 rgba(0,0,0,.1);}
+.sort-flag[data-level="urgent"]{background:#F28B82;} .sort-flag[data-level="high"]{background:#F6B26B;} .sort-flag[data-level="medium"]{background:#8AB4F8;} .sort-flag[data-level="low"]{background:#C8CDD6;} .sort-flag.none{background:#FFFDF8;}
+.sort-flag.on{width:100%; opacity:1; filter:saturate(1.2); box-shadow:inset 6px 0 0 rgba(0,0,0,.3);}
+/* due date: tear-off calendar pages */
+.sort-cal{display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding:6px 4px 10px; scrollbar-width:none; touch-action:pan-x pan-y;}
+.sort-cal::-webkit-scrollbar{display:none;}
+.sort-cal-page{flex:0 0 112px; scroll-snap-align:start; background:var(--dk-paper); border-radius:3px; text-align:center; overflow:hidden; box-shadow:0 3px 6px rgba(40,52,80,.25); color:var(--dk-ink); font:700 13px var(--font-ui); padding:0 0 6px;}
+.sort-cal-page i{display:block; background:var(--dk-red); color:#fff; font:800 13px var(--font-ui); letter-spacing:.06em; text-transform:uppercase; padding:5px 0; font-style:normal;}
+.sort-cal-page b{display:block; font:600 40px/1.3 var(--font-display);}
+.sort-cal-page small{display:block; min-height:1.2em; font:13px var(--dk-hand); color:#6A7184; font-weight:400;}
+.sort-cal-page.on{box-shadow:0 0 0 3px var(--dk-accent), 0 3px 6px rgba(40,52,80,.3);}
+.sort-month{background:var(--dk-paper); border-radius:3px; box-shadow:0 3px 6px rgba(40,52,80,.25); overflow:hidden;}
+.sort-month-head{display:flex; align-items:center; justify-content:space-between; background:var(--dk-red); color:#fff; font:800 14px var(--font-ui); letter-spacing:.06em; text-transform:uppercase;}
+.sort-nav{width:44px; height:40px; background:none; color:#fff; font-size:22px;}
+.sort-days{display:grid; grid-template-columns:repeat(7,1fr); gap:2px; padding:8px;}
+.sort-days em{font:600 13px var(--font-ui); font-style:normal; color:#6A7184; text-align:center;}
+.sort-day{min-height:36px; background:none; border-radius:50%; font:600 15px var(--font-ui); color:var(--dk-ink);}
+.sort-day.today{box-shadow:inset 0 0 0 2px var(--dk-red); font-weight:800;}
+.sort-day.on{background:var(--dk-accent); color:#fff;}
+.sort-warn{display:flex; flex-direction:column; gap:8px;}
+.sort-warn .dk-choice select{border:0; background:transparent; font:600 15px var(--font-ui); color:var(--dk-ink); min-height:36px; max-width:55%;}
+/* the choice rows under the steps: the one you picked carries the paperclip */
+.sort-body .dk-choice{text-align:left; justify-content:space-between;}
+.sort-body .dk-choice small{font-size:13px;}
+.sort-body .dk-choice span{min-width:0; overflow-wrap:anywhere;}
+/* the receipt: a pencil on each line */
+.sort-receipt{margin:2px 0 0; font-size:14px;}
+.sort-receipt>div{padding:2px 10px;}
+.sort-receipt em{white-space:nowrap;}
+.dk-pencil{background:none; min-width:44px; min-height:34px; font:700 20px var(--dk-hand); color:var(--dk-pen);}
+.sort-done{align-items:center; justify-content:center;}
+/* the ⋯ drawer */
+.sort-drawer{z-index:71;}
+.unsorted-body .vs-backdrop{position:fixed; inset:0; z-index:70;}
+/* the "Filed to X ✓" slip sits above the stamp, not on it */
+@media (max-width:1099px){
+  .screen-sort + .toast{bottom:calc(150px + env(safe-area-inset-bottom, 0px));}
+  .wrap:has(.screen-sort + .toast){padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px));} /* the slip sits over the board, so the page needs no room under it */
+}
+@media (min-width:1100px){
+  .screen-sort .sortflow{min-height:0; max-width:680px;}
+}
+
 .task-find{margin:-2px 0 12px; padding:8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface);}
 .task-find .sort-find{margin:0 0 6px;}
 .task-hit{display:flex; align-items:center; gap:8px; width:100%; border:0; background:none; text-align:left; padding:7px 6px; border-radius:var(--r-control); color:var(--ink); font:inherit; font-size:var(--text-sm); cursor:pointer;}
@@ -1079,14 +1134,6 @@ body.is-dragging-task .empty-note{display:none;}
   .screen-focus{padding-top:28px;}
   /* the work area uses the screen: every screen spans the same width as the header and Projects */
   .screen{max-width:none;}
-  /* Sort, laid out like its mockup: the slip (and its quiet links) on the left, the choices on the right */
-  .screen-sort .unsorted-body{display:grid; grid-template-columns:minmax(360px, 440px) minmax(0, 1fr); column-gap:48px; align-items:start;}
-  .screen-sort .tray-side{display:block; position:sticky; top:calc(var(--topbar-h, 64px) + 20px);}
-  .screen-sort .tray-count{text-align:left;}
-  .screen-sort .tray-head{flex-direction:row;}
-  .screen-sort .sort-acts{margin-top:18px;}
-  .screen-sort .jot-slip{min-height:200px;}
-  .screen-sort .slip-text{font-size:calc(1.9rem * var(--note-scale, 1)); line-height:36px;}
 }
 /* ==== end One screen at a time ==== */
 /* words for the screen size: flipping on a phone, clicking on a wide screen (#128) */
@@ -1121,9 +1168,6 @@ body.is-dragging-task .empty-note{display:none;}
 /* the tile's own task list scrolls (.project-body), so the tile need not clip: that would cut off its folder tab */
 
 /* the in-tray's folders and flags on the Sort screen: full-size cards, a little shorter than the Focus screen's */
-.screen-sort .tray-wallets .flip-track.is-spread{grid-template-columns:repeat(auto-fill, minmax(176px, 1fr));}
-.screen-sort .tray-wallets .flip-track.is-spread .icard{height:84px;}
-.screen-sort .tray-wallets .flip-track.is-spread .icard.project{height:80px;}
 .task-open{margin-left:auto; padding:2px 8px; color:var(--ink-soft); text-decoration:underline; cursor:pointer;}
 .note .task-open{color:var(--note-ink);}
 .rail-label{display:block; line-height:1.1;}

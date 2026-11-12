@@ -241,8 +241,8 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   assert.ok(plainForm.includes('data-action="delete-task"'), 'an unlinked task still offers Delete');
   const doneForm = renderTaskEditForm({ ...base, status: 'done' }, p, cats);
   assert.ok(!doneForm.includes('>Focus on this<'), 'a done task has nothing to focus on');
-  const inbox = renderInTrayCard({ inbox: [{ id: 'i1', text: 'idea', createdAt: Date.now() }], projects: [{ id: 'p1', name: 'P', color: 'red', tasks: [] }], categories: cats }, { inboxOpen: true, unsorted: freshUnsorted() });
-  assert.ok(inbox.includes('Choose a project') && inbox.includes('data-key="p1"') && inbox.includes('Choose a project first'), 'a captured thought is guided to a folder before it can be filed');
+  const inbox = renderInTrayCard({ inbox: [{ id: 'i1', text: 'idea', createdAt: Date.now() }], projects: [{ id: 'p1', name: 'P', color: 'red', tasks: [] }], categories: cats }, { inboxOpen: true, unsorted: Object.assign(freshUnsorted(), { step: 1 }) });
+  assert.ok(inbox.includes('Which project?') && inbox.includes('data-key="p1"') && inbox.includes('Choose a project first'), 'a captured thought is guided to a folder before it can be filed');
 }
 
 // The "+ New" panel (PR 7, Q29a/Q30c): always in the header, opens under it, two tabs, the
