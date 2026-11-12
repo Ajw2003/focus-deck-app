@@ -237,8 +237,6 @@ a{color:inherit;}
   #capture-input{flex:1 1 100%;}
   .to-stamp{max-width:none; margin-right:auto;}
 }
-.projects-toggle{white-space:nowrap;}
-@media (min-width:1100px){.projects-toggle{display:none;}}
 
 /* One raised card (Q5): the focus card is the only surface with a background, radius and shadow.
    .inbox-card, .project-card and settings.html's .settings-section below override this back to flat, each with its own thin top rule. */
@@ -347,9 +345,7 @@ a{color:inherit;}
 }
 /* A project's own chip/pill is neutral (Q4b — its colour is identity only: its dot and its card
    edge), carrying a small colour dot (.proj-dot) rather than a colour tint. */
-.chip.proj-chip{background:var(--surface-2); color:var(--ink);}
-button.chip.proj-chip:hover{background:var(--line);}
-.proj-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--dot); margin-right:6px; flex:none;}
+
 .chip.deadline-chip{font-variant-numeric:tabular-nums;}
 .chip.deadline-chip svg{flex:none; margin-right:4px;}
 /* Stage colours (#106): task deadline chips only, same size as every other chip. White is the
@@ -420,7 +416,6 @@ button.chip.proj-chip:hover{background:var(--line);}
 .task-edit-form .task-edit-github button[type="button"]{background:none; color:var(--accent); padding:2px 0; font-size:var(--text-sm);}
 .mini-x{border:none; background:var(--surface-2); color:var(--ink-soft); width:22px; height:22px; border-radius:50%; line-height:1;}
 
-.filter-pills{display:flex; flex-wrap:wrap; gap:6px;}
 .filter-pill{
   border:1px solid var(--line); background:var(--surface); border-radius:999px;
   padding:6px 13px; font-size:var(--text-sm); font-weight:600; color:var(--ink-soft);
@@ -444,55 +439,26 @@ button.chip.proj-chip:hover{background:var(--line);}
 .chip.chip-btn{cursor:pointer;}
 .chip.chip-btn:hover{filter:brightness(1.08);}
 .chip.cat-chip.chip-placeholder{background:var(--surface-2); color:var(--ink-faint); border:1px dashed var(--line); font-weight:600;}
-.project-cat-edit{display:inline-flex; align-items:center; gap:4px;}
-.project-cat-edit select{
-  padding:4px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);
-}
+
 /* Minimising is back (PR 6, 2026-09-27): js/render.js leaves the toggle and "Collapse all" out of
    the markup itself in the "One" view, so there's nothing here to hide by width or view. */
 .project-card.is-collapsed{padding-bottom:16px;}
-.project-card.is-collapsed .progress-track{margin-bottom:0;}
+
 /* The "All"/"One" switch: two pills right under the sidebar/drawer title. */
 .view-switch{display:flex; gap:6px;}
 /* the labels never break mid-label ("New / project") in the 270px sidebar */
 .view-switch .filter-pill{white-space:nowrap;}
 /* Minimised projects gather below the full-size tiles as their own quiet group (#82: a minimised
    tile left in the tile grid would sit beside a full-height one and reopen the gap). */
-.minimised-projects{margin-top:24px;}
-
-.projects-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px;}
 
 /* The one project list: a fixed drawer below 1100px (opened from the topbar's Projects button),
    a flat sticky left column at and above it. See docs/4-systems/styling.md#project-sidebar */
-.project-sidebar{
-  position:fixed; top:0; left:0; z-index:30;
-  width:min(320px, 85vw); height:100%; overflow-y:auto;
-  display:flex; flex-direction:column; gap:10px;
-  background:var(--surface); border-right:1px solid var(--line);
-  padding:16px; padding-top:calc(16px + env(safe-area-inset-top, 0px)); padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
-  transform:translateX(-100%);
-  /* hidden once slid away, so keyboard and screen-reader users can't land in a closed drawer */
-  visibility:hidden;
-  transition:transform .2s ease, visibility 0s linear .2s;
-}
-.project-sidebar.is-open{transform:translateX(0); visibility:visible; transition:transform .2s ease;}
-.project-sidebar:focus{outline:none;}
-.drawer-backdrop{
-  position:fixed; inset:0; z-index:29;
-  background:rgba(0,0,0,.4); opacity:0; pointer-events:none;
-  transition:opacity .2s ease;
-}
-.drawer-backdrop.is-open{opacity:1; pointer-events:auto;}
-@media (prefers-reduced-motion: reduce){
-  .project-sidebar{transition:none;}
-  .drawer-backdrop{transition:none;}
-}
+
 .main-col{min-width:0;}
 /* "One" view, any width (PR 6, 2026-09-27): every card is still rendered into the same
    projects-grid the "All" tiles use, but only the selected one shows here; the rest are hidden
    outright rather than left tall and empty. See docs/6-decisions/Decisions.md. */
-.view-one .project-card{display:none;}
-.view-one .project-card.is-selected{display:block;}
+
 @media (min-width:1100px){
   /* use the monitor (#64): the page widens, and the focus card's label cards spread across it */
   .wrap{max-width:1800px;}
@@ -504,46 +470,25 @@ button.chip.proj-chip:hover{background:var(--line);}
      applies that same height to every row, not just the first, so further projects continuing below
      stay level too. Minimised projects are left out of this grid by js/render.js and gather in
      .minimised-grid below instead, at their own natural height, two to a row. */
-  .view-all .projects-grid{
-    grid-template-columns:1fr 1fr;
-    grid-auto-rows:max(320px, calc((100dvh - var(--topbar-h, 64px) - 16px) / 2));
-    align-items:stretch;
-  }
-  .view-all .minimised-grid{grid-auto-rows:auto;}
-  .view-all .project-card{
-    display:flex; flex-direction:column; overflow:hidden;
-    /* the fixed tile height means a card can't grow with its own content -- min-height:0 lets the
-       flex child (.project-body) shrink below its content size so it, not the tile, scrolls */
-    min-height:0;
-    /* .card's own margin-bottom would otherwise stack on top of the grid gap between rows (#82) */
-    margin-bottom:0;
-  }
+  
+  
+  
   /* the scrollable part of a full tile: header, badges, edit panel and progress bar stay put above
      it. A minimised tile has no body at all (js/render.js), so this never applies to one; the "One"
      view's single card isn't a fixed-height tile either, so it keeps its natural page scroll. */
   /* a rule marks where the tile ends, so rows cut off by a long list read as scrollable, not broken */
-  .view-all .project-card:not(.is-collapsed) .project-body{flex:1 1 auto; min-height:0; overflow-y:auto; border-bottom:1px solid var(--line);}
+  
   /* only the task list gives way in a full tile: without this a 55-task list squashed the badges
      line and the progress bar, moving that tile's bar 4px off its neighbours' (#83) */
-  .view-all .project-card:not(.is-collapsed) > :not(.project-body){flex-shrink:0;}
+  
   .energy-grid.focus-grid{grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));}
-  .drawer-backdrop{display:none;}
-  .project-sidebar{
-    /* sized from the measured topbar (--topbar-h, js/app.js) so it fits between the topbar and the
-       page's bottom padding: at 100vh - 100px it overran by ~50px, and at the page's end the sticky
-       box was pushed up under the topbar, hiding "Projects" and cutting off "+ Add" */
-    position:sticky; top:calc(var(--topbar-h, 67px) + 17px); left:auto; z-index:auto;
-    width:auto; height:auto; max-height:calc(100vh - var(--topbar-h, 67px) - 100px); overflow-y:auto;
-    transform:none; transition:none; visibility:visible;
-    background:none; border-right:1px solid var(--line); border:none; border-radius:0; padding:0 20px 16px 0;
-  }
+  
+  
 }
 /* js/render.js only ever adds .is-selected/aria-current to a row in the "One" view, so this needs
    no extra scoping by view -- it just paints the highlight when that class is there. */
 .sidebar-project.is-selected{background:var(--surface-2); font-weight:700;}
-.sidebar-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
-.sidebar-head-right{display:flex; align-items:baseline; gap:10px;}
-.sidebar-title{font-size:var(--text-h);}
+
 /* The "+ New" panel (PR 7, Q29a): opens right under the header row, above the All/One switch. See
    docs/4-systems/styling.md#add-a-project-or-a-repo. */
 .new-panel{border:1px solid var(--line); border-radius:var(--r-control); padding:12px; margin:10px 0; display:flex; flex-direction:column; gap:10px;}
@@ -558,12 +503,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 .new-repo-form input[type="text"]{padding:7px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
 .field-error{color:var(--danger);}
 .link-repo-panel{flex-basis:100%; margin-top:8px;}
-.sidebar-search{flex:none; width:100%; padding:8px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
-.sidebar-pills{gap:5px;}
-.sidebar-pills .filter-pill{padding:4px 10px; font-size:var(--text-sm);}
-.sidebar-tools{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px;}
-.sidebar-tools .project-sort-select{flex:1 1 auto; min-width:0;}
-.sidebar-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; border-top:1px solid var(--line); padding-top:8px;}
+
 .sidebar-project{
   width:100%; display:flex; align-items:center; gap:9px; padding:7px 8px; border:none; border-radius:var(--r-control);
   background:none; color:var(--ink); text-align:left; font-weight:600;
@@ -571,21 +511,16 @@ button.chip.proj-chip:hover{background:var(--line);}
 .sidebar-project:hover{background:var(--surface-2);}
 .sidebar-project .dot{width:9px; height:9px; border-radius:50%; background:var(--dot); flex:none;}
 .sidebar-name{flex:1; min-width:0; overflow-wrap:break-word;}
-.sidebar-count{color:var(--ink-faint); font-size:var(--text-sm); font-variant-numeric:tabular-nums;}
+
 /* A project's own colour is identity only (Q4b): its dot, and this 3px top edge — the flat card's
    separating rule, in its colour. */
 .project-card{border-top:3px solid var(--proj-color);}
 /* Line 1 never wraps its controls onto a second line (#83): the name is the only thing allowed to
    grow, the collapse toggle + Edit link stay put on the right. Line 2 (badges) always renders, even
    empty, so every card's progress bar sits the same distance from its top. */
-.project-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:nowrap;}
-.project-title{display:flex; align-items:flex-start; gap:8px; min-width:0; flex:1 1 auto;}
+
 /* beside the name's first line, not halfway down a name that wraps */
-.project-title .dot{width:10px; height:10px; margin-top:.45em; border-radius:50%; background:var(--proj-color); display:inline-block; flex:none;}
-.project-title h3{font-size:var(--text-h); overflow-wrap:break-word; min-width:0;}
-.project-head-right{display:flex; align-items:center; gap:8px; flex:none; white-space:nowrap;}
-.collapse-toggle{font-size:var(--text-h); line-height:1; padding:0 2px;}
-.project-badges{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:1.4em; margin:6px 0 10px;}
+
 .project-edit-panel{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 0; margin-bottom:10px; border-top:1px dashed var(--line); border-bottom:1px dashed var(--line); font-size:var(--text-sm);}
 .project-edit-cat{display:flex; align-items:center; gap:6px; color:var(--ink-soft); font-weight:600;}
 .project-edit-cat select{padding:5px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);}
@@ -594,10 +529,10 @@ button.chip.proj-chip:hover{background:var(--line);}
 .task-edit-actions a.link-btn{text-decoration:none;}
 .task-edit-actions a.link-btn:hover{text-decoration:underline;}
 .task-edit-actions .btn-text{margin-left:auto;}
-.progress-track{height:5px; border-radius:var(--r-pill); background:var(--surface-2); overflow:hidden; margin-bottom:14px;}
+
 /* Progress fill is neutral, not the project's colour — the project's colour is identity only (its
    dot and card edge), not a status indicator (Q4b). */
-.progress-fill{height:100%; background:var(--ink-soft);}
+
 .task-group{margin-bottom:10px;}
 .group-label{margin-bottom:6px;}
 .task-row{
@@ -632,7 +567,7 @@ a.task-title:hover{text-decoration:underline;}
 .task-edit-form textarea,.add-task-form textarea{
   flex:1 1 160px; min-width:0; padding:6px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit; resize:vertical;
 }
-.done-group{margin-top:4px;}
+
 .label-picker{flex:1 1 100%; font-size:var(--text-sm);}
 .label-picker summary{cursor:pointer; color:var(--ink-soft); font-weight:600; padding:4px 0;}
 .label-options{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0;}
@@ -666,8 +601,7 @@ a.task-title:hover{text-decoration:underline;}
 }
 .add-project-form{display:flex; gap:8px;}
 /* in the narrow project list the add field takes its own row, so its placeholder isn't cut off */
-.project-sidebar .add-project-form{flex-wrap:wrap;}
-.project-sidebar .add-project-form input[type="text"]{flex-basis:100%;}
+
 .add-project-form input[type="text"], .add-project-form input[type="password"]{
   flex:1; min-width:0; padding:11px 14px; border:1.5px dashed var(--line); border-radius:var(--r-control); background:transparent; color:var(--ink);
 }
@@ -733,7 +667,7 @@ body.is-dragging, body.is-dragging *{cursor:grabbing !important; -webkit-user-se
   outline:2px dashed var(--ink-faint); outline-offset:-2px; background:var(--surface-2); box-shadow:none;
   border-radius:var(--r-card);
 }
-.sidebar-list li.drag-placeholder{border-radius:var(--r-control);}
+
 .drag-placeholder > *{visibility:hidden;}
 .drop-indicator{position:fixed; z-index:1001; pointer-events:none; background:var(--accent); border-radius:2px;}
 .drop-indicator[hidden]{display:none;}
@@ -756,11 +690,7 @@ body.is-dragging, body.is-dragging *{cursor:grabbing !important; -webkit-user-se
 .task-group.is-empty{display:none;}
 body.is-dragging-task .task-group.is-empty{display:block;}
 body.is-dragging-task .empty-note{display:none;}
-.drop-zone{
-  padding:10px; border:1.5px dashed var(--line); border-radius:var(--r-control);
-  text-align:center; font-size:var(--text-sm); color:var(--ink-faint);
-}
-.task-group.drop-target .drop-zone{border-color:var(--accent); color:var(--accent);}
+
 .project-card.drop-target{outline:2px solid var(--accent); outline-offset:-2px;}
 .drag-ghost.is-task{border:1px solid var(--line); border-radius:var(--r-control); padding:7px 8px; box-sizing:border-box;}
 .task-row.drag-placeholder{border-radius:var(--r-control);}
@@ -980,7 +910,6 @@ body.is-dragging-task .empty-note{display:none;}
 .project-card .group-label{padding-bottom:5px; margin-bottom:0; border-bottom:2px solid color-mix(in srgb, var(--index-red) 65%, transparent);}
 .project-card .task-row{border-top-color:var(--index-rule);}
 .project-card .task-group .task-row:first-of-type{border-top:none;}
-.project-card .progress-track{background:var(--surface-2);}
 
 /* The task editor and the add-task form: an index card lifted off the list. */
 .task-edit-form, .add-task-form{
@@ -995,7 +924,7 @@ body.is-dragging-task .empty-note{display:none;}
 .add-row .add-plus{color:var(--ink-soft); font-weight:700;}
 .add-task-form.add-row .add-line input[type="text"]{flex:1 1 0; min-width:0; border:none; background:transparent; padding:6px 4px; outline-offset:2px;}
 .add-task-form.add-row .add-line .btn-text{background:none; color:var(--ink-soft); padding:6px 8px; font-weight:600;}
-.screen-board .add-task-form.add-row{margin:0 0 10px;}
+
 .add-row .add-more{flex:1 1 100%; display:flex; flex-wrap:wrap; gap:6px; padding-top:8px; border-top:1px dashed var(--line);}
 
 /* The project Edit panel: a slip tucked in the folder. */
@@ -1149,7 +1078,7 @@ body.is-dragging-task .empty-note{display:none;}
 .toast{bottom:calc(84px + env(safe-area-inset-bottom, 0px));}
 .screen{max-width:720px; margin:0 auto;}
 .screen-focus{padding-top:12px;}
-.screen-board{padding-top:12px;}
+
 .screen-sort .inbox-card{border-top:0; padding-top:4px;}
 .screen-sort .inbox-card > .section-toggle{pointer-events:none;}
 .screen-sort .inbox-card > .section-toggle .chev{display:none;}
@@ -1176,7 +1105,7 @@ body.is-dragging-task .empty-note{display:none;}
   .rail-settings-label{color:var(--ink-soft);}
   .toast{bottom:calc(16px + env(safe-area-inset-bottom, 0px));}
   #app:has(> .screen){display:block;}
-  .screen-focus,.screen-board{padding-top:28px;}
+  .screen-focus{padding-top:28px;}
   /* the work area uses the screen: every screen spans the same width as the header and Projects */
   .screen{max-width:none;}
   /* Sort, laid out like its mockup: the slip (and its quiet links) on the left, the choices on the right */
@@ -1216,11 +1145,10 @@ body.is-dragging-task .empty-note{display:none;}
 .project-card .group-label{color:var(--ink-soft);}
 .project-card .task-row{border-top-color:var(--index-rule);}
 .project-card .task-title{color:var(--ink);}
-.project-card .project-title h3{color:var(--ink);}
-@media (min-width:1100px){.view-all .project-card:not(.is-collapsed) .project-body{border-bottom-color:var(--index-rule);}}
+
 /* ==== end Projects as folders ==== */
 /* the tile's own task list scrolls (.project-body), so the tile need not clip: that would cut off its folder tab */
-@media (min-width:1100px){.view-all .project-card{overflow:visible;}}
+
 /* the in-tray's folders and flags on the Sort screen: full-size cards, a little shorter than the Focus screen's */
 .screen-sort .tray-wallets .flip-track.is-spread{grid-template-columns:repeat(auto-fill, minmax(176px, 1fr));}
 .screen-sort .tray-wallets .flip-track.is-spread .icard{height:84px;}
@@ -1235,7 +1163,7 @@ body.is-dragging-task .empty-note{display:none;}
    A toolbar, tabs and one list of paper cards (js/board-view.js).
    A card is paper in both themes, so it and the folder frame take the light theme's tokens, as the
    project folders do (#129): the chips on them are the contrast already proven. */
-.board-card, .board-frame{
+.board-card{
   --bg:#E4E8EF; --surface:#FBFAF7; --surface-2:#EEF1F6;
   --ink:#1C2438; --ink-soft:#59627A; --ink-faint:#6E7790; --line:#C7CEDB;
   --accent:#8F5A06; --accent-ink:#FFFFFF; --danger:#A83E3E;
@@ -1245,12 +1173,7 @@ body.is-dragging-task .empty-note{display:none;}
 }
 .board-title{margin:0 0 10px; font:700 1.4rem var(--font-ui);}
 /* the picked project names the Board heading and marks the select (#218) */
-.board-title.is-project{border-left:6px solid var(--proj-color); padding-left:10px;}
-.board-title-name{display:inline-flex; align-items:center; gap:10px; overflow-wrap:anywhere; min-width:0;}
-.board-title-name i{width:14px; height:14px; border-radius:50%; background:var(--proj-color); flex:none;}
-.board-title-sub{display:block; font:600 .85rem var(--font-ui); color:var(--ink-soft); margin-top:2px;}
-.calm-tools select.is-picked{border:2px solid var(--proj-color); background:color-mix(in srgb, var(--proj-color) 14%, var(--surface)); font-weight:700;}
-.board-count{font-variant-numeric:tabular-nums; font-weight:700;}
+
 .board-cards{display:flex; flex-direction:column; gap:10px;}
 .board-card{position:relative; display:flex; align-items:flex-start; gap:10px; min-width:0; padding:11px 12px 11px 16px; background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--proj-color); border-radius:3px 8px 8px 3px; box-shadow:0 6px 12px -9px var(--paper-shadow);}
 .board-card input[type="checkbox"]{flex:none; width:17px; height:17px; margin-top:2px; accent-color:var(--accent);}
@@ -1259,9 +1182,7 @@ body.is-dragging-task .empty-note{display:none;}
 .board-card.is-done .board-card-title{text-decoration:line-through; color:var(--ink-soft); font-weight:500;}
 .board-card-meta{display:flex; gap:6px; min-width:0; color:var(--ink-soft); font-size:var(--text-sm);}
 .board-card-proj{flex:0 1 auto; max-width:55%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:700;}
-.board-card-cats{flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.board-card-proj + .board-card-cats::before{content:"\00b7\00a0";}
-.board-card .board-prio{flex:none; cursor:default;}
+
 /* the lifted copy of a dragged card: .board-card's position:relative (above) would otherwise beat .drag-ghost's fixed */
 .board-card.drag-ghost.is-task{position:fixed; border-left:6px solid var(--proj-color); padding:11px 12px 11px 16px; border-radius:3px 8px 8px 3px; box-sizing:border-box;}
 .board-card.drag-placeholder{border-radius:3px 8px 8px 3px;}
@@ -1269,43 +1190,22 @@ body.is-dragging-task .empty-note{display:none;}
    From the test site, docs/generated/calm-test/index.html. The edge colour stays on --proj-color. */
 .cw{display:grid; grid-template-columns:minmax(420px, 640px) minmax(380px, 1fr); gap:28px; align-items:start;}
 @media (max-width:1099.98px){ .cw{grid-template-columns:minmax(0,1fr);} .cw-detail{display:none;} .cw-detail.phone-open{display:flex; position:fixed; inset:0; z-index:60; border-radius:0; max-height:none; overflow:auto;} } /* Task details goes full screen over the list on phones (#201) */
-.cw-list{min-width:0;}
+
 .cw-detail{position:sticky; top:20px; padding:20px 22px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px;}
-.calm-tools{display:flex; gap:8px; margin:0 0 12px; align-items:center; flex-wrap:wrap;}
-.calm-tools .bm-find, .board-find{flex:1 1 180px; min-width:0; padding:9px 12px 9px 34px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 10px center / 16px;}
-.calm-tools select{flex:0 0 auto; max-width:220px; padding:8px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:600 var(--text-sm) var(--font-ui);}
-.calm-btn{padding:8px 12px;}
-.calm-btn.on{box-shadow:inset 0 0 0 2px var(--accent);}
-.calm-drawer{padding:14px 16px; margin:0 0 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2);}
+
 .calm-h{margin:0 0 6px; font-size:var(--text-sm); color:var(--ink-soft); font-weight:700;}
 .bm-row{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px;}
 .bm-chip{border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); border-radius:999px; padding:5px 11px; font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
 .bm-chip.on{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
 .bm-chip .sw{display:inline-block; width:9px; height:9px; border-radius:2px; background:var(--c); margin-right:6px;}
-.calm-tabs{display:flex; gap:22px; border-bottom:1px solid var(--line); margin-bottom:12px; overflow-x:auto;}
-.calm-tab{flex:none; border:0; background:none; padding:8px 2px; color:var(--ink-soft); font:600 var(--text-body) var(--font-ui); border-bottom:3px solid transparent; margin-bottom:-1px; cursor:pointer;}
-.calm-tab.on{color:var(--ink); border-bottom-color:var(--accent);}
-.calm-tab b{font-weight:600; color:var(--ink-faint); margin-left:4px;}
-@media (max-width:480px){ .calm-tabs{gap:10px;} .calm-tab{font-size:var(--text-sm);} }
+
 .calm-cards{display:flex; flex-direction:column; gap:10px;}
 .calm-card{cursor:pointer; border-left-width:6px; border-left-color:color-mix(in srgb, var(--proj-color) 70%, var(--surface));} /* a softer edge; --proj-color still sets it */
 .calm-card.on{box-shadow:0 0 0 3px var(--accent);}
 /* the move button says where the task goes, so "start" is never confused with Focus */
-.calm-move{flex:none; align-self:center; margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border:1.5px solid #9aa3ad; border-radius:var(--r-control); background:#fff; color:#1D2733; font:700 var(--text-sm) var(--font-ui); cursor:pointer; white-space:nowrap;}
-.calm-move:hover, .calm-move:focus-visible{border-color:#2f4f86; color:#2f4f86;}
-.calm-move svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
-.board-subs{display:inline-flex; align-items:center; gap:6px; font-size:var(--text-sm); color:#4a5560;}
-.board-card-due{display:block; margin-top:4px;}
-.board-card-due .deadline-chip{font-size:var(--text-xs, 0.75rem);}
-.gl-glance{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
-.gl-prio{display:inline-flex; align-items:center; gap:4px; font-size:var(--text-sm); font-weight:700; color:var(--c);}
-.gl-prio svg{width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2; stroke-linejoin:round;}
-.board-subs b{color:#1D2733;}
-.board-segs{display:inline-flex; gap:2px;}
-.board-segs i{width:12px; height:5px; border-radius:2px; background:#d8d3c8;}
-.board-segs i.on{background:#3E8E5E;}
+
 .calm-meta{margin:0; font-size:var(--text-sm); color:var(--ink-soft);}
-.calm-more{margin-top:12px;}
+
 .calm-empty{margin:0; padding:18px; border:1px dashed var(--line); border-radius:10px; color:var(--ink-soft); font-size:var(--text-sm);}
 /* Task details (#201): the right-hand panel; its rows are the Settings .set rows. From the test site. */
 .cw-detail:has(.top){display:flex; flex-direction:column; gap:14px; max-height:calc(100vh - 40px); overflow:auto;}
@@ -1391,10 +1291,6 @@ body.no-motion .icard{transform:none !important;}
 body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, body.calm-colours .chip, body.calm-colours .project-card{filter:saturate(.75);} /* softer, same hues: colour still tells things apart */
 .comfort-choice{border:0; padding:0; margin:0; min-width:0;}
 /* Card colour (#202): the Board card one chip, from the test site .cchip. */
-.cchip{display:inline-flex; align-items:center; gap:6px; padding:1px 9px 1px 7px; border-radius:999px; font-size:.75rem; font-weight:700; background:color-mix(in srgb, var(--c) 22%, transparent);}
-.cchip i{width:9px; height:9px; border-radius:2px; background:var(--c);}
-.calm-card .cchip{color:color-mix(in srgb, var(--c) 55%, #1D2733);}
-.calm-card .cchip.none{background:#e7e3da; color:#4a5560;}
 
 /* Priority and due pickers (#249): one set of buttons on the add row, the Sort slip, bulk sort and
    the task chips' small picker (js/pick-bits.js). Same tokens as the chips and file buttons. */
