@@ -94,6 +94,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   check('choosing More categories shows them all', all.length === kinds.length + 6 && !all.includes('__more__'), all.join());
   await chooseFlag(page, 'c_music');
   await nextStep(page);
+  await page.click('.sort-picks [data-field="priority"][data-value="high"]');
   await page.click('.file-btn[data-action="unsorted-file"]');
   await page.waitForTimeout(300);
   const st = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), STATE_KEY));

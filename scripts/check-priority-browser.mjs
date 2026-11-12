@@ -34,7 +34,7 @@ const seed = () => ({
     { id: 'pHome', name: 'Home', color: '#3E8E5E', tasks: [{ id: 'h1', title: 'Recycling out', status: 'next', categoryIds: [], priority: null, sortOrder: 0 }] },
     { id: 'pSchool', name: 'School', color: '#4D6FB8', tasks: [] },
   ],
-  categories: [], inbox: [{ id: 'th1', text: 'Buy a birthday card for Gran', createdAt: now - 60000 }],
+  categories: [], inbox: [{ id: 'th1', text: 'Buy a birthday card for Gran', createdAt: now - 60000 }, { id: 'th2', text: 'Email Ms Patel', createdAt: now - 30000 }],
   completedLog: [], deletedTaskIds: [], choosingMode: { mode: 'tap', updatedAt: 1 },
 });
 const results = [];
@@ -48,6 +48,7 @@ async function open(size, screen) {
   await ctx.addInitScript(([s, key, scr]) => {
     localStorage.setItem('focusdeck-onboarding', 'done');
     if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', scr);
+    if (scr === 'board') localStorage.setItem('focusdeck-board-project', 'pHome');
     if (!localStorage.getItem('focusdeck-project-view')) localStorage.setItem('focusdeck-project-view', 'all');
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
   }, [seed(), STATE_KEY, screen]);
@@ -137,7 +138,54 @@ for (const size of ['phone', 'desktop']) {
   await page.waitForTimeout(200);
   const st = await stored(page);
   const filed = st.projects[1].tasks[0];
-  check(`${tag} the thought is filed with Medium and a date`, !!filed && filed.priority === 'medium' && !!filed.deadline && st.inbox.length === 0, JSON.stringify(filed && [filed.priority, filed.deadline]));
+  check(`${tag} the thought is filed with Medium and a date`, !!filed && filed.priority === 'medium' && !!filed.deadline && st.inbox.length === 1, JSON.stringify(filed && [filed.priority, filed.deadline]));
+  await ctx.close();
+}
+
+for (const size of ['phone', 'desktop']) {
+  const tag = `[${size}]`;
+  // ---- Board: add row and chip picker on a card
+  let { ctx, page } = await open(size, 'board');
+  const BR = '.screen-board .add-row[data-project="pHome"]';
+  await page.waitForSelector(BR + ' input[name="title"]');
+  await page.click(BR + ' input[name="title"]');
+  await page.keyboard.type('Board task');
+  check(`${tag} Board add row: Add disabled until a priority`, await page.$eval(BR + ' button[type=submit]', (b) => b.disabled));
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(150);
+  check(`${tag} Board add row: Enter without a priority adds nothing`, (await stored(page)).projects[0].tasks.length === 1);
+  await page.click(BR + ' [data-field="priority"][data-value="urgent"]');
+  await page.click(BR + ' [data-field="due"][data-value="today"]');
+  await page.click(BR + ' button[type=submit]');
+  await page.waitForTimeout(200);
+  const bt = (await stored(page)).projects[0].tasks.find((x) => x.title === 'Board task');
+  check(`${tag} Board add row adds with Urgent and a date`, !!bt && bt.priority === 'urgent' && !!bt.deadline, JSON.stringify(bt && [bt.priority, bt.deadline]));
+  const card = '.board-card[data-task-id="h1"]';
+  check(`${tag} Board card with nothing set shows quiet "Priority ▾" and "Due ▾"`, ((await page.$eval(card + ' .gl-glance', (e) => e.textContent)) || '').replace(/\s+/g, ' ') === 'Priority ▾Due ▾');
+  await page.click(card + ' [data-action="open-pick"][data-field="priority"]');
+  check(`${tag} Board card chip opens the four priorities`, (await page.$$(card + ' .pick-pop [data-field="priority"]')).length === 4);
+  await page.$eval(card, (e) => e.scrollIntoView({ block: 'center' }));
+  await page.screenshot({ path: OUT + `${size}-board-chip-picker.png` });
+  await page.click(card + ' .pick-pop [data-value="low"]');
+  check(`${tag} one tap on a Board card sets Low`, (await stored(page)).projects[0].tasks.find((x) => x.id === 'h1').priority === 'low');
+  await ctx.close();
+
+  // ---- bulk sort: one priority for the batch
+  ({ ctx, page } = await open(size, 'sort'));
+  await page.waitForSelector('[data-action="bulk-toggle"]');
+  await page.click('[data-action="bulk-toggle"]');
+  await page.click('[data-action="bulk-all"]');
+  await page.selectOption('[data-bulk-project]', 'pSchool');
+  check(`${tag} bulk: Apply is off with no priority and the panel says why`, await page.$eval('[data-action="bulk-apply"]', (b) => b.disabled) && (await page.textContent('.bulk-panel')).includes('Pick a priority for the thoughts you ticked.'));
+  await page.screenshot({ path: OUT + `${size}-bulk-needs-priority.png`, fullPage: size === 'phone' });
+  await page.click('[data-scope="bulk"][data-field="priority"][data-value="high"]');
+  await page.click('[data-scope="bulk"][data-field="due"][data-value="tomorrow"]');
+  await page.screenshot({ path: OUT + `${size}-bulk-picked.png`, fullPage: size === 'phone' });
+  await page.click('[data-action="bulk-apply"]');
+  await page.waitForTimeout(300);
+  const bst = await stored(page);
+  const bt2 = bst.projects[1].tasks.filter((x) => x.id !== 'h1'); // h1 is the seeded unlabelled task, moved along by Tick all
+  check(`${tag} bulk: both thoughts filed with High and a date`, bt2.length === 2 && bt2.every((x) => x.priority === 'high' && !!x.deadline) && bst.inbox.length === 0, JSON.stringify(bt2.map((x) => [x.priority, x.deadline])));
   await ctx.close();
 }
 await browser.close();

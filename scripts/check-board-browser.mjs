@@ -68,7 +68,7 @@ for (const size of ['desk', 'phone']) for (const scheme of ['dark', 'light']) {
   // the priority and due date line (#211): shown with both, absent on a card with neither
   const line = await page.$eval('.board-card[data-task-id="n3"]', (e) => (e.querySelector('.gl-glance') || {}).textContent || '');
   check(line.includes('Urgent') && /due in/.test(line), tag + 'a card shows its priority and due date', line);
-  check(!(await page.$('.board-card[data-task-id="n1"] .gl-glance')), tag + 'a card with neither has no line');
+  check(((await page.$eval('.board-card[data-task-id="n1"] .gl-glance', (e) => e.textContent)) || '').replace(/\s+/g, ' ') === 'Priority ▾Due ▾', tag + 'a card with neither shows only the quiet Priority and Due chips');
   // Due today is always red (#214): the card's "Due today" key label carries the red key colour.
   const today = await page.$eval('.board-card[data-task-id="n2"] .board-card-meta', (e) => e.innerHTML);
   check(/Due today/.test(today) && /--c:#b42318/i.test(today), tag + 'a card due today has a red label', today);

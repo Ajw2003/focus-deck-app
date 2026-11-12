@@ -73,7 +73,7 @@ shown twice).
 - On task rows and Board cards the priority chip reads "High ▾" ("Priority ▾", quiet, when none) and
   the due chip carries a ▾; each opens a small picker (`pickChip`, one component for rows and cards,
   state in `pickState`): one tap sets it, Escape or a click away closes. The old `cycle-priority`
-  chip is gone. A task with no date shows no due chip, so its date is still set in Edit.
+  chip is gone. A task with no date shows a quiet "Due ▾" chip that opens the same due picker; Board cards with nothing set show both quiet chips. Done Board cards keep their priority (static) and show no date, as calm-board.md says.
 - Checks: `scripts/check-priority-browser.mjs`; screenshots `docs/generated/build-checks/step1/`.
 
 ## Traps

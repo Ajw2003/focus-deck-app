@@ -65,7 +65,7 @@ const iPrio = full.indexOf('priority-chip'), iCat = full.indexOf('cat-chip'), iD
 assert.ok(iBox >= 0 && iBox < iTitle && iTitle < iChips, 'row order is checkbox, .task-title, .task-chips');
 assert.ok(iChips < iPrio && iPrio < iCat && iCat < iDl, '.task-chips holds priority, then labels, then the deadline');
 assert.ok(!full.includes('task-main'), 'the .task-main wrapper is gone');
-assert.ok(/<div class="task-chips"><span class="pick-wrap">[^]*<\/span><\/div>/.test(row({ categoryIds: [], priority: undefined, deadline: undefined })), 'a row with nothing set keeps the .task-chips zone, holding only the quiet Priority chip');
+assert.ok(/<div class="task-chips"><span class="pick-wrap">[^]*<\/span><\/div>/.test(row({ categoryIds: [], priority: undefined, deadline: undefined })), 'a row with nothing set holds only the quiet chips');
 const longCat = renderTaskRow({ ...base, categoryIds: ['cat_long'] }, p, [{ id: 'cat_long', name: 'a very long label name that cannot fit', color: '#fbca04' }], ui);
 assert.ok(/class="chip cat-chip small"[^>]*title="A Very Long Label Name That Cannot Fit" aria-label="A Very Long Label Name That Cannot Fit"/.test(longCat), 'a label chip carries its full (displayed) name in title and aria-label');
 

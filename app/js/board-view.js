@@ -52,10 +52,14 @@ function keyChip(key) {
 // Every card with a priority or a date says so on one line under its label; the chip's own
 // field is left out so nothing shows twice (#211).
 function glanceLine(t, key) {
-  if (t.status === 'done') return '';
   const bits = [];
-  if (t.priority && PRIORITY[t.priority] && key.source !== 'priority') bits.push(pickChip('priority', t));
-  if (t.deadline && key.source !== 'due') bits.push(pickChip('due', t));
+  const prio = t.priority && PRIORITY[t.priority];
+  // a done task keeps its priority (static) but shows no date (calm-board.md, #211)
+  if (t.status === 'done') { if (prio && key.source !== 'priority') bits.push('<span class="gl-prio" style="--c:' + PRIORITY_COLOURS[t.priority] + '">' + PRIORITY[t.priority].label + '</span>'); }
+  else {
+    if (key.source !== 'priority') bits.push(pickChip('priority', t));
+    if (key.source !== 'due') bits.push(pickChip('due', t));
+  }
   return bits.length ? '<span class="board-card-due gl-glance">' + bits.join('') + '</span>' : '';
 }
 

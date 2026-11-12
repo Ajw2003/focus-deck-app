@@ -96,6 +96,7 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   await page.screenshot({ path: OUT + label + '-ticked.png', fullPage: label === 'phone' });
   const before = JSON.stringify(await stored(page));
   check(`${tag} Apply reads "Sort 2 items"`, (await page.textContent('[data-action="bulk-apply"]')).startsWith('Sort 2 items'));
+  await page.click('[data-scope="bulk"][data-field="priority"][data-value="high"]');
   await page.click('[data-action="bulk-apply"]');
   await page.waitForTimeout(300);
 
@@ -160,6 +161,7 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   await page.waitForTimeout(500);
   await page.click('.step-tab[data-step="3"]');
   await page.waitForTimeout(200);
+  await page.click('.sort-picks [data-field="priority"][data-value="high"]');
   await page.click('.file-btn');
   await page.waitForTimeout(300);
   st = await stored(page);

@@ -407,7 +407,7 @@ export function renderTaskRow(t, p, categories, ui, projects = [], isSub = false
     // right 25% (kept even when there are no chips, so the title never grows into it) -- #97, #92
     + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + claudeMarks(t) + tieLineHtml(ties) + '</span>'
     + '<div class="task-chips">' + priorityChip + catChips + claudeChip
-    + (isDone ? (t.deadline ? deadlineChip(t.deadline, t) : '') : (t.deadline ? pickChip('due', t) : ''))
+    + (isDone ? (t.deadline ? deadlineChip(t.deadline, t) : '') : pickChip('due', t))
     + '</div>'
     + '</div>';
 }
