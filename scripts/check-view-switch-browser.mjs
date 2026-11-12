@@ -1,7 +1,7 @@
-// scripts/check-view-switch-browser.mjs -- real-Chromium check of the All | Area | Project switch (#252) at
-// 360x780, 390x844 and 1440x900: pick Area=Home on Focus and see only Home on the Roadmap and Sort; reload keeps
-// it; Project and All work; the phone sheet lists every area without clipping; the row is not cut off at 360.
-// Usage: CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux/chrome node scripts/check-view-switch-browser.mjs
+// scripts/check-view-switch-browser.mjs -- real-Chromium check of the view tape and its card-index drawer (#252, #262) at
+// 360x780, 390x844 and 1440x900: pick One area=Home on Focus and see only Home on Projects and Sort; reload keeps
+// it; One project and Everything work; the drawer lists every area without clipping; the tape is not cut off at 360.
+// Usage: CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome node scripts/check-view-switch-browser.mjs
 // Serves the repo root itself on 127.0.0.1:8133. Screenshots: docs/generated/build-checks/step4/.
 import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
@@ -50,7 +50,8 @@ const rmNames = (page) => page.$$eval('.rm-row .rm-proj-name', (els) => els.map(
 const rmTaskTitles = (page) => page.$$eval('.rm-project .rm-task-title', (els) => els.map((e) => e.textContent));
 const folderKeys = (page) => page.$$eval('[data-wallet="tray-folders"] .sleeve', (els) => els.map((e) => e.dataset.key));
 const wallet = (page) => page.$$eval('[data-wallet="projects"] .sleeve', (els) => els.map((e) => e.dataset.key));
-const pickBtn = (page) => page.$eval('.vs-pick', (b) => b.textContent.replace(/\s+/g, ' ').trim());
+const pickBtn = (page) => page.$eval('.vs-tape', (b) => b.textContent.replace(/\s+/g, ' ').trim());
+const openList = async (page, step) => { await page.click('.vs-tape'); await page.click(`[data-action="view-step"][data-step="${step}"]`); await page.waitForSelector('.vs-pop .vs-item'); };
 
 for (const [tag, w, h] of sizes) {
   const phone = w < 600;
@@ -60,44 +61,44 @@ for (const [tag, w, h] of sizes) {
   await page.addInitScript(([k, v]) => { if (localStorage.getItem(k) === null) localStorage.setItem(k, v); }, [STATE_KEY, JSON.stringify(data)]);
   await page.goto(BASE + 'index.html');
   await page.waitForSelector('.vs-row');
-  check(`[${tag}] Focus: switch is All | Area | Project, All pressed, no name button`, (await page.$$eval('.vs-seg', (b) => b.map((x) => x.textContent + ':' + x.getAttribute('aria-pressed')).join())) === 'All:true,Area:false,Project:false' && !(await page.$('.vs-pick')));
+  check(`[${tag}] Focus: one tape saying Everything, no All | Area | Project switch`, (await pickBtn(page)) === 'Everything ▾' && !(await page.$('.vs-seg, .vs-segs')));
+  await page.click('.vs-tape');
+  check(`[${tag}] the drawer holds Everything, One area ›, One project ›`, (await page.$$eval('.vs-pop .dk-choice', (b) => b.map((x) => x.textContent.trim()).join('|'))) === 'Everything|One area ›|One project ›');
+  await page.keyboard.press('Escape');
   const allKeys = await wallet(page);
   check(`[${tag}] Focus on All offers every project`, ['pShed', 'pGarden', 'pReport', 'pLoose', 'pLong'].every((k) => allKeys.includes(k)), allKeys.join());
 
   // Area = Home
-  await page.click('.vs-seg[data-mode="area"]');
-  await page.waitForSelector('.vs-pop');
+  await openList(page, 'area');
   const items = await page.$$eval('.vs-pop .vs-item', (els) => els.map((e) => e.textContent.trim()));
   check(`[${tag}] the list has every area incl. Unsorted`, items.join('|') === 'Personal|Lists|Home|Apps|Games|Work|School|Unsorted', items.join('|'));
   check(`[${tag}] each area has a colour dot`, (await page.$$('.vs-pop .vs-item .vs-dot')).length === 8);
-  if (phone) {
+  {
     const r = await page.$eval('.vs-pop', (e) => { const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, left: b.left, right: b.right }; });
     const inside = await page.$$eval('.vs-pop .vs-item', (els) => els.every((e) => { const b = e.getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight && b.left >= 0 && b.right <= innerWidth; }));
-    check(`[${tag}] phone: the list is a bottom sheet, flush to the bottom, full width, nothing clipped`, Math.abs(r.bottom - h) < 1 && r.left === 0 && r.right === w && r.top > 0 && inside, JSON.stringify(r));
+    check(`[${tag}] the drawer is a bottom sheet, flush to the bottom, inside the screen, nothing clipped`, Math.abs(r.bottom - h) < 1 && r.left >= 0 && r.right <= w && r.top > 0 && inside, JSON.stringify(r));
     await page.screenshot({ path: OUT + `${tag}-sheet-areas.png` });
-  } else {
-    await page.screenshot({ path: OUT + `${tag}-dropdown-areas.png` });
   }
   check(`[${tag}] focus starts inside the list`, await page.evaluate(() => document.querySelector('.vs-pop').contains(document.activeElement)));
   for (let i = 0; i < 14; i++) await page.keyboard.press('Tab');
   check(`[${tag}] Tab stays inside the list`, await page.evaluate(() => document.querySelector('.vs-pop').contains(document.activeElement)));
   await page.keyboard.press('Escape');
-  check(`[${tag}] Escape closes it and focus returns to the button`, !(await page.$('.vs-pop')) && (await page.evaluate(() => document.activeElement.classList.contains('vs-pick'))));
-  await page.click('.vs-pick');
+  check(`[${tag}] Escape closes it and focus returns to the tape`, !(await page.$('.vs-pop')) && (await page.evaluate(() => document.activeElement.classList.contains('vs-tape'))));
+  await page.click('.vs-tape');
   await page.click('.vs-backdrop', { position: { x: 5, y: 5 }, force: true });
   check(`[${tag}] the backdrop closes it`, !(await page.$('.vs-pop')));
-  await page.click('.vs-pick');
+  await openList(page, 'area');
   await page.click('.vs-item[data-id="pcat_home"]');
-  check(`[${tag}] picking Home closes the list; the button says Home ▾ (gap is CSS)`, !(await page.$('.vs-pop')) && (await pickBtn(page)) === 'Home▾', await pickBtn(page));
+  check(`[${tag}] picking Home closes the list; the tape says Home ▾`, !(await page.$('.vs-pop')) && (await pickBtn(page)) === 'Home ▾', await pickBtn(page));
 
   // Focus only offers Home
   const keys = await wallet(page);
   check(`[${tag}] Focus: only Home's projects`, keys.sort().join() === ['all', 'pGarden', 'pShed'].sort().join(), keys.join());
   await page.screenshot({ path: OUT + `${tag}-focus-home.png` });
-  // Roadmap (the old Board and Projects screens, #259)
-  await screen(page, 'roadmap');
+  // Projects tab (the group view)
+  await screen(page, 'projects');
   const names = (await rmNames(page)).sort().join();
-  check(`[${tag}] Roadmap: only Home projects`, names === 'Garden,Shed', names);
+  check(`[${tag}] Projects: only Home projects`, names === 'Garden,Shed', names);
   await page.screenshot({ path: OUT + `${tag}-roadmap-home.png` });
   // Sort
   await screen(page, 'sort');
@@ -108,13 +109,12 @@ for (const [tag, w, h] of sizes) {
   // reload keeps it
   await page.reload();
   await page.waitForSelector('.vs-row');
-  check(`[${tag}] reload: still Home on the Sort screen`, (await pickBtn(page)) === 'Home▾');
-  await screen(page, 'roadmap');
-  check(`[${tag}] reload: Roadmap still only Home`, (await rmNames(page)).length === 2);
+  check(`[${tag}] reload: still Home on the Sort screen`, (await pickBtn(page)) === 'Home ▾');
+  await screen(page, 'projects');
+  check(`[${tag}] reload: Projects still only Home`, (await rmNames(page)).length === 2);
 
   // Project
-  await page.click('.vs-seg[data-mode="project"]');
-  await page.waitForSelector('.vs-pop');
+  await openList(page, 'project');
   const grouped = await page.$$eval('.vs-pop .vs-group', (els) => els.map((e) => e.textContent));
   check(`[${tag}] project list is grouped by area`, grouped.join() === 'Home,Work,Unsorted', grouped.join());
   await page.click('.vs-item[data-id="pReport"]');
@@ -125,28 +125,29 @@ for (const [tag, w, h] of sizes) {
   check(`[${tag}] Project=Report: Focus offers only it`, k2.sort().join() === 'all,pReport', k2.join());
 
   // long name: not cut off
-  await page.click('.vs-pick');
+  await openList(page, 'project');
   await page.click('.vs-item[data-id="pLong"]');
-  const geo = await page.evaluate(() => { const row = document.querySelector('.vs-row').getBoundingClientRect(); const b = document.querySelector('.vs-pick'); const n = document.querySelector('.vs-pick-name'); const r = b.getBoundingClientRect(); return { right: r.right, vw: innerWidth, rowRight: row.right, over: n.scrollWidth > n.clientWidth, ell: getComputedStyle(n).textOverflow, h: r.height, docW: document.documentElement.scrollWidth }; });
+  const geo = await page.evaluate(() => { const row = document.querySelector('.vs-row').getBoundingClientRect(); const b = document.querySelector('.vs-tape'); const n = document.querySelector('.vs-pick-name'); const r = b.getBoundingClientRect(); return { right: r.right, vw: innerWidth, rowRight: row.right, over: n.scrollWidth > n.clientWidth, ell: getComputedStyle(n).textOverflow, h: r.height, docW: document.documentElement.scrollWidth }; });
   check(`[${tag}] long project name: one line, ellipsis, inside the screen, no sideways scroll`, geo.right <= geo.vw && geo.rowRight <= geo.vw && geo.ell === 'ellipsis' && geo.h < 60 && geo.docW <= geo.vw && (!phone || geo.over), JSON.stringify(geo));
   await page.screenshot({ path: OUT + `${tag}-long-name.png` });
   if (phone) {
-    await page.click('.vs-pick');
+    await openList(page, 'project');
     await page.screenshot({ path: OUT + `${tag}-sheet-projects.png` });
     await page.keyboard.press('Escape');
   }
 
   // All
-  await page.click('.vs-seg[data-mode="all"]');
-  check(`[${tag}] All: no name button, aria-pressed on All`, !(await page.$('.vs-pick')) && (await page.getAttribute('.vs-seg[data-mode="all"]', 'aria-pressed')) === 'true');
-  await screen(page, 'roadmap');
-  check(`[${tag}] All: Roadmap shows every project`, (await rmNames(page)).length === 5, (await rmNames(page)).join());
+  await page.click('.vs-tape');
+  await page.click('.vs-pop .dk-choice[data-mode="all"]');
+  check(`[${tag}] Everything: the tape says so`, (await pickBtn(page)) === 'Everything ▾');
+  await screen(page, 'projects');
+  check(`[${tag}] Everything: Projects shows every project`, (await rmNames(page)).length === 5, (await rmNames(page)).join());
   await screen(page, 'sort');
   check(`[${tag}] All: Sort offers every project`, (await folderKeys(page)).length === 5);
   // Unsorted area
-  await page.click('.vs-seg[data-mode="area"]');
+  await openList(page, 'area');
   await page.click('.vs-item[data-id="pcat_unsorted"]');
-  await screen(page, 'roadmap');
+  await screen(page, 'projects');
   check(`[${tag}] Area=Unsorted: the project with no area`, (await rmNames(page)).join() === 'Loose', (await rmNames(page)).join());
   await ctx.close();
 }

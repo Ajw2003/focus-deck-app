@@ -13,7 +13,7 @@ import assert from 'node:assert';
 
   const idleHtml = renderSyncButton(never);
   assert.ok(idleHtml.includes('title="Sync with GitHub"') && idleHtml.includes('aria-label="Sync with GitHub"'), 'title and aria-label match when idle');
-  assert.ok(idleHtml.includes('class="sync-light"') && !idleHtml.includes('is-syncing') && !idleHtml.includes('sync-drawer'), 'a green light, drawer shut when idle');
+  assert.ok(idleHtml.includes('class="sync-light"') && !idleHtml.includes('is-syncing') && !idleHtml.includes('class="sync-drawer"'), 'a green light, drawer shut when idle');
 
   const syncingHtml = renderSyncButton({ ...synced, _ui: { syncing: true } });
   assert.ok(syncingHtml.includes('is-syncing'), 'the light pulses while syncing');

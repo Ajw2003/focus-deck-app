@@ -1,9 +1,10 @@
-// scripts/check-tabs-browser.mjs -- the five tabs (#259, step 11 of "tabs that follow the flow") in real Chromium at
-// 360x780, 390x844 and 1440x900: Sort 1, Organize 2 (Tidy up | Triage), Roadmap 3, Focus 4, Review 5, in order and numbered;
+// scripts/check-tabs-browser.mjs -- the six tabs (#259, then #262) in real Chromium at
+// 360x780, 390x844 and 1440x900: Sort, Organize (Tidy up | Triage), Projects, Roadmap, Focus, Review, in order, no numbers;
+// the header (+ Jot, sync light with its drawer, settings dial);
 // badges only on Sort and Review; the jot box at the top of every tab; J focuses it on desktop (not while typing); a saved
-// 'board' / 'projects' screen opens the Roadmap; every row of the "Where every feature goes" table reachable, one
+// 'board' / 'projects' screen opens Projects; every row of the "Where every feature goes" table reachable, one
 // check per row; Task details from each tab; no page errors; no sideways scroll.
-// Usage: CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux/chrome node scripts/check-tabs-browser.mjs
+// Usage: CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome node scripts/check-tabs-browser.mjs
 // Serves the repo root itself on 127.0.0.1:8140. Screenshots: docs/generated/build-checks/step11/.
 import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
@@ -62,12 +63,18 @@ for (const [tag, w, h] of sizes) {
   await page.waitForSelector('.rail');
 
   const tabs = await page.$$eval('.rail > .rail-item', (els) => els.map((e) => e.querySelector('.rail-label').textContent.replace(/\s+/g, ' ').trim()));
-  check(`[${tag}] five tabs in order, numbered`, JSON.stringify(tabs) === JSON.stringify(['1 Sort', '2 Organize', '3 Roadmap', '4 Focus', '5 Review']), tabs.join(' | '));
+  check(`[${tag}] six tabs in order, no numbers`, JSON.stringify(tabs) === JSON.stringify(['Sort', 'Organize', 'Projects', 'Roadmap', 'Focus', 'Review']), tabs.join(' | '));
+  const icons = await page.$$eval('.rail > .rail-item .rail-icon', (els) => els.map((e) => e.textContent));
+  check(`[${tag}] tab icons`, icons.join(' ') === '📥 🧹 📁 🗺 ◎ ✓', icons.join(' '));
   const badges = await page.$$eval('.rail-count', (els) => els.map((e) => e.closest('.rail-item').querySelector('.rail-label').textContent.trim()));
-  check(`[${tag}] badges only on Sort and Review`, JSON.stringify(badges) === JSON.stringify(['1 Sort', '5 Review']), badges.join(' | '));
+  check(`[${tag}] badges only on Sort and Review`, JSON.stringify(badges) === JSON.stringify(['Sort', 'Review']), badges.join(' | '));
   const subs = await page.$$eval('.rail-sub', (els) => els.filter((e) => e.offsetParent).map((e) => e.textContent));
   check(`[${tag}] Tidy up / Triage sub-items under Organize in the desktop rail only`, desk ? subs.join() === 'Tidy up,Triage' : subs.length === 0, subs.join());
-  if (desk) check(`[${tag}] Settings at the foot of the rail`, await page.$eval('.rail-settings', (e) => !!e.offsetParent));
+  check(`[${tag}] header: + Jot, sync light and settings dial; no old sync button or rail tools`, !!(await page.$('#jot-open')) && !!(await page.$('.sync-light')) && !!(await page.$('a.dk-dial[href="settings.html"]')) && !(await page.$('.sync-btn, .rail-tools')));
+  await go(page, '.sync-light');
+  check(`[${tag}] sync light opens a drawer with Sync now and Sync settings`, !!(await page.$('.sync-drawer [data-action="sync-github"]')) && !!(await page.$('.sync-drawer a[href="settings.html#sync-section"]')));
+  await go(page, '.sync-light');
+  check(`[${tag}] + Jot focuses the jot box`, await (async () => { await go(page, '#jot-open'); return page.evaluate(() => document.activeElement.id === 'capture-input'); })());
 
   const jot = async (name) => check(`[${tag}] jot box at the top of ${name}`, await page.$eval('#capture-input', (e) => { const r = e.getBoundingClientRect(); return r.width > 100 && r.top >= 0 && r.top < 200; }));
   const shot = (name) => page.screenshot({ path: OUT + `${name}-${tag}.png` });
@@ -96,11 +103,11 @@ for (const [tag, w, h] of sizes) {
   await go(page, '.tr-row .task-open');
   await detail('Triage');
 
-  // Roadmap, group view
-  await go(page, '.rail-item[data-screen="roadmap"]');
+  // Projects tab (the group view)
+  await go(page, '.rail-item[data-screen="projects"]');
   await page.waitForSelector('.rm-row');
-  await jot('Roadmap'); check(`[${tag}] Roadmap: no sideways scroll`, await noSideways(page)); await shot('3-roadmap');
-  check(`[${tag}] row Projects grid: the Roadmap group view lists every project`, (await page.$$('.rm-row')).length === 3);
+  await jot('Projects'); check(`[${tag}] Projects: no sideways scroll`, await noSideways(page)); await shot('3-projects');
+  check(`[${tag}] row Projects grid: the Projects tab lists every project`, (await page.$$('.rm-row')).length === 3);
   await page.fill('.rm-finds .project-search', 'rep');
   await page.waitForTimeout(100);
   check(`[${tag}] row Projects grid search: Find a project narrows the rows live`, (await page.$$('.rm-row')).length === 2, 'Report + Repo');
@@ -116,12 +123,15 @@ for (const [tag, w, h] of sizes) {
   await page.selectOption('.rm-finds .project-sort-select', 'name');
   await page.reload(); await page.waitForSelector('.rm-row');
   check(`[${tag}] row Projects grid sort: the sort choice is remembered`, (await page.$eval('.project-sort-select', (e) => e.value)) === 'name');
-  check(`[${tag}] row Projects grid area filter: the All | Area | Project switch is on the Roadmap`, !!(await page.$('.vs-row')));
-  check(`[${tag}] row Projects: + New project is on the Roadmap`, !!(await page.$('#new-panel-toggle')));
+  check(`[${tag}] row Projects grid area filter: the view tape is on Projects`, !!(await page.$('.vs-tape')));
+  check(`[${tag}] row Projects: + New project is on the Projects tab`, !!(await page.$('#new-panel-toggle')));
 
-  // Roadmap, project view
+  // Roadmap tab, project view: a project opened from Projects, then the Roadmap tab reopens the last one
   await go(page, '.rm-row[data-project="pHome"] button:visible');
   await page.waitForSelector('.rm-project');
+  check(`[${tag}] opening a project from Projects lands on the Roadmap tab`, (await page.$eval('.rail-item.is-on .rail-label', (e) => e.textContent)) === 'Roadmap');
+  await go(page, '.rail-item[data-screen="projects"]'); await go(page, '.rail-item[data-screen="roadmap"]'); await page.waitForSelector('.rm-project');
+  check(`[${tag}] the Roadmap tab opens the last-used project`, (await page.$eval('.vs-tape', (e) => e.textContent)).includes('Home'));
   check(`[${tag}] row Projects one project (task list, add a task, done list): add link and Done column`, !!(await page.$('.rm-add-link')) && (await page.$$('.rm-col[data-status="done"]')).length === 1);
   check(`[${tag}] row Projects New project, link or create a repo, edit, remove: Edit project`, !!(await page.$('[data-action="open-project-edit"]')));
   check(`[${tag}] row Board columns: Up next, In progress, Review, Done inside a milestone`, (await page.$$eval('.rm-project .rm-col', (els) => els.map((e) => e.dataset.status))).join().startsWith('next,doing,review,done'));
@@ -176,7 +186,7 @@ for (const [tag, w, h] of sizes) {
     await page.fill('#capture-input', '');
     await page.keyboard.press('Escape');
     check(`[${tag}] Escape leaves the jot box`, await page.evaluate(() => document.activeElement.id !== 'capture-input'));
-    await go(page, '.rail-item[data-screen="roadmap"]');
+    await go(page, '.rail-item[data-screen="projects"]');
     await page.focus('.rm-finds .project-search');
     await page.keyboard.press('j');
     check(`[${tag}] J does not steal focus from another field`, await page.evaluate(() => document.activeElement.classList.contains('project-search')));
@@ -185,7 +195,7 @@ for (const [tag, w, h] of sizes) {
   }
   await ctx.close();
 
-  for (const [saved, label, want] of [['board', 'Roadmap', '3 Roadmap'], ['projects', 'Roadmap', '3 Roadmap'], ['start-here', 'Focus', '4 Focus']]) {
+  for (const [saved, label, want] of [['board', 'Projects', 'Projects'], ['projects', 'Projects', 'Projects'], ['roadmap', 'Roadmap', 'Roadmap'], ['start-here', 'Focus', 'Focus']]) {
     const c2 = await browser.newContext({ viewport: { width: w, height: h }, serviceWorkers: 'block' });
     const p2 = await c2.newPage();
     p2.on('pageerror', (e) => check(`[${tag}] no page error: ` + e.message, false));

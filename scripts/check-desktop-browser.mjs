@@ -3,7 +3,7 @@
 // card showing, one click to pick a folder (the categories narrow), a click on a category draws, the
 // in-tray filed by clicks alone, project folders on paper in both themes, and resizing to a phone
 // width brings the flip-through wallets back (and back again).
-// Usage: CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/check-desktop-browser.mjs
+// Usage: CHROMIUM=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome node scripts/check-desktop-browser.mjs
 // Serves the repo root itself on 127.0.0.1:8134 for the length of the run (no separate server).
 // Screenshots: docs/generated/pr128/.
 import { createRequire } from 'node:module';
@@ -99,13 +99,13 @@ for (const scheme of ['dark', 'light']) {
   await page.screenshot({ path: OUT + `desktop-${scheme}-drawn.png` });
 
   // the Roadmap (the old Projects screen): the project rows, nothing else
-  await page.click('.rail [data-screen="roadmap"]');
+  await page.click('.rail [data-screen="projects"]');
   await page.waitForTimeout(300);
-  check(`${tag} Roadmap shows the project rows, not the picker or the tray`, (await page.$$('.rm-row')).length === 5 && !(await page.$('.focus-card')) && !(await page.$('.inbox-card')));
+  check(`${tag} Projects shows the project rows, not the picker or the tray`, (await page.$$('.rm-row')).length === 5 && !(await page.$('.focus-card')) && !(await page.$('.inbox-card')));
   await page.screenshot({ path: OUT + `desktop-${scheme}-projects.png` });
   await page.reload();
   await page.waitForTimeout(300);
-  check(`${tag} the chosen screen is remembered after a reload`, !!(await page.$('.rail [data-screen="roadmap"][aria-current="page"]')));
+  check(`${tag} the chosen screen is remembered after a reload`, !!(await page.$('.rail [data-screen="projects"][aria-current="page"]')));
   await ctx.close();
 }
 

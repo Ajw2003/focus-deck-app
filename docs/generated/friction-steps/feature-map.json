@@ -10,9 +10,19 @@
      "s0 o0 r0 f1 v1"
     ],
     [
-     "view-mode",
-     "All / Area / Project switch",
+     "view-step",
+     "Drawer: One area / One project, and the back corner",
      "g1"
+    ],
+    [
+     "jot-open",
+     "+ Jot (for now focuses the jot box; #263 replaces it)",
+     "g1"
+    ],
+    [
+     "sync-drawer",
+     "Sync light: open the Sync now / Sync settings drawer",
+     "g4"
     ],
     [
      "view-open",

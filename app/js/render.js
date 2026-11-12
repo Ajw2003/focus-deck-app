@@ -60,7 +60,7 @@ export function normalizeScreen(value) { return SCREENS.includes(value) ? value 
 // Only Sort and Review carry a count. See docs/4-systems/tabs.md
 export function renderRail(screen, unsortedCount, reviewCount = 0) {
   const org = screen === 'tidy' || screen === 'triage';
-  const tab = (label, key, on, attrs, count, countLabel) => '<button type="button" class="rail-item' + (on ? ' is-on on' : '') + '" data-action="set-screen" ' + attrs + (on ? ' aria-current="page"' : '') + '>'
+  const tab = (label, key, on, attrs, count, countLabel) => '<button type="button" class="rail-item dk-tab' + (on ? ' is-on on' : '') + '" data-action="set-screen" ' + attrs + (on ? ' aria-current="page"' : '') + '>'
     + '<span class="rail-icon" aria-hidden="true">' + SCREEN_INFO[key].icon + '</span>' + (count ? '<b class="rail-count" aria-label="' + count + ' ' + countLabel + '">' + count + '</b>' : '')
     + '<span class="rail-label">' + label + '</span></button>';
   const sub = (k) => '<button type="button" class="rail-sub' + (screen === k ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + k + '"' + (screen === k ? ' aria-current="page"' : '') + '>' + SCREEN_INFO[k].label + '</button>';
