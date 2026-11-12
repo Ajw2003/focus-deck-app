@@ -95,7 +95,7 @@ const sum = (o) => Object.values(o).reduce((a, b) => a + b, 0);
 test('split always adds up, leftovers to the largest', () => {
   for (const raw of [[1, 1, 1], [1, 2, 3, 4, 5, 6, 7], [5], [0, 0], [33, 33, 34], [1, 1, 1, 1, 1, 1]]) for (const total of [0, 1, 60, 100]) assert.equal(split(raw, total).reduce((a, b) => a + b, 0), total, raw + '/' + total);
   assert.deepEqual(split([1, 1, 1], 100), [34, 33, 33]);
-  assert.deepEqual(split([1, 5], 100), [17, 83]);
+  assert.deepEqual(split([1, 5], 100), [16, 84]);
 });
 test('shares: equal for old saves, stored weights kept, always 100', () => {
   const p = proj();
@@ -127,7 +127,7 @@ test('adding and removing a milestone keeps shares at 100', () => {
 test('the four measures', () => {
   const ts = [t('a', 'done', { size: 'large' }), t('b', 'done'), t('c', 'next', { size: 'medium' }), t('d', 'next', { size: 'small' })];
   assert.deepEqual(progressOf({}, ts), { pct: 50, text: 'tasks 2 of 4' });
-  assert.deepEqual(progressOf({ measureBy: 'size' }, ts), { pct: 67, text: '4 of 7 points' }); // large 3 + unsized (small) 1 of 3+1+2+1
+  assert.deepEqual(progressOf({ measureBy: 'size' }, ts), { pct: 57, text: '4 of 7 points' }); // large 3 + unsized (small) 1 of 3+1+2+1
   assert.deepEqual(progressOf({ measureBy: 'number', number: { name: 'screens tested', current: 2, target: 4 } }, []), { pct: 50, text: 'screens tested 2 of 4' });
   assert.equal(progressOf({ measureBy: 'number', number: { name: 'x', current: 9, target: 4 } }, []).pct, 100);
   assert.equal(progressOf({ measureBy: 'number', number: { name: 'x', current: 1, target: 0 } }, []).pct, 0);
@@ -152,7 +152,7 @@ test('applyMilestoneSettings saves the draft, stamps and merges', () => {
   assert.equal(sum(shares), 100);
   assert.equal(p.unplannedWeight, shares[UNPLANNED]);
   assert.equal(applyMilestoneSettings(p, 'nope', {}), false);
-  const remote = JSON.parse(JSON.stringify(proj())); remote.milestones.forEach((m) => { m.updatedAt = 50; m.weight = 5; });
+  const remote = JSON.parse(JSON.stringify(proj())); remote.milestones.forEach((m) => { m.updatedAt = 50; m.weight = 5; }); remote.milestones[2].updatedAt = 150;
   const out = mergeStates({ projects: [p] }, { projects: [remote] }).projects[0];
   assert.equal(out.milestones.find((m) => m.id === 'm1').weight, 40); // newer copy (99) wins; the others (stamped 99 too or 50) follow theirs
   assert.equal(out.milestones.find((m) => m.id === 'm3').weight, 5);
