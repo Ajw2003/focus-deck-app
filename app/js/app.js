@@ -36,7 +36,7 @@ import { notesSummary, renderTaskDetails } from './task-details.js';
 import { canSetParent, canWaitOn } from './task-links.js';
 import { applyNoteFace } from './note-face.js';
 import { applyComfort, getChunk } from './comfort.js';
-import { VIEW_ALL, renderViewSwitch, normalizeView, defaultFor, viewProjects, viewState, inView } from './view-switch.js';
+import { VIEW_ALL, renderViewSwitch, normalizeView, viewProjects, viewState, inView } from './view-switch.js';
 import { moveProject, filterAndSortProjects } from './project-filter.js';
 
 // The focus pick's chosen project pill, remembered per device like the minimised projects.
@@ -125,8 +125,17 @@ function loadView() {
 }
 function setView(view) {
   ui.view = normalizeView(view, state);
-  try { localStorage.setItem(VIEW_KEY, JSON.stringify(ui.view)); }
-  catch (e) { console.error('Could not save the view switch:', e); }
+  try {
+    localStorage.setItem(VIEW_KEY, JSON.stringify(ui.view));
+    if (ui.view.mode === 'project') localStorage.setItem(LAST_PROJECT_KEY, ui.view.id);
+  } catch (e) { console.error('Could not save the view switch:', e); }
+}
+// The Roadmap tab shows one project: the one picked last, else the first (#262).
+const LAST_PROJECT_KEY = 'focusdeck-last-project';
+function lastProjectId() {
+  let id = null;
+  try { id = localStorage.getItem(LAST_PROJECT_KEY); } catch (e) { console.error('Could not read the last project:', e); }
+  return state.projects.some((p) => p.id === id) ? id : (state.projects[0] || {}).id;
 }
 
 export const ui = {
@@ -233,17 +242,19 @@ export function renderApp(st) {
       + '</div>' + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
   }
   ui.view = normalizeView(ui.view, st); // a gone area or project is All
+  if (ui.screen === 'roadmap' && ui.view.mode !== 'project' && lastProjectId()) setView({ mode: 'project', id: lastProjectId() }); // the Roadmap is one project
   st._ui = ui;
   const sw = renderViewSwitch(st, ui.view, ui.viewOpen);
   const hasToken = !!getToken();
   // one activity at a time (#135): the rail, then only the chosen screen
-  const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, R.renderSyncButton(st), reviewLists(st, null, Date.now()).waiting.length);
+  const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, reviewLists(st, null, Date.now()).waiting.length);
   const toast = R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
   // Task details (#201) opens from a task on any tab: Review and Roadmap draw it themselves, the others get it here
   const details = ['sort', 'tidy', 'triage', 'focus'].includes(ui.screen) && ui.boardSelected && findTaskWithProject(ui.boardSelected) ? renderTaskDetails(st, ui, ui.boardSelected) : '';
   const screen = (name, body) => rail + '<div class="screen screen-' + name + '">' + sw + body + details + '</div>' + toast;
   if (ui.screen === 'sort') return screen('sort', renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true }))); // the tray, always open
   if (ui.screen === 'tidy') return screen('tidy', renderTidy(st, ui));
+  if (ui.screen === 'projects') return rail + '<div class="screen screen-roadmap">' + sw + renderRoadmap(st, ui, hasToken, true) + '</div>' + toast;
   if (ui.screen === 'roadmap') return rail + '<div class="screen screen-roadmap">' + sw + renderRoadmap(st, ui, hasToken) + '</div>' + toast;
   if (ui.screen === 'triage') return screen('triage', renderTriage(st, ui));
   if (ui.screen === 'review') return rail + '<div class="screen screen-review">' + sw + renderReview(st, ui) + '</div>' + toast;
@@ -547,8 +558,10 @@ function onAppClick(e) {
     window.scrollTo(0, 0);
     return;
   }
-  if (action === 'view-mode') { setView(defaultFor(el.getAttribute('data-mode'), ui.view, state)); ui.viewOpen = ui.view.mode !== 'all'; paint(); focusViewPop(); return; }
-  if (action === 'view-open') { ui.viewOpen = !ui.viewOpen; paint(); focusViewPop(); return; }
+  if (action === 'view-step') { ui.viewOpen = el.getAttribute('data-step'); paint(); focusViewPop(); return; }
+  if (action === 'view-open') { ui.viewOpen = ui.viewOpen ? false : 'menu'; paint(); focusViewPop(); return; }
+  if (action === 'sync-drawer') { ui.syncOpen = !ui.syncOpen; paint(); return; }
+  if (action === 'jot-open') { const box = document.getElementById('capture-input'); if (box) { box.scrollIntoView({ block: 'nearest' }); box.focus(); } return; } // #263 replaces this with the + Jot sheet
   if (action === 'view-close') { closeViewPop(); return; }
   if (action === 'view-pick') { setView({ mode: el.getAttribute('data-mode'), id: el.getAttribute('data-id') }); closeViewPop(); return; }
   if (action === 'scroll-to-task') {
@@ -571,7 +584,7 @@ function onAppClick(e) {
     ids.forEach((id) => delete ui.tidyMarks[id]);
     setScreen('triage'); paint(); window.scrollTo(0, 0); return; // "Confirm N, then Triage"
   }
-  if (action === 'rm-open') { setView({ mode: 'project', id: el.getAttribute('data-project') }); paint(); window.scrollTo(0, 0); return; }
+  if (action === 'rm-open') { setScreen('roadmap'); setView({ mode: 'project', id: el.getAttribute('data-project') }); paint(); window.scrollTo(0, 0); return; }
   if (action === 'rm-settings') {
     const pid = rmProject(), p = state.projects.find((x) => x.id === pid), id = el.getAttribute('data-id'), r = p && roadmapOf(p);
     const sec = r && r.sections.find((s) => s.milestones.some((x) => x.id === id)), m = sec && sec.milestones.find((x) => x.id === id);
@@ -775,7 +788,7 @@ function onAppClick(e) {
   }
   else if (action === 'toggle-inbox') { ui.inboxOpen = !ui.inboxOpen; paint(); }
   else if (action === 'toggle-done') { ui.doneOpen[projectId] = !ui.doneOpen[projectId]; paint(); }
-  else if (action === 'sync-github') manualSyncGithub();
+  else if (action === 'sync-github') { ui.syncOpen = false; manualSyncGithub(); }
   else if (action === 'rm-project-step') { const ids = visibleRoadmapProjects().map((p) => p.id), i = ids.indexOf(el.getAttribute('data-project')); moveProjectTo(ids[i], i + Number(el.getAttribute('data-dir')), ids); }
   else if (action === 'edit-task') { ui.editingTask = { taskId, projectId }; paint(); scrollOpenedFormIntoView('.task-edit-form'); }
   else if (action === 'cancel-task-edit') { ui.editingTask = null; paint(); }
@@ -1183,9 +1196,9 @@ function showInView(projectId) {
 // Escape or the backdrop closes it and focus returns to the button.
 function focusViewPop() {
   const pop = document.querySelector('.vs-pop');
-  if (pop) (pop.querySelector('.vs-search, .vs-item.on, .vs-item') || pop).focus();
+  if (pop) (pop.querySelector('.vs-search, .vs-item.on, .vs-item, .dk-choice.on, .dk-choice') || pop).focus();
 }
-function closeViewPop() { ui.viewOpen = false; paint(); const b = document.querySelector('.vs-pick'); if (b) b.focus(); }
+function closeViewPop() { ui.viewOpen = false; paint(); const b = document.querySelector('.vs-tape'); if (b) b.focus(); }
 document.addEventListener('keydown', (e) => {
   const pop = document.querySelector('.vs-pop');
   if (!pop || !ui.viewOpen) return;
@@ -1562,7 +1575,7 @@ function init() {
   // Settings' checklist links here to link a first GitHub repo (#126): open "+ New" on its repo tab
   const params = new URLSearchParams(location.search);
   if (params.get('new') === 'repo') {
-    setScreen('roadmap'); // the + New panel is on the Roadmap
+    setScreen('projects'); // the + New panel is on Projects
     ui.newPanelOpen = true;
     ui.newPanelTab = 'repo';
     fetchNewPanelRepos();

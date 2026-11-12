@@ -1,4 +1,11 @@
-# The All | Area | Project switch (#252)
+# The view tape (#252, #262)
+
+> **#262:** the All | Area | Project switch is now one label-maker **tape** naming the view in caps with ▾ (`.vs-tape`); tapping it
+> opens a card-index drawer (a bottom sheet, `.dk-sheet`) with index cards **Everything**, **One area ›**, **One project ›**. The two
+> "One" cards open the list of areas / projects in the same drawer, with a back corner (`view-step`); picking one closes it (`view-pick`).
+> Same state (`ui.view`, `focusdeck-view`) and same filtering as below; `view-mode` and `defaultFor`'s first-tap default are no longer used
+> by the UI. `ui.viewOpen` is `false`, `'menu'`, `'area'` or `'project'`. The Roadmap tab always shows one project, so Everything there
+> turns back into the last project (see [tabs.md](./tabs.md)). Where the text below says "switch" or "dropdown", read "tape" and "drawer".
 
 > **2026-11-12 (#259):** the Board and Projects screens were removed in the five-tab change; the Roadmap took over their jobs. Where this file describes them as current it is history. See [tabs.md](./tabs.md).
 

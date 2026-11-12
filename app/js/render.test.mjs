@@ -13,11 +13,15 @@ import assert from 'node:assert';
 
   const idleHtml = renderSyncButton(never);
   assert.ok(idleHtml.includes('title="Sync with GitHub"') && idleHtml.includes('aria-label="Sync with GitHub"'), 'title and aria-label match when idle');
-  assert.ok(!idleHtml.includes('disabled') && !idleHtml.includes('is-syncing'), 'not disabled or spinning when idle');
+  assert.ok(idleHtml.includes('class="sync-light"') && !idleHtml.includes('is-syncing') && !idleHtml.includes('class="sync-drawer"'), 'a green light, drawer shut when idle');
 
   const syncingHtml = renderSyncButton({ ...synced, _ui: { syncing: true } });
-  assert.ok(syncingHtml.includes('is-syncing') && syncingHtml.includes('disabled'), 'spins and disables while syncing');
+  assert.ok(syncingHtml.includes('is-syncing'), 'the light pulses while syncing');
   assert.ok(syncingHtml.includes('title="Sync with GitHub · synced 4m ago"'), 'title stays current even while syncing');
+  assert.ok(renderSyncButton({ ...synced, _ui: { syncError: 'x' } }).includes('is-error'), 'red after an error');
+  const open = renderSyncButton({ ...synced, _ui: { syncOpen: true } });
+  assert.ok(open.includes('data-action="sync-github"') && open.includes('href="settings.html#sync-section"') && open.includes('aria-expanded="true"'), 'the open drawer has Sync now and Sync settings');
+  assert.ok(renderSyncButton({ ...synced, _ui: { syncOpen: true, syncing: true } }).includes('data-action="sync-github" disabled'), 'Sync now waits while syncing');
 }
 
 const p = { id: 'p1', name: 'P' };
@@ -295,20 +299,21 @@ assert.strictEqual(chipsMaxPct('x'.repeat(200)), 33, 'however long the title, th
 assert.strictEqual(chipsMaxPct(''), 50, 'an empty title is treated as short');
 assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds: [] }, { id: 'p1' }, [], { editingTask: null }).includes('style="--chips-max:50%"'), 'the row carries its chips ceiling');
 
-// Five tabs (#259): the rail lists Sort, Organize, Roadmap, Focus, Review, numbered; counts only on Sort and Review.
+// Six tabs (#262): the rail lists Sort, Organize, Projects, Roadmap, Focus, Review with icons and no numbers; counts only on Sort and Review.
 {
   const { renderRail, normalizeScreen } = await import('./render.js');
-  const rail = renderRail('sort', 2, '', 3);
-  assert.deepStrictEqual([...rail.matchAll(/rail-num">(\d)<\/span> ([A-Za-z ]+)</g)].map((m) => m[1] + m[2]), ['1Sort', '2Organize', '3Roadmap', '4Focus', '5Review'], 'five tabs, numbered, in order');
+  const rail = renderRail('sort', 2, 3);
+  assert.deepStrictEqual([...rail.matchAll(/rail-icon" aria-hidden="true">(\S+)<\/span>(?:<b[^>]*>\d<\/b>)?<span class="rail-label">([A-Za-z ]+)</g)].map((m) => m[1] + m[2]), ['📥Sort', '🧹Organize', '📁Projects', '🗺Roadmap', '◎Focus', '✓Review'], 'six tabs, icons, in order');
+  assert.ok(!rail.includes('rail-num') && rail.includes('dk-tabs'), 'no numbers; drawn as binder dividers');
   assert.ok(/data-screen="sort" aria-current="page"/.test(rail), 'the current screen is marked');
   assert.strictEqual((rail.match(/rail-count/g) || []).length, 2, 'badges on Sort and Review only');
   assert.ok(rail.includes('>2</b>') && rail.includes('>3</b>'));
   assert.ok(!renderRail('focus', 0).includes('rail-count'), 'no count when nothing waits');
   assert.ok(renderRail('triage', 0).includes('data-go="triage"') && renderRail('tidy', 0).includes('rail-sub is-on'), 'Organize holds Tidy up and Triage');
-  assert.ok(renderRail('focus', 0, '<button class="sync-btn"></button>').includes('<div class="rail-tools"><button class="sync-btn"></button><a href="settings.html"'), 'sync then Settings at the foot');
+  assert.ok(!renderRail('focus', 0).includes('rail-tools'), 'sync and Settings moved to the header');
   assert.strictEqual(normalizeScreen('nonsense'), 'focus');
-  assert.strictEqual(normalizeScreen('board'), 'roadmap');
-  assert.strictEqual(normalizeScreen('projects'), 'roadmap');
+  assert.strictEqual(normalizeScreen('board'), 'projects');
+  assert.strictEqual(normalizeScreen('projects'), 'projects');
   assert.strictEqual(normalizeScreen('start'), 'focus');
 }
 

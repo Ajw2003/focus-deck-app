@@ -38,8 +38,8 @@ test('markup: buttons, issue link, escaping, empty state, badge', () => {
   assert.ok(h.includes('Looks good · Done') && h.includes('Needs more work') && h.includes('data-action="review-undo"'));
   assert.ok(h.includes('<a href="https://x/7"') && h.includes('Old &lt;review&gt;') && h.includes('Alpha'));
   assert.ok(renderReview({ projects: [] }, { view: { mode: 'all' } }, now).includes('Nothing is waiting'));
-  assert.ok(renderRail('review', 0, '', 3).includes('aria-label="3 to review"'));
-  assert.ok(!renderRail('review', 0, '', 0).includes('rail-count'));
+  assert.ok(renderRail('review', 0, 3).includes('aria-label="3 to review"'));
+  assert.ok(!renderRail('review', 0, 0).includes('rail-count'));
 });
 test('actions and Undo, with GitHub calls', async () => {
   globalThis.localStorage = { getItem: () => 'tok', setItem() {}, removeItem() {} };
