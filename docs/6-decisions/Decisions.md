@@ -4,6 +4,14 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-11-12 — Build plan approved: tabs that follow the flow
+
+**Decision.** Eden, 01:50 UTC: "Build plan approved: tabs that follow the flow". The plan is
+`docs/plans/friction-build.html`: parent issue #248 and steps #249 to #259, built in that order on
+`claude/project-thread-gryib9`. At 01:41 UTC Eden asked for no test after each step: the agent checks
+each step (tests plus a browser check at phone and desktop widths) before the next, and Eden tests once
+at the end from one QA page with numbered tests for all eleven steps.
+
 ## 2026-11-12 — Design approved: friction plan part 2 (1-1, 2 own answer, 3-1, 4-1)
 
 **Context.** Part 2 (`docs/plans/friction-part2.html`): priority needed on every add, one-tap due dates,
