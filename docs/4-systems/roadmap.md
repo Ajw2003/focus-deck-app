@@ -38,9 +38,10 @@ wide; screenshots in `docs/generated/build-checks/step9/`).
 - Project view (switch on Project): name, big "N%", a bar, then the sections. The current milestone is open with four
   columns (Up next, In progress, Review, Done = status next / doing / review / done); the others are collapsed rows
   "tasks X of Y ▸" that open on a click. "+ Add a task" inside a milestone (its add row; the task gets that
-  `milestoneId`), "+ Add a milestone" (end of the last section), "+ Add a section". Top right: "Edit project" (the
+  `milestoneId`; it needs a priority like every add row, so Add stays off with "Pick a priority to add"; the box stays open, empty and
+  focused after each add, and Escape or a click away closes it), "+ Add a milestone" (end of the last section), "+ Add a section". Top right: "Edit project" (the
   existing edit panel: rename is not there today, area, colours, link to a GitHub repo, Remove), "Sync now" for a
-  GitHub project, "+ New project". Clicking a task opens Task details under the sections, with a Milestone menu and
+  GitHub project, "+ New project". Each task row shows a read-only priority chip (when set) and a due chip (open tasks); clicking the chip or the title opens Task details, where both change. Clicking a task opens Task details under the sections, with a Milestone menu and
   "Make this a milestone" (a task with subtasks becomes a milestone; its subtasks are its tasks).
 - Phone project view: the four columns become four buttons (Up next / In progress / Review / Done), one column
   visible at a time (`ui.rmCol`, per milestone).

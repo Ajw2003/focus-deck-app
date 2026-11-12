@@ -1525,9 +1525,10 @@ button.rm-ms-name:hover{text-decoration-color:var(--c);}
 .rm-dragging .rm-col:hover{outline:2px dashed var(--accent); outline-offset:-2px;}
 .rm-col-h{margin:0 0 6px; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); display:flex; justify-content:space-between;}
 .rm-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px;}
-.rm-task{display:flex; align-items:center; gap:6px; background:var(--surface); border-radius:8px; padding:6px 8px; min-width:0;}
+.rm-task{display:flex; flex-wrap:wrap; align-items:center; gap:6px; background:var(--surface); border-radius:8px; padding:6px 8px; min-width:0;}
 .rm-task.is-done .rm-task-title{color:var(--ink-soft); text-decoration:line-through;}
-.rm-task-title{flex:1 1 auto; min-width:0; border:0; background:none; color:inherit; font:inherit; text-align:left; padding:2px 0; cursor:pointer; overflow-wrap:anywhere;}
+.rm-task .chip{white-space:nowrap;}
+.rm-task-title{flex:1 1 7em; min-width:0; border:0; background:none; color:inherit; font:inherit; text-align:left; padding:2px 0; cursor:pointer; overflow-wrap:anywhere;}
 .rm-add-link{margin-top:8px;}
 .rm-foot{margin:14px 0 0; color:var(--ink-soft);}
 .rm-add-form{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; align-items:center;}

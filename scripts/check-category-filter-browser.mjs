@@ -1,6 +1,6 @@
 // scripts/check-category-filter-browser.mjs -- real-Chromium check of Settings > Category choices
 // (#133) at a phone width: the in-tray's flag cards offer only the folder's own categories plus
-// "More categories", which shows the rest; the task editor's label picker hides the others behind
+// "More categories", which shows the rest; Task details' label picker hides the others behind
 // "Show all N categories" (ticked ones always show); turning the setting off in Settings shows every
 // category everywhere, and the choice is stored.
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/check-category-filter-browser.mjs
@@ -74,7 +74,7 @@ async function chooseFlag(page, key) {
   await page.waitForTimeout(300);
 }
 // The Sort screen goes in steps (project, labels, links): Next moves on, and the last step's button files.
-const nextStep = async (page) => { await page.click('.file-btn[data-action="sort-next"]'); await page.waitForSelector('[data-wallet="tray-flags"], .links-step'); await page.waitForTimeout(300); };
+const nextStep = async (page, n = 3) => { await page.click('.step-tab[data-step="' + n + '"]'); await page.waitForSelector('[data-wallet="tray-flags"], .links-step'); await page.waitForTimeout(300); };
 const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 
 // 1. In the in-tray: before a folder, all; Home's flags; More categories shows the rest
@@ -83,7 +83,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   // "No folder yet: every category is offered" can no longer be reached: the labels step is locked until a project is chosen.
   await page.waitForSelector('[data-wallet="tray-folders"]');
   await chooseFolder(page, 'pHome');
-  await nextStep(page);
+  await nextStep(page, 2);
   const home = await flagKeys(page);
   check('in-tray, Home chosen: only Home’s categories, then More categories', JSON.stringify(home) === JSON.stringify([...kinds, 'c_chore', 'c_garden', '__more__']), home.join());
   check('More categories says how many', ((await page.$eval('[data-key="__more__"] .ct', (e) => e.textContent)) || '') === '4 more');
@@ -106,17 +106,22 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 // 2. In the task editor: Home's labels, ticked ones, then Show all
 {
   const { ctx, page } = await open();
-  await page.click('.rail [data-screen="projects"]');
-  await page.click('.task-title[data-task="h2"]');
-  await page.waitForSelector('.task-edit-form .label-picker');
-  await page.click('.task-edit-form .label-picker summary');
-  const visible = () => page.$$eval('.task-edit-form .label-option', (els) => els.filter((e) => e.offsetParent !== null).map((e) => e.textContent.trim()));
-  check('editor: only Home’s labels show', (await visible()).join() === 'Chore,Garden', (await visible()).join());
-  await page.fill('.task-edit-form input[name="title"]', 'Mop the kitchen floor');
-  await page.$eval('.task-edit-form', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); });
+  await page.click('.rail [data-screen="roadmap"]');
+  await page.click('.rm-row[data-project="pHome"] .rm-phone');
+  await page.waitForSelector('.rm-project');
+  await page.click('.rm-task-title[data-id="h2"]');
+  await page.waitForSelector('.cw-detail');
+  await page.click('.cw-detail [data-action="detail-fold"][data-key="labels"]');
+  await page.waitForSelector('.cw-detail .label-picker');
+  if (!(await page.$('.cw-detail .label-picker[open]'))) await page.click('.cw-detail .label-picker summary');
+  const visible = () => page.$$eval('.cw-detail .label-option', (els) => els.filter((e) => e.offsetParent !== null).map((e) => e.textContent.trim()));
+  check('Task details: only Home’s labels show', (await visible()).join() === 'Chore,Garden', (await visible()).join());
+  await page.$eval('.cw-detail', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); });
   await page.screenshot({ path: OUT + 'editor-filtered.png' });
-  await page.click('.task-edit-form [data-action="label-show-all"]');
-  check('editor: Show all reveals all six, and keeps what was typed', (await visible()).length === 6 && (await page.inputValue('.task-edit-form input[name="title"]')) === 'Mop the kitchen floor');
+  await page.click('.cw-detail [data-action="label-show-all"]');
+  // typed after Show all: blurring the title box repaints the panel, which folds Show all back and swallows a click on it
+  await page.fill('.cw-detail [data-detail-title]', 'Mop the kitchen floor');
+  check('Task details: Show all reveals all six, and keeps what was typed', (await visible()).length === 6 && (await page.$eval('.cw-detail [data-detail-title]', (e) => e.textContent)) === 'Mop the kitchen floor');
   await ctx.close();
 }
 
@@ -133,12 +138,15 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   await page.goto(BASE);
   await page.waitForSelector('[data-wallet="tray-folders"]');
   await chooseFolder(page, 'pHome');
-  await nextStep(page);
+  await nextStep(page, 2);
   check('off: Home offers every category, no More card', (await flagKeys(page)).length === kinds.length + 6);
-  await page.click('.rail [data-screen="projects"]');
-  await page.click('.task-title[data-task="h1"]');
-  await page.waitForSelector('.task-edit-form');
-  check('off: the editor has no Show all', !(await page.$('.task-edit-form [data-action="label-show-all"]')));
+  await page.click('.rail [data-screen="roadmap"]');
+  await page.click('.rm-row[data-project="pHome"] .rm-phone');
+  await page.click('.rm-task-title[data-id="h1"]');
+  await page.waitForSelector('.cw-detail');
+  await page.click('.cw-detail [data-action="detail-fold"][data-key="labels"]');
+  await page.waitForSelector('.cw-detail .label-picker');
+  check('off: Task details has no Show all', !(await page.$('.cw-detail [data-action="label-show-all"]')));
   await ctx.close();
 }
 

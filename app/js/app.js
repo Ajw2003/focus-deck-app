@@ -512,6 +512,7 @@ document.addEventListener('click', (e) => {
 
 function onAppClick(e) {
   const el = e.target.closest('[data-action]');
+  if (ui.rmAdd && ui.rmAdd.kind === 'task' && !e.target.closest('.add-row, .rm-add-link')) { ui.rmAdd = null; paint(); } // click away closes the Roadmap's add box
   if (!el) return;
   const action = el.getAttribute('data-action');
   const taskId = el.getAttribute('data-task');
@@ -1361,7 +1362,7 @@ function onAppSubmit(e) {
     const task = M.addTaskPicked(projectId, fd.get('title'), fd.get('deadline'), labelsFromForm(fd), fd.get('steps'), fd.get('priority'), dueStagesFromForm(fd));
     if (!task) return; // no priority picked: nothing is added (#249)
     const inMs = fd.get('milestone'); if (inMs && inMs !== 'unplanned') M.setTaskMilestone(task.id, String(inMs)); // added from a Roadmap milestone
-    ui.rmAdd = null;
+    // the Roadmap's add box stays open, empty and focused for the next task; Escape or a click away closes it
     createIssueIfGithubProject(task, projectId);
     delete ui.addDraft[projectId]; delete ui.addingTask[projectId]; delete ui.addPick[projectId];
     paint(); focusAddTitle(projectId);
@@ -1493,6 +1494,7 @@ function onAppKeydown(e) {
     const form = e.target.closest && e.target.closest('.add-task-form');
     const pid = form && form.getAttribute('data-project');
     if (form && ui.addingTask[pid]) { delete ui.addingTask[pid]; paint(); focusAddTitle(pid); }
+    else if (form && ui.rmAdd && ui.rmAdd.kind === 'task') { ui.rmAdd = null; paint(); }
   }
   // Escape inside the "+ New" panel closes it and returns focus to "+ New" (Q29a).
   // Each Escape closes only the innermost thing: stopPropagation keeps it from also reaching the

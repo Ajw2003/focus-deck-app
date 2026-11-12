@@ -2,7 +2,8 @@
 // a row per project with a card per milestone. Project view: sections, each holding milestones; the open one
 // shows four columns. The data is roadmapOf (js/roadmap.js); moves are js/roadmap-drag.js + app.js.
 // See docs/4-systems/roadmap.md and docs/4-systems/styling.md
-import { esc } from './state.js';
+import { esc, PRIORITY, deadlineChip } from './state.js';
+import { effectivePriority } from './areas.js';
 import { viewProjects, viewLabel } from './view-switch.js';
 import { roadmapOf, COLS, UNPLANNED } from './roadmap.js';
 import { renderProjectEditPanel, renderNewPanel, renderAddTaskRow, projectSortSelect } from './render.js';
@@ -33,13 +34,17 @@ function groupRow(p, reorder) {
 const grip = (kind, id, label, keys) => '<button type="button" class="rm-grip" data-kind="' + kind + '" data-id="' + esc(id) + '" aria-label="Move ' + esc(label) + '" title="Drag, or ' + keys + '">⋮⋮</button>';
 const step = (action, id, dir, label) => '<button type="button" class="btn ghost rm-step" data-action="' + action + '" data-id="' + esc(id) + '" data-dir="' + dir + '" aria-label="Move ' + (dir < 0 ? 'up' : 'down') + ': ' + esc(label) + '">' + (dir < 0 ? '↑' : '↓') + '</button>';
 
-function taskChip(t, p, col) {
+function taskChip(t, p, col, st) {
+  const pr = effectivePriority(t, st);
   const i = COLS.findIndex((c) => c[0] === col);
   const tstep = (d) => '<button type="button" class="btn ghost rm-step" data-action="rm-task-step" data-id="' + esc(t.id) + '" data-dir="' + d + '"' + (COLS[i + d] ? '' : ' disabled') + ' aria-label="Move to ' + (COLS[i + d] ? COLS[i + d][1] : 'nowhere') + ': ' + esc(t.title) + '">' + (d < 0 ? '←' : '→') + '</button>';
   return '<li class="rm-task' + (t.status === 'done' ? ' is-done' : '') + '" data-task-id="' + esc(t.id) + '">'
     + grip('task', t.id, t.title, 'Alt plus left or right arrow')
     + '<input type="checkbox" data-action="toggle-task" data-task="' + esc(t.id) + '" data-project="' + esc(p.id) + '"' + (t.status === 'done' ? ' checked' : '') + ' aria-label="Done: ' + esc(t.title) + '">'
     + '<button type="button" class="rm-task-title" data-action="rm-task" data-id="' + esc(t.id) + '">' + esc(t.title) + '</button>'
+    // read-only priority chip; a click opens Task details, where it is changed
+    + (pr ? '<button type="button" class="chip priority-chip small" data-action="rm-task" data-id="' + esc(t.id) + '" style="--chip-color:var(--prio-' + pr + ')" aria-label="Priority ' + PRIORITY[pr].label + ': ' + esc(t.title) + '">' + PRIORITY[pr].label + '</button>' : '')
+    + (t.deadline && t.status !== 'done' ? deadlineChip(t.deadline, t) : '')
     + '<span class="rm-tmoves">' + tstep(-1) + tstep(1) + '</span></li>';
 }
 
@@ -57,7 +62,7 @@ function milestone(m, p, ui, st, at) {
   if (open) {
     const tabs = COLS.map(([k, n]) => '<button type="button" class="rm-coltab' + (k === col ? ' on' : '') + '" data-action="rm-col" data-ms="' + esc(m.id) + '" data-col="' + k + '" aria-pressed="' + (k === col) + '">' + n + '</button>').join('');
     const cols = COLS.map(([k, n]) => '<div class="rm-col' + (k === col ? ' is-on' : '') + '" data-status="' + k + '" data-ms="' + esc(m.id) + '" role="group" aria-label="' + n + '"><h4 class="rm-col-h">' + n + ' <b>' + m.cols[k].length + '</b></h4><ul class="rm-list">'
-      + m.cols[k].map((t) => taskChip(t, p, k)).join('') + '</ul></div>').join('');
+      + m.cols[k].map((t) => taskChip(t, p, k, st)).join('') + '</ul></div>').join('');
     const adding = ui.rmAdd && ui.rmAdd.kind === 'task' && ui.rmAdd.ms === m.id;
     const add = adding
       ? renderAddTaskRow(p, st.categories || [], !!(ui.addingTask || {})[p.id], (ui.addDraft || {})[p.id] || '', 'Add a task to ' + m.name + '…', (ui.addPick || {})[p.id]).replace('<div class="add-line">', '<input type="hidden" name="milestone" value="' + esc(m.id) + '"><div class="add-line">')
