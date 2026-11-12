@@ -13,7 +13,7 @@ const { state, loadState, openTasksMatching, UNLABELLED } = await import('./stat
 const { mergeStates } = await import('./merge.js');
 const M = await import('./mutations.js');
 const A = await import('./areas.js');
-const { renderCategoryWalletInner } = await import('./render.js');
+const { renderCategoryCarousel } = await import('./render.js');
 const { cardKey } = await import('./card-key.js');
 
 const names = (st) => st.projectCategories.map((c) => c.name);
@@ -100,7 +100,7 @@ test('the Focus kinds row offers only ticked labels', () => {
   Object.assign(state, loadState());
   state.categories = [{ id: 'c1', name: 'Bug', color: 'red' }, { id: 'c2', name: 'Chore', color: 'blue' }];
   state.projects = [{ id: 'p', name: 'P', color: 'red', tasks: [{ id: 't1', title: 'x', status: 'next', categoryIds: ['c1'] }, { id: 't2', title: 'y', status: 'next', categoryIds: ['c2'] }] }];
-  const html = () => renderCategoryWalletInner(state, {});
+  const html = () => renderCategoryCarousel(state, {});
   assert.ok(html().includes('Bug') && html().includes('Chore'));
   M.setKindOfWork('c2', false);
   assert.ok(html().includes('Bug') && !html().includes('Chore'), 'unticked Chore is gone');
@@ -127,7 +127,7 @@ test('a task whose only labels are unticked counts as Unlabelled on Focus, and i
   Object.assign(state, loadState());
   state.categories = [{ id: 'c1', name: 'Bug', color: 'red' }, { id: 'c2', name: 'Chore', color: 'blue', kind: false }];
   state.projects = [{ id: 'p', name: 'P', color: 'red', tasks: [{ id: 't1', title: 'x', status: 'next', categoryIds: ['c2'] }] }];
-  assert.ok(renderCategoryWalletInner(state, {}).includes('Unlabelled'));
+  assert.ok(renderCategoryCarousel(state, {}).includes('Unlabelled'));
   assert.deepStrictEqual(openTasksMatching({ categoryId: UNLABELLED }), ['t1']);
   state.categories[1].kind = true;
   assert.deepStrictEqual(openTasksMatching({ categoryId: UNLABELLED }), []);

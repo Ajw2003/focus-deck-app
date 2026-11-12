@@ -1,5 +1,5 @@
 // focus-deck-app/js/render.test.mjs — run with: node app/js/render.test.mjs
-import { renderTaskRow, chipsMaxPct, renderToast, jotTarget, renderFocus, renderCategoryWalletInner, renderTaskEditForm, unsortedQueue, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderSyncButton, syncButtonTitle } from './render.js';
+import { renderTaskRow, chipsMaxPct, renderToast, jotTarget, renderFocus, renderCategoryCarousel, renderTaskEditForm, unsortedQueue, renderProjectSidebar, renderProjectCard, renderProjectsMain, renderSyncButton, syncButtonTitle } from './render.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import assert from 'node:assert';
 
@@ -112,7 +112,7 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
   const many = { ...st, projects: Array.from({ length: 9 }, (_, i) => ({ id: 'p' + i, name: 'project-' + i, color: '#123456', tasks: [task('t' + i, ['c_art'])] })) };
   assert.strictEqual(keys(renderFocus(many, () => null, { focusFilter: {} }), 'projects').length, 10, 'All projects plus all nine folders');
   // the category wallet renders alone for a project flip
-  assert.ok(renderCategoryWalletInner(st, { focusFilter: { projectId: 'pB' } }).includes('data-wallet="categories"') && !renderCategoryWalletInner(st, { focusFilter: {} }).includes('data-wallet="projects"'), 'the category wallet slot renders on its own');
+  assert.ok(renderCategoryCarousel(st, { focusFilter: { projectId: 'pB' } }).includes('data-wallet="categories"') && !renderCategoryCarousel(st, { focusFilter: {} }).includes('data-wallet="projects"'), 'the category wallet slot renders on its own');
 }
 
 // unlabelled tasks: the focus picker keeps its Unlabelled card but no longer links to a sort flow

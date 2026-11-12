@@ -238,7 +238,7 @@ function focusMetaParts(st, t) {
   if (focus.pool && !(focus.filter && focus.filter.categoryId)) {
     if (focus.allBlocked) parts.push('Everything here is waiting on something');
     else if (n > 0) reason = '<span><b class="unblocks">Unblocks ' + n + (n === 1 ? ' task' : ' tasks') + '</b></span>';
-    else parts.push('Random pick');
+    else parts.push(focus.ordered ? 'Picked for you' : 'Random pick');
   }
   const lvl = effectivePriority(t, st);
   if (lvl) parts.push(PRIORITY[lvl].label);

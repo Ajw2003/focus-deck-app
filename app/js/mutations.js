@@ -1,5 +1,7 @@
 // focus-deck-app/js/mutations.js
 import { rankFocusPool, isBlocked } from './task-links.js';
+import { pickOrder } from './pick-order.js';
+import { dueDates } from './pick-bits.js';
 import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER, splitLongThought } from './state.js';
 import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriorityToIssue, pushReviewToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
 // The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
@@ -322,6 +324,12 @@ export function reroll() {
     return found && found.task.status !== 'done'; // skip tasks finished since the pick
   });
   if (!others.length) return;
+  if (state.focus.ordered) { // picked for you: the next one down the order, wrapping round
+    const pool = state.focus.pool, at = pool.indexOf(state.focus.taskId);
+    state.focus.taskId = pool.slice(at + 1).concat(pool.slice(0, at)).find((id) => others.includes(id));
+    persist();
+    return;
+  }
   const free = others.filter((id) => !isBlocked(state.projects, id)); // prefer a task that can be started
   const from = free.length ? free : others;
   state.focus.taskId = from[Math.floor(Math.random() * from.length)];
