@@ -153,13 +153,13 @@ test('the card: count, top slip, folder on it, flags on it, wallets, quiet links
   assert.ok(html.includes('3 to sort') && html.includes('slip-behind two'), 'a small stack with a count');
   assert.ok(html.includes('Buy a card') && html.includes('Going in <span class="folder-chip"') && html.includes('>Home<'), 'the chosen folder shows on the slip');
   assert.ok(/class="slip-flag"[^>]*>Art</.test(html), 'the chosen flag is stuck on the slip');
-  assert.ok(html.includes('step-tab now') && html.includes('>Next: labels →<') && !html.includes('tray-flags'), 'part 1: the folder wallet and Next');
+  assert.ok(html.includes('step-tab now') && html.includes('Pick a priority to file<') && !html.includes('tray-flags'), 'part 1: the folder wallet and a file button that waits for a priority');
   assert.ok(html.includes('data-wallet="tray-folders"') && html.includes('data-verb="use"'));
   const part2 = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 2, projectId: 'pB', selected: ['c_art'] }) });
   assert.ok(part2.includes('data-wallet="tray-flags"') && !part2.includes('tray-folders') && part2.includes('>Next: link to other tasks →<') && part2.includes('data-action="sort-back">← Back<'));
   html = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { step: 3, priority: 'high', projectId: 'pB', selected: ['c_art'] }) });
   assert.ok(/icard project is-picked/.test(renderInTrayCard(state, ui)) && /icard is-picked/.test(part2), 'chosen cards are marked');
-  assert.ok(html.includes('data-action="unsorted-file" data-inbox="th1">File it in Home →<'));
+  assert.ok(html.includes('data-action="unsorted-file" data-inbox="th1">File to Home →<'));
   assert.ok(html.includes('>Done already<') && html.includes('data-action="unsorted-skip">Later<') && html.includes('>Delete<'));
   const none = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() });
   assert.ok(none.includes('No project yet') && none.includes('disabled>Choose a project first<') && !none.includes('unsorted-file'), 'no folder: File it is off');
@@ -202,7 +202,7 @@ test('step bar: three tabs, later ones off, finished ones tappable, summaries', 
   const p3 = card({ step: 3, priority: 'high', projectId: 'pB', selected: ['c_art', 'c_chore'] });
   assert.ok(p3.includes('class="step-tab done" data-action="sort-step" data-step="1"') && !p3.includes('data-step="2" aria-disabled'));
   assert.ok(p3.includes('<small>Art, Chore</small>') && p3.includes('<small>optional</small>') && p3.includes('>Across all projects<'));
-  assert.ok(!p3.includes('data-wallet=') && p3.includes('File it in Home →') && p3.includes('data-action="sort-back"'));
+  assert.ok(!p3.includes('data-wallet=') && p3.includes('File to Home →') && p3.includes('data-action="sort-back"'));
 });
 
 test('folder search filters folders; flag search filters flags and shows all', () => {

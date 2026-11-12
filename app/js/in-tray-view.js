@@ -88,7 +88,7 @@ function trayWallets(st, u, project, step, allCards, mode, tid) {
           return sleeve({ key: f.id, name: f.name, color: f.color, kind: 'project', picked, detail, speak: f.name + ', ' + (picked ? 'chosen. Choose it again to clear.' : detail) });
         });
         const facing = folders.some((f) => f.id === u.facingFolder) ? u.facingFolder : (project && folders.some((f) => f.id === project.id) ? project.id : folders[0].id);
-        html += '<div class="wallet" id="tray-folder-wallet">' + walletInner({ wallet: 'tray-folders', label: '', aria: 'Projects. Arrow keys flip, Enter chooses or clears.', items, facing, mode, verb: 'use' }) + '</div>';
+        html += '<div class="wallet" id="tray-folder-wallet">' + walletInner({ wallet: 'tray-folders', label: 'Which project?', aria: 'Projects. Arrow keys flip, Enter chooses or clears.', items, facing, mode, verb: 'use' }) + '</div>';
       } else {
         html += '<p class="muted small find-empty">No project matches “' + esc(q) + '”.</p>';
       }
@@ -138,14 +138,18 @@ function renderTray(st, u, ordered, mode, head = '') {
     : '<button type="button" class="slip-notes-link" data-action="sort-add-notes">+ Add notes</button>';
   const n = ordered.length;
   const ids = isThought ? 'data-inbox="' + cur.item.id + '"' : 'data-task="' + cur.task.id + '" data-project="' + cur.project.id + '"';
-  const main = step === 1
-    ? (project ? '<button type="button" class="file-btn" data-action="sort-next">Next: labels →</button>' : '<button type="button" class="file-btn" disabled>Choose a project first</button>')
+  // a thought is filed from part 1 ("File to <project>", off until a project and a priority are picked, #253);
+  // its other parts are tabs. A task slip is already in a project: Next, Next, Save.
+  const fileBtn = isThought
+    ? (project && u.priority
+      ? '<button type="button" class="file-btn" data-action="unsorted-file" data-inbox="' + cur.item.id + '">File to ' + esc(project.name) + ' →</button>'
+      : '<button type="button" class="file-btn" disabled>' + (project ? 'Pick a priority to file' : 'Choose a project first') + '</button>')
+    : '<button type="button" class="file-btn" data-action="unsorted-save" ' + ids + '>Save in ' + (project ? esc(project.name) : '') + ' →</button>';
+  const main = isThought
+    ? (step === 2 ? '<button type="button" class="file-btn" data-action="sort-next">Next: link to other tasks →</button>' : fileBtn)
+    : step === 1 ? (project ? '<button type="button" class="file-btn" data-action="sort-next">Next: labels →</button>' : '<button type="button" class="file-btn" disabled>Choose a project first</button>')
     : step === 2 ? '<button type="button" class="file-btn" data-action="sort-next">Next: link to other tasks →</button>'
-    : isThought
-      ? (u.priority
-        ? '<button type="button" class="file-btn" data-action="unsorted-file" data-inbox="' + cur.item.id + '">File it in ' + esc(project.name) + ' →</button>'
-        : '<button type="button" class="file-btn" disabled>Pick a priority to file</button>')
-      : '<button type="button" class="file-btn" data-action="unsorted-save" ' + ids + '>Save in ' + esc(project.name) + ' →</button>';
+    : fileBtn;
   // .tray-side holds the slip and its buttons: on a wide Sort screen it stays in view beside the
   // choices; on a phone it dissolves (display:contents) so the buttons come after the choices
   // a thought needs a priority and may take a due date (#249); a task already has its own
