@@ -86,23 +86,23 @@
    [
     [
      "toggle-inbox",
-     "Show or hide the Sort list",
-     "s0"
+     "The \"N to sort\" heading (the Sort tab always shows the list; the old collapse was already a no-op there)",
+     "s0 s10"
     ],
     [
      "sort-step",
-     "Jump to a step",
+     "A pencil on the receipt jumps back to its step",
      "s9"
     ],
     [
      "sort-next",
-     "Next step",
-     "s1 s2 s3 s4 s5 s6 s7 s8"
+     "Next step, and the Sort this one stamp",
+     "s0 s1 s2 s3 s4 s4b s5 s6 s7 s8"
     ],
     [
      "sort-back",
-     "Back a step",
-     "s2 s9"
+     "Back corner",
+     "s1 s2 s3 s3a s3b s4 s4a s4b s5 s6 s7 s8 s9 s0n"
     ],
     [
      "open-pick",
@@ -125,8 +125,63 @@
      "s0m s0n"
     ],
     [
+     "sort-menu",
+     "The ⋯ on the slip: open or close the drawer",
+     "s0 s0m"
+    ],
+    [
+     "sort-skip",
+     "Skip flag (steps 3 to 8)",
+     "s3 s3a s4 s4b s5 s6 s7 s8"
+    ],
+    [
+     "sort-notes-done",
+     "Save notes",
+     "s0n"
+    ],
+    [
+     "sort-new-label",
+     "+ New label",
+     "s3 s3b"
+    ],
+    [
+     "sort-new-project",
+     "+ New project",
+     "s1"
+    ],
+    [
+     "sort-add-project",
+     "Add the new project",
+     "s1"
+    ],
+    [
+     "sort-azl",
+     "A–Z card drawer",
+     "s3 s3a"
+    ],
+    [
+     "sort-letter",
+     "A–Z drawer: a letter tab",
+     "s3a"
+    ],
+    [
+     "sort-flag",
+     "Put a label on or take it off (A–Z drawer, picked tags)",
+     "s3 s3a"
+    ],
+    [
+     "sort-month",
+     "Another date: previous or next month",
+     "s4a"
+    ],
+    [
+     "sort-use-date",
+     "Another date: Use this date",
+     "s4a"
+    ],
+    [
      "sort-new-flag",
-     "New label while sorting",
+     "Add the new label",
      "s3b"
     ],
     [
@@ -136,7 +191,7 @@
     ],
     [
      "tie-open",
-     "Start linking a task",
+     "Start linking a task (now the Find box is open on each of steps 5 to 8)",
      "s5 s6 s7 s8"
     ],
     [
@@ -151,32 +206,32 @@
     ],
     [
      "tie-remove",
-     "Remove a link",
-     "s9"
+     "Remove a link (tap the clipped one)",
+     "s5 s6 s7 s8"
     ],
     [
      "unsorted-file",
-     "File it to the project",
+     "Save to <project>: files the thought",
      "s9 s10"
     ],
     [
      "unsorted-save",
-     "Save the thought's edits",
-     "s0n"
+     "Save a task that was already in a project (Save to <project>)",
+     "s9"
     ],
     [
      "unsorted-complete",
-     "Done already",
+     "Done already (the ⋯ drawer)",
      "s0m"
     ],
     [
      "unsorted-skip",
-     "Later",
+     "Later (the ⋯ drawer)",
      "s0m"
     ],
     [
      "unsorted-delete",
-     "Delete",
+     "Delete (the ⋯ drawer)",
      "s0m"
     ],
     [
