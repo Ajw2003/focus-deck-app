@@ -1,7 +1,7 @@
 // focus-deck-app/js/pick-order.test.mjs -- run with: node --test app/js/pick-order.test.mjs
 import test from 'node:test';
 import assert from 'node:assert';
-import { pickOrder } from './pick-order.js';
+import { pickOrder, reasonOf } from './pick-order.js';
 
 const st = { categories: [] };
 const e = (id, o = {}) => ({ t: Object.assign({ id, status: 'next', deadline: null, priority: null, categoryIds: [] }, o), p: {} });
