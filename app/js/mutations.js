@@ -198,6 +198,9 @@ export function undoDone(taskId) {
   setTaskStatus(taskId, ['next', 'doing', 'review'].includes(prev) ? prev : 'next');
 }
 
+// Tidy up's Confirm (#255): closes each id the way ticking Done does (GitHub issue closed as completed); Undo is undoDone.
+export function confirmTidy(ids) { ids.forEach((id) => setTaskStatus(id, 'done')); }
+
 export function deleteTask(taskId, projectId) {
   const project = state.projects.find((p) => p.id === projectId);
   if (!project) return;
