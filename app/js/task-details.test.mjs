@@ -1,6 +1,5 @@
 // focus-deck-app/js/task-details.test.mjs -- run with: node app/js/task-details.test.mjs
 import { notesSummary, whenSummary, labelsSummary, subtasksSummary, linksSummary, renderTaskDetails } from './task-details.js';
-import { renderBoard } from './board-view.js';
 import assert from 'node:assert';
 
 const now = new Date('2026-10-08T12:00:00').getTime();
@@ -72,9 +71,6 @@ const st = {
   assert.ok(h.includes('Waits on') && h.includes('data-action="detail-goto" data-task-id="t1"'), 'linked task is a button that selects it');
   assert.ok(renderTaskDetails(st, { boardOpen: 'nonsense' }, 't1', now).indexOf('set-body') < 0, 'unknown row id opens nothing');
 }
-{
-  const ui = { boardCol: 'next', boardSelected: 't1' };
-  assert.ok(renderBoard(st, ui, now).includes('Task details'), 'the Board shows the panel for the selected card');
-  assert.ok(renderBoard(st, { ...ui, boardSelected: null }, now).includes('No task selected.'), 'and the hint when nothing is selected');
-}
+// the panel is the same on every tab (app.js draws it under the screen; Review and Roadmap draw it themselves)
+assert.ok(renderTaskDetails(st, {}, 't1', now).includes('Task details'), 'the panel shows for a task');
 console.log('task-details tests passed');

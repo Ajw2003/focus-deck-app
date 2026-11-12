@@ -24,7 +24,7 @@ const { mergeStates } = await import('./merge.js');
 const { state } = await import('./state.js');
 const M = await import('./mutations.js');
 const { upsertRepoProject, transferTaskIssue } = await import('./github-sync.js');
-const { renderTaskRow, renderProjectCard, renderMoveDialog } = await import('./render.js');
+const { renderTaskRow, renderMoveDialog } = await import('./render.js');
 
 const task = (id, sortOrder, extra) => Object.assign({ id, title: id.toUpperCase(), status: 'next', source: 'manual' }, sortOrder === undefined ? {} : { sortOrder }, extra);
 const ids = (list) => list.map((t) => t.id);
@@ -209,14 +209,6 @@ test('markup: every open row has a grip before the checkbox, done rows have none
   assert.ok(open.includes('<svg'), 'it carries the hand-drawn grip icon');
   const done = renderTaskRow({ id: 't2', title: 'Old', status: 'done' }, p, [], { editingTask: null });
   assert.ok(!done.includes('task-grip'), 'done rows do not drag');
-});
-
-test('markup: both groups always render, in sortOrder, empty ones as drop targets', () => {
-  const p = { id: 'p1', name: 'P', color: 'red', tasks: [task('a', 3, { status: 'next' }), task('b', 1, { status: 'next' })] };
-  const html = renderProjectCard(p, { doneOpen: {}, projectCollapsed: {}, editingProject: {}, addingTask: {}, projectView: 'all' }, [], [], false);
-  assert.ok(html.indexOf('data-task="b"') < html.indexOf('data-task="a"'), 'ascending sortOrder');
-  assert.match(html, /class="task-group is-empty" data-group="doing" data-project="p1"><h4 class="group-label">In progress<\/h4><div class="drop-zone">Drop here<\/div>/);
-  assert.match(html, /class="task-group" data-group="next" data-project="p1"><h4 class="group-label">Up next<\/h4>/);
 });
 
 test('markup: the move dialog', () => {

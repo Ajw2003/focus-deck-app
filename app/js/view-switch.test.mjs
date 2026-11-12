@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { normalizeView, viewProjects, viewState, defaultFor, renderViewSwitch, VIEW_ALL } from './view-switch.js';
 import { boardList } from './board.js';
-import { renderBoard } from './board-view.js';
+import { renderRoadmap } from './roadmap-view.js';
 import { folderCards } from './in-tray.js';
 import { renderInTrayCard } from './in-tray-view.js';
 
@@ -59,10 +59,9 @@ test('Sort: project choices follow the view, thoughts are not filtered', () => {
   assert.ok(html.includes('Report') && !html.includes('Garden'), 'only the area\'s projects are offered');
 });
 
-test('Board markup: only the view\'s tasks, and no filters of its own', () => {
-  const h = renderBoard(st(), { view: AREA('pcat_work'), boardCol: 'next' }, NOW);
-  assert.ok(h.includes('t4') && !h.includes('t1'));
-  assert.ok(!h.includes('<select') && !h.includes('board-pcat'));
+test('Roadmap group view: only the view\'s projects, in the Find box\'s narrowing', () => {
+  const h = renderRoadmap(st(), { view: AREA('pcat_work') }, false);
+  assert.ok(h.includes('Report') && !h.includes('Shed') && !h.includes('Garden'));
 });
 
 test('defaultFor: tapping a mode picks something real, keeps the current pick', () => {

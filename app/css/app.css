@@ -1225,6 +1225,8 @@ body.is-dragging-task .empty-note{display:none;}
 .screen-sort .tray-wallets .flip-track.is-spread{grid-template-columns:repeat(auto-fill, minmax(176px, 1fr));}
 .screen-sort .tray-wallets .flip-track.is-spread .icard{height:84px;}
 .screen-sort .tray-wallets .flip-track.is-spread .icard.project{height:80px;}
+.task-open{margin-left:auto; padding:2px 8px; color:var(--ink-soft); text-decoration:underline; cursor:pointer;}
+.note .task-open{color:var(--note-ink);}
 .rail-label{display:block; line-height:1.1;}
 /* laid flat, the line under the wallets says what a click does; a corner hint would sit on the card's counts */
 .flip-track.is-spread .icard .go{display:none;}
