@@ -66,7 +66,8 @@ for (const phone of [true, false]) {
   const noScroll = async (n) => check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), tag + 'no sideways scroll ' + n);
   const pickArea = async (id) => { await page.click('[data-action="view-mode"][data-mode="area"]'); await page.click('[data-action="view-pick"][data-id="' + id + '"]'); };
   const doneIds = () => page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).projects.flatMap((p) => p.tasks).filter((x) => x.status === 'done').map((x) => x.id).sort().join());
-  await page.click('[data-screen="tidy"]');
+  const goScreen = async (k) => { const d = page.locator('.rail-item[data-screen="' + k + '"]'); if (await d.isVisible()) return d.click(); if (!(await page.locator('.org-tab[data-screen="' + k + '"]').count())) await page.click('.rail-organize'); await page.click('.org-tab[data-screen="' + k + '"]'); };
+  await goScreen('tidy');
   await page.waitForSelector('.td-layout');
   check((await page.textContent('.board-title')) === 'Tidy up: All', tag + 'title says All');
   check(await counts() === 'review:2,replaced:2,same:2,stale:2', tag + 'four groups, two each', await counts());
@@ -89,7 +90,7 @@ for (const phone of [true, false]) {
   await pickArea('a1');
   await page.click('.td-confirm');
   check(await page.isVisible('.tr-layout'), tag + 'Confirm leads to Triage');
-  await page.click('[data-screen="tidy"]');
+  await goScreen('tidy');
   check(await doneIds() === 'h1,h3,h5', tag + 'Confirm closed only the three Home marks', await doneIds());
   check(await counts() === 'replaced:1', tag + 'closed tasks leave the groups', await counts());
   check((await page.$$('.td-closed .td-row')).length === 3, tag + 'Closed list has 3');

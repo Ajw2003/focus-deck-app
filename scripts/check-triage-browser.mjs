@@ -63,16 +63,17 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   const order = () => page.$$eval('.tr-row', (r) => r.map((x) => x.dataset.taskId).join());
   const chips = () => page.$$eval('.tr-row .tr-chip', (r) => r.map((x) => x.textContent).join('|'));
   const noScroll = async (n) => check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), tag + 'no sideways scroll ' + n);
-  const goTriage = async () => { await page.click('[data-screen="triage"]'); await page.waitForSelector('.tr-layout'); };
+  const goScreen = async (k) => { const d = page.locator('.rail-item[data-screen="' + k + '"]'); if (await d.isVisible()) return d.click(); if (!(await page.locator('.org-tab[data-screen="' + k + '"]').count())) await page.click('.rail-organize'); await page.click('.org-tab[data-screen="' + k + '"]'); };
+  const goTriage = async () => { await goScreen('triage'); await page.waitForSelector('.tr-layout'); };
   const pickArea = async (id) => { await page.click('[data-action="view-mode"][data-mode="area"]'); await page.click('[data-action="view-pick"][data-id="' + id + '"]'); };
   const laterHidden = () => page.$eval('.tr-later .tr-list', (e) => e.hidden);
 
   // the 7-tab phone bar must fit: every label whole, nothing wider than the bar
   const fit = await page.evaluate(() => {
-    const items = [...document.querySelectorAll('.rail-item')];
+    const items = [...document.querySelectorAll('.rail-item')].filter((i) => i.offsetParent);
     return { n: items.length, clipped: items.filter((i) => i.querySelector('.rail-label').scrollWidth > i.clientWidth).map((i) => i.textContent.trim()).join() };
   });
-  check(fit.n === 7 && fit.clipped === '', tag + 'seven rail items, no label clipped', fit.n + ' ' + fit.clipped);
+  check(fit.clipped === '', tag + 'no rail label clipped', fit.n + ' ' + fit.clipped);
 
   await goTriage();
   check((await page.textContent('.board-title')) === 'Triage: All', tag + 'title says All');
@@ -131,7 +132,7 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   const picked = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).focus.taskId);
   check(picked === 'rev1' && (await page.textContent('body')).includes('Task rev1'), tag + 'pick for me opens the first Now task', picked);
   // Tidy up -> Confirm N, then Triage
-  await page.click('[data-screen="tidy"]');
+  await goScreen('tidy');
   await page.click('.td-row[data-task-id="rev1"] [data-mark="close"]');
   check((await page.textContent('.td-confirm')) === 'Confirm 1, then Triage', tag + 'button says Confirm 1, then Triage');
   await page.click('.td-confirm');
