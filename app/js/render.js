@@ -1,7 +1,7 @@
 // focus-deck-app/js/render.js
 import { pickChip, renderPickBlocks } from './pick-bits.js';
 import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED } from './state.js';
-import { ICON_SYNC, ICON_SETTINGS, ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
+import { ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
 import { unblockCount, subtasksOf, tieSummary, tieLineHtml } from './task-links.js';
 import { sortTasks } from './task-move.js';
 import { leadChoices, suggestLead, normalizeDueDefaults } from './due-stage.js';
@@ -28,12 +28,14 @@ export function syncButtonTitle(st) {
     : 'Sync with GitHub';
 }
 
+// The sync light (green dot; amber while syncing, red after an error). Tapping it opens a small drawer with
+// Sync now and Sync settings (st._ui.syncOpen). The light's title/aria-label carry syncButtonTitle.
 export function renderSyncButton(st) {
-  const syncing = !!(st._ui && st._ui.syncing);
+  const ui = st._ui || {}, syncing = !!ui.syncing;
   const title = syncButtonTitle(st);
-  return '<button type="button" class="icon-btn sync-btn' + (syncing ? ' is-syncing' : '') + '" data-action="sync-github" title="' + esc(title) + '" aria-label="' + esc(title) + '"' + (syncing ? ' disabled' : '') + '>'
-    + ICON_SYNC
-    + '</button>';
+  return '<button type="button" class="sync-light' + (syncing ? ' is-syncing' : ui.syncError ? ' is-error' : '') + '" data-action="sync-drawer" aria-haspopup="true" aria-expanded="' + !!ui.syncOpen + '" title="' + esc(title) + '" aria-label="' + esc(title) + '"></button>'
+    + (ui.syncOpen ? '<div class="sync-drawer" role="menu"><button type="button" role="menuitem" class="dk-choice" data-action="sync-github"' + (syncing ? ' disabled' : '') + '>Sync now</button>'
+      + '<a role="menuitem" class="dk-choice" href="settings.html#sync-section">Sync settings</a></div>' : '');
 }
 
 // The one place errors and notices appear, on every page: pinned to the bottom of the viewport
@@ -42,36 +44,35 @@ export function renderSyncButton(st) {
 // One activity at a time (#135): the screens, and the rail that switches between them (a column
 // on the left on a wide screen, a bar along the bottom on a phone). Adding stays on every screen:
 // it is the jotter in the topbar. See docs/4-systems/styling.md#one-screen-at-a-time
-export const SCREENS = ['sort', 'tidy', 'triage', 'roadmap', 'focus', 'review'];
+export const SCREENS = ['sort', 'tidy', 'triage', 'projects', 'roadmap', 'focus', 'review'];
 const SCREEN_INFO = {
-  focus: { label: 'Focus', icon: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>' },
-  sort: { label: 'Sort', icon: '<path d="M4 7h16M4 12h10M4 17h6"/>' },
-  review: { label: 'Review', icon: '<path d="M5 12.5l4.5 4.5L19 7.5"/>' },
-  tidy: { label: 'Tidy up', icon: '<path d="M4 6h16M7 6l1 13h8l1-13M10 6V4h4v2"/>' },
-  triage: { label: 'Triage', icon: '<path d="M4 6h16M4 12h11M4 18h6"/><path d="M19 14v6M16.5 17.5L19 20l2.5-2.5"/>' },
-  roadmap: { label: 'Roadmap', icon: '<path d="M4 6h9M4 12h14M4 18h7"/><circle cx="17" cy="6" r="2"/><circle cx="21" cy="18" r="1.5"/>' },
+  focus: { label: 'Focus', icon: '◎' },
+  sort: { label: 'Sort', icon: '📥' },
+  review: { label: 'Review', icon: '✓' },
+  tidy: { label: 'Tidy up', icon: '🧹' },
+  triage: { label: 'Triage', icon: '🧹' },
+  projects: { label: 'Projects', icon: '📁' },
+  roadmap: { label: 'Roadmap', icon: '🗺' },
 };
-// A saved screen from before the five tabs (Board, Projects) opens the Roadmap; anything else unknown (Start here) opens Focus.
-export function normalizeScreen(value) { return SCREENS.includes(value) ? value : (value === 'board' || value === 'projects') ? 'roadmap' : 'focus'; }
-// The five tabs, in the order of the flow (#259). Organize holds Tidy up and Triage.
-const svg = (k) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[k].icon + '</svg>';
-// syncHTML is the sync button (renderSyncButton): on a wide screen it and Settings sit at the foot of
-// the rail instead of the topbar; .rail-tools is hidden on a phone, where the topbar keeps them.
+// A saved screen from before the Projects tab (Board) opens Projects; anything else unknown (Start here) opens Focus.
+export function normalizeScreen(value) { return SCREENS.includes(value) ? value : value === 'board' ? 'projects' : 'focus'; }
+// The six tabs, drawn as ring-binder dividers (.dk-tabs), in the order of the flow. Organize holds Tidy up and Triage.
 // Only Sort and Review carry a count. See docs/4-systems/tabs.md
-export function renderRail(screen, unsortedCount, syncHTML = '', reviewCount = 0) {
+export function renderRail(screen, unsortedCount, reviewCount = 0) {
   const org = screen === 'tidy' || screen === 'triage';
-  const tab = (n, label, key, on, attrs, count, countLabel) => '<button type="button" class="rail-item' + (on ? ' is-on' : '') + '" data-action="set-screen" ' + attrs + (on ? ' aria-current="page"' : '') + '>'
-    + '<span class="rail-icon">' + svg(key) + (count ? '<b class="rail-count" aria-label="' + count + ' ' + countLabel + '">' + count + '</b>' : '') + '</span>'
-    + '<span class="rail-label"><span class="rail-num">' + n + '</span> ' + label + '</span></button>';
+  const tab = (label, key, on, attrs, count, countLabel) => '<button type="button" class="rail-item' + (on ? ' is-on on' : '') + '" data-action="set-screen" ' + attrs + (on ? ' aria-current="page"' : '') + '>'
+    + '<span class="rail-icon" aria-hidden="true">' + SCREEN_INFO[key].icon + '</span>' + (count ? '<b class="rail-count" aria-label="' + count + ' ' + countLabel + '">' + count + '</b>' : '')
+    + '<span class="rail-label">' + label + '</span></button>';
   const sub = (k) => '<button type="button" class="rail-sub' + (screen === k ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + k + '"' + (screen === k ? ' aria-current="page"' : '') + '>' + SCREEN_INFO[k].label + '</button>';
-  return '<nav class="rail" aria-label="What to do">'
-    + tab(1, 'Sort', 'sort', screen === 'sort', 'data-screen="sort"', unsortedCount, 'to sort')
-    + tab(2, 'Organize', 'tidy', org, 'data-go="' + (screen === 'triage' ? 'triage' : 'tidy') + '"', 0, '')
+  return '<nav class="rail dk-tabs" aria-label="What to do">'
+    + tab('Sort', 'sort', screen === 'sort', 'data-screen="sort"', unsortedCount, 'to sort')
+    + tab('Organize', 'tidy', org, 'data-go="' + (screen === 'triage' ? 'triage' : 'tidy') + '"', 0, '')
     + '<div class="rail-subs">' + sub('tidy') + sub('triage') + '</div>'
-    + tab(3, 'Roadmap', 'roadmap', screen === 'roadmap', 'data-screen="roadmap"', 0, '')
-    + tab(4, 'Focus', 'focus', screen === 'focus', 'data-screen="focus"', 0, '')
-    + tab(5, 'Review', 'review', screen === 'review', 'data-screen="review"', reviewCount, 'to review')
-    + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn rail-settings" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '<span class="rail-settings-label" aria-hidden="true">Settings</span></a></div></nav>';
+    + tab('Projects', 'projects', screen === 'projects', 'data-screen="projects"', 0, '')
+    + tab('Roadmap', 'roadmap', screen === 'roadmap', 'data-screen="roadmap"', 0, '')
+    + tab('Focus', 'focus', screen === 'focus', 'data-screen="focus"', 0, '')
+    + tab('Review', 'review', screen === 'review', 'data-screen="review"', reviewCount, 'to review')
+    + '</nav>';
 }
 
 // The jotter's "To:" stamp (#242): ui.jotTo undefined follows the screen (Board's chosen project, or

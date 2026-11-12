@@ -72,16 +72,18 @@ test('defaultFor: tapping a mode picks something real, keeps the current pick', 
   assert.deepStrictEqual(defaultFor('project', VIEW_ALL, { projects: [], projectCategories: [] }), VIEW_ALL, 'no projects: stays All');
 });
 
-test('markup: aria-pressed switch, button hidden on All, sheet lists areas, search over 8 projects', () => {
+test('markup: one tape naming the view in caps, a drawer of index cards, areas and projects listed, search over 8 projects', () => {
   const s = st();
   const all = renderViewSwitch(s, VIEW_ALL, false);
-  assert.ok(all.includes('aria-pressed="true"') && !all.includes('vs-pick'));
-  const area = renderViewSwitch(s, AREA('pcat_home'), true);
-  assert.ok(area.includes('vs-pick-name">Home<') && area.includes('role="dialog"') && area.includes('vs-dot'));
+  assert.ok(all.includes('vs-tape') && all.includes('>Everything<') && !all.includes('vs-pop') && !all.includes('vs-seg'), 'a tape, no switch, drawer shut');
+  const menu = renderViewSwitch(s, VIEW_ALL, 'menu');
+  assert.ok(menu.includes('role="dialog"') && menu.includes('>Everything</button>') && menu.includes('One area ›') && menu.includes('One project ›'), 'the drawer: Everything, One area, One project');
+  const area = renderViewSwitch(s, AREA('pcat_home'), 'area');
+  assert.ok(area.includes('vs-pick-name">Home<') && area.includes('vs-dot') && area.includes('view-step'), 'the tape names the area; the list has a back corner');
   assert.strictEqual((area.match(/data-action="view-pick"/g) || []).length, 3, 'every area');
-  assert.ok(!renderViewSwitch(s, { mode: 'project', id: 'a' }, true).includes('vs-search'), 'no search for 5 projects');
+  assert.ok(!renderViewSwitch(s, { mode: 'project', id: 'a' }, 'project').includes('vs-search'), 'no search for 5 projects');
   for (let i = 0; i < 4; i++) s.projects.push({ id: 'x' + i, name: 'X' + i, color: '#000', tasks: [] });
-  const many = renderViewSwitch(s, { mode: 'project', id: 'a' }, true);
+  const many = renderViewSwitch(s, { mode: 'project', id: 'a' }, 'project');
   assert.ok(many.includes('vs-search') && many.includes('vs-group">Home'), 'search and grouped by area');
 });
 

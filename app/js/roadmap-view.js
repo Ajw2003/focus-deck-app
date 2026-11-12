@@ -105,12 +105,13 @@ function projectView(st, ui, p, hasToken) {
     + secs + un + foot + detail(st, ui, p);
 }
 
-export function renderRoadmap(st, ui, hasToken = false) {
+// group: the Projects tab, which always shows the project list; the Roadmap tab shows one project (#262).
+export function renderRoadmap(st, ui, hasToken = false, group = false) {
   const view = ui.view || { mode: 'all' }, name = view.mode === 'all' ? 'All' : viewLabel(st, view);
-  const p = view.mode === 'project' && (st.projects || []).find((x) => x.id === view.id);
+  const p = !group && view.mode === 'project' && (st.projects || []).find((x) => x.id === view.id);
   if (p) return '<div class="rm rm-project" style="--c:' + esc(p.color) + '">' + projectView(st, ui, p, hasToken) + '</div>';
   const ps = filterAndSortProjects(viewProjects(st, view), { query: ui.projectQuery, sortBy: ui.projectSort });
-  return '<div class="rm"><div class="rm-head"><h2 class="board-title">Roadmap: ' + esc(name) + '</h2><div class="rm-tools">' + newBtn + '</div></div>'
+  return '<div class="rm"><div class="rm-head"><h2 class="board-title">' + (group ? 'Projects' : 'Roadmap') + ': ' + esc(name) + '</h2><div class="rm-tools">' + newBtn + '</div></div>'
     + (ui.newPanelOpen ? renderNewPanel(ui, hasToken) : '')
     + '<div class="rm-finds"><input type="search" class="project-search rm-find" data-action="set-project-query" value="' + esc(ui.projectQuery || '') + '" placeholder="Find a project…" aria-label="Find a project">' + projectSortSelect(ui) + '</div>'
     + (ps.length ? '<div class="rm-group">' + ps.map((p) => groupRow(p, ui.projectSort === 'custom' && !ui.projectQuery)).join('') + '</div>' : '<p class="calm-empty">No projects here yet. Use + New project.</p>') + '</div>';

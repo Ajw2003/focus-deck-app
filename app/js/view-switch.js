@@ -44,7 +44,7 @@ export function viewLabel(st, view) {
 
 const item = (view, mode, id, name, color) => {
   const on = view.mode === mode && view.id === id;
-  return '<li><button type="button" class="vs-item' + (on ? ' on' : '') + '" data-action="view-pick" data-mode="' + mode + '" data-id="' + esc(id) + '" aria-pressed="' + on + '" data-name="' + esc(name.toLowerCase()) + '">'
+  return '<li><button type="button" class="vs-item dk-choice' + (on ? ' on' : '') + '" data-action="view-pick" data-mode="' + mode + '" data-id="' + esc(id) + '" aria-pressed="' + on + '" data-name="' + esc(name.toLowerCase()) + '">'
     + '<span class="vs-dot" style="--c:' + esc(color) + '" aria-hidden="true"></span><span class="vs-name">' + esc(name) + '</span></button></li>';
 };
 
@@ -56,15 +56,21 @@ function list(st, view) {
   return search + groups.map((g) => '<div class="vs-grp"><p class="vs-group">' + esc(g.c.name) + '</p><ul class="vs-list">' + g.ps.map((p) => item(view, 'project', p.id, p.name, p.color)).join('') + '</ul></div>').join('');
 }
 
-// open: the list is showing (a dropdown on desktop, a bottom sheet on a phone: CSS decides).
+// The view tape (#262): one label-maker strip naming the view in caps, with a drawer (a bottom sheet) of index cards.
+// open: false, 'menu' (Everything / One area / One project) or 'area' / 'project' (that list, with a back corner).
 export function renderViewSwitch(st, view, open) {
-  const seg = (mode, label) => '<button type="button" class="vs-seg' + (view.mode === mode ? ' on' : '') + '" data-action="view-mode" data-mode="' + mode + '" aria-pressed="' + (view.mode === mode) + '">' + label + '</button>';
-  const name = viewLabel(st, view);
-  const pick = view.mode === 'all' ? '' : '<button type="button" class="vs-pick" data-action="view-open" aria-haspopup="dialog" aria-expanded="' + !!open + '" title="' + esc(name) + '"><span class="vs-pick-name">' + esc(name) + '</span><span aria-hidden="true">▾</span></button>';
-  const pop = open && view.mode !== 'all'
-    ? '<div class="vs-backdrop" data-action="view-close"></div><div class="vs-pop" role="dialog" aria-modal="true" aria-label="Choose ' + (view.mode === 'area' ? 'an area' : 'a project') + '" tabindex="-1">'
-      + '<div class="vs-pop-head"><b>' + (view.mode === 'area' ? 'Area' : 'Project') + '</b><button type="button" class="vs-x" data-action="view-close" aria-label="Close">×</button></div>'
-      + '<div class="vs-pop-body">' + list(st, view) + '</div></div>'
+  const name = view.mode === 'all' ? 'Everything' : viewLabel(st, view);
+  const tape = '<button type="button" class="vs-tape dk-tape" data-action="view-open" aria-haspopup="dialog" aria-expanded="' + !!open + '" title="' + esc(name) + '"><span class="vs-pick-name">' + esc(name) + '</span> <span aria-hidden="true">▾</span></button>';
+  const card = (action, extra, label, on) => '<button type="button" class="dk-choice' + (on ? ' on' : '') + '" data-action="' + action + '" ' + extra + ' aria-pressed="' + !!on + '">' + label + '</button>';
+  const sub = open === 'area' || open === 'project';
+  const title = sub ? (open === 'area' ? 'One area' : 'One project') : 'Show';
+  const body = sub
+    ? '<button type="button" class="dk-back" data-action="view-step" data-step="menu">‹ Back</button>' + list(st, view.mode === open ? view : { mode: open, id: null })
+    : card('view-pick', 'data-mode="all" data-id=""', 'Everything', view.mode === 'all') + card('view-step', 'data-step="area"', 'One area ›', view.mode === 'area') + card('view-step', 'data-step="project"', 'One project ›', view.mode === 'project');
+  const pop = open
+    ? '<div class="vs-backdrop" data-action="view-close"></div><div class="vs-pop dk-sheet" role="dialog" aria-modal="true" aria-label="' + title + '" tabindex="-1">'
+      + '<div class="vs-pop-head"><b>' + title + '</b><button type="button" class="vs-x" data-action="view-close" aria-label="Close">×</button></div>'
+      + '<div class="vs-pop-body">' + body + '</div></div>'
     : '';
-  return '<div class="vs-row"><div class="vs-segs" role="group" aria-label="Show">' + seg('all', 'All') + seg('area', 'Area') + seg('project', 'Project') + '</div>' + pick + pop + '</div>';
+  return '<div class="vs-row">' + tape + pop + '</div>';
 }
