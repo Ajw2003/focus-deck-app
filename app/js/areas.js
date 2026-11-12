@@ -37,6 +37,11 @@ export function areaIdOf(st, project) {
   const id = project && project.categoryId;
   return id && id !== UNSORTED_ID && (st.projectCategories || []).some((c) => c.id === id) ? id : UNSORTED_ID;
 }
+// Is the project in the chosen view ({ mode: 'all' | 'area' | 'project', id })? No view means everything.
+export function inView(st, view, project) {
+  if (!view || view.mode === 'all') return true;
+  return view.mode === 'area' ? areaIdOf(st, project) === view.id : project.id === view.id;
+}
 export const areaCount = (st, areaId) => (st.projects || []).filter((p) => areaIdOf(st, p) === areaId).length;
 
 // Labels that mean a workflow state or a priority, not a kind of work: unticked until the user ticks them.

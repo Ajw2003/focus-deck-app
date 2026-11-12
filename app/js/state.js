@@ -8,7 +8,7 @@ import { DEFAULT_NOTE_FACE, normalizeNoteFace } from './note-face.js';
 import { defaultComfort, normalizeComfort, getOverdue } from './comfort.js';
 import { normalizeCategoryFilter } from './category-filter.js';
 import { ICON_DUE_RED } from './icons.js';
-import { DEFAULT_AREAS, migrateAreas, kindsOfWork } from './areas.js';
+import { DEFAULT_AREAS, migrateAreas, kindsOfWork, inView } from './areas.js';
 
 // Priority, most urgent first. githubLabel is the label Focus Deck writes; color is its GitHub hex.
 export const PRIORITY_ORDER = ['urgent', 'high', 'medium', 'low'];
@@ -343,11 +343,11 @@ export const TASK_KINDS = [
 
 // Open tasks for the focus pick, optionally limited to one label (category id, or UNLABELLED)
 // and/or one project.
-export function openTasksMatching({ categoryId, projectId } = {}) {
+export function openTasksMatching({ categoryId, projectId, view } = {}) {
   const ids = [];
   const kindIds = new Set(kindsOfWork(state).map((c) => c.id));
   state.projects.forEach((p) => {
-    if (projectId && p.id !== projectId) return;
+    if ((projectId && p.id !== projectId) || !inView(state, view, p)) return;
     p.tasks.forEach((t) => {
       if (t.status === 'done') return;
       const cats = t.categoryIds || [];

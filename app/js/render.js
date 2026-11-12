@@ -9,6 +9,7 @@ import { phaseClasses } from './focus-complete.js';
 import { normalizeChoosingMode, CHOOSING_MODE_INFO } from './wallet.js';
 import { splitCategories } from './category-filter.js';
 import { effectivePriority, kindsOfWork, UNSORTED_ID } from './areas.js';
+import { viewState } from './view-switch.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -66,7 +67,7 @@ export function renderRail(screen, unsortedCount, syncHTML = '') {
 // Projects' single selected project); a project that no longer exists falls back to '' (Unsorted).
 export function jotTarget(st, ui) {
   let id = ui.jotTo;
-  if (id === undefined) id = (ui.screen === 'board' && ui.boardProject) || (ui.screen === 'projects' && ui.projectView === 'one' && ui.selectedProjectId) || '';
+  if (id === undefined) id = (ui.view && ui.view.mode === 'project' && (ui.screen === 'board' || ui.screen === 'projects') && ui.view.id) || '';
   return st.projects.some((p) => p.id === id) ? id : '';
 }
 
@@ -142,7 +143,8 @@ export function renderCategoryWalletInner(st, ui) {
   return walletInner({ wallet: 'categories', label: 'Category', aria: 'Categories. Arrow keys flip, Enter chooses.', items: cards, facing, mode: focusChoosingMode(st) });
 }
 
-function renderFocusPicker(st, ui) {
+function renderFocusPicker(full, ui) {
+  const st = viewState(full); // only the chosen area/project's tasks are counted and offered
   const projectId = focusProjectId(st, ui);
   if (!st.projects.some((p) => p.tasks.some((t) => t.status !== 'done'))) {
     // an empty desk, with the next step spelled out (a project can be added from the list; a stray
@@ -448,15 +450,6 @@ function collapseAllButton(ui, visibleProjects) {
   return collapseAllBtn;
 }
 
-// The "All" / "One" switch (PR 6, 2026-09-27): a two-option segmented control, styled as pills like
-// every other choice in the sidebar. Sits right under the "Projects" title row so it reads as the
-// list's own setting, not a filter. See docs/6-decisions/Decisions.md.
-function renderViewSwitch(ui) {
-  const view = ui.projectView === 'one' ? 'one' : 'all';
-  const option = (value, label) => '<button type="button" class="filter-pill' + (view === value ? ' active' : '') + '" data-action="set-project-view" data-view="' + value + '" aria-pressed="' + (view === value) + '">' + label + '</button>';
-  return '<div class="view-switch" role="group" aria-label="Project view">' + option('all', 'All projects') + option('one', 'One project') + '</div>';
-}
-
 // The "+ New" panel (PR 7, replacing the old bottom add field, Q29a): a two-tab segmented control
 // (New project / GitHub repo) that opens directly under the header row. See
 // docs/4-systems/styling.md#add-a-project-or-a-repo.
@@ -538,7 +531,6 @@ export function renderProjectSidebar(st, ui, visibleProjects, hasToken) {
     + '<div class="sidebar-head"><h2 class="sidebar-title">Projects</h2><div class="sidebar-head-right"><span class="muted small">' + visibleProjects.length + '</span>'
       + '<button type="button" class="link-btn small" id="new-panel-toggle" data-action="toggle-new-panel" aria-expanded="' + !!ui.newPanelOpen + '" aria-controls="new-panel">+ New</button></div></div>'
     + renderNewPanel(ui, hasToken)
-    + renderViewSwitch(ui)
     + '<input type="text" class="project-search sidebar-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
     + '<div class="filter-pills sidebar-pills">' + projectFilterPills(st, ui) + '</div>'
     + '<div class="sidebar-tools">' + projectSortSelect(ui) + collapseAllButton(ui, visibleProjects) + '</div>'

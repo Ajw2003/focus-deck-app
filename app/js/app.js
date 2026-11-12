@@ -26,7 +26,8 @@ import { notesSummary } from './task-details.js';
 import { canSetParent, canWaitOn } from './task-links.js';
 import { applyNoteFace } from './note-face.js';
 import { applyComfort, getChunk } from './comfort.js';
-import { filterAndSortProjects, resolveSelectedProject, resolveProjectView, moveProject } from './project-filter.js';
+import { VIEW_ALL, renderViewSwitch, normalizeView, defaultFor, viewProjects, viewState, inView } from './view-switch.js';
+import { filterAndSortProjects, resolveSelectedProject, moveProject } from './project-filter.js';
 
 // Which projects are minimised is a per-device layout choice, so it lives in this browser's
 // storage rather than in the synced state.
@@ -69,20 +70,6 @@ function saveSelectedProjectId(id) {
 const WIDE_BREAKPOINT_PX = 1100;
 function isWideScreen() {
   return typeof matchMedia === 'function' && matchMedia('(min-width:' + WIDE_BREAKPOINT_PX + 'px)').matches;
-}
-
-// "All" or "One" (PR 6, 2026-09-27) is a per-device layout choice, like the collapsed projects and
-// selected project above -- not synced state. Resolved once at load against the width at the time
-// (resolveProjectView, js/project-filter.js); once the user picks, it holds on this device at every
-// width from then on. See docs/6-decisions/Decisions.md.
-const PROJECT_VIEW_KEY = 'focusdeck-project-view';
-function loadProjectView() {
-  try { return localStorage.getItem(PROJECT_VIEW_KEY); }
-  catch (e) { console.error('Could not read the project view:', e); return null; }
-}
-function saveProjectView(view) {
-  try { localStorage.setItem(PROJECT_VIEW_KEY, view); }
-  catch (e) { console.error('Could not save the project view:', e); }
 }
 
 // The project sort is a per-device choice too (PR 9): a drag switches it to "custom", and it has to
@@ -149,26 +136,25 @@ function setScreen(screen) {
   catch (e) { console.error('Could not save the screen:', e); }
 }
 
-// Which project the Board shows (#142): null means all projects. Remembered on this device.
-const BOARD_PROJECT_KEY = 'focusdeck-board-project';
-function loadBoardProject() {
-  try { return localStorage.getItem(BOARD_PROJECT_KEY) || null; }
-  catch (e) { console.error('Could not read the board project:', e); return null; }
+// The All | Area | Project switch (js/view-switch.js): one choice for every screen, per device (not synced).
+const VIEW_KEY = 'focusdeck-view';
+function loadView() {
+  try { return JSON.parse(localStorage.getItem(VIEW_KEY)) || VIEW_ALL; }
+  catch (e) { console.error('Could not read the view switch:', e); return VIEW_ALL; }
 }
-function setBoardProject(id) {
-  ui.boardProject = id || null;
-  try {
-    if (ui.boardProject) localStorage.setItem(BOARD_PROJECT_KEY, ui.boardProject);
-    else localStorage.removeItem(BOARD_PROJECT_KEY);
-  } catch (e) { console.error('Could not save the board project:', e); }
+function setView(view) {
+  ui.view = normalizeView(view, state);
+  ui.boardShown = null;
+  try { localStorage.setItem(VIEW_KEY, JSON.stringify(ui.view)); }
+  catch (e) { console.error('Could not save the view switch:', e); }
 }
 
 export const ui = {
   screen: loadScreen(),
-  boardProject: loadBoardProject(),
+  view: loadView(), viewOpen: false,
   // The Board's own state (#200), memory only: boardCol is the open tab; boardShown the cards shown so
   // far (null = one group); boardSelected the selected card's id, which Task details (#201) renders from.
-  boardCol: 'next', boardFind: '', boardFilterOpen: false, boardPcat: '', boardShow: 'all', boardShown: null, boardSelected: null,
+  boardCol: 'next', boardFind: '', boardFilterOpen: false, boardShow: 'all', boardShown: null, boardSelected: null,
   // Task details (#201): the open row, a subtask being typed, the link search, the label list open
   boardOpen: null, boardAddSub: false, boardLink: null, boardPicker: false,
   onboarding: loadOnboarding(),
@@ -176,7 +162,8 @@ export const ui = {
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectFilter: undefined, projectQuery: '', projectSort: loadProjectSort(), projectCollapsed: loadCollapsedProjects(),
   focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, addDraft: {}, addPick: {}, unsorted: freshUnsortedScratch(), bulk: freshBulk(false),
-  projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: resolveProjectView(loadProjectView(), isWideScreen()),
+  projectsDrawerOpen: false, selectedProjectId: loadSelectedProjectId(), projectView: 'all', // follows the view switch: one project = 'one' (renderApp)
+ 
   // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
   // (Q30c) -- neither persisted, both reset to closed on load.
   newPanelOpen: false, newPanelTab: 'project', newPanelRepos: null, newPanelRepoFilter: '',
@@ -201,7 +188,7 @@ const walletHooks = {
       ui.focusFilter.projectId = key === R.ALL_PROJECTS_KEY ? null : key;
       saveFocusFilter();
       const slot = document.getElementById('category-wallet');
-      if (slot) { slot.innerHTML = R.renderCategoryWalletInner(state, ui); mountWallets(slot, walletHooks); }
+      if (slot) { slot.innerHTML = R.renderCategoryWalletInner(viewState(state), ui); mountWallets(slot, walletHooks); }
     } else if (name === 'categories') {
       ui.focusCategory = key;
     } else if (name === 'tray-folders') {
@@ -266,21 +253,27 @@ export function renderApp(st) {
       + renderOnboarding(st, ui.onboarding, () => R.renderFocus(st, findTaskWithProject, ui))
       + '</div>' + R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
   }
-  const visibleProjects = filterAndSortProjects(st.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
+  ui.view = normalizeView(ui.view, st); // a gone area or project is All
+  st._ui = ui;
+  const sw = renderViewSwitch(st, ui.view, ui.viewOpen);
+  const visibleProjects = filterAndSortProjects(viewProjects(st, ui.view), { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
   // Resolved against every project, not just the filtered/searched list -- the selected project
   // stays selected in the "One" view even if a search or category filter hides it from the list.
   ui.selectedProjectId = resolveSelectedProject(st.projects, ui.selectedProjectId);
+  // the switch decides the layout: one project = the "One" card, anything else = the list
+  ui.projectView = ui.view.mode === 'project' ? 'one' : 'all';
+  if (ui.projectView === 'one') ui.selectedProjectId = ui.view.id;
   const hasToken = !!getToken();
   // one activity at a time (#135): the rail, then only the chosen screen
   const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, R.renderSyncButton(st));
   const toast = R.renderToast(ui.syncError || ui.notice, ui.syncError ? 'error' : 'info', noticeAction());
-  if (ui.screen === 'focus') return rail + '<div class="screen screen-focus">' + R.renderFocus(st, findTaskWithProject, ui) + '</div>' + toast;
+  if (ui.screen === 'focus') return rail + '<div class="screen screen-focus">' + sw + R.renderFocus(st, findTaskWithProject, ui) + '</div>' + toast;
   // the Sort screen is the tray, always open (its header can't fold it away here)
-  if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
-  if (ui.screen === 'board') return rail + '<div class="screen screen-board">' + R.renderBoard(st, ui) + '</div>' + toast;
+  if (ui.screen === 'sort') return rail + '<div class="screen screen-sort">' + sw + renderInTrayCard(st, Object.assign({}, ui, { inboxOpen: true })) + '</div>' + toast;
+  if (ui.screen === 'board') return rail + '<div class="screen screen-board">' + sw + R.renderBoard(st, ui) + '</div>' + toast;
   return rail + R.renderProjectSidebar(st, ui, visibleProjects, hasToken)
     + '<div class="main-col view-' + ui.projectView + '">'
-      + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken)
+      + sw + R.renderProjectsMain(st, ui, visibleProjects, isWideScreen(), hasToken)
     + '</div>' + toast;
 }
 
@@ -553,7 +546,10 @@ function onAppClick(e) {
     window.scrollTo(0, 0);
     return;
   }
-  if (action === 'board-project') { setBoardProject(el.getAttribute('data-project-id')); paint(); return; }
+  if (action === 'view-mode') { setView(defaultFor(el.getAttribute('data-mode'), ui.view, state)); ui.viewOpen = ui.view.mode !== 'all'; paint(); focusViewPop(); return; }
+  if (action === 'view-open') { ui.viewOpen = !ui.viewOpen; paint(); focusViewPop(); return; }
+  if (action === 'view-close') { closeViewPop(); return; }
+  if (action === 'view-pick') { setView({ mode: el.getAttribute('data-mode'), id: el.getAttribute('data-id') }); closeViewPop(); return; }
   if (action === 'scroll-to-task') {
     const id = el.getAttribute('data-task'), q = (window.CSS && CSS.escape) ? CSS.escape(id) : id;
     const to = document.querySelector('[data-task-id="' + q + '"]') || document.querySelector('.task-row[data-task="' + q + '"]');
@@ -575,7 +571,6 @@ function onAppClick(e) {
     return;
   }
   if (action === 'board-filter') { ui.boardFilterOpen = !ui.boardFilterOpen; paint(); return; }
-  if (action === 'board-pcat') { ui.boardPcat = el.getAttribute('data-pcat'); ui.boardShown = null; paint(); return; }
   if (action === 'board-show') { ui.boardShown = null; ui.boardShow = el.getAttribute('data-show'); paint(); return; }
   if (action === 'board-more') { ui.boardShown = Math.max(getChunk(state), ui.boardShown || 0) + getChunk(state); paint(); return; }
   if (action === 'start-new-project') { openFirstProjectPanel(); return; }
@@ -740,7 +735,7 @@ function onAppClick(e) {
   }
   else if (action === 'toggle-add-more') { if (ui.addingTask[projectId]) delete ui.addingTask[projectId]; else ui.addingTask[projectId] = true; paint(); focusAddTitle(projectId); if (ui.addingTask[projectId]) scrollOpenedFormIntoView('.add-row[data-project="' + CSS.escape(projectId) + '"]'); }
   else if (action === 'open-added-task') {
-    setScreen('board'); setBoardProject(el.getAttribute('data-project')); ui.boardCol = 'next'; ui.boardShown = null;
+    setScreen('board'); setView({ mode: 'project', id: el.getAttribute('data-project') }); ui.boardCol = 'next'; ui.boardShown = null;
     selectBoardTask(el.getAttribute('data-task')); ui.notice = null; ui.jotTo = undefined; paint();
   }
   else if (action === 'dismiss-toast') {
@@ -768,13 +763,6 @@ function onAppClick(e) {
     paint();
   }
   else if (action === 'toggle-project-collapse') { ui.projectCollapsed[projectId] = !ui.projectCollapsed[projectId]; saveCollapsedProjects(); paint(); }
-  else if (action === 'set-project-view') {
-    const view = el.getAttribute('data-view');
-    if (view === 'all' || view === 'one') { ui.projectView = view; saveProjectView(view); }
-    // Left open on phones (the switch lives in the drawer there) so the person sees the view
-    // change take effect behind it, rather than closing over the very thing they just changed.
-    paint();
-  }
   else if (action === 'toggle-collapse-all') {
     const visible = filterAndSortProjects(state.projects, { categoryId: ui.projectFilter, query: ui.projectQuery, sortBy: ui.projectSort });
     const allCollapsed = visible.length > 0 && visible.every((p) => ui.projectCollapsed[p.id]);
@@ -1007,7 +995,6 @@ function onAppChange(e) {
   }
   if (e.target.matches && onDetailChange(e.target)) return;
   if (e.target.matches && e.target.matches('.add-task-form input[name="deadline"], .task-edit-form input[name="deadline"]')) { syncDueStageStep(e.target); return; }
-  if (e.target.matches && e.target.matches('[data-action="board-project-select"]')) { setBoardProject(e.target.value); ui.boardShown = null; paint(); return; }
   if (e.target.matches && e.target.matches('.due-step select')) {
     const step = e.target.closest('.due-step');
     const yellow = step.querySelector('select[name="dueYellow"]'), red = step.querySelector('select[name="dueRed"]');
@@ -1168,9 +1155,42 @@ function createIssueIfGithubProject(task, projectId) {
   }
 }
 
+// A project the switch hides (a new one, or one linked from a Focus card) is shown by going back to All.
+function showInView(projectId) {
+  const p = state.projects.find((q) => q.id === projectId);
+  if (p && !inView(state, ui.view, p)) setView(VIEW_ALL);
+}
+
+// The switch's list (a bottom sheet on a phone, a dropdown on desktop): focus goes in, Tab stays in,
+// Escape or the backdrop closes it and focus returns to the button.
+function focusViewPop() {
+  const pop = document.querySelector('.vs-pop');
+  if (pop) (pop.querySelector('.vs-search, .vs-item.on, .vs-item') || pop).focus();
+}
+function closeViewPop() { ui.viewOpen = false; paint(); const b = document.querySelector('.vs-pick'); if (b) b.focus(); }
+document.addEventListener('keydown', (e) => {
+  const pop = document.querySelector('.vs-pop');
+  if (!pop || !ui.viewOpen) return;
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeViewPop(); return; }
+  if (e.key !== 'Tab') return;
+  const f = [...pop.querySelectorAll('button, input')].filter((x) => x.offsetParent);
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (!pop.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+  else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}, true);
+document.addEventListener('input', (e) => {
+  if (!(e.target.matches && e.target.matches('[data-view-search]'))) return;
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.vs-pop .vs-item').forEach((b) => { b.parentElement.hidden = !!q && !b.getAttribute('data-name').includes(q); });
+  document.querySelectorAll('.vs-pop .vs-grp').forEach((g) => { g.hidden = ![...g.querySelectorAll('li')].some((li) => !li.hidden); });
+});
+
 // After adding a project from the "+ New" panel (Q29a, Q12d): select it in the "One" view, or in
 // "All" just scroll to its new card/tile once it's rendered -- the same split as scrollToProject.
 function afterProjectAdded(projectId) {
+  showInView(projectId);
   if (ui.projectView === 'one') {
     ui.selectedProjectId = projectId;
     saveSelectedProjectId(projectId);
@@ -1515,6 +1535,7 @@ function scrollOpenedFormIntoView(selector) {
 // project chip, and any other scroll-project source all branch here.
 function scrollToProject(projectId) {
   if (!state.projects.some((p) => p.id === projectId)) return;
+  showInView(projectId);
   if (ui.screen !== 'projects') setScreen('projects'); // the folders are on the Projects screen (#135)
   if (ui.projectsDrawerOpen) setProjectsDrawerOpen(false);
   if (ui.projectView === 'one') {

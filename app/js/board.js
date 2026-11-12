@@ -7,7 +7,7 @@
 // There are no archived projects in state; inbox items are not tasks, so they never appear.
 import { sortTasks } from './task-move.js';
 import { subtasksOf, holdsUp, isBlocked } from './task-links.js';
-import { UNSORTED_ID } from './areas.js';
+import { inView } from './areas.js';
 
 export function weekStart(now) {
   const d = new Date(now);
@@ -43,7 +43,7 @@ export function boardColumns(st, projectId, now) {
 
 export const SHOW_FILTERS = ['all', 'subs', 'waits', 'holds'];
 
-// The one visible list (#200): the tab's tasks, narrowed by project, project category, Find (task
+// The one visible list (#200): the tab's tasks, narrowed by the view (All | Area | Project), Find (task
 // title, project name or label name) and Show. Subtasks of a live parent are not cards of their own.
 // counts are per tab: how many cards that tab would show under the same narrowing, so they leave out
 // subtasks too (#217). -> { tasks, counts }
@@ -57,8 +57,7 @@ export function boardList(st, opts, now) {
   const labelName = (id) => ((st.categories || []).find((c) => c.id === id) || {}).name || '';
   const shown = (t) => {
     const p = owner.get(t.id);
-    if (o.project && p.id !== o.project) return false;
-    if (o.pcat && (p.categoryId || UNSORTED_ID) !== o.pcat) return false;
+    if (!inView(st, o.view, p)) return false; // the All | Area | Project switch (js/view-switch.js)
     if (q && !(t.title.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)
       || (t.categoryIds || []).some((id) => labelName(id).toLowerCase().includes(q)))) return false;
     if (o.show === 'subs' && !subtasksOf(st.projects, t.id).length) return false;

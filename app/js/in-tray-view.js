@@ -6,6 +6,7 @@
 // action does is in js/in-tray.js and js/app.js. See docs/4-systems/in-tray.md
 import { esc, relTime } from './state.js';
 import { CHOOSING_MODE_INFO, wording } from './wallet.js';
+import { viewState } from './view-switch.js';
 import { orderTray, flagCards, folderCards, pickedSlips, bulkBlocker } from './in-tray.js';
 import { canWaitOn, subtasksOf } from './task-links.js';
 import { renderPickBlocks } from './pick-bits.js';
@@ -75,7 +76,7 @@ function trayWallets(st, u, project, step, allCards, mode, tid) {
   const q = u.find || '';
   let html = '';
   if (step === 1) {
-    const folders = folderCards(st).filter((f) => has(f.name, q));
+    const folders = folderCards(viewState(st)).filter((f) => has(f.name, q));
     if (!st.projects.length) {
       html += '<p class="muted small">Add a project below to file this thought into.</p>';
     } else {
@@ -189,7 +190,7 @@ function renderBulk(st, b, ordered) {
   const thoughts = picked.some((x) => x.kind === 'thought');
   const project = b.projectId ? st.projects.find((p) => p.id === b.projectId) : null;
   const options = '<option value="">' + (thoughts || !n ? 'Choose a project…' : 'Keep each task in its project') + '</option>'
-    + folderCards(st).map((f) => '<option value="' + esc(f.id) + '"' + (f.id === b.projectId ? ' selected' : '') + '>' + esc(f.name) + '</option>').join('');
+    + folderCards(viewState(st)).map((f) => '<option value="' + esc(f.id) + '"' + (f.id === b.projectId ? ' selected' : '') + '>' + esc(f.name) + '</option>').join('');
   const flags = flagCards(st, project, { selected: b.selected, showAll: true }).map((c) => {
     const on = b.selected.includes(c.token);
     return '<button type="button" class="bulk-flag' + (on ? ' on' : '') + '" data-action="bulk-flag" data-token="' + esc(c.token) + '" aria-pressed="' + on + '" style="--c:' + mutedChip(c.color) + '">' + esc(c.name) + '</button>';

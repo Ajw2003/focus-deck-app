@@ -231,13 +231,9 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   assert.ok(open.includes('class="drawer-backdrop is-open"') && open.includes('class="project-sidebar is-open" id="projects-drawer"'), 'ui.projectsDrawerOpen adds is-open to both the backdrop and the drawer');
   assert.ok(open.includes('role="dialog" aria-modal="true"'), 'open as the drawer, it is a modal dialog');
 
-  // The "All"/"One" switch (PR 6): a two-option segmented control right under the title row.
-  assert.ok(side.includes('role="group" aria-label="Project view"'), 'the switch is a labelled group');
-  assert.ok(side.includes('data-action="set-project-view" data-view="all"') && side.includes('data-action="set-project-view" data-view="one"'), 'it has an All button and a One button');
-  assert.ok(/class="filter-pill active" data-action="set-project-view" data-view="all" aria-pressed="true"/.test(side), 'the current view ("all" here) is pressed and gets the active pill treatment');
-  assert.ok(/class="filter-pill" data-action="set-project-view" data-view="one" aria-pressed="false"/.test(side), 'the other option is not pressed');
+  // The old All/One toggle is gone: the All | Area | Project switch (js/view-switch.js) sets the layout.
+  assert.ok(!side.includes('set-project-view'), 'no All/One toggle in the sidebar');
   const oneSide = renderProjectSidebar({ projects, projectCategories: [] }, { projectQuery: '', projectSort: 'name', projectCollapsed: {}, projectView: 'one' }, projects);
-  assert.ok(/class="filter-pill active" data-action="set-project-view" data-view="one" aria-pressed="true"/.test(oneSide), 'switching to "one" moves the active state to that button');
   assert.ok(!oneSide.includes('data-action="toggle-collapse-all"'), '"Collapse all" is left out of the sidebar in the "One" view');
 }
 
@@ -415,7 +411,6 @@ assert.ok(info.includes('class="toast"') && info.includes('role="status"'), 'a n
   const openUi = { ...baseUi, newPanelOpen: true };
   const open = renderProjectSidebar({ projects, projectCategories: [] }, openUi, projects, true);
   assert.ok(open.includes('id="new-panel"'), 'the panel renders when open');
-  assert.ok(open.indexOf('id="new-panel"') < open.indexOf('<div class="view-switch" role="group" aria-label="Project view">'), 'the panel sits under the header, above the All/One view switch');
   assert.ok(open.includes('aria-expanded="true"'), 'aria-expanded flips to true while open');
   assert.ok(open.includes('New project') && open.includes('GitHub repo'), 'the panel has both tabs');
   assert.ok(open.includes('data-action="add-new-project"'), 'the New project tab defaults open with its add form');
@@ -518,14 +513,14 @@ assert.ok(renderTaskRow({ id: 't9', title: 'Short', status: 'next', categoryIds:
 {
   const st = { projects: [{ id: 'a' }, { id: 'b' }] };
   assert.strictEqual(jotTarget(st, { screen: 'focus' }), '', 'follows nothing on Focus: Unsorted');
-  assert.strictEqual(jotTarget(st, { screen: 'board', boardProject: 'b' }), 'b', 'follows the Board project');
-  assert.strictEqual(jotTarget(st, { screen: 'board', boardProject: null }), '', 'Board with all projects: Unsorted');
-  assert.strictEqual(jotTarget(st, { screen: 'projects', projectView: 'one', selectedProjectId: 'a' }), 'a', 'follows the one project view');
-  assert.strictEqual(jotTarget(st, { screen: 'projects', projectView: 'all', selectedProjectId: 'a' }), '', 'all view: Unsorted');
-  assert.strictEqual(jotTarget(st, { screen: 'board', boardProject: 'b', jotTo: 'a' }), 'a', 'a manual pick wins');
-  assert.strictEqual(jotTarget(st, { screen: 'board', boardProject: 'b', jotTo: '' }), '', 'a manual Unsorted wins');
+  assert.strictEqual(jotTarget(st, { screen: 'board', view: { mode: 'project', id: 'b' } }), 'b', 'follows the Board project');
+  assert.strictEqual(jotTarget(st, { screen: 'board' }), '', 'Board with all projects: Unsorted');
+  assert.strictEqual(jotTarget(st, { screen: 'projects', view: { mode: 'project', id: 'a' } }), 'a', 'follows the one project view');
+  assert.strictEqual(jotTarget(st, { screen: 'projects', view: { mode: 'all' } }), '', 'all view: Unsorted');
+  assert.strictEqual(jotTarget(st, { screen: 'board', view: { mode: 'project', id: 'b' }, jotTo: 'a' }), 'a', 'a manual pick wins');
+  assert.strictEqual(jotTarget(st, { screen: 'board', view: { mode: 'project', id: 'b' }, jotTo: '' }), '', 'a manual Unsorted wins');
   assert.strictEqual(jotTarget(st, { screen: 'focus', jotTo: 'gone' }), '', 'deleted project falls back to Unsorted');
-  assert.strictEqual(jotTarget(st, { screen: 'board', boardProject: 'gone' }), '', 'deleted Board project falls back');
+  assert.strictEqual(jotTarget(st, { screen: 'board', view: { mode: 'project', id: 'gone' } }), '', 'deleted Board project falls back');
   assert.ok(!renderToast('Hi', 'info').includes('toast-action'), 'no action, no button');
   const withAct = renderToast('Added', 'info', { label: 'Open', action: 'open-added-task', attrs: { 'data-task': 't"1', 'data-project': 'p' } });
   assert.ok(withAct.includes('class="btn ghost toast-action" data-action="open-added-task" data-task="t&quot;1" data-project="p">Open</button>'), 'action button, escaped');
