@@ -22,6 +22,7 @@ const SHELL_ASSETS = [
   './js/task-move.js',
   './js/board.js',
   './js/board-view.js',
+  './js/review-view.js',
   './js/areas.js',
   './js/view-switch.js',
   './js/card-key.js',
