@@ -68,7 +68,7 @@ for (const size of ['phone', 'desktop']) {
   await page.click(ROW + ' input[name="title"]');
   await page.keyboard.type('Ring the plumber');
   check(`${tag} pickers show once there is a title`, !(await page.$eval(ROW + ' .pick-blocks', (e) => e.hidden)));
-  check(`${tag} Add is disabled and says why`, await page.$eval(ROW + ' button[type=submit]', (b) => b.disabled && b.textContent === 'Add') && (await page.textContent(ROW + ' .pick-hint')) === 'Pick a priority to add' && (await page.getAttribute(ROW + ' input[name="title"]', 'placeholder')) === 'Add a task…' && (await page.$eval(ROW + ' input[name="title"]', (i) => i.getBoundingClientRect().width)) > 120);
+  check(`${tag} Add is disabled and says why`, await page.$eval(ROW + ' button[type=submit]', (b) => b.disabled && b.textContent === 'Add') && (await page.textContent(ROW + ' .pick-hint')) === 'Pick a priority to add' && (await page.getAttribute(ROW + ' input[name="title"]', 'placeholder')) ?.startsWith('Add a task') && (await page.$eval(ROW + ' input[name="title"]', (i) => i.getBoundingClientRect().width)) > 120);
   await page.$eval(ROW, (e) => e.scrollIntoView({ block: 'center' }));
   await page.screenshot({ path: OUT + `${size}-add-title-only.png` });
   await page.keyboard.press('Enter'); // bypassing the disabled button: still nothing is added
@@ -83,27 +83,24 @@ for (const size of ['phone', 'desktop']) {
   await page.waitForTimeout(200);
   let t = (await stored(page)).projects[0].tasks.find((x) => x.title === 'Ring the plumber');
   check(`${tag} the task is stored with High and a due date`, !!t && t.priority === 'high' && /^\d{4}-\d\d-\d\d$/.test(t.deadline || ''), JSON.stringify(t && [t.priority, t.deadline]));
-  const rowSel = '.task-row[data-task="' + (t && t.id) + '"]';
-  check(`${tag} the row shows "High ▾" and a due chip`, (await page.$eval(rowSel + ' .priority-chip', (e) => e.textContent.trim())) === 'High ▾' && !!(await page.$(rowSel + ' .deadline-chip')));
-  check(`${tag} a task with no priority shows the quiet "Priority ▾"`, (await page.$eval('.task-row[data-task="h1"] .pick-chip.is-empty', (e) => e.textContent.trim())) === 'Priority ▾');
+  // the Roadmap's task rows (#259): a read-only chip shows the priority and due date; a click opens Task details, where they change
+  const rowSel = '.rm-task[data-task-id="' + (t && t.id) + '"]';
+  check(`${tag} the Roadmap row shows "High" and a due chip`, (await page.$eval(rowSel + ' .priority-chip', (e) => e.textContent.trim())) === 'High' && !!(await page.$(rowSel + ' .deadline-chip')));
+  check(`${tag} a Roadmap task with no priority shows no priority chip`, !(await page.$('.rm-task[data-task-id="h1"] .priority-chip')));
   await page.$eval(rowSel, (e) => e.scrollIntoView({ block: 'center' }));
   await page.click(rowSel + ' .priority-chip');
-  check(`${tag} tapping the chip opens the four priorities`, (await page.$$(rowSel + ' .pick-pop [data-field="priority"]')).length === 4);
+  await page.waitForSelector('.cw-detail');
+  await page.click('.cw-detail [data-action="detail-fold"][data-key="when"]');
+  check(`${tag} the chip opens Task details with High selected`, (await page.$eval('[data-detail-priority]', (e) => e.value)) === 'high');
   await page.screenshot({ path: OUT + `${size}-chip-picker.png` });
-  await page.keyboard.press('Escape');
-  check(`${tag} Escape closes the picker`, !(await page.$('.pick-pop')));
-  await page.click(rowSel + ' .priority-chip');
-  await page.click('body', { position: { x: 3, y: 3 } });
-  check(`${tag} clicking away closes the picker`, !(await page.$('.pick-pop')));
-  await page.click(rowSel + ' .priority-chip');
-  await page.click(rowSel + ' .pick-pop [data-value="urgent"]');
+  await page.selectOption('[data-detail-priority]', 'urgent');
   t = (await stored(page)).projects[0].tasks.find((x) => x.title === 'Ring the plumber');
-  check(`${tag} one tap sets the new priority`, t.priority === 'urgent' && (await page.$eval(rowSel + ' .priority-chip', (e) => e.textContent.trim())) === 'Urgent ▾');
-  await page.click(rowSel + ' .pick-bare');
-  check(`${tag} the due chip opens the due options`, (await page.$$(rowSel + ' .pick-pop [data-field="due"]')).length === 6);
-  await page.click(rowSel + ' .pick-pop [data-value="none"]');
-  check(`${tag} None clears the date`, !(await stored(page)).projects[0].tasks.find((x) => x.id === t.id).deadline);
+  check(`${tag} Task details sets the new priority and the row chip follows`, t.priority === 'urgent' && (await page.$eval(rowSel + ' .priority-chip', (e) => e.textContent.trim())) === 'Urgent');
+  await page.fill('[data-detail-due]', '');
+  await page.$eval('[data-detail-due]', (i) => i.dispatchEvent(new Event('change', { bubbles: true })));
+  check(`${tag} clearing the date in Task details clears it`, !(await stored(page)).projects[0].tasks.find((x) => x.id === t.id).deadline);
   if (size === 'desktop') {
+    await page.click('.rm-add-link'); // the clicks above were away from the add box, which closed it
     await page.click(ROW + ' input[name="title"]');
     await page.keyboard.type('Keys test');
     await page.focus(ROW + ' [data-field="priority"][data-value="low"]');
@@ -144,30 +141,33 @@ for (const size of ['phone', 'desktop']) {
 
 for (const size of ['phone', 'desktop']) {
   const tag = `[${size}]`;
-  // ---- Board: add row and chip picker on a card
-  let { ctx, page } = await open(size, 'board');
-  const BR = '.screen-board .add-row[data-project="pHome"]';
+  // ---- Roadmap: a second add box, and a priority set from Task details (the Board's add row and card chips moved here, #259)
+  let { ctx, page } = await open(size, 'roadmap');
+  const BR = '.rm-project .add-row[data-project="pHome"]';
+  await page.click('.rm-add-link');
   await page.waitForSelector(BR + ' input[name="title"]');
   await page.click(BR + ' input[name="title"]');
   await page.keyboard.type('Board task');
-  check(`${tag} Board add row: Add disabled until a priority`, await page.$eval(BR + ' button[type=submit]', (b) => b.disabled));
+  check(`${tag} Roadmap add row: Add disabled until a priority`, await page.$eval(BR + ' button[type=submit]', (b) => b.disabled));
   await page.keyboard.press('Enter');
   await page.waitForTimeout(150);
-  check(`${tag} Board add row: Enter without a priority adds nothing`, (await stored(page)).projects[0].tasks.length === 1);
+  check(`${tag} Roadmap add row: Enter without a priority adds nothing`, (await stored(page)).projects[0].tasks.length === 1);
   await page.click(BR + ' [data-field="priority"][data-value="urgent"]');
   await page.click(BR + ' [data-field="due"][data-value="today"]');
   await page.click(BR + ' button[type=submit]');
   await page.waitForTimeout(200);
   const bt = (await stored(page)).projects[0].tasks.find((x) => x.title === 'Board task');
-  check(`${tag} Board add row adds with Urgent and a date`, !!bt && bt.priority === 'urgent' && !!bt.deadline, JSON.stringify(bt && [bt.priority, bt.deadline]));
-  const card = '.board-card[data-task-id="h1"]';
-  check(`${tag} Board card with nothing set shows quiet "Priority ▾" and "Due ▾"`, ((await page.$eval(card + ' .gl-glance', (e) => e.textContent)) || '').replace(/\s+/g, ' ') === 'Priority ▾Due ▾');
-  await page.click(card + ' [data-action="open-pick"][data-field="priority"]');
-  check(`${tag} Board card chip opens the four priorities`, (await page.$$(card + ' .pick-pop [data-field="priority"]')).length === 4);
+  check(`${tag} Roadmap add row adds with Urgent and a date`, !!bt && bt.priority === 'urgent' && !!bt.deadline, JSON.stringify(bt && [bt.priority, bt.deadline]));
+  const card = '.rm-task[data-task-id="h1"]';
+  check(`${tag} Roadmap row with nothing set shows no priority or due chip`, !(await page.$(card + ' .priority-chip')) && !(await page.$(card + ' .deadline-chip')));
+  await page.click(card + ' .rm-task-title');
+  await page.waitForSelector('.cw-detail');
+  await page.click('.cw-detail [data-action="detail-fold"][data-key="when"]');
+  await page.selectOption('[data-detail-priority]', 'low');
+  check(`${tag} one choice in Task details sets Low`, (await stored(page)).projects[0].tasks.find((x) => x.id === 'h1').priority === 'low');
+  check(`${tag} the Roadmap row now shows the Low chip`, (await page.$eval(card + ' .priority-chip', (e) => e.textContent.trim())) === 'Low');
   await page.$eval(card, (e) => e.scrollIntoView({ block: 'center' }));
   await page.screenshot({ path: OUT + `${size}-board-chip-picker.png` });
-  await page.click(card + ' .pick-pop [data-value="low"]');
-  check(`${tag} one tap on a Board card sets Low`, (await stored(page)).projects[0].tasks.find((x) => x.id === 'h1').priority === 'low');
   await ctx.close();
 
   // ---- bulk sort: one priority for the batch
