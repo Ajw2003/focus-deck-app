@@ -23,3 +23,7 @@ and Review (items waiting) carry a badge. Tidy up and Triage show Tidy up | Tria
 Check: `scripts/check-tabs-browser.mjs` (one assertion per row of the inventory table, named after the row).
 Left for later: `app/js/project-drag.js`, `moveTaskTo` in `app.js`, `renderTaskRow` / `renderTaskEditForm` in `render.js` and
 `boardList` in `board.js` have no screen left to serve; they stay in place with their tests.
+
+Browser checks that drove the removed screens now drive the Roadmap: `check-desk-screens`, `check-review-status`, `check-priority`,
+`check-add-row`, `check-category-filter` (Task details owns the label picker; its "Show all" folds back if the title box is blurred
+first, since that repaints the panel). The task editor's due-date step (`renderTaskEditForm`) has no screen, so no browser check reaches it.
