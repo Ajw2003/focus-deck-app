@@ -1561,6 +1561,9 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
   .tr-side, .tr-grip, .tr-hint{display:none;}
   .tr-moves{display:flex;}
   .tr-reset-phone{display:inline-flex;}
-  .tr-row{flex-wrap:wrap;}
-  .tr-text{flex:1 1 120px;}
+  .tr-row{display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"num text moves" "num chip moves"; gap:4px 10px; align-items:center;}
+  .tr-num{grid-area:num;}
+  .tr-text{grid-area:text;}
+  .tr-chip{grid-area:chip; justify-self:start;}
+  .tr-moves{grid-area:moves;}
 }
