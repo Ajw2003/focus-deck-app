@@ -109,8 +109,8 @@ for (const size of ['phone', 'desktop']) {
     await page.$eval('#kinds-section', (e) => e.scrollIntoView());
     await page.screenshot({ path: OUT + `${size}-kinds.png`, fullPage: size === 'phone' });
     await page.goto(BASE + 'index.html');
-    await page.waitForSelector('[data-car="categories"] .car-card', { state: 'attached' });
-    const keys = await page.$$eval('[data-car="categories"] .car-card', (els) => els.map((e) => e.dataset.key));
+    await page.waitForSelector('[data-wallet="categories"] .sleeve', { state: 'attached' });
+    const keys = await page.$$eval('[data-wallet="categories"] .sleeve', (els) => els.map((e) => e.dataset.key));
     check(`${tag} Focus kinds row: Chore (unticked) is gone, Bug stays`, !keys.includes('c_chore') && keys.includes('c_bug'), keys.join());
     check(`${tag} Focus: the unticked-only-label task is not lost (Unlabelled card)`, keys.includes('__none__'), keys.join());
     // Asap is mapped to Urgent above: its task (Paint, no priority of its own) shows the Urgent chip

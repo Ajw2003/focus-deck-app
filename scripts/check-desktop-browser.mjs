@@ -47,19 +47,17 @@ async function open(scheme, viewport = { width: 1440, height: 900 }) {
   page.on('pageerror', (e) => check(`[${scheme}] no page error: ` + e.message, false));
   await page.addInitScript(([s, k]) => { if (!localStorage.getItem(k)) { localStorage.setItem('focusdeck-onboarding', 'done'); localStorage.setItem('focusdeck-screen', 'focus'); localStorage.setItem(k, JSON.stringify(s)); } }, [seed, STATE_KEY]);
   await page.goto(BASE);
-  await page.waitForSelector('.car-row');
+  await page.waitForSelector('.flip-track');
   await page.waitForTimeout(400);
   return { ctx, page };
 }
-// Focus's two rows and Sort's project row are carousels (#253); the Sort label wallet is still a wallet
-const cardSel = (w) => (w === 'tray-folders' ? '[data-car="tray-projects"] .car-card' : w === 'projects' || w === 'categories' ? `[data-car="${w}"] .car-card` : `[data-wallet="${w}"] .sleeve`);
-const keys = (page, w) => page.$$eval(cardSel(w), (els) => els.map((e) => e.dataset.key));
-const visibleCards = (page, w) => page.$$eval(cardSel(w), (els) => {
-  const row = els[0].parentElement.getBoundingClientRect();
-  return els.filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left >= row.left - 2 && r.right <= row.right + 2; }).length;
+const keys = (page, w) => page.$$eval(`[data-wallet="${w}"] .sleeve`, (els) => els.map((e) => e.dataset.key));
+const visibleCards = (page, w) => page.$$eval(`[data-wallet="${w}"] .sleeve`, (els) => {
+  const vw = innerWidth;
+  return els.filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left >= 0 && r.right <= vw; }).length;
 });
 const click = async (page, w, key) => {
-  const b = await (await page.$(`${cardSel(w)}[data-key="${key}"] .icard`)).boundingBox();
+  const b = await (await page.$(`[data-wallet="${w}"] .sleeve[data-key="${key}"] .icard`)).boundingBox();
   await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
   await page.waitForTimeout(300);
 };
@@ -78,19 +76,17 @@ for (const scheme of ['dark', 'light']) {
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
 
-  // the carousels: five cards at once (was: every card laid flat)
+  // wallets laid flat: every card showing at once
   const projKeys = await keys(page, 'projects');
   const catKeys = await keys(page, 'categories');
-  check(`${tag} five folders show at once`, (await visibleCards(page, 'projects')) === 5, projKeys.length + ' folders');
-  check(`${tag} five kind-of-work cards show at once`, (await visibleCards(page, 'categories')) === Math.min(5, catKeys.length), catKeys.length + ' cards');
-  check(`${tag} the quiet link under the carousels (was: the hint says click)`, ((await page.textContent('[data-action="pick-for-me"]')) || '') === 'Or let me pick for you');
+  check(`${tag} every folder shows at once`, (await visibleCards(page, 'projects')) === projKeys.length, projKeys.length + ' folders');
+  check(`${tag} every category card shows at once`, (await visibleCards(page, 'categories')) === catKeys.length, catKeys.length + ' cards');
+  check(`${tag} the hint says click`, ((await page.$eval('.focus-empty .flip-hint', (e) => e.textContent)) || '') === 'Click a project to pick it, then a card to draw');
   await page.screenshot({ path: OUT + `desktop-${scheme}.png` });
 
-  // typing a name makes that folder the active card: the categories narrow to it, nothing drawn yet (was: one click picks it)
-  await page.focus('[data-car="projects"] .car-row');
-  await page.keyboard.type('band'); // Band: one task, category c3 (Art)
-  await page.waitForTimeout(300);
-  check(`${tag} typing the name makes the folder active`, (await page.$eval('[data-car="projects"] .car-card.is-active', (e) => e.dataset.key)) === 'p3' && !(await page.$('.focus-active')));
+  // one click picks a folder: the categories narrow to it, nothing drawn yet
+  await click(page, 'projects', 'p3'); // Band: one task, category c3 (Art)
+  check(`${tag} one click picks the folder`, (await page.$eval('[data-wallet="projects"] .sleeve.is-centre', (e) => e.dataset.key)) === 'p3' && !(await page.$('.focus-active')));
   const narrowed = await keys(page, 'categories');
   check(`${tag} the categories narrow to that folder`, narrowed.includes('c3') && !narrowed.includes('c1'), narrowed.join());
   // one click on a category draws
@@ -120,7 +116,7 @@ for (const scheme of ['dark', 'light']) {
   await page.waitForTimeout(300);
   check('Sort: its own screen, the tray alone', !!(await page.$('.screen-sort .inbox-card')) && !(await page.$('.focus-card')) && !(await page.$('.project-card')));
   await click(page, 'tray-folders', 'p1');
-  await page.click('.step-tab[data-step="2"]'); // a thought is filed from step 1 now; the labels step is its tab (was: Next)
+  await page.click('.file-btn[data-action="sort-next"]');
   await page.waitForSelector('[data-wallet="tray-flags"]');
   await page.waitForTimeout(300);
   await click(page, 'tray-flags', 'c1');
@@ -141,12 +137,12 @@ for (const scheme of ['dark', 'light']) {
   const { ctx, page } = await open('dark');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(500);
-  check('narrowed to a phone: the carousel swipes again (arrows hidden, not every card in view)', !(await page.$eval('.car-arrow', (a) => a.offsetParent !== null)) && (await visibleCards(page, 'projects')) < (await keys(page, 'projects')).length);
+  check('narrowed to a phone: the wallets flip again', !(await page.$('.flip-track.is-spread')) && (await visibleCards(page, 'projects')) < (await keys(page, 'projects')).length);
   const bar = await page.evaluate(() => { const r = document.querySelector('.rail').getBoundingClientRect(); return { bottom: Math.round(r.bottom), width: Math.round(r.width) }; });
   check('narrowed to a phone: the rail becomes a bar along the bottom', bar.bottom === 844 && bar.width === 390, JSON.stringify(bar));
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.waitForTimeout(500);
-  check('widened again: arrows are back and five cards show', (await page.$eval('.car-arrow', (a) => a.offsetParent !== null)) && (await visibleCards(page, 'projects')) === 5);
+  check('widened again: laid flat again', (await page.$$('.flip-track.is-spread')).length >= 2);
   await ctx.close();
 }
 

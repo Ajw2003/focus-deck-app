@@ -34,7 +34,6 @@ const SHELL_ASSETS = [
   './js/focus-complete.js',
   './js/icons.js',
   './js/wallet.js',
-  './js/carousel.js',
   './js/pick-order.js',
   './js/note-face.js',
   './fonts/opendyslexic-latin-700-normal.woff2',

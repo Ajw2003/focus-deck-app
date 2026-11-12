@@ -58,7 +58,7 @@ async function open(storage = {}, path = '') {
 }
 const flagKeys = (page) => page.$$eval('[data-wallet="tray-flags"] .sleeve', (els) => els.map((e) => e.dataset.key));
 async function chooseFolder(page, key) {
-  const sel = '[data-car="tray-projects"] .car-card[data-key="' + key + '"] .icard';
+  const sel = '[data-wallet="tray-folders"] .sleeve[data-key="' + key + '"] .icard';
   await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
   await page.waitForTimeout(300);
   const b = await (await page.$(sel)).boundingBox();
@@ -74,15 +74,14 @@ async function chooseFlag(page, key) {
   await page.waitForTimeout(300);
 }
 // The Sort screen goes in steps (project, labels, links): Next moves on, and the last step's button files.
-const nextStep = async (page) => { const next = await page.$('.file-btn[data-action="sort-next"]'); if (next) await next.click(); else await page.click('.step-tab[data-step="2"]'); // a thought is filed from step 1 now (no Next there)
-  await page.waitForSelector('[data-wallet="tray-flags"], .links-step'); await page.waitForTimeout(300); };
+const nextStep = async (page) => { await page.click('.file-btn[data-action="sort-next"]'); await page.waitForSelector('[data-wallet="tray-flags"], .links-step'); await page.waitForTimeout(300); };
 const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 
 // 1. In the in-tray: before a folder, all; Home's flags; More categories shows the rest
 {
   const { ctx, page } = await open();
   // "No folder yet: every category is offered" can no longer be reached: the labels step is locked until a project is chosen.
-  await page.waitForSelector('[data-car="tray-projects"]');
+  await page.waitForSelector('[data-wallet="tray-folders"]');
   await chooseFolder(page, 'pHome');
   await nextStep(page);
   const home = await flagKeys(page);
@@ -132,7 +131,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   const stored = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), STATE_KEY)).categoryFilter;
   check('Settings: turning it off is stored with a stamp', stored.on === false && stored.updatedAt > 0, JSON.stringify(stored));
   await page.goto(BASE);
-  await page.waitForSelector('[data-car="tray-projects"]');
+  await page.waitForSelector('[data-wallet="tray-folders"]');
   await chooseFolder(page, 'pHome');
   await nextStep(page);
   check('off: Home offers every category, no More card', (await flagKeys(page)).length === kinds.length + 6);

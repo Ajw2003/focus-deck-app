@@ -59,9 +59,9 @@ async function open(face, scheme, { sw = false, url = BASE } = {}) {
 const fam = (page, sel) => page.$eval(sel, (e) => getComputedStyle(e).fontFamily);
 const size = (page, sel) => page.$eval(sel, (e) => parseFloat(getComputedStyle(e).fontSize));
 async function draw(page) {
-  await page.waitForSelector('.car-row');
+  await page.waitForSelector('.flip-track');
   await page.waitForTimeout(300);
-  await page.click('[data-car="categories"] .car-card.is-active .icard').catch(() => {});
+  await page.click('[data-wallet="categories"] .sleeve.is-centre .icard').catch(() => {});
   await page.waitForSelector('.focus-active', { timeout: 4000 }).catch(() => {});
 }
 
@@ -101,7 +101,7 @@ for (const scheme of ['dark', 'light']) {
     // stored and applied after reload (no flash: attribute is set by the head script before CSS paints)
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).noteFace.face);
     // A drawn task stays in focus across a reload, so the page may come back on the note, not the wallets.
-    await page.reload(); await page.waitForSelector('.car-row, .focus-active');
+    await page.reload(); await page.waitForSelector('.flip-track, .focus-active');
     console.log(`INFO ${tag} after reload showing: ${(await page.$('.focus-active')) ? 'the drawn task' : 'the wallets'}`);
     check(`${tag} stored (${stored}) and applied after reload`, stored === face && (await page.evaluate(() => document.documentElement.dataset.noteFace)) === face);
     await ctx.close();
@@ -117,7 +117,7 @@ for (const scheme of ['dark', 'light']) {
   const { ctx, page } = await open('dyslexic', 'dark', { url: 'about:blank' });
   await page.goto(BASE, { waitUntil: 'commit' });
   await page.waitForSelector('html[data-note-face="dyslexic"]', { timeout: 4000 }).catch(() => {});
-  const early = await page.evaluate(() => ({ attr: document.documentElement.dataset.noteFace, appRendered: !!document.querySelector('.car-row') }));
+  const early = await page.evaluate(() => ({ attr: document.documentElement.dataset.noteFace, appRendered: !!document.querySelector('.flip-track') }));
   console.log('INFO first-paint attribute: ' + JSON.stringify(early));
   await ctx.close();
 }
@@ -145,7 +145,7 @@ const CACHE_VERSION = readFileSync(join(ROOT, 'app/service-worker.js'), 'utf8').
 // OpenDyslexic OFFLINE: let the service worker install, go offline, reload, the font comes from cache.
 {
   const { ctx, page } = await open('dyslexic', 'dark', { sw: true });
-  await page.waitForSelector('.car-row');
+  await page.waitForSelector('.flip-track');
   const swState = await page.evaluate(async () => { const r = await navigator.serviceWorker.ready; return r.active && r.active.state; });
   check('service worker installed and active', swState === 'activated' || swState === 'activating', swState);
   const cached = await page.evaluate(async () => { const r = await caches.match(new URL('fonts/opendyslexic-latin-700-normal.woff2', location.href)); const names = await caches.keys(); return { hit: !!r, names }; });
@@ -153,7 +153,7 @@ const CACHE_VERSION = readFileSync(join(ROOT, 'app/service-worker.js'), 'utf8').
   await page.reload({ waitUntil: 'load' }); // now controlled by the worker
   await ctx.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('.car-row', { timeout: 8000 }).catch(() => {});
+  await page.waitForSelector('.flip-track', { timeout: 8000 }).catch(() => {});
   await draw(page);
   check('offline: page still loads', !!(await page.$('.focus-title')));
   const off = await page.evaluate(async () => {

@@ -15,7 +15,6 @@ import { confirmMove } from './move-dialog.js';
 import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
 import { mountWallets, onSpreadChange } from './wallet.js';
-import { mountCarousels } from './carousel.js';
 import { tiesOf } from './task-links.js';
 import { renderInTrayCard, unsortedCurrent, STEP_LOCKED_WHY } from './in-tray-view.js';
 import { sendToBack, toggleToken, toggleFolder, fileSlip, MORE_FLAGS_KEY, orderTray, pickedSlips, bulkBlocker, bulkSort } from './in-tray.js';
@@ -185,49 +184,48 @@ function announceWallet(text) {
 const walletHooks = {
   announce: announceWallet,
   onFacing(name, key) {
-    if (name === 'tray-flags') ui.unsorted.facingFlag = key;
-  },
-  // The Sort slip's label wallet: choosing puts a flag on the slip, and choosing it again takes it off.
-  onChoose(name, key) {
-    if (key === MORE_FLAGS_KEY) ui.unsorted.showAllFlags = true; // Settings > Category choices hid some (#133)
-    else { ui.unsorted.selected = toggleToken(ui.unsorted.selected, key); ui.unsorted.facingFlag = key; }
-    paint();
-    return true;
-  },
-};
-
-// The carousels (js/carousel.js): Focus's project and kind-of-work rows, and Sort's project row.
-// The active project on Focus is remembered per device (the same focusdeck-focus-filter as the old
-// pills) and re-renders only the kind-of-work row; choosing draws a task.
-const carouselHooks = {
-  onActive(id, key) {
-    if (id === 'projects') {
+    if (name === 'projects') {
       ui.focusFilter.projectId = key === R.ALL_PROJECTS_KEY ? null : key;
       saveFocusFilter();
-      const slot = document.getElementById('category-car');
-      if (slot) { slot.innerHTML = R.renderCategoryCarousel(viewState(state), ui); mountCarousels(slot, carouselHooks); }
-    } else if (id === 'categories') {
+      const slot = document.getElementById('category-wallet');
+      if (slot) { slot.innerHTML = R.renderCategoryWalletInner(viewState(state), ui); mountWallets(slot, walletHooks); }
+    } else if (name === 'categories') {
       ui.focusCategory = key;
-    } else if (id === 'tray-projects') {
+    } else if (name === 'tray-folders') {
       ui.unsorted.facingFolder = key;
+    } else if (name === 'tray-flags') {
+      ui.unsorted.facingFlag = key;
     }
-    const card = document.querySelector('.car[data-car="' + id + '"] .car-card[data-key="' + CSS.escape(key) + '"]');
-    if (card) announceWallet(card.dataset.speak);
   },
-  onChoose(id, key) {
-    if (id === 'tray-projects') {
+  // Returns false when nothing could be drawn (the card goes back down).
+  onChoose(name, key) {
+    // the in-tray's wallets don't draw a task: choosing puts a folder or a flag on the slip, and
+    // choosing it again takes it off
+    if (name === 'tray-folders') {
       ui.unsorted.projectId = toggleFolder(ui.unsorted.projectId, key);
       ui.unsorted.facingFolder = key;
       paint();
-      return;
+      return true;
     }
-    const projectId = id === 'projects'
+    if (name === 'tray-flags' && key === MORE_FLAGS_KEY) {
+      ui.unsorted.showAllFlags = true; // Settings > Category choices hid some (#133)
+      paint();
+      return true;
+    }
+    if (name === 'tray-flags') {
+      ui.unsorted.selected = toggleToken(ui.unsorted.selected, key);
+      ui.unsorted.facingFlag = key;
+      paint();
+      return true;
+    }
+    const projectId = name === 'projects'
       ? (key === R.ALL_PROJECTS_KEY ? null : key)
       : R.focusProjectId(state, ui);
-    const categoryId = id === 'categories' && key !== R.ANY_CATEGORY_KEY ? key : null;
-    if (M.pickFocus({ categoryId, projectId })) return;
+    const categoryId = name === 'categories' && key !== R.ANY_CATEGORY_KEY ? key : null;
+    if (M.pickFocus({ categoryId, projectId })) return true;
     ui.notice = 'No open tasks match that label and project.';
     paint();
+    return false;
   },
 };
 
@@ -322,7 +320,6 @@ export function paint() {
   document.getElementById('app').innerHTML = renderApp(state);
   paintHeaderControls();
   mountWallets(document.getElementById('app'), walletHooks);
-  mountCarousels(document.getElementById('app'), carouselHooks);
   growAll();
   window.scrollTo(0, scrollY);
   if (addPid) focusAddTitle(addPid, addCaret);
@@ -666,7 +663,6 @@ function onAppClick(e) {
     }
   }
   else if (action === 'reroll') M.reroll();
-  else if (action === 'pick-for-me') { if (!M.pickForMe()) { ui.notice = 'Nothing open to pick from here.'; paint(); } }
   else if (action === 'clear-focus') M.clearFocus();
   else if (action === 'focus-doing') {
     // same path as a board drop: lands at the end of In progress; the task stays in focus
@@ -1054,12 +1050,6 @@ function onAppInput(e) {
     paint();
     const box = document.querySelector('[data-tie-find]');
     if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
-    return;
-  }
-  if (e.target.matches && e.target.matches('.car-find')) {
-    ui.focusFind = e.target.value;
-    const slot = document.getElementById('project-car');
-    if (slot) { slot.innerHTML = R.renderProjectCarousel(viewState(state), ui); mountCarousels(slot, carouselHooks); }
     return;
   }
   if (e.target.matches && e.target.matches('.sort-find')) {

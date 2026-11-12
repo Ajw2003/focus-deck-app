@@ -10,7 +10,6 @@ import { viewState } from './view-switch.js';
 import { orderTray, flagCards, folderCards, pickedSlips, bulkBlocker } from './in-tray.js';
 import { canWaitOn, subtasksOf } from './task-links.js';
 import { renderPickBlocks } from './pick-bits.js';
-import { carouselHtml, findFilter } from './carousel.js';
 import { sleeve, walletInner, mutedChip, focusChoosingMode, unsortedQueue } from './render.js';
 
 function slipFlags(cards, selected) {
@@ -77,18 +76,19 @@ function trayWallets(st, u, project, step, allCards, mode, tid) {
   const q = u.find || '';
   let html = '';
   if (step === 1) {
-    const folders = findFilter(folderCards(viewState(st)), q);
+    const folders = folderCards(viewState(st)).filter((f) => has(f.name, q));
     if (!st.projects.length) {
       html += '<p class="muted small">Add a project below to file this thought into.</p>';
     } else {
       html += '<input type="text" class="sort-find" value="' + esc(q) + '" placeholder="Find a project…" aria-label="Find a project">';
       if (folders.length) {
-        const cards = folders.map((f) => {
+        const items = folders.map((f) => {
           const picked = !!project && f.id === project.id;
-          return { key: f.id, name: f.name, color: f.color, kind: 'project', picked, detail: picked ? 'chosen' : f.open + ' open' };
+          const detail = picked ? 'chosen' : f.open + ' open';
+          return sleeve({ key: f.id, name: f.name, color: f.color, kind: 'project', picked, detail, speak: f.name + ', ' + (picked ? 'chosen. Choose it again to clear.' : detail) });
         });
         const facing = folders.some((f) => f.id === u.facingFolder) ? u.facingFolder : (project && folders.some((f) => f.id === project.id) ? project.id : folders[0].id);
-        html += carouselHtml({ id: 'tray-projects', label: 'Which project?', aria: 'Projects. Left and Right arrow keys move, Enter picks or clears.', noun: 'project', cards, facing });
+        html += '<div class="wallet" id="tray-folder-wallet">' + walletInner({ wallet: 'tray-folders', label: '', aria: 'Projects. Arrow keys flip, Enter chooses or clears.', items, facing, mode, verb: 'use' }) + '</div>';
       } else {
         html += '<p class="muted small find-empty">No project matches “' + esc(q) + '”.</p>';
       }
@@ -138,16 +138,14 @@ function renderTray(st, u, ordered, mode, head = '') {
     : '<button type="button" class="slip-notes-link" data-action="sort-add-notes">+ Add notes</button>';
   const n = ordered.length;
   const ids = isThought ? 'data-inbox="' + cur.item.id + '"' : 'data-task="' + cur.task.id + '" data-project="' + cur.project.id + '"';
-  const fileBtn = isThought
-    ? (project && u.priority
-      ? '<button type="button" class="file-btn" data-action="unsorted-file" data-inbox="' + cur.item.id + '">File to ' + esc(project.name) + ' →</button>'
-      : '<button type="button" class="file-btn" disabled>' + (project ? 'Pick a priority to file' : 'Choose a project first') + '</button>')
-    : '<button type="button" class="file-btn" data-action="unsorted-save" ' + ids + '>Save in ' + (project ? esc(project.name) : '') + ' →</button>';
-  const main = isThought
-    ? (step === 2 ? '<button type="button" class="file-btn" data-action="sort-next">Next: link to other tasks →</button>' : fileBtn)
-    : step === 1 ? (project ? '<button type="button" class="file-btn" data-action="sort-next">Next: labels →</button>' : '<button type="button" class="file-btn" disabled>Choose a project first</button>')
+  const main = step === 1
+    ? (project ? '<button type="button" class="file-btn" data-action="sort-next">Next: labels →</button>' : '<button type="button" class="file-btn" disabled>Choose a project first</button>')
     : step === 2 ? '<button type="button" class="file-btn" data-action="sort-next">Next: link to other tasks →</button>'
-    : fileBtn;
+    : isThought
+      ? (u.priority
+        ? '<button type="button" class="file-btn" data-action="unsorted-file" data-inbox="' + cur.item.id + '">File it in ' + esc(project.name) + ' →</button>'
+        : '<button type="button" class="file-btn" disabled>Pick a priority to file</button>')
+      : '<button type="button" class="file-btn" data-action="unsorted-save" ' + ids + '>Save in ' + esc(project.name) + ' →</button>';
   // .tray-side holds the slip and its buttons: on a wide Sort screen it stays in view beside the
   // choices; on a phone it dissolves (display:contents) so the buttons come after the choices
   // a thought needs a priority and may take a due date (#249); a task already has its own

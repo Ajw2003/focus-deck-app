@@ -120,7 +120,7 @@ for (const size of ['phone', 'desktop']) {
   await page.waitForSelector('.jot-slip');
   await page.waitForTimeout(300);
   check(`${tag} the Sort slip has the pickers, marked needed`, (await page.textContent('.sort-picks')).includes('Priority · needed'));
-  const sel = '[data-car="tray-projects"] .car-card[data-key="pSchool"] .icard';
+  const sel = '[data-wallet="tray-folders"] .sleeve[data-key="pSchool"] .icard';
   await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
   await page.waitForTimeout(400);
   const box = await (await page.$(sel)).boundingBox();
