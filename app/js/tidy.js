@@ -14,21 +14,31 @@ export const GROUPS = [
 
 export const normTitle = (s) => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
-function dist(a, b) {
-  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+// Is the edit distance between a and b at most k? Only the diagonal band |i - j| <= k is filled, and it
+// stops once a whole row is past k, so a pair costs about len * (2k + 1) steps instead of len * len.
+// The full table froze Organize for seconds with a few hundred open tasks.
+export function within(a, b, k) {
+  if (Math.abs(a.length - b.length) > k) return false;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => (j <= k ? j : Infinity));
   for (let i = 1; i <= a.length; i++) {
-    const cur = [i];
-    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    const cur = new Array(b.length + 1).fill(Infinity);
+    if (i <= k) cur[0] = i;
+    let best = cur[0];
+    for (let j = Math.max(1, i - k); j <= Math.min(b.length, i + k); j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (cur[j] < best) best = cur[j];
+    }
+    if (best > k) return false;
     prev = cur;
   }
-  return prev[b.length];
+  return prev[b.length] <= k;
 }
 export function lookSame(a, b) {
   if (!a || !b) return false;
   if (a === b) return true;
   const [s, l] = a.length <= b.length ? [a, b] : [b, a];
   if (s.length >= 5 && l.includes(s)) return true;
-  return l.length >= 8 && dist(a, b) <= Math.min(2, Math.floor(l.length * 0.15));
+  return l.length >= 8 && within(a, b, Math.min(2, Math.floor(l.length * 0.15)));
 }
 // shortcut: GitHub's updated_at is not stored on tasks, so only updatedAt/createdAt count; a task with neither is never "forgotten"
 const stamp = (t) => t.updatedAt || t.createdAt || 0;
