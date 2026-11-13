@@ -630,3 +630,8 @@ Eden asked that nothing in the prototype be a plain button or plain text, and th
   - Seven or more projects pushed the Projects page past a phone screen. The list now scrolls inside its own box, shorter still while a slip shows.
 - Checks brought up to the new screens (no assertion dropped): the computer-layout check expects one wallet per Focus question, the milestone check waits for the cursor before typing, the priority check no longer presses a "Use" stamp that a typed date skips, and the Projects check answers `/gists` and lets the app's Google Fonts stylesheet through.
 - Still failing, left for Eden: in the dyslexia-friendly writing a long Focus title takes 5 lines against 3 in handwriting (`check-note-faces-browser.mjs`). Making it fit means shrinking that font to about 15px.
+
+## 2026-11-13: step by step passed QA, pull request #273
+
+- Eden passed QA and picked option 1 on all three choices (see docs/6-decisions/Decisions.md). Pull request #273 from AjsAgent/step-by-step into main.
+- The churn guard (scripts/guard-file-churn.mjs) flagged six files the redesign rewrote on purpose: the in-tray view, render.js, task-details.js, their two tests and the add-row check. The commit that logs this carries one File-Rewrite-Ack line per file.
