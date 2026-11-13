@@ -621,3 +621,12 @@ Eden asked that nothing in the prototype be a plain button or plain text, and th
 
 - Eden approved: "Design approved: step by step 11 2*". Choice 2 was their own answer: Tidy up selects one task or many, like GitHub issues. The prototype's t1 to t4 now show tick lists. Recorded in docs/6-decisions/Decisions.md.
 - Build plan: parent #261 with eleven steps, #262 to #272, built in order on claude/project-thread-gryib9. #260 stays open; #263 takes it in.
+
+## 2026-11-13: the whole build checked after #272
+
+- Three real faults found by the checks and fixed:
+  - The "Filed ✓" slip covered the Sort stamp and took its taps. A slip now lets taps through except on its own buttons, and sits higher on Sort and Focus (`app/css/app.css`, end).
+  - Typing a date like "15 dec" in Task details lost every letter after the first: the box shared a class with the label search, which repainted and moved the cursor (`app/js/app.js`, the `.sort-find` input handler).
+  - Seven or more projects pushed the Projects page past a phone screen. The list now scrolls inside its own box, shorter still while a slip shows.
+- Checks brought up to the new screens (no assertion dropped): the computer-layout check expects one wallet per Focus question, the milestone check waits for the cursor before typing, the priority check no longer presses a "Use" stamp that a typed date skips, and the Projects check answers `/gists` and lets the app's Google Fonts stylesheet through.
+- Still failing, left for Eden: in the dyslexia-friendly writing a long Focus title takes 5 lines against 3 in handwriting (`check-note-faces-browser.mjs`). Making it fit means shrinking that font to about 15px.

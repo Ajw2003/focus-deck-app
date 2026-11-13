@@ -56,12 +56,14 @@ const calls = [], outside = [], unhandled = [];
 const repo = (full, priv) => ({ full_name: full, name: full.split('/')[1], private: !!priv, html_url: 'https://github.com/' + full });
 await ctx.route((u) => u.hostname !== '127.0.0.1', async (route) => {
   const u = new URL(route.request().url()), m = route.request().method();
+  if (/^fonts\.(googleapis|gstatic)\.com$/.test(u.hostname)) return route.abort(); // the app's own font stylesheet (index.html); refused here, not a leak
   if (u.hostname !== 'api.github.com') { outside.push(m + ' ' + u.href); return route.abort(); }
   const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
   if (m === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
   calls.push(m + ' ' + u.pathname);
   const json = (body, status = 200) => route.fulfill({ status, headers: cors, contentType: 'application/json', body: JSON.stringify(body) });
   if (m === 'GET' && u.pathname === '/user') return json({ login: 'me' });
+  if (m === 'GET' && u.pathname === '/gists') return json([]); // sync looks for its gist; none yet
   if (m === 'GET' && u.pathname === '/user/repos') return json([repo('me/shed-plans', true), repo('me/notes'), repo('me/band')]);
   if (m === 'POST' && u.pathname === '/user/repos') return json(repo('me/' + JSON.parse(route.request().postData()).name, JSON.parse(route.request().postData()).private), 201);
   if (m === 'GET' && /^\/repos\/[^/]+\/[^/]+\/issues$/.test(u.pathname)) return json([]);
@@ -194,7 +196,7 @@ await shot('r9');
 let p = await find('Shed rebuild'), s = await stored();
 check('r9: Make it opens the new project\'s Roadmap with a Made ✓ slip', (await text('.vs-tape')).includes('Shed rebuild') && (await text('.toast')).includes('Made ✓'));
 check('the project is a hand-made one in the new area, in the chosen colour', !!p && p.source === 'manual' && p.color === '#3d5a80' && (s.projectCategories || []).some((c) => c.name === 'Workshop' && c.id === p.categoryId));
-check('the Roadmap\'s menu has no + New project (Projects owns it)', !(await page.$('#new-panel-toggle')) && !(await text('.rm-head')).includes('New project'));
+check('the Roadmap\'s menu has no + New project (Projects owns it)', !(await page.$('#new-panel-toggle')) && !(await text('.rm-project')).includes('New project'));
 check('it is the last-used project', (await page.evaluate(() => localStorage.getItem('focusdeck-last-project'))) === p.id);
 await click('[data-screen="projects"]');
 check('back on Projects the new project is in the list', (await names()).includes('Shed rebuild'));

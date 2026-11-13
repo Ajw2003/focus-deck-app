@@ -3,7 +3,7 @@
 The Projects tab is the project list and New project. Tapping a project opens it on the Roadmap tab ([roadmap.md](./roadmap.md)),
 which shows one project. Design approved by Eden ("step by step 11 2*"); the screens are r0, r0m, r0o, r5 to r9 in
 `docs/generated/friction-steps/prototype.html` (`?all=roadmap`, "Projects tab"). Standing rule: no small text, captions or hints;
-nothing under 13px; every screen fits 390x844 without scrolling (a long list scrolls inside its own box).
+nothing under 13px; every screen fits 390x844 without scrolling (a long list scrolls inside its own box; the project list is capped at 100dvh - 425px, 64px less while a slip shows).
 
 ## What owns it
 

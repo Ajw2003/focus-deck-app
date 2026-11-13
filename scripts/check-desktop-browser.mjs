@@ -94,7 +94,7 @@ for (const scheme of ['dark', 'light']) {
   check(`${tag} the categories narrow to that folder`, narrowed.includes('c3') && !narrowed.includes('c1'), narrowed.join());
   // one click on a category draws
   await click(page, 'categories', 'c3');
-  await page.click('[data-action="focus-show"]');
+  if (await page.$('[data-action="focus-show"]')) await page.click('[data-action="focus-show"]'); // a kind card draws on its own (#270)
   await page.waitForSelector('.focus-active', { timeout: 3000 }).catch(() => {});
   const title = await page.$eval('.focus-title', (e) => e.textContent).catch(() => '');
   check(`${tag} one click on a category draws from the picked folder`, title === 'Learn the bridge', title);
@@ -148,7 +148,8 @@ for (const scheme of ['dark', 'light']) {
   check('narrowed to a phone: the rail becomes a bar along the bottom', bar.bottom === 844 && bar.width === 390, JSON.stringify(bar));
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.waitForTimeout(500);
-  check('widened again: laid flat again', (await page.$$('.flip-track.is-spread')).length >= 2);
+  const tracks = await page.$$eval('.flip-track', (els) => els.map((e) => e.classList.contains('is-spread')));
+  check('widened again: every wallet on screen laid flat again (one question per screen since #270)', tracks.length >= 1 && tracks.every(Boolean), JSON.stringify(tracks));
   await ctx.close();
 }
 

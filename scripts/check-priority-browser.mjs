@@ -96,7 +96,7 @@ for (const size of ['phone', 'desktop']) {
   await page.click('.cw-detail [data-action="pick-set"][data-field="due"][data-value="date"]');
   await page.fill('.cw-detail [data-pick-type]', '15 dec');
   await page.keyboard.press('Enter');
-  await page.click('.cw-detail [data-action="sort-use-date"]');
+  await page.waitForSelector('.cw-detail .sort-cal-page.on'); // Enter on a typed date picks it and closes the month page (no Use press)
   await page.click('.cw-detail [data-action="edit-save"]');
   check(`${tag} a typed date is read`, /-12-15$/.test((await stored(page)).projects[0].tasks.find((x) => x.id === t.id).deadline || ''));
   await page.click('[data-action="detail-close"]');

@@ -104,6 +104,7 @@ for (const [w, h] of [[360, 780], [390, 844], [1440, 900]]) {
   check((await ruler()) === '63% done', tag + 'size: 5 of 8 points = 63%', await ruler());
 
   await openIt(); await next(); await page.click('.dk-choice[data-value="number"]');
+  await page.waitForFunction(() => document.activeElement && document.activeElement.matches('[data-rm-num="name"]')); // the app puts the cursor in the name a frame later; typing before then lands there
   await page.fill('[data-rm-num="name"]', 'screens tested'); await page.fill('[data-rm-num="current"]', '2'); await page.fill('[data-rm-num="target"]', '4');
   await shot('number'); await noScroll('number measure');
   await save();

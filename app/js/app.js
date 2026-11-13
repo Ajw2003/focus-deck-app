@@ -1173,7 +1173,7 @@ function onAppInput(e) {
     if (box) box.setSelectionRange(box.value.length, box.value.length);
     return;
   }
-  if (e.target.matches && e.target.matches('.sort-find:not([data-bulk-newlabel]):not(.pj-find):not([data-detail-rename]):not([data-detail-newsub])')) {
+  if (e.target.matches && e.target.matches('.sort-find:not([data-bulk-newlabel]):not(.pj-find):not([data-detail-rename]):not([data-detail-newsub]):not([data-pick-type])')) {
     sortScratch().find = e.target.value;
     paint();
     const box = document.querySelector('.sort-find');

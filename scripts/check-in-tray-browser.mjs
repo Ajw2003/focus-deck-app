@@ -99,7 +99,7 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
   await page.screenshot({ path: OUT + `${scheme}-${mode}-thought.png` });
 
   await choose(page, 'tray-folders', 'pSchool', mode);
-  check(`${tag} choosing a folder puts it on the slip`, (await page.$eval('.slip-dest', (e) => e.textContent)).includes('Going in School'), await page.$eval('.slip-dest', (e) => e.textContent));
+  check(`${tag} choosing a folder puts it on the slip`, (await page.$eval('.slip-dest', (e) => e.textContent)).trim() === 'School', await page.$eval('.slip-dest', (e) => e.textContent));
   check(`${tag} Next is on once there is a folder`, !(await stamp(page)).disabled);
   await choose(page, 'tray-folders', 'pSchool', mode);
   check(`${tag} choosing the folder again clears it`, (await page.$eval('.slip-dest', (e) => e.textContent)) === 'No project yet');
@@ -156,7 +156,7 @@ for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {
   check(`${tag} next is the unlabelled task (Later sent the email to the back)`, (await slipText(page)) === 'Fix the gate latch', await slipText(page));
   await page.click('[data-action="sort-next"]');
   await page.waitForSelector('[data-wallet="tray-folders"]');
-  check(`${tag} a task slip starts in its own project, Next is on`, (await page.$eval('.slip-dest', (e) => e.textContent)).includes('In Home') && !(await stamp(page)).disabled);
+  check(`${tag} a task slip starts in its own project, Next is on`, (await page.$eval('.slip-dest', (e) => e.textContent)).trim() === 'Home' && !(await stamp(page)).disabled);
   for (let i = 0; i < 8; i++) { await page.click('.sort-foot .file-btn'); await page.waitForTimeout(100); }
   check(`${tag} a task slip reaches the receipt with Save to Home`, (await stamp(page)).text === 'Save to Home');
   await page.click('.sort-foot .file-btn'); // nothing chosen: to the back
