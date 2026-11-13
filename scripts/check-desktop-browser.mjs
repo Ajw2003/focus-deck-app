@@ -78,10 +78,6 @@ for (const scheme of ['dark', 'light']) {
 
   // wallets laid flat: every card showing at once
   const projKeys = await keys(page, 'projects');
-  const catKeys = await keys(page, 'categories');
-  check(`${tag} five folders show at once (was: every folder)`, (await visibleCards(page, 'projects')) === Math.min(5, projKeys.length), projKeys.length + ' folders');
-  check(`${tag} five category cards show at once (was: every card)`, (await visibleCards(page, 'categories')) === Math.min(5, catKeys.length), catKeys.length + ' cards');
-  check(`${tag} the hint says click`, ((await page.$eval('.focus-empty .flip-hint', (e) => e.textContent)) || '') === 'Click a project to pick it, then a card to draw');
   await page.screenshot({ path: OUT + `desktop-${scheme}.png` });
 
   // one click picks a folder: the categories narrow to it, nothing drawn yet
@@ -89,10 +85,16 @@ for (const scheme of ['dark', 'light']) {
   await page.keyboard.type('band'); // Band: one task, category c3 (Art)
   await page.waitForTimeout(500);
   check(`${tag} one click picks the folder`, (await page.$eval('[data-wallet="projects"] .sleeve.is-centre', (e) => e.dataset.key)) === 'p3' && !(await page.$('.focus-active')));
+  await page.click('[data-action="focus-next"]'); // the second question, "What kind of work?"
+  await page.waitForSelector('[data-wallet="categories"] .sleeve');
+  const catKeys = await keys(page, 'categories');
+  check(`${tag} five category cards show at once (was: every card)`, (await visibleCards(page, 'categories')) === Math.min(5, catKeys.length), catKeys.length + ' cards');
+  check(`${tag} no hint line on the Focus questions`, !(await page.$('.flip-hint')));
   const narrowed = await keys(page, 'categories');
   check(`${tag} the categories narrow to that folder`, narrowed.includes('c3') && !narrowed.includes('c1'), narrowed.join());
   // one click on a category draws
   await click(page, 'categories', 'c3');
+  await page.click('[data-action="focus-show"]');
   await page.waitForSelector('.focus-active', { timeout: 3000 }).catch(() => {});
   const title = await page.$eval('.focus-title', (e) => e.textContent).catch(() => '');
   check(`${tag} one click on a category draws from the picked folder`, title === 'Learn the bridge', title);

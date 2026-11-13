@@ -71,16 +71,21 @@ const tapCard = async (page, w, key) => {
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
 };
 const focusShown = (page) => page.$('.focus-active');
+// Focus asks "Which project?" first; the kinds-of-work wallet is the second question (#270)
+const toQ2 = async (page) => { await page.click('[data-action="focus-next"]'); await page.waitForSelector('[data-wallet="categories"] .sleeve'); await page.waitForTimeout(400); };
+const toQ1 = async (page) => { await page.click('[data-action="focus-back"]'); await page.waitForSelector('[data-wallet="projects"] .sleeve'); await page.waitForTimeout(400); };
 
 // 1. wallets render, dark
 let { ctx, page } = await open('twice', 'dark');
 const projKeys = await keysOf(page, 'projects');
 check('project wallet has All + 4 folders', projKeys.length === 5 && projKeys[0] === 'all', projKeys.join());
-const catAll = await keysOf(page, 'categories');
-check('category wallet has cards + unlabelled + surprise', catAll.includes('__none__') && catAll.at(-1) === 'any', catAll.join());
 check('project wallet facing All', (await facing(page, 'projects')) === 'all');
 check('mockup folders drawn as folders (::before tab)', await page.$eval('.icard.project', (e) => getComputedStyle(e, '::before').content !== 'none'));
 await page.screenshot({ path: OUT + 'dark-twice-all.png', fullPage: false });
+await toQ2(page);
+const catAll = await keysOf(page, 'categories');
+check('category wallet has cards + unlabelled + surprise', catAll.includes('__none__') && catAll.at(-1) === 'any', catAll.join());
+await toQ1(page);
 
 // 2. flip a folder narrows index cards (keyboard on a computer)
 await page.focus('[data-wallet="projects"]');
@@ -90,12 +95,14 @@ await page.keyboard.press('ArrowRight');
 await page.waitForTimeout(900);
 const f1 = await facing(page, 'projects');
 check('arrow flips the project wallet (facing = ' + f1 + ')', f1 !== 'all');
-const catNarrow = await keysOf(page, 'categories');
-check('category cards narrowed to that project', catNarrow.length < catAll.length, catNarrow.join());
 check('project wallet track NOT re-rendered on a flip', await page.evaluate(() => window.__projTrack === document.querySelector('[data-wallet="projects"]')));
 const saved = await page.evaluate(() => localStorage.getItem('focusdeck-focus-filter'));
 check('facing folder remembered in focusdeck-focus-filter', saved && JSON.parse(saved).projectId === f1, saved);
 await page.screenshot({ path: OUT + 'dark-twice-flipped.png' });
+await toQ2(page);
+const catNarrow = await keysOf(page, 'categories');
+check('category cards narrowed to that project', catNarrow.length < catAll.length, catNarrow.join());
+await toQ1(page);
 // remembered on reload
 await page.reload(); await page.waitForSelector('.flip-track'); await page.waitForTimeout(400);
 check('after reload the remembered folder faces you', (await facing(page, 'projects')) === f1);
@@ -107,6 +114,7 @@ await ctx.close();
 for (const mode of ['twice', 'tap', 'push']) {
   for (const scheme of ['dark', 'light']) {
     ({ ctx, page } = await open(mode === 'push' ? 'twice' : mode, scheme));
+    await toQ2(page);
     const m = await page.$eval('[data-wallet="categories"]', (t) => t.dataset.mode);
     check(`[${mode}/${scheme}] markup mode`, m === (mode === 'push' ? 'twice' : mode));
     const cats = await keysOf(page, 'categories');
@@ -147,6 +155,7 @@ for (const mode of ['twice', 'tap', 'push']) {
 
 // 4. keyboard Enter chooses in every mode; Surprise me works
 ({ ctx, page } = await open('twice', 'light'));
+await toQ2(page);
 await page.focus('[data-wallet="categories"]');
 await page.keyboard.press('End'); await page.waitForTimeout(900);
 check('End goes to Surprise me', (await facing(page, 'categories')) === 'any');
@@ -170,7 +179,7 @@ const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('focusd
 check('choosing Tap is stored with a stamp', stored.mode === 'tap' && stored.updatedAt > 1, JSON.stringify(stored));
 await page.goto(BASE); await page.waitForSelector('.flip-track');
 check('the wallets follow the setting', (await page.$eval('[data-wallet="projects"]', (t) => t.dataset.mode)) === 'tap');
-check('and the hint reads for that mode', (await page.$eval('.flip-hint', (e) => e.textContent)).includes('tap or push a card up to draw'));
+check('and there is no hint line (nothing explains the mode on the screen)', !(await page.$('.flip-hint')));
 await ctx.close();
 
 // 6. empty-project edge: a folder with its only matching categories, wide screen

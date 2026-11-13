@@ -9,7 +9,7 @@
 import { esc, formatLabelName, PRIORITY, state } from './state.js';
 import { effectivePriority } from './areas.js';
 import { dueKey } from './card-key.js';
-import { subtasksOf } from './task-links.js';
+import { subtasksOf, holdsUp } from './task-links.js';
 import { SIZE_POINTS } from './roadmap.js';
 import { focusChoosingMode } from './render.js';
 import { renderSortFlow, stamp, foot, back, choice } from './sort-flow-view.js';
@@ -49,7 +49,7 @@ export function renderTaskDetails(st, ui, id, now = Date.now()) {
   if (ui.boardScreen === 'subs') {
     const subs = subtasksOf(st.projects, id);
     const rows = t.parentId ? '<p class="muted">This is part of another task, so it can’t have smaller steps of its own.</p>'
-      : subs.map((s) => '<label class="dk-choice td-tick"><input type="checkbox" data-action="toggle-task" data-task="' + esc(s.id) + '" data-project="' + esc(x.p.id) + '"' + (s.status === 'done' ? ' checked' : '') + '><span>' + esc(s.title) + '</span></label>').join('')
+      : subs.map((s) => '<label class="dk-choice td-tick"><input type="checkbox" data-action="toggle-task" data-task="' + esc(s.id) + '" data-project="' + esc(x.p.id) + '"' + (s.status === 'done' ? ' checked' : '') + '><span>' + esc(s.title) + '</span></label><button type="button" class="td-go" data-action="detail-goto" data-task-id="' + esc(s.id) + '" aria-label="Open ' + esc(s.title) + '">↗</button>').join('')
         + '<div class="td-add"><input type="text" class="sort-find" data-detail-newsub placeholder="+ Add" aria-label="New smaller step" maxlength="200">' + stamp('Add', { action: 'detail-add-sub' }) + '</div>';
     return panel(board('Smaller steps', rows) + foot([backTo(), stamp('Done', { action: 'detail-back' })]));
   }
@@ -67,18 +67,22 @@ export function renderTaskDetails(st, ui, id, now = Date.now()) {
 
   const lvl = effectivePriority(t, state);
   const due = dueKey(t, st.comfort && st.comfort.overdue && st.comfort.overdue.value, now);
-  const waits = (t.waitsOn || []).map((w) => (all.find((y) => y.t.id === w) || {}).t).filter(Boolean).map((w) => w.title);
+  const go = (list) => ({ html: list.map((w) => '<button type="button" class="td-go" data-action="detail-goto" data-task-id="' + esc(w.id) + '">' + esc(w.title) + '</button>').join(', ') });
+  const waits = (t.waitsOn || []).map((w) => (all.find((y) => y.t.id === w) || {}).t).filter(Boolean);
+  const holds = holdsUp(st.projects, id), parent = t.parentId ? (all.find((y) => y.t.id === t.parentId) || {}).t : null;
   const lines = [
     ['🚩', 'Priority', lvl ? PRIORITY[lvl].label : NONE, 'detail-edit', '2'],
     ['📅', 'Due', due ? due.name : NONE, 'detail-edit', '4'],
     ['🗂', 'Labels', labelsSummary(t, st.categories || []), 'detail-edit', '3'],
     ['🪜', 'Smaller steps', subtasksSummary(subtasksOf(st.projects, id)), 'detail-subs', ''],
-    ['⏳', 'Waits on', waits.join(', ') || NONE, 'detail-edit', '7'],
+    ['⏳', 'Waits on', waits.length ? go(waits) : NONE, 'detail-edit', '7'],
+    ...(holds.length ? [['🚧', 'Holds up', go(holds), 'detail-edit', '8']] : []),
+    ...(parent ? [['🧩', 'Part of', go([parent]), 'detail-edit', '5']] : []),
     ['📝', 'Notes', notesSummary(t.notes), 'detail-edit', 'notes'],
     ['📏', 'Size', t.size ? t.size.charAt(0).toUpperCase() + t.size.slice(1) : NONE, 'detail-size-open', ''],
     ['🐙', 'GitHub issue', t.source === 'github' && t.issueNumber != null ? '#' + t.issueNumber : NONE, 'detail-github', ''],
   ];
-  const receipt = '<div class="dk-summary sort-receipt">' + lines.map(([icon, label, val, action, step]) => '<div><span aria-hidden="true">' + icon + '</span><b class="sr-only">' + label + ': </b><em>' + esc(val) + '</em>'
+  const receipt = '<div class="dk-summary sort-receipt">' + lines.map(([icon, label, val, action, step]) => '<div><span aria-hidden="true">' + icon + '</span><b class="sr-only">' + label + ': </b><em>' + (typeof val === 'object' ? val.html : esc(val)) + '</em>'
     + '<button type="button" class="dk-pencil" data-action="' + action + '"' + (step ? ' data-step="' + step + '"' : '') + ' aria-label="Change ' + label.toLowerCase() + '">✎</button></div>').join('') + '</div>';
   const cur = STATUSES.find((s) => s[0] === t.status) || STATUSES[0];
   const stampRow = '<div class="td-stamp-row">' + stampBtn(cur[1], cur[2], true, 'detail-status-open', ' aria-label="Status: ' + cur[1] + '. Change it"') + '<span class="folder-chip" style="--c:' + esc(x.p.color) + '">' + esc(x.p.name) + '</span></div>';

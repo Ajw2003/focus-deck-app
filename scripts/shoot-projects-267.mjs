@@ -114,7 +114,7 @@ check('Find a project narrows the list and keeps focus', (await names()).join() 
 await page.fill('.pj-find', ''); await page.waitForTimeout(250);
 await click('.pj-pull');
 await shot('r0m');
-check('r0m: Sort by lists A–Z, Most tasks, Due soonest, Last synced, My order ↑↓', (await text('.sort-drawer .vs-pop-body')).replace(/\s+/g, ' ').trim() === 'A–Z Most tasks Due soonest Last synced My order ↑↓');
+check('r0m: Sort by lists A–Z, Most tasks, Due soonest, Last synced, My order ↑↓', (await page.$$eval('.sort-drawer .vs-pop-body .dk-choice', (els) => els.map((e) => e.textContent.trim()).join(' '))) === 'A–Z Most tasks Due soonest Last synced My order↑↓');
 await click('.sort-drawer .dk-choice:has-text("Most tasks")');
 await shot('r0-most');
 check('Most tasks: Band 5, Home 4, Garden 1', (await names()).join() === 'Band,Home,Garden', (await names()).join());
@@ -192,14 +192,14 @@ const find = async (name) => (await stored()).projects.find((p) => p.name === na
 await make({ name: 'Shed rebuild', newArea: 'Workshop', colour: '#3d5a80', gh: 'no' }, true);
 await shot('r9');
 let p = await find('Shed rebuild'), s = await stored();
-check('r9: Make it opens the new project\'s Roadmap with a Made ✓ slip', (await text('.rm-title')).includes('Shed rebuild') && (await text('.toast')).includes('Made ✓'));
+check('r9: Make it opens the new project\'s Roadmap with a Made ✓ slip', (await text('.vs-tape')).includes('Shed rebuild') && (await text('.toast')).includes('Made ✓'));
 check('the project is a hand-made one in the new area, in the chosen colour', !!p && p.source === 'manual' && p.color === '#3d5a80' && (s.projectCategories || []).some((c) => c.name === 'Workshop' && c.id === p.categoryId));
 check('the Roadmap\'s menu has no + New project (Projects owns it)', !(await page.$('#new-panel-toggle')) && !(await text('.rm-head')).includes('New project'));
 check('it is the last-used project', (await page.evaluate(() => localStorage.getItem('focusdeck-last-project'))) === p.id);
 await click('[data-screen="projects"]');
 check('back on Projects the new project is in the list', (await names()).includes('Shed rebuild'));
 await page.fill('.pj-find', 'shed'); await page.waitForTimeout(250); await click('.pj-card[data-project="' + p.id + '"]');
-check('tapping its card opens it on the Roadmap', !!(await page.$('.rm-project')) && (await text('.rm-title')).includes('Shed rebuild'));
+check('tapping its card opens it on the Roadmap', !!(await page.$('.rm-project')) && (await text('.vs-tape')).includes('Shed rebuild'));
 await click('[data-screen="projects"]'); await page.fill('.pj-find', ''); await page.waitForTimeout(250);
 
 // 2. My repo: linked to a repo I own

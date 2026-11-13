@@ -1441,6 +1441,10 @@ body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, bod
 .tr-row{display:flex; align-items:center; justify-content:space-between; gap:8px; text-align:left;}
 .tr-row:focus-visible{outline:2px solid var(--dk-accent); outline-offset:2px;}
 .tr-moves{display:flex; gap:6px; flex:none;}
+.tr-grip{display:none; cursor:grab; font-size:20px; padding:0 6px; flex:none; touch-action:none;}
+.tr-t{flex:1;}
+.tr-row.is-dragging{opacity:.5;}
+@media (min-width:1100px){.tr-grip{display:inline-block;}}
 .tr-move{width:44px; height:44px; border:0; border-radius:50%; background:radial-gradient(circle at 40% 35%,#4A5163,#1C2438); color:#F4F4F4; font-size:18px; box-shadow:0 2px 0 #000,0 0 0 2px #B8BFCC; cursor:pointer;}
 .tr-move:disabled{opacity:.4; cursor:default;}
 .tr-reset{flex:1;}
@@ -1676,3 +1680,26 @@ a.dk-choice{text-decoration:none;}
 .td-add .sort-find{flex:1; min-width:0;}
 .td-panel .sort-body{overflow-y:auto;}
 .td-tick span{flex:1; text-align:left;}
+
+/* ---- Computer layout (#272, >= 1100px): the screen is a centred panel; Sort lists its nine steps beside it; on the Roadmap a
+   task's drawer and Task details open beside the panel instead of over it. Phone rules above are untouched. See docs/4-systems/tabs.md */
+.sort-steps{display:none;}
+@media (min-width:1100px){
+  .screen-sort{padding-right:194px;}
+  .screen-sort .sortflow{position:relative; max-width:560px;}
+  .sort-steps{display:block; position:absolute; left:calc(100% + 28px); top:48px; width:160px; margin:0; padding:0; list-style:none; font:600 15px/1.2 var(--font-ui); color:var(--ink-soft);}
+  .sort-steps li{padding:8px 0;}
+  .sort-steps li.on{color:var(--dk-ink); font-weight:800;}
+  .rm-project{display:flex; justify-content:center; align-items:flex-start; gap:24px;}
+  .rm-project > .pj{flex:0 1 560px; min-width:0; margin:0;}
+  .rm-project > .vs-backdrop{display:none;}
+  .rm-project > .vs-pop.dk-sheet{position:static; transform:none; flex:none; width:420px; max-height:none; margin-top:44px;}
+  .rm-project > .rm-detail{flex:none; width:440px;}
+  .rm-detail .cw-detail.td-panel{position:static; width:100%; height:calc(100dvh - 210px); box-shadow:none; background:none; z-index:auto;}
+}
+
+/* A slip (toast) must not make a phone page scroll: the screens above size themselves to fit 100dvh - 240px, and the toast's extra
+   room under them is 64px, so they give those 64px back while it shows (#272). */
+@media (max-width:1099.98px){
+  .wrap:has(.toast) :is(.pj, .org, .sortflow){min-height:calc(100dvh - 304px - env(safe-area-inset-bottom, 0px));}
+}

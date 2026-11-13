@@ -58,7 +58,8 @@ async function open(mode) {
 }
 const track = (page) => page.$('[data-wallet="projects"]');
 const facing = (page) => page.$eval('[data-wallet="projects"] .sleeve.is-centre', (e) => e.dataset.key);
-const drawn = (page) => page.$('.focus-active');
+// Focus now asks two questions (#270): choosing the facing project is what the old draw was, and it brings up the second question
+const drawn = (page) => page.$('[data-wallet="categories"]');
 const centreCard = async (page) => (await page.$('[data-wallet="projects"] .sleeve.is-centre .icard')).boundingBox();
 
 for (const mode of ['tap', 'twice', 'swipe']) {
@@ -77,20 +78,20 @@ for (const mode of ['tap', 'twice', 'swipe']) {
   await swipe(page, { x: box.x + 18, y: box.y + box.height / 2 + 30 }, { x: box.x + 18, y: box.y + box.height / 2 - 220 });
   let y1 = await page.evaluate(() => scrollY);
   check(`${tag} a vertical drag that starts beside the facing card scrolls the page`, y1 - y0 > 100, y0 + ' -> ' + y1);
-  check(`${tag} ...and draws nothing`, !(await drawn(page)));
+  check(`${tag} ...and chooses nothing`, !(await drawn(page)));
 
   // a finger moving down on the facing card scrolls back up
   let card = await centreCard(page);
   await swipe(page, { x: card.x + card.width / 2, y: card.y + 10 }, { x: card.x + card.width / 2, y: card.y + 230 });
   const y2 = await page.evaluate(() => scrollY);
   check(`${tag} a finger moving down on the facing card scrolls the page back up`, y2 < y1 - 100, y1 + ' -> ' + y2);
-  check(`${tag} ...and draws nothing`, !(await drawn(page)));
+  check(`${tag} ...and chooses nothing`, !(await drawn(page)));
 
   // pushing the facing card up draws, in every mode (#132)
   card = await centreCard(page);
   await swipe(page, { x: card.x + card.width / 2, y: card.y + card.height - 12 }, { x: card.x + card.width / 2, y: card.y - 90 });
   await page.waitForTimeout(300);
-  check(`${tag} pushing the facing card up draws a task`, !!(await drawn(page)));
+  check(`${tag} pushing the facing card up chooses it and asks the next question`, !!(await drawn(page)));
   await ctx.close();
 
   // a tap draws: once in Tap (and the old Swipe up), twice in Tap twice (#132)
@@ -99,12 +100,12 @@ for (const mode of ['tap', 'twice', 'swipe']) {
   await page.touchscreen.tap(card.x + card.width / 2, card.y + card.height / 2);
   await page.waitForTimeout(400);
   if (mode === 'twice') {
-    check(`${tag} the first tap lifts the card, nothing drawn yet`, !(await drawn(page)) && !!(await page.$('[data-wallet="projects"] .sleeve.is-armed')));
+    check(`${tag} the first tap lifts the card, nothing chosen yet`, !(await drawn(page)) && !!(await page.$('[data-wallet="projects"] .sleeve.is-armed')));
     await page.touchscreen.tap(card.x + card.width / 2, card.y + card.height / 2);
     await page.waitForTimeout(400);
-    check(`${tag} the second tap draws`, !!(await drawn(page)));
+    check(`${tag} the second tap chooses it`, !!(await drawn(page)));
   } else {
-    check(`${tag} one tap on the facing card draws (no nudge)`, !!(await drawn(page)));
+    check(`${tag} one tap on the facing card chooses it (no nudge)`, !!(await drawn(page)));
   }
   await ctx.close();
 }

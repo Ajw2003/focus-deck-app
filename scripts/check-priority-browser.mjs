@@ -59,60 +59,49 @@ async function open(size, screen) {
 
 for (const size of ['phone', 'desktop']) {
   const tag = `[${size}]`;
-  // ---- project add row and chips
+  // ---- Roadmap: + Add a task, then priority and due date set in Task details (the add row and its pickers went with #268)
   let { ctx, page } = await open(size, 'roadmap');
-  const ROW = '.add-row[data-project="pHome"]';
-  await page.click('.rm-add-link');
-  await page.waitForSelector(ROW + ' input[name="title"]');
-  check(`${tag} pickers hidden before there is a title`, await page.$eval(ROW + ' .pick-blocks', (e) => e.hidden));
-  await page.click(ROW + ' input[name="title"]');
+  await page.click('[data-action="rm-screen"][data-screen="task"]');
+  await page.waitForSelector('[data-rm-field="title"]');
+  check(`${tag} New task: Add is off until there is a title`, await page.$eval('[data-action="rm-add-task"]', (b) => b.disabled));
+  await page.click('[data-rm-field="title"]');
   await page.keyboard.type('Ring the plumber');
-  check(`${tag} pickers show once there is a title`, !(await page.$eval(ROW + ' .pick-blocks', (e) => e.hidden)));
-  check(`${tag} Add is disabled and says why`, await page.$eval(ROW + ' button[type=submit]', (b) => b.disabled && b.textContent === 'Add') && (await page.textContent(ROW + ' .pick-hint')) === 'Pick a priority to add' && (await page.getAttribute(ROW + ' input[name="title"]', 'placeholder')) ?.startsWith('Add a task') && (await page.$eval(ROW + ' input[name="title"]', (i) => i.getBoundingClientRect().width)) > 120);
-  await page.$eval(ROW, (e) => e.scrollIntoView({ block: 'center' }));
   await page.screenshot({ path: OUT + `${size}-add-title-only.png` });
-  await page.keyboard.press('Enter'); // bypassing the disabled button: still nothing is added
-  await page.waitForTimeout(150);
-  check(`${tag} Enter with no priority adds nothing`, (await stored(page)).projects[0].tasks.length === 1);
-  await page.click(ROW + ' [data-field="priority"][data-value="high"]');
-  await page.click(ROW + ' [data-field="due"][data-value="friday"]');
-  check(`${tag} High and Friday are pressed, Add enabled`, await page.$eval(ROW, (r) => r.querySelector('[data-value="high"]').getAttribute('aria-pressed') === 'true' && r.querySelector('[data-field="due"][data-value="friday"]').getAttribute('aria-pressed') === 'true' && !r.querySelector('button[type=submit]').disabled && r.querySelector('button[type=submit]').textContent === 'Add'));
-  check(`${tag} the title survives the repaint`, (await page.inputValue(ROW + ' input[name="title"]')) === 'Ring the plumber');
-  await page.screenshot({ path: OUT + `${size}-add-picked.png` });
-  await page.click(ROW + ' button[type=submit]');
-  await page.waitForTimeout(200);
-  let t = (await stored(page)).projects[0].tasks.find((x) => x.title === 'Ring the plumber');
-  check(`${tag} the task is stored with High and a due date`, !!t && t.priority === 'high' && /^\d{4}-\d\d-\d\d$/.test(t.deadline || ''), JSON.stringify(t && [t.priority, t.deadline]));
-  // the Roadmap's task rows (#259): a read-only chip shows the priority and due date; a click opens Task details, where they change
-  const rowSel = '.rm-task[data-task-id="' + (t && t.id) + '"]';
-  check(`${tag} the Roadmap row shows "High" and a due chip`, (await page.$eval(rowSel + ' .priority-chip', (e) => e.textContent.trim())) === 'High' && !!(await page.$(rowSel + ' .deadline-chip')));
-  check(`${tag} a Roadmap task with no priority shows no priority chip`, !(await page.$('.rm-task[data-task-id="h1"] .priority-chip')));
-  await page.$eval(rowSel, (e) => e.scrollIntoView({ block: 'center' }));
-  await page.click(rowSel + ' .priority-chip');
+  await page.click('[data-action="rm-add-more"]'); // More… adds it and opens its Task details
   await page.waitForSelector('.cw-detail');
+  let t = (await stored(page)).projects[0].tasks.find((x) => x.title === 'Ring the plumber');
+  check(`${tag} More… adds the task and opens its Task details`, !!t && (await page.getAttribute('.cw-detail', 'data-selected')) === t.id && !t.priority);
   await page.click('.cw-detail [data-action="detail-edit"][data-step="2"]');
-  check(`${tag} the chip opens Task details with High selected`, (await page.$eval('.cw-detail .sort-flag.on', (e) => e.getAttribute('data-level'))) === 'high');
-  await page.screenshot({ path: OUT + `${size}-chip-picker.png` });
+  check(`${tag} the priority step in Task details has the four flags`, (await page.$$('.cw-detail .sort-flags .sort-flag')).length >= 4);
+  await page.click('.cw-detail .sort-flag[data-level="high"]');
+  await page.click('.cw-detail [data-action="edit-save"]');
+  await page.click('.cw-detail [data-action="detail-edit"][data-step="4"]');
+  await page.click('.cw-detail .sort-cal-page[data-value="friday"]');
+  await page.click('.cw-detail [data-action="edit-save"]');
+  t = (await stored(page)).projects[0].tasks.find((x) => x.title === 'Ring the plumber');
+  check(`${tag} the task is stored with High and a due date`, !!t && t.priority === 'high' && /^\d{4}-\d\d-\d\d$/.test(t.deadline || ''), JSON.stringify(t && [t.priority, t.deadline]));
+  check(`${tag} the receipt shows High`, (await page.textContent('.cw-detail .sort-receipt > div:nth-child(1) em')).includes('High'));
+  await page.screenshot({ path: OUT + `${size}-add-picked.png` });
+  await page.click('.cw-detail [data-action="detail-edit"][data-step="2"]');
+  check(`${tag} Task details opens the priority step with High selected`, (await page.$eval('.cw-detail .sort-flag.on', (e) => e.getAttribute('data-level'))) === 'high');
   await page.click('.cw-detail .sort-flag[data-level="urgent"]');
   await page.click('.cw-detail [data-action="edit-save"]');
   t = (await stored(page)).projects[0].tasks.find((x) => x.title === 'Ring the plumber');
-  check(`${tag} Task details sets the new priority and the row chip follows`, t.priority === 'urgent' && (await page.$eval(rowSel + ' .priority-chip', (e) => e.textContent.trim())) === 'Urgent');
+  check(`${tag} Task details sets the new priority`, t.priority === 'urgent' && (await page.textContent('.cw-detail .sort-receipt > div:nth-child(1) em')).includes('Urgent'));
   await page.click('.cw-detail [data-action="detail-edit"][data-step="4"]');
   await page.click('.cw-detail .sort-cal-page[data-value="none"]');
   await page.click('.cw-detail [data-action="edit-save"]');
   check(`${tag} clearing the date in Task details clears it`, !(await stored(page)).projects[0].tasks.find((x) => x.id === t.id).deadline);
-  if (size === 'desktop') {
-    await page.click('.rm-add-link'); // the clicks above were away from the add box, which closed it
-    await page.click(ROW + ' input[name="title"]');
-    await page.keyboard.type('Keys test');
-    await page.focus(ROW + ' [data-field="priority"][data-value="low"]');
-    await page.keyboard.press('2');
-    check(`${tag} key 2 picks High`, await page.$eval(ROW + ' [data-field="priority"][data-value="high"]', (b) => b.getAttribute('aria-pressed') === 'true'));
-    await page.click(ROW + ' [data-field="due"][data-value="date"]');
-    await page.fill(ROW + ' [data-pick-type]', '15 dec');
-    await page.keyboard.press('Enter');
-    check(`${tag} a typed date is read`, /-12-15$/.test(await page.$eval(ROW + ' input[name="deadline"]', (i) => i.value)));
-  }
+  await page.click('.cw-detail [data-action="detail-edit"][data-step="4"]');
+  await page.click('.cw-detail [data-action="pick-set"][data-field="due"][data-value="date"]');
+  await page.fill('.cw-detail [data-pick-type]', '15 dec');
+  await page.keyboard.press('Enter');
+  await page.click('.cw-detail [data-action="sort-use-date"]');
+  await page.click('.cw-detail [data-action="edit-save"]');
+  check(`${tag} a typed date is read`, /-12-15$/.test((await stored(page)).projects[0].tasks.find((x) => x.id === t.id).deadline || ''));
+  await page.click('[data-action="detail-close"]');
+  // a task row carries no priority or due chip; its priority is read in Task details
+  check(`${tag} a Roadmap row shows no priority or due chip`, !(await page.$('.rm-task .priority-chip, .rm-task .deadline-chip')));
   await ctx.close();
 
   // ---- Sort
@@ -128,7 +117,7 @@ for (const size of ['phone', 'desktop']) {
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await page.waitForTimeout(400);
   await page.click('.sort-foot .file-btn');
-  check(`${tag} the priority step is a page of flags and Next waits for a priority`, (await page.textContent('.sort-q')) === 'How important?' && (await page.$$('.sort-flags .sort-flag')).length === 4 && (await page.$eval('.sort-foot .file-btn', (b) => b.disabled)) && (await page.textContent('.step-why')).includes('Pick a priority'));
+  check(`${tag} the priority step is a page of flags and Next waits for a priority`, (await page.textContent('.sort-q')) === 'How important?' && (await page.$$('.sort-flags .sort-flag')).length === 4 && (await page.$eval('.sort-foot .file-btn', (b) => b.disabled)) && !(await page.$('.step-why')));
   await page.screenshot({ path: OUT + `${size}-sort-needs-priority.png` });
   await page.click('.sort-picks [data-field="priority"][data-value="medium"]');
   await page.click('.sort-foot .file-btn'); // labels
@@ -147,52 +136,42 @@ for (const size of ['phone', 'desktop']) {
 
 for (const size of ['phone', 'desktop']) {
   const tag = `[${size}]`;
-  // ---- Roadmap: a second add box, and a priority set from Task details (the Board's add row and card chips moved here, #259)
+  // ---- Roadmap: a priority set from Task details on a task that has none
   let { ctx, page } = await open(size, 'roadmap');
-  const BR = '.rm-project .add-row[data-project="pHome"]';
-  await page.click('.rm-add-link');
-  await page.waitForSelector(BR + ' input[name="title"]');
-  await page.click(BR + ' input[name="title"]');
-  await page.keyboard.type('Board task');
-  check(`${tag} Roadmap add row: Add disabled until a priority`, await page.$eval(BR + ' button[type=submit]', (b) => b.disabled));
-  await page.keyboard.press('Enter');
-  await page.waitForTimeout(150);
-  check(`${tag} Roadmap add row: Enter without a priority adds nothing`, (await stored(page)).projects[0].tasks.length === 1);
-  await page.click(BR + ' [data-field="priority"][data-value="urgent"]');
-  await page.click(BR + ' [data-field="due"][data-value="today"]');
-  await page.click(BR + ' button[type=submit]');
-  await page.waitForTimeout(200);
-  const bt = (await stored(page)).projects[0].tasks.find((x) => x.title === 'Board task');
-  check(`${tag} Roadmap add row adds with Urgent and a date`, !!bt && bt.priority === 'urgent' && !!bt.deadline, JSON.stringify(bt && [bt.priority, bt.deadline]));
   const card = '.rm-task[data-task-id="h1"]';
-  check(`${tag} Roadmap row with nothing set shows no priority or due chip`, !(await page.$(card + ' .priority-chip')) && !(await page.$(card + ' .deadline-chip')));
   await page.click(card + ' .rm-task-title');
+  await page.click('.sort-drawer [data-action="rm-details"]');
   await page.waitForSelector('.cw-detail');
   await page.click('.cw-detail [data-action="detail-edit"][data-step="2"]');
   await page.click('.cw-detail .sort-flag[data-level="low"]');
   await page.click('.cw-detail [data-action="edit-save"]');
   check(`${tag} one choice in Task details sets Low`, (await stored(page)).projects[0].tasks.find((x) => x.id === 'h1').priority === 'low');
-  check(`${tag} the Roadmap row now shows the Low chip`, (await page.$eval(card + ' .priority-chip', (e) => e.textContent.trim())) === 'Low');
-  await page.$eval(card, (e) => e.scrollIntoView({ block: 'center' }));
+  check(`${tag} Task details now reads Low`, (await page.textContent('.cw-detail .sort-receipt > div:nth-child(1) em')).includes('Low'));
   await page.screenshot({ path: OUT + `${size}-board-chip-picker.png` });
   await ctx.close();
 
-  // ---- bulk sort: one priority for the batch
+  // ---- Sort several: one priority for the batch (tick, project and priority, labels, group, All good?)
   ({ ctx, page } = await open(size, 'sort'));
   await page.waitForSelector('[data-action="bulk-toggle"]');
   await page.click('[data-action="bulk-toggle"]');
   await page.click('[data-action="bulk-all"]');
-  await page.selectOption('[data-bulk-project]', 'pSchool');
-  check(`${tag} bulk: Apply is off with no priority and the panel says why`, await page.$eval('[data-action="bulk-apply"]', (b) => b.disabled) && (await page.textContent('.bulk-panel')).includes('Pick a priority for the thoughts you ticked.'));
+  await page.click('.sort-foot [data-action="bulk-next"]');
+  const bsel = '[data-wallet="tray-folders"] .sleeve[data-key="pSchool"] .icard';
+  await page.$eval(bsel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
+  await page.waitForTimeout(400);
+  const bbox = await (await page.$(bsel)).boundingBox();
+  await page.mouse.click(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
+  await page.waitForTimeout(400);
+  check(`${tag} bulk: Next is off with no priority`, await page.$eval('.sort-foot [data-action="bulk-next"]', (b) => b.disabled));
   await page.screenshot({ path: OUT + `${size}-bulk-needs-priority.png`, fullPage: size === 'phone' });
   await page.click('[data-scope="bulk"][data-field="priority"][data-value="high"]');
-  await page.click('[data-scope="bulk"][data-field="due"][data-value="tomorrow"]');
   await page.screenshot({ path: OUT + `${size}-bulk-picked.png`, fullPage: size === 'phone' });
+  for (let i = 0; i < 3; i++) { await page.click('.sort-foot [data-action="bulk-next"], .sort-foot .dk-skip'); await page.waitForTimeout(150); } // labels, group (skipped), then the receipt
   await page.click('[data-action="bulk-apply"]');
   await page.waitForTimeout(300);
   const bst = await stored(page);
-  const bt2 = bst.projects[1].tasks.filter((x) => x.id !== 'h1'); // h1 is the seeded unlabelled task, moved along by Tick all
-  check(`${tag} bulk: both thoughts filed with High and a date`, bt2.length === 2 && bt2.every((x) => x.priority === 'high' && !!x.deadline) && bst.inbox.length === 0, JSON.stringify(bt2.map((x) => [x.priority, x.deadline])));
+  const bt2 = bst.projects[1].tasks.filter((x) => x.id !== 'h1'); // h1 is the seeded task, moved along by Tick all
+  check(`${tag} bulk: both thoughts filed with High`, bt2.length === 2 && bt2.every((x) => x.priority === 'high') && bst.inbox.length === 0, JSON.stringify(bt2.map((x) => [x.title, x.priority])));
   await ctx.close();
 }
 await browser.close();

@@ -74,9 +74,12 @@ for (const [tag, w, h] of sizes) {
   await go(page, '.sync-light');
   check(`[${tag}] sync light opens a drawer with Sync now and Sync settings`, !!(await page.$('.sync-drawer [data-action="sync-github"]')) && !!(await page.$('.sync-drawer a[href="settings.html#sync-section"]')));
   await go(page, '.sync-light');
-  check(`[${tag}] + Jot focuses the jot box`, await (async () => { await go(page, '#jot-open'); return page.evaluate(() => document.activeElement.id === 'capture-input'); })());
+  const jotOpen = () => page.$('.jot-screen #jot-input');
+  check(`[${tag}] + Jot opens the Jot screen and focuses its box`, await (async () => { await go(page, '#jot-open'); return page.evaluate(() => document.activeElement.id === 'jot-input'); })());
+  await go(page, '[data-action="jot-close"]');
+  check(`[${tag}] the × closes the Jot screen`, !(await jotOpen()));
 
-  const jot = async (name) => check(`[${tag}] jot box at the top of ${name}`, await page.$eval('#capture-input', (e) => { const r = e.getBoundingClientRect(); return r.width > 100 && r.top >= 0 && r.top < 200; }));
+  const jot = async (name) => check(`[${tag}] + Jot at the top of ${name}`, await page.$eval('#jot-open', (e) => { const r = e.getBoundingClientRect(); return r.width > 40 && r.top >= 0 && r.top < 200; }));
   const shot = (name) => page.screenshot({ path: OUT + `${name}-${tag}.png` });
   const detail = async (name) => { check(`[${tag}] Task details opens from ${name}`, !!(await page.$('.cw-detail .sort-q'))); await go(page, '[data-action="detail-close"]'); };
 
@@ -134,38 +137,48 @@ for (const [tag, w, h] of sizes) {
   check(`[${tag}] opening a project from Projects lands on the Roadmap tab`, (await page.$eval('.rail-item.is-on .rail-label', (e) => e.textContent)) === 'Roadmap');
   await go(page, '.rail-item[data-screen="projects"]'); await go(page, '.rail-item[data-screen="roadmap"]'); await page.waitForSelector('.rm-project');
   check(`[${tag}] the Roadmap tab opens the last-used project`, (await page.$eval('.vs-tape', (e) => e.textContent)).includes('Home'));
-  check(`[${tag}] row Projects one project (task list, add a task, done list): add link and Done column`, !!(await page.$('.rm-add-link')) && (await page.$$('.rm-col[data-status="done"]')).length === 1);
-  check(`[${tag}] row Projects New project, link or create a repo, edit, remove: Edit project`, !!(await page.$('[data-action="open-project-edit"]')));
+  check(`[${tag}] row Projects one project (task list, add a task, done list): add link and Done column`, !!(await page.$('[data-action="rm-screen"][data-screen="task"]')) && (await page.$$('.rm-col[data-status="done"]')).length === 1);
+  await go(page, '[data-action="rm-drawer"][data-drawer="menu"]');
+  check(`[${tag}] row Projects New project, link or create a repo, edit, remove: Edit project`, !!(await page.$('.sort-drawer [data-action="rm-screen"][data-screen="edit"]')));
+  await go(page, '.sort-drawer .vs-x');
   check(`[${tag}] row Board columns: Up next, In progress, Review, Done inside a milestone`, (await page.$$eval('.rm-project .rm-col', (els) => els.map((e) => e.dataset.status))).join().startsWith('next,doing,review,done'));
-  await page.evaluate(() => document.querySelector('.rm-task[data-task-id="t1"] input[type=checkbox]').click());
+  const tick = () => page.evaluate(() => document.querySelector('.rm-task[data-task-id="t1"] input[type=checkbox]').click());
+  await tick();
   await page.waitForTimeout(200);
+  await go(page, '.rm-tab[data-status="done"]'); // the Roadmap shows one status at a time
   check(`[${tag}] row Projects done list: a ticked task lands in the Done column`, await page.evaluate(() => !!document.querySelector('.rm-col[data-status="done"] .rm-task[data-task-id="t1"]')));
-  await page.evaluate(() => document.querySelector('.rm-task[data-task-id="t1"] input[type=checkbox]').click());
+  await tick();
   await page.waitForTimeout(200);
-  await page.evaluate(() => document.querySelector('.rm-task[data-task-id="t1"] [data-action="rm-task-step"][data-dir="1"]').click());
-  await page.waitForTimeout(200);
-  check(`[${tag}] row Board drag between columns: a card moves between the four columns (arrow button)`, await page.evaluate(() => !!document.querySelector('.rm-col[data-status="doing"] .rm-task[data-task-id="t1"]')));
-  await page.fill('.rm-find', 'door');
+  await go(page, '.rm-tab[data-status="next"]');
+  await go(page, '.rm-task-title[data-id="t1"]');
+  await go(page, '.sort-drawer .rm-stamp[data-status="doing"]'); // the task's drawer moves it between columns
+  await go(page, '.rm-tab[data-status="doing"]');
+  check(`[${tag}] row Board drag between columns: a card moves between the four columns (the drawer's status stamps)`, await page.evaluate(() => !!document.querySelector('.rm-col[data-status="doing"] .rm-task[data-task-id="t1"]')));
+  await go(page, '[data-action="rm-drawer"][data-drawer="menu"]');
+  await go(page, '.sort-drawer [data-action="rm-screen"][data-screen="find"]');
+  await page.fill('.pj-find', 'door');
   await page.waitForTimeout(150);
-  const shown = await page.$$eval('.rm-task', (els) => els.map((e) => e.dataset.taskId));
-  check(`[${tag}] row Board filter by project or group, search: Find a task narrows the milestones' tasks`, shown.join() === 't2', shown.join());
-  await page.fill('.rm-find', '');
-  await page.waitForTimeout(100);
-  await page.evaluate(() => document.querySelector('.rm-task[data-task-id="t2"] .rm-task-title').click()); // a phone shows one column at a time
-  await page.waitForTimeout(150);
+  const shown = await page.$$eval('.dk-choice[data-action="rm-task"]', (els) => els.map((e) => e.dataset.id));
+  check(`[${tag}] row Board filter by project or group, search: Find a task narrows to the tasks that match`, shown.join() === 't2', shown.join());
+  await go(page, '.dk-choice[data-action="rm-task"]'); // the hit opens the task's drawer, which has Details
+  await go(page, '.sort-drawer [data-action="rm-details"]');
   await detail('Roadmap');
+  await go(page, '[data-action="rm-back"]');
   check(`[${tag}] Roadmap project view: no sideways scroll`, await noSideways(page)); await shot('3-roadmap-project');
   await page.evaluate(() => localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pGh' })));
   await page.reload(); await page.waitForSelector('.rm-project');
-  check(`[${tag}] row Projects Sync: Sync now on a GitHub project`, !!(await page.$('.rm-tools [data-action="sync-github"]')));
+  await go(page, '[data-action="rm-drawer"][data-drawer="menu"]');
+  check(`[${tag}] row Projects Sync: Sync now on a GitHub project`, !!(await page.$('.sort-drawer [data-action="sync-github"]:not([disabled])')));
+  await go(page, '.sort-drawer .vs-x');
   await page.evaluate(() => localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'all' })));
   await page.reload(); await page.waitForSelector('.rail');
 
   // Focus
   await go(page, '.rail-item[data-screen="focus"]');
-  await page.waitForSelector('.focus-card');
+  await page.waitForSelector('.focus-active');
   await jot('Focus'); check(`[${tag}] Focus: no sideways scroll`, await noSideways(page)); await shot('4-focus');
-  await go(page, '.focus-card .task-open');
+  await go(page, '[data-action="focus-menu"]');
+  await go(page, '.sort-drawer [data-action="task-open"]');
   await detail('Focus');
   check(`[${tag}] row Start here: no separate Start here screen, and Focus offers "Or let me pick for you"`, !(await page.$('[data-screen="start"], [data-screen="start-here"]')));
 
@@ -177,23 +190,23 @@ for (const [tag, w, h] of sizes) {
   await detail('Review');
 
   // the jot box
-  await page.fill('#capture-input', 'a stray one'); await page.keyboard.press('Enter'); await page.waitForTimeout(150);
+  await go(page, '#jot-open'); await page.fill('#jot-input', 'a stray one'); await go(page, '[data-action="jot-save"]');
   check(`[${tag}] row Jotter: a thought is jotted from any tab`, (await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).inbox.length)) === 1);
   await page.evaluate(() => document.activeElement && document.activeElement.blur());
   await page.keyboard.press('j');
   if (desk) {
-    check(`[${tag}] J focuses the jot box`, await page.evaluate(() => document.activeElement && document.activeElement.id === 'capture-input'));
+    check(`[${tag}] J opens the Jot screen and focuses its box`, await page.evaluate(() => document.activeElement && document.activeElement.id === 'jot-input'));
     await page.keyboard.type('jjj');
-    check(`[${tag}] J typed inside the jot box stays a letter`, (await page.$eval('#capture-input', (e) => e.value)) === 'jjj');
-    await page.fill('#capture-input', '');
-    await page.keyboard.press('Escape');
-    check(`[${tag}] Escape leaves the jot box`, await page.evaluate(() => document.activeElement.id !== 'capture-input'));
+    check(`[${tag}] J typed inside the jot box stays a letter`, (await page.$eval('#jot-input', (e) => e.value)) === 'jjj');
+    await page.fill('#jot-input', '');
+    await go(page, '[data-action="jot-close"]');
+    check(`[${tag}] closing the Jot screen leaves the jot box`, !(await jotOpen()));
     await go(page, '.rail-item[data-screen="projects"]');
     await page.focus('.pj-find');
     await page.keyboard.press('j');
     check(`[${tag}] J does not steal focus from another field`, await page.evaluate(() => document.activeElement.classList.contains('project-search')));
   } else {
-    check(`[${tag}] J does nothing on a phone`, await page.evaluate(() => document.activeElement.id !== 'capture-input'));
+    check(`[${tag}] J does nothing on a phone`, !(await jotOpen()));
   }
   await ctx.close();
 

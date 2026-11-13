@@ -62,6 +62,7 @@ for (const [tag, vp] of [['1440', { width: 1440, height: 900 }], ['390', { width
   await page.click('[data-screen="projects"]:visible');
   await page.click('.pj-card[data-project="p0"]');
   await page.waitForSelector('.rm-project');
+  await page.click('.rm-tab[data-status="doing"]'); // the Roadmap shows one status at a time
   check(await page.locator('.rm-col[data-status="doing"] .rm-task[data-task-id="n2"]').count() === 1, tag + ': Roadmap shows the task in In progress');
   await ctx.close();
 }

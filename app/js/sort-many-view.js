@@ -87,18 +87,18 @@ export function renderSortMany(st, b, ordered, { mode }) {
     const body = '<input type="text" class="sort-find sort-type" data-bulk-newlabel value="' + esc(b.newLabel || '') + '" placeholder="Name the label…" aria-label="New label">';
     return bar + board(body, 'New label') + foot([back(), stamp('Add', { action: 'bulk-new-flag', disabled: !(b.newLabel || '').trim() })]);
   }
-  let body = '', next = stamp('Next', { action: 'bulk-next' }), blocked = '';
+  let body = '', next = stamp('Next', { action: 'bulk-next' });
   if (step === 1) { body = tickStep(b, ordered, picked); if (!n) next = stamp('Next', { action: 'bulk-next', disabled: true }); }
   else if (step === 2) {
     body = projectStep(st, b, project, thoughts, mode);
-    if (thoughts && (!project || !b.priority)) { next = stamp('Next', { action: 'bulk-next', disabled: true }); blocked = !project ? 'Choose a project first.' : 'Pick a priority to go on.'; }
+    if (thoughts && (!project || !b.priority)) { next = stamp('Next', { action: 'bulk-next', disabled: true }); }
   } else if (step === 3) body = labelsStep(st, b, project, mode);
   else if (step === 4) body = '<input type="text" class="slip-notes many-group" data-bulk-group value="' + esc(b.groupTitle || '') + '" placeholder="Task name…" aria-label="Task to group them under">';
   else {
-    const blocker = n ? bulkBlocker(picked, b) : 'Tick at least one item first.';
-    return bar + board(receipt(st, b, picked, project) + why(b.why || blocker), TITLES[5])
-      + foot([back(), stamp('Sort ' + n, { action: 'bulk-apply', disabled: !n || !!blocker })]);
+    const blocked = !n || !!bulkBlocker(picked, b);
+    return bar + board(receipt(st, b, picked, project) + why(b.why), TITLES[5])
+      + foot([back(), stamp('Sort ' + n, { action: 'bulk-apply', disabled: blocked })]);
   }
-  return bar + board(body + why(b.why || blocked) + '<div class="sr-only" id="tray-live" aria-live="polite"></div>', TITLES[step])
+  return bar + board(body + why(b.why) + '<div class="sr-only" id="tray-live" aria-live="polite"></div>', TITLES[step])
     + foot([back()].concat(step === 3 || step === 4 ? [skip()] : [], [next]));
 }

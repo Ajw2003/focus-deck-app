@@ -11,7 +11,7 @@ const flag = (t) => t.priority ? '<i class="pf" data-p="' + esc(t.priority) + '"
 const label = (r) => r.n + ', ' + esc(r.task.title) + ', ' + esc(r.reason);
 const card = (r) => '<button type="button" class="dk-choice tr-card" data-action="task-open" data-task="' + esc(r.id) + '" aria-label="Task details: ' + label(r) + '"><span>' + r.n + ' · ' + esc(r.task.title) + '</span>' + flag(r.task) + '</button>';
 const key = (r, dir, text, off) => '<button type="button" class="tr-move" data-action="triage-move" data-task="' + esc(r.id) + '" data-dir="' + dir + '" aria-label="Move ' + (dir < 0 ? 'up' : 'down') + ': ' + esc(r.task.title) + '"' + (off ? ' disabled' : '') + '>' + text + '</button>';
-const moveRow = (r, last) => '<div class="dk-choice tr-row" tabindex="0" data-task-id="' + esc(r.id) + '" data-n="' + r.n + '" aria-label="' + label(r) + '. Alt plus up or down arrow moves it."><span>' + r.n + ' · ' + esc(r.task.title) + '</span>'
+const moveRow = (r, last) => '<div class="dk-choice tr-row" tabindex="0" data-task-id="' + esc(r.id) + '" data-n="' + r.n + '" aria-label="' + label(r) + '. Alt plus up or down arrow moves it."><span class="tr-grip" aria-hidden="true">⠿</span><span class="tr-t">' + r.n + ' · ' + esc(r.task.title) + '</span>'
   + '<span class="tr-moves">' + key(r, -1, '↑', r.n === 1) + key(r, 1, '↓', last) + '</span></div>';
 const toBtn = (action, to, text, extra = '') => '<button type="button" class="dk-link" data-action="' + action + '" data-to="' + to + '"' + extra + '>' + text + '</button>';
 const back = () => '<button type="button" class="dk-back" data-action="triage-go" data-to="top">‹ Back</button>';
