@@ -1697,3 +1697,9 @@ a.dk-choice{text-decoration:none;}
   .rm-project > .rm-detail{flex:none; width:440px;}
   .rm-detail .cw-detail.td-panel{position:static; width:100%; height:calc(100dvh - 210px); box-shadow:none; background:none; z-index:auto;}
 }
+
+/* A slip (toast) must not make a phone page scroll: the screens above size themselves to fit 100dvh - 240px, and the toast's extra
+   room under them is 64px, so they give those 64px back while it shows (#272). */
+@media (max-width:1099.98px){
+  .wrap:has(.toast) :is(.pj, .org, .sortflow){min-height:calc(100dvh - 304px - env(safe-area-inset-bottom, 0px));}
+}

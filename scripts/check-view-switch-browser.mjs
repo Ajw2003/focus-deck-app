@@ -102,6 +102,8 @@ for (const [tag, w, h] of sizes) {
   await page.screenshot({ path: OUT + `${tag}-roadmap-home.png` });
   // Sort
   await screen(page, 'sort');
+  await page.click('[data-action="sort-next"]'); // the first Sort page is the slip; step 1 offers the projects
+  await page.waitForSelector('[data-wallet="tray-folders"] .sleeve');
   const fk = await folderKeys(page);
   check(`[${tag}] Sort: only Home's projects offered, the thought is still there`, fk.sort().join() === 'pGarden,pShed' && (await page.textContent('.inbox-card')).includes('A stray thought'), fk.join());
   await page.screenshot({ path: OUT + `${tag}-sort-home.png` });
@@ -143,6 +145,8 @@ for (const [tag, w, h] of sizes) {
   await screen(page, 'projects');
   check(`[${tag}] Everything: Projects shows every project`, (await rmNames(page)).length === 5, (await rmNames(page)).join());
   await screen(page, 'sort');
+  await page.click('[data-action="sort-next"]');
+  await page.waitForSelector('[data-wallet="tray-folders"] .sleeve');
   check(`[${tag}] All: Sort offers every project`, (await folderKeys(page)).length === 5);
   // Unsorted area
   await openList(page, 'area');
