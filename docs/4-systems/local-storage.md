@@ -71,3 +71,7 @@ token is saved or "Create sync Gist" is pressed).
 ## Areas flag (#251)
 
 `areasMigrated` (boolean) marks that the default areas were added to this data; merge ORs it. `projectCategories` ids and key are unchanged. See [areas.md](./areas.md).
+
+## Save a copy of my data (2026-11-13)
+
+Settings > Help > *Save a copy of my data* (`app/settings.html`) downloads `focus-deck-copy-<date>.json`: the stored state as `serializeState` writes it, with `gistId` removed. The GitHub key is stored under its own localStorage key and is never part of the state. The copy is for testing against real data and is kept in the project's shared files, never in this repo. `scripts/check-data-copy-browser.mjs` checks it.

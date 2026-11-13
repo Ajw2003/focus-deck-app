@@ -1,5 +1,7 @@
 # Project State
 
+> **2026-11-13:** Organize no longer freezes with hundreds of open tasks (Tidy up's "The same?" check compared every pair of titles in full); Settings has *Save a copy of my data*. See `docs/4-systems/tidy-up.md`, `docs/4-systems/local-storage.md`.
+
 > **2026-11-12 (#272):** computer layout (>= 1100px): centred panel, Sort's nine steps listed beside it, Roadmap drawer and Task details beside the panel; Triage rows drag with the mouse; linked tasks open from Task details; a ★ makes a label the category; the explaining hint lines are gone; `scripts/check-all.sh` runs the unit tests, the feature-map check and every browser check. See `docs/4-systems/tabs.md`.
 
 > **2026-11-12 (#264):** Sort is one thought at a time in nine steps (slip, then project, priority, labels, due date, part of, smaller steps, waits on, holds up, the receipt). Only the screens changed. See `docs/4-systems/in-tray.md`.

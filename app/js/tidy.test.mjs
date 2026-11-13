@@ -1,7 +1,7 @@
 // run with: node --test app/js/tidy.test.mjs  (docs/4-systems/tidy-up.md)
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { tidyGroups, confirmIds, confirmItems, normTitle, lookSame } from './tidy.js';
+import { tidyGroups, confirmIds, confirmItems, normTitle, lookSame, within } from './tidy.js';
 import { renderTidy } from './tidy-view.js';
 import { state } from './state.js';
 import { confirmTidy, undoDone } from './mutations.js';
@@ -53,6 +53,23 @@ test('title matching', () => {
   assert.ok(lookSame('write the report', 'write the reprot'));
   assert.ok(!lookSame('a', 'ab'));
   assert.ok(!lookSame('walk the dog', 'water the plants'));
+});
+test('within(k) agrees with the full edit distance', () => {
+  const full = (a, b) => { let p = [...Array(b.length + 1).keys()]; for (let i = 1; i <= a.length; i++) { const c = [i]; for (let j = 1; j <= b.length; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; } return p[b.length]; };
+  let seed = 3; const r = (n) => (seed = (seed * 16807) % 2147483647) % n;
+  const word = () => Array.from({ length: 4 + r(10) }, () => 'abcde '[r(6)]).join('');
+  for (let n = 0; n < 2000; n++) {
+    const a = word(), b = r(2) ? word() : a.slice(0, r(a.length + 1)) + 'xy'.slice(0, r(3)) + a.slice(r(a.length + 1));
+    for (let k = 0; k <= 2; k++) assert.strictEqual(within(a, b, k), full(a, b) <= k, JSON.stringify([a, b, k]));
+  }
+});
+test('Organize stays quick with 800 open tasks of long titles (it froze before)', () => {
+  let seed = 7; const r = (n) => (seed = (seed * 16807) % 2147483647) % n;
+  const words = 'corner tower guards balconies lights castle wall props courtyard roof sync device gist token skill session'.split(' ');
+  const tasks = Array.from({ length: 800 }, (_, i) => T('big' + i, Array.from({ length: 5 + r(14) }, () => words[r(words.length)]).join(' ')));
+  const st = { projects: [{ id: 'p', name: 'P', tasks }], categories: [], projectCategories: [] };
+  const t0 = performance.now(); tidyGroups(st, null, now);
+  assert.ok(performance.now() - t0 < 1500, 'took ' + Math.round(performance.now() - t0) + ' ms');
 });
 test('view filtering', () => {
   const a = tidyGroups(mk(), { mode: 'area', id: 'a2' }, now);
