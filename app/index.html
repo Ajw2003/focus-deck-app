@@ -18,19 +18,14 @@
   <div class="wrap">
     <header class="topbar">
       <div class="brand"><span class="brand-mark" aria-hidden="true"><span class="lamp"></span></span><h1>Focus Deck</h1></div>
-      <form id="capture-form" class="capture-form jotter" autocomplete="off">
-        <textarea id="capture-input" rows="1" placeholder="Jot down a stray thought…" aria-label="Capture a stray thought" aria-describedby="capture-hint"></textarea>
-        <span id="capture-hint" class="sr-only">Enter adds it. Shift and Enter starts a new line.</span>
-        <select id="capture-to" class="to-stamp" aria-label="Add to"><option value="">To: Unsorted</option></select>
-        <button type="submit" class="jot-add">Add</button>
-      </form>
       <div class="topbar-tools">
-        <button type="button" id="projects-btn" class="icon-btn projects-toggle" data-action="toggle-projects-drawer" aria-haspopup="dialog" aria-controls="projects-drawer" aria-expanded="false" aria-label="Projects"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.6h13.6"/><path d="M4 12.2h16.4"/><path d="M4 17.6h10.2"/></svg></button>
-        <span id="topbar-sync"></span>
-        <a href="settings.html" class="icon-btn" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h9.4"/><circle cx="16.3" cy="6.4" r="1.8"/><path d="M20 12.3H10.7"/><circle cx="7.6" cy="12.4" r="1.8"/><path d="M4 18.2h9.5"/><circle cx="16.6" cy="18.1" r="1.8"/></svg></a>
+        <button type="button" id="jot-open" class="dk-jot" data-action="jot-open">+ Jot</button>
+        <span id="topbar-sync" class="sync-wrap"></span>
+        <a href="settings.html" class="dk-dial" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h9.4"/><circle cx="16.3" cy="6.4" r="1.8"/><path d="M20 12.3H10.7"/><circle cx="7.6" cy="12.4" r="1.8"/><path d="M4 18.2h9.5"/><circle cx="16.6" cy="18.1" r="1.8"/></svg></a>
       </div>
     </header>
     <div id="app"></div>
+    <div id="jot-screen"></div>
     <div id="drag-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   </div>
   <script type="module" src="js/app.js"></script>

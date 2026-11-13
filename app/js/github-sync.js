@@ -8,6 +8,7 @@ import { persist } from './sync.js';
 import { ensureSortOrder } from './project-filter.js';
 import { ensureTaskSortOrder } from './task-move.js';
 import { canSetParent, canWaitOn } from './task-links.js';
+import { syncGithubMilestones } from './roadmap.js';
 
 function normLabel(s) { return String(s).toLowerCase().replace(/[\s_-]+/g, ''); }
 
@@ -28,7 +29,9 @@ const PRIORITY_LABEL_FORMS = PRIORITY_ORDER.flatMap((level) => canonicalPriority
 
 // Reserved so priority/status/provenance labels can't be mistaken for a category.
 // See docs/4-systems/github-sync.md#labels-to-categories-priority-and-flags--applylabels-jsgithub-syncjs
-const RESERVED_LABELS = PRIORITY_LABEL_FORMS.concat(['inprogress', 'wip', 'doing', normLabel(CLAUDE_CREATED_LABEL), normLabel(CLAUDE_COMPLETED_LABEL)]);
+export const REVIEW_LABEL = 'needs review';
+const REVIEW_LABEL_FORM = normLabel(REVIEW_LABEL);
+const RESERVED_LABELS = PRIORITY_LABEL_FORMS.concat(['inprogress', 'wip', 'doing', REVIEW_LABEL_FORM, normLabel(CLAUDE_CREATED_LABEL), normLabel(CLAUDE_COMPLETED_LABEL)]);
 
 // The issue label that carries a task's priority. A canonical "priority: x" label wins over an alias;
 // among several, the most urgent wins. Returns { priority, label } or null.
@@ -167,6 +170,20 @@ export async function pushPriorityToIssue(task) {
     persist();
   } catch (e) {
     reportSyncError('Couldn’t update the linked issue’s priority: ' + e.message);
+  }
+}
+
+// Moving into Review adds the "needs review" label (created if missing); moving out removes it.
+export async function pushReviewToIssue(task, wasReview) {
+  if (!isLinked(task) || (task.status === 'review') === wasReview) return;
+  const [owner, name] = task.repoFullName.split('/');
+  try {
+    if (task.status === 'review') {
+      await ensureLabelExists(owner, name, REVIEW_LABEL, 'fbca04');
+      await addLabelsToIssue(owner, name, task.issueNumber, [REVIEW_LABEL]);
+    } else await removeLabelFromIssue(owner, name, task.issueNumber, REVIEW_LABEL);
+  } catch (e) {
+    reportSyncError('Couldn’t update the linked issue’s review label: ' + e.message);
   }
 }
 
@@ -403,6 +420,7 @@ export async function createGithubIssueFromTask(taskId, repoInput, ui) {
 
 export function statusFromLabels(labels) {
   const norm = (labels || []).map(normLabel);
+  if (norm.includes(REVIEW_LABEL_FORM)) return 'review';
   return norm.some((l) => ['inprogress', 'wip', 'doing'].includes(l)) ? 'doing' : 'next';
 }
 
@@ -563,17 +581,20 @@ export function upsertRepoProject(repo, issues, ui) {
       // it was marked done locally by an earlier sync (issue closed) but the issue is back in
       // the open set now, so it was reopened on GitHub — reflect that here too
       if (existing.status === 'done') { existing.status = statusFromLabels(iss.labels); delete existing.completedAt; }
+      if (iss.milestone) existing.githubMilestone = iss.milestone; else delete existing.githubMilestone;
       applyLabels(existing, iss.labels, iss.labelColors);
       dropStaleCompletedLabel(existing, iss.labels);
     } else if (project && iss.labels && iss.labels.length > 0) {
       importIssueAsTask(repo, iss, project);
     }
   });
+  if (project) syncGithubMilestones(project);
   return newlyClosed;
 }
 
 function importIssueAsTask(repo, iss, project) {
   const task = { id: uid('t'), title: iss.title, status: statusFromLabels(iss.labels), deadline: null, categoryIds: [], source: 'github', repoFullName: repo.full_name, issueNumber: iss.number, issueId: iss.id, url: repo.html_url + '/issues/' + iss.number, updatedAt: Date.now() };
+  if (iss.milestone) task.githubMilestone = iss.milestone;
   applyLabels(task, iss.labels, iss.labelColors);
   project.tasks.push(task);
   ensureTaskSortOrder([project]); // a task new from GitHub goes to the end of its group

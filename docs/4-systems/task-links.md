@@ -1,5 +1,7 @@
 # Task links: subtasks, "waits on", notes, and the blocker-first focus pick
 
+> **2026-11-12 (#259):** the Board and Projects screens were removed in the five-tab change; the Roadmap took over their jobs. Where this file describes them as current it is history. See [tabs.md](./tabs.md).
+
 What this system owns: three task fields (`notes`, `parentId`, `waitsOn`), the rules that keep them
 consistent, the three-part Sort screen (the in-tray) that sets them, and how the focus pick uses them. Approved
 2026-10-18 on the proposal page `docs/plans/sort-flow-asap.html` (issues #180, #181, #182; answers

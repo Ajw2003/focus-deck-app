@@ -22,13 +22,12 @@ const root = path.join(here, '..');
 const css = fs.readFileSync(path.join(root, 'css/app.css'), 'utf8');
 
 // Markup sources whose class="..." attributes are the app's real contract with the stylesheet.
-const MARKUP_SOURCES = ['js/render.js', 'js/app.js', 'js/in-tray-view.js', 'js/onboarding-view.js', 'js/board-view.js', 'js/sync-setup.js', 'index.html', 'settings.html', 'setup.html'];
+const MARKUP_SOURCES = ['js/render.js', 'js/app.js', 'js/in-tray-view.js', 'js/focus-view.js', 'js/onboarding-view.js', 'js/sync-setup.js', 'index.html', 'settings.html', 'setup.html'];
 
 // doc-ref f152 docs/4-systems/styling.md
 const ALLOWED_WITHOUT_RULE = new Set([
   'cat-add-form',       // js hook only (settings.html form submit handler)
   'cat-remove-btn',     // js hook only (settings.html: e.target.matches('.cat-remove-btn'))
-  'focus-card',   // modifier stacked on .card, which carries the styling
   'focus-active', // pure state marker read by app.js, never styled directly
 ]);
 
@@ -107,7 +106,6 @@ const invariants = [
   ['.task-grip', 'touch-action:none', 'the task grip must not let a touch scroll the page, or a touch drag never starts'],
   ['.task-group.is-empty', 'display:none', 'an empty group stays out of sight until a task is being dragged'],
   ['body.is-dragging-task .task-group.is-empty', 'display:block', 'while a task is dragged the empty groups show their drop zone'],
-  ['.drop-zone', 'dashed', 'the empty-group drop zone reads as a dashed target'],
   ['.project-card.drop-target', 'outline', 'a minimised card that would take the drop must show it'],
   ['.move-dialog-backdrop', 'position:fixed', 'the move dialog covers the page'],
   ['.move-dialog', 'border-radius:var\\(--r-control\\)', 'the move dialog uses the control radius'],
@@ -127,7 +125,7 @@ const invariants = [
 ];
 
 // the classes js/project-drag.js and the grip markup rely on must each have a rule
-for (const cls of ['drag-grip', 'drag-ghost', 'drag-placeholder', 'drop-indicator', 'sr-only', 'task-grip', 'drop-zone', 'drop-target', 'is-dragging-task', 'move-dialog']) {
+for (const cls of ['drag-grip', 'drag-ghost', 'drag-placeholder', 'drop-indicator', 'sr-only', 'task-grip', 'drop-target', 'is-dragging-task', 'move-dialog']) {
   assert.ok(cssClasses.has(cls), `css/app.css has no rule for .${cls} (dragging projects and tasks, PR 9 and 11)`);
 }
 

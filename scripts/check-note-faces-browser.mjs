@@ -61,7 +61,7 @@ const size = (page, sel) => page.$eval(sel, (e) => parseFloat(getComputedStyle(e
 async function draw(page) {
   await page.waitForSelector('.flip-track');
   await page.waitForTimeout(300);
-  await page.click('[data-wallet="categories"] .sleeve.is-centre .icard').catch(() => {});
+  await page.click('[data-action="pick-for-me"]').catch(() => {}); // #270: Pick for me opens a task from the first question
   await page.waitForSelector('.focus-active', { timeout: 4000 }).catch(() => {});
 }
 
@@ -73,7 +73,7 @@ for (const scheme of ['dark', 'light']) {
     await draw(page);
     check(`${tag} <html data-note-face="${face}"`, (await page.evaluate(() => document.documentElement.dataset.noteFace)) === face);
     check(`${tag} sticky note exists`, !!(await page.$('.focus-title')));
-    const tf = await fam(page, '.focus-title'), jf = await fam(page, '#capture-input');
+    const tf = await fam(page, '.focus-title'), jf = await page.evaluate(() => { document.getElementById('jot-open').click(); return getComputedStyle(document.getElementById('jot-input')).fontFamily; });
     check(`${tag} sticky note font-family starts ${FIRST[face]}`, tf.replace(/"/g, '').startsWith(FIRST[face]), tf);
     check(`${tag} jotter font-family starts ${FIRST[face]}`, jf.replace(/"/g, '').startsWith(FIRST[face]), jf);
     const ui = await fam(page, '.topbar h1');
@@ -109,7 +109,7 @@ for (const scheme of ['dark', 'light']) {
 }
 for (const scheme of ['dark', 'light']) {
   const h = sizes['hand' + scheme].lines, d = sizes['dyslexic' + scheme].lines, p = sizes['print' + scheme].lines;
-  check(`[${scheme}] title lines: hand ${h}, print ${p}, dyslexic ${d} (dyslexic not more than hand + 1)`, d <= h + 1);
+  check(`[${scheme}] title lines: hand ${h}, print ${p}, dyslexic ${d} (dyslexic not more than hand + 2: Eden kept the wider letters, 2026-11-13)`, d <= h + 2);
 }
 
 // no-flash: the attribute is on <html> by DOMContentLoaded-start, before app.js runs

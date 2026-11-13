@@ -1,11 +1,14 @@
 // focus-deck-app/js/mutations.js
 import { rankFocusPool, isBlocked } from './task-links.js';
+import { triageLists } from './triage.js';
+import { dueDates } from './pick-bits.js';
 import { state, uid, nextHue, findTaskWithProject, openTasksMatching, PRIORITY_ORDER, splitLongThought } from './state.js';
-import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriorityToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
+import { syncIssueCompletion, pushCategoriesToIssue, pushTiesToIssue, pushPriorityToIssue, pushReviewToIssue, pushCategoryColorToLinkedIssues, closeIssueForDeletedTask } from './github-sync.js';
 // The one persist() for the whole app: repaint, save locally, schedule the Gist push. mutations.js
 // used to have its own copy that saved locally but never pushed, so most edits never reached the
 // Gist. See doc-ref 2425 docs/4-systems/gist-sync.md
 import { persist } from './sync.js';
+import { UNSORTED_ID, LEVELS } from './areas.js';
 import { ensureSortOrder } from './project-filter.js';
 import { ensureTaskSortOrder } from './task-move.js';
 import { DEFAULT_DUE_DEFAULTS } from './due-stage.js';
@@ -68,12 +71,15 @@ export function applyTaskMove({ taskId, toProjectId, status, changes }) {
   if (!found || !to) return false;
   const { task, project: from } = found;
   const crossing = from.id !== to.id;
+  const wasReview = task.status === 'review';
   if (!crossing && status && task.status !== status) setTaskStatus(taskId, status);
   if (crossing) {
     withTiePush(() => detachForMove(state.projects, taskId)); // a subtask can't stay in another folder than its parent
     from.tasks = from.tasks.filter((t) => t.id !== taskId);
     to.tasks.push(task);
     if (status) task.status = status;
+    // within one repo the label moves with the task; a transfer or new issue is handled by the caller (app.js moveTaskTo)
+    if (status && String(task.repoFullName || '').toLowerCase() === String(to.repoFullName || '').toLowerCase()) pushReviewToIssue(task, wasReview);
   }
   Object.keys(changes || {}).forEach((id) => {
     const t = to.tasks.find((x) => x.id === id);
@@ -107,6 +113,13 @@ export function addTask(projectId, title, deadline, categoryIds, steps, priority
   ensureTaskSortOrder([project]); // a new task goes to the end of its group
   persist();
   return task;
+}
+
+// The add row's submit: a priority is required there (#249), so no task is made without one even if
+// the disabled button was bypassed. Other callers (jotter stamp, subtasks) use addTask as before.
+export function addTaskPicked(projectId, title, deadline, categoryIds, steps, priority, dueStages) {
+  if (!PRIORITY_ORDER.includes(priority)) return;
+  return addTask(projectId, title, deadline, categoryIds, steps, priority, dueStages);
 }
 
 export function updateTaskFields(taskId, fields) {
@@ -159,9 +172,12 @@ export function setTaskStatus(taskId, status) {
   if (!found) return;
   const { task, project } = found;
   const wasDone = task.status === 'done';
+  const wasReview = task.status === 'review';
+  const before = task.status;
   task.status = status;
   task.updatedAt = Date.now();
   if (status === 'done' && !wasDone) {
+    task.statusBeforeDone = before; // what the Review tab's Undo goes back to
     task.completedAt = Date.now(); // when it was finished; the Board's "Done this week" reads it (#145)
     state.completedLog.unshift({ id: uid('log'), taskId: task.id, title: task.title, projectId: project.id, color: project.color, completedAt: Date.now() });
     state.completedLog = state.completedLog.slice(0, 12);
@@ -171,7 +187,19 @@ export function setTaskStatus(taskId, status) {
   }
   persist();
   syncIssueCompletion(task); // fire-and-forget
+  pushReviewToIssue(task, wasReview);
 }
+
+// The Review tab's Undo: back to the status the task had before it was done ('next' if unknown).
+export function undoDone(taskId) {
+  const found = findTaskWithProject(taskId);
+  if (!found || found.task.status !== 'done') return;
+  const prev = found.task.statusBeforeDone;
+  setTaskStatus(taskId, ['next', 'doing', 'review'].includes(prev) ? prev : 'next');
+}
+
+// Tidy up's Confirm (#255): closes each id the way ticking Done does (GitHub issue closed as completed); Undo is undoDone.
+export function confirmTidy(ids) { ids.forEach((id) => setTaskStatus(id, 'done')); }
 
 export function deleteTask(taskId, projectId) {
   const project = state.projects.find((p) => p.id === projectId);
@@ -205,15 +233,6 @@ export function toggleTask(taskId, projectId) {
   setTaskStatus(taskId, found.task.status === 'done' ? 'next' : 'done');
 }
 
-// The priority chip on a task row: none -> low -> medium -> high -> urgent -> none.
-const PRIORITY_CYCLE = [null, 'low', 'medium', 'high', 'urgent'];
-export function cyclePriority(taskId) {
-  const found = findTaskWithProject(taskId);
-  if (!found) return;
-  const idx = PRIORITY_CYCLE.indexOf(found.task.priority || null);
-  updateTaskFields(taskId, { priority: PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length] });
-}
-
 // Removing a project removes all of its tasks too, so each one needs the same deletion tombstone
 // deleteTask writes — see the Traps note in docs/4-systems/gist-sync.md about any "remove this
 // task" path needing this or a stale Gist pull can resurrect them.
@@ -244,13 +263,15 @@ export function addCapture(text) {
 // Was previously called (as M.fileInboxItem) but never exported -- filing an inbox item into a
 // project has been silently broken since it was added.
 // categoryIds: the labels ticked on the Unsorted item. Returns the new task.
-// extra: { title, notes } typed on the slip; a non-empty trimmed title replaces the text, notes become task.notes.
+// extra: { title, notes, priority, deadline } typed on the slip; a non-empty trimmed title replaces the text,
+// notes become task.notes. A thought needs a priority (#249): without a valid one nothing is filed.
 export function fileInboxItem(inboxId, projectId, categoryIds, extra) {
   const item = state.inbox.find((i) => i.id === inboxId);
   const project = state.projects.find((p) => p.id === projectId);
-  if (!item || !project) return;
-  const task = { id: uid('t'), title: item.text, status: 'next', deadline: null, categoryIds: categoryIds || [], priority: null, source: 'manual', updatedAt: Date.now() };
-  const { title, notes } = extra || {};
+  const { title, notes, priority, deadline, dueStages } = extra || {};
+  if (!item || !project || !PRIORITY_ORDER.includes(priority)) return;
+  const task = { id: uid('t'), title: item.text, status: 'next', deadline: deadline || null, categoryIds: categoryIds || [], priority, source: 'manual', updatedAt: Date.now() };
+  if (task.deadline) { task.dueSetAt = Date.now(); if (dueStages) task.dueStages = dueStages; }
   const long = splitLongThought(title && title.trim() ? title : item.text);
   task.title = long.title;
   const typed = notes && notes.trim() ? notes.trim() : '';
@@ -286,11 +307,22 @@ export function completeInboxItem(inboxId) {
 // (empty means any). Returns false, changing nothing, when no open task matches.
 export function pickFocus(filter) {
   const f = { categoryId: (filter && filter.categoryId) || null, projectId: (filter && filter.projectId) || null };
-  const pool = openTasksMatching(f);
+  const pool = openTasksMatching({ ...f, view: state._ui && state._ui.view }); // the view is not saved in state.focus
   if (!pool.length) return false;
   const { candidates, allBlocked } = rankFocusPool(state.projects, pool);
   state.focus = { taskId: candidates[Math.floor(Math.random() * candidates.length)], pool, filter: f, startedAt: Date.now() };
   if (allBlocked) state.focus.allBlocked = true;
+  persist();
+  return true;
+}
+
+// "Or let me pick for you": the best open task in the current view by js/pick-order.js. The pool is
+// kept in that order, so "Not this one" (reroll) offers the next one down.
+export function pickForMe() {
+  // from Now: the top of the triaged order in the current view (the rules, then your saved order)
+  const ordered = triageLists(state, state._ui && state._ui.view, dueDates().today).now.map((r) => r.id);
+  if (!ordered.length) return false;
+  state.focus = { taskId: ordered[0], pool: ordered, ordered: true, filter: { categoryId: null, projectId: null }, startedAt: Date.now() };
   persist();
   return true;
 }
@@ -305,6 +337,12 @@ export function reroll() {
     return found && found.task.status !== 'done'; // skip tasks finished since the pick
   });
   if (!others.length) return;
+  if (state.focus.ordered) { // picked for you: the next one down the order, wrapping round
+    const pool = state.focus.pool, at = pool.indexOf(state.focus.taskId);
+    state.focus.taskId = pool.slice(at + 1).concat(pool.slice(0, at)).find((id) => others.includes(id));
+    persist();
+    return;
+  }
   const free = others.filter((id) => !isBlocked(state.projects, id)); // prefer a task that can be started
   const from = free.length ? free : others;
   state.focus.taskId = from[Math.floor(Math.random() * from.length)];
@@ -434,15 +472,43 @@ export function addProjectCategory(name, color) {
 // in which case the override wins and the category is assigned without touching the color.
 // Explicit, confirmed removal from Settings. Projects keep their color; they just lose the
 // category assignment.
+// Unsorted is fixed: refused, returns false. Projects in a removed area go to Unsorted (no area).
 export function removeProjectCategory(id) {
+  if (id === UNSORTED_ID) return false;
   state.projectCategories = (state.projectCategories || []).filter((c) => c.id !== id);
   state.projects.forEach((p) => { if (p.categoryId === id) p.categoryId = null; });
+  persist();
+  return true;
+}
+
+// Unsorted cannot be renamed. Returns false when nothing changed.
+export function renameProjectCategory(id, name) {
+  const cat = (state.projectCategories || []).find((c) => c.id === id);
+  name = String(name || '').trim();
+  if (!cat || !name || id === UNSORTED_ID) return false;
+  cat.name = name;
+  persist();
+  return true;
+}
+
+// Kinds of work (Settings): tick = offered on Focus's kinds row; level = the priority this label counts as.
+export function setKindOfWork(id, on) {
+  const cat = state.categories.find((c) => c.id === id);
+  if (!cat || typeof on !== 'boolean') return;
+  cat.kind = on;
+  persist();
+}
+export function setLabelPriority(id, level) {
+  const cat = state.categories.find((c) => c.id === id);
+  if (!cat) return;
+  if (LEVELS.includes(level)) cat.priority = level; else delete cat.priority;
   persist();
 }
 
 export function setProjectCategory(projectId, categoryId) {
   const project = state.projects.find((p) => p.id === projectId);
   if (!project) return;
+  if (categoryId === UNSORTED_ID) categoryId = null; // Unsorted is "no area"
   project.categoryId = categoryId || null;
   if (categoryId && !project.colorLocked) {
     const cat = (state.projectCategories || []).find((c) => c.id === categoryId);
@@ -472,6 +538,16 @@ export function setProjectColor(projectId, color) {
   persist();
 }
 
+// Edit project's name pencil (#268): the one project field that had no way to change.
+export function renameProject(projectId, name) {
+  const project = state.projects.find((p) => p.id === projectId);
+  name = String(name || '').trim();
+  if (!project || !name) return false;
+  project.name = name;
+  persist();
+  return true;
+}
+
 export function excludeRepo(fullName) {
   if (!state.excludedRepos.includes(fullName)) state.excludedRepos.push(fullName);
   state.projects = state.projects.filter((p) => !(p.source === 'github' && p.repoFullName === fullName));
@@ -488,5 +564,33 @@ export function pinRepo(fullName) {
 export function unpinRepo(fullName) {
   const idx = state.pinnedRepos.indexOf(fullName);
   if (idx !== -1) state.pinnedRepos.splice(idx, 1);
+  persist();
+}
+
+// Triage (#256): saves a dragged order as a per-task triageRank (1..n), stamped so it syncs and merges like
+// any task field; clearing it hands the tasks back to the rules.
+export function saveTriageOrder(ids) {
+  ids.forEach((id, i) => { const f = findTaskWithProject(id); if (f && f.task.triageRank !== i + 1) { f.task.triageRank = i + 1; f.task.updatedAt = Date.now(); } });
+  persist();
+}
+export function resetTriageOrder(ids) {
+  ids.forEach((id) => { const f = findTaskWithProject(id); if (f && "triageRank" in f.task) { delete f.task.triageRank; f.task.updatedAt = Date.now(); } });
+  persist();
+}
+
+// Roadmap (#257): `fn(project)` is one of the changes in js/roadmap.js (addSection, moveMilestone, ...); it
+// returns what it made or whether it moved. A change that did nothing (false/null) is not saved.
+export function editRoadmap(projectId, fn) {
+  const p = state.projects.find((x) => x.id === projectId);
+  const out = p && fn(p);
+  if (out) persist();
+  return out || null;
+}
+// A task's milestone ('' = Unplanned: the task falls back to its GitHub milestone or parent task, if any).
+export function setTaskMilestone(taskId, milestoneId) {
+  const f = findTaskWithProject(taskId);
+  if (!f) return;
+  if (milestoneId) f.task.milestoneId = milestoneId; else delete f.task.milestoneId;
+  f.task.updatedAt = Date.now();
   persist();
 }

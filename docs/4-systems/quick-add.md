@@ -1,5 +1,7 @@
 # Quick add
 
+> **2026-11-12 (#259):** the Board and Projects screens were removed in the five-tab change; the Roadmap took over their jobs. Where this file describes them as current it is history. See [tabs.md](./tabs.md).
+
 ## What it owns
 
 Related requests: #103 (the add form as one field like the jotter) and #235 (adding straight to a
@@ -12,6 +14,19 @@ which calls `M.addTask` (`js/mutations.js`) and `createIssueIfGithubProject`, so
 way gets the same fields, sort order and GitHub issue.
 
 ## Status
+
+**#263: the jotter moved onto the + Jot screen (supersedes the topbar jotter below).** The topbar no longer
+holds a jot box. The header's `+ Jot` (`data-action="jot-open"`, also `J` on screens 1100px and wider) opens
+`#jot-screen` (`renderJotScreen` in `js/render.js`; open/close/save in `js/app.js`: `openJot`, `closeJot`,
+`saveJot`): a clipboard titled "Jot a thought" with the lined jotter (`#jot-input`), a "Where it goes" index card
+(default 📥 Sort; `▾` opens the "Where should it go?" card-index drawer: Sort, a Find a project box, the projects)
+and a stamped Save. Save files exactly as before (Sort: `M.addCapture`; a project: `M.addTask` plus
+`createIssueIfGithubProject`), closes the screen and shows a "Saved ✓" toast (with Open for a project). The
+`jotTarget` rule is unchanged: the card follows the Roadmap's project until you pick, `ui.jotTo` holds a pick until
+you change screen. The draft lives in `ui.jotDraft`; the screen is painted into its own container so a sync repaint
+never eats it. Escape closes the drawer, then the screen. Enter adds a new line (Save is the button). In the text
+below, "stamp", "`#capture-to`", "`.to-stamp`" and "Add" describe the earlier topbar form, now replaced by the
+destination card and Save. Checks: `scripts/check-add-row-browser.mjs`, `check-bulk-sort-browser.mjs`.
 
 **#240 (project-card row), #241 (Board row) and #242 (jotter stamp) built.** Tracked by #239.
 #242: `#capture-to` in `index.html`, `.to-stamp` in `css/app.css`, `jotTarget` and `renderToast`'s optional action in `js/render.js`, stamp painting in `paintHeaderControls`, submit, `open-added-task` and `ui.jotTo`/`ui.noticeAction` in `js/app.js`. Tests: `js/render.test.mjs` (target resolution, toast action) and the jotter steps in `scripts/check-add-row-browser.mjs`; screenshots `docs/generated/quick-add/built-jotter-*.png` (native select open is not capturable, so shown chosen with the notice).
@@ -51,6 +66,30 @@ Rows 2 and 3 are one function, `renderAddTaskRow(project, categories, isMoreOpen
 the old boxes underneath (steps, priority, due date and its stage step, labels), so no field is
 lost. `ui.addingTask[projectId]` now means "More is open" rather than "form is open". Escape
 closes More. After Add, the title box empties and keeps focus so you can add the next one.
+
+## Priority and due date on every add (#249)
+
+Rows 2 and 3 (the project and Board add rows) ask for a priority. Once the title box has text a
+**Priority · needed** block (Urgent, High, Medium, Low) and a **Due** block (Today, Tomorrow, Friday,
+Next week, Pick a date…, None; None is the default) appear under the line. The Add button is
+disabled until a priority is picked; the reason ("Pick a priority to add") is a hint line in the priority block, so the button stays short and the title box keeps its room on a phone.
+`M.addTaskPicked` (`js/mutations.js`) is what the submit calls and refuses (no task made) without a
+valid priority even if the disabled state is bypassed; `M.addTask` itself is unchanged, so the
+jotter stamp (exempt, like jotting into Unsorted) and subtasks still add without one. The More panel
+keeps steps and labels; its old priority select and plain date box are gone (the blocks are not
+shown twice).
+- Keys 1-4 pick Urgent/High/Medium/Low while focus is on a button in the row (in the title box a
+  digit is just typing).
+- "Pick a date…" shows the date box plus a text box that reads "fri", "tomorrow", "15 dec" through
+  `parseDue` in `js/pick-bits.js` (pure, tested in `js/pick-bits.test.mjs`). Friday and Next week are
+  the coming Friday and Monday, never today.
+- Picked priority and due live in `ui.addPick[projectId]` beside `ui.addDraft`, so a repaint while
+  typing keeps them; they reach the form as hidden `priority` and `deadline` inputs.
+- On task rows and Board cards the priority chip reads "High ▾" ("Priority ▾", quiet, when none) and
+  the due chip carries a ▾; each opens a small picker (`pickChip`, one component for rows and cards,
+  state in `pickState`): one tap sets it, Escape or a click away closes. The old `cycle-priority`
+  chip is gone. A task with no date shows a quiet "Due ▾" chip that opens the same due picker; Board cards with nothing set show both quiet chips. Done Board cards keep their priority (static) and show no date, as calm-board.md says.
+- Checks: `scripts/check-priority-browser.mjs`; screenshots `docs/generated/build-checks/step1/`.
 
 ## Traps
 

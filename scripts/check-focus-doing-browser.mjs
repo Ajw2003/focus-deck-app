@@ -1,4 +1,4 @@
-// scripts/check-focus-doing-browser.mjs -- "Mark in progress" under the sticky note on Focus (#146, part of #140).
+// scripts/check-focus-doing-browser.mjs -- "▶ Start it" in the sticky note's ⋯ drawer on Focus (#146, #270).
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/check-focus-doing-browser.mjs
 // Serves the repo root on 127.0.0.1:8137. Screenshots: docs/generated/pr140/focus-doing-*.png
 import { createRequire } from 'node:module';
@@ -43,21 +43,27 @@ for (const [tag, vp] of [['1440', { width: 1440, height: 900 }], ['390', { width
     localStorage.setItem('focusdeck-state-v1', JSON.stringify(s));
   }, seed);
   await page.goto(BASE);
-  await page.waitForSelector('.desk-focus');
-  check(await page.locator('[data-action="focus-doing"]').count() === 1, tag + ': Mark in progress button shown for a next task');
+  await page.waitForSelector('.focus-active');
+  check(await page.locator('[data-action="focus-doing"]').count() === 0, tag + ': the note itself has no Start it, only the drawer does');
+  await page.click('[data-action="focus-menu"]');
+  check(await page.locator('.sort-drawer [data-action="focus-doing"]').count() === 1, tag + ': Start it is in the ⋯ drawer for a next task');
   await page.screenshot({ path: OUT + 'focus-doing-' + tag + '.png' });
   await page.click('[data-action="focus-doing"]');
   await page.waitForTimeout(300);
-  check(await page.locator('[data-action="focus-doing"]').count() === 0 && await page.locator('.focus-doing-mark').count() === 1, tag + ': button became the In progress marker');
+  check(await page.locator('.sort-drawer').count() === 0, tag + ': choosing Start it closes the drawer');
+  await page.click('[data-action="focus-menu"]');
+  check(await page.locator('[data-action="focus-doing"]').count() === 0, tag + ': a task in progress has no Start it');
+  await page.click('.sort-drawer .vs-x');
   check((await page.locator('.focus-title').innerText()).includes('Mop the kitchen'), tag + ': task still in focus');
   check((await page.locator('.toast').allInnerTexts()).join(' ').includes('Moved to In progress'), tag + ': toast shown');
   const order = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).projects[0].tasks.filter((x) => x.status === 'doing').sort((a, b) => a.sortOrder - b.sortOrder).map((x) => x.id));
   check(order.join() === 'd1,n2', tag + ': lands at end of In progress (' + order + ')');
   await page.screenshot({ path: OUT + 'focus-doing-' + tag + '-marked.png' });
-  await page.click('[data-screen="board"]:visible');
-  await page.click('[data-action="board-col"][data-col="doing"]');
-  await page.waitForSelector('.board-card');
-  check(await page.locator('.board-card[data-task-id="n2"]').evaluate((e) => e.dataset.status) === 'doing', tag + ': Board shows the task in In progress');
+  await page.click('[data-screen="projects"]:visible');
+  await page.click('.pj-card[data-project="p0"]');
+  await page.waitForSelector('.rm-project');
+  await page.click('.rm-tab[data-status="doing"]'); // the Roadmap shows one status at a time
+  check(await page.locator('.rm-col[data-status="doing"] .rm-task[data-task-id="n2"]').count() === 1, tag + ': Roadmap shows the task in In progress');
   await ctx.close();
 }
 await browser.close(); server.close();

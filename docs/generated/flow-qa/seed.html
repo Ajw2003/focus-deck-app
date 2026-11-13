@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Seed Flow QA</title></head>
+<body><p>Loading sample data, then opening the real app…</p>
+<script type="module">
+// QA copy for "tabs that follow the flow" (#248): the sort-steps sample data (19 projects, 66 tasks), plus
+// areas, priorities, due dates, Review and In progress tasks, a forgotten task, a replaced one, and sections
+// and milestones on "Open source: focus-deck". Overwrites this browser's Focus Deck data for this site only.
+// seed.html#roadmap opens that tab; any of sort, tidy, triage, projects, roadmap, focus, review.
+import { seedState } from '../sort-steps/seed.js';
+const s = seedState({ ties: true });
+const now = Date.now(), DAY = 864e5;
+const iso = (d) => new Date(now + d * DAY).toISOString().slice(0, 10);
+const AREA = { Home: 'pcat_home', Garden: 'pcat_home', 'Shed rebuild': 'pcat_home', 'Kitchen renovation planning with the contractor': 'pcat_home',
+  School: 'pcat_school', 'Reading list': 'pcat_school', 'Learning Rust': 'pcat_school',
+  'Website redesign': 'pcat_apps', Portfolio: 'pcat_apps', 'Open source: focus-deck': 'pcat_apps',
+  'Taxes and paperwork': 'pcat_lists', Finances: 'pcat_lists', Car: 'pcat_lists',
+  Band: 'pcat_personal', Photography: 'pcat_personal', Fitness: 'pcat_personal', Family: 'pcat_personal', 'Holiday in Portugal': 'pcat_personal', Volunteering: 'pcat_work' };
+const PRIO = ['high', 'medium', 'low', 'urgent', 'medium', 'low'];
+let k = 0;
+for (const p of s.projects) {
+  p.categoryId = AREA[p.name];
+  for (const t of p.tasks) {
+    t.priority = PRIO[k % PRIO.length];
+    t.updatedAt = now - (k % 20) * DAY;
+    if (k % 9 === 4) t.deadline = iso((k % 4) - 1); // yesterday, today, tomorrow or in two days
+    if (t.status === 'next' && k % 13 === 5) t.status = 'review';
+    if (t.status === 'next' && k % 17 === 7) t.status = 'doing';
+    k++;
+  }
+}
+const home = s.projects.find((p) => p.name === 'Home');
+home.tasks.push({ id: 'old1', title: 'Clear out the loft', status: 'next', priority: 'low', categoryIds: [], updatedAt: now - 90 * DAY });
+home.tasks.push({ id: 'rep1', title: 'Old shelf plan, replaced by the new shelf plan', status: 'next', priority: 'medium', categoryIds: [], updatedAt: now - 3 * DAY });
+const fd = s.projects.find((p) => p.name === 'Open source: focus-deck');
+fd.sections = [{ id: 'sec1', name: 'Foundations', order: 0, updatedAt: 1 }, { id: 'sec2', name: 'Plan tools', order: 1, updatedAt: 1 }];
+fd.milestones = [{ id: 'ms1', name: 'Start here screen', sectionId: 'sec1', order: 0, updatedAt: 1 },
+  { id: 'ms2', name: 'Areas', sectionId: 'sec1', order: 1, updatedAt: 1 },
+  { id: 'ms3', name: 'Tidy up and Triage', sectionId: 'sec2', order: 0, updatedAt: 1 }];
+const extra = ['Test on phone', 'Open on Start here', 'Pick one for me', 'Three suggestions', 'Tab on phone', 'Rename areas', 'Group by area', 'Close what is finished', 'Rank what is left'];
+const st = ['next', 'doing', 'review', 'done', 'done', 'done', 'next', 'next', 'next'];
+const ms = ['ms1', 'ms1', 'ms1', 'ms1', 'ms1', 'ms2', 'ms2', 'ms3', 'ms3'];
+extra.forEach((title, i) => fd.tasks.push({ id: 'fd' + i, title, status: st[i], priority: PRIO[i % PRIO.length], milestoneId: ms[i], categoryIds: [], updatedAt: now - i * DAY }));
+localStorage.setItem('focusdeck-onboarding', 'done');
+localStorage.setItem('focusdeck-screen', location.hash.slice(1) || 'sort');
+localStorage.removeItem('focusdeck-view');
+localStorage.setItem('focusdeck-state-v1', JSON.stringify(s));
+location.replace('../../../app/index.html');
+</script></body></html>

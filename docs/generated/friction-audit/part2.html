@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<!-- Mock-ups for docs/plans/friction-audit.html. Drawn with the app's own tokens (app/css/app.css).
+     Open with a hash to show one picture: #flow #a-phone #a-desk #b-settings #c-phone #d -->
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plan part 2 mock-ups</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=Kalam:wght@700&display=swap">
+<style>/* light-theme tokens copied from app/css/app.css so the app's own classes do not apply */
+:root{
+  color-scheme: light dark;
+  --bg:#E4E8EF;
+  --surface:#FBFAF7;
+  --surface-2:#EEF1F6;
+  --ink:#1C2438;
+  --ink-soft:#59627A;
+  --ink-faint:#6E7790;
+  --line:#C7CEDB;
+  --accent:#8F5A06;
+  --accent-ink:#FFFFFF;
+  --danger:#A83E3E;
+  --prio-urgent:#B42318;
+  --prio-high:#AD4A0B;
+  --prio-medium:#7A5A00;
+  --prio-low:#3F6E53;
+  /* Deadline chip stages (#106). Borders + tint + words, never hue alone: --due-soon is an olive-lime and
+     --due-now a crimson, apart from the gold --prio-medium, orange --prio-high and red --prio-urgent. */
+  --due-soon:#4F5A00;
+  /* The yellow chip is stronger in light mode so it reads on a bright (HDR) white screen; dark mode
+     keeps the 18% tint and 60% border (design 1C, approved 2026-10-20, #215). */
+  --due-soon-fill:34%; --due-soon-edge:100%; --due-soon-ink:#3A4200; /* darker words keep 4.5:1 on that fill */
+  --due-now:#9F0C3D;
+  --due-amber:#7A4D00;
+  --proj-sat:58%;
+  --proj-light:40%;
+  /* The lamp: a glow on the desk behind the focus area, and the brand dot */
+  --lamp:rgba(255,255,255,.75);
+  --lamp-dot:#D98A12;
+  /* Paper objects. Paper stays paper in both themes (dark ink on cream), so most of these are shared. */
+  --paper:#FFFEFA;
+  --paper-ink:#1D2733;
+  --paper-soft:#4E5A68;
+  --paper-faint:#5F6A79;
+  --rule:#C3CEDD;
+  --paper-shadow:rgba(40,52,80,.35);
+  --hole:var(--bg);
+  --folder:#F1E6CC;
+  --index-red:#C9584F; /* the index card's heading line (#123) */
+  --index-rule:color-mix(in srgb, var(--rule) 45%, var(--surface)); /* its row rules, toned to the theme */
+  --note:#FFE27A;
+  --note-fold:#E2C055;
+  --note-ink:#2B2412;
+  --note-soft:#6B5520;
+  --pen:#1F3F99;
+  /* Stage colours on paper, for the deadline chip's border and icon on the sticky note (its words stay ink) */
+  --paper-due-soon:#5E6B00;
+  --paper-due-now:#A30D40;
+  --paper-due-amber:#7A4D00;
+  /* The writing on paper notes: the default face (Handwriting). Print and OpenDyslexic override
+     these in the "Note faces" section at the end (#122) */
+  --note-font:'Kalam', 'Comic Sans MS', cursive;
+  --note-scale:1;
+  --font-display:'Young Serif', Georgia, serif;
+  --font-ui:'Figtree', system-ui, -apple-system, sans-serif;
+  --font-paper:'Bricolage Grotesque', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-paper-small:'Atkinson Hyperlegible', system-ui, sans-serif;
+  /* Type scale (Q17a): exactly five sizes. See docs/4-systems/styling.md#visual-system */
+  --text-sm:.8rem;
+  --text-body:.95rem;
+  --text-h:1.15rem;
+  --text-q:1.5rem;
+  --text-title:2.1rem;
+  /* Corners (Q17a): exactly three radii. Circles (dots, icon buttons) stay 50% — a shape, not a step. */
+  --r-pill:999px;
+  --r-control:10px;
+  --r-card:18px;
+  --shadow:0 1px 2px rgba(28,36,60,.06), 0 6px 20px rgba(28,36,60,.09);
+  
+  
+}
+</style>
+<style>
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-ui);}
+  .pic{display:none;} .pic.on{display:block;}
+  .mk-top{display:flex; align-items:center; gap:10px; padding:14px 16px 8px;}
+  .mk-brand{font-family:var(--font-display); font-size:1.2rem; display:flex; align-items:center; gap:8px;}
+  .mk-brand::before{content:""; width:9px; height:9px; border-radius:50%; background:var(--lamp-dot); box-shadow:0 0 10px var(--lamp-dot);}
+  .mk-jot{margin:0 16px 10px; background:var(--paper); border-radius:6px; padding:10px 12px; display:flex; gap:8px; align-items:center; box-shadow:0 4px 10px -8px var(--paper-shadow);}
+  .mk-jot span{flex:1; font-family:var(--note-font); color:var(--paper-faint);}
+  .mk-jot b{font-size:var(--text-sm); border:1.5px solid var(--paper-ink); border-radius:8px; padding:4px 10px; color:var(--paper-ink);}
+  .mk-nav{position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:space-around; background:var(--surface); border-top:1px solid var(--line); padding:8px 0 12px;}
+  .mk-nav div{font-size:var(--text-sm); color:var(--ink-soft); text-align:center; padding:6px 12px; border-radius:10px;}
+  .mk-nav .on{background:var(--surface-2); color:var(--accent); font-weight:700;}
+  .phone{position:relative; width:390px; height:844px; overflow:hidden; background:var(--bg);}
+  h2.mk-h{font-family:var(--font-display); font-size:var(--text-q); margin:6px 0 4px;}
+  .mk-sub{color:var(--ink-soft); font-size:var(--text-body); margin:0 0 14px;}
+  .mk-big{display:flex; align-items:center; justify-content:center; gap:10px; width:100%; background:var(--accent); color:var(--accent-ink); border-radius:var(--r-card); padding:18px; font-weight:700; font-size:1.1rem; border:none; box-shadow:var(--shadow);}
+  .sug{background:var(--surface); border-radius:var(--r-card); padding:14px 16px; margin-top:10px; border-left:6px solid var(--c); box-shadow:var(--shadow); display:flex; gap:12px; align-items:center;}
+  .sug .t{font-weight:600; font-size:var(--text-body);}
+  .sug .p{font-size:var(--text-sm); color:var(--ink-soft); display:flex; align-items:center; gap:6px; margin-bottom:3px;}
+  .sug .p::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--c);}
+  .why{display:inline-block; margin-top:6px; font-size:var(--text-sm); font-weight:700; padding:3px 9px; border-radius:999px;}
+  .why.red{color:var(--due-now); background:color-mix(in srgb,var(--due-now) 14%,transparent);}
+  .why.go{color:var(--accent); background:color-mix(in srgb,var(--accent) 14%,transparent);}
+  .why.urg{color:var(--prio-urgent); background:color-mix(in srgb,var(--prio-urgent) 14%,transparent);}
+  .start{margin-left:auto; border:1.5px solid var(--ink); border-radius:10px; padding:8px 14px; font-weight:700; background:none; color:var(--ink); white-space:nowrap;}
+  .narrow{margin-top:16px; display:flex; align-items:center; justify-content:space-between; background:var(--surface-2); border:1px dashed var(--line); border-radius:var(--r-control); padding:12px 14px; font-size:var(--text-body);}
+  .narrow small{color:var(--ink-soft);}
+  .tag{position:absolute; background:#1F3F99; color:#fff; font:700 12px/1.3 var(--font-ui); padding:5px 9px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.25); max-width:190px;}
+  .tag::after{content:""; position:absolute; width:10px; height:10px; background:inherit; transform:rotate(45deg);}
+  .tag.l::after{left:-4px; top:10px;} .tag.r::after{right:-4px; top:10px;} .tag.u::after{left:18px; top:-4px;} .tag.d::after{left:18px; bottom:-4px;}
+  /* desktop */
+  .desk{position:relative; width:1440px; height:900px; overflow:hidden; display:grid; grid-template-columns:232px 1fr; grid-template-rows:auto 1fr; column-gap:48px; padding:0 24px 0 16px; box-sizing:border-box;}
+  .desk .mk-top{grid-column:1/3; justify-content:space-between; padding:16px 0;}
+  .desk .mk-jot{width:560px; margin:0;}
+  .rail{background:var(--surface); border-radius:var(--r-card); padding:14px; align-self:start; box-shadow:var(--shadow);}
+  .rail div{padding:12px 14px; border-radius:10px; color:var(--ink-soft); font-weight:600;}
+  .rail .on{background:var(--surface-2); color:var(--accent);}
+  .desk-main{display:grid; grid-template-columns:600px 1fr; gap:32px; align-items:start;}
+  .panel{background:var(--surface); border-radius:var(--r-card); padding:18px; box-shadow:var(--shadow);}
+  .panel h3{font-size:var(--text-h); margin-bottom:10px;}
+  .search{border:1px solid var(--line); border-radius:var(--r-control); padding:10px 12px; color:var(--ink-faint); margin-bottom:10px; background:var(--surface-2);}
+  .row{display:flex; align-items:center; gap:10px; padding:9px 6px; border-bottom:1px solid var(--line); font-size:var(--text-body);}
+  .row .dot{width:9px; height:9px; border-radius:50%; background:var(--c);} .row .n{margin-left:auto; color:var(--ink-faint); font-size:var(--text-sm);}
+  .row.sel{background:color-mix(in srgb,var(--accent) 10%,transparent); border-radius:8px; font-weight:700;}
+  .kinds{display:flex; flex-wrap:wrap; gap:8px;}
+  .kind{border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:var(--text-sm); font-weight:600; background:var(--surface-2);}
+  .kind.on{background:var(--accent); color:#fff; border-color:transparent;}
+  .lbl{font-size:var(--text-sm); color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin:14px 0 8px;}
+  /* settings */
+  .tick{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line);}
+  .box{width:20px; height:20px; border:2px solid var(--ink); border-radius:5px; display:grid; place-items:center; font-weight:900; font-size:14px;}
+  .box.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .tick .s{margin-left:auto; font-size:var(--text-sm); color:var(--ink-faint);}
+  .tick.off{color:var(--ink-faint);}
+  /* flow */
+  .flow{width:1280px; padding:32px; box-sizing:border-box; background:var(--bg);}
+  .lane{display:flex; align-items:center; gap:0; margin:0 0 26px;}
+  .lane-h{width:200px; flex:none; font-weight:700; font-size:var(--text-h); font-family:var(--font-display);}
+  .lane-h small{display:block; font-family:var(--font-ui); font-size:var(--text-sm); color:var(--ink-soft); font-weight:600; margin-top:4px;}
+  .st{background:var(--surface); border-radius:12px; padding:12px 14px; width:150px; box-sizing:border-box; box-shadow:var(--shadow); font-size:var(--text-sm); line-height:1.35; border-top:5px solid var(--line); min-height:96px;}
+  .st b{display:block; font-size:var(--text-body); margin-bottom:3px;}
+  .st.hard{border-top-color:var(--due-now);} .st.ok{border-top-color:var(--prio-low);} .st.goal{border-top-color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,var(--surface));}
+  .ar{width:28px; text-align:center; color:var(--ink-faint); font-size:22px; flex:none;}
+  .cnt{margin-left:18px; font-weight:800; font-size:1.6rem; font-family:var(--font-display); white-space:nowrap;}
+  .cnt small{display:block; font-family:var(--font-ui); font-size:var(--text-sm); color:var(--ink-soft); font-weight:600;}
+  .legend{display:flex; gap:22px; font-size:var(--text-sm); color:var(--ink-soft); margin-top:4px;}
+  .legend span::before{content:""; display:inline-block; width:22px; height:5px; margin-right:6px; vertical-align:middle; background:var(--k);}
+  /* sort mock */
+  .slip{margin:0 16px; background:var(--paper); border-radius:4px; padding:14px 16px; box-shadow:0 6px 14px -10px var(--paper-shadow); color:var(--paper-ink);}
+  .slip .w{font-family:var(--note-font); font-weight:700; font-size:1.25rem; line-height:1.25;}
+  .thumb{position:absolute; left:16px; right:16px; bottom:84px; display:flex; gap:10px;}
+  .thumb .mk-big{padding:15px; font-size:1rem;}
+  .thumb .later{flex:none; width:96px; border:1.5px solid var(--ink); border-radius:var(--r-card); background:var(--surface); font-weight:700; display:grid; place-items:center;}
+  /* backlog */
+  .bl{width:1200px; padding:32px; box-sizing:border-box;}
+  .bars{display:grid; grid-template-columns:200px 1fr; gap:18px 20px; align-items:center;}
+  .bar{display:flex; height:54px; border-radius:10px; overflow:hidden; box-shadow:var(--shadow);}
+  .bar div{display:grid; place-items:center; color:#fff; font-weight:700; font-size:var(--text-sm); text-align:center; line-height:1.2;}
+</style></head><body>
+<style>
+  .doors{display:grid; gap:10px; margin-top:16px;}
+  .door{display:grid; grid-template-columns:1fr auto; background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-control); padding:12px 14px;}
+  .door b{font-size:var(--text-body);} .door small{grid-column:1; color:var(--ink-soft); font-size:var(--text-sm);} .door span{grid-row:1/3; grid-column:2; align-self:center; font-size:1.3rem; color:var(--ink-soft);}
+  .desk .doors{grid-template-columns:1fr 1fr;}
+  .map{width:1280px; padding:32px; box-sizing:border-box; position:relative; height:640px;}
+  .scr{position:absolute; width:210px; background:var(--surface); border-radius:14px; box-shadow:var(--shadow); padding:14px 16px; border-top:6px solid var(--k); font-size:var(--text-sm); line-height:1.4;}
+  .scr b{display:block; font-family:var(--font-display); font-size:var(--text-h); margin-bottom:4px;}
+  .scr em{display:block; font-style:normal; font-weight:700; color:var(--accent); margin-top:6px;}
+  .new{position:absolute; top:-12px; right:10px; background:var(--accent); color:#fff; font-weight:800; font-size:11px; padding:3px 8px; border-radius:999px; letter-spacing:.05em;}
+  .ln{position:absolute; font-size:var(--text-sm); font-weight:700; color:var(--ink-soft);}
+  svg.arrows{position:absolute; left:0; top:0;}
+  .ff{margin:0 16px; background:linear-gradient(var(--surface),var(--surface)); border-radius:var(--r-card); padding:18px; box-shadow:var(--shadow);}
+  .folder{height:92px; border-radius:6px 10px 10px 10px; background:var(--c); position:relative; padding:28px 12px 8px; box-sizing:border-box; color:#1C2438;}
+  .folder::before{content:""; position:absolute; top:-10px; left:0; width:80px; height:14px; border-radius:6px 6px 0 0; background:var(--c);}
+  .folder b{background:#fff; padding:2px 7px; border-radius:3px; font-size:var(--text-body);} .folder small{display:block; margin-top:8px; font-size:var(--text-sm);}
+  .icard{height:92px; background:var(--paper); border-top:5px solid #8a6a4a; border-left:2px solid var(--index-red); padding:12px; box-sizing:border-box; box-shadow:0 4px 12px -8px var(--paper-shadow);}
+  .icard b{font-size:1.05rem;} .icard small{display:block; margin-top:8px; font-size:var(--text-sm); color:var(--paper-soft);}
+  .count{display:flex; justify-content:space-between; font-weight:700; margin:14px 0 8px;} .count span{font-weight:500; color:var(--ink-soft); font-size:var(--text-sm);}
+  .grid5{display:grid; grid-template-columns:repeat(5,1fr); gap:14px 14px;}
+</style>
+<style>
+ .pr{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+ .pb{border:2px solid var(--c); color:var(--c); border-radius:12px; padding:10px 4px; text-align:center; font-weight:800; font-size:var(--text-body); background:var(--surface);}
+ .pb.on{background:var(--c); color:#fff;}
+ .pb small{display:block; font-weight:600; font-size:11px; opacity:.85;}
+ .dd{display:flex; gap:8px; flex-wrap:wrap;} .dc{border:1px solid var(--line); border-radius:999px; padding:8px 13px; font-weight:700; font-size:var(--text-sm); background:var(--surface);}
+ .dc.on{background:var(--ink); color:#fff; border-color:var(--ink);}
+ .sheet{position:absolute; left:0; right:0; bottom:0; background:var(--surface); border-radius:22px 22px 0 0; box-shadow:0 -10px 30px rgba(0,0,0,.18); padding:18px 16px 24px;}
+ .sheet h3{font-family:var(--font-display); font-size:var(--text-h); margin:0 0 4px;}
+ .req{color:var(--prio-urgent); font-weight:700; font-size:var(--text-sm);}
+ .addbtn{margin-top:14px; width:100%; border:none; border-radius:14px; padding:14px; font-weight:800; font-size:1rem; background:var(--accent); color:#fff;}
+ .addbtn.off{background:var(--surface-2); color:var(--ink-faint); border:1px dashed var(--line);}
+ .dim{position:absolute; inset:0; background:rgba(20,26,40,.35);}
+ .car{display:flex; gap:14px; align-items:center;}
+ .arr{width:44px; height:44px; flex:none; border-radius:50%; border:1.5px solid var(--ink); display:grid; place-items:center; font-weight:800; background:var(--surface);}
+ .car .folder{flex:1;} .car .folder.cur{outline:3px solid var(--accent); outline-offset:3px;}
+ .car .icard{flex:1;} .car .icard.cur{outline:3px solid var(--accent); outline-offset:3px;}
+ .keys{font-size:var(--text-sm); color:var(--ink-soft);} .keys kbd{border:1px solid var(--line); border-bottom-width:3px; border-radius:6px; padding:1px 7px; background:var(--surface); font-family:var(--font-ui); font-weight:700;}
+ .dots{display:flex; gap:5px; justify-content:center; margin-top:8px;} .dots i{width:7px; height:7px; border-radius:50%; background:var(--line);} .dots i.on{background:var(--accent); width:18px; border-radius:4px;}
+ .stage{display:flex; gap:8px; margin:0 0 16px;} .stage div{flex:1; text-align:center; padding:8px; border-radius:10px; font-weight:700; font-size:var(--text-sm); background:var(--surface-2); color:var(--ink-soft);} .stage .on{background:var(--accent); color:#fff;} .stage .done{background:color-mix(in srgb,var(--prio-low) 18%,var(--surface)); color:var(--prio-low);}
+ .grp{background:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow); padding:12px 16px; margin-bottom:12px;}
+ .grp h4{font-family:var(--font-ui); font-size:var(--text-body); font-weight:800; margin:0 0 2px; display:flex; justify-content:space-between;} .grp h4 small{color:var(--ink-soft); font-weight:600;}
+ .grp p{margin:0 0 6px; font-size:var(--text-sm); color:var(--ink-soft);}
+ .it{display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--line); font-size:var(--text-body);}
+ .it .dot{width:8px; height:8px; border-radius:50%; background:var(--c); flex:none;} .it .w{flex:1;} .it .w small{display:block; color:var(--ink-faint); font-size:var(--text-sm);}
+ .kb{display:flex; gap:6px;} .kb span{border:1.5px solid var(--line); border-radius:8px; padding:5px 10px; font-weight:700; font-size:var(--text-sm);} .kb .k{border-color:var(--prio-low); color:var(--prio-low);} .kb .c{border-color:var(--danger); color:var(--danger);} .kb .sel{background:var(--danger); color:#fff;} .kb .ksel{background:var(--prio-low); color:#fff;}
+ .meter{height:12px; border-radius:6px; background:var(--surface-2); overflow:hidden; display:flex;} .meter b{background:var(--prio-low);} .meter i{background:var(--danger); opacity:.6;}
+ .tier{background:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow); padding:12px 14px; margin-bottom:12px; border-left:6px solid var(--k);}
+ .tier h4{margin:0 0 6px; font-family:var(--font-display); font-size:var(--text-h); font-weight:400; display:flex; justify-content:space-between;} .tier h4 small{font-family:var(--font-ui); font-size:var(--text-sm); color:var(--ink-soft);}
+ .rk{display:flex; gap:10px; align-items:center; padding:7px 0; border-top:1px solid var(--line); font-size:var(--text-body);} .rk .n{width:22px; font-weight:800; color:var(--ink-faint);} .rk .w{flex:1;} .rk .why{margin:0 0 0 auto;}
+ .ladder{display:flex; flex-direction:column; gap:6px;} .ladder div{display:flex; gap:10px; align-items:center; background:var(--surface); border-radius:10px; padding:8px 12px; box-shadow:var(--shadow); font-size:var(--text-body);} .ladder b{width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-size:13px;}
+ .rm{display:grid; grid-template-columns:180px repeat(3,1fr); gap:10px; align-items:stretch;}
+ .rm .h{font-weight:800; font-size:var(--text-sm); color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; padding:4px 6px;}
+ .rm .pj{display:flex; flex-direction:column; justify-content:center; padding:6px 0;} .rm .pj b{display:flex; gap:8px; align-items:center;} .rm .pj b::before{content:""; width:10px; height:10px; border-radius:50%; background:var(--c);}
+ .ms{background:var(--surface); border-radius:12px; box-shadow:var(--shadow); padding:10px 12px; font-size:var(--text-sm); border-top:5px solid var(--c);} .ms b{display:block; font-size:var(--text-body); margin-bottom:6px;} .ms.done{opacity:.7;} .ms.done b::after{content:"  ✓"; color:var(--prio-low);}
+ .pbar{height:8px; border-radius:4px; background:var(--surface-2); overflow:hidden; margin-top:6px;} .pbar i{display:block; height:100%; background:var(--c);}
+ .big{font-family:var(--font-display); font-size:2rem;}
+ .wide{width:1440px; padding:28px 32px; box-sizing:border-box;}
+</style>
+<section class="pic" id="add-phone"><div class="phone"><div class="mk-top"><div class="mk-brand">Focus Deck</div></div><div class="mk-jot"><span style="color:var(--paper-ink)">Book the dentist</span><b>Add</b></div><div class="dim"></div>
+<div class="sheet"><h3>Add "Book the dentist"</h3><p class="mk-sub" style="margin-bottom:12px">To: <b>Health</b> ▾</p>
+<div class="lbl" style="margin-top:0">Priority <span class="req">· needed to add</span></div>
+<div class="pr"><div class="pb" style="--c:var(--prio-urgent)">Urgent<small>today</small></div><div class="pb on" style="--c:var(--prio-high)">High<small>this week</small></div><div class="pb" style="--c:var(--prio-medium)">Medium<small>soon</small></div><div class="pb" style="--c:var(--prio-low)">Low<small>some day</small></div></div>
+<div class="lbl">Due date <span style="font-weight:600; text-transform:none; letter-spacing:0">· optional</span></div>
+<div class="dd"><span class="dc">Today</span><span class="dc">Tomorrow</span><span class="dc on">Friday</span><span class="dc">Next week</span><span class="dc">Pick a date…</span><span class="dc">None</span></div>
+<button class="addbtn">Add to Health · High · due Friday</button></div>
+<div class="tag d" style="left:150px; top:448px">One tap per choice, no menus</div>
+</div></section>
+<section class="pic" id="add-phone-off"><div class="phone"><div class="mk-top"><div class="mk-brand">Focus Deck</div></div><div class="mk-jot"><span style="color:var(--paper-ink)">Book the dentist</span><b>Add</b></div><div class="dim"></div>
+<div class="sheet"><h3>Add "Book the dentist"</h3><p class="mk-sub" style="margin-bottom:12px">To: <b>Health</b> ▾</p>
+<div class="lbl" style="margin-top:0">Priority <span class="req">· needed to add</span></div>
+<div class="pr"><div class="pb" style="--c:var(--prio-urgent)">Urgent<small>today</small></div><div class="pb" style="--c:var(--prio-high)">High<small>this week</small></div><div class="pb" style="--c:var(--prio-medium)">Medium<small>soon</small></div><div class="pb" style="--c:var(--prio-low)">Low<small>some day</small></div></div>
+<div class="lbl">Due date <span style="font-weight:600; text-transform:none; letter-spacing:0">· optional</span></div>
+<div class="dd"><span class="dc">Today</span><span class="dc">Tomorrow</span><span class="dc">Friday</span><span class="dc">Next week</span><span class="dc">Pick a date…</span><span class="dc on">None</span></div>
+<button class="addbtn off">Pick a priority to add</button></div>
+<div class="tag d" style="left:100px; top:448px">Add stays off until a priority is picked</div>
+</div></section>
+<section class="pic" id="add-desk"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div><div class="rail"><div>Start here</div><div class="on">Focus</div><div>Sort</div><div>Board</div><div>Projects</div><div>Tidy up</div><div>Triage</div><div>Roadmap</div></div><div style="width:900px">
+<h2 class="mk-h">The same row everywhere you add a task</h2><p class="mk-sub">Jotter, project cards, the Board and Sort all use this one row.</p>
+<div class="panel" style="padding:18px 20px">
+<div style="display:flex; gap:12px; align-items:center"><div class="search" style="flex:1; margin:0; color:var(--ink)">Rig the boss model</div><span class="dc">To: UnamedSoulsLikeProject ▾</span></div>
+<div style="display:flex; gap:22px; margin-top:14px; align-items:flex-start">
+<div style="flex:1.2"><div class="lbl" style="margin-top:0">Priority <span class="req">· needed</span> <span class="keys" style="text-transform:none; letter-spacing:0">keys <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd></span></div>
+<div class="pr"><div class="pb" style="--c:var(--prio-urgent)">Urgent</div><div class="pb on" style="--c:var(--prio-high)">High</div><div class="pb" style="--c:var(--prio-medium)">Medium</div><div class="pb" style="--c:var(--prio-low)">Low</div></div></div>
+<div style="flex:1"><div class="lbl" style="margin-top:0">Due <span class="keys" style="text-transform:none; letter-spacing:0">or type "fri", "15 dec"</span></div>
+<div class="dd"><span class="dc">Today</span><span class="dc">Tomorrow</span><span class="dc on">Fri 13 Nov</span><span class="dc">Next week</span><span class="dc">Pick…</span></div></div></div>
+<button class="addbtn" style="width:auto; padding:12px 26px">Add · Enter</button></div>
+<div class="lbl" style="margin-top:26px">Changing it later: tap the chip on any card</div>
+<div class="sug" style="--c:#2F8F8F"><div><div class="p">UnamedSoulsLikeProject</div><div class="t">Refactor the input system</div><span class="why urg" style="color:var(--prio-high); background:color-mix(in srgb,var(--prio-high) 14%,transparent)">High ▾</span> <span class="why" style="color:var(--ink-soft); background:var(--surface-2)">Due Fri ▾</span></div></div>
+</div><div class="tag l" style="left:1180px; top:330px">Number keys pick priority without the mouse</div>
+<div class="tag l" style="left:1180px; top:660px">Priority and due date are one tap from any card</div></div></section>
+<section class="pic" id="car-desk"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div><div class="rail"><div>Start here</div><div class="on">Focus</div><div>Sort</div><div>Board</div><div>Projects</div><div>Tidy up</div><div>Triage</div><div>Roadmap</div></div><div class="panel" style="padding:24px 28px; width:1080px">
+<h2 class="mk-h">What's your focus right now?</h2>
+<div class="count">Project <span>3 of 27 · <span class="keys"><kbd>←</kbd> <kbd>→</kbd> move · <kbd>Enter</kbd> pick · type to find</span></span></div>
+<div class="car"><div class="arr">‹</div>
+<div class="folder" style="--c:#9DBB9E"><b>Home</b><small>49 open</small></div><div class="folder" style="--c:#9AA6C2"><b>School</b><small>27 open</small></div><div class="folder cur" style="--c:#D69C92"><b>Focus Deck</b><small>23 open · top: Urgent</small></div><div class="folder" style="--c:#B9A6C6"><b>AjsClaudeCode…</b><small>19 open</small></div><div class="folder" style="--c:#9CC4BC"><b>Unblocked</b><small>18 open</small></div>
+<div class="arr">›</div></div><div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
+<div class="count" style="margin-top:22px">Kind of work <span>1 of 25 · same keys</span></div>
+<div class="car"><div class="arr">‹</div>
+<div class="icard cur"><b>Bug</b><small>6 open here</small></div><div class="icard"><b>Feature</b><small>9 open here</small></div><div class="icard"><b>UX</b><small>4 open here</small></div><div class="icard"><b>Build</b><small>3 open here</small></div><div class="icard"><b>Surprise me</b><small>23 open here</small></div>
+<div class="arr">›</div></div>
+<p class="keys" style="margin-top:16px">Mouse: scroll the wheel or swipe the trackpad sideways over a row. Shows 5 at once; a phone shows 1 and a half.</p>
+</div><div class="tag u" style="left:640px; top:475px">The same carousel as the phone, showing 5 cards at once</div></div></section>
+<section class="pic" id="car-phone"><div class="phone"><div class="mk-top"><div class="mk-brand">Focus Deck</div></div><div class="ff" style="margin-top:6px"><h2 class="mk-h" style="font-size:1.35rem">What's your focus right now?</h2>
+<div class="count">Project <span>3 of 27</span></div><div class="search" style="margin-bottom:10px">Find a project…</div>
+<div class="car" style="gap:10px; margin-right:-18px"><div class="folder cur" style="--c:#D69C92; flex:0 0 210px"><b>Focus Deck</b><small>23 open</small></div><div class="folder" style="--c:#B9A6C6; flex:0 0 120px"><b>AjsClaude…</b><small>19</small></div></div>
+<div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
+<div class="count">Kind of work <span>1 of 25</span></div>
+<div class="car" style="gap:10px; margin-right:-18px"><div class="icard cur" style="flex:0 0 210px"><b>Bug</b><small>6 open here</small></div><div class="icard" style="flex:0 0 120px"><b>Feature</b><small>9</small></div></div>
+</div><div class="tag u" style="left:30px; top:600px">Same cards, same order, same search as desktop</div><div class="mk-nav"><div>Start</div><div class="on">Focus</div><div>Sort</div><div>Board</div><div>Plan</div></div></div></section>
+<section class="pic" id="tidy-desk"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div><div class="rail"><div>Start here</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div><div class="on">Tidy up</div><div>Triage</div><div>Roadmap</div></div><div style="width:1080px">
+<div class="stage"><div class="on">1 · Tidy up</div><div>2 · Triage</div><div>3 · Roadmap</div></div>
+<div style="display:grid; grid-template-columns:1fr 300px; gap:24px; align-items:start"><div>
+<h2 class="mk-h">Tidy up: does each of these still need to exist?</h2><p class="mk-sub">I grouped what looks finished, repeated or forgotten. Keep or close each one. Closing a GitHub issue waits for your final Confirm.</p>
+<div class="grp"><h4>Built, waiting for your review <small>15</small></h4><p>A pull request was merged that mentions it.</p>
+<div class="it" style="--c:#C9584F"><span class="dot"></span><div class="w">Jotter phone layout: writing on top<small>Focus Deck · #245 · PR merged 29 Oct</small></div><div class="kb"><span class="k">Keep</span><span class="c sel">Close</span></div></div>
+<div class="it" style="--c:#C9584F"><span class="dot"></span><div class="w">One-line add row on project cards<small>Focus Deck · #240 · PR merged 29 Oct</small></div><div class="kb"><span class="k">Keep</span><span class="c sel">Close</span></div></div></div>
+<div class="grp"><h4>Replaced by newer work <small>8</small></h4><p>The thing it describes was rebuilt another way.</p>
+<div class="it" style="--c:#C9584F"><span class="dot"></span><div class="w">Board columns: Up next, In progress, Done<small>Focus Deck · #143 · replaced by the calm Board</small></div><div class="kb"><span class="k">Keep</span><span class="c">Close</span></div></div></div>
+<div class="grp"><h4>Looks the same as another <small>4</small></h4><p>Similar titles. Pick one to keep and the other merges into it.</p>
+<div class="it" style="--c:#C9584F"><span class="dot"></span><div class="w">Fix focus deck icon on mobile · need to fix focus deck icon asap<small>Focus Deck · #154 and #236</small></div><div class="kb"><span class="k ksel">Merge</span></div></div></div>
+<div class="grp"><h4>Not touched in 60 days <small>21</small></h4><p>Still wanted? Keep moves it to Triage. Close puts it in a Closed list you can undo.</p></div>
+</div><div class="panel"><h3>Open work</h3><div class="big">97 → 67</div><div class="meter" style="margin:10px 0"><b style="flex:67"></b><i style="flex:30"></i></div><p class="keys">30 marked to close. Nothing closes until you press Confirm.</p><button class="addbtn">Confirm 30 and go to Triage</button></div></div>
+</div><div class="tag l" style="left:1160px; top:640px">Each group says why it is here</div></div></section>
+<section class="pic" id="triage-desk"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div><div class="rail"><div>Start here</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div><div>Tidy up</div><div class="on">Triage</div><div>Roadmap</div></div><div style="width:1080px">
+<div class="stage"><div class="done">1 · Tidy up ✓</div><div class="on">2 · Triage</div><div>3 · Roadmap</div></div>
+<div style="display:grid; grid-template-columns:1fr 330px; gap:24px; align-items:start"><div>
+<h2 class="mk-h">Triage: what comes next</h2><p class="mk-sub">The 67 that are left, ranked by the rules on the right. Drag one to change the order; your order wins.</p>
+<div class="tier" style="--k:var(--prio-urgent)"><h4>Now <small>5 · what Start here suggests</small></h4>
+<div class="rk"><span class="n">1</span><span class="w">Room to jot on a phone</span><span class="why go" style="color:#6A3FB8; background:#efe8fb">Needs review</span></div>
+<div class="rk"><span class="n">2</span><span class="w">Fix the icon on mobile</span><span class="why go">In progress</span></div>
+<div class="rk"><span class="n">3</span><span class="w">History essay draft</span><span class="why red">Due today</span></div>
+<div class="rk"><span class="n">4</span><span class="w">Sync overwrites a thought mid-write</span><span class="why urg">Urgent · holds up 3</span></div></div>
+<div class="tier" style="--k:var(--prio-high)"><h4>Next <small>14</small></h4><div class="rk"><span class="n">6</span><span class="w">Sort many like the regular Sort</span><span class="why" style="color:var(--prio-high); background:#f6e9de">High</span></div></div>
+<div class="tier" style="--k:var(--prio-low)"><h4>Later <small>48</small></h4><div class="rk"><span class="n">20</span><span class="w">Rename Focus Deck to Refocused</span><span class="why" style="color:var(--prio-low); background:#e5f0e9">Low</span></div></div>
+</div><div><div class="lbl" style="margin-top:0">How the order is worked out</div><div class="ladder">
+<div><b>1</b>Needs review</div><div><b>2</b>In progress</div><div><b>3</b>Past its date or due today</div><div><b>4</b>Priority: Urgent, High, Medium, Low</div><div><b>5</b>Holds up other tasks</div><div><b>6</b>Due soonest</div><div><b>7</b>Oldest first</div></div>
+<button class="addbtn" style="margin-top:18px">Save order and see the Roadmap</button></div></div>
+</div><div class="tag u" style="left:1030px; top:520px">Needs review comes first, above In progress</div></div></section>
+<section class="pic" id="roadmap-desk"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div><div class="rail"><div>Start here</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div><div>Tidy up</div><div>Triage</div><div class="on">Roadmap</div></div><div style="width:1080px">
+<div class="stage"><div class="done">1 · Tidy up ✓</div><div class="done">2 · Triage ✓</div><div class="on">3 · Roadmap</div></div>
+<div style="display:flex; justify-content:space-between; align-items:flex-end"><div><h2 class="mk-h">Roadmap: where you are</h2><p class="mk-sub" style="margin:0">Built from Triage. It updates when you finish or add a task.</p></div>
+<div style="text-align:right"><div class="big">41%</div><div class="keys">of open work since 1 Nov is done · 28 of 68</div></div></div>
+<div class="meter" style="margin:12px 0 20px"><b style="flex:28"></b><i style="flex:40; background:var(--surface-2)"></i></div>
+<div class="rows">
+<div class="rr"><div class="pj" style="--c:#C9584F"><b>Focus Deck</b><span class="keys">11 of 23 done</span></div><div class="blks"><div class="ms" style="--c:#C9584F"><span class="tt now">Now</span><b>Start here screen</b>3 of 5 tasks<div class="pbar"><i style="width:60%"></i></div></div><div class="ms" style="--c:#C9584F"><span class="tt next">Next</span><b>Tidy up, Triage, Roadmap</b>0 of 9 tasks<div class="pbar"><i style="width:0"></i></div></div><div class="ms" style="--c:#C9584F"><span class="tt later">Later</span><b>Android app</b>0 of 6<div class="pbar"><i style="width:0"></i></div></div></div></div>
+<div class="rr"><div class="pj" style="--c:#4D6FB8"><b>School</b><span class="keys">9 of 27 done</span></div><div class="blks"><div class="ms done" style="--c:#4D6FB8"><span class="tt now">Now</span><b>History essay</b>4 of 4<div class="pbar"><i style="width:100%"></i></div></div><div class="ms" style="--c:#4D6FB8"><span class="tt next">Next</span><b>Exam revision</b>2 of 8<div class="pbar"><i style="width:25%"></i></div></div><div class="ms" style="--c:#4D6FB8"><span class="tt later">Later</span><b>Portfolio</b>0 of 5<div class="pbar"><i style="width:0"></i></div></div></div></div>
+<div class="rr"><div class="pj" style="--c:#2F8F8F"><b>UnamedSoulsLike</b><span class="keys">8 of 13 done</span></div><div class="blks"><div class="ms" style="--c:#2F8F8F"><span class="tt now">Now</span><b>Boss fight</b>5 of 7<div class="pbar"><i style="width:71%"></i></div></div><div class="ms" style="--c:#2F8F8F"><span class="tt next">Next</span><b>Input system</b>3 of 6<div class="pbar"><i style="width:50%"></i></div></div></div></div>
+</div><p class="keys" style="margin-top:14px">Each block is a group of tasks (a parent task with subtasks, or a GitHub milestone). Tap one to see its tasks.</p>
+</div><div class="tag" style="left:1000px; top:600px">The big number at the top shows how far you have come</div></div></section>
+<section class="pic" id="roadmap-phone"><div class="phone"><div class="mk-top"><div class="mk-brand">Focus Deck</div></div><div style="padding:0 16px"><div class="stage" style="margin-bottom:10px"><div class="done">Tidy ✓</div><div class="done">Triage ✓</div><div class="on">Roadmap</div></div>
+<div style="display:flex; justify-content:space-between; align-items:flex-end"><h2 class="mk-h">Roadmap</h2><div class="big" style="font-size:1.6rem">41%</div></div>
+<div class="meter" style="margin:6px 0 14px"><b style="flex:28"></b><i style="flex:40; background:var(--surface-2)"></i></div>
+<div class="lbl" style="margin-top:0">Now</div>
+<div class="ms" style="--c:#C9584F; margin-bottom:8px"><b>Focus Deck · Start here screen</b>3 of 5 tasks<div class="pbar"><i style="width:60%"></i></div></div>
+<div class="ms" style="--c:#2F8F8F; margin-bottom:8px"><b>UnamedSoulsLike · Boss fight</b>5 of 7<div class="pbar"><i style="width:71%"></i></div></div>
+<div class="lbl">Next</div>
+<div class="ms" style="--c:#4D6FB8; margin-bottom:8px"><b>School · Exam revision</b>2 of 8<div class="pbar"><i style="width:25%"></i></div></div>
+<div class="ms" style="--c:#C9584F"><b>Focus Deck · Tidy up, Triage, Roadmap</b>0 of 9<div class="pbar"><i style="width:0"></i></div></div>
+<div class="lbl">Later · 6 groups ›</div></div>
+<div class="tag u" style="left:150px; top:680px">On a phone: one column, Now first</div><div class="mk-nav"><div>Start</div><div>Focus</div><div>Sort</div><div>Board</div><div class="on">Plan</div></div></div></section>
+<style>
+ .ab{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:0 0 14px;}
+ .ac{border:1.5px solid var(--line); border-radius:999px; padding:6px 12px; font-weight:700; font-size:var(--text-sm); background:var(--surface); display:flex; align-items:center; gap:6px; color:var(--ink);}
+ .ac::before{content:""; width:9px; height:9px; border-radius:50%; background:var(--c,var(--ink-faint));}
+ .ac.on{background:var(--c); border-color:var(--c); color:#fff;} .ac.on::before{background:#fff;}
+ .ac.plain::before{display:none;}
+ .seg{display:inline-flex; border:1.5px solid var(--ink); border-radius:10px; overflow:hidden; font-weight:700; font-size:var(--text-sm);} .seg span{padding:7px 12px;} .seg .on{background:var(--ink); color:#fff;}
+ .arow{display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--line); font-size:var(--text-body);}
+ .arow .sw{width:14px; height:14px; border-radius:50%; background:var(--c);} .arow .n{margin-left:auto; color:var(--ink-faint); font-size:var(--text-sm);} .arow .ed{color:var(--ink-faint); font-size:var(--text-sm); font-weight:700;}
+ .arow.sel{background:color-mix(in srgb,var(--c) 12%,transparent); border-radius:10px; font-weight:700;}
+ .pch{display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid var(--line); font-size:var(--text-body);} .pch .mv{margin-left:auto; border:1px solid var(--line); border-radius:8px; padding:4px 9px; font-size:var(--text-sm); font-weight:700; background:var(--surface-2);}
+ .tl{font-size:var(--text-sm); padding:5px 0; border-top:1px solid var(--line); display:flex; gap:8px;} .tl .why{margin:0 0 0 auto; padding:1px 8px;}
+</style>
+<section class="pic" id="areas-settings"><div class="phone"><div class="mk-top"><div class="mk-brand">Focus Deck</div></div><div style="padding:0 16px">
+<div class="keys">Settings ›</div><h2 class="mk-h" style="font-size:1.35rem">Areas</h2><p class="mk-sub" style="margin-bottom:6px">Each project belongs to one area. Pick an area anywhere in the app and you only see its projects.</p>
+<div class="arow" style="--c:#3F8F5E"><span class="sw"></span>Personal<span class="n">4 projects</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#8A6FB8"><span class="sw"></span>Lists<span class="n">3</span><span class="ed">Edit</span></div>
+<div class="arow sel" style="--c:#B9782E"><span class="sw"></span>Home<span class="n">4</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#C9584F"><span class="sw"></span>Apps<span class="n">6</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#2F8F8F"><span class="sw"></span>Games<span class="n">3</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#4D6A9A"><span class="sw"></span>Work<span class="n">2</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#4D6FB8"><span class="sw"></span>School<span class="n">2</span><span class="ed">Edit</span></div>
+<div class="arow" style="--c:#8A90A0"><span class="sw"></span>Unsorted<span class="n">2</span><span class="ed" style="font-weight:600">fixed</span></div>
+<div class="arow" style="color:var(--accent); font-weight:700; border:none">+ Add an area</div>
+<div class="lbl" style="margin-top:4px">In Home</div>
+<div class="pch">To-do list<span class="mv">Move ▾</span></div><div class="pch">Room clean-up<span class="mv">Move ▾</span></div><div class="pch">Chores<span class="mv">Move ▾</span></div><div class="pch">Groceries<span class="mv">Move ▾</span></div>
+</div><div class="tag l" style="left:140px; top:500px">Your eight to start with; rename, recolour or add more</div></div></section>
+
+<section class="pic" id="roadmap-area"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div><div class="rail"><div>Start here</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div><div>Tidy up</div><div>Triage</div><div class="on">Roadmap</div></div><div style="width:1080px">
+<div class="ab"><span class="seg"><span>All</span><span class="on">Area</span><span>Project</span></span><span style="width:6px"></span><span class="ac" style="--c:#3F8F5E">Personal</span><span class="ac" style="--c:#8A6FB8">Lists</span><span class="ac on" style="--c:#B9782E">Home</span><span class="ac" style="--c:#C9584F">Apps</span><span class="ac" style="--c:#2F8F8F">Games</span><span class="ac" style="--c:#4D6A9A">Work</span><span class="ac" style="--c:#4D6FB8">School</span><span class="ac" style="--c:#8A90A0">Unsorted</span></div>
+<div style="display:flex; justify-content:space-between; align-items:flex-end"><div><h2 class="mk-h">Roadmap: Home</h2><p class="mk-sub" style="margin:0">Only Home projects. Apps, Games and the rest are hidden.</p></div>
+<div style="text-align:right"><div class="big">55%</div><div class="keys">of Home work since 1 Nov is done · 12 of 22</div></div></div>
+<div class="meter" style="margin:12px 0 20px"><b style="flex:12; background:#B9782E"></b><i style="flex:10; background:var(--surface-2)"></i></div>
+<div class="rows">
+<div class="rr"><div class="pj" style="--c:#B9782E"><b>Room clean-up</b><span class="keys">5 of 9 done</span></div><div class="blks"><div class="ms" style="--c:#B9782E"><span class="tt now">Now</span><b>Desk and shelves</b>3 of 4 tasks<div class="pbar"><i style="width:75%"></i></div></div><div class="ms" style="--c:#B9782E"><span class="tt next">Next</span><b>Wardrobe</b>0 of 3<div class="pbar"><i style="width:0"></i></div></div><div class="ms" style="--c:#B9782E"><span class="tt later">Later</span><b>Under the bed</b>0 of 2<div class="pbar"><i style="width:0"></i></div></div></div></div>
+<div class="rr"><div class="pj" style="--c:#B9782E"><b>Chores</b><span class="keys">4 of 7 done</span></div><div class="blks"><div class="ms" style="--c:#B9782E"><span class="tt now">Now</span><b>This week's chores</b>4 of 6<div class="pbar"><i style="width:66%"></i></div></div><div class="ms" style="--c:#B9782E"><span class="tt next">Next</span><b>Fix the tap</b>0 of 1<div class="pbar"><i style="width:0"></i></div></div></div></div>
+<div class="rr"><div class="pj" style="--c:#B9782E"><b>To-do list</b><span class="keys">3 of 6 done</span></div><div class="blks"><div class="ms" style="--c:#B9782E"><span class="tt now">Now</span><b>Book the dentist</b>0 of 1<div class="pbar"><i style="width:0"></i></div></div><div class="ms" style="--c:#B9782E"><span class="tt later">Later</span><b>Sort old cables</b>0 of 2<div class="pbar"><i style="width:0"></i></div></div></div></div>
+</div><p class="keys" style="margin-top:14px">Showing 3 of 4 Home projects: the ones with work in Now come first. <b style="color:var(--accent)">Show all 4</b></p>
+</div><div class="tag u" style="left:665px; top:98px">Pick an area; the rest disappear</div><div class="tag u" style="left:296px; top:590px">At most 5 rows at once, busiest first</div></div></section>
+
+<section class="pic" id="roadmap-one"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div><div class="rail"><div>Start here</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div><div>Tidy up</div><div>Triage</div><div class="on">Roadmap</div></div><div style="width:1080px">
+<div class="ab"><span class="seg"><span>All</span><span>Area</span><span class="on">Project</span></span><span style="width:6px"></span><span class="ac" style="--c:#C9584F">Apps</span><span class="ac on" style="--c:#C9584F">Focus Deck ▾</span></div>
+<div style="display:flex; justify-content:space-between; align-items:flex-end"><div><div class="keys" style="margin-bottom:4px"><kbd>←</kbd> AjsClaudeCodeTools · Unblocked <kbd>→</kbd> &nbsp;2 of 6 in Apps</div><h2 class="mk-h">Roadmap: Focus Deck</h2></div>
+<div style="text-align:right"><div class="big">48%</div><div class="keys">11 of 23 done</div></div></div>
+<div class="meter" style="margin:12px 0 20px"><b style="flex:11; background:#C9584F"></b><i style="flex:12; background:var(--surface-2)"></i></div>
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px" ><div><div class="h lbl" style="margin-top:0">Now</div>
+<div class="ms" style="--c:#C9584F"><b>Start here screen</b>3 of 5 tasks<div class="pbar"><i style="width:60%"></i></div>
+<div class="tl" style="margin-top:8px">✓ Three suggestions</div><div class="tl">✓ Pick one for me</div><div class="tl">✓ Tab on the phone</div><div class="tl">Open on Start here <span class="why go">In progress</span></div><div class="tl">Test on phone</div></div></div>
+<div><div class="lbl" style="margin-top:0">Next</div><div class="ms" style="--c:#C9584F"><b>Tidy up, Triage, Roadmap</b>0 of 9 tasks<div class="pbar"><i style="width:0"></i></div><div class="tl" style="margin-top:8px">Areas in Settings</div><div class="tl">Tidy up groups</div><div class="tl">Triage order</div><div class="tl" style="color:var(--ink-faint)">+ 6 more</div></div></div>
+<div><div class="lbl" style="margin-top:0">Later</div><div class="ms" style="--c:#C9584F"><b>Android app</b>0 of 6<div class="pbar"><i style="width:0"></i></div></div></div></div>
+</div><div class="tag l" style="left:645px; top:106px">Arrow keys step to the next project in the area</div></div></section>
+
+<section class="pic" id="tidy-area"><div class="desk"><div class="mk-top"><div class="mk-brand" style="font-size:1.6rem">Focus Deck</div><div style="width:560px"></div><div style="width:200px"></div></div><div class="rail"><div>Start here</div><div>Focus</div><div>Sort</div><div>Board</div><div>Projects</div><div class="on">Tidy up</div><div>Triage</div><div>Roadmap</div></div><div style="width:1080px">
+<div class="ab"><span class="seg"><span>All</span><span class="on">Area</span><span>Project</span></span><span style="width:6px"></span><span class="ac" style="--c:#3F8F5E">Personal</span><span class="ac" style="--c:#8A6FB8">Lists</span><span class="ac on" style="--c:#B9782E">Home</span><span class="ac" style="--c:#C9584F">Apps</span><span class="ac" style="--c:#2F8F8F">Games</span><span class="ac" style="--c:#4D6A9A">Work</span><span class="ac" style="--c:#4D6FB8">School</span><span class="ac" style="--c:#8A90A0">Unsorted</span></div>
+<div class="stage"><div class="on">1 · Tidy up Home</div><div>2 · Triage Home</div><div>3 · Roadmap Home</div></div>
+<div style="display:grid; grid-template-columns:1fr 300px; gap:24px; align-items:start"><div>
+<h2 class="mk-h">Tidy up: Home</h2><p class="mk-sub">Only Home tasks. Nothing from Apps or Games is in this list.</p>
+<div class="grp"><h4>Looks the same as another <small>2</small></h4><p>Similar titles. Pick one to keep and the other merges into it.</p>
+<div class="it" style="--c:#B9782E"><span class="dot"></span><div class="w">Buy bin bags · bin bags!!<small>Groceries and To-do list</small></div><div class="kb"><span class="k ksel">Merge</span></div></div></div>
+<div class="grp"><h4>Not touched in 60 days <small>5</small></h4><p>Still wanted? Keep moves it to Triage. Close puts it in a Closed list you can undo.</p>
+<div class="it" style="--c:#B9782E"><span class="dot"></span><div class="w">Repaint the skirting boards<small>Room clean-up · added 3 Aug</small></div><div class="kb"><span class="k">Keep</span><span class="c sel">Close</span></div></div>
+<div class="it" style="--c:#B9782E"><span class="dot"></span><div class="w">Sort old cables<small>To-do list · added 12 Jul</small></div><div class="kb"><span class="k ksel">Keep</span><span class="c">Close</span></div></div></div>
+</div><div class="panel"><h3>Open in Home</h3><div class="big">29 → 25</div><div class="meter" style="margin:10px 0"><b style="flex:25; background:#B9782E"></b><i style="flex:4"></i></div><p class="keys">4 marked to close. The other areas are not touched.</p><button class="addbtn">Confirm 4 and triage Home</button></div></div>
+</div><div class="tag u" style="left:640px; top:160px">The area carries through all three steps</div></div></section>
+
+<section class="pic" id="triage-area-phone"><div class="phone"><div class="mk-top"><div class="mk-brand">Focus Deck</div></div><div style="padding:0 16px">
+<div class="ab" style="flex-wrap:nowrap; margin-bottom:10px"><span class="seg"><span>All</span><span class="on">Area</span><span>Project</span></span><span class="ac on" style="--c:#B9782E; margin-left:auto">Home ▾</span></div>
+<div class="stage" style="margin-bottom:10px"><div class="done">Tidy ✓</div><div class="on">Triage</div><div>Roadmap</div></div>
+<h2 class="mk-h" style="font-size:1.35rem">Triage: Home</h2><p class="mk-sub">25 Home tasks, ranked.</p>
+<div class="tier" style="--k:var(--prio-urgent)"><h4>Now <small>3</small></h4>
+<div class="rk"><span class="n">1</span><span class="w">Fix the tap</span><span class="why urg">Urgent</span></div>
+<div class="rk"><span class="n">2</span><span class="w">Desk and shelves</span><span class="why go">In progress</span></div>
+<div class="rk"><span class="n">3</span><span class="w">Book the dentist</span><span class="why red">Due Fri</span></div></div>
+<div class="tier" style="--k:var(--prio-high)"><h4>Next <small>8</small></h4><div class="rk"><span class="n">4</span><span class="w">Wardrobe</span><span class="why" style="color:var(--prio-high); background:#f6e9de">High</span></div></div>
+<div class="tier" style="--k:var(--prio-low)"><h4>Later <small>14</small></h4></div>
+</div><div class="tag u" style="left:40px; top:560px">Tap Home ▾ to pick another area</div><div class="mk-nav"><div>Start</div><div>Focus</div><div>Sort</div><div>Board</div><div class="on">Plan</div></div></div></section>
+<style>
+ .rows{display:flex; flex-direction:column; gap:12px;}
+ .rr{display:grid; grid-template-columns:180px 1fr; gap:12px; align-items:center;}
+ .rr .pj{display:flex; flex-direction:column; justify-content:center;} .rr .pj b{display:flex; gap:8px; align-items:center;} .rr .pj b::before{content:""; width:10px; height:10px; border-radius:50%; background:var(--c);}
+ .blks{display:flex; gap:10px; align-items:stretch;} .blks .ms{flex:1; min-width:0;}
+ .tt{display:inline-block; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:2px 8px; border-radius:999px; margin-bottom:6px;}
+ .tt.now{background:color-mix(in srgb,var(--prio-urgent) 14%,transparent); color:var(--prio-urgent);} .tt.next{background:color-mix(in srgb,var(--prio-high) 14%,transparent); color:var(--prio-high);} .tt.later{background:color-mix(in srgb,var(--prio-low) 16%,transparent); color:var(--prio-low);}
+</style>
+<style>
+ .mini{background:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow); padding:16px 18px; display:flex; flex-direction:column; gap:10px;}
+ .mini h5{margin:0; font-family:var(--font-display); font-weight:400; font-size:var(--text-h);}
+ .vb{display:flex; gap:8px; align-items:center;} .vb .seg span{padding:5px 10px;}
+ .mrow{display:flex; gap:8px; align-items:center; font-size:var(--text-sm); padding:7px 10px; border-radius:10px; background:var(--surface-2); border-left:5px solid var(--c);}
+ .mrow .why{margin:0 0 0 auto; padding:1px 8px;}
+ .cols{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;} .cols div{background:var(--surface-2); border-radius:10px; padding:8px; font-size:var(--text-sm); min-height:70px;} .cols b{display:block; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;}
+ .cols i{display:block; font-style:normal; background:var(--paper); border-left:4px solid #B9782E; padding:4px 6px; margin-bottom:4px; border-radius:4px;}
+ .shtab{display:flex; gap:6px; margin:10px 0 12px;}
+</style>
+<section class="pic" id="view-every"><div class="wide" style="height:900px; position:relative">
+<h2 class="mk-h">One switch, the same on every screen</h2><p class="mk-sub">All shows everything. Area shows one area's projects. Project shows one project. Your pick stays as you move between screens, until you change it.</p>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px">
+<div class="mini"><div class="vb"><span class="seg"><span>All</span><span class="on">Area</span><span>Project</span></span><span class="ac on" style="--c:#B9782E">Home ▾</span></div><h5>Start here</h5>
+<div class="mrow" style="--c:#B9782E">Fix the tap<span class="why urg">Urgent</span></div><div class="mrow" style="--c:#B9782E">Desk and shelves<span class="why go">In progress</span></div><div class="mrow" style="--c:#B9782E">Book the dentist<span class="why red">Due Fri</span></div></div>
+<div class="mini"><div class="vb"><span class="seg"><span>All</span><span class="on">Area</span><span>Project</span></span><span class="ac on" style="--c:#B9782E">Home ▾</span></div><h5>Focus</h5>
+<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:8px"><div class="folder" style="--c:#D9B48A; height:70px; padding-top:20px"><b>Room clean-up</b></div><div class="folder" style="--c:#D9B48A; height:70px; padding-top:20px"><b>Chores</b></div><div class="folder" style="--c:#D9B48A; height:70px; padding-top:20px"><b>To-do list</b></div><div class="folder" style="--c:#D9B48A; height:70px; padding-top:20px"><b>Groceries</b></div></div><p class="keys" style="margin:0">4 folders instead of 26</p></div>
+<div class="mini"><div class="vb"><span class="seg"><span>All</span><span>Area</span><span class="on">Project</span></span><span class="ac on" style="--c:#B9782E">Chores ▾</span></div><h5>Board</h5>
+<div class="cols"><div><b>Up next</b><i>Fix the tap</i><i>Hoover stairs</i></div><div><b>In progress</b><i>Laundry</i></div><div><b>Done</b><i>Bins out</i></div></div></div>
+<div class="mini"><div class="vb"><span class="seg"><span class="on">All</span><span>Area</span><span>Project</span></span></div><h5>Sort</h5>
+<div class="slip" style="margin:0"><div class="w">call about the boiler??</div></div><p class="keys" style="margin:0">All 44 thoughts. Pick Area to sort only the ones you jotted while in that area.</p></div>
+</div><div class="tag l" style="left:305px; top:122px">The switch sits at the top of every screen</div></div></section>
+
+<section class="pic" id="view-sheet"><div class="phone"><div class="mk-top"><div class="mk-brand">Focus Deck</div></div><div style="padding:0 16px"><div class="ab" style="flex-wrap:nowrap">
+<span class="seg"><span>All</span><span class="on">Area</span><span>Project</span></span><span class="ac on" style="--c:#B9782E; margin-left:auto">Home ▾</span></div></div>
+<div class="dim"></div><div class="sheet"><h3>Show one area</h3><p class="keys" style="margin:0 0 6px">Start here, Focus, Sort, Board and Plan all follow this.</p>
+<div class="arow" style="--c:#3F8F5E"><span class="sw"></span>Personal<span class="n">4 projects</span></div>
+<div class="arow" style="--c:#8A6FB8"><span class="sw"></span>Lists<span class="n">3</span></div>
+<div class="arow sel" style="--c:#B9782E"><span class="sw"></span>Home<span class="n">4 ✓</span></div>
+<div class="arow" style="--c:#C9584F"><span class="sw"></span>Apps<span class="n">6</span></div>
+<div class="arow" style="--c:#2F8F8F"><span class="sw"></span>Games<span class="n">3</span></div>
+<div class="arow" style="--c:#4D6A9A"><span class="sw"></span>Work<span class="n">2</span></div>
+<div class="arow" style="--c:#4D6FB8"><span class="sw"></span>School<span class="n">2</span></div>
+<div class="arow" style="--c:#8A90A0; border:none"><span class="sw"></span>Unsorted<span class="n">2</span></div></div>
+<div class="tag d" style="left:150px; top:170px">On a phone the list opens from the bottom, so nothing is cut off</div></div></section>
+<section class="pic" id="map2"><div class="map" style="height:560px">
+<h2 class="mk-h" style="margin:0 0 4px">Two loops: doing tasks, and keeping the list honest</h2>
+<p class="mk-sub">The top row is every day. The bottom row is when the list feels too big, maybe once a week. Triage's order is what Start here suggests.</p>
+<svg class="arrows" width="1280" height="560" viewBox="0 0 1280 560" fill="none" stroke="#59627A" stroke-width="2.5" stroke-linecap="round">
+<defs><marker id="h2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="#59627A" stroke="none"/></marker></defs>
+<path d="M262 200 H322" marker-end="url(#h2)"/><path d="M552 200 H612" marker-end="url(#h2)"/><path d="M842 200 H902" marker-end="url(#h2)"/>
+<path d="M262 420 H322" marker-end="url(#h2)"/><path d="M552 420 H612" marker-end="url(#h2)"/>
+<path d="M437 368 V256" stroke-dasharray="7 6" marker-end="url(#h2)"/>
+<path d="M1017 256 C 1020 330, 980 420, 846 420" stroke-dasharray="7 6" marker-end="url(#h2)"/>
+</svg>
+<div class="scr" style="left:32px; top:150px; --k:var(--accent)"><b>Add a task</b>Priority needed, due date one tap. Same row everywhere.</div>
+<div class="scr" style="left:332px; top:150px; --k:var(--accent)"><b>Start here</b>Three suggestions from Triage's order.</div>
+<div class="scr" style="left:622px; top:150px; --k:var(--accent)"><b>Focus</b>One carousel on phone and desktop.</div>
+<div class="scr" style="left:912px; top:150px; --k:var(--prio-low)"><b>Done</b>Tick it off.</div>
+<div class="scr" style="left:32px; top:370px; --k:#6A3FB8"><b>Tidy up</b>Close what is finished, repeated or forgotten.</div>
+<div class="scr" style="left:332px; top:370px; --k:#6A3FB8"><b>Triage</b>Rank what is left: Now, Next, Later.</div>
+<div class="scr" style="left:622px; top:370px; --k:#6A3FB8"><b>Roadmap</b>Progress by project, updated as you go.</div>
+<div class="ln" style="left:450px; top:300px">Triage sets the suggestions</div>
+<div class="ln" style="left:1030px; top:300px">Each tick moves the Roadmap</div>
+</div></section>
+<script>
+  const id = location.hash.slice(1) || 'map2';
+  document.getElementById(id).classList.add('on');
+</script>
+</body></html>

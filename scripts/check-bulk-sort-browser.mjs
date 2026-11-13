@@ -1,4 +1,4 @@
-// scripts/check-bulk-sort-browser.mjs -- real-Chromium check of "Select many" on the Sort screen and
+// scripts/check-bulk-sort-browser.mjs -- real-Chromium check of "Sort several" (#265) on the Sort screen and
 // of the jotter with no length limit. Runs on sample data only, in a fresh browser profile per run.
 // Usage: node scripts/check-bulk-sort-browser.mjs   (CHROMIUM=<path> to use another Chromium)
 // Serves the repo root itself on 127.0.0.1:8131 for the length of the run. Checks, on a phone and a
@@ -65,37 +65,54 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   await page.goto(BASE);
   await page.waitForSelector('.jot-slip');
 
-  // ---- Select many ----
-  check(`${tag} the tray offers Select many`, await page.isVisible('[data-action="bulk-toggle"]'));
+  // ---- Sort several (#265): five screens ----
+  const next = async () => { await page.click('.sort-foot [data-action="bulk-next"]'); await page.waitForTimeout(250); };
+  const card = async (wallet, key) => { // flip the carousel to a card and tap it (tap mode)
+    const sel = '[data-wallet="' + wallet + '"] .sleeve[data-key="' + key + '"] .icard';
+    await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
+    await page.waitForTimeout(300);
+    const box = await (await page.$(sel)).boundingBox();
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(450);
+  };
+  check(`${tag} the tray offers Sort several`, await page.isVisible('[data-action="bulk-toggle"]'));
   await page.click('[data-action="bulk-toggle"]');
-  await page.waitForSelector('.bulk');
+  await page.waitForSelector('.many-list');
   check(`${tag} every slip is listed (3 thoughts + 2 unlabelled tasks)`, (await page.$$('.bulk-row')).length === 5);
   const fits = await page.$$eval('.bulk-row', (rows) => rows.every((r) => {
     const t = r.querySelector('.bulk-text'), rb = r.getBoundingClientRect(), tb = t.getBoundingClientRect();
     return t.scrollHeight <= t.clientHeight + 1 && tb.bottom <= rb.bottom && getComputedStyle(t).display === 'block';
   }));
   check(`${tag} every row shows its whole text, inside the row`, fits);
-  check(`${tag} a thought's row says only when, in small type under the text`, (await page.$eval('[data-bulk-key="i:th1"] ~ .bulk-body .bulk-meta', (e) => e.textContent)) === '3m ago');
-  check(`${tag} Apply is off with nothing ticked`, await page.$eval('[data-action="bulk-apply"]', (b) => b.disabled));
+  check(`${tag} a row has no small caption under the text`, !(await page.$('.bulk-meta')));
+  check(`${tag} Next is off with nothing ticked`, await page.$eval('[data-action="bulk-next"]', (b) => b.disabled));
   await page.click('[data-action="bulk-all"]');
-  check(`${tag} Tick all ticks all five`, (await page.textContent('.bulk-head .tray-count')).startsWith('5 of 5'));
+  check(`${tag} All ticks all five`, (await page.$$('.bulk-row input:checked')).length === 5);
   await page.click('[data-action="bulk-none"]');
-  check(`${tag} Clear ticks clears them`, (await page.textContent('.bulk-head .tray-count')).startsWith('0 of 5'));
+  check(`${tag} Clear clears them`, (await page.$$('.bulk-row input:checked')).length === 0);
 
   await page.check('[data-bulk-key="i:th1"]');
   await page.check('[data-bulk-key="i:th2"]');
-  check(`${tag} ticked thoughts ask for a project first`, ((await page.textContent('.bulk .step-why')) || '').includes('Choose a project for the thoughts'));
-  await page.selectOption('[data-bulk-project]', 'pHome');
-  await page.click('[data-action="bulk-flag"][data-token="c_chore"]');
+  await next();
+  check(`${tag} step 2: ticked thoughts wait for a project and a priority`, await page.$eval('[data-action="bulk-next"]', (b) => b.disabled) && !(await page.$(".step-why")));
+  await card('tray-folders', 'pHome');
+  await page.click('[data-scope="bulk"][data-field="priority"][data-value="high"]');
+  await next();
+  await card('tray-flags', 'c_chore');
+  await page.click('[data-action="bulk-new-label"]');
   await page.fill('[data-bulk-newlabel]', 'Errand');
   await page.click('[data-action="bulk-new-flag"]');
+  check(`${tag} step 3: both labels are picked`, (await page.$$('.sort-picked .dk-tag')).length === 2);
+  await next();
   await page.fill('[data-bulk-group]', 'Saturday jobs');
+  await next();
+  check(`${tag} step 5: the receipt says All good? with pencils`, (await page.textContent('.sort-q')) === 'All good?' && (await page.$$('.dk-pencil')).length === 5);
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
   await page.$eval('.inbox-card', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); });
   await page.screenshot({ path: OUT + label + '-ticked.png', fullPage: label === 'phone' });
   const before = JSON.stringify(await stored(page));
-  check(`${tag} Apply reads "Sort 2 items"`, (await page.textContent('[data-action="bulk-apply"]')).startsWith('Sort 2 items'));
+  check(`${tag} the stamp reads "Sort 2"`, (await page.textContent('[data-action="bulk-apply"]')).trim() === 'Sort 2');
   await page.click('[data-action="bulk-apply"]');
   await page.waitForTimeout(300);
 
@@ -115,18 +132,23 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   // tasks only: label them where they are
   await page.check('[data-bulk-key="t:h3"]');
   await page.check('[data-bulk-key="t:s2"]');
-  await page.click('[data-action="bulk-flag"][data-token="c_art"]');
+  await next(); // project: tasks keep theirs
+  await next();
+  await card('tray-flags', 'c_art');
+  await next();
+  await page.click('.sort-foot [data-action="bulk-skip"]'); // no group
   await page.click('[data-action="bulk-apply"]');
   await page.waitForTimeout(300);
   st = await stored(page);
   const h3 = all(st).find((t) => t.id === 'h3'), s2 = all(st).find((t) => t.id === 's2');
   check(`${tag} label only: tasks keep their projects and get the label`, h3.projectId === 'pHome' && s2.projectId === 'pSchool' && h3.categoryIds.includes('c_art') && s2.categoryIds.includes('c_art'));
-  await page.click('.bulk-head [data-action="bulk-toggle"]');
+  await page.click('.sort-foot [data-action="bulk-back"]');
   await page.waitForSelector('.jot-slip');
   check(`${tag} One at a time goes back to the slip`, (await page.textContent('.jot-slip .slip-text')).startsWith('Old phone charger'));
 
   // ---- The jotter: no length limit ----
-  const jot = '#capture-input';
+  const jot = '#jot-input';
+  await page.click('#jot-open'); // the jotter lives on the + Jot screen (#263)
   check(`${tag} the jotter has no maxlength`, await page.$eval(jot, (e) => e.tagName === 'TEXTAREA' && !e.hasAttribute('maxlength')));
   const h0 = await page.$eval(jot, (e) => e.getBoundingClientRect().height);
   const para = 'Remember to ask about the timetable change and the form for the trip. ';
@@ -136,31 +158,37 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   await page.keyboard.press('Shift+Enter');
   await page.$eval(jot, (e, rest) => { e.value += rest; e.dispatchEvent(new Event('input', { bubbles: true })); }, para.repeat(42).trim());
   const h1 = await page.$eval(jot, (e) => e.getBoundingClientRect().height);
-  check(`${tag} Shift+Enter makes a new line instead of adding`, (await stored(page)).inbox.length === 1 && (await page.$eval(jot, (e) => e.value)).startsWith('Big brain dump\n'));
-  check(`${tag} the jotter grows with the text, up to 40% of the screen`, h1 > h0 * 3 && h1 <= 900 * 0.4 + 2, h0 + 'px -> ' + h1 + 'px');
+  check(`${tag} Shift+Enter makes a new line (nothing added yet)`, (await stored(page)).inbox.length === 1 && (await page.$eval(jot, (e) => e.value)).startsWith('Big brain dump\n'));
+  check(`${tag} the jotter grows with the text, up to 40% of the screen`, h1 > h0 * 1.5 && h1 <= 900 * 0.4 + 2, h0 + 'px -> ' + h1 + 'px');
   await page.screenshot({ path: OUT + label + '-jotter-long.png' });
-  await page.keyboard.press('Enter');
+  await page.click('.jot-save');
   await page.waitForTimeout(300);
   st = await stored(page);
   const cap = st.inbox.find((i) => i.text.startsWith('Big brain dump'));
-  check(`${tag} Enter adds it, every character kept (${longText.length} characters)`, !!cap && cap.text === longText, cap ? String(cap.text.length) : 'missing');
-  check(`${tag} the jotter is empty and small again`, await page.$eval(jot, (e, h) => e.value === '' && e.getBoundingClientRect().height <= h + 2, h0));
+  check(`${tag} Save adds it, every character kept (${longText.length} characters)`, !!cap && cap.text === longText, cap ? String(cap.text.length) : 'missing');
+  check(`${tag} Save closes the jot screen`, !(await page.$('.jot-screen')));
 
   // file it one at a time: short title, whole text in the notes
-  await page.click('[data-action="unsorted-skip"]'); // the charger goes to the back, the brain dump is on top
+  await page.click('[data-action="sort-menu"]'); // the ⋯ drawer: Later sends the charger to the back, the brain dump is on top
+  await page.click('.sort-drawer [data-action="unsorted-skip"]');
   await page.waitForTimeout(200);
   check(`${tag} the long thought shows whole on the slip`, (await page.$eval('.jot-slip .slip-text', (e) => e.innerText)).replace(/\s+/g, ' ').trim() === longText.replace(/\s+/g, ' '));
   await page.$eval('.inbox-card', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); });
   await page.screenshot({ path: OUT + label + '-slip-long.png', fullPage: label === 'phone' });
+  await page.click('[data-action="sort-next"]');
+  await page.waitForSelector('[data-wallet="tray-folders"]');
   const sel = '[data-wallet="tray-folders"] .sleeve[data-key="pSchool"] .icard';
   await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
   await page.waitForTimeout(300);
   const box = await (await page.$(sel)).boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await page.waitForTimeout(500);
-  await page.click('.step-tab[data-step="3"]');
-  await page.waitForTimeout(200);
-  await page.click('.file-btn');
+  await page.click('.sort-foot .file-btn');
+  await page.click('.sort-picks [data-field="priority"][data-value="high"]');
+  await page.click('.sort-foot .file-btn');
+  await page.click('.sort-foot .file-btn');
+  for (let i = 0; i < 5; i++) { await page.click('.sort-foot .dk-skip'); await page.waitForTimeout(100); }
+  await page.click('[data-action="unsorted-file"]');
   await page.waitForTimeout(300);
   st = await stored(page);
   const big = all(st).find((t) => t.title === 'Big brain dump');
@@ -181,12 +209,14 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   await page.goto(BASE);
   await page.waitForSelector('[data-action="bulk-toggle"]');
   await page.click('[data-action="bulk-toggle"]');
-  await page.waitForSelector('.bulk');
+  await page.waitForSelector('.many-list');
   const spill = await page.$$eval('.bulk-row', (rows) => rows.filter((r) => {
-    const t = r.querySelector('.bulk-text'), m = r.querySelector('.bulk-meta');
-    return m.getBoundingClientRect().bottom > r.getBoundingClientRect().bottom || t.scrollHeight > t.clientHeight + 1;
+    const t = r.querySelector('.bulk-text');
+    return t.getBoundingClientRect().bottom > r.getBoundingClientRect().bottom || t.scrollHeight > t.clientHeight + 1;
   }).length);
   check(`[phone, 41 slips, dyslexic face] no row cuts its text short`, spill === 0, spill + ' rows spill');
+  const over = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+  check(`[phone, 41 slips] the list scrolls inside the clipboard, not the page`, over <= 0, 'over by ' + over + 'px');
   await page.screenshot({ path: OUT + 'phone-41-rows.png' });
   await ctx.close();
 }

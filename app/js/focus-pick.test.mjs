@@ -23,6 +23,17 @@ test('with everything blocked it picks from the whole pool and says so', () => {
   assert.ok(['a', 'b'].includes(state.focus.taskId) && state.focus.allBlocked === true);
 });
 
+test('pickForMe opens the first task by the Start here order, and "Not this one" offers the next', () => {
+  seed([T('old'), T('hi', { priority: 'high' }), T('ur', { priority: 'urgent' }), T('dn', { status: 'doing' })]);
+  assert.strictEqual(M.pickForMe(), true);
+  assert.strictEqual(state.focus.taskId, 'dn');
+  M.reroll(); assert.strictEqual(state.focus.taskId, 'ur');
+  M.reroll(); assert.strictEqual(state.focus.taskId, 'hi');
+  M.reroll(); assert.strictEqual(state.focus.taskId, 'dn', 'wraps round: the 4th task is not in Now, so it is never offered');
+  seed([]);
+  assert.strictEqual(M.pickForMe(), false);
+});
+
 test('"Not this one" prefers an unblocked task from the pool', () => {
   seed([T('x'), T('y'), T('z', { waitsOn: ['x'] })]);
   M.pickFocus();

@@ -1,5 +1,13 @@
 # Project State
 
+> **2026-11-12 (#272):** computer layout (>= 1100px): centred panel, Sort's nine steps listed beside it, Roadmap drawer and Task details beside the panel; Triage rows drag with the mouse; linked tasks open from Task details; a ★ makes a label the category; the explaining hint lines are gone; `scripts/check-all.sh` runs the unit tests, the feature-map check and every browser check. See `docs/4-systems/tabs.md`.
+
+> **2026-11-12 (#264):** Sort is one thought at a time in nine steps (slip, then project, priority, labels, due date, part of, smaller steps, waits on, holds up, the receipt). Only the screens changed. See `docs/4-systems/in-tray.md`.
+
+> **2026-11-12 (#267):** the Projects tab is back as the project list (a clipboard with Find, Sort by, My order) and New project in four steps; the Roadmap is one project. See `docs/4-systems/projects-tab.md`.
+
+> **2026-11-12 (#259):** step 11 built: five tabs (Sort, Organize, Roadmap, Focus, Review); the Board and Projects screens are removed and the Roadmap has their features (Find a project, project order, Find a task). Mentions of the Board and Projects screens below are history. See `docs/4-systems/tabs.md`.
+
 ## Headline: milestones 1-5 done, 6 started, 7-13 not started
 
 Five of six milestones are done: four shipped and covered by passing tests, and the autonomous
@@ -31,6 +39,7 @@ not sized, so averaging them with the finished ones would say nothing true.
 | 17 | Ties everywhere: Board, Projects and GitHub (#192) | 100% built, in QA | #193 tie lines on Board cards and Project rows, subtasks nested; #194 issue ids; #195 write ties to GitHub; #196 read ties on sync. All on `AjsAgent/sort-steps` 2026-10-18; unit 210/211 on Windows (the Windows-only service-worker path test). Board and Projects screenshots of the built app match the approved pictures. Not yet: any live GitHub call (mocks only), the tie-name scroll by hand, the Playwright browser checks, the pull request (held until aj has tested) |
 | 18 | Calm by default (#198: #199 to #205, #210, #213, #216, #219) | 100% built, QA passed 2026-10-21 | Built on `AjsAgent/calm-build` 2026-10-19; one pull request for Aj's QA; Projects kept as today (1A) |
 | 19 | Sort many at once and no length limit on thoughts | 100% built, in QA | Built 2026-10-24 on `claude/project-thread-9id7r4` (skip design): Select many on Sort (tick any number, then one project, labels and an optional group task), a backup copy saved first; the jotter grows with no limit, long thoughts file as first line + full notes. Unit 239/239; `check-bulk-sort-browser.mjs` 46/46; the other browser checks re-run (see the PR) |
+| 20 | Step by step: one question per screen, every control a desk object (#261: #262 to #272) | 100% built, QA passed 2026-11-13 | Built 2026-11-12 to 2026-11-13 on `claude/project-thread-gryib9`; six tabs (Projects is its own tab); unit 321/321; `scripts/check-all.sh` 36/36 after Eden kept the dyslexia-friendly size; QA page `docs/plans/step-by-step-qa.html` |
 
 **After the merge (2026-10-10), on `ccr-1569909b-xe23b7`:** #131 and #132 (wallets let the page
 scroll, and take a tap and a push-up in every mode; Swipe up mode retired), #133 (Category choices),

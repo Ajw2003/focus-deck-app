@@ -57,155 +57,160 @@ for (const size of ['phone', 'desktop']) {
     const ctx = await browser.newContext({ viewport: SIZES[size], colorScheme: scheme, serviceWorkers: 'block', hasTouch: size === 'phone' });
     await ctx.addInitScript(([s, key]) => {
       localStorage.setItem('focusdeck-onboarding', 'done');
-      if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'projects');
+      if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'roadmap');
       if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
-      if (!localStorage.getItem('focusdeck-project-view')) localStorage.setItem('focusdeck-project-view', 'all');
+      if (!localStorage.getItem('focusdeck-view')) localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pHome' })); // the add row now lives in a Roadmap milestone (#259)
     }, [seed(), STATE_KEY]);
     const page = await ctx.newPage();
     page.on('pageerror', (e) => check(`${tag} no page error: ` + e.message, false));
     await page.goto(BASE);
-    await page.waitForSelector(TITLE);
+    const FIELD = '[data-rm-field="title"]', NEWTASK = '[data-action="rm-screen"][data-screen="task"]';
+    await page.click(NEWTASK); // "+ Add a task" opens the New task page (#268); the one-line add row is gone
+    await page.waitForSelector(FIELD);
 
-    check(`${tag} every card has an add row`, (await page.$$('.project-card .add-row')).length === 2);
-    check(`${tag} the old "+ Add task" link is gone`, !(await page.$('[data-action="open-add-task"]')));
-    check(`${tag} More starts closed`, !(await page.$(ROW + ' [name="steps"]')));
+    check(`${tag} the New task page has its title field`, (await page.$$(FIELD)).length === 1);
+    check(`${tag} the old add row and "+ Add task" link are gone`, !(await page.$('.add-row, [data-action="open-add-task"], .rm-add-link')));
+    check(`${tag} Add is off until there is a title`, await page.$eval('[data-action="rm-add-task"]', (b) => b.disabled));
 
-    // Title only: type, Enter, the task lands in Home's Up next and the box is empty and focused
-    await page.click(TITLE);
+    // Title only: type, Enter, the task lands in Home's Up next and the list is back
+    await page.click(FIELD);
     await page.keyboard.type('Ring the plumber');
     await page.keyboard.press('Enter');
     await page.waitForTimeout(200);
     let tasks = await homeTasks(page);
     const added = tasks.find((t) => t.title === 'Ring the plumber');
     check(`${tag} Enter adds the task to Home's Up next`, !!added && added.status === 'next');
-    check(`${tag} the box is empty and still focused for the next one`, await page.evaluate((sel) => document.activeElement === document.querySelector(sel) && document.activeElement.value === '', TITLE));
-    check(`${tag} the new task shows on the card`, (await page.textContent('#proj-pHome')).includes('Ring the plumber'));
+    check(`${tag} the page is back on the list`, !(await page.$(FIELD)));
+    check(`${tag} the new task shows on the Roadmap`, (await page.textContent('.rm-project')).includes('Ring the plumber'));
 
-    // More: priority and a due date go onto the task
-    await page.click(ROW + ' [data-action="toggle-add-more"]');
-    await page.waitForSelector(ROW + ' [name="steps"]');
-    check(`${tag} More opens steps, priority and due date`, !!(await page.$(ROW + ' [name="priority"]')) && !!(await page.$(ROW + ' [name="deadline"]')));
-    await page.fill(TITLE, 'Book the boiler service');
-    await page.selectOption(ROW + ' [name="priority"]', 'high');
-    await page.fill(ROW + ' [name="deadline"]', iso(4));
-    await page.dispatchEvent(ROW + ' [name="deadline"]', 'input');
-    await page.waitForTimeout(150);
+    // More…: adds the task and opens Task details, where priority and due date go on
+    await page.click(NEWTASK);
+    await page.waitForSelector(FIELD);
+    await page.fill(FIELD, 'Book the boiler service');
     await page.screenshot({ path: OUT + `built-row-more-${size}-${scheme}.png` });
-    await page.click(ROW + ' button[type="submit"]');
-    await page.waitForTimeout(200);
+    await page.click('[data-action="rm-add-more"]');
+    await page.waitForSelector('.cw-detail');
+    await page.click('.cw-detail [data-action="detail-edit"][data-step="2"]');
+    await page.click('.cw-detail .sort-flag[data-level="high"]');
+    await page.click('.cw-detail [data-action="edit-save"]');
+    await page.click('.cw-detail [data-action="detail-edit"][data-step="4"]');
+    await page.click('.cw-detail .sort-cal-page[data-value="friday"]');
+    await page.click('.cw-detail [data-action="edit-save"]');
     tasks = await homeTasks(page);
     const detailed = tasks.find((t) => t.title === 'Book the boiler service');
-    check(`${tag} a task added with More keeps its priority and date`, !!detailed && detailed.priority === 'high' && detailed.deadline === iso(4));
-    check(`${tag} More closes after adding`, !(await page.$(ROW + ' [name="steps"]')));
+    check(`${tag} a task added with More… keeps its priority and date`, !!detailed && detailed.priority === 'high' && /^\d{4}-\d\d-\d\d$/.test(detailed.deadline || ''));
+    await page.click('[data-action="detail-close"]');
 
-    // Escape closes More
-    await page.click(ROW + ' [data-action="toggle-add-more"]');
-    await page.waitForSelector(ROW + ' [name="steps"]');
-    await page.focus(TITLE);
+    // Escape is the Back corner
+    await page.click(NEWTASK);
+    await page.waitForSelector(FIELD);
+    await page.focus(FIELD);
     await page.keyboard.press('Escape');
     await page.waitForTimeout(150);
-    check(`${tag} Escape closes More`, !(await page.$(ROW + ' [name="steps"]')));
+    check(`${tag} Escape leaves the New task page`, !(await page.$(FIELD)));
 
     // A half-typed title survives another tab saving (the storage event repaints this tab)
-    await page.click(TITLE);
+    await page.click(NEWTASK);
+    await page.waitForSelector(FIELD);
+    await page.click(FIELD);
     await page.keyboard.type('Half-typed thought');
     const other = await ctx.newPage();
     await other.goto(BASE);
-    await other.waitForSelector('.add-row[data-project="pSchool"] input[name="title"]');
-    await other.fill('.add-row[data-project="pSchool"] input[name="title"]', 'From the other tab');
-    await other.press('.add-row[data-project="pSchool"] input[name="title"]', 'Enter');
-    await other.waitForTimeout(200);
+    await other.click(NEWTASK);
+    await other.waitForSelector(FIELD);
+    await other.fill(FIELD, 'From the other tab');
+    await other.press(FIELD, 'Enter');
+    await other.waitForTimeout(300);
     await page.bringToFront();
-    await page.waitForFunction(() => (document.getElementById('proj-pSchool') || {}).textContent?.includes('From the other tab'), null, { timeout: 4000 }).catch(() => {});
-    check(`${tag} the other tab's task arrived (so this tab repainted)`, (await page.textContent('#proj-pSchool')).includes('From the other tab'));
-    check(`${tag} the half-typed title survived the repaint`, (await page.inputValue(TITLE)) === 'Half-typed thought');
+    await page.waitForFunction((k) => JSON.parse(localStorage.getItem(k)).projects[0].tasks.some((t) => t.title === 'From the other tab'), STATE_KEY, { timeout: 4000 }).catch(() => {});
+    await page.waitForTimeout(400);
+    check(`${tag} the half-typed title survived the repaint`, (await page.inputValue(FIELD)) === 'Half-typed thought');
+    await page.click('[data-action="rm-back"]');
+    check(`${tag} the other tab's task arrived (so this tab repainted)`, (await page.textContent('.rm-project')).includes('From the other tab'));
     await other.close();
 
     const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
-    await page.$eval(ROW, (e) => { e.scrollIntoView({ block: 'center' }); });
     await page.screenshot({ path: OUT + `built-row-${size}-${scheme}.png` });
 
-    // The Board (#241): no row with Project: All; choose School and the row adds to School
-    await page.fill(TITLE, '');
-    await page.dispatchEvent(TITLE, 'input');
-    await page.click('[data-action="set-screen"][data-screen="board"]');
-    await page.waitForSelector('[data-action="board-project-select"]');
-    check(`${tag} Board with Project: All has no add row`, !(await page.$('.screen-board .add-row')));
-    await page.selectOption('[data-action="board-project-select"]', 'pSchool');
-    const BOARD_TITLE = '.screen-board .add-row[data-project="pSchool"] input[name="title"]';
-    await page.waitForSelector(BOARD_TITLE);
-    check(`${tag} Board with School chosen shows "Add a task to School…"`, (await page.getAttribute(BOARD_TITLE, 'placeholder')) === 'Add a task to School…');
-    await page.click(BOARD_TITLE);
+    // The Roadmap (#259): choose School from the Projects tab and add a task to it
+    await page.click('.rail [data-screen="projects"]'); // the project list is the Projects tab (#267); a project opens on the Roadmap
+    await page.waitForSelector('.pj-card');
+    check(`${tag} the Projects list has no add row`, !(await page.$('.pj .add-row')));
+    await page.click('.pj-card[data-project="pSchool"]');
+    await page.click(NEWTASK);
+    await page.waitForSelector(FIELD);
+    await page.click(FIELD);
     await page.keyboard.type('Print the reading list');
     await page.keyboard.press('Enter');
     await page.waitForTimeout(200);
     const school = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)).projects.find((p) => p.id === 'pSchool').tasks, STATE_KEY);
-    check(`${tag} Enter on the Board adds to School's Up next`, school.some((t) => t.title === 'Print the reading list' && t.status === 'next'));
-    check(`${tag} the new task shows in the Board list`, (await page.textContent('.calm-cards')).includes('Print the reading list'));
-    check(`${tag} the Board's box is empty and focused`, await page.evaluate((sel) => document.activeElement === document.querySelector(sel) && document.activeElement.value === '', BOARD_TITLE));
-    await page.click('[data-action="board-col"][data-col="doing"]');
-    await page.waitForTimeout(100);
-    check(`${tag} no add row on In progress`, !(await page.$('.screen-board .add-row')));
-    await page.click('[data-action="board-col"][data-col="next"]');
-    await page.waitForSelector(BOARD_TITLE);
+    check(`${tag} Enter on the Roadmap adds to School's Up next`, school.some((t) => t.title === 'Print the reading list' && t.status === 'next'));
+    check(`${tag} the new task shows on the Roadmap`, (await page.textContent('.rm-project')).includes('Print the reading list'));
+    await page.click(NEWTASK);
+    await page.waitForSelector(FIELD);
+    await page.click('[data-action="rm-back"]');
+    check(`${tag} the Back corner closes the New task page`, !(await page.$(FIELD)));
     const boardWide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    check(`${tag} Board: no sideways page scroll`, boardWide <= 0, 'overflow ' + boardWide + 'px');
+    check(`${tag} Roadmap: no sideways page scroll`, boardWide <= 0, 'overflow ' + boardWide + 'px');
     await page.screenshot({ path: OUT + `built-board-${size}-${scheme}.png` });
 
-    // The jotter's To: stamp (#242)
-    const STAMP = '#capture-to', JOT = '#capture-input';
-    const sel = (s) => page.evaluate((x) => { const e = document.querySelector(x); return e.options[e.selectedIndex].text; }, s);
+    // The + Jot screen and its destination card (#242 stamp, #263 screen)
+    const JOT = '#jot-input', WHERE = '.jot-where';
+    const dest = () => page.textContent(WHERE);
     const stored = () => page.evaluate((k) => JSON.parse(localStorage.getItem(k)), STATE_KEY);
-    check(`${tag} Board with School chosen: stamp reads "To: School" untouched`, (await sel(STAMP)) === 'To: School');
+    const closed = async () => !(await page.$('.jot-screen'));
+    await page.click('#jot-open');
+    check(`${tag} Roadmap with School chosen: + Jot opens its screen, destination reads School`, !!(await page.$('.jot-screen')) && (await dest()).includes('School'));
+    await page.keyboard.press('Escape');
+    check(`${tag} Escape closes the + Jot screen`, await closed());
     await page.click('[data-action="set-screen"][data-screen="focus"]');
     await page.waitForTimeout(150);
-    check(`${tag} Focus: stamp reads "To: Unsorted", Add reads "Add"`, (await sel(STAMP)) === 'To: Unsorted' && (await page.textContent('.jot-add')) === 'Add');
+    check(`${tag} Focus: no jot box in the topbar`, !(await page.$('#capture-input, #capture-form')));
+    await page.click('#jot-open');
+    check(`${tag} Focus: destination reads Sort, box is focused`, (await dest()).includes('Sort') && await page.evaluate(() => document.activeElement.id === 'jot-input'));
     const before = await stored();
-    await page.click(JOT);
     await page.keyboard.type('A stray thought');
-    await page.keyboard.press('Enter');
+    await page.click('.jot-save');
     await page.waitForTimeout(200);
     const after = await stored();
     const count = (s) => s.projects.reduce((n, p) => n + p.tasks.length, 0);
-    check(`${tag} Enter on Unsorted grows the inbox, adds no task`, after.inbox.length === before.inbox.length + 1 && count(after) === count(before));
-    await page.selectOption(STAMP, 'pHome');
-    check(`${tag} picking Home makes Add read "Add task"`, (await page.textContent('.jot-add')) === 'Add task');
+    check(`${tag} Save on Sort grows the inbox, adds no task, closes the screen`, after.inbox.length === before.inbox.length + 1 && count(after) === count(before) && await closed());
+    check(`${tag} the toast reads Saved ✓`, (await page.textContent('.toast-text')) === 'Saved ✓');
+    await page.click('#jot-open');
+    await page.click(WHERE);
+    check(`${tag} the drawer asks "Where should it go?" with Sort, a find box and projects`, await page.evaluate(() => { const d = document.querySelector('.jot-drawer'); return !!d && d.textContent.includes('Where should it go?') && d.textContent.includes('Sort') && !!d.querySelector('[data-jot-search]') && !!d.querySelector('[data-id="pHome"]'); }));
+    await page.screenshot({ path: OUT + `built-jot-drawer-${size}-${scheme}.png` });
+    await page.click('.jot-drawer [data-id="pHome"]');
+    check(`${tag} picking Home puts Home on the card, drawer closed`, (await dest()).includes('Home') && !(await page.$('.jot-drawer')));
     await page.click(JOT);
     await page.keyboard.type('Jotted straight to Home');
-    await page.keyboard.press('Enter');
+    const jw = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    check(`${tag} jot screen: no sideways page scroll`, jw <= 0, 'overflow ' + jw + 'px');
+    await page.screenshot({ path: OUT + `built-jot-${size}-${scheme}.png` });
+    await page.click('.jot-save');
     await page.waitForSelector('.toast-action');
     const home = (await stored()).projects.find((p) => p.id === 'pHome').tasks.find((t) => t.title === 'Jotted straight to Home');
     check(`${tag} the jot became a task in Home's Up next`, !!home && home.status === 'next');
-    check(`${tag} notice reads Added "…" to Home`, (await page.textContent('.toast-text')) === 'Added "Jotted straight to Home" to Home');
-    check(`${tag} the jotter box is empty and focused`, await page.evaluate((s) => document.activeElement === document.querySelector(s) && document.activeElement.value === '', JOT));
-    const jw = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    check(`${tag} jotter: no sideways page scroll`, jw <= 0, 'overflow ' + jw + 'px');
-    // Room to jot (#244): on a phone the writing spans the jotter, with the stamp and Add on a line
-    // below it (stamp left, Add right); on a computer all three stay on one line.
-    const box = await page.evaluate(() => Object.fromEntries(['#capture-form', '#capture-input', '#capture-to', '#capture-form .jot-add']
-      .map((s) => [s, document.querySelector(s).getBoundingClientRect().toJSON()])));
-    const [form, input, stamp, add] = ['#capture-form', '#capture-input', '#capture-to', '#capture-form .jot-add'].map((s) => box[s]);
-    if (size === 'phone') {
-      check(`${tag} jotter: the writing spans the jotter`, input.width >= form.width - 40, Math.round(input.width) + ' of ' + Math.round(form.width) + 'px');
-      check(`${tag} jotter: stamp and Add sit below the writing`, stamp.top >= input.bottom && add.top >= input.bottom);
-      check(`${tag} jotter: stamp on the left, Add on the right`, stamp.right < add.left && add.right >= form.right - 30);
-    } else {
-      check(`${tag} jotter: writing, stamp and Add share one line`, stamp.top < input.bottom && add.top < input.bottom && input.right <= stamp.left);
-    }
-    await page.screenshot({ path: OUT + `built-jotter-${size}-${scheme}.png` });
+    check(`${tag} toast reads Saved ✓`, (await page.textContent('.toast-text')) === 'Saved ✓');
     await page.click('.toast-action');
-    await page.waitForSelector('[data-action="board-project-select"]');
-    check(`${tag} Open shows the Board on Home with the task selected`, await page.evaluate(() => document.querySelector('[data-action="board-project-select"]').value === 'pHome' && /Jotted straight to Home/.test(document.querySelector('.screen-board').textContent) && !!document.querySelector('.cw-detail[data-selected]')));
+    await page.waitForSelector('.vs-tape');
+    check(`${tag} Open shows the Roadmap on Home with the task selected`, await page.evaluate(() => document.querySelector('.vs-tape').textContent.includes('Home') && /Jotted straight to Home/.test(document.querySelector('.screen-roadmap').textContent) && !!document.querySelector('.cw-detail[data-selected]')));
     check(`${tag} Open clears the notice`, !(await page.$('.toast')));
     await page.keyboard.press('Escape'); // close the details panel (it covers the rail on a phone)
-    await page.selectOption(STAMP, '');
+    await page.click('#jot-open');
+    await page.click(WHERE); await page.click('.jot-drawer [data-id=""]');
+    await page.fill(JOT, 'x'); await page.click('.jot-save'); await page.waitForTimeout(150);
     await page.click('[data-action="set-screen"][data-screen="sort"]');
     await page.waitForTimeout(150);
-    check(`${tag} changing screen resets the manual pick (stamp follows again)`, (await sel(STAMP)) === 'To: Unsorted');
-    await page.click('[data-action="set-screen"][data-screen="board"]');
+    await page.click('#jot-open');
+    check(`${tag} changing screen resets the manual pick (destination follows again)`, (await dest()).includes('Sort'));
+    await page.keyboard.press('Escape');
+    await page.click('[data-action="set-screen"][data-screen="roadmap"]');
     await page.waitForTimeout(150);
-    check(`${tag} back on the Board (Home) the stamp follows: "To: Home"`, (await sel(STAMP)) === 'To: Home');
+    await page.click('#jot-open');
+    check(`${tag} back on the Roadmap (Home) the destination follows: Home`, (await dest()).includes('Home'));
+    await page.keyboard.press('Escape');
     await ctx.close();
   }
 }

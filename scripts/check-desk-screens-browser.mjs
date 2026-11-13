@@ -66,9 +66,10 @@ async function open(size, scheme, path = '', view = 'all') {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => check(`[${size}/${scheme}] no page error: ` + e.message, false));
   await page.addInitScript(([s, key, v]) => {
-    if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', 'projects'); // the folders' screen (#135)
+    if (!localStorage.getItem('focusdeck-screen')) localStorage.setItem('focusdeck-screen', v === 'one' ? 'roadmap' : 'projects'); // the project list is the Projects tab (#267); one project is the Roadmap
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
-    if (!localStorage.getItem('focusdeck-project-view')) localStorage.setItem('focusdeck-project-view', v);
+    // the old All/One toggle is now the All | Area | Project switch: One = Project mode (#252)
+    if (!localStorage.getItem('focusdeck-view') && v === 'one') localStorage.setItem('focusdeck-view', JSON.stringify({ mode: 'project', id: 'pHome' }));
   }, [seed(), STATE_KEY, view]);
   await page.goto(BASE + path);
   await page.waitForTimeout(500);
@@ -86,30 +87,42 @@ for (const size of ['phone', 'desktop']) {
     const tag = `[${size}/${scheme}]`;
     let { ctx, page } = await open(size, scheme);
 
-    // The All view: project cards, task rows (checkbox, title, chips, deadline stages, grips)
-    await scrollTo(page, '.project-card');
-    check(`${tag} project cards render`, (await page.$$('.project-card')).length === 3);
-    check(`${tag} task rows keep their grips and checkboxes`, (await page.$$('.task-row [data-action="toggle-task"]')).length >= 5 && (await page.$$('.task-row .task-grip, .task-row [class*="grip"]')).length >= 5);
+    // The Projects tab: a card per project (#267)
+    await scrollTo(page, '.pj-card');
+    check(`${tag} project cards render`, (await page.$$('.pj-card')).length === 3);
     await shot(page, tag, 'all-view');
 
-    // The task editor, and the due-date step that appears when a new date is set
-    await page.click('.task-title[data-task="h3"]');
-    await page.waitForSelector('.task-edit-form');
-    await page.fill('.task-edit-form input[name="deadline"]', iso(5));
-    await page.dispatchEvent('.task-edit-form input[name="deadline"]', 'input');
-    await page.dispatchEvent('.task-edit-form input[name="deadline"]', 'change');
+    // One project: task rows (checkbox, title, chips, grips)
+    await page.click('.pj-card[data-project="pHome"]');
+    await page.waitForSelector('.rm-project');
+    check(`${tag} task rows keep their grips and checkboxes`, (await page.$$('.rm-task [data-action="toggle-task"]')).length >= 3 && (await page.$$('.rm-task .rm-grip')).length >= 3); // Home's Up next list has three tasks, the fourth is Done
+    // a row no longer carries a priority chip (nothing small); the priority is read in Task details
+    await page.click('.rm-task-title[data-id="h1"]');
+    await page.click('.sort-drawer [data-action="rm-details"]');
+    await page.waitForSelector('.cw-detail');
+    check(`${tag} Task details shows the priority a row no longer carries`, (await page.textContent('.cw-detail .sort-receipt > div:nth-child(1) em')).includes('High'));
+    await page.click('[data-action="detail-close"]');
+
+    // Task details (the task editor's home now), with its priority and due date row
+    await page.click('.rm-task-title[data-id="h3"]');
+    await page.click('.sort-drawer [data-action="rm-details"]'); // a Roadmap title opens its drawer (#268); Details is a card in it
+    await page.waitForSelector('.cw-detail');
+    await page.click('.cw-detail [data-action="detail-edit"][data-step="4"]');
+    await page.click('.cw-detail .sort-cal-page[data-value="today"]');
+    await page.click('.cw-detail [data-action="edit-save"]');
     await page.waitForTimeout(150);
-    check(`${tag} the due-date step appears in the editor`, !!(await page.$('.task-edit-form .due-step')));
-    await scrollTo(page, '.task-edit-form');
+    check(`${tag} Task details keeps the date set in it`, (await page.$eval('.cw-detail .sort-receipt > div:nth-child(2) em', (e) => e.textContent)).length > 1);
+    await scrollTo(page, '.cw-detail');
     await shot(page, tag, 'task-editor');
-    await page.click('[data-action="cancel-task-edit"]');
+    await page.click('[data-action="detail-close"]');
 
     // The project Edit panel
-    await page.click('[data-action="open-project-edit"][data-project="pHome"]');
-    await page.waitForSelector('.project-edit-panel');
-    await scrollTo(page, '.project-edit-panel');
+    await page.click('[data-action="rm-drawer"][data-drawer="menu"]'); // the Roadmap's ⋯ drawer, then Edit project
+    await page.click('.sort-drawer [data-action="rm-screen"][data-screen="edit"]');
+    await page.waitForSelector('.sort-receipt');
+    await scrollTo(page, '.sort-receipt');
     await shot(page, tag, 'project-edit');
-    await page.click('[data-action="close-project-edit"][data-project="pHome"]');
+    await page.click('[data-action="rm-back"]');
 
     // The move dialog (the one a drag between a GitHub project and another asks)
     await page.evaluate(() => import('./js/move-dialog.js').then((m) => { m.confirmMove('Move "Footer link points to the old blog" to Home? It will be closed on GitHub as moved.'); }));
@@ -124,24 +137,22 @@ for (const size of ['phone', 'desktop']) {
     await shot(page, tag, 'toast');
     await page.click('.toast-close');
 
-    // The project list: the sidebar on desktop, the drawer on a phone, and its "+ New" panel
-    if (size === 'phone') {
-      await page.click('#projects-btn');
-      await page.waitForTimeout(300);
-    }
+    // The project list (the Projects tab), and New project
+    await page.click('.rail [data-screen="projects"]');
+    await page.waitForSelector('.pj-card');
     await page.evaluate(() => window.scrollTo(0, 0));
-    check(`${tag} the project list shows every project`, (await page.$$('.sidebar-project')).length === 3);
+    check(`${tag} the project list shows every project`, (await page.$$('.pj-card')).length === 3);
     await shot(page, tag, 'project-list');
     await page.click('#new-panel-toggle');
-    await page.waitForSelector('#new-panel');
-    await shot(page, tag, 'new-panel');
+    await page.waitForSelector('.pj-flow');
+    await shot(page, tag, 'new-project');
     await ctx.close();
 
-    // The One view (stored, as the switch is in the drawer on a phone)
+    // The One view (the switch on Project mode)
     ({ ctx, page } = await open(size, scheme, '', 'one'));
-    const oneCards = await page.$$eval('.project-card', (els) => els.filter((e) => e.offsetParent !== null).length);
+    const oneCards = await page.$$eval('.rm-project', (els) => els.filter((e) => e.offsetParent !== null).length);
     check(`${tag} the One view shows one project`, oneCards === 1, oneCards + ' visible');
-    await scrollTo(page, '.project-card');
+    await scrollTo(page, '.rm-project');
     await shot(page, tag, 'one-view');
     await ctx.close();
 

@@ -1,0 +1,270 @@
+{
+ "title": "Step By Step QA",
+ "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · GitHub issues #262 to #272",
+ "short": {
+  "lead": "The approved 'step by step' design is built into the real app. Every screen asks one question at a time, every control looks like a desk object, and there are six tabs: Sort, Organize, Projects, Roadmap, Focus and Review. You test a copy of branch claude/project-thread-gryib9 with sample data, on your phone and your computer, so your real tasks are not touched. Each step below says what to do and what you should see. Three things want your call; they are under Your choices.",
+  "hint": "Tap a step to see what to try and what you should see.",
+  "key": [
+   [
+    "Built",
+    ""
+   ],
+   [
+    "You test it",
+    "you"
+   ]
+  ],
+  "items": [
+   [
+    "eye",
+    "Open",
+    "Open the test copy",
+    "you",
+    "A start page opens with one button per tab. Pressing one loads sample data (19 projects, 77 tasks and 2 thoughts) and opens the real app on that tab. Your own tasks are not touched, because the copy runs on a different web address.",
+    "Open the test copy from the link in my message in this thread (the page called Focus Deck Test Copy), on your phone and then on your computer. Press Sort to start. To start on another tab, go back to the start page and press that tab; each press puts the sample data back, so it also works as a reset.",
+    {
+     "src": "docs/generated/final-272/phone-sort.png",
+     "alt": "The Sort tab on a phone",
+     "caption": "Sort on a phone: one thought on the clipboard."
+    }
+   ],
+   [
+    "list",
+    "#262",
+    "Six tabs, the sync light and the dial",
+    "you",
+    "Six ring-binder tabs along the bottom of a phone: Sort, Organize, Projects, Roadmap, Focus and Review. Only Sort and Review show a count. At the top: + Jot, a green sync light and a brass settings dial.",
+    "1. Tap each tab and check that every screen fits without scrolling the page. 2. Tap the green light and check that a drawer offers Sync now and Sync settings. 3. Tap the dial and check that Settings opens. 4. Tap the black EVERYTHING tape and pick an area, then check that the lists narrow to it.",
+    {
+     "src": "docs/generated/shell-262/tape-open-390.png",
+     "alt": "The view tape open on a phone",
+     "caption": "The EVERYTHING tape, open."
+    }
+   ],
+   [
+    "list",
+    "#263",
+    "+ Jot",
+    "you",
+    "+ Jot opens its own jotter. A saved thought lands on Sort, and a slip says where it went.",
+    "1. Tap + Jot, type 'Ring the plumber' and press Save. 2. Check that a slip appears and that Sort's count goes up by one. 3. Tap + Jot again, open 'Where it goes', pick a project and save. 4. Check that the thought went into that project instead of Sort.",
+    {
+     "src": "docs/generated/jot-263/jot-screen-390.png",
+     "alt": "The jotter on a phone",
+     "caption": "The jotter."
+    }
+   ],
+   [
+    "list",
+    "#264",
+    "Sort one thought, one question at a time",
+    "you",
+    "Sort this one walks through nine questions, one per screen: project, priority, then the optional ones (labels, due date, size, notes and the ties). Each optional question has Skip. The dots at the top show where you are.",
+    "1. On Sort, tap Sort this one. 2. Pick a project folder and press Next. 3. Pick a priority. 4. Skip some optional questions and answer others: pick a due date from the calendar pages, or type '15 dec' in the date box and press Enter. 5. Check that the last screen shows everything you picked, then file it. 6. Check that the 'Filed ✓' slip does not stop you tapping Sort this one again.",
+    {
+     "src": "docs/generated/final-272/phone-sort-step.png",
+     "alt": "Sort's 'Which project?' question",
+     "caption": "Which project? The first of the nine questions."
+    }
+   ],
+   [
+    "list",
+    "#265",
+    "Sort several at once",
+    "you",
+    "Sort several lets you tick any number of thoughts and give them one project and the same labels in one go.",
+    "1. On Sort, tap the blue Sort several tab. 2. Tick three thoughts. 3. Pick a project, then labels, and finish. 4. Check that all three left Sort and sit in that project on the Roadmap.",
+    {
+     "src": "docs/generated/many-265/m1.png",
+     "alt": "Sort several with thoughts ticked",
+     "caption": "Sort several."
+    }
+   ],
+   [
+    "list",
+    "#266",
+    "Organize: Tidy up and Triage",
+    "you",
+    "Tidy up lists tasks that may be finished or forgotten. You tick one task or many, like GitHub issues, and then Close or Keep them. Triage ranks what is left.",
+    "1. Open Organize, then Tidy up. 2. Tick one task and press Close. 3. Tick three more and press Keep. 4. Open Triage and move a task up and down with the arrows. On a computer, drag it by its ⠿ grip instead.",
+    {
+     "src": "docs/generated/organize-266/t1.png",
+     "alt": "Tidy up with ticked tasks",
+     "caption": "Tidy up."
+    }
+   ],
+   [
+    "list",
+    "#267",
+    "The Projects tab",
+    "you",
+    "Projects is its own tab: a card and a ruler for each project, Find a project, a brass pull tab for Sort by and My order, and a + New project stamp.",
+    "1. Open Projects and type 'gar' into Find a project. 2. Pull the brass tab and try each sort order, then My order. 3. Press + New project and go through its four steps: name, area, colour and GitHub. 4. Check that the new project opens on the Roadmap. 5. Tap any card and check that it opens that project on the Roadmap.",
+    {
+     "src": "docs/generated/final-272/phone-projects.png",
+     "alt": "The Projects tab on a phone",
+     "caption": "Projects."
+    }
+   ],
+   [
+    "list",
+    "#268",
+    "The Roadmap: one project at a time",
+    "you",
+    "The Roadmap shows one project, one milestone at a time, with four folder tabs: Up next, Doing, Review and Done. Tapping a task opens a drawer with Doing, Review, Done, Focus, Other milestone and Details.",
+    "1. Open Roadmap and pick 'Open source: focus-deck' from the black tape. 2. Flip between milestones with ‹ and ›, and open All milestones. 3. Tap 'Test on phone' and press Review in the drawer. 4. Press + Add a task, type a title and add it. 5. Open a milestone's settings and set 'Done means' to A number: 'screens tested', 2 of 4. Check that the ruler shows 50%.",
+    {
+     "src": "docs/generated/final-272/phone-roadmap-task.png",
+     "alt": "A task's drawer on the Roadmap",
+     "caption": "A task's drawer on the Roadmap."
+    }
+   ],
+   [
+    "list",
+    "#269",
+    "Task details",
+    "you",
+    "Details shows a task like a receipt, one line per field, each with a pencil. Editing a field walks through the same question screens as Sort.",
+    "1. From a task's drawer, press Details. 2. Change the due date with the pencil, then press Save. 3. Add a smaller step. 4. Tap a linked task (waits on, holds up or part of) and check that it opens.",
+    {
+     "src": "docs/generated/details-269/d0.png",
+     "alt": "Task details on a phone",
+     "caption": "Task details."
+    }
+   ],
+   [
+    "list",
+    "#270",
+    "Focus",
+    "you",
+    "Focus asks which project, then what kind of work, then shows one task on a sticky note with Done and Another. Pick for me skips the questions.",
+    "1. Open Focus, pick a folder and press Next. 2. Pick a kind of work. 3. Check that one task shows on a sticky note. 4. Press Another, then Done. 5. Go back to the first question and press Pick for me.",
+    {
+     "src": "docs/generated/final-272/phone-focus.png",
+     "alt": "Focus's first question",
+     "caption": "Focus: Which project?"
+    }
+   ],
+   [
+    "list",
+    "#271",
+    "Review",
+    "you",
+    "Review asks 'Finished?' about each task waiting for a check, with Looks good and More work. Done this week lists what you finished.",
+    "1. Open Review. 2. Press Looks good on one task and More work on another. 3. Check that the count on the Review tab goes down. 4. Open Done this week.",
+    {
+     "src": "docs/generated/final-272/phone-review.png",
+     "alt": "Review on a phone",
+     "caption": "Review."
+    }
+   ],
+   [
+    "list",
+    "#272",
+    "On a computer",
+    "you",
+    "On a wide screen the tabs become a column on the left and each screen is a panel in the middle. Sort lists its nine steps beside the panel. On the Roadmap, a task's drawer and Details open beside the panel.",
+    "1. Open the test copy on your computer. 2. Sort a thought and watch the step list tick off. 3. On the Roadmap, click a task and check that the drawer opens beside the clipboard. 4. In Triage, drag a task by its ⠿ grip.",
+    {
+     "src": "docs/generated/final-272/desk-sort-step.png",
+     "alt": "Sort on a computer with the step list beside it",
+     "caption": "Sort on a computer."
+    }
+   ],
+   [
+    "bulb",
+    "Reply",
+    "Tell me how it went",
+    "you",
+    "If everything worked, reply 'QA passed: step by step'. If something didn't, say which step and what you saw, and I'll fix it.",
+    "Reply in this thread, with your picks under Your choices."
+   ]
+  ]
+ },
+ "changes": [],
+ "choices": [
+  [
+   "dyslexic",
+   "In the dyslexia-friendly writing, a long Focus task takes 5 lines where the handwriting takes 3. Is that OK?",
+   [
+    [
+     "1",
+     "Keep it as it is",
+     1,
+     "The letters stay at about 19px. A long title makes the sticky note taller, and it still fits on the screen."
+    ],
+    [
+     "2",
+     "Make that writing smaller",
+     0,
+     "About 15px, so a long title takes 4 lines. The letters are harder to read."
+    ]
+   ],
+   "I suggest keeping it, because the point of that writing is easy reading, and the note still fits."
+  ],
+  [
+   "chips",
+   "Should Roadmap rows show their priority and due date again?",
+   [
+    [
+     "1",
+     "No, keep rows plain",
+     1,
+     "A row shows the title and its tick box. Priority and due date are in the drawer and Details."
+    ],
+    [
+     "2",
+     "Yes, add small flags back",
+     0,
+     "Each row gets its priority flag and due date again, which makes the rows busier."
+    ]
+   ],
+   "I suggest plain rows, because that matches the approved design and its 'no extra details' rule."
+  ],
+  [
+   "milestone",
+   "Who can be turned into a milestone?",
+   [
+    [
+     "1",
+     "Only tasks with smaller steps",
+     1,
+     "'Make it a milestone' shows in the drawer only for a task that has smaller steps, which become its tasks."
+    ],
+    [
+     "2",
+     "Any task",
+     0,
+     "Every task's drawer shows it; a task without steps becomes an empty milestone."
+    ]
+   ],
+   "I suggest only tasks with smaller steps, because an empty milestone needs tasks added by hand afterwards."
+  ]
+ ],
+ "qa": {
+  "feature": "step by step",
+  "base": "origin/main",
+  "unverified": [
+   "I could not open the published test copy, because my sandbox cannot reach claude.ai. I served the same files locally instead, and all seven start buttons opened the app on the right tab with no errors",
+   "GitHub was not called live; every GitHub call in the checks went to a stand-in",
+   "Everything was checked in Chromium at widths of 360, 390 and 1440 pixels, not in Safari or Firefox and not on a real phone",
+   "In the dyslexia-friendly writing a long Focus title wraps to 5 lines; one check fails on purpose until you choose under Your choices",
+   "The Sort slip still shows a small 'No project yet' and 'Thought · just now' line at 13px",
+   "In Sort several the priority flags sit on the second step, not the first",
+   "Task details has a 📏 Size line that the design did not show",
+   "Focus's Another picks again the same way as the last pick: by folder and kind, or by Pick for me",
+   "On a computer, a thin brass bar shows on the Roadmap while a task's drawer is open"
+  ]
+ },
+ "wrapup": {
+  "summary": "Step by step is built: all eleven parts (#262 to #272), six tabs, one question per screen, and every control a desk object. All 321 unit tests pass and every browser check passes except the one waiting on your choice about the dyslexia-friendly writing.",
+  "changing": "Changed: every screen. New: the Projects tab, + Jot's own jotter, Sort several, Tidy up with tick lists. Nothing was removed; the restored pieces (opening a linked task, ★ for a task's category, dragging in Triage) are back.",
+  "blocking": "Waiting on your test and your three picks.",
+  "next": "After 'QA passed', you close the issues when you're happy, and the pull request is merged into main, the version of the app you use.",
+  "todo": [
+   "Do the steps under 'In short', ending with the reply.",
+   "Pick under Your choices.",
+   "Reply 'QA passed: step by step', or say what's wrong."
+  ]
+ }
+}

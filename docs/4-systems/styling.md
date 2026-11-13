@@ -1,5 +1,7 @@
 # Styling
 
+> **2026-11-12 (#259):** the Board and Projects screens were removed in the five-tab change; the Roadmap took over their jobs. Where this file describes them as current it is history. See [tabs.md](./tabs.md).
+
 ## What it owns
 
 `css/app.css` — the app's single, global, unscoped stylesheet — and the implicit contract it has
@@ -850,3 +852,5 @@ actual intended one-line change on top of it. `js/style-contract.test.mjs` and
 gaps above unable to repeat silently: a class losing its rule now fails a test, a large unexplained
 deletion now blocks the commit, and both now run in CI before every deploy
 (`.github/workflows/deploy.yml`).
+
+Settings now has "Areas" and "Kinds of work" rows instead of "Category colors" (see [areas.md](./areas.md)).

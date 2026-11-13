@@ -1,7 +1,6 @@
 // scripts/check-category-filter-browser.mjs -- real-Chromium check of Settings > Category choices
 // (#133) at a phone width: the in-tray's flag cards offer only the folder's own categories plus
-// "More categories", which shows the rest; the task editor's label picker hides the others behind
-// "Show all N categories" (ticked ones always show); turning the setting off in Settings shows every
+// "More categories", which shows the rest; Task details' labels step (the Sort step) does the same; turning the setting off in Settings shows every
 // category everywhere, and the choice is stored.
 // Usage: CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/check-category-filter-browser.mjs
 // Serves the repo root itself on 127.0.0.1:8133 for the length of the run (no separate server).
@@ -73,27 +72,35 @@ async function chooseFlag(page, key) {
   await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
   await page.waitForTimeout(300);
 }
-// The Sort screen goes in steps (project, labels, links): Next moves on, and the last step's button files.
-const nextStep = async (page) => { await page.click('.file-btn[data-action="sort-next"]'); await page.waitForSelector('[data-wallet="tray-flags"], .links-step'); await page.waitForTimeout(300); };
+// The Sort screen is one step per screen (#264): the slip, then project, priority, labels ... the receipt.
+const startSort = async (page) => { await page.waitForSelector('.jot-slip'); await page.click('[data-action="sort-next"]'); await page.waitForSelector('[data-wallet="tray-folders"]'); };
+const toLabels = async (page) => {
+  await page.click('.sort-foot .file-btn');
+  await page.click('.sort-picks [data-field="priority"][data-value="high"]');
+  await page.click('.sort-foot .file-btn');
+  await page.waitForSelector('[data-wallet="tray-flags"]');
+  await page.waitForTimeout(300);
+};
 const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 
 // 1. In the in-tray: before a folder, all; Home's flags; More categories shows the rest
 {
   const { ctx, page } = await open();
-  // "No folder yet: every category is offered" can no longer be reached: the labels step is locked until a project is chosen.
-  await page.waitForSelector('[data-wallet="tray-folders"]');
+  // "No folder yet: every category is offered" can no longer be reached: Next is off until a project is chosen.
+  await startSort(page);
   await chooseFolder(page, 'pHome');
-  await nextStep(page);
+  await toLabels(page);
   const home = await flagKeys(page);
   check('in-tray, Home chosen: only Home’s categories, then More categories', JSON.stringify(home) === JSON.stringify([...kinds, 'c_chore', 'c_garden', '__more__']), home.join());
-  check('More categories says how many', ((await page.$eval('[data-key="__more__"] .ct', (e) => e.textContent)) || '') === '4 more');
+  check('More categories says how many', ((await page.$eval('[data-key="__more__"]', (e) => e.dataset.speak)) || '').startsWith('4 more'));
   await page.$eval('.inbox-card', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); });
   await page.screenshot({ path: OUT + 'tray-filtered.png' });
   await chooseFlag(page, '__more__');
   const all = await flagKeys(page);
   check('choosing More categories shows them all', all.length === kinds.length + 6 && !all.includes('__more__'), all.join());
   await chooseFlag(page, 'c_music');
-  await nextStep(page);
+  await page.click('.sort-foot .file-btn'); // labels -> due date, then Skip on to the receipt
+  for (let i = 0; i < 5; i++) { await page.click('.sort-foot .dk-skip'); await page.waitForTimeout(100); }
   await page.click('.file-btn[data-action="unsorted-file"]');
   await page.waitForTimeout(300);
   const st = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), STATE_KEY));
@@ -102,20 +109,24 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   await ctx.close();
 }
 
-// 2. In the task editor: Home's labels, ticked ones, then Show all
+// 2. In Task details: the labels pencil is the Sort labels step, so Home's labels, then More categories
 {
   const { ctx, page } = await open();
-  await page.click('.rail [data-screen="projects"]');
-  await page.click('.task-title[data-task="h2"]');
-  await page.waitForSelector('.task-edit-form .label-picker');
-  await page.click('.task-edit-form .label-picker summary');
-  const visible = () => page.$$eval('.task-edit-form .label-option', (els) => els.filter((e) => e.offsetParent !== null).map((e) => e.textContent.trim()));
-  check('editor: only Home’s labels show', (await visible()).join() === 'Chore,Garden', (await visible()).join());
-  await page.fill('.task-edit-form input[name="title"]', 'Mop the kitchen floor');
-  await page.$eval('.task-edit-form', (e) => { e.scrollIntoView(); window.scrollBy(0, -130); });
+  await page.click('.rail [data-screen="projects"]'); // the project rows live on the Projects tab since #262
+  await page.click('.pj-card[data-project="pHome"]');
+  await page.waitForSelector('.rm-project');
+  await page.click('.rm-task-title[data-id="h2"]');
+  await page.click('.sort-drawer [data-action="rm-details"]');
+  await page.waitForSelector('.cw-detail');
+  await page.click('.cw-detail [data-action="detail-edit"][data-step="3"]');
+  await page.waitForSelector('.cw-detail [data-wallet="tray-flags"]');
+  await page.waitForTimeout(300);
+  const home = await flagKeys(page);
+  check('Task details: only Home’s labels, then More categories', JSON.stringify(home) === JSON.stringify([...kinds, 'c_chore', 'c_garden', '__more__']), home.join());
   await page.screenshot({ path: OUT + 'editor-filtered.png' });
-  await page.click('.task-edit-form [data-action="label-show-all"]');
-  check('editor: Show all reveals all six, and keeps what was typed', (await visible()).length === 6 && (await page.inputValue('.task-edit-form input[name="title"]')) === 'Mop the kitchen floor');
+  await chooseFlag(page, '__more__');
+  const all = await flagKeys(page);
+  check('Task details: More categories reveals all six', all.length === kinds.length + 6 && !all.includes('__more__'), all.join());
   await ctx.close();
 }
 
@@ -130,14 +141,19 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   const stored = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), STATE_KEY)).categoryFilter;
   check('Settings: turning it off is stored with a stamp', stored.on === false && stored.updatedAt > 0, JSON.stringify(stored));
   await page.goto(BASE);
-  await page.waitForSelector('[data-wallet="tray-folders"]');
+  await startSort(page);
   await chooseFolder(page, 'pHome');
-  await nextStep(page);
+  await toLabels(page);
   check('off: Home offers every category, no More card', (await flagKeys(page)).length === kinds.length + 6);
-  await page.click('.rail [data-screen="projects"]');
-  await page.click('.task-title[data-task="h1"]');
-  await page.waitForSelector('.task-edit-form');
-  check('off: the editor has no Show all', !(await page.$('.task-edit-form [data-action="label-show-all"]')));
+  await page.click('.rail [data-screen="projects"]'); // the project rows live on the Projects tab since #262
+  await page.click('.pj-card[data-project="pHome"]');
+  await page.click('.rm-task-title[data-id="h1"]');
+  await page.click('.sort-drawer [data-action="rm-details"]');
+  await page.waitForSelector('.cw-detail');
+  await page.click('.cw-detail [data-action="detail-edit"][data-step="3"]');
+  await page.waitForSelector('.cw-detail [data-wallet="tray-flags"]');
+  await page.waitForTimeout(300);
+  check('off: Task details offers every category, no More card', (await flagKeys(page)).length === kinds.length + 6);
   await ctx.close();
 }
 

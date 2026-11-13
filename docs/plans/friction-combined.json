@@ -1,0 +1,66 @@
+{
+ "title": "Getting Started Again",
+ "eyebrow": "Proposal from the friction audit · one combined plan · nothing built yet",
+ "approval": "Design approved: friction audit combined plan",
+ "short": {
+  "lead": "You asked for all of the fixes together, with Start here as a new screen beside Focus. This is that plan. Start here is added as the first screen and shows three suggested tasks. Focus stays, gets a project search, and stops showing workflow labels like Needs review. Settings gets a list where you choose which labels are kinds of work and which count as priority. Sort gets a project list you can search and a main button at the bottom. Separately, outside the app, I would list the Focus Deck GitHub issues that look finished, for you to check. Nothing is built until you approve.",
+  "hint": "Tap each row to see its picture. Start with 'The plan', which shows how the screens connect. The rows marked 'Today' are the real app at your size. The other pictures are drawings of the plan.",
+  "key": [["Built by me", ""], ["You decide", "you"]],
+  "items": [
+   ["bulb", "The plan", "How the screens connect", "", "The app opens on Start here. From there, the Start button on a suggestion goes straight to your task. 'Choose it myself' opens Focus, which works as it does today. 'Thoughts to sort' opens Sort. Board, Projects and Settings stay in the menu.", "Follow the arrows from 'Open the app'.",
+    {"src": "docs/generated/friction-audit/mock-map.png", "alt": "Map of screens: Open the app leads to Start here; Start here leads to your task, to Focus and to Sort; a box below explains the GitHub tidy-up is outside the app", "caption": "How the screens connect in the combined plan."}],
+   ["bulb", "Today, phone", "Two carousels before one task", "", "Focus asks for a project (1 of 27) and then a label (1 of 37), one swipe per card, with no search. Reaching the middle project, card 14 of 27, takes 13 swipes.", "Nothing from you.",
+    {"src": "docs/generated/friction-audit/phone-focus.png", "alt": "Phone Focus screen showing project carousel 1 of 27 and label carousel 1 of 37", "caption": "Today on a phone, with 420 tasks."}],
+   ["bulb", "Today, desktop", "64 cards, Surprise me at the bottom", "", "27 folders (All projects plus your 26) and 37 label cards fill a page 2.7 screens tall. In the sample data, 24 of the 27 folders say 'top: Urgent'.", "Nothing from you.",
+    {"src": "docs/generated/friction-audit/desk-focus-full.png", "alt": "Desktop Focus screen, full length, with 27 project folders and 37 label cards", "caption": "Today on desktop, the whole page."}],
+   ["list", "Start here, phone", "A new first screen", "you", "Three suggested tasks, each with a coloured tag saying why: due today, already in progress, or urgent. 'Pick one for me' chooses one of them. Below are two buttons: 'Choose it myself' opens Focus, and '44 thoughts to sort' opens Sort. The bottom menu gets a fifth tab, Start.", "Check that Focus still feels like the Focus you know today.",
+    {"src": "docs/generated/friction-audit/mock-s-phone.png", "alt": "Phone drawing: Start here with Pick one for me, three suggested tasks with Start buttons, Choose it myself and 44 thoughts to sort, and five tabs at the bottom", "caption": "Start here on a phone. A drawing, not built."}],
+   ["list", "Start here, desktop", "The same screen on a wide screen", "you", "The same three suggestions in the middle column. The two buttons to Focus and Sort sit side by side under them. The side menu gets 'Start here' at the top.", "Check that 'Start here' at the top of the side menu is the order you want.",
+    {"src": "docs/generated/friction-audit/mock-s-desk.png", "alt": "Desktop drawing: side menu with Start here, Focus, Sort, Board, Projects; three suggested tasks and two buttons below", "caption": "Start here on desktop. A drawing, not built."}],
+   ["list", "Focus, phone", "Kept, with a project search", "you", "Focus keeps its folder and index-card carousels. A 'Find a project' box sits above the folders, so you type a name instead of swiping. The kind-of-work carousel drops from 37 cards to 25 because workflow labels are hidden.", "Compare it with 'Today, phone'.",
+    {"src": "docs/generated/friction-audit/mock-f-phone.png", "alt": "Phone drawing of Focus: a Find a project box above the folder, and Kind of work 1 of 25", "caption": "Focus on a phone in the plan. A drawing, not built."}],
+   ["list", "Focus, desktop", "Kept, and fits on one screen", "you", "The five busiest folders show, with 'Find a project' to reach the other 22. The 25 kind-of-work cards are smaller and sit in five rows, so the whole page fits on one screen instead of 2.7.", "Compare it with 'Today, desktop'.",
+    {"src": "docs/generated/friction-audit/mock-f-desk.png", "alt": "Desktop drawing of Focus: find box, five folders, and 25 small kind-of-work cards on one screen", "caption": "Focus on desktop in the plan. A drawing, not built."}],
+   ["list", "Settings", "Choose your kinds of work and priority labels", "you", "A new Settings list. Ticked labels show on Focus. Unticked ones (Needs review, Duplicate, AjsAgent created this, and other workflow labels) stay on your tasks and on GitHub, but you never pick from them. The labels 'Asap' and 'highest priority' count as Urgent, so Start here can rank by them.", "Check that the unticked labels in the picture are the ones you would untick.",
+    {"src": "docs/generated/friction-audit/mock-b-settings.png", "alt": "Phone drawing of Settings: ticked kinds of work, unticked workflow labels, and Asap read as Urgent", "caption": "The new Settings list. A drawing, not built."}],
+   ["list", "Sort, phone", "Faster filing", "you", "Each thought shows at the top. Below it is 'File to' with a search box and the projects you used most recently. The main 'File to' button and Later sit at the bottom, where your thumb is. The three steps (choose a project, add labels, link to other tasks) stay.", "Check that the 'File to' button at the bottom is where your thumb reaches.",
+    {"src": "docs/generated/friction-audit/mock-c-phone.png", "alt": "Phone drawing of Sort: the thought, a searchable project list, and File to and Later buttons at the bottom", "caption": "Sort on a phone in the plan. A drawing, not built."}],
+   ["list", "GitHub tidy-up (D)", "Not an app change", "you", "This is the part I called option D in the earlier options. It changes nothing in the app. It is a clean-up of the Focus Deck issue list on GitHub. There are 97 open issues. I would list the 30 that look finished or replaced. That is 15 issues that are built and waiting for your review, the 8 old Board issues (#140 to #147), and the 7 issues named Burst A to Burst G, which only group other issues. I would also suggest one set of priority labels. You tick which issues to close. Nothing changes on GitHub until you say yes.", "Answer the third question in Choices: 'Should I do the GitHub tidy-up (D)?'",
+    {"src": "docs/generated/friction-audit/mock-d.png", "alt": "Bar picture: 97 open issues today split into 15 built, 8 old Board, 7 Bursts and 67 real work; after, 67 open", "caption": "The Focus Deck GitHub issues, before and after the tidy-up."}]
+  ]
+ },
+ "changes": [
+  ["new", "Start here", "A new first screen with three suggested tasks.", null, "It is added, not swapped in. Focus stays in the menu."],
+  ["chg", "Focus", "Adds 'Find a project' and hides workflow labels.", null, "The folders, index cards and sticky note look and work as today."],
+  ["new", "Settings: Kinds of work", "A tick list of your labels, plus which labels count as priority.", null, "Your labels on GitHub are not changed."],
+  ["chg", "Sort", "Project list you can search, main button at the bottom.", null, "The three sorting steps stay: choose a project, add labels, link to other tasks."],
+  ["chg", "Menu", "Five tabs on a phone: Start, Focus, Sort, Board, Projects.", null, "Settings stays where it is."],
+  ["keep", "Board, Projects, the jotter, your data and sync", "No change.", null, "Nothing is deleted."]
+ ],
+ "choices": [
+  ["opens", "Which screen should the app open on?", [
+   ["1", "Start here", 1, "You see three suggested tasks first, and Focus is one tap away."],
+   ["2", "Focus", 0, "The app opens as it does today, and Start here is the first tab."],
+   ["3", "The last screen you used", 0, "The app remembers where you were, on each device."]
+  ], "I suggest Start here because starting is the hardest step, and this makes it the first thing you see."],
+  ["order", "How should I build it?", [
+   ["1", "In four parts, one at a time", 1, "Settings and labels first, then Start here, then the Focus search, then Sort. You can try each part before the next."],
+   ["2", "All in one go", 0, "One change to test, but a longer wait before you can use any of it."]
+  ], "I suggest four parts because each one is useful by itself and is easier for you to check."],
+  ["github", "Should I do the GitHub tidy-up (D)?", [
+   ["1", "Yes, list the issues for me to check", 1, "You get a list of 30 issues to tick. Nothing changes on GitHub until you say yes."],
+   ["2", "Not now", 0, "The issue list stays as it is, and only the app changes."]
+  ], "I suggest Yes because 97 open issues make it hard to see what is actually left."]
+ ],
+ "wrapup": {
+  "summary": "One combined plan: a new Start here screen beside Focus, a project search and fewer labels on Focus, a Settings list for your labels, faster Sort, and a separate GitHub tidy-up. My suggestions are to open on Start here, build in four parts, and do the tidy-up.",
+  "changing": "Changed: Focus, Sort, Settings and the menu, and Start here is added. Kept: Board, Projects, the jotter, your data and sync.",
+  "blocking": "Waiting on your answers to the three questions in Choices. Nothing is built until you approve.",
+  "next": "After you send your answers, I will open GitHub issues for each part and build the first one, Settings and labels. You will get a test page for each part before the next starts.",
+  "todo": [
+   "Look at 'The plan' picture first, then the rest.",
+   "Pick one answer under each of the three questions in Choices.",
+   "Tap <b>Copy my reply</b> and send it, or say what to change."
+  ]
+ }
+}

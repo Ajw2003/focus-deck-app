@@ -1,12 +1,13 @@
 // focus-deck-app/js/render.js
-import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER, UNLABELLED } from './state.js';
-import { ICON_SYNC, ICON_SETTINGS, ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
-import { unblockCount, subtasksOf, tieSummary, tieLineHtml } from './task-links.js';
+import { pickChip, renderPickBlocks } from './pick-bits.js';
+import { state, esc, cssColorToHex, relTime, deadlineChip, formatLabelName, PRIORITY, PRIORITY_ORDER } from './state.js';
+import { ICON_GRIP, ICON_CLAUDE_CREATED, ICON_CLAUDE_COMPLETED } from './icons.js';
+import { tieSummary, tieLineHtml } from './task-links.js';
 import { sortTasks } from './task-move.js';
 import { leadChoices, suggestLead, normalizeDueDefaults } from './due-stage.js';
-import { phaseClasses } from './focus-complete.js';
-import { normalizeChoosingMode, CHOOSING_MODE_INFO } from './wallet.js';
+import { normalizeChoosingMode } from './wallet.js';
 import { splitCategories } from './category-filter.js';
+import { effectivePriority, UNSORTED_ID } from './areas.js';
 
 // A label (task category) colour, muted toward the app's palette rather than shown at its raw
 // GitHub saturation (Q4b) — see docs/4-systems/styling.md#colour. Applied everywhere a label colour
@@ -24,12 +25,14 @@ export function syncButtonTitle(st) {
     : 'Sync with GitHub';
 }
 
+// The sync light (green dot; amber while syncing, red after an error). Tapping it opens a small drawer with
+// Sync now and Sync settings (st._ui.syncOpen). The light's title/aria-label carry syncButtonTitle.
 export function renderSyncButton(st) {
-  const syncing = !!(st._ui && st._ui.syncing);
+  const ui = st._ui || {}, syncing = !!ui.syncing;
   const title = syncButtonTitle(st);
-  return '<button type="button" class="icon-btn sync-btn' + (syncing ? ' is-syncing' : '') + '" data-action="sync-github" title="' + esc(title) + '" aria-label="' + esc(title) + '"' + (syncing ? ' disabled' : '') + '>'
-    + ICON_SYNC
-    + '</button>';
+  return '<button type="button" class="sync-light' + (syncing ? ' is-syncing' : ui.syncError ? ' is-error' : '') + '" data-action="sync-drawer" aria-haspopup="true" aria-expanded="' + !!ui.syncOpen + '" title="' + esc(title) + '" aria-label="' + esc(title) + '"></button>'
+    + (ui.syncOpen ? '<div class="sync-drawer" role="menu"><button type="button" role="menuitem" class="dk-choice" data-action="sync-github"' + (syncing ? ' disabled' : '') + '>Sync now</button>'
+      + '<a role="menuitem" class="dk-choice" href="settings.html#sync-section">Sync settings</a></div>' : '');
 }
 
 // The one place errors and notices appear, on every page: pinned to the bottom of the viewport
@@ -38,34 +41,65 @@ export function renderSyncButton(st) {
 // One activity at a time (#135): the screens, and the rail that switches between them (a column
 // on the left on a wide screen, a bar along the bottom on a phone). Adding stays on every screen:
 // it is the jotter in the topbar. See docs/4-systems/styling.md#one-screen-at-a-time
-export const SCREENS = ['focus', 'sort', 'board', 'projects'];
+export const SCREENS = ['sort', 'tidy', 'triage', 'projects', 'roadmap', 'focus', 'review'];
 const SCREEN_INFO = {
-  focus: { label: 'Focus', icon: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>' },
-  sort: { label: 'Sort', icon: '<path d="M4 7h16M4 12h10M4 17h6"/>' },
-  board: { label: 'Board', icon: '<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="9.5" y="4" width="5" height="11" rx="1.5"/><rect x="16" y="4" width="5" height="7" rx="1.5"/>' },
-  projects: { label: 'Projects', icon: '<path d="M3 7h7l2 2h9v10H3z"/>' },
+  focus: { label: 'Focus', icon: '◎' },
+  sort: { label: 'Sort', icon: '📥' },
+  review: { label: 'Review', icon: '✓' },
+  tidy: { label: 'Tidy up', icon: '🧹' },
+  triage: { label: 'Triage', icon: '🧹' },
+  projects: { label: 'Projects', icon: '📁' },
+  roadmap: { label: 'Roadmap', icon: '🗺' },
 };
-export function normalizeScreen(value) { return SCREENS.includes(value) ? value : 'focus'; }
-// The Board screen's markup is in js/board-view.js (#144).
-export { renderBoard } from './board-view.js';
-// syncHTML is the sync button (renderSyncButton): on a wide screen it and Settings sit at the foot of
-// the rail instead of the topbar; .rail-tools is hidden on a phone, where the topbar keeps them.
-export function renderRail(screen, unsortedCount, syncHTML = '') {
-  return '<nav class="rail" aria-label="What to do">' + SCREENS.map((key) => {
-    const on = key === screen;
-    const count = key === 'sort' && unsortedCount ? '<b class="rail-count" aria-label="' + unsortedCount + ' to sort">' + unsortedCount + '</b>' : '';
-    return '<button type="button" class="rail-item' + (on ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + key + '"' + (on ? ' aria-current="page"' : '') + '>'
-      + '<span class="rail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SCREEN_INFO[key].icon + '</svg>' + count + '</span>'
-      + '<span class="rail-label">' + SCREEN_INFO[key].label + '</span></button>';
-  }).join('') + '<div class="rail-tools">' + syncHTML + '<a href="settings.html" class="icon-btn rail-settings" aria-label="Settings" title="Settings">' + ICON_SETTINGS + '<span class="rail-settings-label" aria-hidden="true">Settings</span></a></div></nav>';
+// A saved screen from before the Projects tab (Board) opens Projects; anything else unknown (Start here) opens Focus.
+export function normalizeScreen(value) { return SCREENS.includes(value) ? value : value === 'board' ? 'projects' : 'focus'; }
+// The six tabs, drawn as ring-binder dividers (.dk-tabs), in the order of the flow. Organize holds Tidy up and Triage.
+// Only Sort and Review carry a count. See docs/4-systems/tabs.md
+export function renderRail(screen, unsortedCount, reviewCount = 0) {
+  const org = screen === 'tidy' || screen === 'triage';
+  const tab = (label, key, on, attrs, count, countLabel) => '<button type="button" class="rail-item dk-tab' + (on ? ' is-on on' : '') + '" data-action="set-screen" ' + attrs + (on ? ' aria-current="page"' : '') + '>'
+    + '<span class="rail-icon" aria-hidden="true">' + SCREEN_INFO[key].icon + '</span>' + (count ? '<b class="rail-count" aria-label="' + count + ' ' + countLabel + '">' + count + '</b>' : '')
+    + '<span class="rail-label">' + label + '</span></button>';
+  const sub = (k) => '<button type="button" class="rail-sub' + (screen === k ? ' is-on' : '') + '" data-action="set-screen" data-screen="' + k + '"' + (screen === k ? ' aria-current="page"' : '') + '>' + SCREEN_INFO[k].label + '</button>';
+  return '<nav class="rail dk-tabs" aria-label="What to do">'
+    + tab('Sort', 'sort', screen === 'sort', 'data-screen="sort"', unsortedCount, 'to sort')
+    + tab('Organize', 'tidy', org, 'data-go="tidy"', 0, '')
+    + '<div class="rail-subs">' + sub('tidy') + sub('triage') + '</div>'
+    + tab('Projects', 'projects', screen === 'projects', 'data-screen="projects"', 0, '')
+    + tab('Roadmap', 'roadmap', screen === 'roadmap', 'data-screen="roadmap"', 0, '')
+    + tab('Focus', 'focus', screen === 'focus', 'data-screen="focus"', 0, '')
+    + tab('Review', 'review', screen === 'review', 'data-screen="review"', reviewCount, 'to review')
+    + '</nav>';
 }
 
 // The jotter's "To:" stamp (#242): ui.jotTo undefined follows the screen (Board's chosen project, or
 // Projects' single selected project); a project that no longer exists falls back to '' (Unsorted).
 export function jotTarget(st, ui) {
   let id = ui.jotTo;
-  if (id === undefined) id = (ui.screen === 'board' && ui.boardProject) || (ui.screen === 'projects' && ui.projectView === 'one' && ui.selectedProjectId) || '';
+  if (id === undefined) id = (ui.view && ui.view.mode === 'project' && ui.screen === 'roadmap' && ui.view.id) || '';
   return st.projects.some((p) => p.id === id) ? id : '';
+}
+
+// The + Jot screen (#263): a clipboard over the current tab with the jotter, a "where it goes" index card
+// and a Save stamp; ui.jotPick opens the card-index drawer of destinations. Not repainted by paint().
+export function renderJotScreen(st, ui) {
+  if (!ui.jotOpen) return '';
+  const target = jotTarget(st, ui), proj = st.projects.find((p) => p.id === target);
+  const dest = proj ? '📁 ' + esc(proj.name) : '📥 Sort';
+  const card = (id, label, on) => '<button type="button" class="dk-choice' + (on ? ' on' : '') + '" data-action="jot-pick" data-id="' + esc(id) + '" aria-pressed="' + on + '">' + label + '</button>';
+  const drawer = ui.jotPick
+    ? '<div class="vs-backdrop" data-action="jot-where"></div><div class="vs-pop dk-sheet jot-drawer" role="dialog" aria-modal="true" aria-label="Where should it go?" tabindex="-1">'
+      + '<div class="vs-pop-head"><b>Where should it go?</b><button type="button" class="vs-x" data-action="jot-where" aria-label="Close">×</button></div>'
+      + '<div class="vs-pop-body">' + card('', '📥 Sort', !target)
+      + '<input type="search" class="vs-search" data-jot-search placeholder="Find a project…" aria-label="Find a project">'
+      + st.projects.map((p) => '<span data-jot-name="' + esc(p.name.toLowerCase()) + '">' + card(p.id, '📁 ' + esc(p.name), p.id === target) + '</span>').join('')
+      + '</div></div>'
+    : '';
+  return '<div class="jot-screen" role="dialog" aria-modal="true" aria-label="Jot a thought"><div class="dk-board jot-board">'
+    + '<div class="vs-pop-head"><b>Jot a thought</b><button type="button" class="vs-x" data-action="jot-close" aria-label="Close">×</button></div>'
+    + '<div class="dk-paper jot-paper"><div class="jotter"><textarea id="jot-input" rows="5" placeholder="Type it here…" aria-label="Your thought">' + esc(ui.jotDraft || '') + '</textarea></div>'
+    + '<button type="button" class="dk-choice jot-where" data-action="jot-where" aria-haspopup="dialog" aria-expanded="' + !!ui.jotPick + '">Where it goes <small>' + dest + ' ▾</small></button>'
+    + '<button type="button" class="dk-btn jot-save" data-action="jot-save">Save</button></div></div>' + drawer + '</div>';
 }
 
 // action (optional): { label, action, attrs } renders a button before the close button.
@@ -79,8 +113,8 @@ export function renderToast(text, kind, action) {
     + '</div>';
 }
 
-// The focus picker: two wallets (js/wallet.js). Projects are manila folders; categories are index
-// cards, narrowed to the project facing you. Why and how: docs/4-systems/wallets.md
+// The carousel pieces Focus, Sort and Sort several share (js/wallet.js). Projects are manila folders;
+// kinds of work are index cards. Focus's own screens are in js/focus-view.js. Why and how: docs/4-systems/wallets.md
 export const ALL_PROJECTS_KEY = 'all';
 export const ANY_CATEGORY_KEY = 'any';
 
@@ -90,7 +124,7 @@ export function focusProjectId(st, ui) {
   return st.projects.some((p) => p.id === f.projectId) ? f.projectId : null;
 }
 
-function openWhere(st, catId, projId) {
+export function openWhere(st, catId, projId) {
   const out = [];
   st.projects.forEach((p) => {
     if (projId && p.id !== projId) return;
@@ -101,10 +135,10 @@ function openWhere(st, catId, projId) {
 
 // One card in a wallet. `key` is what the hooks in js/app.js get back; `speak` is read aloud when
 // the card comes to face you.
-export function sleeve({ key, name, color, detail, speak, kind, picked }) {
+export function sleeve({ key, name, color, speak, kind, picked }) {
   return '<div class="sleeve" data-key="' + esc(key) + '" data-speak="' + esc(speak) + '">'
     + '<button type="button" tabindex="-1" class="icard' + (kind ? ' ' + kind : '') + (picked ? ' is-picked' : '') + '" style="--c:' + color + '">'
-    + '<span class="nm">' + esc(name) + '</span><span class="ct">' + esc(detail) + '</span><span class="go"></span></button></div>';
+    + '<span class="nm">' + esc(name) + '</span></button></div>';
 }
 
 // The strip itself. `facing` goes in the markup as data-facing so a repaint puts the same card in
@@ -117,131 +151,6 @@ export function walletInner({ wallet, label, aria, items, facing, mode, verb }) 
 
 export function focusChoosingMode(st) {
   return normalizeChoosingMode(st.choosingMode && st.choosingMode.mode);
-}
-
-// The category wallet's contents (header and strip). Re-rendered on its own when the project
-// wallet flips, so the project wallet's scroll animation is not cut off by a whole repaint.
-export function renderCategoryWalletInner(st, ui) {
-  const projectId = focusProjectId(st, ui);
-  const labels = st.categories.map((c) => ({ id: c.id, name: formatLabelName(c.name), color: mutedChip(c.color), matches: openWhere(st, c.id, projectId) }))
-    .filter((x) => x.matches.length)
-    .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
-  // Tasks with no label get their own card (neutral colour), and "Surprise me" (no type at all) is the last card.
-  const unlabelled = openWhere(st, null, projectId).filter(({ t }) => !(t.categoryIds || []).length);
-  if (unlabelled.length) labels.push({ id: UNLABELLED, name: 'Unlabelled', color: 'var(--ink-faint)', matches: unlabelled });
-  labels.push({ id: ANY_CATEGORY_KEY, name: 'Surprise me', color: 'var(--accent)', matches: openWhere(st, null, projectId) });
-  const cards = labels.map((x) => {
-    const detail = focusCardDetail(x.matches, !projectId);
-    return sleeve({ key: x.id, name: x.name, color: x.color, detail, speak: x.name + ', ' + detail });
-  });
-  const wanted = ui && ui.focusCategory;
-  const facing = labels.some((x) => x.id === wanted) ? wanted : labels[0].id;
-  return walletInner({ wallet: 'categories', label: 'Category', aria: 'Categories. Arrow keys flip, Enter chooses.', items: cards, facing, mode: focusChoosingMode(st) });
-}
-
-function renderFocusPicker(st, ui) {
-  const projectId = focusProjectId(st, ui);
-  if (!st.projects.some((p) => p.tasks.some((t) => t.status !== 'done'))) {
-    // an empty desk, with the next step spelled out (a project can be added from the list; a stray
-    // thought can go on the jotter above and be sorted later)
-    return '<section class="focus-card focus-empty desk-empty">'
-      + '<h2 class="focus-q">Your desk is clear.</h2>'
-      + (st.projects.length
-        ? '<p class="muted">Nothing is waiting to be picked. Add a task to a project on the Projects screen, or jot a thought on the pad above and sort it later.</p>'
-        : '<p class="muted">Nothing is waiting to be picked. Make your first project on the Projects screen and add a task to it, or jot a thought on the pad above and sort it later.</p>')
-      + '<button type="button" class="btn primary" data-action="set-screen" data-screen="projects">Go to Projects</button>'
-      + '</section>';
-  }
-  const mode = focusChoosingMode(st);
-  // Folders: All projects first, then busiest first. A project with nothing open is left out unless it is the one facing you.
-  const projects = st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, matches: openWhere(st, null, p.id) }))
-    .filter((x) => x.matches.length || x.id === projectId)
-    .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
-  const all = openWhere(st, null, null);
-  const folders = [sleeve({ key: ALL_PROJECTS_KEY, name: 'All projects', color: 'var(--lamp-dot)', kind: 'project', detail: focusCardDetail(all, false), speak: 'All projects, ' + focusCardDetail(all, false) })]
-    .concat(projects.map((x) => {
-      const detail = focusCardDetail(x.matches, false);
-      return sleeve({ key: x.id, name: x.name, color: x.color, kind: 'project', detail, speak: x.name + ', ' + detail });
-    }));
-
-  return '<section class="card focus-card focus-empty wallet-root">'
-    + '<h2 class="focus-q">What&rsquo;s your focus right now?</h2>'
-    + '<p class="muted"><span class="only-narrow">Flip to a project</span><span class="only-wide">Pick a project</span> and a kind of work, and I&rsquo;ll surface one task.</p>'
-    + '<div class="wallet" id="project-wallet">' + walletInner({ wallet: 'projects', label: 'Project', aria: 'Projects. Arrow keys flip, Enter chooses.', items: folders, facing: projectId || ALL_PROJECTS_KEY, mode }) + '</div>'
-    + '<div class="wallet" id="category-wallet">' + renderCategoryWalletInner(st, ui) + '</div>'
-    + '<div class="flip-hint">' + CHOOSING_MODE_INFO[mode].hint + '</div>'
-    + '<div class="sr-only" id="wallet-live" aria-live="polite"></div>'
-    + '</section>';
-}
-
-// "3 open · top: High · 2 projects": the count, the highest priority present, and (when not
-// narrowed to one project) how many projects the tasks come from.
-function focusCardDetail(matches, acrossProjects) {
-  const parts = [matches.length + ' open'];
-  const top = PRIORITY_ORDER.find((lvl) => matches.some(({ t }) => t.priority === lvl));
-  if (top) parts.push('top: ' + PRIORITY[top].label);
-  const projects = new Set(matches.map(({ p }) => p.id)).size;
-  if (acrossProjects && projects > 1) parts.push(projects + ' projects');
-  return parts.join(' · ');
-}
-
-export function renderFocus(st, findTaskWithProject, ui) {
-  if (!st.focus) return renderFocusPicker(st, ui);
-  const found = findTaskWithProject(st.focus.taskId);
-  if (!found) { state.focus = null; return renderFocus(st, findTaskWithProject, ui); }
-  const t = found.task, p = found.project;
-  const deadlineHTML = t.deadline ? deadlineChip(t.deadline, t) : '';
-  const canReroll = st.focus.pool && st.focus.pool.length > 1;
-  // a repaint during the "I've done it" sequence (js/focus-complete.js) draws the phase it had reached
-  const leaving = ui && ui.completing && ui.completing.taskId === t.id ? phaseClasses(ui.completing.phase) : { button: '', note: '' };
-  return '<section class="focus-card focus-active desk-focus">'
-    + '<div class="note-shadow"><div class="note' + leaving.note + '">'
-      + '<div class="note-meta">'
-        + '<button type="button" class="note-project" data-action="scroll-project" data-project="' + p.id + '" title="Go to ' + esc(p.name) + '">' + esc(p.name) + ' ↓</button>'
-        + focusMetaParts(st, t)
-        + deadlineHTML
-      + '</div>'
-      + '<h2 class="focus-title"><span class="ink">' + esc(t.title) + '</span></h2>'
-      + nextSubLine(st, t)
-    + '</div></div>'
-    + (t.status === 'next' ? '<div class="focus-doing"><button type="button" class="btn-text focus-doing-btn" data-action="focus-doing">Mark in progress</button></div>'
-      : t.status === 'doing' ? '<div class="focus-doing"><span class="focus-doing-mark">In progress</span></div>' : '')
-    + '<div class="desk-acts' + (canReroll ? '' : ' is-single') + '">'
-      + '<button type="button" class="check-btn' + leaving.button + '" data-action="complete-focus">'
-        + '<span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="tick" d="M4.5 12.8l4.6 4.7L19.8 6.2"/></svg></span>'
-        + '<span class="check-words"><span class="slip-main">I&rsquo;ve done it</span><span class="slip-sub">mark it done</span></span>'
-      + '</button>'
-      + (canReroll ? '<button type="button" class="slip-btn" data-action="reroll"><span class="slip-main">Not this one</span><span class="slip-sub">pick another task</span></button>' : '')
-    + '</div>'
-    + '<div class="desk-clear"><button type="button" class="btn-text" data-action="clear-focus">Clear</button></div>'
-    + '</section>';
-}
-
-// The note's line after the project: the task's labels (or why it was picked when it has none), then
-// its priority. Plain words, separated by a dot in CSS; the deadline chip follows separately.
-function focusMetaParts(st, t) {
-  const focus = st.focus;
-  const parts = [];
-  const labels = (t.categoryIds || []).map((id) => (st.categories || []).find((c) => c.id === id)).filter(Boolean);
-  if (focus.filter && focus.filter.categoryId === UNLABELLED) parts.push('Unlabelled');
-  labels.forEach((c) => parts.push(formatLabelName(c.name)));
-  const n = unblockCount(st.projects || [], t.id);
-  let reason = '';
-  if (focus.pool && !(focus.filter && focus.filter.categoryId)) {
-    if (focus.allBlocked) parts.push('Everything here is waiting on something');
-    else if (n > 0) reason = '<span><b class="unblocks">Unblocks ' + n + (n === 1 ? ' task' : ' tasks') + '</b></span>';
-    else parts.push('Random pick');
-  }
-  if (t.priority && PRIORITY[t.priority]) parts.push(PRIORITY[t.priority].label);
-  return reason + parts.map((x) => '<span>' + esc(x) + '</span>').join('');
-}
-
-// "Next step: <first open subtask> · N subtasks left" with a button that focuses it
-function nextSubLine(st, t) {
-  const open = subtasksOf(st.projects || [], t.id).filter((s) => s.status !== 'done');
-  if (!open.length) return '';
-  return '<p class="next-sub">Next step: <b>' + esc(open[0].title) + '</b> · ' + open.length + (open.length === 1 ? ' subtask' : ' subtasks') + ' left '
-    + '<button type="button" class="btn-text" data-action="focus-subtask" data-task="' + open[0].id + '">Start it</button></p>';
 }
 
 // The Unsorted queue: captured thoughts (oldest first), then every open task with no labels, in
@@ -392,9 +301,10 @@ export function renderTaskRow(t, p, categories, ui, projects = [], isSub = false
   const claudeChip = t.claudeCreated
     ? '<span class="chip cat-chip claude-chip small" title="Claude created" aria-label="Claude created" style="--chip-color:var(--ink-soft)">Claude created</span>'
     : '';
-  const priorityChip = t.priority && PRIORITY[t.priority]
-    ? '<button type="button" class="chip priority-chip small" data-action="cycle-priority" data-task="' + t.id + '" title="Priority — tap to change" style="--chip-color:var(--prio-' + t.priority + ')"' + (isDone ? ' disabled' : '') + '>' + PRIORITY[t.priority].label + '</button>'
-    : '';
+  // the chips open a small picker (js/pick-bits.js); a done task shows what it had, not editable
+  const priorityChip = isDone
+    ? (effectivePriority(t, state) ? '<span class="chip priority-chip small" style="--chip-color:var(--prio-' + effectivePriority(t, state) + ')">' + PRIORITY[effectivePriority(t, state)].label + '</span>' : '')
+    : pickChip('priority', t);
   // Open rows carry a drag grip before the checkbox (PR 11); done rows don't drag. The grip is a real
   // button so the arrow keys work on it (js/project-drag.js). See docs/4-systems/styling.md#dragging-tasks
   const grip = isDone ? '' : '<button type="button" class="task-grip" data-task="' + t.id + '" data-project="' + p.id + '" aria-label="Move ' + esc(t.title) + '" title="Drag to move, or use the arrow keys">' + ICON_GRIP + '</button>';
@@ -405,146 +315,11 @@ export function renderTaskRow(t, p, categories, ui, projects = [], isSub = false
     // right 25% (kept even when there are no chips, so the title never grows into it) -- #97, #92
     + '<span class="task-title" data-action="edit-task" data-task="' + t.id + '" data-project="' + p.id + '" role="button" tabindex="0">' + esc(t.title) + claudeMarks(t) + tieLineHtml(ties) + '</span>'
     + '<div class="task-chips">' + priorityChip + catChips + claudeChip
-    + (t.deadline ? deadlineChip(t.deadline, t) : '')
+    + (isDone ? (t.deadline ? deadlineChip(t.deadline, t) : '') : pickChip('due', t))
     + '</div>'
     + '</div>';
 }
 
-// The project controls (category pills, sort, collapse all) are shared by the filter bar above the
-// project cards and the wide-screen sidebar.
-function projectFilterPills(st, ui) {
-  const usedCategoryIds = new Set(st.projects.map((p) => p.categoryId).filter(Boolean));
-  const hasUncategorized = st.projects.some((p) => !p.categoryId);
-  const pills = [{ key: '', label: 'All' }]
-    .concat(st.projectCategories.filter((c) => usedCategoryIds.has(c.id)).map((c) => ({ key: c.id, label: c.name })))
-    .concat(hasUncategorized ? [{ key: '__uncat__', label: 'Uncategorized' }] : []);
-  const activeKey = ui.projectFilter === undefined ? '' : (ui.projectFilter === null ? '__uncat__' : ui.projectFilter);
-  const pillsHTML = pills.map((pill) => {
-    const active = pill.key === activeKey;
-    return '<button type="button" class="filter-pill' + (active ? ' active' : '') + '" data-action="set-project-filter" data-category="' + pill.key + '">' + esc(pill.label) + '</button>';
-  }).join('');
-  return pillsHTML;
-}
-function projectSortSelect(ui) {
-  const sortOptions = [
-    ['name', 'Name (A–Z)'], ['open-tasks', 'Most open tasks'], ['deadline', 'Closest deadline'], ['recent-sync', 'Recently synced'], ['custom', 'Custom order'],
-  ].map(([value, label]) => '<option value="' + value + '"' + (ui.projectSort === value ? ' selected' : '') + '>' + esc(label) + '</option>').join('');
-  return '<select class="project-sort-select" data-action="set-project-sort" aria-label="Sort projects">' + sortOptions + '</select>';
-}
-function collapseAllButton(ui, visibleProjects) {
-  // Minimising does nothing useful in the "One" view (there's only ever one card on screen), so
-  // "Collapse all" is left out there rather than shown disabled. See docs/4-systems/styling.md.
-  if (ui.projectView === 'one') return '';
-  const allCollapsed = !!(visibleProjects && visibleProjects.length && visibleProjects.every((p) => ui.projectCollapsed[p.id]));
-  const collapseAllBtn = visibleProjects && visibleProjects.length
-    ? '<button type="button" class="btn-text small" data-action="toggle-collapse-all">' + (allCollapsed ? 'Expand all' : 'Collapse all') + '</button>'
-    : '';
-  return collapseAllBtn;
-}
-
-// The "All" / "One" switch (PR 6, 2026-09-27): a two-option segmented control, styled as pills like
-// every other choice in the sidebar. Sits right under the "Projects" title row so it reads as the
-// list's own setting, not a filter. See docs/6-decisions/Decisions.md.
-function renderViewSwitch(ui) {
-  const view = ui.projectView === 'one' ? 'one' : 'all';
-  const option = (value, label) => '<button type="button" class="filter-pill' + (view === value ? ' active' : '') + '" data-action="set-project-view" data-view="' + value + '" aria-pressed="' + (view === value) + '">' + label + '</button>';
-  return '<div class="view-switch" role="group" aria-label="Project view">' + option('all', 'All projects') + option('one', 'One project') + '</div>';
-}
-
-// The "+ New" panel (PR 7, replacing the old bottom add field, Q29a): a two-tab segmented control
-// (New project / GitHub repo) that opens directly under the header row. See
-// docs/4-systems/styling.md#add-a-project-or-a-repo.
-function renderRepoRow(r) {
-  return '<li class="repo-row"><span class="repo-name">' + esc(r.full_name) + '</span>'
-    + (r.private ? '<span class="chip small">Private</span>' : '')
-    + '<button type="button" class="btn-text small" data-action="track-repo" data-repo="' + esc(r.full_name) + '">Track</button></li>';
-}
-function renderYourRepos(ui) {
-  const rs = ui.newPanelRepos || {};
-  if (rs.loading) return '<p class="muted small">Loading your repos…</p>';
-  if (rs.error) return '<p class="field-error small">' + esc(rs.error) + ' <button type="button" class="link-btn small" data-action="retry-new-panel-repos">Retry</button></p>';
-  const repos = rs.list || [];
-  const q = (ui.newPanelRepoFilter || '').toLowerCase();
-  const filtered = q ? repos.filter((r) => r.full_name.toLowerCase().includes(q)) : repos;
-  const filterBox = repos.length > 8
-    ? '<input type="text" class="repo-filter" data-action="set-repo-filter" placeholder="Filter repos…" value="' + esc(ui.newPanelRepoFilter || '') + '">'
-    : '';
-  const rows = filtered.map(renderRepoRow).join('');
-  return filterBox + '<ul class="repo-list">' + (rows || '<li class="muted small">No untracked repos.</li>') + '</ul>';
-}
-function renderPasteRepo(ui) {
-  return '<form class="add-project-form" data-action="paste-repo">'
-    + '<input type="text" name="value" placeholder="owner/repo or URL" required>'
-    + '<button type="submit">Track</button>'
-    + '</form>'
-    + (ui.newPanelPasteError ? '<p class="field-error small">' + esc(ui.newPanelPasteError) + '</p>' : '');
-}
-function renderCreateRepo(ui) {
-  return '<details class="new-repo-disclosure"' + (ui.newPanelCreateOpen ? ' open' : '') + '>'
-    + '<summary>Create a new repo on GitHub</summary>'
-    + '<form class="new-repo-form" data-action="create-repo">'
-      + '<input type="text" name="name" placeholder="repo-name" required>'
-      + '<p class="muted small">letters, numbers, dots, hyphens and underscores only, no spaces</p>'
-      + '<label><input type="checkbox" name="private" checked> Private</label>'
-      + '<input type="text" name="description" placeholder="Description (optional)">'
-      + '<button type="submit">Create</button>'
-    + '</form>'
-    + (ui.newPanelCreateError ? '<p class="field-error small">' + esc(ui.newPanelCreateError) + '</p>' : '')
-    + '</details>';
-}
-function renderNewRepoTab(ui, hasToken) {
-  if (!hasToken) return '<p class="muted small">Connect GitHub in <a href="settings.html">Settings</a> to add repos.</p>';
-  return '<div class="new-panel-section"><h4 class="group-label">Your repos</h4>' + renderYourRepos(ui) + '</div>'
-    + '<div class="new-panel-section"><h4 class="group-label">Paste</h4>' + renderPasteRepo(ui) + '</div>'
-    + '<div class="new-panel-section">' + renderCreateRepo(ui) + '</div>';
-}
-function renderNewPanel(ui, hasToken) {
-  if (!ui.newPanelOpen) return '';
-  const tab = ui.newPanelTab === 'repo' ? 'repo' : 'project';
-  const tabBtn = (value, label) => '<button type="button" class="filter-pill' + (tab === value ? ' active' : '') + '" data-action="set-new-panel-tab" data-tab="' + value + '" aria-pressed="' + (tab === value) + '">' + label + '</button>';
-  const tabs = '<div class="view-switch" role="group" aria-label="Add">' + tabBtn('project', 'New project') + tabBtn('repo', 'GitHub repo') + '</div>';
-  const body = tab === 'project'
-    ? '<form class="add-project-form" data-action="add-new-project"><input type="text" name="name" placeholder="Project name" maxlength="200" required autofocus><button type="submit">Add</button></form>'
-    : renderNewRepoTab(ui, hasToken);
-  return '<div class="new-panel" id="new-panel">' + tabs + body + '</div>';
-}
-
-// The single project list: search, category pills, sort, Collapse all, and a row per project that
-// jumps to its card. CSS shows it as a sticky left column at >=1100px; below that it's the drawer
-// opened from the topbar's Projects button (see app.js's toggle-projects-drawer/scroll-project).
-// See docs/4-systems/styling.md#project-sidebar
-export function renderProjectSidebar(st, ui, visibleProjects, hasToken) {
-  if (!st.projects.length) return '';
-  const isOpen = !!ui.projectsDrawerOpen;
-  const isOneView = ui.projectView === 'one';
-  const open = (p) => p.tasks.filter((t) => t.status !== 'done').length;
-  const rows = visibleProjects.map((p) => {
-    // Selection only means anything in the "One" view (PR 6): an "All" row just scrolls to the
-    // project's card/tile, with no "current" project and no aria-current there.
-    const isSelected = isOneView && ui.selectedProjectId === p.id;
-    return '<li><button type="button" class="sidebar-project' + (isSelected ? ' is-selected' : '') + '" data-action="scroll-project" data-project="' + p.id + '" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown" style="--dot:' + p.color + '"' + (isSelected ? ' aria-current="true"' : '') + '>'
-      + '<span class="dot"></span><span class="sidebar-name">' + esc(p.name) + '</span><span class="sidebar-count" title="Open tasks">' + open(p) + '</span></button></li>';
-  }).join('');
-  return '<div class="drawer-backdrop' + (isOpen ? ' is-open' : '') + '" data-action="close-projects-drawer"></div>'
-    // a modal dialog only while open as the phone drawer; otherwise a plain landmark, so the wide-screen
-    // sidebar doesn't tell screen readers the rest of the page is out of reach
-    + '<aside class="project-sidebar' + (isOpen ? ' is-open' : '') + '" id="projects-drawer" tabindex="-1" aria-label="Projects"' + (isOpen ? ' role="dialog" aria-modal="true"' : '') + '>'
-    + '<div class="sidebar-head"><h2 class="sidebar-title">Projects</h2><div class="sidebar-head-right"><span class="muted small">' + visibleProjects.length + '</span>'
-      + '<button type="button" class="link-btn small" id="new-panel-toggle" data-action="toggle-new-panel" aria-expanded="' + !!ui.newPanelOpen + '" aria-controls="new-panel">+ New</button></div></div>'
-    + renderNewPanel(ui, hasToken)
-    + renderViewSwitch(ui)
-    + '<input type="text" class="project-search sidebar-search" data-action="set-project-query" placeholder="Search projects…" value="' + esc(ui.projectQuery || '') + '">'
-    + '<div class="filter-pills sidebar-pills">' + projectFilterPills(st, ui) + '</div>'
-    + '<div class="sidebar-tools">' + projectSortSelect(ui) + collapseAllButton(ui, visibleProjects) + '</div>'
-    + '<ul class="sidebar-list">' + (rows || '<li class="muted small">No projects match.</li>') + '</ul>'
-    + '</aside>';
-}
-
-// The project header's Edit panel (Q15a): the category picker (moved off the header itself) and
-// Remove project (moved off the header's own button), both under one "Edit" link. Replaces the
-// old header "+ Category" placeholder and "Remove" button.
-// Q30c (PR 7): a hand-made (non-GitHub) project also gets a "Link to GitHub repo" row here, opening
-// the same repo picker (your untracked repos + paste, no Create) inline in the panel.
 function renderLinkRepoPanel(p, ui) {
   if (!ui.linkPanel || ui.linkPanel.projectId !== p.id || !ui.linkPanel.open) return '';
   const err = ui.linkPanel.error ? '<p class="field-error small">' + esc(ui.linkPanel.error) + '</p>' : '';
@@ -570,19 +345,19 @@ function renderPasteRepoForLink() {
     + '<button type="submit">Link</button>'
     + '</form>';
 }
-function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
+export function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
   const total = p.tasks.length;
   const pendingRemove = !!ui.pendingRemove[p.id];
-  const projCatOptions = projectCategories.map((c) => '<option value="' + c.id + '"' + (p.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
-  const catSelect = '<label class="project-edit-cat">Category '
-    + '<select data-action="set-project-category" data-project="' + p.id + '"><option value="">No category</option>' + projCatOptions + '<option value="__new__">+ Add new…</option></select>'
+  const projCatOptions = projectCategories.filter((c) => c.id !== UNSORTED_ID).map((c) => '<option value="' + c.id + '"' + (p.categoryId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
+  const catSelect = '<label class="project-edit-cat">Area '
+    + '<select data-action="set-project-category" data-project="' + p.id + '"><option value="">Unsorted</option>' + projCatOptions + '<option value="__new__">+ Add an area…</option></select>'
     + '</label>';
   // Colour without right-click (#95): native colour inputs, wired in app.js (input previews, change commits).
   const colorInput = (kind, id, color, label) => '<label class="project-edit-cat">' + label
     + ' <input type="color" class="cat-color-input" data-color-for="' + kind + '" data-id="' + id + '" value="' + cssColorToHex(color) + '"></label>';
   const projCat = projectCategories.find((c) => c.id === p.categoryId);
   const colorRows = colorInput('project', p.id, p.color, 'Colour')
-    + (projCat ? colorInput('project-category', projCat.id, projCat.color, 'Category colour') : '');
+    + (projCat ? colorInput('project-category', projCat.id, projCat.color, 'Area colour') : '');
   const removeControl = pendingRemove
     ? '<span class="remove-confirm">Remove' + (total ? (' &amp; ' + total + ' task' + (total === 1 ? '' : 's')) : '') + '? <button type="button" class="btn-text danger" data-action="confirm-remove-project" data-project="' + p.id + '">Yes</button><button type="button" class="btn-text" data-action="cancel-remove-project" data-project="' + p.id + '">No</button></span>'
     : '<button type="button" class="btn-text danger" data-action="remove-project" data-project="' + p.id + '">Remove project</button>';
@@ -592,20 +367,6 @@ function renderProjectEditPanel(p, ui, projectCategories, hasToken) {
     : '';
   return '<div class="project-edit-panel">' + catSelect + colorRows + removeControl
     + '<button type="button" class="btn-text" data-action="close-project-edit" data-project="' + p.id + '">Done</button>' + linkRow + '</div>';
-}
-
-// One of a project's two open-task groups. Both always render, so a task can be dropped into either
-// (PR 11): an empty one stays hidden (CSS) until a task is being dragged, then shows a "Drop here"
-// zone. Rows are in ascending sortOrder. See docs/4-systems/styling.md#dragging-tasks
-function taskGroup(p, status, label, tasks, ui, categories, projects) {
-  // a task whose parent is an open task in this group is drawn right after it (after earlier siblings)
-  const sorted = sortTasks(tasks), ids = new Set(sorted.map((t) => t.id));
-  const rows = sorted.filter((t) => !(t.parentId && ids.has(t.parentId))).map((t) => [t].concat(sorted.filter((c) => c.parentId === t.id))
-    .map((r) => renderTaskRow(r, p, categories, ui, projects, r !== t)).join('')).join('');
-  return '<div class="task-group' + (tasks.length ? '' : ' is-empty') + '" data-group="' + status + '" data-project="' + p.id + '">'
-    + '<h4 class="group-label">' + label + '</h4>' + rows
-    + (tasks.length ? '' : '<div class="drop-zone">Drop here</div>')
-    + '</div>';
 }
 
 // The confirmation shown before a task move that touches GitHub (js/move-dialog.js puts it on the
@@ -623,105 +384,20 @@ export function renderMoveDialog(message, actionLabel = 'Move') {
 
 // The one-line add row at a project card's foot (docs/4-systems/quick-add.md). "More" opens the
 // old boxes underneath; `draft` is the title typed so far, so a repaint does not lose it (#235).
-export function renderAddTaskRow(project, categories, isMoreOpen, draft, placeholder) {
-  const id = esc(project.id);
+export function renderAddTaskRow(project, categories, isMoreOpen, draft, placeholder, pick) {
+  const id = esc(project.id), S = pick || {};
   return '<form class="add-task-form add-row" data-action="add-task" data-project="' + id + '">'
     + '<div class="add-line"><span class="add-plus" aria-hidden="true">+</span>'
       + '<input type="text" name="title" maxlength="280" required placeholder="' + esc(placeholder || 'Add a task…') + '" aria-label="Add a task to ' + esc(project.name) + '" value="' + esc(draft || '') + '">'
       + '<button type="button" class="btn-text" data-action="toggle-add-more" data-project="' + id + '" aria-expanded="' + !!isMoreOpen + '">' + (isMoreOpen ? 'Less' : 'More') + '</button>'
-      + '<button type="submit" class="btn primary">Add</button></div>'
+      + '<button type="submit" class="btn primary"' + (S.priority ? '' : ' disabled') + '>' + 'Add</button></div>'
+    // priority (required) and due date, shown once there is a title (#249); app.js keeps them in ui.addPick
+    + renderPickBlocks(S, 'add', { project: project.id }, !String(draft || '').trim(), undefined, 'Pick a priority to add')
     + (isMoreOpen
       ? '<div class="add-more">'
           + '<textarea name="steps" placeholder="Steps (optional, one per line)…" rows="2"></textarea>'
-          + renderPrioritySelect(null)
-          + '<input type="date" name="deadline">'
           + renderLabelPicker(categories, [], project)
         + '</div>'
       : '')
     + '</form>';
-}
-
-export function renderProjectCard(p, ui, categories, projectCategories, hasToken, projects = []) {
-  const doing = p.tasks.filter((t) => t.status === 'doing');
-  const next = p.tasks.filter((t) => t.status === 'next');
-  const done = p.tasks.filter((t) => t.status === 'done');
-  const total = p.tasks.length;
-  const pct = total ? Math.round((done.length / total) * 100) : 0;
-  const doneOpen = !!ui.doneOpen[p.id];
-  const isOneView = ui.projectView === 'one';
-  // Minimising is back (PR 6, 2026-09-27): the saved per-project flag applies in the "All" view, at
-  // every width. In the "One" view the flag is ignored at render (never written) -- the one card on
-  // screen always shows expanded, since minimising it would do nothing useful. See
-  // docs/4-systems/styling.md.
-  const collapsed = !isOneView && !!ui.projectCollapsed[p.id];
-  // Selection only means anything in the "One" view: below 1100px CSS hides every card but the
-  // selected one; from 1100px this class still marks which card is "current" for that view.
-  const isSelected = isOneView && ui.selectedProjectId === p.id;
-  const ghBadge = p.source === 'github' ? '<a class="chip gh-chip small" href="' + esc(p.htmlUrl || '#') + '" target="_blank" rel="noopener">' + (p.private ? 'Private · ' : '') + 'GitHub ↗</a>' : '';
-  const projCat = projectCategories.find((c) => c.id === p.categoryId);
-  const projCatChip = projCat ? '<span class="chip cat-chip small" data-cat-id="' + projCat.id + '" data-cat-type="project" title="Right-click to change color" style="--chip-color:' + projCat.color + '">' + esc(projCat.name) + '</span>' : '';
-  const editingPanel = !!ui.editingProject[p.id];
-  // The minimise button is hidden in the "One" view along with "Collapse all" (collapseAllButton,
-  // above) -- there's only ever one card on screen there.
-  const collapseBtn = isOneView ? '' : '<button type="button" class="btn-text collapse-toggle" data-action="toggle-project-collapse" data-project="' + p.id + '" aria-label="' + (collapsed ? 'Expand project' : 'Minimise project') + '" aria-expanded="' + (!collapsed) + '">' + (collapsed ? '▸' : '▾') + '</button>';
-  const editLink = '<button type="button" class="link-btn small" data-action="' + (editingPanel ? 'close-project-edit' : 'open-project-edit') + '" data-project="' + p.id + '">Edit</button>';
-  // The drag grip (PR 9) shows in the "All" view only: in "One" the list in the sidebar/drawer is
-  // the order, and there's a single card. A real button, so the arrow keys work on it too
-  // (js/project-drag.js). See docs/4-systems/styling.md#dragging-projects
-  const gripBtn = isOneView ? '' : '<button type="button" class="drag-grip" data-project="' + p.id + '" aria-label="Move ' + esc(p.name) + '" title="Drag to reorder, or use the arrow keys">' + ICON_GRIP + '</button>';
-  const addTaskBlock = renderAddTaskRow(p, categories, !!ui.addingTask[p.id], (ui.addDraft || {})[p.id] || '');
-  return '<section class="card project-card' + (collapsed ? ' is-collapsed' : '') + (isSelected ? ' is-selected' : '') + '" id="proj-' + p.id + '" style="--proj-color:' + p.color + '">'
-    // Line 1: dot, name (wraps, never truncated), collapse toggle + Edit -- always on this line,
-    // whatever the name's length (#83). Line 2 (badges) always renders, even empty, so a card's
-    // progress bar always sits at the same offset from its top as its neighbours'.
-    + '<div class="project-head">'
-      + '<div class="project-title">' + gripBtn + '<span class="dot" data-project-color="' + p.id + '" title="Right-click to set a custom color"></span><h3>' + esc(p.name) + '</h3></div>'
-      + '<div class="project-head-right">' + (p.deadline ? deadlineChip(p.deadline) : '') + collapseBtn + editLink + '</div>'
-    + '</div>'
-    + '<div class="project-badges">' + ghBadge + projCatChip + '</div>'
-    + (editingPanel ? renderProjectEditPanel(p, ui, projectCategories, hasToken) : '')
-    + '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>'
-    // The task groups, done group and the add row scroll inside a fixed-height tile at >=1100px
-    // (Q26a, #82) instead of the whole tile growing; below that width this is just a plain block in
-    // the page's own scroll. tabindex/role/aria-label keep the scroll region reachable by keyboard
-    // and named for a screen reader. See docs/4-systems/styling.md.
-    + (collapsed ? '' : (
-      '<div class="project-body" tabindex="0" role="region" aria-label="' + esc(p.name) + ' tasks">'
-      + taskGroup(p, 'doing', 'In progress', doing, ui, categories, projects)
-      + taskGroup(p, 'next', 'Up next', next, ui, categories, projects)
-      + (!doing.length && !next.length ? '<p class="muted small empty-note">Nothing open — add a task below.</p>' : '')
-      + (done.length ? (
-          '<button type="button" class="section-toggle small" data-action="toggle-done" data-project="' + p.id + '">' + (doneOpen ? '−' : '+') + ' ' + done.length + ' done</button>'
-          + (doneOpen ? '<div class="task-group done-group">' + done.map((t) => renderTaskRow(t, p, categories, ui, projects)).join('') + '</div>' : '')
-        ) : '')
-      + addTaskBlock
-      + '</div>'
-    ))
-    + '</section>';
-}
-
-// The main column's projects area: what renders depends on ui.projectView and, in "All", the
-// caller's isWide. Pure and directly testable. See docs/4-systems/styling.md#project-sidebar.
-export function renderProjectsMain(st, ui, visibleProjects, isWide, hasToken) {
-  const noMatch = st.projects.length && !visibleProjects.length ? '<p class="muted small">No projects match.</p>' : '';
-  // No projects at all is not a dead end (#124): say what goes here and offer the first one. The
-  // sidebar (home of the "+ New" panel) isn't drawn until there is a project, so the panel opens here.
-  if (!st.projects.length) {
-    return '<div class="desk-empty projects-empty"><p><strong>No projects yet.</strong> A project holds one project&rsquo;s tasks: a subject, a room, a side project.</p>'
-      + (ui.newPanelOpen ? renderNewPanel(ui, hasToken) : '<button type="button" class="btn primary" data-action="start-new-project">+ New project</button>') + '</div>';
-  }
-  const card = (p) => renderProjectCard(p, ui, st.categories, st.projectCategories, hasToken, st.projects);
-  if (ui.projectView === 'one') {
-    const selected = visibleProjects.find((p) => p.id === ui.selectedProjectId);
-    return '<div class="projects-grid">' + (selected ? card(selected) : noMatch) + '</div>';
-  }
-  if (isWide) {
-    const full = visibleProjects.filter((p) => !ui.projectCollapsed[p.id]);
-    const minimised = visibleProjects.filter((p) => ui.projectCollapsed[p.id]);
-    return '<div class="projects-grid">' + full.map(card).join('') + noMatch + '</div>'
-      + (minimised.length
-        ? '<div class="minimised-projects"><h4>Minimised</h4><div class="projects-grid minimised-grid">' + minimised.map(card).join('') + '</div></div>'
-        : '');
-  }
-  return '<div class="projects-grid">' + visibleProjects.map(card).join('') + noMatch + '</div>';
 }

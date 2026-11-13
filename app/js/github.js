@@ -82,6 +82,7 @@ function mapIssue(i) {
     subIssueCount: i.sub_issues_summary?.total || 0,
     blockedByCount: i.issue_dependencies_summary?.total_blocked_by || 0,
     title: i.title,
+    milestone: i.milestone ? i.milestone.title : null, // read only: shown as a Roadmap milestone (docs/4-systems/roadmap.md)
     labels: i.labels.map((l) => (typeof l === 'string' ? l : l.name)),
     // name -> GitHub's hex colour (no #), so a label first seen on GitHub keeps its colour here
     labelColors: Object.fromEntries(i.labels.filter((l) => typeof l !== 'string' && l.color).map((l) => [l.name, l.color])),

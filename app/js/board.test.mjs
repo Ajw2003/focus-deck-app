@@ -57,13 +57,13 @@ test('counts match the columns', () => {
   const st = state();
   st.projects[0].tasks.push(task('x', 'done', { completedAt: NOW - 1 }));
   const c = boardColumns(st, null, NOW);
-  assert.deepStrictEqual(c.counts, { next: c.next.length, doing: c.doing.length, done: c.done.length });
-  assert.deepStrictEqual(c.counts, { next: 4, doing: 2, done: 1 });
+  assert.deepStrictEqual(c.counts, { next: c.next.length, doing: c.doing.length, review: c.review.length, done: c.done.length });
+  assert.deepStrictEqual(c.counts, { next: 4, doing: 2, review: 0, done: 1 });
 });
 
 test('empty state and unknown project', () => {
   const empty = { inbox: [], projects: [] };
-  assert.deepStrictEqual(boardColumns(empty, null, NOW), { next: [], doing: [], done: [], counts: { next: 0, doing: 0, done: 0 } });
+  assert.deepStrictEqual(boardColumns(empty, null, NOW), { next: [], doing: [], review: [], done: [], counts: { next: 0, doing: 0, review: 0, done: 0 } });
   assert.strictEqual(boardColumns(state(), 'nope', NOW).counts.next, 0);
 });
 
@@ -79,7 +79,7 @@ test('completedAt wins over updatedAt for Done this week; updatedAt is the fallb
 test('boardList: tab, project, Find, Show and subtasks (#200)', () => {
   const st = {
     categories: [{ id: 'c1', name: 'Garden' }],
-    projectCategories: [],
+    projectCategories: [{ id: 'pc1', name: 'Garden area', color: '#0a0' }],
     projects: [
       proj('p', [
         task('a', 'next', { sortOrder: 1 }),
@@ -92,9 +92,9 @@ test('boardList: tab, project, Find, Show and subtasks (#200)', () => {
   };
   const list = (o) => ids(boardList(st, Object.assign({ tab: 'next' }, o), NOW).tasks);
   assert.deepStrictEqual(list({}), ['a', 'b', 'e'], 'subtasks of a live parent are not cards');
-  assert.deepStrictEqual(boardList(st, { tab: 'next' }, NOW).counts, { next: 3, doing: 1, done: 0 }, 'counts leave out subtasks');
-  assert.deepStrictEqual(list({ project: 'q' }), ['e']);
-  assert.deepStrictEqual(list({ pcat: 'pc1' }), ['e']);
+  assert.deepStrictEqual(boardList(st, { tab: 'next' }, NOW).counts, { next: 3, doing: 1, review: 0, done: 0 }, 'counts leave out subtasks');
+  assert.deepStrictEqual(list({ view: { mode: 'project', id: 'q' } }), ['e']);
+  assert.deepStrictEqual(list({ view: { mode: 'area', id: 'pc1' } }), ['e']);
   assert.deepStrictEqual(list({ find: 'MOP' }), ['b'], 'task title');
   assert.deepStrictEqual(list({ find: 'allot' }), ['e'], 'project name');
   assert.deepStrictEqual(list({ find: 'garden' }), ['b'], 'label name');
@@ -117,10 +117,19 @@ test('boardList counts follow the same narrowing as the list (#217)', () => {
     ],
   };
   const counts = (o) => boardList(st, Object.assign({ tab: 'next' }, o), NOW).counts;
-  assert.deepStrictEqual(counts({}), { next: 3, doing: 3, done: 0 }, 'nothing narrowed');
-  assert.deepStrictEqual(counts({ project: 'q' }), { next: 1, doing: 2, done: 0 }, 'picked project only');
-  assert.deepStrictEqual(counts({ find: 'mop' }), { next: 1, doing: 1, done: 0 }, 'Find word');
-  assert.deepStrictEqual(counts({ show: 'subs' }), { next: 1, doing: 0, done: 0 }, 'Show subs');
-  assert.deepStrictEqual(counts({ show: 'waits' }), { next: 2, doing: 0, done: 0 }, 'Show waits');
-  assert.deepStrictEqual(counts({ tab: 'doing', project: 'q' }), counts({ project: 'q' }), 'same on every tab');
+  assert.deepStrictEqual(counts({}), { next: 3, doing: 3, review: 0, done: 0 }, 'nothing narrowed');
+  assert.deepStrictEqual(counts({ view: { mode: 'project', id: 'q' } }), { next: 1, doing: 2, review: 0, done: 0 }, 'picked project only');
+  assert.deepStrictEqual(counts({ find: 'mop' }), { next: 1, doing: 1, review: 0, done: 0 }, 'Find word');
+  assert.deepStrictEqual(counts({ show: 'subs' }), { next: 1, doing: 0, review: 0, done: 0 }, 'Show subs');
+  assert.deepStrictEqual(counts({ show: 'waits' }), { next: 2, doing: 0, review: 0, done: 0 }, 'Show waits');
+  assert.deepStrictEqual(counts({ tab: 'doing', view: { mode: 'project', id: 'q' } }), counts({ view: { mode: 'project', id: 'q' } }), 'same on every tab');
+});
+
+// Review is the fourth status (#250): its own list and count; old data with no review loads unchanged
+test('review tab', () => {
+  const mk = (id, status) => ({ id, title: id, status, sortOrder: 1 });
+  const st = { projects: [{ id: 'p', name: 'p', tasks: [mk('a', 'next'), mk('b', 'doing'), mk('c', 'review'), mk('d', 'weird')] }] };
+  const r = boardList(st, { tab: 'review' }, Date.now());
+  assert.deepStrictEqual(r.tasks.map((t) => t.id), ['c']);
+  assert.deepStrictEqual(r.counts, { next: 1, doing: 1, review: 1, done: 0 });
 });

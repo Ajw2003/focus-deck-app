@@ -4,6 +4,41 @@ A running, append-mostly log of what was decided, when, why, and what it replace
 at the top. Entries are never rewritten or deleted; the one allowed edit is flipping a `Status`
 line to `Superseded` when a later entry replaces it.
 
+## 2026-11-12 — Build plan approved: tabs that follow the flow
+
+**Decision.** Eden, 01:50 UTC: "Build plan approved: tabs that follow the flow". The plan is
+`docs/plans/friction-build.html`: parent issue #248 and steps #249 to #259, built in that order on
+`claude/project-thread-gryib9`. At 01:41 UTC Eden asked for no test after each step: the agent checks
+each step (tests plus a browser check at phone and desktop widths) before the next, and Eden tests once
+at the end from one QA page with numbered tests for all eleven steps.
+
+## 2026-11-12 — Design approved: friction plan part 2 (1-1, 2 own answer, 3-1, 4-1)
+
+**Context.** Part 2 (`docs/plans/friction-part2.html`): priority needed on every add, one-tap due dates,
+Needs review ranked first, one shared carousel, Tidy up, Triage, Roadmap, Areas and the view switch.
+
+**Decision.** Eden, 01:30 UTC: "Design approved: friction plan part 2 11 2* 31 41. Choice 2, my own
+answer: a fifth tab for tidy and triage, and a 6th tab for roadmap/milestones". So: a jotter thought
+gets its priority in Sort, not when jotted; Tidy up and Triage share a tab and the Roadmap has its own,
+which is part 3's Organize and Roadmap tabs; a project is in one area; Priority and Review are built
+first, then Tidy up, Triage and Roadmap.
+
+## 2026-11-12 — Design approved: friction plan part 3, tabs as steps (1-1 2-1 3-1 4-1)
+
+**Context.** Eden asked for tabs that follow their flow: Capture from anywhere, then Sort, Organize,
+Roadmap, Focus and Review (`docs/plans/friction-part3.html`, every page drawn in
+`docs/generated/friction-audit/part3-pages.html`).
+
+**Decision.** Eden, 01:27 UTC: "Design approved: friction plan part 3, tabs as steps 11 21 31 41".
+The jot box sits on every tab; the tabs are Sort, Organize (Tidy up, Triage), Roadmap, Focus, Review.
+Focus stays the part 2 carousel and Sort picks its project from it. The Roadmap holds sections and
+milestones, each with Up next / In progress / Review / Done columns and drag in any direction. Answers:
+Review becomes a real fourth status (sets and reads the GitHub Needs review label); new milestones start
+with equal shares; Start here becomes the link 'Or let me pick for you' on Focus; the Board is removed.
+
+**Replaces.** The Board screen (`BOARD_COLS`, `app/js/board-view.js:16`) and the Projects screen; part 2's
+"nav" question (a fifth Plan tab) is answered by these tabs. Part 2's other questions are answered in the entry above.
+
 ## 2026-10-29 — Design and build plan approved: room to jot (1A)
 
 **Context.** In aj's phone test of #243, the jotter's writing, its new "To:" stamp and Add shared one
@@ -1020,3 +1055,23 @@ actually calls the mutation and inspects the real serialized/deserialized round-
 it, so that's the form the regression test takes.
 
 **Status.** Fixed and standing; regression test is green (`js/persist-storage.test.mjs`).
+
+## 2026-11-12: QA of "tabs that follow the flow" failed: too busy
+
+Eden: "too cluttered for me to begin to use"; asked for research on ADHD/autism guidance and for each flow to go in stages (project, priority, labels, due date, waits on, holds up). Proposal docs/plans/friction-steps.html; screen counts in docs/generated/friction-map/counts.json. Nothing merged to main; the test link stays the place to test.
+
+## 2026-11-12: Step-by-step design approved
+
+Eden's words: "Design approved: step by step 11 2*", with choice 2 answered in their own words: "able to select multiple tasks or a single one like git issues can".
+
+- Choice 1 (optional Sort steps): option 1, ask each step with Skip. Sort is nine steps; priority has no Skip.
+- Choice 2 (how Tidy up shows tasks): Eden's own answer. Each Tidy up reason (Finished?, Replaced?, The same?, Still want it?) is one screen with a tick list, like GitHub's issue list: tick one task or many, or ✓ All, then drop the ticked ones in the tray (keep), the bin (close) or the stapler (merge). The prototype's t1 to t4 screens show it.
+- Also approved earlier in the same thread: Projects is a sixth tab between Organize and Roadmap; Roadmap opens on one project. + Jot sits in the header and opens its own screen (this takes in #260).
+- The design is docs/generated/friction-steps/prototype.html, the page is docs/plans/friction-steps.html, and every app action maps to a screen in docs/generated/friction-steps/feature-map.json.
+
+## 2026-11-13: Step by step passed QA
+
+- Eden typed "QA passed: step by step 11 21 31", picking option 1 of each of the three choices on docs/plans/step-by-step-qa.html.
+- Dyslexia-friendly writing: kept at its size. A long Focus title may take 5 lines where the handwriting takes 3; `scripts/check-note-faces-browser.mjs` now allows hand + 2 lines (it was hand + 1) and still checks the title fits inside the note.
+- Roadmap rows stay plain: no priority or due chips; both are in the task's drawer and Task details.
+- "Make it a milestone" shows only for a task with smaller steps (`app/js/roadmap-view.js`, the task drawer).

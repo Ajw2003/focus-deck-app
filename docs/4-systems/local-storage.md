@@ -67,3 +67,7 @@ token is saved or "Create sync Gist" is pressed).
   "New category…" stored that object as `categoryId`, which matched nothing after reload.
 - **Old code in installed apps.** The service worker was cache-first, so a fix to
   `js/mutations.js` never reached an installed copy. See `pwa-shell.md`.
+
+## Areas flag (#251)
+
+`areasMigrated` (boolean) marks that the default areas were added to this data; merge ORs it. `projectCategories` ids and key are unchanged. See [areas.md](./areas.md).

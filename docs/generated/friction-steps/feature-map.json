@@ -1,0 +1,1060 @@
+{
+ "_about": "Every action the app has today (data-action in app/js), and the prototype screens that keep it. check-feature-map.cjs fails if an action is missing or a screen id does not exist. 'same' = unchanged screen (onboarding).",
+ "map": [
+  [
+   "Header and switch",
+   [
+    [
+     "set-screen",
+     "Switch tabs",
+     "s0 o0 r0 f1 v1"
+    ],
+    [
+     "view-step",
+     "Drawer: One area / One project, and the back corner",
+     "g1"
+    ],
+    [
+     "jot-open",
+     "+ Jot: opens the Jot a thought screen",
+     "j1"
+    ],
+    [
+     "sync-drawer",
+     "Sync light: open the Sync now / Sync settings drawer",
+     "g4"
+    ],
+    [
+     "view-open",
+     "Open the area or project picker",
+     "g2 g3"
+    ],
+    [
+     "view-pick",
+     "Pick an area or project",
+     "g2 g3"
+    ],
+    [
+     "view-close",
+     "Close the picker",
+     "g1"
+    ],
+    [
+     "sync-github",
+     "Sync now",
+     "g4 r2m"
+    ],
+    [
+     "dismiss-toast",
+     "Close a message",
+     "s10"
+    ]
+   ]
+  ],
+  [
+   "Jot",
+   [
+    [
+     "jot-save",
+     "Save the thought to Sort or a project",
+     "j1 j3"
+    ],
+    [
+     "jot-where",
+     "Where it goes: open the card-index drawer",
+     "j1 j2"
+    ],
+    [
+     "jot-pick",
+     "Pick Sort or a project in the drawer",
+     "j2"
+    ],
+    [
+     "jot-close",
+     "Close the Jot screen (×)",
+     "j1"
+    ],
+    [
+     "open-added-task",
+     "Open the task you just added",
+     "s10"
+    ]
+   ]
+  ],
+  [
+   "Sort",
+   [
+    [
+     "toggle-inbox",
+     "The \"N to sort\" heading (the Sort tab always shows the list; the old collapse was already a no-op there)",
+     "s0 s10"
+    ],
+    [
+     "sort-step",
+     "A pencil on the receipt jumps back to its step",
+     "s9"
+    ],
+    [
+     "sort-next",
+     "Next step, and the Sort this one stamp",
+     "s0 s1 s2 s3 s4 s4b s5 s6 s7 s8"
+    ],
+    [
+     "sort-back",
+     "Back corner",
+     "s1 s2 s3 s3a s3b s4 s4a s4b s5 s6 s7 s8 s9 s0n"
+    ],
+    [
+     "open-pick",
+     "Open the priority or due choices",
+     "s2 s4"
+    ],
+    [
+     "pick-set",
+     "Set priority or due date",
+     "s2 s4 s4a"
+    ],
+    [
+     "skip-due-step",
+     "Skip the due-date warning",
+     "s4b"
+    ],
+    [
+     "sort-add-notes",
+     "Add notes to a thought",
+     "s0m s0n"
+    ],
+    [
+     "sort-menu",
+     "The ⋯ on the slip: open or close the drawer",
+     "s0 s0m"
+    ],
+    [
+     "sort-skip",
+     "Skip flag (steps 3 to 8)",
+     "s3 s3a s4 s4b s5 s6 s7 s8"
+    ],
+    [
+     "sort-notes-done",
+     "Save notes",
+     "s0n"
+    ],
+    [
+     "sort-new-label",
+     "+ New label",
+     "s3 s3b"
+    ],
+    [
+     "sort-new-project",
+     "+ New project",
+     "s1"
+    ],
+    [
+     "sort-add-project",
+     "Add the new project",
+     "s1"
+    ],
+    [
+     "sort-azl",
+     "A–Z card drawer",
+     "s3 s3a"
+    ],
+    [
+     "sort-letter",
+     "A–Z drawer: a letter tab",
+     "s3a"
+    ],
+    [
+     "sort-make-cat",
+     "Make a picked label the task's category (the ★ on its tag, Task details edit)",
+     "d1"
+    ],
+    [
+     "sort-flag",
+     "Put a label on or take it off (A–Z drawer, picked tags)",
+     "s3 s3a"
+    ],
+    [
+     "sort-month",
+     "Another date: previous or next month",
+     "s4a"
+    ],
+    [
+     "sort-use-date",
+     "Another date: Use this date",
+     "s4a"
+    ],
+    [
+     "sort-new-flag",
+     "Add the new label",
+     "s3b"
+    ],
+    [
+     "label-show-all",
+     "Show all kinds of work",
+     "s3a"
+    ],
+    [
+     "tie-open",
+     "Start linking a task (now the Find box is open on each of steps 5 to 8)",
+     "s5 s6 s7 s8"
+    ],
+    [
+     "tie-add",
+     "Link a task (part of, subtask, waits on, holds up)",
+     "s5 s6 s7 s8"
+    ],
+    [
+     "tie-new-sub",
+     "Make a new subtask",
+     "s6"
+    ],
+    [
+     "tie-remove",
+     "Remove a link (tap the clipped one)",
+     "s5 s6 s7 s8"
+    ],
+    [
+     "unsorted-file",
+     "Save to <project>: files the thought",
+     "s9 s10"
+    ],
+    [
+     "unsorted-save",
+     "Save a task that was already in a project (Save to <project>)",
+     "s9"
+    ],
+    [
+     "unsorted-complete",
+     "Done already (the ⋯ drawer)",
+     "s0m"
+    ],
+    [
+     "unsorted-skip",
+     "Later (the ⋯ drawer)",
+     "s0m"
+    ],
+    [
+     "unsorted-delete",
+     "Delete (the ⋯ drawer)",
+     "s0m"
+    ],
+    [
+     "(empty)",
+     "Nothing to sort",
+     "s11"
+    ],
+    [
+     "next",
+     "Swipe to the next folder",
+     "s1 f1 f2"
+    ],
+    [
+     "prev",
+     "Swipe to the previous folder",
+     "s1 f1 f2"
+    ],
+    [
+     "first",
+     "Back to the first folder",
+     "s1 f1 f2"
+    ],
+    [
+     "last",
+     "To the last folder",
+     "s1 f1 f2"
+    ]
+   ]
+  ],
+  [
+   "Sort several at once",
+   [
+    [
+     "bulk-toggle",
+     "Select many, or back to one at a time",
+     "s0 m1"
+    ],
+    [
+     "bulk-all",
+     "✓ All: tick every thought",
+     "m1"
+    ],
+    [
+     "bulk-none",
+     "Clear: untick them",
+     "m1"
+    ],
+    [
+     "bulk-flag",
+     "Labels for the ticked ones",
+     "m3"
+    ],
+    [
+     "bulk-new-flag",
+     "New label",
+     "m3"
+    ],
+    [
+     "bulk-apply",
+     "Sort N stamp: file the ticked ones, grouped under a task",
+     "m5"
+    ],
+    [
+     "bulk-next",
+     "Next, to the following Sort several screen",
+     "m1 m2 m3 m4"
+    ],
+    [
+     "bulk-skip",
+     "Skip labels or the group task",
+     "m3 m4"
+    ],
+    [
+     "bulk-back",
+     "Back a screen, or out to one at a time",
+     "m1 m2 m3 m4 m5"
+    ],
+    [
+     "bulk-step",
+     "Pencil on the receipt: change one answer",
+     "m5"
+    ],
+    [
+     "bulk-new-label",
+     "+ New label (then Add)",
+     "m3"
+    ]
+   ]
+  ],
+  [
+   "Organize",
+   [
+    [
+     "tidy-step",
+     "Open Tidy up, or go back a screen",
+     "o0 t1 t2 t3 t4 t5"
+    ],
+    [
+     "tidy-skip",
+     "Skip a reason",
+     "t1 t2 t3 t4"
+    ],
+    [
+     "tidy-all",
+     "Tick all",
+     "t1 t2 t3 t4"
+    ],
+    [
+     "tidy-none",
+     "Clear the ticks",
+     "t1 t2 t3 t4"
+    ],
+    [
+     "tidy-mark",
+     "Keep, Close or Merge the ticked tasks (desk objects)",
+     "t1 t2 t3 t4"
+    ],
+    [
+     "tidy-confirm",
+     "Confirm: close them, then Triage",
+     "t5"
+    ],
+    [
+     "tidy-undo",
+     "Undo the tidy (Closed N slip)",
+     "r10t"
+    ],
+    [
+     "triage-go",
+     "Open Next or Move, or go back",
+     "r10 r11 r12 r13"
+    ],
+    [
+     "triage-drag",
+     "Drag a row by its grip with the mouse (computer, 1100px and wider), beside the Move arrows",
+     "r13"
+    ],
+    [
+     "triage-move",
+     "Move a task up or down",
+     "r13"
+    ],
+    [
+     "triage-later",
+     "Open Later",
+     "r10"
+    ],
+    [
+     "triage-reset",
+     "Reset to the rules",
+     "r13"
+    ]
+   ]
+  ],
+  [
+   "Projects tab",
+   [
+    [
+     "rm-open",
+     "Open a project",
+     "r0"
+    ],
+    [
+     "set-project-query",
+     "Find a project",
+     "r0"
+    ],
+    [
+     "set-project-sort",
+     "Sort by: A-Z, Most tasks, Due soonest, Last synced, My order",
+     "r0m"
+    ],
+    [
+     "rm-project-step",
+     "Move a project up or down in My order",
+     "r0o"
+    ],
+    [
+     "toggle-new-panel",
+     "New project (the + New project stamp)",
+     "r0"
+    ],
+    [
+     "start-new-project",
+     "Make the first project",
+     "r5"
+    ],
+    [
+     "add-new-project",
+     "Make it: add the new project",
+     "r8 r9"
+    ],
+    [
+     "link-repo",
+     "Link one of my repos to a project (Edit project)",
+     "r2e r8a"
+    ],
+    [
+     "retry-new-panel-repos",
+     "Retry loading repos",
+     "r8a"
+    ],
+    [
+     "retry-link-panel-repos",
+     "Retry loading repos (Edit project)",
+     "r2e"
+    ],
+    [
+     "create-repo",
+     "Create it: make a new repo and link it",
+     "r8b"
+    ],
+    [
+     "track-repo",
+     "Track it: someone else's repo, by its pasted link",
+     "r8c"
+    ],
+    [
+     "paste-link-repo",
+     "Paste a link to link (Edit project)",
+     "r2e r8c"
+    ],
+    [
+     "toggle-link-panel",
+     "Open the GitHub link choices (Edit project)",
+     "r2e"
+    ],
+    [
+     "set-repo-filter",
+     "Filter my repos",
+     "r8a"
+    ],
+    [
+     "proj-sort-menu",
+     "Open or close the Sort by drawer (the handle, top right)",
+     "r0 r0m"
+    ],
+    [
+     "proj-order-done",
+     "Done with My order",
+     "r0o"
+    ],
+    [
+     "np-back",
+     "Back one step (the first step leaves New project)",
+     "r5 r6 r7 r8 r8a r8b r8c"
+    ],
+    [
+     "np-next",
+     "Next step",
+     "r5 r6 r7"
+    ],
+    [
+     "np-area",
+     "Pick an area",
+     "r6"
+    ],
+    [
+     "np-area-new",
+     "+ New area",
+     "r6"
+    ],
+    [
+     "np-color",
+     "Pick a colour",
+     "r7"
+    ],
+    [
+     "np-gh",
+     "On GitHub?: No, My repo, New repo, Someone else’s",
+     "r8"
+    ],
+    [
+     "np-repo",
+     "Pick one of my repos",
+     "r8a"
+    ],
+    [
+     "np-private",
+     "New repo: Private or Public",
+     "r8b"
+    ],
+    [
+     "link-new-repo",
+     "Link it: link the new project to my repo",
+     "r8a"
+    ]
+   ]
+  ],
+  [
+   "Roadmap, one project",
+   [
+    [
+     "rm-col",
+     "Pick a column (a folder tab)",
+     "r2"
+    ],
+    [
+     "rm-task",
+     "Tap a task: its drawer (Doing / Review / Done / Focus)",
+     "r4"
+    ],
+    [
+     "rm-task-to",
+     "Stamp a task Doing, Review or Done",
+     "r4"
+    ],
+    [
+     "rm-focus",
+     "Make a task the Focus",
+     "r4"
+    ],
+    [
+     "toggle-task",
+     "Tick a task done",
+     "r2"
+    ],
+    [
+     "rm-drawer",
+     "Open the drawer, Other milestone or Remove project",
+     "r2m r4m r2x"
+    ],
+    [
+     "rm-drawer-close",
+     "Close a drawer / Back out of Remove",
+     "r2m r2x"
+    ],
+    [
+     "rm-move-to",
+     "Move a task to another milestone",
+     "r4m"
+    ],
+    [
+     "rm-set-milestone",
+     "Move a task to another milestone (Task details menu)",
+     "r4m"
+    ],
+    [
+     "rm-make",
+     "Make a task a milestone",
+     "r4"
+    ],
+    [
+     "rm-details",
+     "Open Task details",
+     "r4"
+    ],
+    [
+     "rm-ms-go",
+     "Step to the previous or next milestone",
+     "r2"
+    ],
+    [
+     "rm-ms-open",
+     "Put a milestone on the clipboard",
+     "r2o"
+    ],
+    [
+     "rm-ms-step",
+     "Move a milestone up or down",
+     "r2o"
+    ],
+    [
+     "rm-sec-step",
+     "Move a section up or down",
+     "r2o"
+    ],
+    [
+     "rm-screen",
+     "Open All milestones, Find a task, New task, milestone or section, Edit project",
+     "r2 r2m r2o r3 r2a r2b r2f r2e"
+    ],
+    [
+     "rm-back",
+     "Back from a Roadmap screen",
+     "r2o r3 r2a r2b r2f r2e"
+    ],
+    [
+     "rm-add-task",
+     "Add a task to the milestone",
+     "r3"
+    ],
+    [
+     "rm-add-more",
+     "Add a task, then open its details",
+     "r3"
+    ],
+    [
+     "rm-add-ms",
+     "Add a milestone to a section",
+     "r2a"
+    ],
+    [
+     "rm-form-sec",
+     "Pick the section for a new milestone",
+     "r2a"
+    ],
+    [
+     "rm-add-sec",
+     "Add a section",
+     "r2b"
+    ],
+    [
+     "add-task",
+     "Add a task (an add row)",
+     "r3"
+    ],
+    [
+     "toggle-add-more",
+     "Add a task with more details",
+     "r3"
+    ],
+    [
+     "rm-settings",
+     "Milestone settings",
+     "r2m r2s"
+    ],
+    [
+     "rm-set-back",
+     "Back in Milestone settings",
+     "r2s r2t r2u r2v"
+    ],
+    [
+     "rm-set-next",
+     "How big a part? to Done means",
+     "r2s"
+    ],
+    [
+     "rm-set-measure",
+     "Choose what done means",
+     "r2t"
+    ],
+    [
+     "rm-set-add",
+     "Add a checklist item",
+     "r2v"
+    ],
+    [
+     "rm-set-save",
+     "Save the milestone settings",
+     "r2t r2u r2v"
+    ],
+    [
+     "set-task-query",
+     "Find a task in this project",
+     "r2f"
+    ],
+    [
+     "rm-edit-field",
+     "Change the name, area, colour or repo (the pencils)",
+     "r2e"
+    ],
+    [
+     "rm-edit-save",
+     "Save the new name",
+     "r2e"
+    ],
+    [
+     "rm-edit-area",
+     "Change the project's area",
+     "r2e"
+    ],
+    [
+     "rm-edit-color",
+     "Change the project's colour",
+     "r2e"
+    ],
+    [
+     "open-project-edit",
+     "Edit project",
+     "r2e"
+    ],
+    [
+     "close-project-edit",
+     "Close Edit project",
+     "r2e"
+    ],
+    [
+     "set-project-category",
+     "Change the project's area",
+     "r6 r2e"
+    ],
+    [
+     "remove-project",
+     "Remove project",
+     "r2x"
+    ],
+    [
+     "confirm-remove-project",
+     "Confirm removing",
+     "r2x"
+    ],
+    [
+     "cancel-remove-project",
+     "Keep the project",
+     "r2x"
+    ],
+    [
+     "toggle-done",
+     "Show done tasks",
+     "r2"
+    ],
+    [
+     "scroll-to-task",
+     "Jump to a task",
+     "r2f"
+    ]
+   ]
+  ],
+  [
+   "Task details",
+   [
+    [
+     "task-open",
+     "Open task details",
+     "d0"
+    ],
+    [
+     "detail-close",
+     "Close (the × on the clipboard)",
+     "d0"
+    ],
+    [
+     "detail-status-open",
+     "Open the Status drawer (tap the stamp)",
+     "d1"
+    ],
+    [
+     "detail-status",
+     "Change the status",
+     "d1"
+    ],
+    [
+     "detail-edit",
+     "Change a detail (a pencil): priority, labels, due, waits on, notes, move, part of, holds up",
+     "s2 s3 s4 s7 s0n s1 s5 s8"
+    ],
+    [
+     "edit-save",
+     "Save a detail",
+     "s2 s3 s4 s7 s0n s1 s5 s8"
+    ],
+    [
+     "detail-subs",
+     "Smaller steps (own screen)",
+     "d2"
+    ],
+    [
+     "detail-size-open",
+     "Size (not in the design: the Roadmap Task size reads it)",
+     "d0"
+    ],
+    [
+     "detail-size",
+     "Choose the size",
+     "d0"
+    ],
+    [
+     "detail-github",
+     "GitHub (own screen)",
+     "d3"
+    ],
+    [
+     "detail-more",
+     "The ⋯ drawer",
+     "d4"
+    ],
+    [
+     "detail-rename",
+     "Rename",
+     "d4"
+    ],
+    [
+     "detail-rename-save",
+     "Save the new name",
+     "d4"
+    ],
+    [
+     "detail-back",
+     "Back to the receipt",
+     "d2 d3"
+    ],
+    [
+     "edit-task",
+     "Edit the task",
+     "d0 d4"
+    ],
+    [
+     "save-task-edit",
+     "Save",
+     "d0"
+    ],
+    [
+     "cancel-task-edit",
+     "Cancel",
+     "d0"
+    ],
+    [
+     "detail-add-sub",
+     "Add a smaller step",
+     "d2"
+    ],
+    [
+     "detail-goto",
+     "Tap a linked task (waits on, holds up, part of, smaller step) to open its details",
+     "d0"
+    ],
+    [
+     "detail-focus",
+     "Focus on this (the ◎ Focus stamp)",
+     "d0"
+    ],
+    [
+     "focus-task",
+     "Focus on this",
+     "d0 r4"
+    ],
+    [
+     "detail-delete",
+     "Delete (asks first)",
+     "d4"
+    ],
+    [
+     "delete-task",
+     "Delete",
+     "d4"
+    ],
+    [
+     "link-github-issue",
+     "Link a GitHub issue",
+     "d3"
+    ],
+    [
+     "create-github-issue",
+     "Create a GitHub issue",
+     "d3"
+    ],
+    [
+     "unlink-github-issue",
+     "Unlink the issue",
+     "d3"
+    ]
+   ]
+  ],
+  [
+   "Focus",
+   [
+    [
+     "pick-for-me",
+     "🎲 Pick for me",
+     "f1"
+    ],
+    [
+     "focus-next",
+     "Next: the project is chosen",
+     "f1"
+    ],
+    [
+     "focus-back",
+     "Back to the project question",
+     "f2"
+    ],
+    [
+     "focus-skip",
+     "Skip: any kind of work",
+     "f2"
+    ],
+    [
+     "focus-show",
+     "Show me one",
+     "f2"
+    ],
+    [
+     "reroll",
+     "↻ Another",
+     "f3"
+    ],
+    [
+     "complete-focus",
+     "✓ Done",
+     "f3 f5"
+    ],
+    [
+     "focus-next-one",
+     "Next one",
+     "f5"
+    ],
+    [
+     "focus-menu",
+     "⋯ tag: the card-index drawer",
+     "f3 f4"
+    ],
+    [
+     "focus-doing",
+     "▶ Start it",
+     "f4"
+    ],
+    [
+     "focus-steps",
+     "🪜 Smaller steps",
+     "f4 f4s"
+    ],
+    [
+     "focus-steps-back",
+     "Back from Smaller steps",
+     "f4s"
+    ],
+    [
+     "focus-subtask",
+     "◎ Focus on one",
+     "f4s"
+    ],
+    [
+     "clear-focus",
+     "✕ Clear",
+     "f4"
+    ]
+   ]
+  ],
+  [
+   "Review",
+   [
+    [
+     "review-open",
+     "Open the task",
+     "v1"
+    ],
+    [
+     "review-done",
+     "Looks good stamp",
+     "v1"
+    ],
+    [
+     "review-more",
+     "More work stamp",
+     "v1"
+    ],
+    [
+     "review-undo",
+     "Undo: the slip after a stamp, or a flag in Done this week",
+     "v2 v3"
+    ],
+    [
+     "review-list",
+     "Done this week",
+     "v1"
+    ],
+    [
+     "review-back",
+     "Back from Done this week",
+     "v3"
+    ]
+   ]
+  ],
+  [
+   "Welcome (unchanged)",
+   [
+    [
+     "ob-next",
+     "Next",
+     "same"
+    ],
+    [
+     "ob-skip",
+     "Skip",
+     "same"
+    ],
+    [
+     "ob-finish",
+     "Finish",
+     "same"
+    ],
+    [
+     "ob-suggest",
+     "Suggestions",
+     "same"
+    ],
+    [
+     "ob-category",
+     "Pick areas",
+     "same"
+    ],
+    [
+     "ob-deal",
+     "Deal tasks",
+     "same"
+    ],
+    [
+     "ob-folder",
+     "Pick a folder",
+     "same"
+    ],
+    [
+     "ob-task",
+     "Add a task",
+     "same"
+    ],
+    [
+     "ob-sync",
+     "Set up sync",
+     "same"
+    ]
+   ]
+  ],
+  [
+   "Sync setup (unchanged)",
+   [
+    [
+     "turn-on",
+     "Turn on sync",
+     "same"
+    ],
+    [
+     "recheck",
+     "Check the key again",
+     "same"
+    ]
+   ]
+  ]
+ ]
+}

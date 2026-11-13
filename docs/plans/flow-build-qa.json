@@ -1,0 +1,209 @@
+{
+ "title": "Flow Build QA",
+ "eyebrow": "Built and checked in Chromium (the engine behind Chrome and Edge) · ready for you to test · GitHub issues #249 to #259",
+ "short": {
+  "lead": "All 11 steps of 'tabs that follow the flow' are built into the real app. The menu is now five tabs that follow your flow: Sort, Organize (Tidy up and Triage), Roadmap, Focus and Review, with the jot box on every tab. The Board and Projects screens are gone, and everything they did now lives on the Roadmap. You test a copy of branch claude/project-thread-gryib9 with sample data, on your phone and computer, so your real tasks are not touched. Each step below names what to do and what you should see.",
+  "hint": "Tap a step to see what to try and what you should see.",
+  "key": [
+   [
+    "Built",
+    ""
+   ],
+   [
+    "You test it",
+    "you"
+   ]
+  ],
+  "items": [
+   [
+    "eye",
+    "Open",
+    "Open the test copy",
+    "you",
+    "The real app opens on Sort with sample data: 19 projects in six areas, about 75 tasks, and two thoughts waiting. Your own tasks are not touched, because the copy runs on a different web address.",
+    "Open https://raw.githack.com/Ajw2003/focus-deck-app/958d96c7a5a2f93f20290820f2cb05c4091a7ee9/docs/generated/flow-qa/seed.html#sort on your phone, then again on your computer. To start a tab fresh, change the end to #tidy, #triage, #roadmap, #focus or #review. Opening the address again puts the sample data back, so it also works as a reset.",
+    {
+     "src": "docs/generated/build-checks/step11/1-sort-1440.png",
+     "alt": "The Sort tab on a computer with sample data",
+     "caption": "What you should see first on a computer."
+    }
+   ],
+   [
+    "list",
+    "Step 1",
+    "A task needs a priority",
+    "you",
+    "Add stays greyed out and says 'Pick a priority to add' until you pick one. Once picked, the chip reads 'High ▾' and the due chip reads 'Due ▾'.",
+    "1. Open Roadmap, pick Project, then 'Open source: focus-deck'. 2. Under 'Start here screen', press '+ Add a task' and type 'Ring the plumber'. 3. Check that the Add button is greyed out. 4. Press High, then Tomorrow, then Add. 5. Check that the box stays open and empty, ready for the next task. On a computer, press the Escape key and check that the box closes. 6. On Sort, press Next on a thought without picking a priority, and check that it asks for one.",
+    {
+     "src": "docs/generated/build-checks/step1/desktop-add-picked.png",
+     "alt": "The Roadmap add box with High and Tomorrow picked",
+     "caption": "Adding a task on the Roadmap, with a priority picked."
+    }
+   ],
+   [
+    "list",
+    "Step 2",
+    "Review is a fourth status",
+    "you",
+    "Every milestone on the Roadmap has four columns: Up next, In progress, Review and Done. A task moved to Review shows on the Review tab, and on GitHub it gets the 'needs review' label.",
+    "1. On Roadmap, with 'Open source: focus-deck' picked, drag 'Test on phone' from Up next to Review. 2. On a phone, instead of dragging, tap the Up next button, then tap the → button beside 'Test on phone' until the task reaches Review. 3. Open the Review tab and check that the task is there. 4. On a computer, move it back to In progress: click the task, hold Alt and press the left arrow key.",
+    {
+     "src": "docs/generated/build-checks/step11/3-roadmap-project-1440.png",
+     "alt": "A project on the Roadmap with four columns",
+     "caption": "One project on the Roadmap, with its four columns."
+    }
+   ],
+   [
+    "list",
+    "Step 3",
+    "Areas and kinds of work",
+    "you",
+    "Settings shows eight areas, ending with Unsorted, which can't be deleted. Kinds of work is a tick list. A label you untick disappears from Focus's kinds row, and a label mapped to Urgent shows tasks as Urgent.",
+    "1. Open Settings, then Areas. 2. Rename Lists to 'Admin'. 3. Add an area called 'Garden work', and move the Garden project into it. 4. Delete 'Garden work' and check that Garden moves to Unsorted. 5. Open Kinds of work, untick 'Chore', and check on Focus that Chore is gone from the kinds row.",
+    {
+     "src": "docs/generated/build-checks/step3/desktop-areas-existing.png",
+     "alt": "Settings with the Areas list open",
+     "caption": "Areas in Settings."
+    }
+   ],
+   [
+    "search",
+    "Step 4",
+    "The All, Area and Project switch",
+    "you",
+    "The switch sits at the top of every tab. Your pick stays as you move between tabs and after a reload. On a phone, the area and project lists open as a sheet from the bottom.",
+    "1. On Focus, pick Area, then Home. 2. Check that only Home's projects show. 3. Go to Sort, Tidy up, Triage, Roadmap and Review, and check that each still says Home. 4. Reload the page and check again. 5. Pick All to finish.",
+    {
+     "src": "docs/generated/build-checks/step4/desk-dropdown-areas.png",
+     "alt": "The switch with the area list open",
+     "caption": "The switch, with the areas list open."
+    }
+   ],
+   [
+    "list",
+    "Step 5",
+    "One carousel on Focus and Sort",
+    "you",
+    "On a computer, the folders show five at a time with ‹ and › arrows and a '3 of 19' count. The arrow keys, typing a name and the mouse wheel all move the folders along. On a phone, the folders still flip like before. Sort picks its project from the same carousel.",
+    "1. On Focus, click the folder row, then press the right arrow key three times. 2. Type 'gar' and check that it jumps to Garden. 3. Type 'pho' in 'Find a project' and check that the folders narrow. 4. Press 'Or let me pick for you' and check that a task opens. 5. On Sort, pick a project for a thought the same way.",
+    {
+     "src": "docs/generated/build-checks/step5/focus-desk.png",
+     "alt": "Focus on a computer with five folders showing",
+     "caption": "Focus on a computer."
+    }
+   ],
+   [
+    "check",
+    "Step 6",
+    "The Review tab",
+    "you",
+    "Review lists what's waiting for you, with 'Looks good · Done' and 'Needs more work' buttons. Done tasks move to the 'Done this week' list, where Undo puts them back.",
+    "1. Open Review. 2. Press 'Looks good · Done' on 'Fix the gate latch', and check that it moves to Done this week. 3. Press Undo, and check that it comes back. 4. Press 'Needs more work' on another task, and check that it leaves the list and shows as In progress on the Roadmap.",
+    {
+     "src": "docs/generated/build-checks/step11/5-review-1440.png",
+     "alt": "The Review tab with five tasks waiting",
+     "caption": "The Review tab."
+    }
+   ],
+   [
+    "list",
+    "Step 7",
+    "Tidy up",
+    "you",
+    "Tasks are grouped as Built and waiting for your review, Replaced by newer work, Looks the same as another, and Not touched in 60 days. Each group says why. Nothing closes until you press Confirm, and closed tasks can be undone.",
+    "1. Open Organize, then Tidy up. 2. Check that 'Old shelf plan, replaced by the new shelf plan' is under 'Replaced by newer work', and 'Clear out the loft' is under 'Not touched in 60 days'. 3. Press Close on both, and Merge on one pair under 'Looks the same as another'. 4. Check that the second number under 'Open in All' (at the side on a computer, at the bottom on a phone) is three lower than the first. 5. Press Confirm. 6. Open the Closed list and press Undo on 'Clear out the loft'.",
+    {
+     "src": "docs/generated/build-checks/step7/tidy-1440-marked.png",
+     "alt": "Tidy up with Close and Merge marked",
+     "caption": "Tidy up, with choices marked."
+    }
+   ],
+   [
+    "list",
+    "Step 8",
+    "Triage",
+    "you",
+    "Tasks are ranked into Now (3), Next (8) and Later (folded). The order follows seven rules, with Needs review first. Your own order wins over the rules.",
+    "1. Pressing Confirm on Tidy up takes you to Triage. You can also press Triage in the menu. 2. Check that Now starts with tasks marked Needs review. 3. On a computer, drag a task from Next into Now, or click it, hold Alt and press the up arrow key. On a phone, use the ↑ button. 4. Reload the page and check that your order stayed. 5. Press 'Reset to the rules'. 6. On Focus, press 'Or let me pick for you' and check that it offers a task from Now.",
+    {
+     "src": "docs/generated/build-checks/step8/triage-1440-moved.png",
+     "alt": "Triage with Now, Next and Later",
+     "caption": "Triage, with a task moved by hand."
+    }
+   ],
+   [
+    "list",
+    "Step 9",
+    "The Roadmap",
+    "you",
+    "With All or Area picked, each project is a row of milestone cards with its percent done. With Project picked, you see its sections and milestones, and the open milestone has four columns. The New project, Edit project and Sync now buttons also live on the Roadmap.",
+    "1. Open Roadmap with Area and Apps picked, and check the three project rows. 2. Type 'open' in 'Find a project'. 3. Pick Project, then 'Open source: focus-deck'. 4. Drag 'Tidy up and Triage' into Foundations, then drag the two sections to swap them. 5. Press '+ Add a milestone' and '+ Add a section'. 6. Open the task 'Book boiler service' in Home (it has subtasks) and press 'Make this a milestone'. 7. Press Edit project and New project, and check that both open.",
+    {
+     "src": "docs/generated/build-checks/step9/roadmap-1440-project.png",
+     "alt": "One project on the Roadmap with sections",
+     "caption": "One project on the Roadmap."
+    }
+   ],
+   [
+    "list",
+    "Step 10",
+    "Milestone settings",
+    "you",
+    "Clicking a milestone's name opens its settings. The slider sets its share of the project, and the others' shares adjust so they always add up to 100%. Progress can be measured by tasks done, task size, your own number, or a checklist.",
+    "1. On 'Open source: focus-deck', click 'Start here screen'. 2. Move the slider to 40% and check that the other shares add up to 60%. 3. Pick 'Your own number', and enter 'screens tested' as the name, 2 as the number now and 4 as the target. 4. Press Save, and check that the card says 'screens tested 2 of 4' and the project percent changes. 5. Click 'Start here screen' again, pick 'A checklist', add two items, tick one, and press Cancel. Check that nothing changed.",
+    {
+     "src": "docs/generated/build-checks/step10/milestone-1440-number.png",
+     "alt": "Milestone settings with Your own number picked",
+     "caption": "Milestone settings."
+    }
+   ],
+   [
+    "list",
+    "Step 11",
+    "Five tabs and the jot box",
+    "you",
+    "The menu has five numbered tabs: Sort, Organize, Roadmap, Focus and Review. Only Sort and Review show a count. The Board and Projects screens are gone. The jot box sits on every tab, and on a computer, pressing the J key jumps to it.",
+    "1. Visit each tab and check that the jot box is at the top. 2. On a computer, click an empty part of the page, press J, type a thought and press Enter. 3. Check that Sort's count goes up by one. 4. Open a task's Details from Sort, Tidy up, Triage, Roadmap, Focus and Review. 5. Check that nothing anywhere links to the Board or Projects.",
+    {
+     "src": "docs/generated/build-checks/step11/4-focus-390.png",
+     "alt": "Focus on a phone with the five tabs along the bottom",
+     "caption": "The five tabs on a phone."
+    }
+   ],
+   [
+    "bulb",
+    "Reply",
+    "Tell me how it went",
+    "you",
+    "If everything worked, reply 'QA passed: tabs that follow the flow'. If something didn't, say which step and what you saw, and I'll fix it.",
+    "Reply in this thread."
+   ]
+  ]
+ },
+ "changes": [],
+ "qa": {
+  "feature": "tabs that follow the flow",
+  "base": "origin/main",
+  "unverified": [
+   "I did not open the test copy's address on raw.githack, because my sandbox can't reach that site; I opened the same page from a local server and checked that every tab loads",
+   "GitHub was not called live: moving a task to Review adds the 'needs review' label, closing from Tidy up closes the issue, and GitHub milestones are read on sync, but all three were checked against the code and stored data only",
+   "Everything was checked in Chromium at screen widths of 360, 390 and 1440 pixels, not in Safari or Firefox and not on a real phone; on a phone, moves use buttons rather than dragging",
+   "Tidy up's marks and its Closed list are kept only until the page reloads; closed tasks stay closed, and you can reopen them from Done on the Roadmap",
+   "Tasks have no created date, so 'Oldest first' in Triage uses the order tasks sit in",
+   "A project with an empty milestone shows a lower percent, because every milestone starts with an equal share until you change it in Milestone settings",
+   "In Task details, leaving the title box folds 'Show all categories' closed again; this was there before and is not fixed here",
+   "A few older pieces of code that only the removed Board and Projects screens used are still in the app, unused; they are listed in docs/4-systems/tabs.md for a tidy-up later"
+  ]
+ },
+ "wrapup": {
+  "summary": "Tabs that follow the flow is built. All 11 steps are in: priorities on every task, a Review status and tab, areas, the All, Area and Project switch, the shared carousel, Tidy up, Triage, the Roadmap with milestone settings, and five tabs with the jot box on each. The Board and Projects screens are removed. All 305 unit tests and all 25 browser checks pass.",
+  "changing": "Changed: the menu, Focus on a computer, Sort's project picker and Settings. New: Review, Tidy up, Triage, Roadmap and milestone settings. Removed: the Board and Projects screens.",
+  "blocking": "Waiting on your test.",
+  "next": "After 'QA passed', you close the issues when you're happy, and the pull request is merged into main, the version of the app you use.",
+  "todo": [
+   "Do the steps under 'In short', ending with the reply.",
+   "Reply 'QA passed: tabs that follow the flow', or say what's wrong."
+  ]
+ }
+}

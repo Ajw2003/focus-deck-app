@@ -183,7 +183,6 @@ a{color:inherit;}
 /* The jotter: a notepad strip with binding holes along its top edge and a ruled line under the
    writing. The holes are the desk showing through (--hole); the add button is a small paper stamp so a
    phone still has a visible submit control. See docs/4-systems/styling.md#the-jotter */
-.capture-form{display:flex; align-items:flex-end; gap:8px; flex:1 1 260px; min-width:0; max-width:560px;}
 .jotter{
   position:relative; border-radius:2px 2px 4px 4px; padding:14px 12px 6px; background-color:var(--paper);
   box-shadow:0 8px 16px -12px var(--paper-shadow);
@@ -194,23 +193,13 @@ a{color:inherit;}
 /* A thought has no length limit: the jotter is a one-row textarea that grows with what is written
    (field-sizing, or autoGrow in js/app.js where that isn't supported), up to 40% of the screen, then
    scrolls inside itself so the sticky topbar never covers the page. */
-#capture-input{
-  flex:1; min-width:0; padding:2px 0; border:0; background:transparent; color:var(--paper-ink); outline:none;
+#jot-input{
+  width:100%; min-width:0; padding:2px 0; border:0; background:transparent; color:var(--paper-ink); outline:none;
   font-family:var(--note-font); font-weight:700; font-size:calc(1.05rem * var(--note-scale));
   display:block; resize:none; line-height:1.45; min-height:1.45em; max-height:40vh; overflow-y:auto; field-sizing:content; white-space:pre-wrap; overflow-wrap:anywhere;
 }
-#capture-input::placeholder{color:var(--paper-faint); font-weight:400;}
-.jot-add{
-  flex:none; min-height:36px; padding:4px 14px; border:1.5px solid var(--paper-ink); border-radius:3px; background:transparent;
-  color:var(--paper-ink); font:700 var(--text-sm) var(--font-paper); white-space:nowrap; transform:rotate(-1.5deg);
-}
-.to-stamp{
-  flex:0 1 auto; min-width:0; max-width:9.5em; min-height:36px; padding:4px 6px; border:1.5px dashed var(--paper-ink); border-radius:3px; background:transparent;
-  color:var(--paper-ink); font:700 var(--text-sm) var(--font-paper); text-overflow:ellipsis; transform:rotate(1deg);
-}
-.to-stamp option{color:initial;}
+#jot-input::placeholder{color:var(--paper-faint); font-weight:400;}
 .toast-action{flex:none;}
-.jot-add:active{transform:rotate(-1.5deg) translateY(2px);}
 
 /* The topbar sync icon, settings icon and Projects drawer toggle (index.html, outside #app). See
    docs/4-systems/styling.md#sync-button and #icons */
@@ -227,19 +216,6 @@ a{color:inherit;}
   .icon-btn.is-syncing svg{animation:none;}
 }
 .topbar-tools{display:flex; align-items:center; gap:12px;}
-/* on a phone the brand and the tools share the first row and capture gets the full second row,
-   instead of the tools wrapping onto a row of their own */
-@media (max-width:699px){.capture-form{order:1; flex-basis:100%;}}
-/* On a phone the writing gets the whole first line, with the "To:" stamp and Add on a second line
-   below it: on one line the writing was squeezed to under half the width (#244). */
-@media (max-width:699px){
-  .capture-form{flex-wrap:wrap;}
-  #capture-input{flex:1 1 100%;}
-  .to-stamp{max-width:none; margin-right:auto;}
-}
-.projects-toggle{white-space:nowrap;}
-@media (min-width:1100px){.projects-toggle{display:none;}}
-
 /* One raised card (Q5): the focus card is the only surface with a background, radius and shadow.
    .inbox-card, .project-card and settings.html's .settings-section below override this back to flat, each with its own thin top rule. */
 .card{
@@ -347,9 +323,7 @@ a{color:inherit;}
 }
 /* A project's own chip/pill is neutral (Q4b — its colour is identity only: its dot and its card
    edge), carrying a small colour dot (.proj-dot) rather than a colour tint. */
-.chip.proj-chip{background:var(--surface-2); color:var(--ink);}
-button.chip.proj-chip:hover{background:var(--line);}
-.proj-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--dot); margin-right:6px; flex:none;}
+
 .chip.deadline-chip{font-variant-numeric:tabular-nums;}
 .chip.deadline-chip svg{flex:none; margin-right:4px;}
 /* Stage colours (#106): task deadline chips only, same size as every other chip. White is the
@@ -420,7 +394,6 @@ button.chip.proj-chip:hover{background:var(--line);}
 .task-edit-form .task-edit-github button[type="button"]{background:none; color:var(--accent); padding:2px 0; font-size:var(--text-sm);}
 .mini-x{border:none; background:var(--surface-2); color:var(--ink-soft); width:22px; height:22px; border-radius:50%; line-height:1;}
 
-.filter-pills{display:flex; flex-wrap:wrap; gap:6px;}
 .filter-pill{
   border:1px solid var(--line); background:var(--surface); border-radius:999px;
   padding:6px 13px; font-size:var(--text-sm); font-weight:600; color:var(--ink-soft);
@@ -444,55 +417,26 @@ button.chip.proj-chip:hover{background:var(--line);}
 .chip.chip-btn{cursor:pointer;}
 .chip.chip-btn:hover{filter:brightness(1.08);}
 .chip.cat-chip.chip-placeholder{background:var(--surface-2); color:var(--ink-faint); border:1px dashed var(--line); font-weight:600;}
-.project-cat-edit{display:inline-flex; align-items:center; gap:4px;}
-.project-cat-edit select{
-  padding:4px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);
-}
+
 /* Minimising is back (PR 6, 2026-09-27): js/render.js leaves the toggle and "Collapse all" out of
    the markup itself in the "One" view, so there's nothing here to hide by width or view. */
 .project-card.is-collapsed{padding-bottom:16px;}
-.project-card.is-collapsed .progress-track{margin-bottom:0;}
+
 /* The "All"/"One" switch: two pills right under the sidebar/drawer title. */
 .view-switch{display:flex; gap:6px;}
 /* the labels never break mid-label ("New / project") in the 270px sidebar */
 .view-switch .filter-pill{white-space:nowrap;}
 /* Minimised projects gather below the full-size tiles as their own quiet group (#82: a minimised
    tile left in the tile grid would sit beside a full-height one and reopen the gap). */
-.minimised-projects{margin-top:24px;}
-
-.projects-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px;}
 
 /* The one project list: a fixed drawer below 1100px (opened from the topbar's Projects button),
    a flat sticky left column at and above it. See docs/4-systems/styling.md#project-sidebar */
-.project-sidebar{
-  position:fixed; top:0; left:0; z-index:30;
-  width:min(320px, 85vw); height:100%; overflow-y:auto;
-  display:flex; flex-direction:column; gap:10px;
-  background:var(--surface); border-right:1px solid var(--line);
-  padding:16px; padding-top:calc(16px + env(safe-area-inset-top, 0px)); padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
-  transform:translateX(-100%);
-  /* hidden once slid away, so keyboard and screen-reader users can't land in a closed drawer */
-  visibility:hidden;
-  transition:transform .2s ease, visibility 0s linear .2s;
-}
-.project-sidebar.is-open{transform:translateX(0); visibility:visible; transition:transform .2s ease;}
-.project-sidebar:focus{outline:none;}
-.drawer-backdrop{
-  position:fixed; inset:0; z-index:29;
-  background:rgba(0,0,0,.4); opacity:0; pointer-events:none;
-  transition:opacity .2s ease;
-}
-.drawer-backdrop.is-open{opacity:1; pointer-events:auto;}
-@media (prefers-reduced-motion: reduce){
-  .project-sidebar{transition:none;}
-  .drawer-backdrop{transition:none;}
-}
+
 .main-col{min-width:0;}
 /* "One" view, any width (PR 6, 2026-09-27): every card is still rendered into the same
    projects-grid the "All" tiles use, but only the selected one shows here; the rest are hidden
    outright rather than left tall and empty. See docs/6-decisions/Decisions.md. */
-.view-one .project-card{display:none;}
-.view-one .project-card.is-selected{display:block;}
+
 @media (min-width:1100px){
   /* use the monitor (#64): the page widens, and the focus card's label cards spread across it */
   .wrap{max-width:1800px;}
@@ -504,46 +448,25 @@ button.chip.proj-chip:hover{background:var(--line);}
      applies that same height to every row, not just the first, so further projects continuing below
      stay level too. Minimised projects are left out of this grid by js/render.js and gather in
      .minimised-grid below instead, at their own natural height, two to a row. */
-  .view-all .projects-grid{
-    grid-template-columns:1fr 1fr;
-    grid-auto-rows:max(320px, calc((100dvh - var(--topbar-h, 64px) - 16px) / 2));
-    align-items:stretch;
-  }
-  .view-all .minimised-grid{grid-auto-rows:auto;}
-  .view-all .project-card{
-    display:flex; flex-direction:column; overflow:hidden;
-    /* the fixed tile height means a card can't grow with its own content -- min-height:0 lets the
-       flex child (.project-body) shrink below its content size so it, not the tile, scrolls */
-    min-height:0;
-    /* .card's own margin-bottom would otherwise stack on top of the grid gap between rows (#82) */
-    margin-bottom:0;
-  }
+  
+  
+  
   /* the scrollable part of a full tile: header, badges, edit panel and progress bar stay put above
      it. A minimised tile has no body at all (js/render.js), so this never applies to one; the "One"
      view's single card isn't a fixed-height tile either, so it keeps its natural page scroll. */
   /* a rule marks where the tile ends, so rows cut off by a long list read as scrollable, not broken */
-  .view-all .project-card:not(.is-collapsed) .project-body{flex:1 1 auto; min-height:0; overflow-y:auto; border-bottom:1px solid var(--line);}
+  
   /* only the task list gives way in a full tile: without this a 55-task list squashed the badges
      line and the progress bar, moving that tile's bar 4px off its neighbours' (#83) */
-  .view-all .project-card:not(.is-collapsed) > :not(.project-body){flex-shrink:0;}
+  
   .energy-grid.focus-grid{grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));}
-  .drawer-backdrop{display:none;}
-  .project-sidebar{
-    /* sized from the measured topbar (--topbar-h, js/app.js) so it fits between the topbar and the
-       page's bottom padding: at 100vh - 100px it overran by ~50px, and at the page's end the sticky
-       box was pushed up under the topbar, hiding "Projects" and cutting off "+ Add" */
-    position:sticky; top:calc(var(--topbar-h, 67px) + 17px); left:auto; z-index:auto;
-    width:auto; height:auto; max-height:calc(100vh - var(--topbar-h, 67px) - 100px); overflow-y:auto;
-    transform:none; transition:none; visibility:visible;
-    background:none; border-right:1px solid var(--line); border:none; border-radius:0; padding:0 20px 16px 0;
-  }
+  
+  
 }
 /* js/render.js only ever adds .is-selected/aria-current to a row in the "One" view, so this needs
    no extra scoping by view -- it just paints the highlight when that class is there. */
 .sidebar-project.is-selected{background:var(--surface-2); font-weight:700;}
-.sidebar-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
-.sidebar-head-right{display:flex; align-items:baseline; gap:10px;}
-.sidebar-title{font-size:var(--text-h);}
+
 /* The "+ New" panel (PR 7, Q29a): opens right under the header row, above the All/One switch. See
    docs/4-systems/styling.md#add-a-project-or-a-repo. */
 .new-panel{border:1px solid var(--line); border-radius:var(--r-control); padding:12px; margin:10px 0; display:flex; flex-direction:column; gap:10px;}
@@ -558,12 +481,7 @@ button.chip.proj-chip:hover{background:var(--line);}
 .new-repo-form input[type="text"]{padding:7px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
 .field-error{color:var(--danger);}
 .link-repo-panel{flex-basis:100%; margin-top:8px;}
-.sidebar-search{flex:none; width:100%; padding:8px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink);}
-.sidebar-pills{gap:5px;}
-.sidebar-pills .filter-pill{padding:4px 10px; font-size:var(--text-sm);}
-.sidebar-tools{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px;}
-.sidebar-tools .project-sort-select{flex:1 1 auto; min-width:0;}
-.sidebar-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; border-top:1px solid var(--line); padding-top:8px;}
+
 .sidebar-project{
   width:100%; display:flex; align-items:center; gap:9px; padding:7px 8px; border:none; border-radius:var(--r-control);
   background:none; color:var(--ink); text-align:left; font-weight:600;
@@ -571,21 +489,16 @@ button.chip.proj-chip:hover{background:var(--line);}
 .sidebar-project:hover{background:var(--surface-2);}
 .sidebar-project .dot{width:9px; height:9px; border-radius:50%; background:var(--dot); flex:none;}
 .sidebar-name{flex:1; min-width:0; overflow-wrap:break-word;}
-.sidebar-count{color:var(--ink-faint); font-size:var(--text-sm); font-variant-numeric:tabular-nums;}
+
 /* A project's own colour is identity only (Q4b): its dot, and this 3px top edge — the flat card's
    separating rule, in its colour. */
 .project-card{border-top:3px solid var(--proj-color);}
 /* Line 1 never wraps its controls onto a second line (#83): the name is the only thing allowed to
    grow, the collapse toggle + Edit link stay put on the right. Line 2 (badges) always renders, even
    empty, so every card's progress bar sits the same distance from its top. */
-.project-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:nowrap;}
-.project-title{display:flex; align-items:flex-start; gap:8px; min-width:0; flex:1 1 auto;}
+
 /* beside the name's first line, not halfway down a name that wraps */
-.project-title .dot{width:10px; height:10px; margin-top:.45em; border-radius:50%; background:var(--proj-color); display:inline-block; flex:none;}
-.project-title h3{font-size:var(--text-h); overflow-wrap:break-word; min-width:0;}
-.project-head-right{display:flex; align-items:center; gap:8px; flex:none; white-space:nowrap;}
-.collapse-toggle{font-size:var(--text-h); line-height:1; padding:0 2px;}
-.project-badges{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:1.4em; margin:6px 0 10px;}
+
 .project-edit-panel{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 0; margin-bottom:10px; border-top:1px dashed var(--line); border-bottom:1px dashed var(--line); font-size:var(--text-sm);}
 .project-edit-cat{display:flex; align-items:center; gap:6px; color:var(--ink-soft); font-weight:600;}
 .project-edit-cat select{padding:5px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font-size:var(--text-sm);}
@@ -594,10 +507,10 @@ button.chip.proj-chip:hover{background:var(--line);}
 .task-edit-actions a.link-btn{text-decoration:none;}
 .task-edit-actions a.link-btn:hover{text-decoration:underline;}
 .task-edit-actions .btn-text{margin-left:auto;}
-.progress-track{height:5px; border-radius:var(--r-pill); background:var(--surface-2); overflow:hidden; margin-bottom:14px;}
+
 /* Progress fill is neutral, not the project's colour — the project's colour is identity only (its
    dot and card edge), not a status indicator (Q4b). */
-.progress-fill{height:100%; background:var(--ink-soft);}
+
 .task-group{margin-bottom:10px;}
 .group-label{margin-bottom:6px;}
 .task-row{
@@ -632,7 +545,7 @@ a.task-title:hover{text-decoration:underline;}
 .task-edit-form textarea,.add-task-form textarea{
   flex:1 1 160px; min-width:0; padding:6px 9px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit; resize:vertical;
 }
-.done-group{margin-top:4px;}
+
 .label-picker{flex:1 1 100%; font-size:var(--text-sm);}
 .label-picker summary{cursor:pointer; color:var(--ink-soft); font-weight:600; padding:4px 0;}
 .label-options{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0;}
@@ -666,8 +579,7 @@ a.task-title:hover{text-decoration:underline;}
 }
 .add-project-form{display:flex; gap:8px;}
 /* in the narrow project list the add field takes its own row, so its placeholder isn't cut off */
-.project-sidebar .add-project-form{flex-wrap:wrap;}
-.project-sidebar .add-project-form input[type="text"]{flex-basis:100%;}
+
 .add-project-form input[type="text"], .add-project-form input[type="password"]{
   flex:1; min-width:0; padding:11px 14px; border:1.5px dashed var(--line); border-radius:var(--r-control); background:transparent; color:var(--ink);
 }
@@ -693,7 +605,7 @@ a.task-title:hover{text-decoration:underline;}
 .toast-error{border-color:var(--danger);}
 /* room to scroll the last controls clear of the toast while it is showing */
 .wrap:has(.toast){padding-bottom:calc(160px + env(safe-area-inset-bottom, 0px));}
-.toast-text{flex:1; margin:0; font-size:var(--text-sm); line-height:1.4; overflow-wrap:anywhere;}
+.toast-text{flex:1; margin:0; font-size:13px; line-height:1.4; overflow-wrap:anywhere;}
 .toast-close{
   flex:none; min-width:32px; min-height:32px; padding:0;
   border:none; border-radius:var(--r-control); background:none; color:var(--ink-soft); font-size:var(--text-h); line-height:1; cursor:pointer;
@@ -733,7 +645,7 @@ body.is-dragging, body.is-dragging *{cursor:grabbing !important; -webkit-user-se
   outline:2px dashed var(--ink-faint); outline-offset:-2px; background:var(--surface-2); box-shadow:none;
   border-radius:var(--r-card);
 }
-.sidebar-list li.drag-placeholder{border-radius:var(--r-control);}
+
 .drag-placeholder > *{visibility:hidden;}
 .drop-indicator{position:fixed; z-index:1001; pointer-events:none; background:var(--accent); border-radius:2px;}
 .drop-indicator[hidden]{display:none;}
@@ -756,11 +668,7 @@ body.is-dragging, body.is-dragging *{cursor:grabbing !important; -webkit-user-se
 .task-group.is-empty{display:none;}
 body.is-dragging-task .task-group.is-empty{display:block;}
 body.is-dragging-task .empty-note{display:none;}
-.drop-zone{
-  padding:10px; border:1.5px dashed var(--line); border-radius:var(--r-control);
-  text-align:center; font-size:var(--text-sm); color:var(--ink-faint);
-}
-.task-group.drop-target .drop-zone{border-color:var(--accent); color:var(--accent);}
+
 .project-card.drop-target{outline:2px solid var(--accent); outline-offset:-2px;}
 .drag-ghost.is-task{border:1px solid var(--line); border-radius:var(--r-control); padding:7px 8px; box-sizing:border-box;}
 .task-row.drag-placeholder{border-radius:var(--r-control);}
@@ -839,51 +747,10 @@ body.is-dragging-task .empty-note{display:none;}
    face and size through the #122 hook: var(--note-font) / var(--note-scale), falling back to the
    note's own face. See docs/4-systems/in-tray.md */
 .tray-count{margin:0 0 4px; text-align:right;}
-.tray{position:relative; padding:4px 6px 0; margin-top:4px;}
-.tray-stack{position:relative; min-height:150px;}
-.slip-behind{position:absolute; left:10px; right:26px; top:10px; height:118px; border-radius:3px; background:var(--paper); opacity:.75; transform:rotate(2.5deg); box-shadow:0 8px 14px -10px var(--paper-shadow);}
-.slip-behind.two{transform:rotate(-3deg); top:16px; opacity:.55;}
-.jot-slip{position:relative; margin-right:20px; min-height:124px; border-radius:2px 2px 4px 4px; padding:18px 34px 34px 14px; color:var(--paper-ink); transform:rotate(-1deg);
-  background-color:var(--paper); box-shadow:0 12px 18px -12px var(--paper-shadow);
-  background-image:radial-gradient(circle, var(--hole) 2.2px, transparent 2.7px), repeating-linear-gradient(transparent 0 25px, var(--rule) 25px 26px);
-  background-size:12px 8px, 100% 100%; background-repeat:repeat-x, no-repeat; background-position:4px 3px, 0 14px;}
-.slip-text{white-space:pre-wrap; margin:0; font-family:var(--note-font, 'Kalam', 'Comic Sans MS', cursive); font-weight:700; font-size:calc(1.25rem * var(--note-scale, 1)); line-height:26px; overflow-wrap:anywhere;}
-.slip-dest{margin-top:10px; font:600 var(--text-sm) var(--font-paper-small); color:var(--paper-soft); display:flex; flex-wrap:wrap; align-items:center; gap:6px;}
-.slip-dest .folder-chip{display:inline-block; padding:1px 8px 1px 7px; border-radius:2px 6px 6px 6px; background:color-mix(in srgb, var(--c) 55%, var(--folder)); color:#1D2733;}
-.slip-issue{font-weight:700;}
-.slip-when{margin-top:2px; font:var(--text-sm) var(--font-paper-small); color:var(--paper-soft);}
-.slip-flags{position:absolute; right:-22px; top:10px; display:grid; gap:5px;}
-.slip-flag{width:46px; height:20px; border-radius:0 3px 3px 0; display:flex; align-items:center; justify-content:flex-end; padding-right:4px; overflow:hidden; white-space:nowrap; font:700 .6rem var(--font-paper-small); color:#FFFFFF; letter-spacing:.02em;
-  background:linear-gradient(90deg, color-mix(in srgb, var(--c) 45%, transparent) 0 40%, var(--c) 40%); animation:flag-on .22s ease-out;}
-@keyframes flag-on{from{transform:translateX(-14px); opacity:0;} to{transform:none; opacity:1;}}
-.tray-lip{position:relative; z-index:3; margin:-22px -6px 0; height:34px; border-radius:4px 4px 10px 10px; display:grid; place-items:center;
-  background:var(--surface-2); border:1px solid var(--line); box-shadow:0 10px 18px -12px var(--paper-shadow);}
-.tray-lip span{font:700 .66rem var(--font-paper-small); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft);}
-.tray-empty{display:grid; place-items:center; align-content:center; min-height:124px; margin-right:20px; border:1.5px dashed var(--line); border-radius:6px; color:var(--ink-soft); font-size:var(--text-body); text-align:center; padding:12px;}
-.tray-empty p{margin:0;}
-.tray-wallets{margin-top:6px;}
 .icard.is-picked{box-shadow:0 0 0 3px var(--accent), 0 14px 26px -14px var(--paper-shadow);}
-.sort-acts{display:grid; gap:8px; margin-top:2px;}
 .file-btn{border:0; cursor:pointer; font:700 var(--text-body) var(--font-paper); color:var(--accent-ink); background:var(--accent); border-radius:var(--r-pill); padding:12px 16px; overflow-wrap:anywhere;}
 .file-btn:disabled{cursor:default; background:transparent; color:var(--ink-soft); box-shadow:inset 0 0 0 1.5px var(--line); font-weight:500;}
-.sort-small{display:flex; justify-content:center; gap:6px; flex-wrap:wrap;}
-.sort-small button{border:0; background:none; font:inherit; font-size:var(--text-sm); color:var(--ink-soft); padding:6px 10px; border-radius:var(--r-control); cursor:pointer; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:3px;}
-.sort-small button:hover{color:var(--ink);}
-.file-btn:focus-visible, .sort-small button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
-@media (prefers-reduced-motion: reduce){.slip-flag{animation:none;}}
-/* the slip and its buttons, then the choices: on a phone the buttons come last (#135) */
-.tray-side{display:contents;}
-.unsorted-body:has(> .tray-side){display:flex; flex-direction:column;}
-.unsorted-body > .tray-side > .sort-acts{order:3;}
-.unsorted-body > .tray-wallets{order:2;}
-/* Sort in three parts (#189): the step bar, the search box, the new-flag button, the editable slip */
-.step-bar{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:0 0 14px;}
-.step-tab{border:0; background:none; text-align:left; padding:6px 2px 8px; border-bottom:3px solid var(--line); color:var(--ink-faint); font:inherit; font-size:var(--text-sm); min-width:0; cursor:pointer;}
-.step-tab b{display:block; font-weight:700; color:inherit;}
-.step-tab small{display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-height:1.3em;}
-.step-tab.done{color:var(--ink-soft); border-bottom-color:color-mix(in srgb, var(--accent) 45%, var(--line));}
-.step-tab.now{color:var(--ink); border-bottom-color:var(--accent);}
-.step-tab.locked{opacity:.6;}
+.file-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 .step-why{margin:-8px 0 12px; font-size:var(--text-sm); color:var(--ink-soft);}
 /* "Select many" (sorting many slips at once): the tray's slips as a list of tick-box rows, then one
    project, labels and an optional group for all the ticked ones. Plain controls on purpose: each row
@@ -924,24 +791,124 @@ body.is-dragging-task .empty-note{display:none;}
   .bulk-panel{position:sticky; top:calc(var(--topbar-h, 64px) + 20px);}
 }
 .screen-sort .unsorted-body:has(> .bulk){display:block;}
-.sort-find{width:100%; padding:10px 12px 10px 36px; margin:4px 0 6px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 11px center / 16px;}
 .find-empty{margin:10px 0;}
-.new-flag{border:1.5px dashed var(--line); background:none; color:var(--ink-soft); border-radius:var(--r-control); padding:8px 12px; font:inherit; font-size:var(--text-sm); cursor:pointer; margin:8px 0;}
-.new-flag:hover{color:var(--ink); border-color:var(--ink-soft);}
+/* ==== Sort in nine steps (#264) ==========================================================
+   One thought on a jotter slip, then one question per screen on the clipboard (.dk-board/.dk-paper),
+   nine progress dots, a Back corner, a Skip flag and a stamped Next card. Everything fits a 390x844
+   phone without scrolling and nothing is under 13px (the type scale's small size is lifted to 13px
+   here). The choices are js/wallet.js's carousels, index-card rows and tear-off calendar pages.
+   See docs/4-systems/in-tray.md */
+.screen-sort .sortflow{--text-sm:13px; background:none; border:0; box-shadow:none; padding:0; display:flex; flex-direction:column; min-height:calc(100dvh - 240px - env(safe-area-inset-bottom, 0px));}
+.screen-sort .sortflow .unsorted-body{display:flex; flex-direction:column; flex:1; min-height:0;}
+.screen-sort .sortflow .unsorted-body:has(> .bulk){display:block;}
+.screen-sort .sortflow{max-width:560px; margin:0 auto; width:100%;}
+.sort-title{text-align:left; margin:2px 12px 0; font-size:20px; line-height:1.2;}
+.sort-board{margin:6px 0 2px;}
+.sort-paper{padding:6px 10px 8px; gap:8px; overflow:hidden;}
+.sort-q{font-size:20px; line-height:1.2; margin:4px 2px 0;}
+.sort-body{display:flex; flex-direction:column; gap:8px; min-height:0; flex:1;}
+.sort-dots{margin:4px 0 0;}
+.sort-dots i{width:10px; height:10px;}
+.sort-foot{display:flex; align-items:center; gap:10px; padding:8px 4px 4px;}
+.sort-foot .dk-btn{min-height:44px;}
+.dk-back,.dk-skip,.dk-link,.dk-pencil,.dk-tag,.dk-letter,.sort-nav,.sort-day,.sort-cal-page,.sort-flag,.slip-more{border:0; cursor:pointer;}
+.dk-back,.dk-skip,.dk-link{min-height:44px; display:inline-flex; align-items:center; font-size:15px;}
+.dk-link{padding-left:12px;}
+.sort-foot .dk-skip{margin-left:auto;}
+.dk-btn.file-btn{border-radius:3px; padding:10px 8px; font:800 14px/1.15 var(--font-ui); letter-spacing:.06em; text-transform:uppercase; color:var(--dk-ink-stamp); background:var(--dk-paper); cursor:pointer;}
+.dk-btn.file-btn:disabled{background:var(--dk-paper); color:var(--dk-ink-stamp); font-weight:800; cursor:default; opacity:.45; box-shadow:0 2px 4px rgba(0,0,0,.25),inset 0 0 0 3px var(--dk-paper),inset 0 0 0 5px var(--dk-ink-stamp),inset 0 0 0 7px var(--dk-paper),inset 0 0 0 8px var(--dk-ink-stamp);}
+.sort-row2{display:flex; justify-content:space-between; gap:8px;}
+.sort-several{align-self:flex-start; margin:6px 0 0;}
+/* Sort several (#265): the tick list scrolls inside the clipboard, never the page */
+.many-list{display:grid; gap:6px; max-height:calc(100dvh - 460px); overflow-y:auto;}
+.many-group{min-height:56px; field-sizing:fixed;}
+.dk-link:disabled{opacity:.45; cursor:default;}
+.step-why{margin:0; font-size:13px; color:var(--ink-soft);}
+.sortflow .muted.small, .focusflow .muted{font-size:13px;}
+/* the thought: a torn jotter slip, holes along its top, ruled lines, the pen's colour */
+.jot-slip{position:relative; margin:6px 2px 2px; padding:18px 40px 10px 12px; color:var(--paper-ink); border-radius:2px; border-bottom:2px solid var(--dk-rule);
+  background:radial-gradient(circle at 8px 5px, var(--bg) 2.5px, transparent 3px) 0 0/16px 10px repeat-x, var(--dk-paper); box-shadow:0 2px 5px rgba(40,52,80,.25); max-height:46vh; overflow-y:auto;}
+.jot-slip.compact{padding-top:14px; max-height:none; overflow:visible;}
+.jot-slip.compact .slip-text{font-size:17px; line-height:22px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.jot-slip.ghost{min-height:84px; opacity:.5; transform:rotate(-3deg);}
+.slip-text{white-space:pre-wrap; margin:0; font-family:var(--note-font, 'Kalam', 'Comic Sans MS', cursive); font-weight:700; font-size:calc(1.25rem * var(--note-scale, 1)); line-height:28px; overflow-wrap:anywhere;}
 .slip-text[contenteditable]{outline:none; border-radius:2px;}
-/* a very long thought scrolls inside the slip, so its buttons stay within reach */
-.jot-slip .slip-text{max-height:45vh; overflow-y:auto;}
 .slip-text[contenteditable]:focus{box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent);}
-.slip-notes-link{border:0; background:none; padding:0; margin-top:6px; font:var(--text-sm) var(--font-paper-small); color:var(--paper-soft); text-decoration:underline; cursor:pointer;}
-.slip-notes{display:block; width:100%; margin-top:6px; min-height:58px; border:0; resize:vertical; field-sizing:content; overflow-wrap:anywhere; background:transparent; font:var(--text-body) var(--font-paper-small); color:#1D2733; line-height:24px; outline:none;}
+.slip-dest{margin-top:6px; font:600 13px var(--font-paper-small); color:var(--paper-soft); display:flex; flex-wrap:wrap; align-items:center; gap:6px;}
+.slip-dest .folder-chip{display:inline-block; padding:1px 8px 1px 7px; border-radius:2px 6px 6px 6px; background:color-mix(in srgb, var(--c) 55%, var(--folder)); color:#1D2733;}
+.slip-issue{font-weight:700;}
+.slip-when{margin-top:2px; font:13px var(--font-paper-small); color:var(--paper-soft);}
+.slip-flags{display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;}
+.slip-flag{padding:1px 8px; border-radius:2px 6px 6px 2px; font:700 13px var(--font-paper-small); color:#1D2733; background:color-mix(in srgb, var(--c) 60%, #fff);}
+.slip-more{position:absolute; right:6px; top:6px; width:44px; height:44px; background:none; font-size:0;}
+.slip-more::after{content:""; position:absolute; right:8px; top:16px; width:28px; height:10px; border-radius:5px; background:linear-gradient(#F3E3B0,var(--dk-brass) 55%,#8C6A22); box-shadow:0 1px 2px rgba(0,0,0,.35);}
+.jot-slip .task-open{margin:4px 0 0; padding:2px 0; font-size:13px; display:block;}
+.slip-notes{display:block; width:100%; min-height:150px; border:0; resize:none; field-sizing:content; overflow-wrap:anywhere; font:700 16px/28px var(--dk-hand); color:var(--dk-pen); outline:none;
+  background:radial-gradient(circle at 8px 5px, var(--bg) 2.5px, transparent 3px) 0 0/16px 10px repeat-x, repeating-linear-gradient(transparent 0 27px, var(--dk-rule) 27px 28px), var(--dk-paper); background-position:0 0, 0 12px, 0 0; padding:14px 12px 6px; box-shadow:0 1px 3px rgba(40,52,80,.25);}
 .slip-notes:focus{box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent);}
-.links-step h4{font-size:var(--text-sm); font-weight:700; color:var(--ink-soft); margin:14px 0 8px;}
-.link-row{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:10px;}
-.link-row > .muted{min-width:90px;}
-.link-tag{display:inline-flex; align-items:center; gap:6px; padding:3px 6px 3px 9px; border-radius:2px 6px 6px 6px; background:color-mix(in srgb, var(--c) 55%, var(--folder)); color:#1D2733; font-size:var(--text-sm); font-weight:600;}
-.link-tag small{font-weight:500; opacity:.8;}
-.link-tag button{border:0; background:rgba(0,0,0,.12); color:inherit; width:18px; height:18px; border-radius:50%; cursor:pointer; line-height:1;}
-.link-add{border:0; background:none; color:var(--accent); font:inherit; font-size:var(--text-sm); font-weight:700; cursor:pointer; padding:4px 2px;}
+/* the search strip, and the field a new name is written in */
+.sort-find{flex:none; width:100%; min-height:44px; margin:0; padding:6px 10px 6px 36px; border:0; border-radius:2px; color:var(--dk-ink); font:15px var(--dk-hand); box-shadow:0 1px 2px rgba(40,52,80,.2);
+  background:var(--dk-paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235B4A22' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5' fill='%23BEDCF0'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 9px center / 20px;}
+.sort-find.sort-type{background-image:none; padding-left:12px; font-weight:700; color:var(--dk-pen);}
+.find-empty{margin:6px 0;}
+/* the carousels: a project is a manila folder, a kind of work an index card */
+.sortflow .wallet, .focusflow .wallet{flex:none;}
+.sortflow .wallet-h, .focusflow .wallet-h{display:none;}
+.sortflow .flip, .focusflow .flip{margin:-4px -10px 0;}
+.sortflow .flip-track, .focusflow .flip-track{padding:26px 0 12px;}
+.sortflow .flip-hint{display:none;}
+.sort-picked{display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-height:34px; font:14px var(--dk-hand); color:#6A7184;}
+.dk-tag{min-height:34px; padding:3px 10px 3px 14px; background:var(--dk-manila); color:#2B2210; font:700 14px var(--font-ui); clip-path:polygon(6px 0,100% 0,100% 100%,6px 100%,0 50%);}
+.dk-drawer{background:#E9DFC6; border-radius:3px; padding:8px; display:flex; flex-direction:column; gap:4px; box-shadow:inset 0 2px 4px rgba(0,0,0,.25); min-height:0; overflow:auto;}
+.dk-tabrow{display:flex; flex-wrap:wrap; gap:4px;}
+.dk-letter{min-width:40px; min-height:40px; font:700 14px var(--font-ui); background:var(--dk-manila-dark); color:#2B2210; border-radius:6px 6px 0 0;}
+.dk-letter.on{background:var(--dk-manila); box-shadow:0 0 0 2px var(--dk-accent);}
+/* priority: page flags, the chosen one pulled out */
+.sort-flags{display:flex; flex-direction:column; gap:8px; align-items:flex-start;}
+.sort-flag{display:flex; align-items:center; width:84%; min-height:48px; padding:10px 18px 10px 14px; font:800 17px var(--font-ui); color:#1C2438; opacity:.85; background:#C8CDD6;
+  clip-path:polygon(0 0,100% 0,calc(100% - 12px) 50%,100% 100%,0 100%); box-shadow:inset 0 -2px 0 rgba(0,0,0,.1);}
+.sort-flag[data-level="urgent"]{background:#F28B82;} .sort-flag[data-level="high"]{background:#F6B26B;} .sort-flag[data-level="medium"]{background:#8AB4F8;} .sort-flag[data-level="low"]{background:#C8CDD6;} .sort-flag.none{background:#FFFDF8;}
+.sort-flag.on{width:100%; opacity:1; filter:saturate(1.2); box-shadow:inset 6px 0 0 rgba(0,0,0,.3);}
+/* due date: tear-off calendar pages */
+.sort-cal{display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding:6px 4px 10px; scrollbar-width:none; touch-action:pan-x pan-y;}
+.sort-cal::-webkit-scrollbar{display:none;}
+.sort-cal-page{flex:0 0 112px; scroll-snap-align:start; background:var(--dk-paper); border-radius:3px; text-align:center; overflow:hidden; box-shadow:0 3px 6px rgba(40,52,80,.25); color:var(--dk-ink); font:700 13px var(--font-ui); padding:0 0 6px;}
+.sort-cal-page i{display:block; background:var(--dk-red); color:#fff; font:800 13px var(--font-ui); letter-spacing:.06em; text-transform:uppercase; padding:5px 0; font-style:normal;}
+.sort-cal-page b{display:block; font:600 40px/1.3 var(--font-display);}
+.sort-cal-page small{display:block; min-height:1.2em; font:13px var(--dk-hand); color:#6A7184; font-weight:400;}
+.sort-cal-page.on{box-shadow:0 0 0 3px var(--dk-accent), 0 3px 6px rgba(40,52,80,.3);}
+.sort-month{background:var(--dk-paper); border-radius:3px; box-shadow:0 3px 6px rgba(40,52,80,.25); overflow:hidden;}
+.sort-month-head{display:flex; align-items:center; justify-content:space-between; background:var(--dk-red); color:#fff; font:800 14px var(--font-ui); letter-spacing:.06em; text-transform:uppercase;}
+.sort-nav{width:44px; height:40px; background:none; color:#fff; font-size:22px;}
+.sort-days{display:grid; grid-template-columns:repeat(7,1fr); gap:2px; padding:8px;}
+.sort-days em{font:600 13px var(--font-ui); font-style:normal; color:#6A7184; text-align:center;}
+.sort-day{min-height:36px; background:none; border-radius:50%; font:600 15px var(--font-ui); color:var(--dk-ink);}
+.sort-day.today{box-shadow:inset 0 0 0 2px var(--dk-red); font-weight:800;}
+.sort-day.on{background:var(--dk-accent); color:#fff;}
+.sort-warn{display:flex; flex-direction:column; gap:8px;}
+.sort-warn .dk-choice select{border:0; background:transparent; font:600 15px var(--font-ui); color:var(--dk-ink); min-height:36px; max-width:55%;}
+/* the choice rows under the steps: the one you picked carries the paperclip */
+.sort-body .dk-choice{text-align:left; justify-content:space-between;}
+.sort-body .dk-choice small{font-size:13px;}
+.sort-body .dk-choice span{min-width:0; overflow-wrap:anywhere;}
+/* the receipt: a pencil on each line */
+.sort-receipt{margin:2px 0 0; font-size:14px;}
+.sort-receipt>div{padding:2px 10px;}
+.sort-receipt em{white-space:nowrap;}
+.dk-pencil{background:none; min-width:44px; min-height:34px; font:700 20px var(--dk-hand); color:var(--dk-pen);}
+.sort-done{align-items:center; justify-content:center;}
+/* the ⋯ drawer */
+.sort-drawer{z-index:71;}
+.unsorted-body .vs-backdrop{position:fixed; inset:0; z-index:70;}
+/* the "Filed to X ✓" slip sits above the stamp, not on it */
+@media (max-width:1099px){
+  .screen-sort + .toast, .screen-focus + .toast{bottom:calc(230px + env(safe-area-inset-bottom, 0px));}
+  .wrap:has(.screen-sort + .toast), .wrap:has(.screen-focus + .toast){padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px));} /* the slip sits over the board, so the page needs no room under it */
+}
+@media (min-width:1100px){
+  .screen-sort .sortflow{min-height:0; max-width:680px;}
+}
+
 .task-find{margin:-2px 0 12px; padding:8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface);}
 .task-find .sort-find{margin:0 0 6px;}
 .task-hit{display:flex; align-items:center; gap:8px; width:100%; border:0; background:none; text-align:left; padding:7px 6px; border-radius:var(--r-control); color:var(--ink); font:inherit; font-size:var(--text-sm); cursor:pointer;}
@@ -980,7 +947,6 @@ body.is-dragging-task .empty-note{display:none;}
 .project-card .group-label{padding-bottom:5px; margin-bottom:0; border-bottom:2px solid color-mix(in srgb, var(--index-red) 65%, transparent);}
 .project-card .task-row{border-top-color:var(--index-rule);}
 .project-card .task-group .task-row:first-of-type{border-top:none;}
-.project-card .progress-track{background:var(--surface-2);}
 
 /* The task editor and the add-task form: an index card lifted off the list. */
 .task-edit-form, .add-task-form{
@@ -995,7 +961,7 @@ body.is-dragging-task .empty-note{display:none;}
 .add-row .add-plus{color:var(--ink-soft); font-weight:700;}
 .add-task-form.add-row .add-line input[type="text"]{flex:1 1 0; min-width:0; border:none; background:transparent; padding:6px 4px; outline-offset:2px;}
 .add-task-form.add-row .add-line .btn-text{background:none; color:var(--ink-soft); padding:6px 8px; font-weight:600;}
-.screen-board .add-task-form.add-row{margin:0 0 10px;}
+
 .add-row .add-more{flex:1 1 100%; display:flex; flex-wrap:wrap; gap:6px; padding-top:8px; border-top:1px dashed var(--line);}
 
 /* The project Edit panel: a slip tucked in the folder. */
@@ -1137,7 +1103,7 @@ body.is-dragging-task .empty-note{display:none;}
    screen is drawn. Wide: a column fixed on the left under the topbar. Phone: a bar fixed along the
    bottom. Focus and Sort are one centred column; Projects keeps the project list and folders.
    The jotter (adding) stays in the topbar on every screen. See docs/4-systems/styling.md#one-screen-at-a-time */
-.rail{position:fixed; z-index:15; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+.rail{position:fixed; z-index:15; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(5,minmax(0,1fr));
   background:var(--surface); border-top:1px solid var(--line); padding:6px 8px calc(6px + env(safe-area-inset-bottom, 0px));}
 .rail-item{display:flex; flex-direction:column; align-items:center; gap:3px; border:0; background:none; color:var(--ink-soft); font:600 .72rem var(--font-ui); padding:6px 0; border-radius:12px; cursor:pointer;}
 .rail-item.is-on{color:var(--accent); background:var(--surface-2);}
@@ -1149,12 +1115,11 @@ body.is-dragging-task .empty-note{display:none;}
 .toast{bottom:calc(84px + env(safe-area-inset-bottom, 0px));}
 .screen{max-width:720px; margin:0 auto;}
 .screen-focus{padding-top:12px;}
-.screen-board{padding-top:12px;}
+
 .screen-sort .inbox-card{border-top:0; padding-top:4px;}
 .screen-sort .inbox-card > .section-toggle{pointer-events:none;}
 .screen-sort .inbox-card > .section-toggle .chev{display:none;}
 .desk-empty .btn{margin-top:12px;}
-.rail-tools{display:none;}
 @media (min-width:1100px){
   .rail{top:calc(var(--topbar-h, 64px) + 16px); bottom:20px; right:auto; left:max(16px, calc((100vw - 1800px) / 2 + 16px)); width:232px; display:flex; flex-direction:column; gap:4px; padding:22px 14px 16px; border:1px solid var(--line); border-radius:20px; overflow-y:auto;}
   .rail-item{position:relative; flex-direction:row; justify-content:flex-start; gap:14px; padding:12px 14px; font:600 1rem var(--font-ui); border-radius:12px;}
@@ -1162,31 +1127,17 @@ body.is-dragging-task .empty-note{display:none;}
   .rail-count{left:auto; right:14px; top:50%; transform:translateY(-50%);}
   .wrap{padding-left:296px; padding-bottom:64px;}
   /* the topbar is sticky and opaque, spanning from the left edge of the side menu: the brand over the
-     menu column, the jotter centred over the content, no rule under it; sync and Settings sit at the
-     foot of the rail (.rail-tools). --topbar-h (js/app.js) places the rail just below it */
+     menu column, the jotter centred over the content, no rule under it; the sync light and Settings dial in the third column.
+     --topbar-h (js/app.js) places the rail just below it */
   .topbar{display:grid; grid-template-columns:232px minmax(0, 1fr) 232px; column-gap:16px; align-items:center; margin-left:-280px; padding-left:14px; background:var(--bg); border-bottom:0;}
-  .topbar .capture-form{grid-column:2; width:100%; justify-self:center;}
   .topbar .brand{padding-left:10px;}
   .topbar .brand h1{font-size:1.7rem;}
   .topbar .lamp{width:12px; height:12px;}
-  .topbar-tools{display:none;}
-  .rail-tools{display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:10px; margin-top:auto; padding:12px 10px 0; border-top:1px solid var(--line);}
-  .rail-settings{width:auto; height:32px; padding:0 8px; gap:10px; border-radius:16px; font:600 .95rem var(--font-ui); text-decoration:none;}
-  .rail-settings svg{width:22px; height:22px;}
-  .rail-settings-label{color:var(--ink-soft);}
   .toast{bottom:calc(16px + env(safe-area-inset-bottom, 0px));}
   #app:has(> .screen){display:block;}
-  .screen-focus,.screen-board{padding-top:28px;}
+  .screen-focus{padding-top:28px;}
   /* the work area uses the screen: every screen spans the same width as the header and Projects */
   .screen{max-width:none;}
-  /* Sort, laid out like its mockup: the slip (and its quiet links) on the left, the choices on the right */
-  .screen-sort .unsorted-body{display:grid; grid-template-columns:minmax(360px, 440px) minmax(0, 1fr); column-gap:48px; align-items:start;}
-  .screen-sort .tray-side{display:block; position:sticky; top:calc(var(--topbar-h, 64px) + 20px);}
-  .screen-sort .tray-count{text-align:left;}
-  .screen-sort .tray-head{flex-direction:row;}
-  .screen-sort .sort-acts{margin-top:18px;}
-  .screen-sort .jot-slip{min-height:200px;}
-  .screen-sort .slip-text{font-size:calc(1.9rem * var(--note-scale, 1)); line-height:36px;}
 }
 /* ==== end One screen at a time ==== */
 /* words for the screen size: flipping on a phone, clicking on a wide screen (#128) */
@@ -1216,15 +1167,13 @@ body.is-dragging-task .empty-note{display:none;}
 .project-card .group-label{color:var(--ink-soft);}
 .project-card .task-row{border-top-color:var(--index-rule);}
 .project-card .task-title{color:var(--ink);}
-.project-card .project-title h3{color:var(--ink);}
-@media (min-width:1100px){.view-all .project-card:not(.is-collapsed) .project-body{border-bottom-color:var(--index-rule);}}
+
 /* ==== end Projects as folders ==== */
 /* the tile's own task list scrolls (.project-body), so the tile need not clip: that would cut off its folder tab */
-@media (min-width:1100px){.view-all .project-card{overflow:visible;}}
+
 /* the in-tray's folders and flags on the Sort screen: full-size cards, a little shorter than the Focus screen's */
-.screen-sort .tray-wallets .flip-track.is-spread{grid-template-columns:repeat(auto-fill, minmax(176px, 1fr));}
-.screen-sort .tray-wallets .flip-track.is-spread .icard{height:84px;}
-.screen-sort .tray-wallets .flip-track.is-spread .icard.project{height:80px;}
+.task-open{margin-left:auto; padding:2px 8px; color:var(--ink-soft); text-decoration:underline; cursor:pointer;}
+.note .task-open{color:var(--note-ink);}
 .rail-label{display:block; line-height:1.1;}
 /* laid flat, the line under the wallets says what a click does; a corner hint would sit on the card's counts */
 .flip-track.is-spread .icard .go{display:none;}
@@ -1233,7 +1182,7 @@ body.is-dragging-task .empty-note{display:none;}
    A toolbar, tabs and one list of paper cards (js/board-view.js).
    A card is paper in both themes, so it and the folder frame take the light theme's tokens, as the
    project folders do (#129): the chips on them are the contrast already proven. */
-.board-card, .board-frame{
+.board-card{
   --bg:#E4E8EF; --surface:#FBFAF7; --surface-2:#EEF1F6;
   --ink:#1C2438; --ink-soft:#59627A; --ink-faint:#6E7790; --line:#C7CEDB;
   --accent:#8F5A06; --accent-ink:#FFFFFF; --danger:#A83E3E;
@@ -1243,12 +1192,7 @@ body.is-dragging-task .empty-note{display:none;}
 }
 .board-title{margin:0 0 10px; font:700 1.4rem var(--font-ui);}
 /* the picked project names the Board heading and marks the select (#218) */
-.board-title.is-project{border-left:6px solid var(--proj-color); padding-left:10px;}
-.board-title-name{display:inline-flex; align-items:center; gap:10px; overflow-wrap:anywhere; min-width:0;}
-.board-title-name i{width:14px; height:14px; border-radius:50%; background:var(--proj-color); flex:none;}
-.board-title-sub{display:block; font:600 .85rem var(--font-ui); color:var(--ink-soft); margin-top:2px;}
-.calm-tools select.is-picked{border:2px solid var(--proj-color); background:color-mix(in srgb, var(--proj-color) 14%, var(--surface)); font-weight:700;}
-.board-count{font-variant-numeric:tabular-nums; font-weight:700;}
+
 .board-cards{display:flex; flex-direction:column; gap:10px;}
 .board-card{position:relative; display:flex; align-items:flex-start; gap:10px; min-width:0; padding:11px 12px 11px 16px; background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--proj-color); border-radius:3px 8px 8px 3px; box-shadow:0 6px 12px -9px var(--paper-shadow);}
 .board-card input[type="checkbox"]{flex:none; width:17px; height:17px; margin-top:2px; accent-color:var(--accent);}
@@ -1257,9 +1201,7 @@ body.is-dragging-task .empty-note{display:none;}
 .board-card.is-done .board-card-title{text-decoration:line-through; color:var(--ink-soft); font-weight:500;}
 .board-card-meta{display:flex; gap:6px; min-width:0; color:var(--ink-soft); font-size:var(--text-sm);}
 .board-card-proj{flex:0 1 auto; max-width:55%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:700;}
-.board-card-cats{flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.board-card-proj + .board-card-cats::before{content:"\00b7\00a0";}
-.board-card .board-prio{flex:none; cursor:default;}
+
 /* the lifted copy of a dragged card: .board-card's position:relative (above) would otherwise beat .drag-ghost's fixed */
 .board-card.drag-ghost.is-task{position:fixed; border-left:6px solid var(--proj-color); padding:11px 12px 11px 16px; border-radius:3px 8px 8px 3px; box-sizing:border-box;}
 .board-card.drag-placeholder{border-radius:3px 8px 8px 3px;}
@@ -1267,42 +1209,22 @@ body.is-dragging-task .empty-note{display:none;}
    From the test site, docs/generated/calm-test/index.html. The edge colour stays on --proj-color. */
 .cw{display:grid; grid-template-columns:minmax(420px, 640px) minmax(380px, 1fr); gap:28px; align-items:start;}
 @media (max-width:1099.98px){ .cw{grid-template-columns:minmax(0,1fr);} .cw-detail{display:none;} .cw-detail.phone-open{display:flex; position:fixed; inset:0; z-index:60; border-radius:0; max-height:none; overflow:auto;} } /* Task details goes full screen over the list on phones (#201) */
-.cw-list{min-width:0;}
+
 .cw-detail{position:sticky; top:20px; padding:20px 22px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px;}
-.calm-tools{display:flex; gap:8px; margin:0 0 12px; align-items:center; flex-wrap:wrap;}
-.calm-tools .bm-find, .board-find{flex:1 1 180px; min-width:0; padding:9px 12px 9px 34px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 10px center / 16px;}
-.calm-tools select{flex:0 0 auto; max-width:220px; padding:8px 10px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:600 var(--text-sm) var(--font-ui);}
-.calm-btn{padding:8px 12px;}
-.calm-btn.on{box-shadow:inset 0 0 0 2px var(--accent);}
-.calm-drawer{padding:14px 16px; margin:0 0 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2);}
+
 .calm-h{margin:0 0 6px; font-size:var(--text-sm); color:var(--ink-soft); font-weight:700;}
 .bm-row{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px;}
 .bm-chip{border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); border-radius:999px; padding:5px 11px; font:600 var(--text-sm) var(--font-ui); cursor:pointer;}
 .bm-chip.on{background:var(--accent); color:var(--accent-ink); border-color:transparent;}
 .bm-chip .sw{display:inline-block; width:9px; height:9px; border-radius:2px; background:var(--c); margin-right:6px;}
-.calm-tabs{display:flex; gap:22px; border-bottom:1px solid var(--line); margin-bottom:12px; overflow-x:auto;}
-.calm-tab{flex:none; border:0; background:none; padding:8px 2px; color:var(--ink-soft); font:600 var(--text-body) var(--font-ui); border-bottom:3px solid transparent; margin-bottom:-1px; cursor:pointer;}
-.calm-tab.on{color:var(--ink); border-bottom-color:var(--accent);}
-.calm-tab b{font-weight:600; color:var(--ink-faint); margin-left:4px;}
+
 .calm-cards{display:flex; flex-direction:column; gap:10px;}
 .calm-card{cursor:pointer; border-left-width:6px; border-left-color:color-mix(in srgb, var(--proj-color) 70%, var(--surface));} /* a softer edge; --proj-color still sets it */
 .calm-card.on{box-shadow:0 0 0 3px var(--accent);}
 /* the move button says where the task goes, so "start" is never confused with Focus */
-.calm-move{flex:none; align-self:center; margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border:1.5px solid #9aa3ad; border-radius:var(--r-control); background:#fff; color:#1D2733; font:700 var(--text-sm) var(--font-ui); cursor:pointer; white-space:nowrap;}
-.calm-move:hover, .calm-move:focus-visible{border-color:#2f4f86; color:#2f4f86;}
-.calm-move svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
-.board-subs{display:inline-flex; align-items:center; gap:6px; font-size:var(--text-sm); color:#4a5560;}
-.board-card-due{display:block; margin-top:4px;}
-.board-card-due .deadline-chip{font-size:var(--text-xs, 0.75rem);}
-.gl-glance{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
-.gl-prio{display:inline-flex; align-items:center; gap:4px; font-size:var(--text-sm); font-weight:700; color:var(--c);}
-.gl-prio svg{width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2; stroke-linejoin:round;}
-.board-subs b{color:#1D2733;}
-.board-segs{display:inline-flex; gap:2px;}
-.board-segs i{width:12px; height:5px; border-radius:2px; background:#d8d3c8;}
-.board-segs i.on{background:#3E8E5E;}
+
 .calm-meta{margin:0; font-size:var(--text-sm); color:var(--ink-soft);}
-.calm-more{margin-top:12px;}
+
 .calm-empty{margin:0; padding:18px; border:1px dashed var(--line); border-radius:10px; color:var(--ink-soft); font-size:var(--text-sm);}
 /* Task details (#201): the right-hand panel; its rows are the Settings .set rows. From the test site. */
 .cw-detail:has(.top){display:flex; flex-direction:column; gap:14px; max-height:calc(100vh - 40px); overflow:auto;}
@@ -1388,7 +1310,402 @@ body.no-motion .icard{transform:none !important;}
 body.calm-colours .icard, body.calm-colours .lchip, body.calm-colours .pdot, body.calm-colours .chip, body.calm-colours .project-card{filter:saturate(.75);} /* softer, same hues: colour still tells things apart */
 .comfort-choice{border:0; padding:0; margin:0; min-width:0;}
 /* Card colour (#202): the Board card one chip, from the test site .cchip. */
-.cchip{display:inline-flex; align-items:center; gap:6px; padding:1px 9px 1px 7px; border-radius:999px; font-size:.75rem; font-weight:700; background:color-mix(in srgb, var(--c) 22%, transparent);}
-.cchip i{width:9px; height:9px; border-radius:2px; background:var(--c);}
-.calm-card .cchip{color:color-mix(in srgb, var(--c) 55%, #1D2733);}
-.calm-card .cchip.none{background:#e7e3da; color:#4a5560;}
+
+/* Priority and due pickers (#249): one set of buttons on the add row, the Sort slip, bulk sort and
+   the task chips' small picker (js/pick-bits.js). Same tokens as the chips and file buttons. */
+.pick-blocks{flex:1 1 100%; display:flex; flex-direction:column; gap:8px; padding-top:8px; border-top:1px dashed var(--line);}
+.pick-blocks[hidden]{display:none;}
+.pick-block{display:flex; flex-wrap:wrap; align-items:center; gap:6px;}
+.pick-label{font-size:var(--text-sm); font-weight:700; color:var(--ink-soft); min-width:7.5em;}
+.pick-group{display:flex; flex-wrap:wrap; gap:6px;}
+.pick-opt{border:1.5px solid var(--line); background:var(--surface); color:var(--ink); border-radius:var(--r-pill); padding:6px 12px; font-weight:600; font-size:var(--text-sm); cursor:pointer; min-height:32px;}
+.pick-opt.on{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+.pick-opt:focus-visible, .pick-chip:focus-visible, .pick-bare:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.pick-date{display:flex; flex-wrap:wrap; gap:6px; flex:1 1 100%;}
+.pick-date input{min-width:0;}
+.pick-wrap{display:inline-block;}
+.task-row:has(.pick-pop), .board-card:has(.pick-pop){position:relative;}
+.pick-chip{cursor:pointer;}
+.chip.pick-chip.is-empty{background:transparent; color:var(--ink-soft); border-color:var(--line); font-weight:500;}
+.pick-bare{border:0; background:none; padding:0; cursor:pointer; font:inherit; color:var(--ink-soft);}
+.pick-pop{position:absolute; left:8px; right:8px; top:100%; z-index:20; margin-top:2px; display:flex; flex-direction:column; gap:6px; padding:8px; background:var(--surface); border:1.5px solid var(--line); border-radius:var(--r-control); box-shadow:0 6px 18px rgb(0 0 0 / .18);}
+.sort-picks{display:flex; flex-direction:column; gap:6px; margin-bottom:8px;}
+.sort-picks .pick-blocks{border-top:0; padding-top:0;}
+.add-row .btn.primary:disabled{opacity:.6; cursor:default;}
+.pick-bare .deadline-chip::first-letter{text-transform:uppercase;}
+.pick-hint{font-size:var(--text-sm); color:var(--ink-soft);}
+/* beat .add-task-form button (accent fill) so unpicked options read as unpicked */
+.add-task-form .pick-opt{border:1.5px solid var(--line); background:var(--surface); color:var(--ink); padding:6px 12px; border-radius:var(--r-pill); font-weight:600;}
+.add-task-form .pick-opt.on{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+
+/* Areas and Kinds of work in Settings (docs/4-systems/areas.md) */
+.area-row.is-selected{background:color-mix(in srgb, var(--accent) 10%, transparent); border-radius:var(--r-control);}
+.area-pick{display:flex; align-items:center; gap:10px; flex:1; min-width:0; padding:8px 4px; border:0; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer;}
+.area-swatch{flex:none; width:18px; height:18px; border-radius:50%; background:var(--chip-color);}
+.area-name{font-weight:600; overflow-wrap:anywhere;}
+.area-count{margin-left:auto; white-space:nowrap;}
+.area-edit{display:flex; align-items:center; gap:8px; flex:1; min-width:0;}
+.area-name-input{flex:1; min-width:0; padding:6px 8px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:inherit;}
+.area-projects{margin-top:14px;}
+.area-proj{display:flex; align-items:center; gap:10px; padding:6px 0; border-top:1px solid var(--line);}
+.area-proj-name{flex:1; min-width:0; overflow-wrap:anywhere;}
+.kind-head{display:flex; justify-content:space-between; margin-bottom:4px;}
+.kind-tick{flex:1; min-width:0;}
+.kind-row{flex-wrap:wrap;}
+.kind-row .kind-prio{max-width:9em;}
+.area-move{max-width:9em;}
+
+/* The All | Area | Project switch (js/view-switch.js, docs/4-systems/view-switch.md). One row: the
+   segmented switch plus one button naming the pick. min-width:0 + ellipsis keep it inside 360px. */
+.vs-row{position:relative; display:flex; align-items:center; gap:8px; margin:0 0 12px; max-width:100%; min-width:0;}
+.vs-pick-name{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.vs-backdrop{position:fixed; inset:0; z-index:69; background:transparent;}
+.vs-pop-body{overflow:auto; padding:6px; min-height:0;}
+.vs-list{list-style:none; margin:0; padding:0;}
+.vs-group{margin:8px 8px 2px; font:700 var(--text-sm) var(--font-ui); color:var(--ink-soft);}
+.vs-item{width:100%; text-align:left; cursor:pointer;}
+.vs-dot{flex:0 0 auto; width:12px; height:12px; border-radius:50%; background:var(--c);}
+.vs-name{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.vs-search{box-sizing:border-box; width:100%; margin:0 0 6px; padding:9px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface-2); color:var(--ink); font:var(--text-sm) var(--font-ui);}
+
+/* ==== Wallet strip on a wide screen (#253) ===============================================
+   js/wallet.js spreadOut: the project and kind-of-work wallets (and Sort's project wallet) show five
+   cards at once in a row that the arrows, keys, typing and the wheel move; the count says "3 of 27".
+   The slip's label wallet keeps the flat grid above. */
+.flip:has(.is-strip){display:flex; align-items:center; gap:6px;}
+.flip-track.is-spread.is-strip{flex:1 1 auto; min-width:0; display:flex; gap:16px; overflow-x:hidden; overflow-y:visible; padding:18px 4px 6px;}
+.flip-track.is-strip .sleeve{flex:0 0 calc((100% - 64px) / 5);}
+.flip-track.is-strip:focus-visible{box-shadow:inset 0 0 0 2px var(--accent); border-radius:14px;}
+.flip-track.is-strip .icard{cursor:pointer;}
+.flip-track.is-strip .sleeve.is-centre .icard{box-shadow:0 0 0 3px var(--accent), 0 14px 26px -14px var(--paper-shadow);}
+.wallet:has(.is-strip) .wallet-count{display:inline;}
+.wallet-arrow{flex:0 0 auto; width:40px; height:40px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:1.5rem; line-height:1; cursor:pointer;}
+.wallet-arrow:disabled{opacity:.35; cursor:default;}
+.wallet-arrow:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.car-find{width:100%; padding:10px 12px 10px 36px; margin:6px 0 2px; border:1px solid var(--line); border-radius:var(--r-control); color:var(--ink); background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 11px center / 16px;}
+.car-find:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.car-alt{margin:6px 0 0; text-align:center;}
+/* ==== end Wallet strip ==== */
+
+/* the Review screen (#254, docs/4-systems/review-tab.md): two lists side by side, stacked on a phone */
+/* Review (#271): the task on the clipboard, two stamps, the Done this week list. Same .org clipboard as Organize. */
+.screen-review .org{--text-sm:13px; display:flex; flex-direction:column; max-width:560px; margin:0 auto; width:100%; min-height:calc(100dvh - 240px - env(safe-area-inset-bottom, 0px));}
+.screen-review .org .dk-board{flex:1; min-height:0;}
+.rv-card{display:flex; flex-direction:column; gap:4px; padding:10px 12px; border-left:6px solid var(--proj-color); background:#FFFDF8; box-shadow:0 1px 3px rgba(40,52,80,.3);}
+.rv-title{border:0; background:none; padding:0; min-height:44px; text-align:left; color:var(--dk-pen); font:700 20px/1.25 var(--dk-hand); overflow-wrap:anywhere; cursor:pointer;}
+.rv-meta{font:600 14px var(--font-ui); color:var(--dk-ink);}
+.rv-stamps{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px;}
+.rv-stamps .dk-btn{min-height:52px; font-size:15px;}
+.rv-stamps .rv-ok{color:var(--dk-green);} .rv-stamps .rv-more{color:var(--dk-red);}
+.rv-none{margin:12px 2px; font:700 20px var(--dk-hand); color:var(--dk-ink);}
+.rv-done{display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:44px; border-bottom:1px dashed var(--dk-rule);}
+.rv-struck{text-decoration:line-through; text-decoration-color:var(--dk-pen); font:700 16px var(--dk-hand); color:var(--dk-ink); overflow-wrap:anywhere;}
+.rv-list{max-height:calc(100dvh - 440px);}
+.screen-review .sort-foot{justify-content:space-between;}
+.screen-review .cw-detail.phone-open{position:fixed; inset:0 0 0 auto; width:min(480px,100%); z-index:60; max-height:none; border-radius:0; box-sizing:border-box; overflow:auto;}
+
+/* Focus (#270): two questions on the clipboard, then one task on its sticky note with two stamps and a ⋯ tag.
+   Nothing under 13px, no page scroll on a 390x844 phone. See docs/4-systems/focus.md */
+.focusflow{--text-sm:13px; display:flex; flex-direction:column; max-width:560px; margin:0 auto; width:100%; min-height:calc(100dvh - 250px - env(safe-area-inset-bottom, 0px));}
+.onboarding .focusflow{min-height:0;}
+.focusflow .dk-board{flex:1; min-height:0;}
+.focusflow .note-shadow{margin:14px 6px 6px;}
+.focusflow .note{min-height:140px;}
+.note.is-done{opacity:.55; transform:rotate(4deg) translateY(8px);}
+.focus-stamps{margin-top:10px;}
+.focus-stamps .dk-btn{min-height:52px; font-size:15px;}
+.focus-stamps .rv-ok{color:var(--dk-green);}
+.focusflow .focus-tag{min-height:44px; font-size:15px;}
+.focusflow .sort-foot{justify-content:space-between;}
+.focusflow .sort-foot .dk-skip{margin-left:0;}
+.focusflow .org-title{cursor:default;}
+
+/* Organize (#266): the two index cards, Tidy up as four tick lists, "Close these?", then Triage as cards.
+   Same clipboard, stamps and dots as the Sort steps. Nothing under 13px, no page scroll on a 390x844 phone
+   (a long list scrolls inside its own box). See docs/4-systems/tidy-up.md and triage.md */
+.screen-tidy .org, .screen-triage .org{--text-sm:13px; display:flex; flex-direction:column; max-width:560px; margin:0 auto; width:100%; min-height:calc(100dvh - 240px - env(safe-area-inset-bottom, 0px));}
+.org .dk-board{flex:1; min-height:0;}
+.org-list{display:flex; flex-direction:column; gap:6px; min-height:0; overflow-y:auto; max-height:calc(100dvh - 520px);}
+.org-row{display:flex; align-items:center; gap:4px; min-height:44px; border-bottom:1px dashed var(--dk-rule);}
+.org-row.on{background:#FFF4C2;}
+.org-box{flex:none; width:44px; height:44px; display:grid; place-items:center; cursor:pointer;}
+.org-box input{width:22px; height:22px; margin:0; accent-color:var(--dk-pen);}
+.org-title{flex:1; min-width:0; min-height:44px; padding:4px 6px; border:0; background:none; color:var(--dk-pen); font:700 16px/1.25 var(--dk-hand); text-align:left; overflow-wrap:anywhere; cursor:pointer;}
+.org-objs{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.org-objs .dk-obj{border:0; min-height:44px; cursor:pointer;}
+.org-objs .dk-obj:disabled{opacity:.45; cursor:default;}
+.org-plain{cursor:default;}
+.tr-card{align-items:center; justify-content:space-between; text-align:left; padding-right:34px;}
+.pf{position:absolute; right:10px; top:-3px; width:12px; height:22px; background:var(--pf, #C8CDD6); clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%);}
+.pf[data-p="urgent"]{--pf:#F28B82;}.pf[data-p="high"]{--pf:#F6B26B;}.pf[data-p="medium"]{--pf:#8AB4F8;}
+.tr-row{display:flex; align-items:center; justify-content:space-between; gap:8px; text-align:left;}
+.tr-row:focus-visible{outline:2px solid var(--dk-accent); outline-offset:2px;}
+.tr-moves{display:flex; gap:6px; flex:none;}
+.tr-grip{display:none; cursor:grab; font-size:20px; padding:0 6px; flex:none; touch-action:none;}
+.tr-t{flex:1;}
+.tr-row.is-dragging{opacity:.5;}
+@media (min-width:1100px){.tr-grip{display:inline-block;}}
+.tr-move{width:44px; height:44px; border:0; border-radius:50%; background:radial-gradient(circle at 40% 35%,#4A5163,#1C2438); color:#F4F4F4; font-size:18px; box-shadow:0 2px 0 #000,0 0 0 2px #B8BFCC; cursor:pointer;}
+.tr-move:disabled{opacity:.4; cursor:default;}
+.tr-reset{flex:1;}
+.org-slip{align-self:flex-start; display:flex; align-items:center; gap:10px; padding:6px 10px; background:var(--dk-note); font:700 16px var(--dk-hand); color:var(--dk-ink); box-shadow:0 2px 4px rgba(40,52,80,.25); transform:rotate(-1.5deg);}
+.org .sort-row2{flex:none;}
+
+.screen-roadmap{min-width:0;}
+.detail-size{display:flex; align-items:center; gap:8px; margin-top:8px;}
+.rm-detail{margin:0; min-width:0;}
+
+/* Organize (#259): Tidy up and Triage share one numbered tab; the sub-items show under it in the wide rail only,
+   the Tidy up | Triage buttons sit at the top of both screens. See docs/4-systems/tabs.md */
+.rail-subs{display:none;}
+@media (min-width:1100px){
+  .rail-subs{display:flex; flex-direction:column; gap:2px; margin:-2px 0 2px 52px;}
+  .rail-sub{border:0; background:none; text-align:left; color:var(--ink-soft); font:600 .9rem var(--font-ui); padding:6px 10px; border-radius:10px; cursor:pointer;}
+  .rail-sub.is-on{color:var(--accent); background:var(--surface-2);}
+  .rail-sub:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+}
+/* six tabs on a 360 bar: a little less type so "Organize" and "Roadmap" do not touch */
+@media (max-width:399.98px){ .rail{padding-left:2px; padding-right:2px;} }
+
+
+
+/* ---- Desk-object kit (#262): ported from docs/generated/friction-steps/prototype.html (its <style> block). Every class
+   is prefixed dk- so it cannot collide with the app's own; colours are --dk-* so the old palette is untouched.
+   .dk-board/.dk-paper clipboard, .dk-tabs ring-binder dividers, .dk-sheet card-index drawer, .dk-choice index card (paperclip on
+   .on), .dk-btn ink stamp, .dk-back folded corner, .dk-link sticky flag, .dk-stamp, .dk-summary receipt, .dk-tape label-maker
+   strip, .dk-prog progress dots, .dk-obj tray/bin/stapler (SVG in js/desk-objects.js). Nothing under 13px. See docs/4-systems/styling.md */
+html{--dk-paper:#FFFEFA;--dk-note:#FFE27A;--dk-folder:#F1E6CC;--dk-red:#B42318;--dk-green:#2F7A4B;--dk-pen:#1F4FA8;--dk-rule:#BFD3EA;--dk-margin:#E3828A;--dk-manila:#EBD7A8;--dk-manila-dark:#C9AE72;--dk-board:#A9784A;--dk-wood:#7A4E2D;--dk-brass:#C9A24B;--dk-ink-stamp:#9A3B12;--dk-ink:#1C2438;--dk-accent:#8F5A06;--dk-bg:var(--bg);--dk-hand:Kalam,cursive;--dk-type:'Courier Prime','Courier New',monospace}
+.dk-tape{max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#20242C;color:#F4F4F4;font:700 13px/1 var(--dk-type);letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.4);text-shadow:0 1px 0 #000}
+.dk-tape b{color:#fff}
+.dk-pull{width:44px;height:14px;border-radius:7px;background:linear-gradient(#F3E3B0,var(--dk-brass) 55%,#8C6A22);box-shadow:0 2px 3px rgba(0,0,0,.35);font-size:0;position:relative}.dk-pull:after{content:"";position:absolute;inset:4px 10px;border-radius:3px;background:rgba(0,0,0,.25)}
+.dk-prog{margin:4px 12px 0;display:flex;align-items:center;gap:4px;padding:5px 8px;background:var(--dk-manila);border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.dk-prog i{flex:none;width:8px;height:8px;border-radius:50%;border:1.5px dashed var(--dk-manila-dark)}.dk-prog i.on{background:#3C4252;border:0;box-shadow:inset 0 2px 2px rgba(0,0,0,.6)}
+.dk-stepname{margin-left:auto;font:700 13px var(--dk-type);color:#5B4A22;white-space:nowrap}.stepnote{margin:2px 14px 0;font:13px var(--dk-hand);color:#6A7184}
+.dk-board{flex:1;margin:6px 10px 2px;background:var(--dk-board);border-radius:10px;padding:13px 5px 5px;position:relative;display:flex;flex-direction:column;min-height:0;box-shadow:0 3px 6px rgba(60,40,20,.3)}
+.dk-board:before{content:"";position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:84px;height:16px;border-radius:4px 4px 8px 8px;background:linear-gradient(#E7E9EE,#9EA4AF);box-shadow:0 2px 2px rgba(0,0,0,.35);z-index:2}
+.dk-paper{flex:1;background:var(--dk-paper);border-radius:2px;display:flex;flex-direction:column;min-height:0;padding-top:4px;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.dk-choice{position:relative;background:linear-gradient(90deg,transparent 16px,var(--dk-margin) 16px,var(--dk-margin) 17px,transparent 17px),linear-gradient(transparent calc(100% - 3px),var(--dk-rule) calc(100% - 3px),var(--dk-rule) calc(100% - 2px),transparent calc(100% - 2px)),#FFFDF8;border-radius:2px;padding:8px 10px 8px 24px;font-weight:600;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;box-shadow:0 1px 2px rgba(40,52,80,.25),0 0 0 1px rgba(40,52,80,.06)}
+.dk-choice small{font:15px var(--dk-hand);color:#6A7184;text-align:right}
+.dk-choice.on{background:linear-gradient(90deg,transparent 16px,var(--dk-margin) 16px,var(--dk-margin) 17px,transparent 17px),linear-gradient(transparent calc(100% - 3px),var(--dk-rule) calc(100% - 3px),var(--dk-rule) calc(100% - 2px),transparent calc(100% - 2px)),#FFF6D8;box-shadow:0 2px 5px rgba(40,52,80,.3),0 0 0 2px var(--dk-accent)}
+.dk-choice.on:before{content:"";position:absolute;left:6px;top:-6px;width:9px;height:26px;border:2px solid #8E96A6;border-radius:6px;box-shadow:inset 0 0 0 2px #fff0}
+.dk-choice.danger{color:var(--dk-red)}.dk-choice.danger:after{content:"🗑";font-size:14px}
+.dk-back{font:700 15px var(--dk-hand);color:var(--dk-ink);padding:8px 10px 8px 8px;background:linear-gradient(225deg,var(--dk-bg) 9px,#D9D2C0 9px,#EFE9DA 13px,var(--dk-paper) 13px);border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.dk-skip,.dk-link{font:700 14px var(--dk-hand);color:#1C2438;background:#FFD84D;padding:5px 16px 5px 9px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 50%,100% 100%,0 100%);box-shadow:0 1px 1px rgba(0,0,0,.2);align-self:flex-start;white-space:nowrap}
+.dk-btn{flex:1;text-align:center;font:800 14px/1.15 Figtree;letter-spacing:.06em;text-transform:uppercase;color:var(--dk-ink-stamp);background:var(--dk-paper);padding:10px 8px;border-radius:3px;box-shadow:0 2px 4px rgba(0,0,0,.25),inset 0 0 0 3px var(--dk-paper),inset 0 0 0 5px var(--dk-ink-stamp),inset 0 0 0 7px var(--dk-paper),inset 0 0 0 8px var(--dk-ink-stamp);transform:rotate(-1deg)}
+.dk-btn.off{opacity:.45}
+.dk-second{flex:1;text-align:center;font:700 14px/1.15 Figtree;color:#4A3510;background:radial-gradient(circle at 12px 50%,var(--dk-bg) 4px,#9B7B3C 4.5px,#9B7B3C 5.5px,transparent 6px),var(--dk-manila);padding:10px 8px 10px 22px;clip-path:polygon(10px 0,100% 0,100% 100%,10px 100%,0 50%);box-shadow:0 2px 3px rgba(0,0,0,.25)}
+.dk-tabs{display:flex;gap:2px;background:#3B4252;padding:6px 3px 10px;box-shadow:inset 0 3px 4px rgba(0,0,0,.4)}
+.dk-tabs .dk-tab{flex:1 1 auto;min-width:0;text-align:center;font:600 13px Figtree;letter-spacing:-.04em;color:#3B4252;position:relative;border-radius:8px 8px 2px 2px;padding:4px 0 3px;background:#C9D2E0}
+.dk-tabs .dk-tab:nth-child(1){background:#F3D98B}.dk-tabs .dk-tab:nth-child(2){background:#BFDCC4}.dk-tabs .dk-tab:nth-child(3){background:#EBD49E}.dk-tabs .dk-tab:nth-child(4){background:#C7D6F0}.dk-tabs .dk-tab:nth-child(5){background:#F2C7B8}.dk-tabs .dk-tab:nth-child(6){background:#DCCDEB}
+.dk-tabs .on{transform:translateY(-5px);box-shadow:0 -2px 4px rgba(0,0,0,.35);color:#000}
+.dk-tabs b{display:block;font-size:16px;font-weight:400}.dk-tabs sup{position:absolute;top:-6px;right:4px;background:var(--dk-red);color:#fff;border-radius:999px;font-size:13px;padding:0 5px;font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.dk-paper .slip{margin:6px 10px 4px}
+.dk-dots{font:13px var(--dk-hand);color:#6A7184;text-align:center;margin:0}
+.dk-summary{flex:none;background:var(--dk-paper);font:14px/1.3 var(--dk-type);box-shadow:0 2px 4px rgba(40,52,80,.2);padding:6px 0 10px;-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/10px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/10px 100%}
+.dk-summary>div{display:flex;justify-content:space-between;gap:6px;padding:4px 10px;border-top:1px dashed #C9C2B0;align-items:center}.dk-summary>div:first-child{border:0}
+.dk-summary span{color:#6A7184;flex:none;width:68px;text-transform:uppercase;font-size:13px;letter-spacing:.04em}.dk-summary em{font-style:normal;flex:1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dk-summary a{font:700 17px var(--dk-hand);color:var(--dk-pen);white-space:nowrap;line-height:1}
+.dk-dim{position:absolute;inset:0;background:rgba(20,26,40,.45);z-index:4}
+.dk-sheet{position:absolute;left:6px;right:6px;bottom:0;background:linear-gradient(90deg,rgba(0,0,0,.08),transparent 8%,transparent 92%,rgba(0,0,0,.08)),repeating-linear-gradient(95deg,#6E4527 0 3px,#7A4E2D 3px 9px,#835634 9px 13px);border-radius:8px 8px 0 0;padding:20px 10px 12px;display:flex;flex-direction:column;max-height:88%;z-index:5;box-shadow:0 -4px 12px rgba(0,0,0,.4)}
+.dk-sheet:before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:60px;height:10px;border-radius:5px;background:linear-gradient(#F3E3B0,var(--dk-brass) 55%,#8C6A22)}
+.dk-sheet h2{background:var(--dk-paper);margin:0 0 6px;padding:6px 10px;font-size:17px;border:3px solid var(--dk-brass);border-radius:3px}
+.dk-sheet .sub{color:#F2E6D0;margin:0 0 6px}.dk-sheet .muted{color:#F2E6D0}
+.dk-sheet .body{flex:none;padding:0 0 4px;overflow:visible}
+.dk-sheet .dk-back{align-self:flex-start}
+.dk-stamps{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dk-stamp{text-align:center;font:800 13px Figtree;letter-spacing:.08em;text-transform:uppercase;color:var(--c);padding:10px 4px;border:3px double var(--c);border-radius:4px;transform:rotate(var(--r,-3deg));opacity:.45;background:#FFFDF8}
+.dk-stamp.on{opacity:1;box-shadow:0 0 0 3px #FFFDF8,0 0 0 5px var(--dk-accent)}
+.dk-obj{display:flex;flex-direction:column;align-items:center;gap:2px;font:700 14px var(--dk-hand);color:var(--dk-ink);padding:6px 4px;background:#FFFDF8;border-radius:4px;box-shadow:0 1px 3px rgba(40,52,80,.25)}
+.dk-obj svg{width:44px;height:34px}
+.dk-pager{display:flex;gap:6px;justify-content:center}.dk-pager i{width:7px;height:7px;border-radius:50%;background:#C9C2B0}.dk-pager i.on{background:var(--dk-ink)}
+.dk-summary span{font-size:16px!important;width:28px!important}
+.dk-link{background:#9FD3F2}
+
+/* ---- The shell with the kit (#262): binder-divider tabs, header controls, view tape and its drawer, sync drawer ---- */
+.rail.dk-tabs{grid-template-columns:repeat(6,minmax(0,1fr)); gap:2px; background:#3B4252; border-top:0; padding:10px 3px calc(8px + env(safe-area-inset-bottom, 0px));}
+.rail .rail-item{position:relative; min-width:0; gap:0; padding:4px 0 3px; border-radius:8px 8px 2px 2px; background:#C9D2E0; color:#3B4252; font:600 13px/1.2 var(--font-ui); letter-spacing:-.04em;}
+.rail .rail-item:nth-of-type(1){background:#F3D98B;} .rail .rail-item:nth-of-type(2){background:#BFDCC4;} .rail .rail-item:nth-of-type(3){background:#EBD49E;}
+.rail .rail-item:nth-of-type(4){background:#C7D6F0;} .rail .rail-item:nth-of-type(5){background:#F2C7B8;} .rail .rail-item:nth-of-type(6){background:#DCCDEB;}
+.rail .rail-item.is-on{transform:translateY(-5px); box-shadow:0 -2px 4px rgba(0,0,0,.35); color:#000;}
+.rail .rail-icon{width:auto; height:auto; font-size:18px; line-height:1.2;}
+.rail .rail-count{top:-8px; left:auto; right:2px; min-width:18px; font-size:13px; line-height:18px; background:var(--dk-red); color:#fff; box-shadow:0 1px 2px rgba(0,0,0,.4);}
+@media (min-width:1100px){
+  .rail.dk-tabs{padding:22px 14px 16px 10px; border-radius:20px; border:0; gap:4px; box-shadow:inset 0 3px 4px rgba(0,0,0,.4);}
+  .rail .rail-item{flex:none; flex-direction:row; border-radius:12px 4px 4px 12px; padding:12px 14px; font-size:1rem; letter-spacing:0;}
+  .rail .rail-item.is-on{transform:translateX(8px); box-shadow:-2px 0 4px rgba(0,0,0,.35);}
+  .rail .rail-icon{width:28px; text-align:center;}
+  .rail .rail-count{top:50%; right:14px; transform:translateY(-50%);}
+  .rail .rail-sub{color:#E8ECF4;}
+  .rail .rail-sub.is-on{color:#fff; background:rgba(255,255,255,.14);}
+  .topbar-tools{justify-self:end;}
+}
+.topbar-tools{gap:14px;}
+.dk-jot{min-height:36px; white-space:nowrap; background:radial-gradient(circle at 6px 4px,var(--dk-bg) 2px,transparent 2.5px) 0 0/12px 8px repeat-x,var(--dk-paper); color:var(--dk-pen); font:700 15px var(--dk-hand); padding:9px 12px 4px; border:0; border-bottom:2px solid var(--dk-rule); border-radius:2px; box-shadow:0 2px 4px rgba(40,52,80,.3); transform:rotate(-2deg); cursor:pointer;}
+.dk-dial{width:32px; height:32px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#F3E3B0,var(--dk-brass) 60%,#8C6A22); color:#4A3510; display:grid; place-items:center; box-shadow:0 2px 3px rgba(0,0,0,.3);}
+.sync-wrap{position:relative; display:inline-flex;}
+.sync-light{position:relative; width:32px; height:32px; border:0; background:none; cursor:pointer;}
+.sync-light:after{content:""; position:absolute; left:9px; top:9px; width:14px; height:14px; border-radius:50%; background:#3DBE6B; box-shadow:0 0 6px 2px rgba(61,190,107,.6), inset 0 -2px 2px rgba(0,0,0,.25);}
+.sync-light.is-syncing:after{background:#E0A32B; box-shadow:0 0 6px 2px rgba(224,163,43,.6); animation:pulse 1s ease-in-out infinite;}
+.sync-light.is-error:after{background:#D64533; box-shadow:0 0 6px 2px rgba(214,69,51,.6);}
+@keyframes pulse{50%{opacity:.35;}}
+@media (prefers-reduced-motion: reduce){.sync-light.is-syncing:after{animation:none;}}
+.sync-drawer{position:absolute; right:0; top:calc(100% + 6px); z-index:30; width:190px; display:flex; flex-direction:column; gap:8px; padding:12px 10px 10px; border-radius:8px; background:repeating-linear-gradient(95deg,#6E4527 0 3px,#7A4E2D 3px 9px,#835634 9px 13px); box-shadow:0 6px 14px rgba(0,0,0,.4);}
+.dk-choice{min-height:44px; border:0; color:var(--dk-ink); font-family:var(--font-ui); cursor:pointer; text-align:left;}
+a.dk-choice{text-decoration:none;}
+.dk-choice:disabled{opacity:.5;}
+.dk-choice.on{box-shadow:0 2px 5px rgba(40,52,80,.3),0 0 0 2px var(--dk-accent);}
+.vs-row{display:flex; margin:0 0 12px;}
+.vs-tape{min-height:36px; border:0; cursor:pointer; text-align:left; font-size:13px; max-width:min(320px,100%);}
+.vs-tape .vs-pick-name{display:inline-block; max-width:260px; vertical-align:bottom; overflow:hidden; text-overflow:ellipsis;}
+.vs-backdrop{background:rgba(20,26,40,.45);}
+.vs-pop.dk-sheet{position:fixed; left:50%; right:auto; bottom:0; transform:translateX(-50%); z-index:70; width:min(520px,calc(100% - 12px)); max-height:80vh; padding:24px 10px calc(12px + env(safe-area-inset-bottom, 0px)); gap:6px;}
+.vs-pop-head{display:flex; justify-content:space-between; align-items:center; background:var(--dk-paper); border:3px solid var(--dk-brass); border-radius:3px; padding:2px 10px; font-size:17px;}
+.vs-x{border:0; background:none; color:var(--dk-ink); font-size:1.6rem; line-height:1; min-width:44px; min-height:44px; cursor:pointer;}
+.vs-pop-body{display:flex; flex-direction:column; gap:8px; padding:4px 0;}
+.vs-pop-body .vs-list{display:flex; flex-direction:column; gap:8px;}
+.vs-pop-body .vs-group{color:#F2E6D0; font-size:14px;}
+.vs-dot{margin-right:8px;}
+.vs-name{flex:1;}
+.vs-item.dk-choice{justify-content:flex-start;}
+.vs-pop .dk-back{border:0; min-height:44px;}
+
+/* The + Jot screen (#263): a clipboard laid over the current tab; the drawer is the shared .vs-pop sheet. */
+.jot-screen{position:fixed; inset:0; z-index:60; background:rgba(20,26,40,.45); display:flex; justify-content:center; align-items:flex-start; padding:12px 8px; overflow:auto;}
+.jot-board{width:min(560px,100%); margin-top:8px;}
+.jot-board .vs-pop-head{margin:0 5px 8px;}
+.jot-paper{padding:8px 10px 12px; gap:12px; flex:none;}
+.jot-paper .jotter{padding:14px 12px 8px;}
+.jot-paper #jot-input{min-height:7em;}
+.jot-where{justify-content:space-between;}
+.jot-where small{font-size:15px;}
+.jot-save{flex:none; font-size:15px; padding:12px 8px; cursor:pointer; border:0;}
+.jot-drawer{z-index:71;}
+.jot-screen .vs-backdrop{z-index:70;}
+
+/* Projects tab (#267): the Projects clipboard (a card per project, a sort drawer, My order) and New project in four steps.
+   Same clipboard, stamps and dots as the Sort steps. Nothing under 13px, no page scroll on a 390x844 phone (a long list
+   scrolls inside its own box). See docs/4-systems/projects-tab.md */
+.screen-projects .pj, .screen-roadmap .pj{--text-sm:13px; display:flex; flex-direction:column; max-width:560px; margin:0 auto; width:100%; min-height:calc(100dvh - 240px - env(safe-area-inset-bottom, 0px));}
+.pj .dk-board{flex:1; min-height:0;}
+.pj-paper{position:relative;}
+.pj-pull{top:2px;}
+.pj-scroll{display:flex; flex-direction:column; gap:8px; min-height:0; overflow-y:auto; padding:2px 2px 6px; max-height:calc(100dvh - 400px);}
+.screen-projects .pj-find + .pj-scroll{max-height:calc(100dvh - 425px);} /* the list under Find a project leaves room for the find box, so seven or more projects do not push the page */
+.pj-flow .pj-scroll:has(+ .pj-field){max-height:calc(100dvh - 470px);}
+.pj-card{flex:none; display:block; width:100%; text-align:left; border:0; border-top:4px solid var(--c); border-radius:2px; padding:8px 10px 10px 24px; color:var(--dk-ink); cursor:pointer; box-shadow:0 1px 3px rgba(40,52,80,.25);
+  background:linear-gradient(90deg,transparent 16px,var(--dk-margin) 16px,var(--dk-margin) 17px,transparent 17px),var(--dk-paper);}
+.pj-card:focus-visible{outline:2px solid var(--dk-accent); outline-offset:2px;}
+.pj-name{margin:0 0 6px; font:700 17px/1.25 var(--font-ui); overflow-wrap:anywhere;}
+.pj-ruler{display:block; height:14px; border-radius:2px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.25);
+  background:repeating-linear-gradient(90deg,#8C7A55 0 1px,transparent 1px 10%) 0 100%/100% 6px no-repeat,#EED9A0;}
+.pj-ruler i{display:block; height:100%; background:var(--c); opacity:.7;}
+.pj-field{flex:none; display:block; width:100%; min-height:48px; border:0; border-radius:2px; padding:14px 12px 6px; color:var(--dk-pen); outline:none; font:700 16px/28px var(--dk-hand); box-shadow:0 1px 3px rgba(40,52,80,.25);
+  background:radial-gradient(circle at 8px 5px, var(--bg) 2.5px, transparent 3px) 0 0/16px 10px repeat-x, repeating-linear-gradient(transparent 0 27px, var(--dk-rule) 27px 28px), var(--dk-paper); background-position:0 0, 0 12px, 0 0;}
+.pj-field:focus{box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent);}
+.pj-swatches{display:flex; flex-wrap:wrap; gap:14px; padding:6px 4px;}
+.pj-swatch{position:relative; width:48px; height:64px; border:0; border-radius:2px; background:var(--c); cursor:pointer; box-shadow:0 2px 3px rgba(0,0,0,.3);}
+.pj-swatch::after{content:""; position:absolute; left:0; right:0; bottom:0; height:16px; background:var(--dk-paper);}
+.pj-swatch.on{outline:3px solid var(--dk-ink); outline-offset:3px;}
+.pj-row{justify-content:space-between; align-items:center; cursor:default;}
+.pj .dk-choice[disabled]{opacity:.45; cursor:default;}
+.pj a.dk-choice{text-decoration:none; color:inherit;}
+
+/* Roadmap (#268): one project, one milestone at a time. The clipboard, stamps, flags, receipt and drawers are the Sort steps' kit;
+   nothing under 13px (the Task details panel under it too), no page scroll on a 390x844 phone (long lists scroll in their own box).
+   See docs/4-systems/roadmap.md */
+.screen-roadmap{--text-sm:13px;}
+.rm{min-width:0;}
+.rm-main .pj-scroll{max-height:calc(100dvh - 510px); min-height:48px; flex:0 1 auto;}
+.rm-tabs{display:flex; gap:3px; align-items:flex-end; flex:none; border-bottom:3px solid var(--dk-manila-dark); padding-top:4px;}
+.rm-tab{flex:1 1 0; min-width:0; min-height:48px; border:0; border-radius:8px 8px 0 0; background:var(--dk-manila); color:var(--dk-ink); font:700 14px/1.15 var(--font-ui); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; padding:3px 2px; box-shadow:inset 0 -3px 3px rgba(0,0,0,.08);}
+.rm-tab b{font-size:15px;}
+.rm-tab.on{background:#F3D98B; min-height:54px; box-shadow:0 -2px 4px rgba(0,0,0,.3);}
+.rm-tab:focus-visible, .rm-task-title:focus-visible, .rm-ms-open:focus-visible{outline:2px solid var(--dk-accent); outline-offset:2px;}
+.rm-task{display:flex; align-items:center; justify-content:flex-start; gap:8px; padding-right:8px;}
+.rm-tick{flex:none; width:26px; height:26px; margin:0 0 0 2px; accent-color:var(--dk-green);}
+.rm-task-title{flex:1; min-width:0; border:0; background:none; text-align:left; font:600 16px/1.25 var(--font-ui); color:inherit; padding:10px 0; cursor:pointer; overflow-wrap:anywhere;}
+.rm-task.is-done .rm-task-title{text-decoration:line-through; color:#6A7184;}
+.rm-grip{display:none; flex:none; border:0; background:none; color:#8E96A6; cursor:grab; touch-action:none; min-width:24px; min-height:44px; letter-spacing:-2px; font:inherit;}
+@media (hover:hover) and (pointer:fine){ .rm-grip{display:inline-block;} }
+.rm-grip:focus-visible{outline:2px solid var(--dk-accent); outline-offset:2px;}
+.rm-dragging{cursor:grabbing; user-select:none;}
+.rm-task.is-dragging, .rm-ms.is-dragging, .rm-sec.is-dragging{opacity:.5;}
+.rm-dragging .rm-tab:hover, .rm-dragging .rm-ms:hover, .rm-dragging .rm-sec:hover{outline:2px dashed var(--dk-accent);}
+.rm-nav{display:flex; align-items:center; justify-content:space-between; gap:8px; flex:none; padding:2px 0;}
+.rm-flag{align-self:center;}
+.rm-sec{margin-top:6px;}
+.rm-sec-h{display:flex; align-items:center; gap:6px; margin:6px 0 6px; font:700 15px var(--font-ui); color:var(--dk-ink);}
+.rm-sec-name{flex:1; min-width:0; overflow-wrap:anywhere;}
+.rm-ms{display:flex; align-items:center; gap:6px; margin-bottom:6px;}
+.rm-ms-open{flex:1; min-width:0; display:block; border:0; background:none; text-align:left; color:inherit; font:inherit; padding:4px 0; cursor:pointer;}
+.rm-ms-name{display:block; margin-bottom:5px; font:700 16px/1.25 var(--font-ui); overflow-wrap:anywhere;}
+.rm-ms .tr-move, .rm-sec-h .tr-move{width:40px; height:40px;}
+.rm-stamps{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; padding:2px 0 6px;}
+.rm-stamp{min-height:48px; border:3px solid var(--s); border-radius:4px; background:var(--dk-paper); color:var(--s); font:800 14px/1.1 var(--font-ui); letter-spacing:.03em; text-transform:uppercase; cursor:pointer; transform:rotate(-2deg);}
+.rm-stamp.on{background:var(--s); color:#fff;}
+.rm-ask{display:flex; gap:10px; padding:4px 0;}
+.rm-dot{display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--c); vertical-align:middle;}
+.rm-ruler-pick{padding:26px 4px 12px;}
+.rm-slider{display:block; width:100%; height:48px; margin:0; -webkit-appearance:none; appearance:none; border-radius:2px; cursor:pointer;
+  background:linear-gradient(90deg,#8E96A6 1px,transparent 1px) 0 100%/10% 45% repeat-x, var(--dk-manila); box-shadow:0 1px 2px rgba(0,0,0,.3);}
+.rm-slider::-webkit-slider-thumb{-webkit-appearance:none; width:14px; height:64px; border-radius:2px; background:var(--dk-red); border:0; box-shadow:0 1px 3px rgba(0,0,0,.4);}
+.rm-slider::-moz-range-thumb{width:14px; height:64px; border-radius:2px; background:var(--dk-red); border:0;}
+.rm-slider:disabled{opacity:.5; cursor:default;}
+.rm-big{margin:0; text-align:center; font:700 56px/1 var(--font-ui); color:var(--dk-ink);}
+.rm-pair{display:flex; align-items:center; gap:10px;}
+.rm-pair .pj-field{width:auto; flex:1; min-width:0; text-align:center;}
+.rm-of{flex:none; font:700 16px var(--font-ui); color:var(--dk-ink);}
+.rm-item{display:flex; align-items:center; justify-content:flex-start; gap:8px; padding-right:6px;}
+.rm-item-text{flex:1; min-width:0; min-height:40px; border:0; background:none; font:600 16px var(--font-ui); color:var(--dk-ink); outline:none;}
+.rm-drop{flex:none; width:40px; height:40px; font-size:20px; cursor:pointer;}
+.rm-additem{display:flex; align-items:center; gap:8px; flex:none;}
+.rm-additem .pj-field{flex:1; min-width:0; width:auto;}
+.rm-additem .dk-btn{flex:none; min-height:44px; padding:0 14px; cursor:pointer;}
+.rm-flow .pj-scroll{max-height:calc(100dvh - 470px);}
+.rm-nav .rm-flag{font-size:22px; line-height:1;}
+.rm-nav .rm-all{font-size:15px;}
+
+/* Task details (#269): a clipboard over the screen (a side panel on a computer), the Sort steps drawn inside it.
+   See docs/4-systems/task-details.md */
+.cw-detail.td-panel{display:flex; flex-direction:column; position:fixed; inset:0 0 0 auto; width:min(480px,100%); z-index:60; box-sizing:border-box; margin:0; padding:8px 4px; background:var(--bg); border:0; border-radius:0; box-shadow:-4px 0 18px rgba(0,0,0,.25); overflow:hidden; max-height:none;}
+.td-panel .sortflow{display:flex; flex-direction:column; flex:1; min-height:0; --text-sm:13px; background:none; border:0; box-shadow:none; padding:0; margin:0; width:100%;}
+.td-panel .unsorted-body{display:flex; flex-direction:column; flex:1; min-height:0;}
+.td-x{position:absolute; top:0; right:2px; z-index:2; min-width:44px; min-height:44px; border:0; background:none; color:var(--dk-ink); font-size:30px; line-height:1; cursor:pointer;}
+.td-panel .sort-q{padding-right:44px; overflow-wrap:anywhere;}
+.td-stamp-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.td-stamp-row .rm-stamp{flex:none; padding:0 16px; min-height:48px;}
+.td-more{min-width:56px;}
+.td-tick{display:flex; align-items:center; gap:10px; justify-content:flex-start;}
+.td-tick input{width:24px; height:24px; flex:none;}
+.td-add{display:flex; align-items:center; gap:8px;}
+.td-add .sort-find{flex:1; min-width:0;}
+.td-panel .sort-body{overflow-y:auto;}
+.td-tick span{flex:1; text-align:left;}
+
+/* ---- Computer layout (#272, >= 1100px): the screen is a centred panel; Sort lists its nine steps beside it; on the Roadmap a
+   task's drawer and Task details open beside the panel instead of over it. Phone rules above are untouched. See docs/4-systems/tabs.md */
+.sort-steps{display:none;}
+@media (min-width:1100px){
+  .screen-sort{padding-right:194px;}
+  .screen-sort .sortflow{position:relative; max-width:560px;}
+  .sort-steps{display:block; position:absolute; left:calc(100% + 28px); top:48px; width:160px; margin:0; padding:0; list-style:none; font:600 15px/1.2 var(--font-ui); color:var(--ink-soft);}
+  .sort-steps li{padding:8px 0;}
+  .sort-steps li.on{color:var(--dk-ink); font-weight:800;}
+  .rm-project{display:flex; justify-content:center; align-items:flex-start; gap:24px;}
+  .rm-project > .pj{flex:0 1 560px; min-width:0; margin:0;}
+  .rm-project > .vs-backdrop{display:none;}
+  .rm-project > .vs-pop.dk-sheet{position:static; transform:none; flex:none; width:420px; max-height:none; margin-top:44px;}
+  .rm-project > .rm-detail{flex:none; width:440px;}
+  .rm-detail .cw-detail.td-panel{position:static; width:100%; height:calc(100dvh - 210px); box-shadow:none; background:none; z-index:auto;}
+}
+
+/* A slip (toast) must not make a phone page scroll: the screens above size themselves to fit 100dvh - 240px, and the toast's extra
+   room under them is 64px, so they give those 64px back while it shows (#272). */
+@media (max-width:1099.98px){
+  .wrap:has(.toast) :is(.pj, .org, .sortflow){min-height:calc(100dvh - 304px - env(safe-area-inset-bottom, 0px));}
+  .wrap:has(.toast) .screen-projects .pj-find + .pj-scroll{max-height:calc(100dvh - 489px);} /* a long project list gives them back too */
+}
+
+/* A slip never blocks what is under it; only its own Open / Undo / close buttons take taps. */
+.toast{pointer-events:none;}
+.toast :is(button, a){pointer-events:auto;}

@@ -15,6 +15,8 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
   deletion tombstones (`js/sync.js`).
 - [due-dates.md](./due-dates.md) — the white/yellow/red stage of a task's deadline chip, the lead-time
   step under the date field, and the Settings defaults (`js/due-stage.js`).
+- [focus.md](./focus.md) — the Focus tab: which project, what kind of work, then one task with Done, Another and
+  the ⋯ drawer (`js/focus-view.js`).
 - [wallets.md](./wallets.md) — the focus picker's folder and index-card wallets, the "Choosing a card"
   setting (`js/wallet.js`, `js/render.js`, `js/app.js`).
 - [task-links.md](./task-links.md) — subtasks, "waits on" links, task notes, the three-step Sort
@@ -27,9 +29,16 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
 - [onboarding.md](./onboarding.md) — first-run onboarding (welcome, first folder, tasks, first pick,
   sync offer), when it shows, and the no-projects empty states (`js/onboarding.js`,
   `js/onboarding-view.js`).
+- [view-switch.md](./view-switch.md) — the All | Area | Project switch on every screen (`js/view-switch.js`).
+- [projects-tab.md](./projects-tab.md) — the Projects tab: the project list, Sort by, My order, New project in four steps (`js/projects-view.js`).
+- [roadmap.md](./roadmap.md) — the Roadmap: sections, milestones, four columns per milestone (`js/roadmap.js`,
+  `js/roadmap-view.js`, `js/roadmap-drag.js`).
+- [task-details.md](./task-details.md) — Task details as a stamp and a receipt, the Sort steps reused as its pencils (`js/task-details.js`, `js/sort-flow-view.js`).
 - [calm-board.md](./calm-board.md) — the calm frame, the one-tab Board, card colour, Task details and
   the Comfort settings (`js/board-view.js`, `js/render.js`, `js/state.js`, `settings.html`).
 - [sync-setup.md](./sync-setup.md) — the guided GitHub sync setup and the pasted-key check that names
   what's missing (`setup.html`, `js/sync-setup.js`, `js/key-check.js`).
 - [quick-add.md](./quick-add.md) — adding a task to a project from any screen: the jotter's "To:" stamp,
   the one-line add row on project cards and the Board (`js/render.js`, `js/board-view.js`, `js/app.js`).
+
+- [tabs.md](./tabs.md): the five numbered tabs, the jot box and J key, Task details from every tab, what replaced the Board and Projects screens (2026-11-12, #259).

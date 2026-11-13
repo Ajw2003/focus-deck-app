@@ -1,0 +1,939 @@
+# 01-sort-step1
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Sort 10  [toggle-inbox]
+- Select many  [bulk-toggle]
+- + Add notes  [sort-add-notes]
+- Urgent  [pick-set]
+- High  [pick-set]
+- Medium  [pick-set]
+- Low  [pick-set]
+- Today  [pick-set]
+- Tomorrow  [pick-set]
+- Friday  [pick-set]
+- Next week  [pick-set]
+- Pick a date…  [pick-set]
+- None  [pick-set]
+- Choose a project first
+- Done already  [unsorted-complete]
+- Later  [unsorted-skip]
+- Delete  [unsorted-delete]
+- 1. Choose a project  [sort-step]
+- 2. Add labels  [sort-step]
+- 3. Link to other tasks  [sort-step]
+- Find a project
+- Home 21 open Tap
+- Open source: focus-deck 9 open Tap
+- Band 3 open Tap
+- Car 3 open Tap
+- Family 3 open Tap
+- Photography 3 open Tap
+- Volunteering 3 open Tap
+- Website redesign 3 open Tap
+- Finances 2 open Tap
+- Fitness 2 open Tap
+- Garden 2 open Tap
+- Holiday in Portugal 2 open Tap
+- Learning Rust 2 open Tap
+- Portfolio 2 open Tap
+- Reading list 2 open Tap
+- School 2 open Tap
+- Shed rebuild 2 open Tap
+- Kitchen renovation planning with the contractor 1 open Tap
+- Taxes and paperwork 1 open Tap
+
+# 02-sort-project-picked
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Sort 10  [toggle-inbox]
+- Select many  [bulk-toggle]
+- + Add notes  [sort-add-notes]
+- Urgent  [pick-set]
+- High  [pick-set]
+- Medium  [pick-set]
+- Low  [pick-set]
+- Today  [pick-set]
+- Tomorrow  [pick-set]
+- Friday  [pick-set]
+- Next week  [pick-set]
+- Pick a date…  [pick-set]
+- None  [pick-set]
+- File to Home →  [unsorted-file]
+- Done already  [unsorted-complete]
+- Later  [unsorted-skip]
+- Delete  [unsorted-delete]
+- 1. Choose a project Home  [sort-step]
+- 2. Add labels  [sort-step]
+- 3. Link to other tasks  [sort-step]
+- Find a project
+- Home chosen Tap
+- Open source: focus-deck 9 open Tap
+- Band 3 open Tap
+- Car 3 open Tap
+- Family 3 open Tap
+- Photography 3 open Tap
+- Volunteering 3 open Tap
+- Website redesign 3 open Tap
+- Finances 2 open Tap
+- Fitness 2 open Tap
+- Garden 2 open Tap
+- Holiday in Portugal 2 open Tap
+- Learning Rust 2 open Tap
+- Portfolio 2 open Tap
+- Reading list 2 open Tap
+- School 2 open Tap
+- Shed rebuild 2 open Tap
+- Kitchen renovation planning with the contractor 1 open Tap
+- Taxes and paperwork 1 open Tap
+
+# 03-sort-step2-labels
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Sort 10  [toggle-inbox]
+- Select many  [bulk-toggle]
+- + Add notes  [sort-add-notes]
+- Urgent  [pick-set]
+- High  [pick-set]
+- Medium  [pick-set]
+- Low  [pick-set]
+- Today  [pick-set]
+- Tomorrow  [pick-set]
+- Friday  [pick-set]
+- Next week  [pick-set]
+- Pick a date…  [pick-set]
+- None  [pick-set]
+- Next: link to other tasks →  [sort-next]
+- ← Back  [sort-back]
+- Done already  [unsorted-complete]
+- Later  [unsorted-skip]
+- Delete  [unsorted-delete]
+- 1. Choose a project Home  [sort-step]
+- 2. Add labels  [sort-step]
+- 3. Link to other tasks  [sort-step]
+- Find a label
+- Reminder no label yet Tap
+- Build no label yet Tap
+- Fix no label yet Tap
+- Bug no label yet Tap
+- Email no label yet Tap
+- Fun no label yet Tap
+- Online no label yet Tap
+- Paperwork no label yet Tap
+- Weekend no label yet Tap
+- Buy no label yet Tap
+- Chore no label yet Tap
+- Money no label yet Tap
+- Music no label yet Tap
+- Practice no label yet Tap
+- Research no label yet Tap
+- Cook no label yet Tap
+- Deep Work no label yet Tap
+- Design no label yet Tap
+- Someday no label yet Tap
+- Wait For Reply no label yet Tap
+- Waiting On Someone Else To Finish Their Part no label yet Tap
+- More categories 27 more Tap
+
+# 04-sort-step3-links
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Sort 10  [toggle-inbox]
+- Select many  [bulk-toggle]
+- + Add notes  [sort-add-notes]
+- Urgent  [pick-set]
+- High  [pick-set]
+- Medium  [pick-set]
+- Low  [pick-set]
+- Today  [pick-set]
+- Tomorrow  [pick-set]
+- Friday  [pick-set]
+- Next week  [pick-set]
+- Pick a date…  [pick-set]
+- None  [pick-set]
+- File to Home →  [unsorted-file]
+- ← Back  [sort-back]
+- Done already  [unsorted-complete]
+- Later  [unsorted-skip]
+- Delete  [unsorted-delete]
+- 1. Choose a project Home  [sort-step]
+- 2. Add labels  [sort-step]
+- 3. Link to other tasks optional  [sort-step]
+## Inside Home
+- + Add  [tie-open]
+## Across all projects
+
+# 05-sort-select-many
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Sort 10  [toggle-inbox]
+- Tick all  [bulk-all]
+- Clear ticks  [bulk-none]
+- One at a time  [bulk-toggle]
+- on (checkbox)
+- Project for the ticked items
+- Reminder  [bulk-flag]
+- Build  [bulk-flag]
+- Fix  [bulk-flag]
+- Buy  [bulk-flag]
+- Chore  [bulk-flag]
+- Money  [bulk-flag]
+- Music  [bulk-flag]
+- Practice  [bulk-flag]
+- Research  [bulk-flag]
+- Bug  [bulk-flag]
+- Cook  [bulk-flag]
+- Deep Work  [bulk-flag]
+- Design  [bulk-flag]
+- Email  [bulk-flag]
+- Fun  [bulk-flag]
+- Online  [bulk-flag]
+- Paperwork  [bulk-flag]
+- Someday  [bulk-flag]
+- Wait For Reply  [bulk-flag]
+- Waiting On Someone Else To Finish Their Part  [bulk-flag]
+- Weekend  [bulk-flag]
+- Admin  [bulk-flag]
+- Art  [bulk-flag]
+- Call  [bulk-flag]
+- Clean  [bulk-flag]
+- Code  [bulk-flag]
+- Errand  [bulk-flag]
+- Evening  [bulk-flag]
+- Family  [bulk-flag]
+- Friends  [bulk-flag]
+- Garden  [bulk-flag]
+- Health  [bulk-flag]
+- Heavy  [bulk-flag]
+- Light  [bulk-flag]
+- Needs A Decision  [bulk-flag]
+- Outside  [bulk-flag]
+- Phone  [bulk-flag]
+- Plan  [bulk-flag]
+- Quick Win  [bulk-flag]
+- Read  [bulk-flag]
+- Repair  [bulk-flag]
+- Review  [bulk-flag]
+- Shopping  [bulk-flag]
+- Study  [bulk-flag]
+- Tools  [bulk-flag]
+- Travel  [bulk-flag]
+- Urgent Ish  [bulk-flag]
+- Writing  [bulk-flag]
+- New label
+- Add  [bulk-new-flag]
+- Name of the task to group them under…
+- Tick items to sort  [bulk-apply]
+
+# 06-tidy
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Tidy up  [set-screen]
+- Triage  [set-screen]
+## Tidy up: All
+## Built, waiting for your review 5
+- Task details: Contact form sends twice  [task-open]
+- Keep: Contact form sends twice  [tidy-mark]
+- Close: Contact form sends twice  [tidy-mark]
+- Task details: Draft the volunteer rota  [task-open]
+- Keep: Draft the volunteer rota  [tidy-mark]
+- Close: Draft the volunteer rota  [tidy-mark]
+- Task details: Fix the gate latch  [task-open]
+- Keep: Fix the gate latch  [tidy-mark]
+- Close: Fix the gate latch  [tidy-mark]
+- Task details: Pick one for me  [task-open]
+- Keep: Pick one for me  [tidy-mark]
+- Close: Pick one for me  [tidy-mark]
+- Task details: Renew passport before the Lisbon trip  [task-open]
+- Keep: Renew passport before the Lisbon trip  [tidy-mark]
+- Close: Renew passport before the Lisbon trip  [tidy-mark]
+## Replaced by newer work 1
+- Task details: Old shelf plan, replaced by the new shelf plan  [task-open]
+- Keep: Old shelf plan, replaced by the new shelf plan  [tidy-mark]
+- Close: Old shelf plan, replaced by the new shelf plan  [tidy-mark]
+## Looks the same as another 22
+- Task details: Read chapter 4  [task-open]
+- Keep: Read chapter 4  [tidy-mark]
+- Merge: Read chapter 4  [tidy-mark]
+- Task details: Footer link to old blog  [task-open]
+- Keep: Footer link to old blog  [tidy-mark]
+- Merge: Footer link to old blog  [tidy-mark]
+- Task details: Learn the bridge  [task-open]
+- Keep: Learn the bridge  [tidy-mark]
+- Merge: Learn the bridge  [tidy-mark]
+- Task details: History essay draft  [task-open]
+- Keep: History essay draft  [tidy-mark]
+- Merge: History essay draft  [tidy-mark]
+- Task details: Mop the kitchen  [task-open]
+- Keep: Mop the kitchen  [tidy-mark]
+- Merge: Mop the kitchen  [tidy-mark]
+- Task details: Book boiler service  [task-open]
+- Keep: Book boiler service  [tidy-mark]
+- Merge: Book boiler service  [tidy-mark]
+- Task details: Ask the landlord about the damp patch  [task-open]
+- Keep: Ask the landlord about the damp patch  [tidy-mark]
+- Merge: Ask the landlord about the damp patch  [tidy-mark]
+- Task details: Cookie banner text  [task-open]
+- Keep: Cookie banner text  [tidy-mark]
+- Merge: Cookie banner text  [tidy-mark]
+- Task details: Scan sketches  [task-open]
+- Keep: Scan sketches  [tidy-mark]
+- Merge: Scan sketches  [tidy-mark]
+- Task details: Order compost  [task-open]
+- Keep: Order compost  [tidy-mark]
+- Merge: Order compost  [tidy-mark]
+- Task details: Compare three quotes for the new shed roof  [task-open]
+- Keep: Compare three quotes for the new shed roof  [tidy-mark]
+- Merge: Compare three quotes for the new shed roof  [tidy-mark]
+- Task details: Pay council tax  [task-open]
+- Keep: Pay council tax  [tidy-mark]
+- Merge: Pay council tax  [tidy-mark]
+- Task details: Chapter 5 flashcards  [task-open]
+- Keep: Chapter 5 flashcards  [tidy-mark]
+- Merge: Chapter 5 flashcards  [tidy-mark]
+- Task details: Email the accountant  [task-open]
+- Keep: Email the accountant  [tidy-mark]
+- Merge: Email the accountant  [tidy-mark]
+- Task details: Write the release notes for v2  [task-open]
+- Keep: Write the release notes for v2  [tidy-mark]
+- Merge: Write the release notes for v2  [tidy-mark]
+- Task details: Plant the bulbs  [task-open]
+- Keep: Plant the bulbs  [tidy-mark]
+- Merge: Plant the bulbs  [tidy-mark]
+- Task details: Sharpen the secateurs  [task-open]
+- Keep: Sharpen the secateurs  [tidy-mark]
+- Merge: Sharpen the secateurs  [tidy-mark]
+- Task details: Back up the photo library  [task-open]
+- Keep: Back up the photo library  [tidy-mark]
+- Merge: Back up the photo library  [tidy-mark]
+- Merge: Contact form sends twice  [tidy-mark]
+- Task details: Reply to Sam  [task-open]
+- Keep: Reply to Sam  [tidy-mark]
+- Merge: Reply to Sam  [tidy-mark]
+- Task details: Bins out Thursday  [task-open]
+- Keep: Bins out Thursday  [tidy-mark]
+- Merge: Bins out Thursday  [tidy-mark]
+- Task details: Tidy the tool wall  [task-open]
+- Keep: Tidy the tool wall  [tidy-mark]
+- Merge: Tidy the tool wall  [tidy-mark]
+## Not touched in 60 days 1
+- Task details: Clear out the loft  [task-open]
+- Keep: Clear out the loft  [tidy-mark]
+- Close: Clear out the loft  [tidy-mark]
+- Confirm 0, then Triage  [tidy-confirm]
+
+# 07-triage
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Tidy up  [set-screen]
+- Triage  [set-screen]
+## Triage: All
+- Reset to the rules  [triage-reset]
+## Now 3
+- Task details: Renew passport before the Lisbon trip  [task-open]
+- Move up: Renew passport before the Lisbon trip  [triage-move]
+- Move down: Renew passport before the Lisbon trip  [triage-move]
+- Task details: Draft the volunteer rota  [task-open]
+- Move up: Draft the volunteer rota  [triage-move]
+- Move down: Draft the volunteer rota  [triage-move]
+- Task details: Contact form sends twice  [task-open]
+- Move up: Contact form sends twice  [triage-move]
+- Move down: Contact form sends twice  [triage-move]
+## Next 8
+- Task details: Fix the gate latch  [task-open]
+- Move up: Fix the gate latch  [triage-move]
+- Move down: Fix the gate latch  [triage-move]
+- Task details: Pick one for me  [task-open]
+- Move up: Pick one for me  [triage-move]
+- Move down: Pick one for me  [triage-move]
+- Task details: Pay council tax  [task-open]
+- Move up: Pay council tax  [triage-move]
+- Move down: Pay council tax  [triage-move]
+- Task details: Email the accountant  [task-open]
+- Move up: Email the accountant  [triage-move]
+- Move down: Email the accountant  [triage-move]
+- Task details: Book boiler service  [task-open]
+- Move up: Book boiler service  [triage-move]
+- Move down: Book boiler service  [triage-move]
+- Task details: Open on Start here  [task-open]
+- Move up: Open on Start here  [triage-move]
+- Move down: Open on Start here  [triage-move]
+- Task details: Plant the bulbs  [task-open]
+- Move up: Plant the bulbs  [triage-move]
+- Move down: Plant the bulbs  [triage-move]
+- Task details: History essay draft  [task-open]
+- Move up: History essay draft  [triage-move]
+- Move down: History essay draft  [triage-move]
+## Later 57 ▸
+- Later 57 ▸  [triage-later]
+
+# 08-roadmap-all
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+## Roadmap: All
+- + New project  [toggle-new-panel]
+- Find a project  [set-project-query]
+- Sort projects  [set-project-sort]
+- Band 0% done Now: Unplanned · tasks 0 of 3  [rm-open]
+- Car 0% done Now: Unplanned · tasks 0 of 3  [rm-open]
+- Family 0% done Now: Unplanned · tasks 0 of 3  [rm-open]
+- Finances 0% done Now: Unplanned · tasks 0 of 2  [rm-open]
+- Fitness 33% done Now: Unplanned · tasks 1 of 3  [rm-open]
+- Garden 0% done Now: Unplanned · tasks 0 of 2  [rm-open]
+- Holiday in Portugal 0% done Now: Unplanned · tasks 0 of 2  [rm-open]
+- Home 9% done Now: Unplanned · tasks 2 of 23  [rm-open]
+- Kitchen renovation planning with the contractor 50% done Now: Unplanned · tasks   [rm-open]
+- Learning Rust 0% done Now: Unplanned · tasks 0 of 2  [rm-open]
+- Open source: focus-deck 23% done Now: Start here screen · tasks 2 of 5  [rm-open]
+- Photography 0% done Now: Unplanned · tasks 0 of 3  [rm-open]
+- Portfolio 33% done Now: Unplanned · tasks 1 of 3  [rm-open]
+- Reading list 0% done Now: Unplanned · tasks 0 of 2  [rm-open]
+- School 0% done Now: Unplanned · tasks 0 of 2  [rm-open]
+- Shed rebuild 0% done Now: Unplanned · tasks 0 of 2  [rm-open]
+- Taxes and paperwork 50% done Now: Unplanned · tasks 1 of 2  [rm-open]
+- Volunteering 0% done Now: Unplanned · tasks 0 of 3  [rm-open]
+- Website redesign 0% done Now: Unplanned · tasks 0 of 3  [rm-open]
+
+# 09-view-switch-area-list
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Personal ▾  [view-open]
+-   [view-close]
+- Close  [view-close]
+- Personal  [view-pick]
+- Lists  [view-pick]
+- Home  [view-pick]
+- Apps  [view-pick]
+- Games  [view-pick]
+- Work  [view-pick]
+- School  [view-pick]
+- Unsorted  [view-pick]
+## Roadmap: Personal
+- + New project  [toggle-new-panel]
+- Find a project  [set-project-query]
+- Sort projects  [set-project-sort]
+- Band 0% done Now: Unplanned · tasks 0 of 3  [rm-open]
+- Family 0% done Now: Unplanned · tasks 0 of 3  [rm-open]
+- Fitness 33% done Now: Unplanned · tasks 1 of 3  [rm-open]
+- Holiday in Portugal 0% done Now: Unplanned · tasks 0 of 2  [rm-open]
+- Photography 0% done Now: Unplanned · tasks 0 of 3  [rm-open]
+
+# 10-roadmap-project
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Open source: focus-deck ▾  [view-open]
+## Open source: focus-deck
+- Edit project  [open-project-edit]
+- + New project  [toggle-new-panel]
+- Find a task in this project  [set-task-query]
+## 1 · Foundations ↑ ↓
+- Move up: Foundations  [rm-sec-step]
+- Move down: Foundations  [rm-sec-step]
+- Start here screen  [rm-settings]
+- Hide tasks: Start here screen  [rm-toggle]
+- Move up: Start here screen  [rm-ms-step]
+- Move down: Start here screen  [rm-ms-step]
+- Up next  [rm-col]
+- In progress  [rm-col]
+- Review  [rm-col]
+- Done  [rm-col]
+- Done: Test on phone  [toggle-task] (checkbox)
+- Test on phone  [rm-task]
+- Priority High: Test on phone  [rm-task]
+- Move to nowhere: Test on phone  [rm-task-step]
+- Move to In progress: Test on phone  [rm-task-step]
+- + Add a task  [rm-add]
+- Areas  [rm-settings]
+- Show tasks: Areas  [rm-toggle]
+- Move up: Areas  [rm-ms-step]
+- Move down: Areas  [rm-ms-step]
+## 2 · Plan tools ↑ ↓
+- Move up: Plan tools  [rm-sec-step]
+- Move down: Plan tools  [rm-sec-step]
+- Tidy up and Triage  [rm-settings]
+- Show tasks: Tidy up and Triage  [rm-toggle]
+- Move up: Tidy up and Triage  [rm-ms-step]
+- Move down: Tidy up and Triage  [rm-ms-step]
+- Show tasks: Unplanned  [rm-toggle]
+- + Add a milestone  [rm-add]
+- + Add a section  [rm-add]
+
+# 11-roadmap-add-task
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Open source: focus-deck ▾  [view-open]
+## Open source: focus-deck
+- Edit project  [open-project-edit]
+- + New project  [toggle-new-panel]
+- Find a task in this project  [set-task-query]
+## 1 · Foundations ↑ ↓
+- Move up: Foundations  [rm-sec-step]
+- Move down: Foundations  [rm-sec-step]
+- Start here screen  [rm-settings]
+- Hide tasks: Start here screen  [rm-toggle]
+- Move up: Start here screen  [rm-ms-step]
+- Move down: Start here screen  [rm-ms-step]
+- Up next  [rm-col]
+- In progress  [rm-col]
+- Review  [rm-col]
+- Done  [rm-col]
+- Done: Test on phone  [toggle-task] (checkbox)
+- Test on phone  [rm-task]
+- Priority High: Test on phone  [rm-task]
+- Move to nowhere: Test on phone  [rm-task-step]
+- Move to In progress: Test on phone  [rm-task-step]
+- + More Add  [add-task]
+- Add a task to Open source: focus-deck
+- Add
+- Areas  [rm-settings]
+- Show tasks: Areas  [rm-toggle]
+- Move up: Areas  [rm-ms-step]
+- Move down: Areas  [rm-ms-step]
+## 2 · Plan tools ↑ ↓
+- Move up: Plan tools  [rm-sec-step]
+- Move down: Plan tools  [rm-sec-step]
+- Tidy up and Triage  [rm-settings]
+- Show tasks: Tidy up and Triage  [rm-toggle]
+- Move up: Tidy up and Triage  [rm-ms-step]
+- Move down: Tidy up and Triage  [rm-ms-step]
+- Show tasks: Unplanned  [rm-toggle]
+- + Add a milestone  [rm-add]
+- + Add a section  [rm-add]
+
+# 12-milestone-settings
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Open source: focus-deck ▾  [view-open]
+## Open source: focus-deck
+- Edit project  [open-project-edit]
+- + New project  [toggle-new-panel]
+- Find a task in this project  [set-task-query]
+## 1 · Foundations ↑ ↓
+- Move up: Foundations  [rm-sec-step]
+- Move down: Foundations  [rm-sec-step]
+- Start here screen  [rm-settings]
+- Hide tasks: Start here screen  [rm-toggle]
+- Move up: Start here screen  [rm-ms-step]
+- Move down: Start here screen  [rm-ms-step]
+- Up next  [rm-col]
+- In progress  [rm-col]
+- Review  [rm-col]
+- Done  [rm-col]
+- Done: Test on phone  [toggle-task] (checkbox)
+- Test on phone  [rm-task]
+- Priority High: Test on phone  [rm-task]
+- Move to nowhere: Test on phone  [rm-task-step]
+- Move to In progress: Test on phone  [rm-task-step]
+- + Add a task  [rm-add]
+- Areas  [rm-settings]
+- Show tasks: Areas  [rm-toggle]
+- Move up: Areas  [rm-ms-step]
+- Move down: Areas  [rm-ms-step]
+## 2 · Plan tools ↑ ↓
+- Move up: Plan tools  [rm-sec-step]
+- Move down: Plan tools  [rm-sec-step]
+- Tidy up and Triage  [rm-settings]
+- Show tasks: Tidy up and Triage  [rm-toggle]
+- Move up: Tidy up and Triage  [rm-ms-step]
+- Move down: Tidy up and Triage  [rm-ms-step]
+- Show tasks: Unplanned  [rm-toggle]
+- + Add a milestone  [rm-add]
+- + Add a section  [rm-add]
+## Milestone: Start here screen
+- Close milestone settings
+## HOW MUCH IT COUNTS TOWARD OPEN SOURCE: FOCUS-DECK
+- Share of Open source: focus-deck
+## MEASURE PROGRESS BY
+- tasks (radio)
+- size (radio)
+- number (radio)
+- checklist (radio)
+- Cancel
+- Save milestone
+
+# 13-task-details
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Open source: focus-deck ▾  [view-open]
+## Open source: focus-deck
+- Edit project  [open-project-edit]
+- + New project  [toggle-new-panel]
+- Find a task in this project  [set-task-query]
+## 1 · Foundations ↑ ↓
+- Move up: Foundations  [rm-sec-step]
+- Move down: Foundations  [rm-sec-step]
+- Start here screen  [rm-settings]
+- Hide tasks: Start here screen  [rm-toggle]
+- Move up: Start here screen  [rm-ms-step]
+- Move down: Start here screen  [rm-ms-step]
+- Up next  [rm-col]
+- In progress  [rm-col]
+- Review  [rm-col]
+- Done  [rm-col]
+- Done: Test on phone  [toggle-task] (checkbox)
+- Test on phone  [rm-task]
+- Priority High: Test on phone  [rm-task]
+- Move to nowhere: Test on phone  [rm-task-step]
+- Move to In progress: Test on phone  [rm-task-step]
+- + Add a task  [rm-add]
+- Areas  [rm-settings]
+- Show tasks: Areas  [rm-toggle]
+- Move up: Areas  [rm-ms-step]
+- Move down: Areas  [rm-ms-step]
+## 2 · Plan tools ↑ ↓
+- Move up: Plan tools  [rm-sec-step]
+- Move down: Plan tools  [rm-sec-step]
+- Tidy up and Triage  [rm-settings]
+- Show tasks: Tidy up and Triage  [rm-toggle]
+- Move up: Tidy up and Triage  [rm-ms-step]
+- Move down: Tidy up and Triage  [rm-ms-step]
+- Show tasks: Unplanned  [rm-toggle]
+- + Add a milestone  [rm-add]
+- + Add a section  [rm-add]
+- select: Unplanned / Start here screen / Areas / Tidy up and Triage  [rm-set-milestone]
+- Close task details  [detail-close]
+## Task title
+- Status
+- Notes None ⌄  [detail-fold]
+- Priority and due date High priority ⌄  [detail-fold]
+- Labels None ⌄  [detail-fold]
+- Subtasks None ⌄  [detail-fold]
+- Linked tasks None ⌄  [detail-fold]
+- Focus on this  [detail-focus]
+- Delete  [detail-delete]
+
+# 14-edit-project
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Open source: focus-deck ▾  [view-open]
+## Open source: focus-deck
+- Edit project  [close-project-edit]
+- + New project  [toggle-new-panel]
+- select: Unsorted / Personal / Lists / Home / Apps / Games  [set-project-category]
+- #c9584f
+- #8459c0
+- Remove project  [remove-project]
+- Done  [close-project-edit]
+- Find a task in this project  [set-task-query]
+## 1 · Foundations ↑ ↓
+- Move up: Foundations  [rm-sec-step]
+- Move down: Foundations  [rm-sec-step]
+- Start here screen  [rm-settings]
+- Hide tasks: Start here screen  [rm-toggle]
+- Move up: Start here screen  [rm-ms-step]
+- Move down: Start here screen  [rm-ms-step]
+- Up next  [rm-col]
+- In progress  [rm-col]
+- Review  [rm-col]
+- Done  [rm-col]
+- Done: Test on phone  [toggle-task] (checkbox)
+- Test on phone  [rm-task]
+- Priority High: Test on phone  [rm-task]
+- Move to nowhere: Test on phone  [rm-task-step]
+- Move to In progress: Test on phone  [rm-task-step]
+- + Add a task  [rm-add]
+- Areas  [rm-settings]
+- Show tasks: Areas  [rm-toggle]
+- Move up: Areas  [rm-ms-step]
+- Move down: Areas  [rm-ms-step]
+## 2 · Plan tools ↑ ↓
+- Move up: Plan tools  [rm-sec-step]
+- Move down: Plan tools  [rm-sec-step]
+- Tidy up and Triage  [rm-settings]
+- Show tasks: Tidy up and Triage  [rm-toggle]
+- Move up: Tidy up and Triage  [rm-ms-step]
+- Move down: Tidy up and Triage  [rm-ms-step]
+- Show tasks: Unplanned  [rm-toggle]
+- + Add a milestone  [rm-add]
+- + Add a section  [rm-add]
+
+# 15-new-project
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Open source: focus-deck ▾  [view-open]
+## Open source: focus-deck
+- Edit project  [close-project-edit]
+- + New project  [toggle-new-panel]
+- New project  [set-new-panel-tab]
+- GitHub repo  [set-new-panel-tab]
+- Add  [add-new-project]
+- Project name
+- Add
+- select: Unsorted / Personal / Lists / Home / Apps / Games  [set-project-category]
+- #c9584f
+- #8459c0
+- Remove project  [remove-project]
+- Done  [close-project-edit]
+- Find a task in this project  [set-task-query]
+## 1 · Foundations ↑ ↓
+- Move up: Foundations  [rm-sec-step]
+- Move down: Foundations  [rm-sec-step]
+- Start here screen  [rm-settings]
+- Hide tasks: Start here screen  [rm-toggle]
+- Move up: Start here screen  [rm-ms-step]
+- Move down: Start here screen  [rm-ms-step]
+- Up next  [rm-col]
+- In progress  [rm-col]
+- Review  [rm-col]
+- Done  [rm-col]
+- Done: Test on phone  [toggle-task] (checkbox)
+- Test on phone  [rm-task]
+- Priority High: Test on phone  [rm-task]
+- Move to nowhere: Test on phone  [rm-task-step]
+- Move to In progress: Test on phone  [rm-task-step]
+- + Add a task  [rm-add]
+- Areas  [rm-settings]
+- Show tasks: Areas  [rm-toggle]
+- Move up: Areas  [rm-ms-step]
+- Move down: Areas  [rm-ms-step]
+## 2 · Plan tools ↑ ↓
+- Move up: Plan tools  [rm-sec-step]
+- Move down: Plan tools  [rm-sec-step]
+- Tidy up and Triage  [rm-settings]
+- Show tasks: Tidy up and Triage  [rm-toggle]
+- Move up: Tidy up and Triage  [rm-ms-step]
+- Move down: Tidy up and Triage  [rm-ms-step]
+- Show tasks: Unplanned  [rm-toggle]
+- + Add a milestone  [rm-add]
+- + Add a section  [rm-add]
+
+# 16-focus-pick
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+## What’s your focus right now?
+- Find a project
+- All projects 68 open · top: Urgent Tap
+- Home 21 open · top: Urgent Tap
+- Open source: focus-deck 9 open · top: High Tap
+- Band 3 open · top: Urgent Tap
+- Car 3 open · top: Urgent Tap
+- Family 3 open · top: Urgent Tap
+- Photography 3 open · top: High Tap
+- Volunteering 3 open · top: Urgent Tap
+- Website redesign 3 open · top: High Tap
+- Finances 2 open · top: Urgent Tap
+- Fitness 2 open · top: High Tap
+- Garden 2 open · top: High Tap
+- Holiday in Portugal 2 open · top: Medium Tap
+- Learning Rust 2 open · top: High Tap
+- Portfolio 2 open · top: Urgent Tap
+- Reading list 2 open · top: High Tap
+- School 2 open · top: Urgent Tap
+- Shed rebuild 2 open · top: Medium Tap
+- Kitchen renovation planning with the contractor 1 open · top: Urgent Tap
+- Taxes and paperwork 1 open · top: Low Tap
+- Buy 7 open · top: Urgent · 7 projects Tap
+- Chore 7 open · top: Urgent · 7 projects Tap
+- Cook 7 open · top: Urgent · 6 projects Tap
+- Fun 7 open · top: Urgent · 5 projects Tap
+- Money 7 open · top: Urgent · 7 projects Tap
+- Music 7 open · top: Urgent · 6 projects Tap
+- Paperwork 7 open · top: Urgent · 5 projects Tap
+- Practice 7 open · top: Urgent · 7 projects Tap
+- Research 7 open · top: Urgent · 6 projects Tap
+- Someday 7 open · top: Urgent · 6 projects Tap
+- Wait For Reply 7 open · top: Urgent · 6 projects Tap
+- Waiting On Someone Else To Finish Their Part 7 open · top: Urgent · 6 projects T
+- Bug 6 open · top: Urgent · 4 projects Tap
+- Deep Work 6 open · top: Urgent · 5 projects Tap
+- Design 6 open · top: Urgent · 5 projects Tap
+- Email 6 open · top: Urgent · 4 projects Tap
+- Online 6 open · top: Urgent · 4 projects Tap
+- Weekend 6 open · top: Urgent · 4 projects Tap
+- Unlabelled 8 open · top: High · 2 projects Tap
+- Surprise me 68 open · top: Urgent · 19 projects Tap
+- Or let me pick for you  [pick-for-me]
+
+# 17-focus-task
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+- Family ↓  [rm-open]
+- Task details: Renew passport before the Lisbon trip  [task-open]
+## Renew passport before the Lisbon trip
+- I’ve done it mark it done  [complete-focus]
+- Not this one pick another task  [reroll]
+- Clear  [clear-focus]
+
+# 18-review
+- 10 1 Sort  [set-screen]
+- 2 Organize  [set-screen]
+- 3 Roadmap  [set-screen]
+- 4 Focus  [set-screen]
+- 5 5 Review  [set-screen]
+- All  [view-mode]
+- Area  [view-mode]
+- Project  [view-mode]
+## Review
+## Waiting for your review 5
+- Pick one for me  [review-open]
+- Looks good · Done: Pick one for me  [review-done]
+- Needs more work: Pick one for me  [review-more]
+- Fix the gate latch  [review-open]
+- Looks good · Done: Fix the gate latch  [review-done]
+- Needs more work: Fix the gate latch  [review-more]
+- Contact form sends twice  [review-open]
+- Looks good · Done: Contact form sends twice  [review-done]
+- Needs more work: Contact form sends twice  [review-more]
+- Renew passport before the Lisbon trip  [review-open]
+- Looks good · Done: Renew passport before the Lisbon trip  [review-done]
+- Needs more work: Renew passport before the Lisbon trip  [review-more]
+- Draft the volunteer rota  [review-open]
+- Looks good · Done: Draft the volunteer rota  [review-done]
+- Needs more work: Draft the volunteer rota  [review-more]
+## Done this week 3
+- Bins out Thursday  [review-open]
+- Undo: Bins out Thursday  [review-undo]
+- Install the new bathroom fan  [review-open]
+- Undo: Install the new bathroom fan  [review-undo]
+- Three suggestions  [review-open]
+- Undo: Three suggestions  [review-undo]
+
+# 19-settings
+- Getting set up 2 of 3 done ⌄
+## How it looks
+- Note writing Handwriting ⌄
+- Areas 8 areas ⌄
+- Kinds of work 45 kinds of work ⌄
+## Comfort
+- Movement Follow my computer’s setting ⌄
+- Colour Softer colours ⌄
+- Card colour Category, then Priority, then Due date ⌄
+- Cards at once 7 cards, then “Show more” ⌄
+- Tasks past their date Amber, “Past its date” ⌄
+## How it works
+- Choosing a card Tap twice ⌄
+- Due dates Yellow at 33%, red at 10% ⌄
+- Category choices Own categories first ⌄
+## Sync and GitHub
+- Sync between devices Off ⌄
+## Help
+- The welcome, and installing Welcome and install ⌄
+
+# 20-settings-all-open
+- Getting set up 2 of 3 done ⌵
+## How it looks
+- Note writing Handwriting ⌵
+- Areas 8 areas ⌵
+- Kinds of work 45 kinds of work ⌵
+## Comfort
+- Movement Follow my computer’s setting ⌵
+- Colour Softer colours ⌵
+- Card colour Category, then Priority, then Due date ⌵
+- Cards at once 7 cards, then “Show more” ⌵
+- Tasks past their date Amber, “Past its date” ⌵
+## How it works
+- Choosing a card Tap twice ⌵
+- Due dates Yellow at 33%, red at 10% ⌵
+- Category choices Own categories first ⌵
+## Sync and GitHub
+- Sync between devices Off ⌵
+## Help
+- The welcome, and installing Welcome and install ‸
+- Replay the welcome
+- the Focus Deck page
+
+# 21-onboarding
+## One thing at a time.
+- Let’s start  [ob-next]
+- Skip, I’ll look around  [ob-skip]
