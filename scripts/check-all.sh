@@ -5,6 +5,7 @@ cd "$(dirname "$0")/.." || exit 2
 export CHROMIUM="${CHROMIUM:-/opt/pw-browsers/chromium-1243/chrome-linux64/chrome}"
 LOGS="${CHECK_LOGS:-/tmp/check-all-logs}"
 mkdir -p "$LOGS"
+[ -d app/icons ] || python3 generate_icons.py # the service-worker check needs app/icons (the deploy job makes them the same way)
 fail=0; lines=()
 run() { # name, command...
   local name="$1"; shift
