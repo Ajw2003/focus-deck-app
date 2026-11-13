@@ -7,7 +7,7 @@
   "key": [["Built", ""], ["You test it", "you"]],
   "items": [
    ["eye", "Open", "Open the test copy", "you",
-    "The real app opens on Sort with sample data: 19 projects in six areas, about 75 tasks, and some thoughts waiting. Your own tasks are not touched, because the copy runs on a different web address.",
+    "The real app opens on Sort with sample data: 19 projects in six areas, 77 tasks, and 2 thoughts waiting. Your own tasks are not touched, because the copy runs on a different web address.",
     "Open https://raw.githack.com/Ajw2003/focus-deck-app/4c967c973f5deb99f56ac778747d31a152c80efd/docs/generated/flow-qa/seed.html#sort on your phone, then again on your computer. To start on another tab, change the end to #tidy, #triage, #projects, #roadmap, #focus or #review. Opening the address again puts the sample data back, so it also works as a reset.",
     {"src": "docs/generated/final-272/phone-sort.png", "alt": "The Sort tab on a phone", "caption": "Sort on a phone: one thought on the clipboard."}],
    ["list", "#262", "Six tabs, the sync light and the dial", "you",
