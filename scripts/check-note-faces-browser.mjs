@@ -109,7 +109,7 @@ for (const scheme of ['dark', 'light']) {
 }
 for (const scheme of ['dark', 'light']) {
   const h = sizes['hand' + scheme].lines, d = sizes['dyslexic' + scheme].lines, p = sizes['print' + scheme].lines;
-  check(`[${scheme}] title lines: hand ${h}, print ${p}, dyslexic ${d} (dyslexic not more than hand + 1)`, d <= h + 1);
+  check(`[${scheme}] title lines: hand ${h}, print ${p}, dyslexic ${d} (dyslexic not more than hand + 2: Eden kept the wider letters, 2026-11-13)`, d <= h + 2);
 }
 
 // no-flash: the attribute is on <html> by DOMContentLoaded-start, before app.js runs

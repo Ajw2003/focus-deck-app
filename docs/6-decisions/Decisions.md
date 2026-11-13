@@ -1068,3 +1068,10 @@ Eden's words: "Design approved: step by step 11 2*", with choice 2 answered in t
 - Choice 2 (how Tidy up shows tasks): Eden's own answer. Each Tidy up reason (Finished?, Replaced?, The same?, Still want it?) is one screen with a tick list, like GitHub's issue list: tick one task or many, or ✓ All, then drop the ticked ones in the tray (keep), the bin (close) or the stapler (merge). The prototype's t1 to t4 screens show it.
 - Also approved earlier in the same thread: Projects is a sixth tab between Organize and Roadmap; Roadmap opens on one project. + Jot sits in the header and opens its own screen (this takes in #260).
 - The design is docs/generated/friction-steps/prototype.html, the page is docs/plans/friction-steps.html, and every app action maps to a screen in docs/generated/friction-steps/feature-map.json.
+
+## 2026-11-13: Step by step passed QA
+
+- Eden typed "QA passed: step by step 11 21 31", picking option 1 of each of the three choices on docs/plans/step-by-step-qa.html.
+- Dyslexia-friendly writing: kept at its size. A long Focus title may take 5 lines where the handwriting takes 3; `scripts/check-note-faces-browser.mjs` now allows hand + 2 lines (it was hand + 1) and still checks the title fits inside the note.
+- Roadmap rows stay plain: no priority or due chips; both are in the task's drawer and Task details.
+- "Make it a milestone" shows only for a task with smaller steps (`app/js/roadmap-view.js`, the task drawer).
