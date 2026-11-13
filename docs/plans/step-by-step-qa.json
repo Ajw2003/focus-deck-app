@@ -245,7 +245,7 @@
   "feature": "step by step",
   "base": "origin/main",
   "unverified": [
-   "I could not open the test copy where it is published, because my sandbox cannot reach claude.ai; I served the same files locally and checked that all seven start buttons open the app on the right tab with no errors",
+   "I could not open the published test copy, because my sandbox cannot reach claude.ai. I served the same files locally instead, and all seven start buttons opened the app on the right tab with no errors",
    "GitHub was not called live; every GitHub call in the checks went to a stand-in",
    "Everything was checked in Chromium at widths of 360, 390 and 1440 pixels, not in Safari or Firefox and not on a real phone",
    "In the dyslexia-friendly writing a long Focus title wraps to 5 lines; one check fails on purpose until you choose under Your choices",
