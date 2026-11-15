@@ -25,7 +25,7 @@ export function renderTidy(st, ui, now = Date.now()) {
   const { groups } = tidyGroups(st, ui.view, now);
   if (step === 0) {
     const count = groups.reduce((n, g) => n + g.items.length, 0);
-    return '<div class="org">' + board('Organize', choice('🧹 Tidy up', { action: 'tidy-step', attrs: ' data-step="1"', small: String(count) }) + choice('📌 Triage', { action: 'triage-go', attrs: ' data-to="top"' }))
+    return '<div class="org">' + board('Organize', choice('🧹 Tidy up', { action: 'tidy-step', attrs: ' data-step="1"', small: String(count) }) + choice('📌 Triage', { action: 'triage-pick', attrs: ' data-place="1"' }))
       + foot([stamp('Start', { action: 'tidy-step', attrs: ' data-step="1"' })]) + '</div>';
   }
   if (step > TIDY_STEPS) {

@@ -55,11 +55,24 @@ test('moveId puts an id at a place and clamps', () => {
 import { renderTriage } from './triage-view.js';
 test('markup: top three as numbered cards with flags, Next/Later flags, Move; Closed slip; Move rows with keys', () => {
   const st = mk(Array.from({ length: 6 }, (_, i) => task('t' + i, { title: 'Task ' + i, priority: i === 0 ? 'urgent' : null })));
-  const ui = { view: all, tidyClosed: [{ id: 'x' }, { id: 'y' }] };
+  const ui = { view: all, triageStep: 'top', tidyClosed: [{ id: 'x' }, { id: 'y' }] };
   const h = renderTriage(st, ui, T);
-  assert.match(h, /Do these first/); assert.match(h, /1 · Task 0/); assert.match(h, /data-p="urgent"/);
+  assert.match(h, /Your first three/); assert.doesNotMatch(h, /tr-guide/); assert.match(h, /1 · Task 0/); assert.match(h, /data-p="urgent"/);
   assert.match(h, /Next 3/); assert.match(h, /disabled>Later 0/); assert.match(h, />Move</); assert.match(h, /Closed 2 ✓/); assert.match(h, /Undo/);
-  const m = renderTriage(st, Object.assign({ triageStep: 'move', triageMoveIds: ['t0', 't1'] }, ui), T);
+  const m = renderTriage(st, Object.assign({}, ui, { triageStep: 'move', triageMoveIds: ['t0', 't1'] }), T);
   assert.equal((m.match(/data-action="triage-move"/g) || []).length, 4); assert.match(m, /↺ Reset/); assert.match(m, />Done</);
-  assert.match(renderTriage(st, Object.assign({ triageStep: 'later' }, ui), T), /Find a task/);
+  assert.match(renderTriage(st, Object.assign({}, ui, { triageStep: 'later' }), T), /Find a task/);
+});
+
+test('the pick: one of the top three at a time with one question; past the last (or with none) it is the list', () => {
+  const st = mk(Array.from({ length: 5 }, (_, i) => task('t' + i, { title: 'Task ' + i, priority: i === 0 ? 'urgent' : null })));
+  const p = renderTriage(st, { view: all, triageStep: 'pick', triagePlace: 2 }, T);
+  assert.match(p, /Do this first\?/); assert.match(p, /Task 1/); assert.doesNotMatch(p, /Task 0|Task 2/);
+  assert.match(p, /aria-label="Step 2 of 3"/);
+  for (const a of ['triage-yes', 'triage-notnow', 'triage-check']) assert.match(p, new RegExp('data-action="' + a + '"'));
+  assert.match(p, /data-action="triage-pick" data-place="1"/); // Back goes to the one before
+  assert.doesNotMatch(p, /triage-notnow"[^>]*disabled/);
+  assert.match(renderTriage(st, { view: all, triageStep: 'pick', triagePlace: 4 }, T), /Your first three/);
+  const two = mk([task('a', { title: 'A' }), task('b', { title: 'B' })]); // nothing behind them, so Not now has nowhere to send it
+  assert.match(renderTriage(two, { view: all, triageStep: 'pick', triagePlace: 1 }, T), /triage-notnow"[^>]*disabled/);
 });

@@ -101,7 +101,8 @@ for (const [tag, w, h] of sizes) {
   await go(page, '.org-row .task-open');
   await detail('Tidy up');
   await go(page, '.rail-item[data-go]');
-  await go(page, '[data-action="triage-go"][data-to="top"]');
+  await go(page, '[data-action="triage-pick"]');
+  await go(page, '.dk-skip[data-to="top"]'); // past the one-at-a-time pick, to Your first three
   await page.waitForSelector('.tr-card');
   await jot('Organize / Triage'); check(`[${tag}] Triage: no sideways scroll`, await noSideways(page)); await shot('2-organize-triage');
   check(`[${tag}] row Tidy up, Triage (close, merge, rank): both screens open from Organize`, !!(await page.$('.tr-card')));

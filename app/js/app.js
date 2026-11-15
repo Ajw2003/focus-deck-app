@@ -320,12 +320,15 @@ export function renderApp(st) {
 const tidyItems = () => { const g = tidyGroups(state, ui.view).groups.find((x) => x.key === GROUPS[(ui.tidyStep || 1) - 1].key); return g ? g.items : []; };
 function tidyAdvance(step) {
   ui.tidyTicks = {};
-  if (step > TIDY_STEPS && !confirmIds(state, ui.view, ui.tidyMarks || {}).length) { ui.tidyStep = 0; ui.triageStep = 'top'; setScreen('triage'); } else ui.tidyStep = step;
+  if (step > TIDY_STEPS && !confirmIds(state, ui.view, ui.tidyMarks || {}).length) { ui.tidyStep = 0; startPick(); } else ui.tidyStep = step;
   paint(); window.scrollTo(0, 0);
 }
 
 // Triage: a drop, Alt+Arrow or an up/down button. `to` is the place to end at, or (when null) `by` steps
 // from where it is now. The new order is saved at once (every task in the view gets a triageRank).
+// Triage opens on the pick: the top three, one question at a time, from `place` (1-based).
+function startPick(place = 1) { setScreen('triage'); ui.triageStep = 'pick'; ui.triagePlace = place; }
+
 function moveTriage(id, to, by) {
   const l = triageLists(state, ui.view, dueDates().today);
   const ids = l.now.concat(l.next, l.later).map((r) => r.id), from = ids.indexOf(id);
@@ -711,7 +714,7 @@ function onAppClick(e) {
     setScreen(el.getAttribute('data-screen') || el.getAttribute('data-go'));
     ui.jotTo = undefined;
     ui.projectQuery = ''; ui.taskQuery = '';
-    ui.tidyStep = 0; ui.tidyTicks = {}; ui.triageStep = 'top'; ui.tidyClosed = []; // Organize opens on its two cards
+    ui.tidyStep = 0; ui.tidyTicks = {}; ui.triageStep = 'pick'; ui.triagePlace = 1; ui.tidyClosed = []; // Organize opens on its two cards, Triage on its first question
     paint();
     window.scrollTo(0, 0);
     return;
@@ -748,11 +751,23 @@ function onAppClick(e) {
     M.confirmTidy(ids);
     ui.tidyClosed = ids.map((id) => ({ id, title: titles.get(id) })); // the "Closed N ✓ / Undo" slip on Triage
     ids.forEach((id) => delete ui.tidyMarks[id]);
-    ui.tidyStep = 0; ui.triageStep = 'top';
-    setScreen('triage'); paint(); window.scrollTo(0, 0); return; // Confirm, then Triage
+    ui.tidyStep = 0; startPick();
+    paint(); window.scrollTo(0, 0); return; // Confirm, then Triage
   }
   if (action === 'rm-open') { setScreen('roadmap'); setView({ mode: 'project', id: el.getAttribute('data-project') }); paint(); window.scrollTo(0, 0); return; }
   if (onRoadmapAction(action, el)) return;
+  if (action === 'triage-pick') { startPick(Number(el.getAttribute('data-place')) || 1); paint(); window.scrollTo(0, 0); return; }
+  if (action === 'triage-yes') {
+    const place = (ui.triagePlace || 1) + 1;
+    if (place > triageLists(state, ui.view, dueDates().today).now.length) ui.triageStep = 'top'; else ui.triagePlace = place;
+    paint(); window.scrollTo(0, 0); return;
+  }
+  if (action === 'triage-notnow') { moveTriage(el.getAttribute('data-task'), NOW_SIZE + NEXT_SIZE - 1, 0); return; } // to the end of Next; the next in line moves up into this place
+  if (action === 'triage-check') { // priority, due date, waits on: one screen each, then back to the question
+    const f = findTaskWithProject(el.getAttribute('data-task'));
+    if (!f) return;
+    selectBoardTask(f.task.id); ui.editChain = ['4', '7']; openEdit(f.task, f.project, '2'); paint(); window.scrollTo(0, 0); return;
+  }
   if (action === 'triage-later') { ui.triageStep = 'later'; ui.triageFind = ''; paint(); window.scrollTo(0, 0); return; }
   if (action === 'triage-go') {
     const to = el.getAttribute('data-to'), from = el.getAttribute('data-from'), l = triageLists(state, ui.view, dueDates().today);
@@ -1016,7 +1031,7 @@ function onColorChange(el) {
 // ---- Task details (#269, js/task-details.js) ---------------------------------------------------
 // Selecting a task (or none) starts the panel afresh: no step, screen or drawer open.
 function selectBoardTask(id) {
-  ui.boardSelected = id; ui.edit = null; ui.boardScreen = null; ui.boardDrawer = null;
+  ui.boardSelected = id; ui.edit = null; ui.boardScreen = null; ui.boardDrawer = null; ui.editChain = null;
 }
 function detailTask() {
   const found = ui.boardSelected && findTaskWithProject(ui.boardSelected);
@@ -1035,7 +1050,12 @@ function openEdit(task, project, step) {
 function saveEdit() {
   const d = detailTask();
   if (d && ui.edit) saveTaskEdit(d.task, d.project, ui.edit, { updateTaskFields: M.updateTaskFields, applyTaskMove: M.applyTaskMove, addTask: M.addTask, projects: state.projects, labelIdByName });
-  ui.edit = null; paint();
+  ui.edit = null;
+  if (ui.editChain) { // Triage's Check it: the next screen, and after the last, back to "Do this first?"
+    const again = d && findTaskWithProject(d.task.id);
+    if (again && ui.editChain.length) openEdit(again.task, again.project, ui.editChain.shift()); else selectBoardTask(null);
+  }
+  paint();
 }
 function onDetailAction(action, el) {
   const d = detailTask();
@@ -1237,7 +1257,7 @@ function onSortAction(action, el) {
   const u = sortScratch();
   const cur = ui.edit ? null : unsortedCurrent(state, u);
   if (ui.edit && action === 'sort-back') { // Back leaves a sub-page, then the step (back to the receipt); the notes page is the step
-    if ((u.sub && u.sub !== u.rootSub) || (u.step === 4 && u.dateOpen)) Object.assign(u, { sub: null, dateOpen: false }); else ui.edit = null;
+    if ((u.sub && u.sub !== u.rootSub) || (u.step === 4 && u.dateOpen)) Object.assign(u, { sub: null, dateOpen: false }); else if (ui.editChain) selectBoardTask(null); else ui.edit = null; // Check it: Back returns to the question
     paint(); return;
   }
   const hasProject = !!u.projectId || !!(cur && cur.kind === 'task');

@@ -1725,7 +1725,9 @@ a.dk-choice{text-decoration:none;}
 .td-what{flex:1; min-width:0; display:flex; flex-direction:column;}
 .td-label{font:700 13px var(--font-ui); letter-spacing:.05em; text-transform:uppercase; color:#5A6378;}
 .td-panel .sort-receipt em{white-space:normal; overflow-wrap:anywhere; color:var(--dk-ink);}
-.td-guide, .tr-guide{margin:2px 2px 6px; font:15px/1.35 var(--font-ui); color:#3A4354;}
+.tr-slip{margin:2px 2px 14px; padding-right:12px;}
+.tr-why{font:700 13px var(--font-ui); letter-spacing:.04em; text-transform:uppercase; color:#7A4A1E;}
+.tr-slip .pf{position:static;}
 
 /* ==== The filing cabinet (2026-11-14): js/cabinet.js. Projects on Focus, Sort and the Projects tab are hanging files
    in wooden drawers, one drawer per area. Design: docs/generated/filing-cabinet.html; see docs/4-systems/wallets.md */

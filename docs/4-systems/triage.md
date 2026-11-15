@@ -1,7 +1,7 @@
 # Triage (#256)
 
-> **2026-11-15:** a `.tr-guide` line under the title says what the three are, what comes first, and what Move, Next and
-> Later do, so the screen explains itself on arrival.
+> **2026-11-15 (later):** the `.tr-guide` paragraph is gone. Triage now opens on the pick, one question per screen,
+> instead of a paragraph explaining the list (Eden asked for steps, not words). See "The pick" below.
 
 ## What it owns
 
@@ -13,8 +13,16 @@
 
 ## How it works (#266: cards; was three cards of numbered rows, #256)
 
-- Triage is the 📌 card on Organize's first screen (or the Confirm stamp's next stop). `ui.triageStep`: `top`, `next`, `later`, `move`.
-- "Do these first": the top three (`NOW_SIZE`) as index cards numbered 1 to 3, each with a flag in its priority colour; tapping a card opens
+- Triage is the 📌 card on Organize's first screen (or the Confirm stamp's next stop). `ui.triageStep`: `pick` (the default), `top`,
+  `next`, `later`, `move`.
+- The pick (`renderPick` here, `startPick` in `js/app.js`): the top three one at a time, each as a jotter slip (title, project chip,
+  the reason, priority flag) under the question "Do this first?", with dots for the place (`ui.triagePlace`, 1 to 3). ✓ Yes moves to
+  the next place; past the last it shows "Your first three". ⤵ Not now moves the task to the end of Next (`moveTriage` to place
+  `NOW_SIZE + NEXT_SIZE - 1`, which saves a `triageRank` as Move does), and the next in line is asked about in the same place; it is
+  disabled when nothing sits behind the three. ✎ Check it opens Task details on the Sort step screens in turn: priority, due date,
+  then waits on (`ui.editChain`, consumed by `saveEdit`). Save goes to the next one; after the last, or Back on any, it returns to
+  the question. Skip goes straight to "Your first three". The Closed N slip shows here too after Tidy up's Confirm.
+- "Your first three" (was "Do these first"): the top three (`NOW_SIZE`) as index cards numbered 1 to 3, each with a flag in its priority colour; tapping a card opens
   Task details. Two flags, "Next N" (the following 8) and "Later N" (the rest), open their own lists (Back returns); Later has Find. After
   Tidy up's Confirm a "Closed N ✓ / Undo" slip sits on this screen.
 - The seven rules, in order (`pickOrder`; Focus's "Or let me pick for you" uses the same): 1 Needs review (status `review`), 2 In progress,
