@@ -9,6 +9,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -80,6 +81,7 @@ async function shot(id) {
 }
 // flip a wallet to a card and tap it (a card off the edge can't be tapped); tap mode, so once
 async function choose(wallet, key) {
+  if (wallet === 'tray-folders') return chooseFile(page, wallet, key); // projects are files in the filing cabinet (2026-11-15)
   const sel = '[data-wallet="' + wallet + '"] .sleeve[data-key="' + key + '"] .icard';
   await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
   await page.waitForTimeout(300);

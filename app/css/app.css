@@ -1723,7 +1723,7 @@ a.dk-choice{text-decoration:none;}
 /* Task details: every receipt line names what it is, not only an emoji; Triage and Task details say what to do. */
 .td-panel .sort-receipt>div{display:flex; align-items:center; gap:10px; padding:6px 10px;}
 .td-what{flex:1; min-width:0; display:flex; flex-direction:column;}
-.td-label{font:700 12px var(--font-ui); letter-spacing:.05em; text-transform:uppercase; color:#5A6378;}
+.td-label{font:700 13px var(--font-ui); letter-spacing:.05em; text-transform:uppercase; color:#5A6378;}
 .td-panel .sort-receipt em{white-space:normal; overflow-wrap:anywhere; color:var(--dk-ink);}
 .td-guide, .tr-guide{margin:2px 2px 6px; font:15px/1.35 var(--font-ui); color:#3A4354;}
 
@@ -1740,11 +1740,11 @@ a.dk-choice{text-decoration:none;}
 .cab-well{position:relative; background:linear-gradient(var(--cab-well),#3A2616); border-radius:3px 3px 0 0; box-shadow:inset 0 10px 14px -6px rgba(0,0,0,.8), inset 6px 0 8px -6px rgba(0,0,0,.7), inset -6px 0 8px -6px rgba(0,0,0,.7);}
 .cab-well::before, .cab-well::after{content:""; position:absolute; top:0; bottom:0; width:3px; background:linear-gradient(90deg,#E9D9A6,#8C6A22); z-index:200; pointer-events:none;}
 .cab-well::before{left:7px;} .cab-well::after{right:7px;}
-.cab-files{height:clamp(220px, 40vh, 400px); height:clamp(220px, 40dvh, 400px); overflow-y:auto; scrollbar-width:thin; padding:14px 18px 40px; perspective:620px; perspective-origin:50% 0; overscroll-behavior-y:contain;}
+.cab-files{height:clamp(180px, calc(100vh - 580px), 400px); height:clamp(180px, calc(100dvh - 580px), 400px); overflow-y:auto; scrollbar-width:thin; padding:14px 18px 40px; perspective:620px; perspective-origin:50% 0; overscroll-behavior-y:contain;}
 .cab-file{display:block; position:relative; width:100%; height:122px; margin:0 0 -64px; border:0; padding:0; background:none; cursor:pointer; text-align:left; font:inherit; color:inherit;
   transform-origin:50% 100%; will-change:transform; transition:margin .28s cubic-bezier(.2,.8,.25,1);}
 .cab-tab{position:absolute; top:0; left:6px; width:58%; height:28px; border-radius:6px 6px 0 0; background:color-mix(in srgb,var(--c) 50%,var(--dk-manila)); box-shadow:inset 0 2px 0 rgba(255,255,255,.35); filter:brightness(var(--shade,1));}
-.cab-tab b{display:block; margin:4px 6px 0; height:16px; padding:0 3px; background:#fff; border-radius:1px; font:800 12px/16px var(--font-paper); color:#3A2E14; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;}
+.cab-tab b{display:block; margin:4px 6px 0; height:16px; padding:0 3px; background:#fff; border-radius:1px; font:800 13px/16px var(--font-paper); color:#3A2E14; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;}
 .cab-tab s{position:absolute; left:6px; right:6px; bottom:4px; height:3px; background:rgba(255,255,255,.7); border-radius:2px; overflow:hidden; text-decoration:none;}
 .cab-tab s i, .cab-bar i{display:block; height:100%; background:var(--dk-green);}
 .cab-face{position:absolute; inset:26px 0 0; border-radius:3px 3px 0 0; padding:6px 12px 0; display:flex; flex-direction:column; gap:5px; filter:brightness(var(--shade,1));
@@ -1753,9 +1753,9 @@ a.dk-choice{text-decoration:none;}
 .cab-row{display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
 .cab-name{font:800 15px var(--font-paper); color:#1C2438; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .cab-file:not(.is-centre) .cab-name{visibility:hidden;}
-.cab-n{font:700 12px var(--font-ui); color:#4A3C1E; white-space:nowrap; font-variant-numeric:tabular-nums;}
+.cab-n{font:700 13px var(--font-ui); color:#4A3C1E; white-space:nowrap; font-variant-numeric:tabular-nums;}
 .cab-bar{display:none; height:9px; border-radius:2px; background:rgba(255,255,255,.65); box-shadow:inset 0 1px 2px rgba(0,0,0,.25); overflow:hidden;}
-.cab-pct{display:none; font:700 11px var(--font-ui); color:#4A3C1E; font-variant-numeric:tabular-nums;}
+.cab-pct{display:none; font:700 13px var(--font-ui); color:#4A3C1E; font-variant-numeric:tabular-nums;}
 .cab-file.is-centre{margin-bottom:6px;}
 .cab-file.is-centre .cab-bar, .cab-file.is-centre .cab-pct{display:block;}
 .cab-file.is-centre .cab-face{box-shadow:0 0 0 2px var(--dk-pen), 0 -3px 6px -2px rgba(0,0,0,.45);}
@@ -1764,15 +1764,19 @@ a.dk-choice{text-decoration:none;}
 .cab-front{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 16px 12px; margin:0 -8px; border-top:2px solid #D29A63; background:var(--grain),linear-gradient(var(--oak-hi),var(--oak) 60%,var(--oak-lo));}
 .cab-plate{background:linear-gradient(#E9D9A6,#C9A24B); padding:3px; border-radius:2px; box-shadow:0 1px 2px rgba(0,0,0,.5); min-width:0;}
 .cab-plate span{display:block; background:#FFFEF4; padding:2px 10px; font:700 13px var(--dk-type); letter-spacing:.08em; text-transform:uppercase; color:#1C2438; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.cab-plate small{font:700 11px var(--font-ui); letter-spacing:0; text-transform:none; color:#5A6378; margin-left:6px;}
+.cab-plate small{font:700 13px var(--font-ui); letter-spacing:0; text-transform:none; color:#5A6378; margin-left:6px;}
 .cab-handle{flex:none; width:44px; height:16px; border-radius:8px; background:linear-gradient(#EFE3BB,var(--dk-brass) 55%,#7E5F1E); box-shadow:0 2px 3px rgba(0,0,0,.5);}
-.cab-pos{flex:none; white-space:nowrap; font:700 12px var(--font-ui); color:#FFF8EC; text-shadow:0 1px 1px rgba(0,0,0,.5); font-variant-numeric:tabular-nums;}
+.cab-pos{flex:none; white-space:nowrap; font:700 13px var(--font-ui); color:#FFF8EC; text-shadow:0 1px 1px rgba(0,0,0,.5); font-variant-numeric:tabular-nums;}
 .cab-labels{position:relative; display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; padding:0 2px 2px;}
 .cab-labels::-webkit-scrollbar{display:none;}
-.cab-label{flex:none; min-height:36px; padding:6px 9px; border:0; border-radius:2px; background:#E6E2D6; color:#3A4354; font:700 11px var(--dk-type); letter-spacing:.06em; text-transform:uppercase; cursor:pointer; box-shadow:inset 0 -2px 0 var(--c);}
+.cab-label{flex:none; min-height:36px; padding:6px 9px; border:0; border-radius:2px; background:#E6E2D6; color:#3A4354; font:700 13px var(--dk-type); letter-spacing:.06em; text-transform:uppercase; cursor:pointer; box-shadow:inset 0 -2px 0 var(--c);}
 .cab-label[aria-selected="true"]{background:var(--dk-ink); color:#fff;}
-/* Sort's step has the slip, Find and + New project above and below it, so its drawer is shorter: Back and Next stay on a phone's screen */
-.sortflow .cab-files{height:clamp(120px, calc(100dvh - 688px), 400px);}
+/* Sort's step has the slip, Find and + New project around it, so its drawer is shorter and has no front (the labels name
+   the drawer): Back and Next stay on a 390x844 screen. Sort several also has the priority flags under it. */
+.sortflow .cab-front{display:none;}
+.sortflow .cab-box{padding-bottom:8px;}
+.sortflow .cab-files{height:clamp(120px, calc(100dvh - 678px), 400px);}
+.sortflow .wallet:has(~ .sort-flags) .cab-files{height:clamp(100px, calc(100dvh - 744px), 400px);}
 /* on a computer every drawer stands open side by side, so nothing needs swiping */
 @media (min-width:1100px){
   .cab-drawers{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(220px,1fr); gap:8px; overflow-x:auto; scroll-snap-type:none;}

@@ -30,10 +30,11 @@
   as the old strip did. The hooks are the wallets' (`walletHooks` in `js/app.js`): `projects` moves Focus to the kind of
   work, `tray-folders` puts the project on the slip or takes it off (`.is-picked`), and `projects-tab` opens
   that project's Roadmap. `facingKey` reads the open file as well as a facing sleeve.
-- **Phones** (max-width 480px) drop the cabinet's outer frame, and the drawer is `clamp(220px, 40dvh, 400px)`
-  tall. A resize only re-aligns the row when the width changed, because a phone's address bar fires resize
-  as the page scrolls. Sort's drawer is shorter (`clamp(120px, 100dvh - 688px, 400px)`) so Back and Next stay
-  above the tab bar on a 390x844 phone; a 360x780 phone scrolls about 20px to reach them. Wide screens (min-width 1100px) lay every drawer out side by side and hide the labels.
+- **Phones** (max-width 480px) drop the cabinet's outer frame. A resize only re-aligns the row when the width changed, because a phone's address bar fires resize
+  as the page scrolls. The drawer is `clamp(180px, 100dvh - 580px, 400px)` tall. Sort's is shorter and has no
+  front (`clamp(120px, 100dvh - 678px, 400px)`, and 100px to 744px less with Sort several's priority flags under
+  it) so every screen fits 390x844 without scrolling, as `scripts/shoot-sort-264.mjs` and `shoot-many-265.mjs`
+  check. All text in the cabinet is 13px or more. Wide screens (min-width 1100px) lay every drawer out side by side and hide the labels.
 - Decisions are `cabinetDrawers` and `startDrawer`, tested in `js/cabinet.test.mjs`. The browser check is
   `scripts/check-cabinet-browser.mjs`; run it with `FOCUS_DATA=<a saved copy .json>` to use real data.
 
