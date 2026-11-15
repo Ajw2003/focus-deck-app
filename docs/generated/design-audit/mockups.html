@@ -25,7 +25,7 @@ body{background:#999;padding:20px;display:flex;flex-direction:column;gap:30px;fo
 /* A yellow sticky note is a task, everywhere. */
 .note{background:linear-gradient(#F1D56A 0 18px,#FFE27A 18px);padding:30px 18px 16px;box-shadow:0 8px 14px -6px #0005;transform:rotate(-.6deg);position:relative}
 .note h2{font:700 30px/1.15 Kalam,cursive}.note p{font:600 14px Figtree;color:#5B4A12;margin-top:10px}
-.note.big h2{font-size:54px}.note.big{padding:54px 30px 26px;min-height:420px}.note.big p{font-size:18px}
+.note.big h2{font-size:54px}.note.big{padding:54px 30px 26px}.note.big p{font-size:18px}
 .chip{display:inline-block;font:700 12px Figtree;padding:2px 8px;border-radius:99px;background:#9F0C3D;color:#fff;margin-left:6px}
 /* The red rubber stamp is the one main action of a screen. */
 .stamp{display:block;text-align:center;background:#FFFEFA;color:#A3391B;font:800 20px Figtree;letter-spacing:.1em;text-transform:uppercase;padding:18px;box-shadow:0 2px 5px #0004,inset 0 0 0 4px #FFFEFA,inset 0 0 0 6px #A3391B,inset 0 0 0 9px #FFFEFA,inset 0 0 0 10px #A3391B;transform:rotate(-.5deg)}
@@ -57,17 +57,20 @@ body{background:#999;padding:20px;display:flex;flex-direction:column;gap:30px;fo
 .queue{width:380px;flex:none;display:flex;flex-direction:column;gap:8px;padding-top:26px}.queue .card{opacity:.75}
 .legend{width:900px;background:#E4E8EF;padding:24px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;align-items:start}
 .legend div>b{display:block;font:700 14px Figtree;margin-top:12px}.legend div>em{font:500 13px Figtree;font-style:normal;color:#59627A}
+.clip{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;background:#FFFEFA;border:6px solid #A8703C;border-radius:10px;padding:26px 14px 14px;box-shadow:0 4px 10px #0004}
+.clip::before{content:"";position:absolute;top:-12px;left:50%;width:90px;height:20px;margin-left:-45px;border-radius:6px;background:linear-gradient(#D5DAE2,#9AA3B2);box-shadow:0 1px 2px #0005}
+.clip .fill{flex:1;min-height:0;display:flex;flex-direction:column}.clip .fill>*{flex:1}
+.desk .clip{padding:34px 22px 20px;gap:18px}
 </style></head><body>
 
 <!-- 1. Focus on a phone -->
 <div class="frame phone" id="focus-phone">
   <div class="top"><span class="mark"></span><h1>Focus Deck</h1><span class="jot">+ Jot</span><span class="dot"></span><span class="dial"></span></div>
   <div class="main">
-    <div><div class="eyebrow">Do this now</div>
-      <div class="note"><h2>Reply to the invoice email</h2><p>Client site · Work <span class="chip">due today</span></p></div></div>
+    <div class="clip" style="margin-top:8px"><div class="fill"><div class="note"><h2 style="font-size:36px">Reply to the invoice email</h2><p>Client site · Work <span class="chip">due today</span></p></div></div>
     <span class="stamp ok">✓ Done</span>
-    <div class="quiet"><span>Not now</span><span>Choose…</span><span>More</span></div>
-    <div><div class="eyebrow" style="margin-top:6px">Next in each area</div>
+    <div class="quiet"><span>Not now</span><span>Choose…</span><span>More</span></div></div>
+    <div><div class="eyebrow" style="margin-top:2px">Next in each area</div>
       <div class="grid">
         <div class="mini work"><i>Work</i><h3>Fix the icon on mobile</h3><small>2 projects ›</small></div>
         <div class="mini games"><i>Games</i><h3>Rig the boss model</h3><small>2 projects ›</small></div>
@@ -83,8 +86,7 @@ body{background:#999;padding:20px;display:flex;flex-direction:column;gap:30px;fo
   <div class="top"><span class="mark"></span><h1>Focus Deck</h1><span class="jot">+ Jot</span><span class="dot"></span><span class="dial"></span></div>
   <div class="row"><div class="rail"><b>Sort</b><b>Organize</b><b>Projects</b><b>Roadmap</b><b class="on">Focus</b><b>Review</b></div>
   <div class="main">
-    <div style="width:520px;flex:none;display:flex;flex-direction:column;gap:18px"><div><div class="eyebrow">Do this now</div>
-      <div class="note big"><h2>Reply to the invoice email</h2><p>Client site · Work <span class="chip">due today</span></p></div></div>
+    <div class="clip" style="flex:0 0 600px;margin-top:10px"><div class="fill"><div class="note big"><h2>Reply to the invoice email</h2><p>Client site · Work <span class="chip">due today</span></p></div></div>
       <span class="stamp ok">✓ Done</span>
       <div class="quiet"><span>Not now</span><span>Choose…</span><span>More</span></div></div>
     <div style="flex:1;min-width:0"><div class="eyebrow">Next in each project</div>
@@ -132,10 +134,10 @@ body{background:#999;padding:20px;display:flex;flex-direction:column;gap:30px;fo
 <div class="frame phone" id="sort-phone">
   <div class="top"><span class="mark"></span><h1>Focus Deck</h1><span class="jot">+ Jot</span><span class="dot"></span><span class="dial"></span></div>
   <div class="main">
-    <div style="flex:1;display:flex;flex-direction:column"><div class="eyebrow">Sort · 1 of 5</div>
-      <div class="pile" style="flex:1;display:flex"><div class="slip" style="flex:1"><h2>Idea for the boss fight</h2><p>A thought · no project yet · just now</p></div></div></div>
-    <span class="stamp" style="margin-top:22px">Sort this one</span>
-    <div class="quiet"><span>Not this one</span><span>Sort several</span><span>More</span></div>
+    <div class="eyebrow">Sort · 1 of 5</div>
+    <div class="clip"><div class="pile" style="flex:1;display:flex;margin-bottom:18px"><div class="slip" style="flex:1"><h2>Idea for the boss fight</h2><p>A thought · no project yet · just now</p></div></div>
+    <span class="stamp">Sort this one</span>
+    <div class="quiet"><span>Not this one</span><span>Sort several</span><span>More</span></div></div>
   </div>
   <div class="tabs"><b class="on" style="background:#F4DC8C">Sort</b><b>Organize</b><b>Projects</b><b>Roadmap</b><b>Focus</b><b>Review</b></div>
 </div>
@@ -145,10 +147,10 @@ body{background:#999;padding:20px;display:flex;flex-direction:column;gap:30px;fo
   <div class="top"><span class="mark"></span><h1>Focus Deck</h1><span class="jot">+ Jot</span><span class="dot"></span><span class="dial"></span></div>
   <div class="row"><div class="rail"><b>Sort</b><b>Organize</b><b>Projects</b><b>Roadmap</b><b>Focus</b><b class="on">Review</b></div>
   <div class="main">
-    <div style="flex:1;display:flex;flex-direction:column;gap:22px;max-width:760px"><div><div class="eyebrow">Finished? · 1 of 8</div>
-      <div class="pile"><div class="slip" style="min-height:300px"><h2>Refactor the input system</h2><p>Focus Deck · Work</p></div></div></div>
-      <span class="stamp ok" style="margin-top:14px">✓ Looks good</span>
-      <div class="quiet"><span>More work</span><span>Done this week</span></div></div>
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0"><div class="eyebrow">Finished? · 1 of 8</div>
+      <div class="clip" style="margin-top:8px"><div class="pile" style="flex:1;display:flex;margin-bottom:18px"><div class="slip" style="flex:1"><h2>Refactor the input system</h2><p>Focus Deck · Work</p></div></div>
+      <span class="stamp ok">✓ Looks good</span>
+      <div class="quiet"><span>More work</span><span>Done this week</span></div></div></div>
     <div class="queue"><div class="eyebrow">After this one</div><div class="card">Playtest level two</div><div class="card">Call about the car</div><div class="card">Write the devlog</div><div class="card">Buy cables</div><div class="more">and 3 more</div></div>
   </div></div>
 </div>

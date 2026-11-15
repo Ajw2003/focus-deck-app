@@ -12,6 +12,11 @@ Proposal page: `docs/plans/design-audit.html` (from `design-audit.json`), drawn 
 `docs/generated/design-audit/mockups.html` and shot by `shoot-mockups.mjs`. Waiting on Eden's five answers
 (what Focus opens on, the small notes on a phone, Roadmap columns, the clipboard frame, build order).
 
+Approved the same day: "Design approved: design audit 1A 2A 3A 4* 5B", with Eden's own answer for the clipboard (keep it,
+make it bigger, the notes fill it); see Decisions. The four drawings that answer changes were redone. Issues #281
+(parent) and #282 to #286 (steps) are open; `docs/4-systems/desk-layout.md` says what the build must do. The build
+plan page `docs/plans/design-audit-build.html` is waiting on Eden's approval. No app code has changed.
+
 # Today — 2026-11-11
 
 - 2026-11-12: step 11 of "tabs that follow the flow" (#259): five numbered tabs (Sort, Organize, Roadmap, Focus, Review), jot box on every tab with J on desktop, Board and Projects screens removed into the Roadmap; see `docs/4-systems/tabs.md`.
