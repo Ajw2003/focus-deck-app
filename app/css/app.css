@@ -1709,3 +1709,15 @@ a.dk-choice{text-decoration:none;}
 /* A slip never blocks what is under it; only its own Open / Undo / close buttons take taps. */
 .toast{pointer-events:none;}
 .toast :is(button, a){pointer-events:auto;}
+
+/* ==== Layout fixes, 2026-11-13 (from Eden's screenshots on a phone in dark mode) ====
+   The clipboard paper is always light, so it always takes dark ink and light form controls; in dark mode it was
+   inheriting the light theme text (faint headings) and dark tick boxes. */
+.dk-paper{color:var(--dk-ink); color-scheme:light;}
+.dk-paper .sort-q{color:var(--dk-ink);}
+/* A long title makes its row taller; the list scrolls. The rows were squeezing to fit and drawing over each other. */
+.org-list > *, .pj-scroll > *{flex-shrink:0;}
+/* Sort's slip: about eight lines, then it scrolls inside, the dotted top scrolling with it so text never runs under it. */
+.sort-body > .jot-slip{flex-shrink:0; max-height:min(46vh, 300px); background-attachment:local;}
+/* Tidy up titles open Task details but read as handwriting, not as links. */
+.org-title{text-decoration:none; color:var(--dk-ink);}
