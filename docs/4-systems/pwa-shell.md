@@ -12,7 +12,8 @@ The app is served from `/focus-deck-app/app/`; the site root is kept for a landi
 
 - `app/` — `index.html`, `settings.html`, `js/`, `css/`, `service-worker.js` (scope `app/`), and
   `icons/` (generated at deploy time by `generate_icons.py`, gitignored; run it locally before a
-  browser check).
+  browser check), and `icon.svg`, the app's mark (an oak drawer of files, 2026-11-15) used as the favicon and the
+  top-bar mark. `generate_icons.py` draws the same shapes into the PNG icons, so a change to one goes in both.
 - Root — `manifest.webmanifest`, `index.html` + `forward.js` (the root page), and `service-worker.js`
   (the retirement worker).
 - The manifest sits at the root with `"id": "./"`, `"start_url": "app/"`, `"scope": "./"`. An existing
