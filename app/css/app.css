@@ -1701,7 +1701,7 @@ a.dk-choice{text-decoration:none;}
   .rm-main .dk-board{background:none; box-shadow:none; padding:0; margin:0;}
   .rm-main .dk-board:before{display:none;}
   .rm-main .dk-paper{background:none; box-shadow:none; overflow:visible;}
-  .rm-main .sort-q{color:var(--ink);}
+  .rm-main .dk-paper .sort-q{color:var(--ink);} /* no paper behind the title on a computer, so it takes the desk ink (readable in dark) */
   .rm-main .rm-tabs{display:none;}
   .rm-main .pj-pull{top:-10px;} /* clear of the ruler under the title */
   .rm-lanes{display:grid; grid-template-columns:1.25fr 1fr 1fr 1fr; gap:14px; align-items:start; min-height:0;}
@@ -1716,6 +1716,7 @@ a.dk-choice{text-decoration:none;}
 .rm-note-title{font-family:var(--note-font); font-weight:700; font-size:calc(22px * var(--note-scale, 1)); line-height:1.2; padding:6px 0;}
 .rm-note .note-meta{margin:2px 0 0 34px;}
 .rm-more{align-self:flex-start;}
+.note .chip.deadline-chip:is(.due-white, .due-yellow, .due-red, .due-amber){background:var(--paper); color:var(--paper-ink);} /* a due chip on a note is paper with dark ink in both themes; its border carries the stage */
 .pj .sort-q:has(~ .pj-pull), .pj .sort-q:has(+ .pj-pull){min-height:48px; padding-right:96px; display:flex; align-items:center;} /* room for the More / Sort by button, which is a full button now */
 @media (max-width:1099.98px){
   .rm-main .sort-body{min-height:0;}
@@ -1723,7 +1724,7 @@ a.dk-choice{text-decoration:none;}
   .rm-lane-h{display:none;}
   .rm-next{order:1;}
   .rm-tabs{order:2;}
-  .rm-main .rm-rows{order:3; max-height:calc(100dvh - 660px);}
+  .rm-main .rm-rows{order:3; max-height:calc(100dvh - 706px); min-height:96px;} /* leaves room for the Show more button */
   .rm-more{order:4;}
   .rm-nav{order:5;}
   .rm-lane:not(.on) :is(.rm-rows, .rm-more){display:none;}
@@ -1855,6 +1856,7 @@ a.dk-choice{text-decoration:none;}
 .nx-h{margin:0 0 8px; font:700 13px var(--font-ui); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint);}
 .nx-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .nx-back{margin-bottom:8px;}
+.nx-all{margin-top:8px; width:100%;}
 .nx-note{display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; min-height:44px; padding:8px 10px; border:0; border-radius:3px; background:color-mix(in srgb, var(--nx) 28%, #fff); color:#1C2438; font:inherit; box-shadow:0 2px 5px rgba(40,52,80,.25); cursor:pointer;}
 .nx-note.is-now{opacity:.6;}
 .nx-label{font:700 13px var(--font-ui); letter-spacing:.06em; text-transform:uppercase; opacity:.8;}

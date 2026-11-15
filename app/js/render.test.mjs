@@ -237,6 +237,14 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   assert.ok(phoneB.includes('2 projects ›') && deskB.includes('1 more') && deskB.includes('class="nx-note is-now"'), 'counts, and the big note is marked is-now');
   assert.ok(renderFocus(two, find2, { focusFilter: {}, focusArea: 'A' }).includes('‹ All areas'), 'an area opens as its projects');
   assert.ok(!renderFocus(two, find2, { focusFilter: {}, focusQ: 2, focusChoosing: true }).includes('nx-note'), 'no small notes on the questions');
+  // more than four areas: a phone shows four notes and one button for the rest
+  const six = { focus: { taskId: 't0' }, categories: [], projectCategories: [0, 1, 2, 3, 4, 5].map((i) => ({ id: 'A' + i, name: 'Area ' + i, color: '#36c' })),
+    projects: [0, 1, 2, 3, 4, 5].map((i) => ({ id: 'p' + i, name: 'P' + i, categoryId: 'A' + i, tasks: [{ id: 't' + i, title: 'Task ' + i, status: 'next' }] })) };
+  const find6 = (id) => { for (const p of six.projects) { const t = p.tasks.find((x) => x.id === id); if (t) return { task: t, project: p }; } return null; };
+  const areasOf = (ui) => (renderFocus(six, find6, ui).split('class="nx nx-desk"')[0].match(/data-action="focus-area"/g) || []).length;
+  assert.strictEqual(areasOf({ focusFilter: {} }), 4, 'six areas: four notes on a phone');
+  assert.ok(renderFocus(six, find6, { focusFilter: {} }).includes('All 6 areas'), 'and a button for all six');
+  assert.strictEqual(areasOf({ focusFilter: {}, focusAllAreas: true }), 6, 'the button shows all six');
 // nothing open: the empty desk, with the way on
   const empty = mk(null, [task('x1', { status: 'done' })]);
   const emptyHtml = renderFocus(empty, () => null, { focusFilter: {} });

@@ -871,6 +871,7 @@ function onAppClick(e) {
   else if (action === 'focus-choose') { ui.focusChoosing = true; ui.focusQ = 1; ui.focusMenu = null; paint(); }
   else if (action === 'focus-choose-back') { ui.focusChoosing = false; ui.focusQ = 1; paint(); }
   else if (action === 'focus-area') { ui.focusArea = el.getAttribute('data-area') || null; paint(); }
+  else if (action === 'focus-all-areas') { ui.focusAllAreas = !ui.focusAllAreas; paint(); }
   else if (action === 'focus-set') { ui.focusArea = null; M.setFocus(taskId); }
   else if (action === 'focus-doing') {
     // same path as a board drop: lands at the end of In progress; the task stays in focus
