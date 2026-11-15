@@ -1,3 +1,17 @@
+# Today — 2026-11-15
+
+## Design audit of phone and computer (design only, nothing built)
+
+Eden asked for an audit and fix of the design on phone and computer: next steps always clear, the most important
+thing the biggest, good use of space, sticky notes for object permanence. The real app was shot on all seven tabs at
+390x844 and 1440x900 with 8 projects, 56 tasks and 5 thoughts (`docs/generated/design-audit/shoot.mjs`,
+`shoot-focus.mjs`). Measured: on Focus the paper covers 23% of the computer window and 51% of the phone window;
+Focus opens on "Which project?" with 34 controls and asks a second question before any task shows
+(`renderPicker`, `app/js/focus-view.js:56`); every screen is capped at 560px (`app/css/app.css:1391`, `:1408`, `:1425`).
+Proposal page: `docs/plans/design-audit.html` (from `design-audit.json`), drawn in
+`docs/generated/design-audit/mockups.html` and shot by `shoot-mockups.mjs`. Waiting on Eden's five answers
+(what Focus opens on, the small notes on a phone, Roadmap columns, the clipboard frame, build order).
+
 # Today — 2026-11-11
 
 - 2026-11-12: step 11 of "tabs that follow the flow" (#259): five numbered tabs (Sort, Organize, Roadmap, Focus, Review), jot box on every tab with J on desktop, Board and Projects screens removed into the Roadmap; see `docs/4-systems/tabs.md`.
