@@ -10,6 +10,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -113,7 +114,7 @@ for (const scheme of ['dark', 'light']) {
   await page.screenshot({ path: OUT + scheme + '-6-app.png' });
   await page.click('.rail [data-screen="projects"]');
   await page.waitForTimeout(200);
-  check(`${tag}: and the new folder is on the Projects tab`, !!(await page.$('.pj-card[data-project="' + school.id + '"]')));
+  check(`${tag}: and the new folder is on the Projects tab`, !!(await page.$(everyFile('projects-tab', school.id))));
   await page.click('.rail [data-screen="focus"]');
   await page.reload();
   await page.waitForTimeout(300);

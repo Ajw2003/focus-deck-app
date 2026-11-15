@@ -16,6 +16,7 @@ import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
 import { renderFocus, renderProjectWalletInner, renderCategoryWalletInner } from './focus-view.js';
 import { mountWallets, onSpreadChange } from './wallet.js';
+import { mountCabinets } from './cabinet.js';
 import { tiesOf } from './task-links.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import { navigate, shiftMonth, warnPlan } from './sort-flow.js';
@@ -237,6 +238,10 @@ const walletHooks = {
       paint();
       return true;
     }
+    if (name === 'projects-tab') { // the Projects tab: choosing a file opens that project's Roadmap
+      setScreen('roadmap'); setView({ mode: 'project', id: key }); paint(); window.scrollTo(0, 0);
+      return true;
+    }
     // Focus: choosing a project card is Next; choosing a kind card is Show me one
     if (name === 'projects') {
       ui.focusFilter.projectId = key === R.ALL_PROJECTS_KEY ? null : key;
@@ -254,7 +259,7 @@ const walletHooks = {
 // Returns false, with a notice, when no open task matches.
 // The card in the middle of a Focus carousel: a card nobody flipped to (the first one after Find narrowed the row) never
 // reached the facing hook, so Next and Show me one read it off the page.
-const facingKey = (wallet) => { const c = document.querySelector('[data-wallet="' + wallet + '"] .sleeve.is-centre'); return c ? c.getAttribute('data-key') : undefined; };
+const facingKey = (wallet) => { const c = document.querySelector('[data-wallet="' + wallet + '"] .sleeve.is-centre, [data-wallet="' + wallet + '"] .cab-file.is-centre'); return c ? c.getAttribute('data-key') : undefined; };
 function showFocus(key) {
   const categoryId = key && key !== R.ANY_CATEGORY_KEY ? key : null;
   if (M.pickFocus({ categoryId, projectId: R.focusProjectId(state, ui) })) { ui.focusQ = 1; ui.focusDone = null; return true; }
@@ -289,7 +294,10 @@ export function renderApp(st) {
   }
   ui.view = normalizeView(ui.view, st); // a gone area or project is All
   if (ui.screen === 'roadmap' && ui.view.mode !== 'project' && lastProjectId()) setView({ mode: 'project', id: lastProjectId() }); // the Roadmap is one project
-  if (ui.screen !== 'roadmap' && ui.view.mode === 'project') ui.view = normalizeView(loadWideView(), st);
+  if (ui.screen !== 'roadmap' && ui.view.mode === 'project') { // the project goes back to the Roadmap; this tab gets the wide view
+    try { localStorage.setItem(LAST_PROJECT_KEY, ui.view.id); } catch (e) { console.error('Could not save the last project:', e); } // a save from before the split has no last project
+    ui.view = normalizeView(loadWideView(), st);
+  }
   st._ui = ui;
   const sw = renderViewSwitch(st, ui.view, ui.viewOpen, ui.screen === 'roadmap');
   const hasToken = !!getToken();
@@ -476,6 +484,7 @@ export function paint() {
   document.getElementById('app').innerHTML = renderApp(state);
   paintHeaderControls();
   mountWallets(document.getElementById('app'), walletHooks);
+  mountCabinets(document.getElementById('app'), walletHooks);
   growAll();
   window.scrollTo(0, scrollY);
   if (addPid) focusAddTitle(addPid, addCaret);
@@ -1176,7 +1185,7 @@ function onAppInput(e) {
     const kinds = e.target.getAttribute('data-car-find') === 'kinds';
     if (kinds) ui.focusKindFind = e.target.value; else ui.focusFind = e.target.value;
     const slot = document.getElementById(kinds ? 'category-wallet' : 'project-wallet');
-    if (slot) { slot.innerHTML = (kinds ? renderCategoryWalletInner : renderProjectWalletInner)(viewState(state), ui); mountWallets(slot, walletHooks); }
+    if (slot) { slot.innerHTML = (kinds ? renderCategoryWalletInner : renderProjectWalletInner)(viewState(state), ui); mountWallets(slot, walletHooks); mountCabinets(slot, walletHooks); }
     return;
   }
   if (e.target.matches && e.target.matches('[data-triage-find]')) {

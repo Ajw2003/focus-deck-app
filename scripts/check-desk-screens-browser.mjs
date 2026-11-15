@@ -11,6 +11,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize, resolve } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -88,12 +89,12 @@ for (const size of ['phone', 'desktop']) {
     let { ctx, page } = await open(size, scheme);
 
     // The Projects tab: a card per project (#267)
-    await scrollTo(page, '.pj-card');
-    check(`${tag} project cards render`, (await page.$$('.pj-card')).length === 3);
+    await scrollTo(page, cab('projects-tab'));
+    check(`${tag} project cards render`, (await fileKeys(page, 'projects-tab')).length === 3);
     await shot(page, tag, 'all-view');
 
     // One project: task rows (checkbox, title, chips, grips)
-    await page.click('.pj-card[data-project="pHome"]');
+    await chooseFile(page, 'projects-tab', 'pHome');
     await page.waitForSelector('.rm-project');
     check(`${tag} task rows keep their grips and checkboxes`, (await page.$$('.rm-task [data-action="toggle-task"]')).length >= 3 && (await page.$$('.rm-task .rm-grip')).length >= 3); // Home's Up next list has three tasks, the fourth is Done
     // a row no longer carries a priority chip (nothing small); the priority is read in Task details
@@ -139,9 +140,9 @@ for (const size of ['phone', 'desktop']) {
 
     // The project list (the Projects tab), and New project
     await page.click('.rail [data-screen="projects"]');
-    await page.waitForSelector('.pj-card');
+    await page.waitForSelector(cab('projects-tab'));
     await page.evaluate(() => window.scrollTo(0, 0));
-    check(`${tag} the project list shows every project`, (await page.$$('.pj-card')).length === 3);
+    check(`${tag} the project list shows every project`, (await fileKeys(page, 'projects-tab')).length === 3);
     await shot(page, tag, 'project-list');
     await page.click('#new-panel-toggle');
     await page.waitForSelector('.pj-flow');

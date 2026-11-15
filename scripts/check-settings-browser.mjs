@@ -87,7 +87,8 @@ for (const size of ['phone', 'desktop']) for (const scheme of ['dark', 'light'])
     const list = await items(page);
     check('fresh: the checklist row says 0 of 3 done', (await page.textContent('#checklist-title')) === '0 of 3 done');
     const heads = await page.$$eval('.set-head', (els) => els.length);
-    check('fresh: every setting is one folded row, all closed', heads === 14 && (await page.$$('.set.open')).length === 0 && !(await page.isVisible('#due-yellow-pct')), 'rows ' + heads);
+    check('fresh: every setting is one folded row, all closed', heads === 15 && // 15th: Save a copy of my data (2026-11-13)
+      (await page.$$('.set.open')).length === 0 && !(await page.isVisible('#due-yellow-pct')), 'rows ' + heads);
     await openRow(page, '#due-yellow-pct'); await openRow(page, '.choosing-modes input');
     check('fresh: opening a row closes the other', (await page.$$('.set.open')).length === 1 && !(await page.isVisible('#due-yellow-pct')) && (await page.isVisible('#choosing-section input')));
     check('fresh: each item links to its step', JSON.stringify(list.map((i) => i.href)) === JSON.stringify(['./?welcome', './?welcome', 'setup.html', 'setup.html']), JSON.stringify(list));

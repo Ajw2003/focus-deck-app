@@ -9,6 +9,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -142,8 +143,8 @@ for (const [w, h] of [[360, 780], [390, 844], [1440, 900]]) {
   await page.click('[data-action="detail-back"]');
   await page.click('[data-action="detail-close"]');
   await page.click('[data-screen="projects"]:visible');
-  await page.waitForSelector('.pj-card');
-  check((await page.getAttribute('.pj-card[data-project="p0"] .pj-ruler', 'aria-label')) === '20% done', tag + 'the Projects tab says 20% done');
+  await page.waitForSelector(cab('projects-tab'));
+  check((await page.getAttribute(everyFile('projects-tab', 'p0') + ' .cab-bar', 'aria-label')) === '20% done', tag + 'the Projects tab says 20% done');
   await noScroll('projects'); await shot('projects');
   await ctx.close();
 }

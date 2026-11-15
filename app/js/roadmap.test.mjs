@@ -87,7 +87,7 @@ test('an old save (no sections, milestones or milestoneId) loads: every task is 
   assert.deepEqual([r.sections.length, r.unplanned.total, r.pct], [0, 2, 50]);
   const st = { projects: [p], projectCategories: [], categories: [] };
   const h = renderProjects(st, { view: { mode: 'all' } });
-  assert.ok(h.includes('Projects') && h.includes('aria-label="50% done"') && h.includes('data-project="p"'), 'the Projects tab shows a card with its ruler');
+  assert.ok(h.includes('Projects') && h.includes('aria-label="50% done"') && h.includes('data-key="p"'), 'the Projects tab shows a file with its progress bar');
   const pv = renderRoadmap(st, { view: { mode: 'project', id: 'p' } });
   assert.ok(pv.includes('data-status="next"') && pv.includes('Unplanned') && !pv.includes('New project'), 'the Roadmap is one project, with no + New project (Projects owns it)');
 });

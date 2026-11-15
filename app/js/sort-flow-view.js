@@ -4,7 +4,8 @@
 // the receipt. What a tap does is in js/app.js; which screen comes next is js/sort-flow.js. The kit
 // classes (dk-*) are in css/app.css. See docs/4-systems/in-tray.md
 import { esc, relTime, PRIORITY, PRIORITY_ORDER } from './state.js';
-import { viewState } from './view-switch.js';
+import { viewState, areaList } from './view-switch.js';
+import { cabinetInner, cabinetDrawers, rememberedDrawer } from './cabinet.js';
 import { flagCards, folderCards } from './in-tray.js';
 import { canWaitOn, subtasksOf } from './task-links.js';
 import { dueDates } from './pick-bits.js';
@@ -16,6 +17,17 @@ const allTasks = (st) => st.projects.flatMap((p) => p.tasks.map((t) => ({ t, p }
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 // ---- the pieces every screen shares ---------------------------------------------------------------
+// Sort's project step: the projects as files in the wooden cabinet, one drawer per area (docs/4-systems/wallets.md#the-filing-cabinet).
+// Opening a file faces it; tapping it again puts it on the slip, or takes it off.
+export function folderCabinet(st, folders, project, facingFolder) {
+  const files = folders.map((f) => {
+    const picked = !!project && f.id === project.id, detail = picked ? 'chosen' : f.open + ' open';
+    return { key: f.id, name: f.name, color: f.color, areaId: f.areaId, picked, detail, speak: f.name + ', ' + (picked ? 'chosen. Tap it again to clear' : detail) };
+  });
+  const facing = folders.some((f) => f.id === facingFolder) ? facingFolder : (project && folders.some((f) => f.id === project.id) ? project.id : '');
+  return '<div class="wallet" id="tray-folder-wallet">' + cabinetInner({ wallet: 'tray-folders', aria: 'Projects. Swipe sideways for another area; tap a file, then tap it again to choose or clear.', drawers: cabinetDrawers(files, areaList(st)), facing, remembered: rememberedDrawer('tray-folders') }) + '</div>';
+}
+
 export const stamp = (label, { action = 'sort-next', disabled = false, attrs = '', cls = '' } = {}) =>
   '<button type="button" class="dk-btn file-btn' + (disabled ? ' off' : '') + cls + '" data-action="' + action + '"' + attrs + (disabled ? ' disabled' : '') + '>' + esc(label) + '</button>';
 export const foot = (parts) => '<div class="sort-foot">' + parts.join('') + '</div>';
@@ -231,13 +243,7 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
     else {
       body = '<input type="text" class="sort-find" value="' + esc(q) + '" placeholder="Find a project…" aria-label="Find a project">';
       if (folders.length) {
-        const items = folders.map((f) => {
-          const picked = !!project && f.id === project.id;
-          const detail = picked ? 'chosen' : f.open + ' open';
-          return sleeve({ key: f.id, name: f.name, color: f.color, kind: 'project', picked, detail, speak: f.name + ', ' + (picked ? 'chosen. Choose it again to clear.' : detail) });
-        });
-        const facing = folders.some((f) => f.id === u.facingFolder) ? u.facingFolder : (project && folders.some((f) => f.id === project.id) ? project.id : folders[0].id);
-        body += '<div class="wallet" id="tray-folder-wallet">' + walletInner({ wallet: 'tray-folders', label: '', aria: 'Projects. Arrow keys flip, Enter chooses or clears.', items, facing, mode, verb: 'use' }) + '</div>';
+        body += folderCabinet(st, folders, project, u.facingFolder);
       } else body += '<p class="muted small find-empty">No project matches “' + esc(q) + '”.</p>';
     }
     body += '<div class="sort-row2"><button type="button" class="dk-link" data-action="sort-new-project">+ New project</button></div>';

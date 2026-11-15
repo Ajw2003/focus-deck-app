@@ -2,6 +2,7 @@
 // still offer every project, and their tape offers no One project. Run: node scripts/check-roadmap-pick-browser.mjs
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 
@@ -28,7 +29,7 @@ try {
   await page.locator('[data-screen="focus"]:visible').first().click();
   await page.waitForTimeout(400);
   const focusTape = (await page.textContent('.vs-pick-name')).trim();
-  const folders = await page.$$eval('[data-wallet="projects"] [data-key]', (els) => els.length);
+  const folders = (await fileKeys(page, 'projects')).length; // Everything: a file can also hang in its area's drawer
   await page.click('.vs-tape');
   const menu = await page.textContent('.vs-pop');
   await page.click('.vs-x');

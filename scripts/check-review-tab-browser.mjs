@@ -32,7 +32,7 @@ const seed = () => ({
   projects: [
     { id: 'p0', name: 'Home', color: '#3E8E5E', tasks: [t('r1', 'Check the quote', 'review', { updatedAt: now - 5000, order: 1 }), t('r2', 'Read the contract', 'review', { updatedAt: now - 2000, order: 2 }),
       t('d1', 'Painted the door', 'done', { completedAt: now - 3000, statusBeforeDone: 'doing' }), t('n1', 'Bins out', 'next')] },
-    { id: 'p1', name: 'Work', color: '#4D6FB8', tasks: [t('r3', 'Review the draft', 'review', { updatedAt: now - 9000 })] },
+    { id: 'p1', name: 'Work', color: '#4D6FB8', categoryId: 'pcat_work', tasks: [t('r3', 'Review the draft', 'review', { updatedAt: now - 9000 })] },
   ],
   categories: [], inbox: [], completedLog: [], deletedTaskIds: {}, choosingMode: { mode: 'twice', updatedAt: 1 },
 });
@@ -65,9 +65,9 @@ for (const phone of [true, false]) {
   check(await titleNow() === 'Read the contract' && (await page.$$('.rv-card')).length === 1, tag + 'one task: the newest waiting', await titleNow());
   check((await page.$$('.sort-dots i')).length === 3 && (await page.getAttribute('.sort-dots', 'aria-label')) === 'Step 1 of 3', tag + 'three progress dots, first on');
   await shot('tab');
-  // the switch filters the waiting task
-  await page.click('.vs-tape'); await page.click('[data-action="view-step"][data-step="project"]');
-  await page.click('[data-action="view-pick"][data-id="p1"]');
+  // the switch filters the waiting task (by area: One project is the Roadmap's, 2026-11-15)
+  await page.click('.vs-tape'); await page.click('[data-action="view-step"][data-step="area"]');
+  await page.click('.vs-item[data-id="pcat_work"]');
   check(await titleNow() === 'Review the draft', tag + 'switch to Work shows its task', await titleNow());
   await page.click('.vs-tape'); await page.click('.vs-pop .dk-choice[data-mode="all"]');
   check(await titleNow() === 'Read the contract', tag + 'All restores');

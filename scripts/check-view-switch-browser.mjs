@@ -8,6 +8,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -46,10 +47,10 @@ const data = {
 const HOME = ['Paint the shed', 'Fix the door', 'Mow the lawn'];
 const sizes = [['360', 360, 780], ['390', 390, 844], ['desk', 1440, 900]];
 const screen = async (page, name) => { await page.click(`[data-action="set-screen"][data-screen="${name}"]`); await page.waitForSelector('.vs-row'); };
-const rmNames = (page) => page.$$eval('.pj-card .pj-name', (els) => els.map((e) => e.textContent.replace('📁', '').trim()));
+const rmNames = (page) => page.$$eval(everyFile('projects-tab') + ' .cab-tab b', (els) => els.map((e) => e.textContent.trim()));
 const rmTaskTitles = (page) => page.$$eval('.rm-project .rm-task-title', (els) => els.map((e) => e.textContent));
-const folderKeys = (page) => page.$$eval('[data-wallet="tray-folders"] .sleeve', (els) => els.map((e) => e.dataset.key));
-const wallet = (page) => page.$$eval('[data-wallet="projects"] .sleeve', (els) => els.map((e) => e.dataset.key));
+const folderKeys = (page) => fileKeys(page, 'tray-folders');
+const wallet = (page) => fileKeys(page, 'projects');
 const pickBtn = (page) => page.$eval('.vs-tape', (b) => b.textContent.replace(/\s+/g, ' ').trim());
 const openList = async (page, step) => { await page.click('.vs-tape'); await page.click(`[data-action="view-step"][data-step="${step}"]`); await page.waitForSelector('.vs-pop .vs-item'); };
 
@@ -63,7 +64,7 @@ for (const [tag, w, h] of sizes) {
   await page.waitForSelector('.vs-row');
   check(`[${tag}] Focus: one tape saying Everything, no All | Area | Project switch`, (await pickBtn(page)) === 'Everything ▾' && !(await page.$('.vs-seg, .vs-segs')));
   await page.click('.vs-tape');
-  check(`[${tag}] the drawer holds Everything, One area ›, One project ›`, (await page.$$eval('.vs-pop .dk-choice', (b) => b.map((x) => x.textContent.trim()).join('|'))) === 'Everything|One area ›|One project ›');
+  check(`[${tag}] Focus's drawer holds Everything and One area › (One project › is the Roadmap's)`, (await page.$$eval('.vs-pop .dk-choice', (b) => b.map((x) => x.textContent.trim()).join('|'))) === 'Everything|One area ›');
   await page.keyboard.press('Escape');
   const allKeys = await wallet(page);
   check(`[${tag}] Focus on All offers every project`, ['pShed', 'pGarden', 'pReport', 'pLoose', 'pLong'].every((k) => allKeys.includes(k)), allKeys.join());
@@ -103,7 +104,7 @@ for (const [tag, w, h] of sizes) {
   // Sort
   await screen(page, 'sort');
   await page.click('[data-action="sort-next"]'); // the first Sort page is the slip; step 1 offers the projects
-  await page.waitForSelector('[data-wallet="tray-folders"] .sleeve');
+  await page.waitForSelector(cab('tray-folders'));
   const fk = await folderKeys(page);
   check(`[${tag}] Sort: only Home's projects offered, the thought is still there`, fk.sort().join() === 'pGarden,pShed' && (await page.textContent('.inbox-card')).includes('A stray thought'), fk.join());
   await page.screenshot({ path: OUT + `${tag}-sort-home.png` });
@@ -115,7 +116,8 @@ for (const [tag, w, h] of sizes) {
   await screen(page, 'projects');
   check(`[${tag}] reload: Projects still only Home`, (await rmNames(page)).length === 2);
 
-  // Project
+  // Project: only the Roadmap offers One project
+  await screen(page, 'roadmap');
   await openList(page, 'project');
   const grouped = await page.$$eval('.vs-pop .vs-group', (els) => els.map((e) => e.textContent));
   check(`[${tag}] project list is grouped by area`, grouped.join() === 'Home,Work,Unsorted', grouped.join());
@@ -124,9 +126,10 @@ for (const [tag, w, h] of sizes) {
   check(`[${tag}] Project=Report: Roadmap shows only its task`, (await rmTaskTitles(page)).join() === 'Write the report', (await rmTaskTitles(page)).join());
   await screen(page, 'focus');
   const k2 = await wallet(page);
-  check(`[${tag}] Project=Report: Focus offers only it`, k2.sort().join() === 'all,pReport', k2.join());
+  check(`[${tag}] Project=Report on the Roadmap: Focus keeps Home, not just Report`, k2.sort().join() === ['all', 'pGarden', 'pShed'].sort().join(), k2.join());
 
   // long name: not cut off
+  await screen(page, 'roadmap');
   await openList(page, 'project');
   await page.click('.vs-item[data-id="pLong"]');
   const geo = await page.evaluate(() => { const row = document.querySelector('.vs-row').getBoundingClientRect(); const b = document.querySelector('.vs-tape'); const n = document.querySelector('.vs-pick-name'); const r = b.getBoundingClientRect(); return { right: r.right, vw: innerWidth, rowRight: row.right, over: n.scrollWidth > n.clientWidth, ell: getComputedStyle(n).textOverflow, h: r.height, docW: document.documentElement.scrollWidth }; });
@@ -138,7 +141,8 @@ for (const [tag, w, h] of sizes) {
     await page.keyboard.press('Escape');
   }
 
-  // All
+  // All (picked off the Roadmap: the Roadmap always shows one project)
+  await screen(page, 'focus');
   await page.click('.vs-tape');
   await page.click('.vs-pop .dk-choice[data-mode="all"]');
   check(`[${tag}] Everything: the tape says so`, (await pickBtn(page)) === 'Everything ▾');
@@ -146,7 +150,7 @@ for (const [tag, w, h] of sizes) {
   check(`[${tag}] Everything: Projects shows every project`, (await rmNames(page)).length === 5, (await rmNames(page)).join());
   await screen(page, 'sort');
   await page.click('[data-action="sort-next"]');
-  await page.waitForSelector('[data-wallet="tray-folders"] .sleeve');
+  await page.waitForSelector(cab('tray-folders'));
   check(`[${tag}] All: Sort offers every project`, (await folderKeys(page)).length === 5);
   // Unsorted area
   await openList(page, 'area');

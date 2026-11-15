@@ -5,7 +5,9 @@
 // stamps and carousels as Sort and Organize. See docs/4-systems/focus.md
 import { state, esc, formatLabelName, UNLABELLED } from './state.js';
 import { findFilter } from './wallet.js';
-import { kindsOfWork } from './areas.js';
+import { kindsOfWork, areaIdOf } from './areas.js';
+import { areaList } from './view-switch.js';
+import { cabinetInner, cabinetDrawers, rememberedDrawer } from './cabinet.js';
 import { viewState } from './view-switch.js';
 import { subtasksOf } from './task-links.js';
 import { phaseClasses } from './focus-complete.js';
@@ -23,14 +25,13 @@ const find = (kind, value, placeholder) => '<input type="search" class="sort-fin
 export function renderProjectWalletInner(st, ui) {
   const projectId = focusProjectId(st, ui);
   const q = (ui && ui.focusFind) || '';
-  const projects = findFilter(st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, matches: openWhere(st, null, p.id) })), q)
-    .filter((x) => x.matches.length || x.id === projectId)
-    .sort((a, b) => b.matches.length - a.matches.length || a.name.localeCompare(b.name));
-  const folders = (q.trim() ? [] : [sleeve({ key: ALL_PROJECTS_KEY, name: 'All projects', color: 'var(--lamp-dot)', kind: 'project', speak: 'All projects' })])
-    .concat(projects.map((x) => sleeve({ key: x.id, name: x.name, color: x.color, kind: 'project', speak: x.name })));
-  if (!folders.length) return '<p class="muted find-empty">No project matches &ldquo;' + esc(q) + '&rdquo;.</p>';
+  const projects = findFilter(st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, p, matches: openWhere(st, null, p.id) })), q)
+    .filter((x) => x.matches.length || x.id === projectId);
+  if (!projects.length && q.trim()) return '<p class="muted find-empty">No project matches &ldquo;' + esc(q) + '&rdquo;.</p>';
+  const files = projects.map((x) => ({ key: x.id, name: x.name, color: x.color, areaId: areaIdOf(st, x.p), detail: x.matches.length + ' to do', speak: x.name + ', ' + x.matches.length + ' to do' }));
+  const lead = q.trim() ? [] : [{ key: ALL_PROJECTS_KEY, name: 'All projects', color: 'var(--lamp-dot)', detail: projects.reduce((n, x) => n + x.matches.length, 0) + ' to do', speak: 'All projects' }];
   const facing = projects.some((x) => x.id === projectId) ? projectId : (q.trim() ? projects[0].id : ALL_PROJECTS_KEY);
-  return walletInner({ wallet: 'projects', label: '', aria: 'Projects. Arrow keys flip, Enter chooses.', items: folders, facing, mode: focusChoosingMode(st) });
+  return cabinetInner({ wallet: 'projects', aria: 'Projects. Swipe sideways for another area; tap a file, then tap it again to choose.', drawers: cabinetDrawers(files, areaList(st), { lead }), facing, remembered: rememberedDrawer('projects') });
 }
 
 // The kinds-of-work strip for the chosen project (or all of them): the labels with open tasks (busiest first),

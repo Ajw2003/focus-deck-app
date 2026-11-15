@@ -16,8 +16,8 @@ Tests: `render.test.mjs` (the list, drawer, My order and every New project step)
 
 ## The screens
 
-- **Projects** (r0): a clipboard titled Projects; Find a project; one card per project (a coloured top edge in the project's colour,
-  "📁 name", a ruler showing percent done = `roadmapOf(p).pct`); the brass drawer handle at the top right; a "+ New project" stamp.
+- **Projects** (r0): a clipboard titled Projects; Find a project; the projects as files in the filing cabinet (wallet `projects-tab`, one drawer per area, in the Sort by order; each file
+  carries a progress bar of percent done = `roadmapOf(p).pct`; tapping a file twice opens its Roadmap; see wallets.md#the-filing-cabinet); the brass drawer handle at the top right; a "+ New project" stamp.
   The list is every project of the area on the view tape, or every project; a tape on one project does not shrink it.
 - **Sort by** (r0m): the handle opens a card-index drawer: A–Z (`name`), Most tasks (`open-tasks`), Due soonest (`deadline`),
   Last synced (`recent-sync`), My order (`custom`, marked ↑↓). The choice is saved per device. Picking My order opens the next screen.

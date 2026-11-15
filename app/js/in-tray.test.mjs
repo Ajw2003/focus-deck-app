@@ -171,7 +171,7 @@ test('the ⋯ drawer holds Add notes, Done already, Later and Delete with the id
 test('step 1 project carousel, step 2 priority flags: Next waits for each, a task starts in its own project', () => {
   seed();
   const p1 = card({ step: 1, projectId: 'pB' });
-  assert.ok(p1.includes('Which project?') && p1.includes('data-wallet="tray-folders"') && p1.includes('data-verb="use"') && /icard project is-picked/.test(p1), 'the chosen folder is marked');
+  assert.ok(p1.includes('Which project?') && p1.includes('data-wallet="tray-folders"') && /cab-file[^"]* is-picked" data-key="pB"/.test(p1), 'the chosen folder is marked');
   assert.ok(p1.includes('data-action="sort-new-project">+ New project<') && p1.includes('data-action="sort-back"') && !p1.includes('sort-skip'), 'Back and a new project; no Skip');
   assert.ok(p1.includes('<span class="folder-chip"') && !p1.includes('Going in') && p1.includes('data-action="sort-next"'), 'the folder shows on the slip');
   const none = card({ step: 1 });
@@ -182,7 +182,7 @@ test('step 1 project carousel, step 2 priority flags: Next waits for each, a tas
   assert.ok(card({ step: 2, projectId: 'pB', priority: 'high' }).includes('class="sort-flag on" data-level="high"') && !card({ step: 2, projectId: 'pB', priority: 'high' }).includes('disabled>Next<'));
   state.inbox.length = 0;
   const t = card({ step: 1 });
-  assert.ok(/icard project is-picked/.test(t) && t.includes('<span class="folder-chip"') && !t.includes('>In <') && t.includes('Unlabelled A') && !t.includes('disabled>Next<'), 'a task is in its own project');
+  assert.ok(/cab-file[^"]* is-picked/.test(t) && t.includes('<span class="folder-chip"') && !t.includes('>In <') && t.includes('Unlabelled A') && !t.includes('disabled>Next<'), 'a task is in its own project');
   assert.ok(card({ step: 2 }).includes('data-value="none"'), 'a task may have no priority');
 });
 

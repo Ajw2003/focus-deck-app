@@ -8,6 +8,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -58,7 +59,7 @@ async function open(mode, scheme, extraStorage = {}) {
     for (const [k, v] of Object.entries(extra)) if (!localStorage.getItem(k)) localStorage.setItem(k, v);
   }, [seed(mode), extraStorage]);
   await page.goto(BASE);
-  await page.waitForSelector('.flip-track');
+  await page.waitForSelector('.cab');
   await page.waitForTimeout(400);
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   check(`[${mode}/${scheme}] no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
@@ -73,29 +74,28 @@ const tapCard = async (page, w, key) => {
 const focusShown = (page) => page.$('.focus-active');
 // Focus asks "Which project?" first; the kinds-of-work wallet is the second question (#270)
 const toQ2 = async (page) => { await page.click('[data-action="focus-next"]'); await page.waitForSelector('[data-wallet="categories"] .sleeve'); await page.waitForTimeout(400); };
-const toQ1 = async (page) => { await page.click('[data-action="focus-back"]'); await page.waitForSelector('[data-wallet="projects"] .sleeve'); await page.waitForTimeout(400); };
+const toQ1 = async (page) => { await page.click('[data-action="focus-back"]'); await page.waitForSelector(cab('projects')); await page.waitForTimeout(400); };
 
-// 1. wallets render, dark
+// 1. wallets render, dark (projects are files in the filing cabinet since 2026-11-15; kinds of work stay a wallet)
 let { ctx, page } = await open('twice', 'dark');
-const projKeys = await keysOf(page, 'projects');
-check('project wallet has All + 4 folders', projKeys.length === 5 && projKeys[0] === 'all', projKeys.join());
-check('project wallet facing All', (await facing(page, 'projects')) === 'all');
-check('mockup folders drawn as folders (::before tab)', await page.$eval('.icard.project', (e) => getComputedStyle(e, '::before').content !== 'none'));
+const projKeys = await fileKeys(page, 'projects');
+check('project cabinet has All + 4 files', projKeys.length === 5 && projKeys[0] === 'all', projKeys.join());
+check('project cabinet: All is open', (await openKey(page, 'projects')) === 'all');
+check('projects drawn as files with a tab', (await page.$$(everyFile('projects') + ' .cab-tab')).length === 5);
 await page.screenshot({ path: OUT + 'dark-twice-all.png', fullPage: false });
 await toQ2(page);
 const catAll = await keysOf(page, 'categories');
 check('category wallet has cards + unlabelled + surprise', catAll.includes('__none__') && catAll.at(-1) === 'any', catAll.join());
 await toQ1(page);
 
-// 2. flip a folder narrows index cards (keyboard on a computer)
-await page.focus('[data-wallet="projects"]');
-const slotBefore = await page.$eval('#project-wallet', (e) => e.firstElementChild);
+// 2. opening a file narrows index cards (keyboard on a computer: Down opens the next file)
+await page.focus(cab('projects'));
 await page.evaluate(() => { window.__projTrack = document.querySelector('[data-wallet="projects"]'); });
-await page.keyboard.press('ArrowRight');
-await page.waitForTimeout(900);
-const f1 = await facing(page, 'projects');
-check('arrow flips the project wallet (facing = ' + f1 + ')', f1 !== 'all');
-check('project wallet track NOT re-rendered on a flip', await page.evaluate(() => window.__projTrack === document.querySelector('[data-wallet="projects"]')));
+await page.keyboard.press('ArrowDown');
+await page.waitForTimeout(500);
+const f1 = await openKey(page, 'projects');
+check('Down opens the next project file (open = ' + f1 + ')', f1 !== 'all');
+check('the cabinet is NOT re-rendered when a file opens', await page.evaluate(() => window.__projTrack === document.querySelector('[data-wallet="projects"]')));
 const saved = await page.evaluate(() => localStorage.getItem('focusdeck-focus-filter'));
 check('facing folder remembered in focusdeck-focus-filter', saved && JSON.parse(saved).projectId === f1, saved);
 await page.screenshot({ path: OUT + 'dark-twice-flipped.png' });
@@ -104,8 +104,8 @@ const catNarrow = await keysOf(page, 'categories');
 check('category cards narrowed to that project', catNarrow.length < catAll.length, catNarrow.join());
 await toQ1(page);
 // remembered on reload
-await page.reload(); await page.waitForSelector('.flip-track'); await page.waitForTimeout(400);
-check('after reload the remembered folder faces you', (await facing(page, 'projects')) === f1);
+await page.reload(); await page.waitForSelector('.cab'); await page.waitForTimeout(400);
+check('after reload the remembered project is open', (await openKey(page, 'projects')) === f1);
 check('markup carries data-facing', (await page.$eval('[data-wallet="projects"]', (t) => t.dataset.facing)) === f1);
 await ctx.close();
 
@@ -177,8 +177,8 @@ await page.screenshot({ path: OUT + 'dark-settings.png', fullPage: false });
 await page.check('.choosing-modes input[value="tap"]');
 const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).choosingMode);
 check('choosing Tap is stored with a stamp', stored.mode === 'tap' && stored.updatedAt > 1, JSON.stringify(stored));
-await page.goto(BASE); await page.waitForSelector('.flip-track');
-check('the wallets follow the setting', (await page.$eval('[data-wallet="projects"]', (t) => t.dataset.mode)) === 'tap');
+await page.goto(BASE); await page.waitForSelector('.cab'); await toQ2(page);
+check('the wallets follow the setting', (await page.$eval('[data-wallet="categories"]', (t) => t.dataset.mode)) === 'tap');
 check('and there is no hint line (nothing explains the mode on the screen)', !(await page.$('.flip-hint')));
 await ctx.close();
 
@@ -186,7 +186,7 @@ await ctx.close();
 ({ ctx, page } = await open('twice', 'light'));
 await page.setViewportSize({ width: 1280, height: 900 });
 await page.waitForTimeout(500);
-check('wide screen: wallets render', (await keysOf(page, 'projects')).length === 5);
+check('wide screen: the cabinet renders', (await fileKeys(page, 'projects')).length === 5);
 await page.screenshot({ path: OUT + 'light-wide.png' });
 await ctx.close();
 

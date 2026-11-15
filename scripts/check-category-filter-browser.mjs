@@ -10,6 +10,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -56,14 +57,7 @@ async function open(storage = {}, path = '') {
   return { ctx, page };
 }
 const flagKeys = (page) => page.$$eval('[data-wallet="tray-flags"] .sleeve', (els) => els.map((e) => e.dataset.key));
-async function chooseFolder(page, key) {
-  const sel = '[data-wallet="tray-folders"] .sleeve[data-key="' + key + '"] .icard';
-  await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
-  await page.waitForTimeout(300);
-  const b = await (await page.$(sel)).boundingBox();
-  await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
-  await page.waitForTimeout(300);
-}
+const chooseFolder = (page, key) => chooseFile(page, 'tray-folders', key); // projects are files in the filing cabinet (2026-11-15): open one, then tap it again
 async function chooseFlag(page, key) {
   const sel = '[data-wallet="tray-flags"] .sleeve[data-key="' + key + '"] .icard';
   await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
@@ -113,7 +107,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
 {
   const { ctx, page } = await open();
   await page.click('.rail [data-screen="projects"]'); // the project rows live on the Projects tab since #262
-  await page.click('.pj-card[data-project="pHome"]');
+  await chooseFile(page, 'projects-tab', 'pHome');
   await page.waitForSelector('.rm-project');
   await page.click('.rm-task-title[data-id="h2"]');
   await page.click('.sort-drawer [data-action="rm-details"]');
@@ -146,7 +140,7 @@ const kinds = ['kind:reminder', 'kind:build', 'kind:fix'];
   await toLabels(page);
   check('off: Home offers every category, no More card', (await flagKeys(page)).length === kinds.length + 6);
   await page.click('.rail [data-screen="projects"]'); // the project rows live on the Projects tab since #262
-  await page.click('.pj-card[data-project="pHome"]');
+  await chooseFile(page, 'projects-tab', 'pHome');
   await page.click('.rm-task-title[data-id="h1"]');
   await page.click('.sort-drawer [data-action="rm-details"]');
   await page.waitForSelector('.cw-detail');

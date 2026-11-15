@@ -12,6 +12,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -68,6 +69,7 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   // ---- Sort several (#265): five screens ----
   const next = async () => { await page.click('.sort-foot [data-action="bulk-next"]'); await page.waitForTimeout(250); };
   const card = async (wallet, key) => { // flip the carousel to a card and tap it (tap mode)
+    if (wallet === 'tray-folders') return chooseFile(page, wallet, key); // projects are files in the filing cabinet (2026-11-15): open one, then tap it again
     const sel = '[data-wallet="' + wallet + '"] .sleeve[data-key="' + key + '"] .icard';
     await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
     await page.waitForTimeout(300);
@@ -177,12 +179,7 @@ for (const [label, width] of [['phone', 420], ['wide', 1440]]) {
   await page.screenshot({ path: OUT + label + '-slip-long.png', fullPage: label === 'phone' });
   await page.click('[data-action="sort-next"]');
   await page.waitForSelector('[data-wallet="tray-folders"]');
-  const sel = '[data-wallet="tray-folders"] .sleeve[data-key="pSchool"] .icard';
-  await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
-  await page.waitForTimeout(300);
-  const box = await (await page.$(sel)).boundingBox();
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  await page.waitForTimeout(500);
+  await chooseFile(page, 'tray-folders', 'pSchool'); // projects are files in the filing cabinet (2026-11-15): open one, then tap it again
   await page.click('.sort-foot .file-btn');
   await page.click('.sort-picks [data-field="priority"][data-value="high"]');
   await page.click('.sort-foot .file-btn');

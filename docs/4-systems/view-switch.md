@@ -52,6 +52,6 @@ browser check: `scripts/check-view-switch-browser.mjs` (360, 390 and 1440 wide; 
 - `viewState` reads `st._ui.view`, set in `renderApp`; the view is never stored in `state.focus.filter`.
 - `inView` lives in `js/areas.js` (not `view-switch.js`) so `state.js` can use it without a circular import.
 - The view's list is closed by repainting; the project search hides rows in the DOM and is not kept over a repaint.
-- One project belongs to the Roadmap only (2026-11-13). Off the Roadmap, a project view is swapped for the last Everything-or-area choice (`focusdeck-wide-view`, `app/js/app.js` `loadWideView`), and the tape offers no One project. Before this, a Roadmap pick left Focus and Sort offering 2 of 26 folders. `scripts/check-roadmap-pick-browser.mjs` checks it.
+- One project belongs to the Roadmap only (2026-11-13). Off the Roadmap, a project view is swapped for the last Everything-or-area choice (`focusdeck-wide-view`, `app/js/app.js` `loadWideView`), and the tape offers no One project. Before this, a Roadmap pick left Focus and Sort offering 2 of 26 folders. `scripts/check-roadmap-pick-browser.mjs` checks it. The swap also saves the project as the Roadmap's last project (`focusdeck-last-project`), so a save from before the split still opens the Roadmap on it. Review and every other tab narrow by area only.
 
 See also [areas.md](./areas.md), [calm-board.md](./calm-board.md), [styling.md](./styling.md).
