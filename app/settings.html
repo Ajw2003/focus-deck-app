@@ -157,8 +157,32 @@
     <p class="muted small" style="margin-top:14px;">To put Focus Deck on your home screen or desktop, the install steps for each device are on <a href="../?about#install">the Focus Deck page</a>.</p>
     </div>
   </section>
+  <section class="set" id="data-copy-section">
+    <button type="button" class="set-head" aria-expanded="false" aria-controls="fold-data-copy"><span class="set-title">Save a copy of my data</span><span class="set-value"></span><span class="set-arrow" aria-hidden="true">&#8964;</span></button>
+    <div class="set-body" id="fold-data-copy">
+    <p class="muted small">Saves every project, task and setting from this device to one file. Your GitHub key and sync Gist ID are left out. Nothing here changes.</p>
+    <button type="button" class="btn" id="save-data-copy">Save a copy</button>
+    <p class="muted small" id="data-copy-status" role="status"></p>
+    </div>
+  </section>
   <div id="toast-root"></div>
 </div>
+<script type="module">
+  // Settings > Save a copy of my data: a JSON file of the stored state, with the sync Gist ID dropped
+  // (the GitHub key is stored apart from the state and never reaches it). See docs/4-systems/local-storage.md
+  import { state, serializeState } from './js/state.js';
+  document.getElementById('save-data-copy').addEventListener('click', () => {
+    const copy = JSON.parse(serializeState(state));
+    delete copy.gistId;
+    const name = 'focus-deck-copy-' + new Date().toISOString().slice(0, 10) + '.json';
+    const url = URL.createObjectURL(new Blob([JSON.stringify(copy, null, 1)], { type: 'application/json' }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: name });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    const tasks = (copy.projects || []).reduce((n, p) => n + (p.tasks || []).length, 0);
+    document.getElementById('data-copy-status').textContent = 'Saved ' + name + ': ' + (copy.projects || []).length + ' projects, ' + tasks + ' tasks.';
+  });
+</script>
 <script type="module">
   // Settings > Category choices (#133). See docs/4-systems/in-tray.md#category-choices
   import { state as st, onExternalStateChange as onChange } from './js/state.js';

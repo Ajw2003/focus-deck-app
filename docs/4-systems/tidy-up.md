@@ -47,6 +47,6 @@ issue. New actions: `tidy-step`, `tidy-skip`, `tidy-all`, `tidy-none`.
 
 ## Traps
 
-- `tidyGroups` is O(n^2) in open tasks for the "same" scan. GitHub's `updated_at` is not kept on tasks.
+- `tidyGroups` checks every pair of open tasks for the "same" scan, but each pair fills only a narrow band of the edit-distance table (`within` in `app/js/tidy.js`). The full table froze Organize for about 11 seconds with 800 open tasks; it now opens in under 0.2 s (2026-11-13). GitHub's `updated_at` is not kept on tasks.
 
 See also [review-tab.md](./review-tab.md), [view-switch.md](./view-switch.md), [github-sync.md](./github-sync.md).
