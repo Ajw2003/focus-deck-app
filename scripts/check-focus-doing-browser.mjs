@@ -63,7 +63,7 @@ for (const [tag, vp] of [['1440', { width: 1440, height: 900 }], ['390', { width
   await page.click('[data-screen="projects"]:visible');
   await chooseFile(page, 'projects-tab', 'p0');
   await page.waitForSelector('.rm-project');
-  await page.click('.rm-tab[data-status="doing"]'); // the Roadmap shows one status at a time
+  if (await page.locator('.rm-tab[data-status="doing"]').isVisible()) await page.click('.rm-tab[data-status="doing"]'); // a phone shows one status at a time; a computer shows all four (#284)
   check(await page.locator('.rm-col[data-status="doing"] .rm-task[data-task-id="n2"]').count() === 1, tag + ': Roadmap shows the task in In progress');
   await ctx.close();
 }
