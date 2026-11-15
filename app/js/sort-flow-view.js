@@ -39,6 +39,13 @@ export const why = (text) => text ? '<p class="step-why" role="status">' + esc(t
 export const dots = (step, total = LAST_STEP) => '<div class="dk-prog sort-dots" role="img" aria-label="Step ' + step + ' of ' + total + '">'
   + Array.from({ length: total }, (_, i) => '<i' + (i < step ? ' class="on"' : '') + '></i>').join('') + '</div>';
 
+// The pile behind the slip (#285): `total` is how many wait including the one shown; "After this one" lists the next titles (computer only, by CSS).
+export const pile = (total, inner) => '<div class="pile' + (total > 2 ? ' has-pile-2' : total === 2 ? ' has-pile-1' : '') + '">' + inner + '</div>';
+export const split = (main, titles) => '<div class="dk-split"><div class="split-main">' + main + '</div>'
+  + (titles.length ? '<aside class="after-this" aria-label="After this one"><h3>After this one</h3><ul>' + titles.slice(0, 4).map((t) => '<li>' + esc(t) + '</li>').join('') + '</ul>'
+    + (titles.length > 4 ? '<p>and ' + (titles.length - 4) + ' more</p>' : '') + '</aside>' : '') + '</div>';
+const moreBtn = (c) => c.edit ? '' : '<button type="button" class="slip-more dk-plain" data-action="sort-menu" aria-haspopup="dialog" aria-expanded="' + !!c.u.menu + '" aria-label="More: add notes, done already, later, delete">More</button>';
+
 // the slip: the thought (or task) in handwriting, the project it is going in, and the ⋯ drawer pull
 function slipHtml(c, full) {
   const { u, cur, isThought, project, text, allCards } = c;
@@ -48,7 +55,7 @@ function slipHtml(c, full) {
     + (!isThought && cur.task.issueNumber != null ? ' <span class="slip-issue">#' + cur.task.issueNumber + '</span>' : '');
   const flags = u.selected.map((token) => allCards.find((x) => x.token === token)).filter(Boolean)
     .map((x) => '<span class="slip-flag" title="' + esc(x.name) + '" style="--c:' + mutedChip(x.color) + '">' + esc(x.name) + '</span>').join('');
-  return '<div class="jot-slip' + (full ? '' : ' compact') + '">' + (c.edit ? '' : '<button type="button" class="slip-more dk-plain" data-action="sort-menu" aria-haspopup="dialog" aria-expanded="' + !!u.menu + '" aria-label="More: add notes, done already, later, delete">More</button>')
+  return '<div class="jot-slip' + (full ? '' : ' compact') + '">' + (full ? '' : moreBtn(c))
     + '<p class="slip-text"' + (editable ? ' contenteditable="true" spellcheck="false" data-slip-title' : '') + '>' + esc(text) + '</p>'
     + '<div class="slip-dest">' + dest + '</div>' + (flags ? '<div class="slip-flags">' + flags + '</div>' : '')
     + (full && isThought ? '<div class="slip-when">Thought · ' + relTime(cur.item.createdAt) + '</div>' : '')
@@ -216,10 +223,12 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
   const board = (inner, slip = true, q = '') => '<div class="dk-board sort-board"><div class="dk-paper sort-paper">' + (slip ? slipHtml(c, false) : '') + (q ? '<h2 class="sort-q">' + q + '</h2>' : '') + '<div class="sort-body">' + inner + '</div></div></div>';
 
   if (step === 0 && sub !== 'notes') {
-    return '<h2 class="tray-count sort-title">' + (n === 1 ? '1 to sort' : n + ' to sort') + '</h2>'
-      + '<div class="dk-board sort-board"><div class="dk-paper sort-paper">' + slipHtml(c, true)
-      + (many ? '<button type="button" class="dk-link sort-several" data-action="bulk-toggle">Sort several</button>' : '') + '</div></div>'
-      + foot([n > 1 ? '<button type="button" class="dk-skip" data-action="unsorted-skip">Not this one</button>' : '', stamp('Sort this one')]) + drawer; // Not this one: to the back of the queue, kept on this device
+    const row = (n > 1 ? '<button type="button" class="dk-plain" data-action="unsorted-skip">Not this one</button>' : '') // Not this one: to the back of the queue, kept on this device
+      + (many ? '<button type="button" class="dk-plain sort-several" data-action="bulk-toggle">Sort several</button>' : '') + moreBtn(c);
+    return split('<h2 class="tray-count sort-title">' + (n === 1 ? '1 to sort' : n + ' to sort') + '</h2>'
+      + '<div class="dk-board sort-board"><div class="dk-paper sort-paper">' + pile(n, slipHtml(c, true))
+      + '<div class="one-stamp">' + stamp('Sort this one') + '</div><div class="dk-plain-row">' + row + '</div></div></div>',
+    ordered.slice(1).map((x) => x.kind === 'thought' ? x.item.text : x.task.title)) + drawer;
   }
   const bar = edit ? '' : dots(Math.max(step, 1)) + stepList(Math.max(step, 1));
   if (sub === 'notes') {

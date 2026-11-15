@@ -94,9 +94,9 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   await pickArea('a1');
   check(await cards() === 'rev1,doing1,past1' && (await page.textContent('.sort-row2')).replace(/\s+/g, ' ') === 'Next 6Later 0', tag + 'Home shows only its nine', await page.textContent('.sort-row2'));
   await noScroll('area'); await shot('area');
-  // Focus: pick for me opens the first Now task
+  // Focus: opening it picks the first Now task
   await page.click('[data-screen="focus"]');
-  await page.click('[data-action="pick-for-me"]');
+  await page.waitForSelector('.focus-active'); // Focus opens on a task picked in the Pick for me order (#283)
   const picked = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).focus.taskId);
   check(picked === 'rev1', tag + 'pick for me opens a first Now task', picked);
   // the pick (#276): Organize -> Triage asks "Do this first?" about the top three, one at a time

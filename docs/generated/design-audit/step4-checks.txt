@@ -1,0 +1,13 @@
+14
+# pass 332
+# fail 0
+shoot-sort-264: 51 passed, 0 failed
+check-in-tray-browser: 58 passed, 0 failed
+check-review-tab-browser: all passed
+shoot-review-271: ALL PASSED (22)
+check-triage-browser: all passed
+check-sort-skip-browser: PASS after a reload the skipped slip stays at the back
+check-tidy-browser: all passed
+shoot-organize-266: 39 passed, 0 failed
+check-bulk-sort-browser: 56 passed, 0 failed
+shoot-many-265: 15 passed, 0 failed

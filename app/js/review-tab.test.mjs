@@ -36,15 +36,22 @@ test('view filtering narrows both lists', () => {
 test('markup: one task on the clipboard, two stamps, dots, the Done this week tag, escaping, empty state, badge', () => {
   const ui = { view: { mode: 'all' } };
   const h = renderReview(mk(), ui, now);
-  assert.ok(h.includes('Finished?') && h.includes('Beta review') && !h.includes('New review'), 'only the newest waiting task');
-  assert.ok(h.includes('✓ Looks good') && h.includes('✎ More work') && h.includes('data-action="review-done"') && h.includes('data-action="review-more"') && h.includes('data-action="review-list"'));
+  assert.ok(h.includes('Finished?') && h.includes('Beta review') && !h.includes('data-task-id="r2"'), 'only the newest waiting task');
+  assert.ok(h.includes('✓ Looks good') && h.includes('>More work<') && h.includes('data-action="review-done"') && h.includes('data-action="review-more"') && h.includes('data-action="review-list"'));
   assert.ok(h.includes('aria-label="Step 1 of 3"') && !h.includes('Done ✓'));
-  assert.ok(renderReview(mk(), { view: { mode: 'project', id: 'pa' } }, now).includes('Old &lt;review&gt;') === false, 'newest of Alpha is New review');
+  assert.ok(renderReview(mk(), { view: { mode: 'project', id: 'pa' } }, now).includes('data-task-id="r1"') === false, 'newest of Alpha is New review');
   const one = { projects: [{ id: 'p', name: 'Alpha', tasks: [{ id: 'x', title: 'Old <review>', status: 'review', issueNumber: 7, url: 'https://x/7' }] }] };
   const h1 = renderReview(one, ui, now);
   assert.ok(h1.includes('<a href="https://x/7"') && h1.includes('Old &lt;review&gt;') && h1.includes('Alpha'));
   const e = renderReview({ projects: [] }, ui, now);
   assert.ok(e.includes('All reviewed ✓') && !e.includes('review-done'));
+  assert.strictEqual((h.match(/file-btn/g) || []).length, 1, 'Looks good is the one stamp');
+  assert.ok(h.includes('has-pile-2') && h.includes('3 waiting') && h.includes('<li>New review</li>') && h.includes('<li>Old &lt;review&gt;</li>') && !h.includes('and 1 more'), 'pile of two, count, After this one');
+  const six = { projects: [{ id: 'p', name: 'A', tasks: Array.from({ length: 7 }, (_, i) => ({ id: 'x' + i, title: 'T' + i, status: 'review', updatedAt: i })) }] };
+  const h6 = renderReview(six, ui, now);
+  assert.ok((h6.match(/<li>/g) || []).length === 4 && h6.includes('and 2 more'), 'at most four titles, then and N more');
+  assert.ok(renderReview(one, ui, now).includes('has-pile') === false && !renderReview(one, ui, now).includes('After this one'), 'one waiting: no pile, no column');
+  assert.ok(renderReview({ projects: [{ id: 'p', name: 'A', tasks: [one.projects[0].tasks[0], { id: 'y', title: 'Y', status: 'review', updatedAt: 9 }] }] }, ui, now).includes('has-pile-1'), 'two in total: one edge');
   const l = renderReview(mk(), { view: { mode: 'all' }, rvList: true }, now);
   assert.ok(l.includes('Done this week') && l.includes('rv-struck') && l.includes('↶ Undo') && l.includes('data-kind="list"') && l.includes('review-back') && !l.includes('review-done'));
   assert.ok(renderRail('review', 0, 3).includes('aria-label="3 to review"'));

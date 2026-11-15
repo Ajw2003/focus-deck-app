@@ -82,8 +82,8 @@ async function shot(id) {
 }
 
 // v1: Finished? with the newest task, the dots, the two stamps, the Done this week tag
-check('v1: the newest waiting task on the clipboard', (await title()) === 'Pick one for me' && (await text('.sort-q')) === 'Finished?');
-check('v1: three dots, two stamps, the Done this week tag', (await page.$$('.sort-dots i')).length === 3 && (await text('.rv-stamps')) === '✓ Looks good✎ More work' && (await text('.rv-tag')) === 'Done this week');
+check('v1: the newest waiting task on the clipboard', (await title()) === 'Pick one for me' && (await text('.sort-q')).startsWith('Finished?'));
+check('v1: three dots, two stamps, the Done this week tag', (await page.$$('.sort-dots i')).length === 3 && (await text('.rv-stamps')) === '✓ Looks good' && (await text('.rv-more')) === 'More work' && (await text('.rv-tag')) === 'Done this week');
 await shot('v1');
 // Looks good, then its slip (v2) and Undo
 await click('[data-action="review-done"]');
@@ -106,7 +106,7 @@ await shot('v3');
 await click('.rv-done:has(.rv-struck:text("Bins out")) .dk-link');
 check('v3: Undo flag restores Bins out to Doing and it leaves the list', (await status('d1')) === 'doing' && (await page.$$eval('.rv-struck', (e) => e.map((x) => x.textContent).join())) === 'Gas bill');
 await click('[data-action="review-back"]');
-check('v3: Back is the clipboard again', (await text('.sort-q')) === 'Finished?');
+check('v3: Back is the clipboard again', (await text('.sort-q')).startsWith('Finished?'));
 // All reviewed
 for (let i = 0; i < 3; i++) await click('[data-action="review-done"]');
 check('empty: All reviewed ✓', (await text('.rv-none')) === 'All reviewed ✓' && !(await page.$('.rv-stamps')));

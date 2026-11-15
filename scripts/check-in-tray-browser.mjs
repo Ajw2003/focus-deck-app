@@ -83,7 +83,7 @@ async function choose(page, wallet, key, mode) {
   await page.waitForTimeout(150);
 }
 
-const stamp = (page) => page.$eval('.sort-foot .file-btn', (b) => ({ text: b.textContent.trim(), disabled: b.disabled }));
+const stamp = (page) => page.$eval('.sort-foot .file-btn, .one-stamp .file-btn', (b) => ({ text: b.textContent.trim(), disabled: b.disabled }));
 const skipTo = async (page, n) => { for (let i = 0; i < n; i++) { await page.click('.sort-foot .dk-skip'); await page.waitForTimeout(120); } };
 
 for (const [mode, scheme] of [['tap', 'dark'], ['twice', 'light']]) {

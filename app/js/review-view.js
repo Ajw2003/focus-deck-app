@@ -7,7 +7,7 @@ import { esc, findTaskWithProject } from './state.js';
 import { reviewLists } from './board.js';
 import { renderTaskDetails } from './task-details.js';
 import { board } from './tidy-view.js';
-import { stamp, foot, dots } from './sort-flow-view.js';
+import { stamp, foot, dots, pile, split } from './sort-flow-view.js';
 
 const act = (action, id) => ' data-action="' + action + '" data-task="' + esc(id) + '"';
 
@@ -37,9 +37,11 @@ export function renderReview(st, ui, now = Date.now()) {
       + foot(['<button type="button" class="dk-back" data-action="review-back">‹ Back</button>']) + '</div>' + details;
   }
   const t = waiting[0], n = ui.rvDone || 0, total = n + waiting.length;
+  const doneTag = '<button type="button" class="dk-plain rv-tag" data-action="review-list">Done this week</button>';
   const body = t
-    ? card(t, owner.get(t.id)) + '<div class="dk-stamps rv-stamps">' + stamp('✓ Looks good', { action: 'review-done', attrs: ' data-task="' + esc(t.id) + '"', cls: ' rv-ok' }) + stamp('✎ More work', { action: 'review-more', attrs: ' data-task="' + esc(t.id) + '"', cls: ' rv-more' }) + '</div>'
-    : '<p class="rv-none">All reviewed ✓</p>';
-  return '<div class="org">' + board(t ? 'Finished?' : 'Review', body + slip(ui))
-    + foot([total ? dots(Math.min(n + 1, total), total) : '', '<button type="button" class="dk-tag rv-tag" data-action="review-list">Done this week</button>']) + '</div>' + details;
+    ? pile(waiting.length, card(t, owner.get(t.id))) + '<div class="one-stamp rv-stamps">' + stamp('✓ Looks good', { action: 'review-done', attrs: ' data-task="' + esc(t.id) + '"', cls: ' rv-ok' }) + '</div>'
+      + '<div class="dk-plain-row"><button type="button" class="dk-plain rv-more" data-action="review-more" data-task="' + esc(t.id) + '">More work</button>' + doneTag + '</div>'
+    : '<p class="rv-none">All reviewed ✓</p><div class="dk-plain-row">' + doneTag + '</div>';
+  return '<div class="org">' + split(board(t ? 'Finished?' : 'Review', body + slip(ui), t ? ' <small class="rv-count">' + waiting.length + ' waiting</small>' : ''), waiting.slice(1).map((x) => x.title))
+    + (total ? foot([dots(Math.min(n + 1, total), total)]) : '') + '</div>' + details;
 }
