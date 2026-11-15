@@ -14,6 +14,14 @@ The app is served from `/focus-deck-app/app/`; the site root is kept for a landi
   `icons/` (generated at deploy time by `generate_icons.py`, gitignored; run it locally before a
   browser check), and `icon.svg`, the app's mark (an oak drawer of files, 2026-11-15) used as the favicon and the
   top-bar mark. `generate_icons.py` draws the same shapes into the PNG icons, so a change to one goes in both.
+  The PNGs are named after the drawing (`drawer-192.png`, `drawer-512.png`, `drawer-maskable-512.png`, 2026-11-15):
+  a phone or desktop that installed the app only redraws its icon when it sees the manifest's icon URLs change, and
+  the compass icons kept the same URLs, so installs kept the compass. A new drawing gets new file names.
+- Update on return (`app/index.html`): an installed app left open on a phone never reloads, so it kept running
+  old code after a deploy. On `visibilitychange` to visible the page calls `registration.update()`; when the new
+  worker takes over (`controllerchange`, from its `skipWaiting` + `clients.claim`) the page reloads once. The first
+  install also fires `controllerchange`, so the reload only happens when a worker already controlled the page.
+  Checked in Chromium: no reload without a new worker, exactly one reload with one, none after.
 - Root — `manifest.webmanifest`, `index.html` + `forward.js` (the root page), and `service-worker.js`
   (the retirement worker).
 - The manifest sits at the root with `"id": "./"`, `"start_url": "app/"`, `"scope": "./"`. An existing
