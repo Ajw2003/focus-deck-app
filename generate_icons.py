@@ -54,3 +54,12 @@ def make_icon(path, size, maskable=False):
 make_icon('app/icons/icon-192.png', 192)
 make_icon('app/icons/icon-512.png', 512)
 make_icon('app/icons/icon-maskable-512.png', 512, maskable=True)
+
+# self-check: each icon has its size, a maskable one is oak to the corner (the phone's mask needs no transparent edge),
+# and the plain ones keep their rounded corners transparent
+for path, size in (('app/icons/icon-192.png', 192), ('app/icons/icon-512.png', 512), ('app/icons/icon-maskable-512.png', 512)):
+    with Image.open(path) as im:
+        assert im.size == (size, size), (path, im.size)
+        corner = im.convert('RGBA').getpixel((0, 0))
+        assert (corner[3] == 255) == ('maskable' in path), (path, corner)
+print('icons made and checked')
