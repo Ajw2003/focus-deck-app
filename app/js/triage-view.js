@@ -33,7 +33,8 @@ export function renderTriage(st, ui, today = dueDates().today) {
     return '<div class="org">' + board('Later', find + '<div class="org-list">' + (rows.map(card).join('') || none) + '</div>') + foot([back(), move('later')]) + '</div>';
   }
   const slip = (ui.tidyClosed || []).length ? '<div class="org-slip" role="status"><span>Closed ' + ui.tidyClosed.length + ' ✓</span><button type="button" class="dk-link" data-action="tidy-undo">Undo</button></div>' : '';
-  const body = '<div class="org-list">' + (l.now.map(card).join('') || none) + '</div>'
+  const guide = l.now.length ? '<p class="tr-guide">The three to work on next. Anything waiting for review or already in progress comes first, then overdue, then by priority and due date. Tap one to check its details. <b>Move</b> changes the order; <b>Next</b> and <b>Later</b> hold the rest.</p>' : '';
+  const body = guide + '<div class="org-list">' + (l.now.map(card).join('') || none) + '</div>'
     + '<div class="sort-row2">' + toBtn('triage-go', 'next', 'Next ' + l.next.length, l.next.length ? '' : ' disabled') + toBtn('triage-later', 'later', 'Later ' + l.later.length, l.later.length ? '' : ' disabled') + '</div>' + slip;
   return '<div class="org">' + board('Do these first', body) + foot([move('top')]) + '</div>';
 }

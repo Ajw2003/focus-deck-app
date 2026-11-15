@@ -1721,3 +1721,9 @@ a.dk-choice{text-decoration:none;}
 .sort-body > .jot-slip{flex-shrink:0; max-height:min(46vh, 300px); background-attachment:local;}
 /* Tidy up titles open Task details but read as handwriting, not as links. */
 .org-title{text-decoration:none; color:var(--dk-ink);}
+/* Task details: every receipt line names what it is, not only an emoji; Triage and Task details say what to do. */
+.td-panel .sort-receipt>div{display:flex; align-items:center; gap:10px; padding:6px 10px;}
+.td-what{flex:1; min-width:0; display:flex; flex-direction:column;}
+.td-label{font:700 12px var(--font-ui); letter-spacing:.05em; text-transform:uppercase; color:#5A6378;}
+.td-panel .sort-receipt em{white-space:normal; overflow-wrap:anywhere; color:var(--dk-ink);}
+.td-guide, .tr-guide{margin:2px 2px 6px; font:15px/1.35 var(--font-ui); color:#3A4354;}

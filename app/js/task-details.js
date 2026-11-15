@@ -82,7 +82,7 @@ export function renderTaskDetails(st, ui, id, now = Date.now()) {
     ['📏', 'Size', t.size ? t.size.charAt(0).toUpperCase() + t.size.slice(1) : NONE, 'detail-size-open', ''],
     ['🐙', 'GitHub issue', t.source === 'github' && t.issueNumber != null ? '#' + t.issueNumber : NONE, 'detail-github', ''],
   ];
-  const receipt = '<div class="dk-summary sort-receipt">' + lines.map(([icon, label, val, action, step]) => '<div><span aria-hidden="true">' + icon + '</span><b class="sr-only">' + label + ': </b><em>' + (typeof val === 'object' ? val.html : esc(val)) + '</em>'
+  const receipt = '<div class="dk-summary sort-receipt">' + lines.map(([icon, label, val, action, step]) => '<div><span aria-hidden="true">' + icon + '</span><div class="td-what"><b class="td-label">' + label + '</b><em>' + (typeof val === 'object' ? val.html : esc(val)) + '</em></div>'
     + '<button type="button" class="dk-pencil" data-action="' + action + '"' + (step ? ' data-step="' + step + '"' : '') + ' aria-label="Change ' + label.toLowerCase() + '">✎</button></div>').join('') + '</div>';
   const cur = STATUSES.find((s) => s[0] === t.status) || STATUSES[0];
   const stampRow = '<div class="td-stamp-row">' + stampBtn(cur[1], cur[2], true, 'detail-status-open', ' aria-label="Status: ' + cur[1] + '. Change it"') + '<span class="folder-chip" style="--c:' + esc(x.p.color) + '">' + esc(x.p.name) + '</span></div>';
@@ -92,6 +92,8 @@ export function renderTaskDetails(st, ui, id, now = Date.now()) {
       ? drawer(t.title, choice('✏️ Rename', { action: 'detail-rename' }) + choice('📁 Move to another project', { action: 'detail-edit', attrs: ' data-step="1"' })
         + choice('🧩 Part of…', { action: 'detail-edit', attrs: ' data-step="5"' }) + choice('🚧 Holds up…', { action: 'detail-edit', attrs: ' data-step="8"' }) + choice('Delete', { action: 'detail-delete', cls: ' danger' }), 'detail-more')
       : '';
-  return panel(board(t.title, stampRow + receipt, '<button type="button" class="td-x" data-action="detail-close" aria-label="Close task details">×</button>')
+  // opened from Triage: say what this screen is for and how to get back (Eden found it confusing to land here)
+  const guide = ui.screen === 'triage' ? '<p class="td-guide">Check what matters for this task: its priority, due date and what it waits on. Tap ✎ to change one, then × to go back to your list.</p>' : '';
+  return panel(board(t.title, stampRow + guide + receipt, '<button type="button" class="td-x" data-action="detail-close" aria-label="Close task details">×</button>')
     + foot([stamp('⋯', { action: 'detail-more', attrs: ' aria-label="More about this task"', cls: ' td-more' }), stamp('◎ Focus', { action: 'detail-focus' })]) + drawers);
 }
