@@ -5,6 +5,7 @@
 // used (M.fileInboxItem, M.updateTaskFields). Tested in in-tray.test.mjs.
 // See docs/4-systems/in-tray.md
 import { TASK_KINDS, formatLabelName } from './state.js';
+import { areaIdOf } from './areas.js';
 import { splitCategories } from './category-filter.js';
 import { canSetParent, canWaitOn, subtasksOf, holdsUp } from './task-links.js';
 
@@ -68,7 +69,7 @@ export function flagCards(st, project, { selected = [], showAll = false } = {}) 
 // The folders on offer for a thought: busiest (most open tasks) first, then by name.
 export function folderCards(st) {
   const open = (p) => p.tasks.filter((t) => t.status !== 'done').length;
-  return st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, open: open(p) }))
+  return st.projects.map((p) => ({ id: p.id, name: p.name, color: p.color, open: open(p), areaId: areaIdOf(st, p) }))
     .sort((a, b) => b.open - a.open || a.name.localeCompare(b.name));
 }
 

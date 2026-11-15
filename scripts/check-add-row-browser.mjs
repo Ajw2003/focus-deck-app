@@ -11,6 +11,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize, resolve } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -135,9 +136,9 @@ for (const size of ['phone', 'desktop']) {
 
     // The Roadmap (#259): choose School from the Projects tab and add a task to it
     await page.click('.rail [data-screen="projects"]'); // the project list is the Projects tab (#267); a project opens on the Roadmap
-    await page.waitForSelector('.pj-card');
+    await page.waitForSelector(cab('projects-tab'));
     check(`${tag} the Projects list has no add row`, !(await page.$('.pj .add-row')));
-    await page.click('.pj-card[data-project="pSchool"]');
+    await chooseFile(page, 'projects-tab', 'pSchool');
     await page.click(NEWTASK);
     await page.waitForSelector(FIELD);
     await page.click(FIELD);

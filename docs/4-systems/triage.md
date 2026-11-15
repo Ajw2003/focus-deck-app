@@ -1,5 +1,8 @@
 # Triage (#256)
 
+> **2026-11-15:** a `.tr-guide` line under the title says what the three are, what comes first, and what Move, Next and
+> Later do, so the screen explains itself on arrival.
+
 ## What it owns
 
 `js/triage.js` (pure: `triageLists`, `triageOrder`, `moveId`, `NOW_SIZE`, `NEXT_SIZE`), `js/triage-view.js` (markup), `js/triage-drag.js`

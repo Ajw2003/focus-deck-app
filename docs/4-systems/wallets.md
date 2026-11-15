@@ -2,6 +2,44 @@
 
 > **2026-11-12 (#270):** Focus is now two screens (project, then kind of work) and one task; see [focus.md](./focus.md). The cards no longer carry the "N open" line or the "Tap to use" corner text anywhere (Sort and Sort several share them), and the hint line under the carousels is gone. Where this file describes those it is history.
 
+> **2026-11-15:** projects are no longer a wallet anywhere. Focus ("Which project?"), Sort and Sort several
+> ("Which project?", `tray-folders`) and the Projects tab list (`projects-tab`) use the filing cabinet below.
+> The flip wallet is left only for kinds of work (Focus step 2, Sort's labels). Where this file describes a
+> project wallet or strip it is history.
+
+## The filing cabinet
+
+`js/cabinet.js`, styled by the "Filing cabinet" block at the end of `css/app.css`. The approved design is
+`docs/generated/filing-cabinet.html`.
+
+- **Drawers.** Each area is an oak drawer and the cabinet swipes sideways a whole drawer at a time. Everything
+  comes first, then the areas in `areaList` order; an area with no projects has no drawer. The labels under
+  the cabinet (`.cab-label`, a tablist) jump to a drawer. The row snaps one drawer at a time and has no
+  animation of its own; a scroll that settles (80 ms) only updates which label is lit, and tapping the label
+  of the drawer already showing does nothing (the old version reloaded it). The files inside do not snap and
+  nothing re-centres them. The drawer open last is remembered for the visit (`rememberedDrawer`), so a repaint reopens it.
+- **Files.** Every project is a file with its tab on the left, A to Z (the Projects tab passes
+  `sort: () => 0` to keep its own Sort by order). Everything also carries the lead file, All projects, on
+  Focus. A file may show `detail` ("12 to do", "3 open", "chosen") and `pct`, which draws a progress meter
+  (Projects tab only): the old Projects ruler, 14px of paper with tick marks filled in the project's colour,
+  with the percent beside it. It sits at the top of the face, the strip of every file that stays in sight
+  below its tab, so every project's progress shows without opening it (asked for by Eden, 2026-11-14).
+- **Flicking.** Scrolling a drawer tips the files you pass back and leans the ones ahead (`flick`, transform
+  and a `--shade` only, once per frame). It never moves the scroll, so it cannot fight a finger.
+- **Choosing.** A tap opens a file (`.is-centre`, in every drawer it hangs in) and calls `onFacing`; a tap on
+  the open file calls `onChoose`. Keys: Up and Down open the next file, Left and Right change drawer, Enter
+  chooses, and typing a name opens the first file it starts (or appears in) within 700 ms of key presses,
+  as the old strip did. The hooks are the wallets' (`walletHooks` in `js/app.js`): `projects` moves Focus to the kind of
+  work, `tray-folders` puts the project on the slip or takes it off (`.is-picked`), and `projects-tab` opens
+  that project's Roadmap. `facingKey` reads the open file as well as a facing sleeve.
+- **Phones** (max-width 480px) drop the cabinet's outer frame. A resize only re-aligns the row when the width changed, because a phone's address bar fires resize
+  as the page scrolls. The drawer is `clamp(180px, 100dvh - 580px, 400px)` tall. Sort's is shorter and has no
+  front (`clamp(120px, 100dvh - 678px, 400px)`, and 100px to 744px less with Sort several's priority flags under
+  it) so every screen fits 390x844 without scrolling, as `scripts/shoot-sort-264.mjs` and `shoot-many-265.mjs`
+  check. All text in the cabinet is 13px or more. Wide screens (min-width 1100px) lay every drawer out side by side and hide the labels.
+- Decisions are `cabinetDrawers` and `startDrawer`, tested in `js/cabinet.test.mjs`. The browser check is
+  `scripts/check-cabinet-browser.mjs`; run it with `FOCUS_DATA=<a saved copy .json>` to use real data.
+
 ## The wide-screen strip (#253)
 
 On a wide screen (>= 1100px, `SPREAD_QUERY`) the project and kind-of-work wallets on Focus and Sort's

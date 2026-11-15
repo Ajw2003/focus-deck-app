@@ -8,6 +8,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -62,7 +63,9 @@ const task = async (id) => (await saved()).projects.flatMap((p) => p.tasks).find
 const click = async (sel) => { await page.click(sel); await page.waitForTimeout(250); };
 const text = async (sel) => ((await page.textContent(sel)) || '').replace(/\s+/g, ' ').trim();
 const title = () => page.$eval('.focus-title', (e) => e.textContent.trim()).catch(() => '');
-const cards = (wallet) => page.$$eval('[data-wallet="' + wallet + '"] .sleeve', (e) => e.map((x) => x.textContent.trim()).join('|'));
+const cards = (wallet) => wallet === 'projects' // projects are files in the filing cabinet (2026-11-15)
+  ? page.$$eval(everyFile('projects') + ' .cab-tab b', (e) => e.map((x) => x.textContent.trim()).join('|'))
+  : page.$$eval('[data-wallet="' + wallet + '"] .sleeve', (e) => e.map((x) => x.textContent.trim()).join('|'));
 // measure the screen: no vertical scroll of the page, no sideways scroll, no visible text under 13px
 async function shot(id) {
   await page.waitForTimeout(250);

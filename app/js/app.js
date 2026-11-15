@@ -16,6 +16,7 @@ import { dueMoment } from './due-stage.js';
 import { startComplete, phaseClasses } from './focus-complete.js';
 import { renderFocus, renderProjectWalletInner, renderCategoryWalletInner } from './focus-view.js';
 import { mountWallets, onSpreadChange } from './wallet.js';
+import { mountCabinets } from './cabinet.js';
 import { tiesOf } from './task-links.js';
 import { renderInTrayCard, unsortedCurrent } from './in-tray-view.js';
 import { navigate, shiftMonth, warnPlan } from './sort-flow.js';
@@ -78,6 +79,17 @@ function freshBulk(on) {
   return { on: !!on, step: 1, sub: null, fromReceipt: false, find: '', facingFolder: null, facingFlag: null, showAllFlags: false, priority: null, due: '', dateOpen: false, picked: [], projectId: null, selected: [], groupTitle: '', newLabel: '', why: '' };
 }
 
+// Not this one / Later on Sort: the order is kept on this device, so a skipped thought stays at the back after a reload.
+const SORT_LATER_KEY = 'focusdeck-sort-later';
+function loadSortLater() {
+  try { const v = JSON.parse(localStorage.getItem(SORT_LATER_KEY)); return Array.isArray(v) ? v.filter((k) => typeof k === 'string') : []; }
+  catch (e) { console.error('Could not read the Sort later list:', e); return []; }
+}
+function skipSort(key) {
+  ui.unsorted.later = sendToBack(ui.unsorted.later, key);
+  try { localStorage.setItem(SORT_LATER_KEY, JSON.stringify(ui.unsorted.later.slice(-500))); }
+  catch (e) { console.error('Could not save the Sort later list:', e); }
+}
 function freshUnsortedScratch(later) {
   return { later: later || [], priority: null, due: '', dateOpen: false, projectId: null, selected: [], step: 0, sub: null, menu: false, month: null, letter: null, dueStages: null, fromReceipt: false, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null,
     parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '', why: '' };
@@ -133,7 +145,15 @@ function setView(view) {
   try {
     localStorage.setItem(VIEW_KEY, JSON.stringify(ui.view));
     if (ui.view.mode === 'project') localStorage.setItem(LAST_PROJECT_KEY, ui.view.id);
+    else localStorage.setItem(WIDE_VIEW_KEY, JSON.stringify(ui.view));
   } catch (e) { console.error('Could not save the view switch:', e); }
+}
+// A project picked on the Roadmap stays the Roadmap's: every other tab shows Everything or an area,
+// the last one picked there. A single project here hid all but one folder on Focus and Sort.
+const WIDE_VIEW_KEY = 'focusdeck-wide-view';
+function loadWideView() {
+  try { return JSON.parse(localStorage.getItem(WIDE_VIEW_KEY)) || VIEW_ALL; }
+  catch (e) { console.error('Could not read the view switch:', e); return VIEW_ALL; }
 }
 // The Roadmap tab shows one project: the one picked last, else the first (#262).
 const LAST_PROJECT_KEY = 'focusdeck-last-project';
@@ -157,7 +177,7 @@ export const ui = {
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectQuery: '', taskQuery: '', projectSort: loadProjectSort(), // the Roadmap's Find boxes and project order
-  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, addDraft: {}, addPick: {}, unsorted: freshUnsortedScratch(), bulk: freshBulk(false),
+  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, addDraft: {}, addPick: {}, unsorted: freshUnsortedScratch(loadSortLater()), bulk: freshBulk(false),
  
   // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
   // (Q30c) -- neither persisted, both reset to closed on load.
@@ -218,6 +238,10 @@ const walletHooks = {
       paint();
       return true;
     }
+    if (name === 'projects-tab') { // the Projects tab: choosing a file opens that project's Roadmap
+      setScreen('roadmap'); setView({ mode: 'project', id: key }); paint(); window.scrollTo(0, 0);
+      return true;
+    }
     // Focus: choosing a project card is Next; choosing a kind card is Show me one
     if (name === 'projects') {
       ui.focusFilter.projectId = key === R.ALL_PROJECTS_KEY ? null : key;
@@ -235,7 +259,7 @@ const walletHooks = {
 // Returns false, with a notice, when no open task matches.
 // The card in the middle of a Focus carousel: a card nobody flipped to (the first one after Find narrowed the row) never
 // reached the facing hook, so Next and Show me one read it off the page.
-const facingKey = (wallet) => { const c = document.querySelector('[data-wallet="' + wallet + '"] .sleeve.is-centre'); return c ? c.getAttribute('data-key') : undefined; };
+const facingKey = (wallet) => { const c = document.querySelector('[data-wallet="' + wallet + '"] .sleeve.is-centre, [data-wallet="' + wallet + '"] .cab-file.is-centre'); return c ? c.getAttribute('data-key') : undefined; };
 function showFocus(key) {
   const categoryId = key && key !== R.ANY_CATEGORY_KEY ? key : null;
   if (M.pickFocus({ categoryId, projectId: R.focusProjectId(state, ui) })) { ui.focusQ = 1; ui.focusDone = null; return true; }
@@ -270,8 +294,12 @@ export function renderApp(st) {
   }
   ui.view = normalizeView(ui.view, st); // a gone area or project is All
   if (ui.screen === 'roadmap' && ui.view.mode !== 'project' && lastProjectId()) setView({ mode: 'project', id: lastProjectId() }); // the Roadmap is one project
+  if (ui.screen !== 'roadmap' && ui.view.mode === 'project') { // the project goes back to the Roadmap; this tab gets the wide view
+    try { localStorage.setItem(LAST_PROJECT_KEY, ui.view.id); } catch (e) { console.error('Could not save the last project:', e); } // a save from before the split has no last project
+    ui.view = normalizeView(loadWideView(), st);
+  }
   st._ui = ui;
-  const sw = renderViewSwitch(st, ui.view, ui.viewOpen);
+  const sw = renderViewSwitch(st, ui.view, ui.viewOpen, ui.screen === 'roadmap');
   const hasToken = !!getToken();
   // one activity at a time (#135): the rail, then only the chosen screen
   const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, reviewLists(st, null, Date.now()).waiting.length);
@@ -456,6 +484,7 @@ export function paint() {
   document.getElementById('app').innerHTML = renderApp(state);
   paintHeaderControls();
   mountWallets(document.getElementById('app'), walletHooks);
+  mountCabinets(document.getElementById('app'), walletHooks);
   growAll();
   window.scrollTo(0, scrollY);
   if (addPid) focusAddTitle(addPid, addCaret);
@@ -771,7 +800,7 @@ function onAppClick(e) {
       ui.noticeAction = project && taskId ? { text: ui.notice, label: 'Open', action: 'open-added-task', attrs: { 'data-task': taskId, 'data-project': project.id } } : null;
       paint();
     } else if (done.outcome === 'later') {
-      ui.unsorted.later = sendToBack(ui.unsorted.later, cur.key);
+      skipSort(cur.key);
       paint();
     }
   }
@@ -779,7 +808,7 @@ function onAppClick(e) {
   else if (action.startsWith('bulk-')) onBulkAction(action, el);
   else if (action === 'unsorted-skip') {
     const cur = unsortedCurrent(state, ui.unsorted);
-    if (cur) ui.unsorted.later = sendToBack(ui.unsorted.later, cur.key);
+    if (cur) skipSort(cur.key);
     paint();
   }
   else if (action === 'unsorted-complete') {
@@ -1156,7 +1185,7 @@ function onAppInput(e) {
     const kinds = e.target.getAttribute('data-car-find') === 'kinds';
     if (kinds) ui.focusKindFind = e.target.value; else ui.focusFind = e.target.value;
     const slot = document.getElementById(kinds ? 'category-wallet' : 'project-wallet');
-    if (slot) { slot.innerHTML = (kinds ? renderCategoryWalletInner : renderProjectWalletInner)(viewState(state), ui); mountWallets(slot, walletHooks); }
+    if (slot) { slot.innerHTML = (kinds ? renderCategoryWalletInner : renderProjectWalletInner)(viewState(state), ui); mountWallets(slot, walletHooks); mountCabinets(slot, walletHooks); }
     return;
   }
   if (e.target.matches && e.target.matches('[data-triage-find]')) {

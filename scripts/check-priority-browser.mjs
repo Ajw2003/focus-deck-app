@@ -9,6 +9,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize, resolve } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -110,12 +111,7 @@ for (const size of ['phone', 'desktop']) {
   await page.waitForTimeout(300);
   await page.click('[data-action="sort-next"]');
   await page.waitForSelector('[data-wallet="tray-folders"]');
-  const sel = '[data-wallet="tray-folders"] .sleeve[data-key="pSchool"] .icard';
-  await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
-  await page.waitForTimeout(400);
-  const box = await (await page.$(sel)).boundingBox();
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  await page.waitForTimeout(400);
+  await chooseFile(page, 'tray-folders', 'pSchool'); // projects are files in the filing cabinet (2026-11-15): open one, then tap it again
   await page.click('.sort-foot .file-btn');
   check(`${tag} the priority step is a page of flags and Next waits for a priority`, (await page.textContent('.sort-q')) === 'How important?' && (await page.$$('.sort-flags .sort-flag')).length === 4 && (await page.$eval('.sort-foot .file-btn', (b) => b.disabled)) && !(await page.$('.step-why')));
   await page.screenshot({ path: OUT + `${size}-sort-needs-priority.png` });
@@ -156,12 +152,7 @@ for (const size of ['phone', 'desktop']) {
   await page.click('[data-action="bulk-toggle"]');
   await page.click('[data-action="bulk-all"]');
   await page.click('.sort-foot [data-action="bulk-next"]');
-  const bsel = '[data-wallet="tray-folders"] .sleeve[data-key="pSchool"] .icard';
-  await page.$eval(bsel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' }));
-  await page.waitForTimeout(400);
-  const bbox = await (await page.$(bsel)).boundingBox();
-  await page.mouse.click(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
-  await page.waitForTimeout(400);
+  await chooseFile(page, 'tray-folders', 'pSchool');
   check(`${tag} bulk: Next is off with no priority`, await page.$eval('.sort-foot [data-action="bulk-next"]', (b) => b.disabled));
   await page.screenshot({ path: OUT + `${size}-bulk-needs-priority.png`, fullPage: size === 'phone' });
   await page.click('[data-scope="bulk"][data-field="priority"][data-value="high"]');

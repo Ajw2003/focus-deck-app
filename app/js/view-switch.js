@@ -58,7 +58,8 @@ function list(st, view) {
 
 // The view tape (#262): one label-maker strip naming the view in caps, with a drawer (a bottom sheet) of index cards.
 // open: false, 'menu' (Everything / One area / One project) or 'area' / 'project' (that list, with a back corner).
-export function renderViewSwitch(st, view, open) {
+// `withProject` offers One project (the Roadmap only; every other tab is Everything or one area).
+export function renderViewSwitch(st, view, open, withProject = true) {
   const name = view.mode === 'all' ? 'Everything' : viewLabel(st, view);
   const tape = '<button type="button" class="vs-tape dk-tape" data-action="view-open" aria-haspopup="dialog" aria-expanded="' + !!open + '" title="' + esc(name) + '"><span class="vs-pick-name">' + esc(name) + '</span> <span aria-hidden="true">▾</span></button>';
   const card = (action, extra, label, on) => '<button type="button" class="dk-choice' + (on ? ' on' : '') + '" data-action="' + action + '" ' + extra + ' aria-pressed="' + !!on + '">' + label + '</button>';
@@ -66,7 +67,7 @@ export function renderViewSwitch(st, view, open) {
   const title = sub ? (open === 'area' ? 'One area' : 'One project') : 'Show';
   const body = sub
     ? '<button type="button" class="dk-back" data-action="view-step" data-step="menu">‹ Back</button>' + list(st, view.mode === open ? view : { mode: open, id: null })
-    : card('view-pick', 'data-mode="all" data-id=""', 'Everything', view.mode === 'all') + card('view-step', 'data-step="area"', 'One area ›', view.mode === 'area') + card('view-step', 'data-step="project"', 'One project ›', view.mode === 'project');
+    : card('view-pick', 'data-mode="all" data-id=""', 'Everything', view.mode === 'all') + card('view-step', 'data-step="area"', 'One area ›', view.mode === 'area') + (withProject ? card('view-step', 'data-step="project"', 'One project ›', view.mode === 'project') : '');
   const pop = open
     ? '<div class="vs-backdrop" data-action="view-close"></div><div class="vs-pop dk-sheet" role="dialog" aria-modal="true" aria-label="' + title + '" tabindex="-1">'
       + '<div class="vs-pop-head"><b>' + title + '</b><button type="button" class="vs-x" data-action="view-close" aria-label="Close">×</button></div>'

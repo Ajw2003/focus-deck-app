@@ -2,74 +2,64 @@ import os
 from PIL import Image, ImageDraw
 
 def make_icon(path, size, maskable=False):
-    """Generate a compass rose icon with white lines on accent blue background."""
-    img = Image.new('RGB', (size, size), '#3D5A80')
+    """Draw app/icon.svg (an oak drawer of paper files with a brass handle) as a PNG. The shapes are the SVG's,
+    on its 64-unit grid, drawn 8x large and scaled down so the edges are smooth. A maskable icon fills the square
+    with oak and keeps the drawing inside the middle 80%, the part every phone's mask leaves showing."""
+    big = size * 8
+    img = Image.new('RGBA', (big, big), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
+    unit = big / 64
 
-    # For maskable icons, use 20% padding; for regular icons, use 16% padding
-    padding_factor = 0.2 if maskable else 0.16
-    center = size / 2
-    outer_radius = (size / 2) * (1 - padding_factor)
-    inner_radius = outer_radius * 0.4
-    needle_length = outer_radius * 0.7
+    def grad(box, top, bottom, radius):
+        # a vertical gradient clipped to a rounded rectangle
+        x0, y0, x1, y1 = [round(v) for v in box]
+        layer = Image.new('RGBA', (big, big), (0, 0, 0, 0))
+        ld = ImageDraw.Draw(layer)
+        for y in range(y0, y1):
+            t = (y - y0) / max(1, y1 - y0 - 1)
+            ld.line([(x0, y), (x1, y)], fill=tuple(round(a + (b - a) * t) for a, b in zip(top, bottom)) + (255,))
+        mask = Image.new('L', (big, big), 0)
+        ImageDraw.Draw(mask).rounded_rectangle(box, radius=radius, fill=255)
+        img.paste(layer, (0, 0), mask)
 
-    # Draw outer circle (compass rose boundary)
-    circle_margin = outer_radius * 0.05
-    draw.ellipse(
-        [center - outer_radius, center - outer_radius,
-         center + outer_radius, center + outer_radius],
-        outline='white',
-        width=max(1, int(size / 256))  # Scale line width
-    )
+    oak = ((0xb9, 0x82, 0x4a), (0x8f, 0x5c, 0x2f))
+    if maskable:
+        grad((0, 0, big, big), *oak, 0)
+        scale, off = unit * 0.8, big * 0.1
+    else:
+        grad((0, 0, big, big), *oak, 14 * unit)
+        scale, off = unit, 0
+    P = lambda pts: [(off + x * scale, off + y * scale) for x, y in pts]
+    R = lambda x, y, w, h: (off + x * scale, off + y * scale, off + (x + w) * scale, off + (y + h) * scale)
+    line = max(1, round(0.6 * scale))
 
-    # Draw cardinal direction lines (N, S, E, W)
-    line_width = max(1, int(size / 128))
+    draw = ImageDraw.Draw(img)
+    draw.rounded_rectangle(R(9, 16, 46, 26), radius=3 * scale, fill='#3f2512')       # the open drawer
+    for pts, fill in (([(15, 21), (26, 21), (27.5, 17), (36.5, 17), (38, 21), (49, 21), (49, 42), (15, 42)], '#e7dbbf'),
+                      ([(13, 25), (17, 25), (18.5, 21), (27.5, 21), (29, 25), (51, 25), (51, 42), (13, 42)], '#f1e7cf'),
+                      ([(12, 29), (33, 29), (34.5, 25), (45.5, 25), (47, 29), (52, 29), (52, 42), (12, 42)], '#fbf5e6')):
+        draw.polygon(P(pts), fill=fill, outline='#a88f62', width=line)             # three files, back to front
+    draw.polygon(P([(34.5, 25), (45.5, 25), (47, 29), (33, 29)]), fill='#c9584f')  # the front file's red tab
+    grad(R(6, 38, 52, 19), (0x9a, 0x64, 0x34), (0x6e, 0x42, 0x20), 4 * scale)     # the drawer front
+    draw = ImageDraw.Draw(img)
+    draw.rounded_rectangle(R(6, 38, 52, 2), radius=scale, fill='#b47f4c')  # the lip's highlight, already blended (drawing over RGBA replaces, it does not mix)
+    grad(R(23, 45.5, 18, 5), (0xf0, 0xcf, 0x7a), (0xb9, 0x8a, 0x2e), 2.5 * scale)  # the brass handle
+    draw = ImageDraw.Draw(img)
+    draw.rounded_rectangle(R(23, 45.5, 18, 5), radius=2.5 * scale, outline='#7d5a17', width=line)
 
-    # North line (top)
-    draw.line(
-        [(center, center - outer_radius), (center, center - inner_radius)],
-        fill='white',
-        width=line_width
-    )
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    img.resize((size, size), Image.LANCZOS).save(path)
 
-    # South line (bottom)
-    draw.line(
-        [(center, center + outer_radius), (center, center + inner_radius)],
-        fill='white',
-        width=line_width
-    )
 
-    # East line (right)
-    draw.line(
-        [(center + outer_radius, center), (center + inner_radius, center)],
-        fill='white',
-        width=line_width
-    )
-
-    # West line (left)
-    draw.line(
-        [(center - outer_radius, center), (center - inner_radius, center)],
-        fill='white',
-        width=line_width
-    )
-
-    # Draw compass needle (north arrow) - diamond/arrow shape pointing up
-    needle_tip = center - needle_length
-    needle_base = center - inner_radius * 0.8
-    needle_width = inner_radius * 0.3
-
-    # Draw a diamond needle shape
-    points = [
-        (center, needle_tip),  # tip (north)
-        (center + needle_width, needle_base),  # right
-        (center, center - inner_radius * 0.3),  # center
-        (center - needle_width, needle_base),  # left
-    ]
-    draw.polygon(points, fill='white')
-
-    img.save(path)
-
-os.makedirs('app/icons', exist_ok=True)
 make_icon('app/icons/icon-192.png', 192)
 make_icon('app/icons/icon-512.png', 512)
 make_icon('app/icons/icon-maskable-512.png', 512, maskable=True)
+
+# self-check: each icon has its size, a maskable one is oak to the corner (the phone's mask needs no transparent edge),
+# and the plain ones keep their rounded corners transparent
+for path, size in (('app/icons/icon-192.png', 192), ('app/icons/icon-512.png', 512), ('app/icons/icon-maskable-512.png', 512)):
+    with Image.open(path) as im:
+        assert im.size == (size, size), (path, im.size)
+        corner = im.convert('RGBA').getpixel((0, 0))
+        assert (corner[3] == 255) == ('maskable' in path), (path, corner)
+print('icons made and checked')

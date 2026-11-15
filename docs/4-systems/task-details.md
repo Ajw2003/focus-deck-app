@@ -3,6 +3,9 @@
 Approved design: `docs/generated/friction-steps/prototype.html` screens d0 to d4 ("Design approved: step by step 11 2*").
 Standing rule: no small text, nothing under 13px, every screen fits 390x844 without scrolling.
 
+> **2026-11-15:** each receipt line has a bold label beside its value (`.td-label`), and opened from Triage the panel
+> starts with a `.td-guide` line: check the priority, due date and what it waits on, ✎ to change one, × to go back.
+
 ## What it is
 
 A clipboard over the screen (a side panel, 480px, on a computer) with an **×** to close. On it: the task's title, a

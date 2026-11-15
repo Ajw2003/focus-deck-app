@@ -6,7 +6,7 @@ import { esc, PRIORITY, PRIORITY_ORDER } from './state.js';
 import { viewState } from './view-switch.js';
 import { flagCards, folderCards, pickedSlips, bulkBlocker } from './in-tray.js';
 import { sleeve, walletInner, mutedChip } from './render.js';
-import { stamp, foot, dots, why } from './sort-flow-view.js';
+import { stamp, foot, dots, why, folderCabinet } from './sort-flow-view.js';
 
 export const MANY_LAST = 5;
 const TITLES = ['', 'Which ones?', 'Which project?', 'What kind of work?', 'Group under one task?', 'All good?'];
@@ -30,12 +30,7 @@ function projectStep(st, b, project, thoughts, mode) {
   const folders = folderCards(viewState(st)).filter((f) => has(f.name, q));
   let html = findBox(b, 'Find a project…');
   if (folders.length) {
-    const items = folders.map((f) => {
-      const picked = !!project && f.id === project.id, detail = picked ? 'chosen' : f.open + ' open';
-      return sleeve({ key: f.id, name: f.name, color: f.color, kind: 'project', picked, detail, speak: f.name + ', ' + (picked ? 'chosen. Choose it again to clear.' : detail) });
-    });
-    const facing = folders.some((f) => f.id === b.facingFolder) ? b.facingFolder : (project && folders.some((f) => f.id === project.id) ? project.id : folders[0].id);
-    html += '<div class="wallet" id="tray-folder-wallet">' + walletInner({ wallet: 'tray-folders', label: '', aria: 'Projects. Arrow keys flip, Enter chooses or clears.', items, facing, mode, verb: 'use' }) + '</div>';
+    html += folderCabinet(st, folders, project, b.facingFolder);
   } else html += '<p class="muted find-empty">No project matches “' + esc(q) + '”.</p>';
   // thoughts have no priority yet, and filing needs one (bulkBlocker)
   if (thoughts) html += '<div class="sort-picks sort-flags" role="group" aria-label="Priority">' + PRIORITY_ORDER.map((l) => '<button type="button" class="sort-flag' + (b.priority === l ? ' on' : '') + '" data-level="' + l + '" data-action="pick-set" data-scope="bulk" data-field="priority" data-value="' + l + '" aria-pressed="' + (b.priority === l) + '">' + esc(PRIORITY[l].label) + '</button>').join('') + '</div>';

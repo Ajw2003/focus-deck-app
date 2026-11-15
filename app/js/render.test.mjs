@@ -94,6 +94,10 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
   };
   const keys = (html, wallet) => {
     const track = html.slice(html.indexOf('data-wallet="' + wallet + '"'));
+    if (wallet === 'projects') { // the filing cabinet: the files in its first drawer, Everything
+      const drawer = track.slice(track.indexOf('class="cab-drawer"'));
+      return [...drawer.slice(0, drawer.indexOf('</section>')).matchAll(/class="cab-file[^"]*" data-key="([^"]*)"/g)].map((m) => m[1]);
+    }
     const end = track.indexOf('<div class="flip-pad"></div></div>', 10);
     return [...track.slice(0, end).matchAll(/class="sleeve" data-key="([^"]*)"/g)].map((m) => m[1]);
   };
@@ -102,20 +106,21 @@ assert.ok(!row({}).includes('energy-chip'), 'the energy chip was removed with th
   assert.ok(one.includes('Which project?') && !one.includes('data-wallet="categories"'), 'step 1 asks for the project only');
   assert.ok(two().includes('What kind of work?') && !two().includes('data-wallet="projects"'), 'step 2 asks for the kind of work only');
   assert.deepStrictEqual(keys(two(), 'categories'), ['c_art', 'c_chore', 'any'], 'category cards busiest first, labels with nothing open left out, "Surprise me" last');
-  assert.deepStrictEqual(keys(one, 'projects'), ['all', 'pA', 'pB'], 'All projects first, then the folders busiest first');
-  assert.ok(one.includes('data-wallet="projects" data-mode="twice" data-facing="all"'), 'the folder wallet faces All projects by default, in the default choosing mode (tap twice)');
+  assert.deepStrictEqual(keys(one, 'projects'), ['all', 'pB', 'pA'], 'All projects first, then the files A to Z (Eden, 2026-11-14)');
+  assert.ok(one.includes('data-wallet="projects" data-facing="all"'), 'the cabinet opens All projects by default');
   assert.ok(two().includes('data-wallet="categories" data-mode="twice" data-facing="c_art"'), 'the category wallet faces its first card');
   assert.ok(!/ open|Tap to use|class="ct"|class="go"/.test(one + two()), 'cards carry only their name: no "N open" line, no "Tap to use"');
   assert.ok(one.includes('data-action="pick-for-me"') && one.includes('data-action="focus-next"') && two().includes('data-action="focus-show"') && two().includes('data-action="focus-skip"') && two().includes('data-action="focus-back"'), 'Pick for me and Next on step 1; Back, Skip and Show me one on step 2');
   assert.ok(!one.includes('<select') && !one.includes('data-action="pick-focus"'), 'no dropdowns, and no per-card action: the wallets choose');
   const narrowed = renderFocus(st, () => null, { focusFilter: { projectId: 'pB' } });
-  assert.ok(narrowed.includes('data-wallet="projects" data-mode="twice" data-facing="pB"'), 'the remembered folder faces you');
+  assert.ok(narrowed.includes('data-wallet="projects" data-facing="pB"'), 'the remembered folder faces you');
   assert.deepStrictEqual(keys(two({ focusFilter: { projectId: 'pB' } }), 'categories'), ['c_art', 'c_chore', 'any'], 'and the index cards narrow to that project');
-  assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } }).includes('data-wallet="projects" data-mode="twice" data-facing="all"'), 'a remembered project that no longer exists falls back to All projects');
+  assert.ok(renderFocus(st, () => null, { focusFilter: { projectId: 'gone' } })
+    .includes('data-wallet="projects" data-facing="all"'), 'a remembered project that no longer exists falls back to All projects');
   assert.ok(two({ focusCategory: 'c_chore' }).includes('data-wallet="categories" data-mode="twice" data-facing="c_chore"'), 'the facing category is kept across a repaint');
-  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'tap' } }, () => null, { focusFilter: {} }).includes('data-mode="tap"'), 'the Choosing a card setting is written into the markup');
-  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'swipe' } }, () => null, { focusFilter: {} }).includes('data-mode="tap"'), 'a save from the retired Swipe up mode draws as Tap');
-  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'junk' } }, () => null, { focusFilter: {} }).includes('data-mode="twice"'), 'an unknown mode reads as the default');
+  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'tap' } }, () => null, { focusFilter: {}, focusQ: 2 }).includes('data-mode="tap"'), 'the Choosing a card setting is written into the markup');
+  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'swipe' } }, () => null, { focusFilter: {}, focusQ: 2 }).includes('data-mode="tap"'), 'a save from the retired Swipe up mode draws as Tap');
+  assert.ok(renderFocus({ ...st, choosingMode: { mode: 'junk' } }, () => null, { focusFilter: {}, focusQ: 2 }).includes('data-mode="twice"'), 'an unknown mode reads as the default');
   // every project is in the wallet however many there are (it scrolls)
   const many = { ...st, projects: Array.from({ length: 9 }, (_, i) => ({ id: 'p' + i, name: 'project-' + i, color: '#123456', tasks: [task('t' + i, ['c_art'])] })) };
   assert.strictEqual(keys(renderFocus(many, () => null, { focusFilter: {} }), 'projects').length, 10, 'All projects plus all nine folders');
@@ -278,9 +283,9 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   assert.ok(made.includes('New repo') && made.includes('Private') && made.includes('Public') && made.includes('Create it') && /data-action="create-repo" disabled/.test(made), 'New repo: name, Private / Public, Create it (off for a bad name)');
   assert.ok(/data-action="track-repo" disabled/.test(flow({ step: 4, sub: 'other', gh: 'other' }, {})) && !/data-action="track-repo" disabled/.test(flow({ step: 4, sub: 'other', gh: 'other', link: 'github.com/me/x' }, {})), 'Track it needs a link GitHub can read');
 
-  // the list: a card per project, the sort drawer, My order
+  // the list: a file per project in the cabinet, the sort drawer, My order
   const list = renderProjects(st, { projectSort: 'name' }, true);
-  assert.ok(list.includes('data-action="rm-open" data-project="p1"') && list.includes('+ New project') && list.includes('Find a project') && !list.includes('role="dialog"'), 'the list: a card, Find, + New project, the drawer shut');
+  assert.ok(list.includes('data-wallet="projects-tab"') && list.includes('data-key="p1"') && list.includes('+ New project') && list.includes('Find a project') && !list.includes('role="dialog"'), 'the list: a card, Find, + New project, the drawer shut');
   const drawer = renderProjects(st, { projectSort: 'custom', projSortOpen: true }, true);
   assert.ok(['A–Z', 'Most tasks', 'Due soonest', 'Last synced', 'My order'].every((x) => drawer.includes(x)) && drawer.includes('data-action="set-project-sort" data-value="custom"'), 'the drawer has the five orders');
   const order = renderProjects(st, { projectSort: 'custom', projOrder: true }, true);

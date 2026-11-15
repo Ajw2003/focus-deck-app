@@ -50,17 +50,20 @@ async function open(mode) {
     localStorage.setItem('focusdeck-state-v1', JSON.stringify({ ...s, choosingMode: { mode: m, updatedAt: 1 } }));
   }, [seed, mode]);
   await page.goto(BASE);
-  await page.waitForSelector('.flip-track');
+  await page.waitForSelector('.cab');
+  // the project question is the filing cabinet now (2026-11-14; scripts/check-cabinet-browser.mjs); the flip strip is the kinds of work
+  await page.click('[data-action="focus-next"]');
+  await page.waitForSelector('[data-wallet="categories"] .sleeve');
   // the Focus screen alone can fit a phone (#135); the scroll checks need a page taller than the window
   await page.evaluate(() => { document.querySelector('.wrap').style.paddingBottom = '1400px'; });
   await page.waitForTimeout(400);
   return { ctx, page };
 }
-const track = (page) => page.$('[data-wallet="projects"]');
-const facing = (page) => page.$eval('[data-wallet="projects"] .sleeve.is-centre', (e) => e.dataset.key);
-// Focus now asks two questions (#270): choosing the facing project is what the old draw was, and it brings up the second question
-const drawn = (page) => page.$('[data-wallet="categories"]');
-const centreCard = async (page) => (await page.$('[data-wallet="projects"] .sleeve.is-centre .icard')).boundingBox();
+const track = (page) => page.$('[data-wallet="categories"]');
+const facing = (page) => page.$eval('[data-wallet="categories"] .sleeve.is-centre', (e) => e.dataset.key);
+// choosing a kind of work draws a task
+const drawn = (page) => page.$('.focus-active');
+const centreCard = async (page) => (await page.$('[data-wallet="categories"] .sleeve.is-centre .icard')).boundingBox();
 
 for (const mode of ['tap', 'twice', 'swipe']) {
   const tag = `[${mode}]`;
@@ -70,7 +73,7 @@ for (const mode of ['tap', 'twice', 'swipe']) {
   let box = await (await track(page)).boundingBox();
   const before = await facing(page);
   await swipe(page, { x: box.x + box.width * 0.85, y: box.y + box.height / 2 }, { x: box.x + box.width * 0.15, y: box.y + box.height / 2 });
-  check(`${tag} a sideways swipe flips the folders`, (await facing(page)) !== before, before + ' -> ' + (await facing(page)));
+  check(`${tag} a sideways swipe flips the cards`, (await facing(page)) !== before, before + ' -> ' + (await facing(page)));
 
   // vertical, starting on a side card: the page scrolls (#131)
   box = await (await track(page)).boundingBox();
@@ -91,7 +94,7 @@ for (const mode of ['tap', 'twice', 'swipe']) {
   card = await centreCard(page);
   await swipe(page, { x: card.x + card.width / 2, y: card.y + card.height - 12 }, { x: card.x + card.width / 2, y: card.y - 90 });
   await page.waitForTimeout(300);
-  check(`${tag} pushing the facing card up chooses it and asks the next question`, !!(await drawn(page)));
+  check(`${tag} pushing the facing card up chooses it and draws a task`, !!(await drawn(page)));
   await ctx.close();
 
   // a tap draws: once in Tap (and the old Swipe up), twice in Tap twice (#132)
@@ -100,7 +103,7 @@ for (const mode of ['tap', 'twice', 'swipe']) {
   await page.touchscreen.tap(card.x + card.width / 2, card.y + card.height / 2);
   await page.waitForTimeout(400);
   if (mode === 'twice') {
-    check(`${tag} the first tap lifts the card, nothing chosen yet`, !(await drawn(page)) && !!(await page.$('[data-wallet="projects"] .sleeve.is-armed')));
+    check(`${tag} the first tap lifts the card, nothing chosen yet`, !(await drawn(page)) && !!(await page.$('[data-wallet="categories"] .sleeve.is-armed')));
     await page.touchscreen.tap(card.x + card.width / 2, card.y + card.height / 2);
     await page.waitForTimeout(400);
     check(`${tag} the second tap chooses it`, !!(await drawn(page)));

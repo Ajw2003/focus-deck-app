@@ -21,7 +21,10 @@ It reuses the #120 wallets (`js/wallet.js`, `docs/4-systems/wallets.md`) for "1.
 - `js/app.js` — `ui.unsorted` is `{ later, projectId, selected, step, find, title, notes, notesOpen,
   facingFolder, facingFlag, showAllFlags, currentKey }` (three parts, #189: see below). `walletHooks.onFacing` remembers the facing card of `tray-folders` / `tray-flags` so
   a repaint keeps it; `walletHooks.onChoose` toggles the folder or flag and repaints. `unsorted-file`
-  and `unsorted-save` both go through `fileSlip`; `unsorted-skip` is Later (`sendToBack`). The
+  and `unsorted-save` both go through `fileSlip`; `unsorted-skip` is Later (`sendToBack`). Since 2026-11-15 the slip's
+  first step shows it as **Not this one** when there is more than one slip; `skipSort` in `js/app.js` also saves the
+  skipped keys (the last 500) to `focusdeck-sort-later`, so a skipped slip stays at the back after a reload
+  (`freshUnsortedScratch(loadSortLater())`, checked by `scripts/check-sort-skip-browser.mjs`). The
   wallets announce into `#tray-live` when the focus wallets' `#wallet-live` isn't on the page.
 - `css/app.css`, the "In-tray (#121)" section.
 - Tests: `js/in-tray.test.mjs` (the card and the decisions); `js/render.test.mjs` keeps the queue
@@ -45,7 +48,7 @@ every action the Sort tab had is in `docs/generated/friction-steps/feature-map.j
   **Sort several** flag (`bulk-toggle`, five screens, see Sort many at once below) and a stamped
   **Sort this one** card. Nothing left: "All sorted ✓" and an **Organize** card.
 - **Steps 1 to 9**, each on the clipboard with nine progress dots, a Back corner, a Skip flag (steps 3 to 8 only,
-  `canSkip`) and a stamped Next card: 1 project (the `tray-folders` carousel, Find, **+ New project** page),
+  `canSkip`) and a stamped Next card: 1 project (the `tray-folders` filing cabinet, Find, **+ New project** page),
   2 priority (page flags; a thought must have one, a task may pick None), 3 labels (the `tray-flags` carousel,
   picked tags under it, Find, **A–Z** card drawer with letter tabs, **+ New label** page), 4 due date
   (tear-off calendar pages, **Another date** month page with a typed-date box, then **When should it warn you?**
@@ -126,7 +129,7 @@ several in five steps**, prototype screens m1 to m5. The **Sort several** flag o
 1. **Which ones?** Every slip as a tick row (`.bulk-row`, `data-bulk-key` = the queue key, whole text,
    no caption), **✓ All** (`bulk-all`) and **Clear** (`bulk-none`). Next waits for a tick; Back leaves
    Sort several (`bulk-toggle`).
-2. **Which project?** Folder carousel and Find (the Sort step 1 carousel, wallet `tray-folders`). A
+2. **Which project?** The filing cabinet and Find (the same as Sort step 1, wallet `tray-folders`, `folderCabinet` in `js/sort-flow-view.js`; see wallets.md#the-filing-cabinet). A
    ticked thought also needs a priority, so the four priority flags show here (`pick-set`, scope `bulk`)
    only when a thought is ticked; Next waits for both. Tasks alone may keep their own projects.
 3. **What kind of work?** The index-card carousel and Find (wallet `tray-flags`, `bulk-flag`), picked

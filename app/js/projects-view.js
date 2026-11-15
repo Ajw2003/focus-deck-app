@@ -4,8 +4,9 @@
 // project data is roadmapOf (js/roadmap.js). It reuses the Sort steps' stamp / foot / dots / choice (js/sort-flow-view.js).
 // See docs/4-systems/projects-tab.md
 import { esc } from './state.js';
-import { viewProjects, VIEW_ALL } from './view-switch.js';
-import { UNSORTED_ID } from './areas.js';
+import { viewProjects, VIEW_ALL, areaList } from './view-switch.js';
+import { UNSORTED_ID, areaIdOf } from './areas.js';
+import { cabinetInner, cabinetDrawers, rememberedDrawer } from './cabinet.js';
 import { roadmapOf } from './roadmap.js';
 import { filterAndSortProjects } from './project-filter.js';
 import { parseRepoInput, isValidRepoName, REPO_NAME_RULE } from './github-sync.js';
@@ -23,9 +24,10 @@ const listed = (st, ui) => viewProjects(st, ui.view && ui.view.mode === 'project
 const scroll = (inner) => '<div class="pj-scroll">' + inner + '</div>';
 
 // ---- the list ---------------------------------------------------------------------------------------
-function card(p) {
-  return '<button type="button" class="pj-card" data-action="rm-open" data-project="' + esc(p.id) + '" style="--c:' + esc(p.color) + '"><h3 class="pj-name">📁 ' + esc(p.name) + '</h3>'
-    + '<span class="pj-ruler" role="img" aria-label="' + roadmapOf(p).pct + '% done"><i style="width:' + roadmapOf(p).pct + '%"></i></span></button>';
+// one file per project, with its progress bar; tapping it twice opens its Roadmap (walletHooks 'projects-tab' in js/app.js)
+function cabinet(st, ps) {
+  const files = ps.map((p) => { const n = roadmapOf(p).pct; return { key: p.id, name: p.name, color: p.color, areaId: areaIdOf(st, p), pct: n, speak: p.name + ', ' + n + '% done' }; });
+  return cabinetInner({ wallet: 'projects-tab', aria: 'Projects. Swipe sideways for another area; tap a file, then tap it again to open its roadmap.', drawers: cabinetDrawers(files, areaList(st), { sort: () => 0 }) /* keeps the Sort by order */, facing: '', remembered: rememberedDrawer('projects-tab') });
 }
 
 function sortDrawer(ui) {
@@ -38,7 +40,7 @@ function sortDrawer(ui) {
 function list(st, ui) {
   const ps = filterAndSortProjects(listed(st, ui), { query: ui.projectQuery, sortBy: ui.projectSort });
   const find = '<input type="search" class="sort-find project-search pj-find" data-action="set-project-query" value="' + esc(ui.projectQuery || '') + '" placeholder="Find a project…" aria-label="Find a project">';
-  const body = find + scroll(ps.length ? ps.map(card).join('') : '<p class="muted">No projects here yet.</p>');
+  const body = find + (ps.length ? cabinet(st, ps) : '<p class="muted">No projects here yet.</p>');
   return '<div class="pj">' + '<div class="dk-board sort-board"><div class="dk-paper sort-paper pj-paper">'
     + '<button type="button" class="slip-more pj-pull" data-action="proj-sort-menu" aria-haspopup="dialog" aria-expanded="' + !!ui.projSortOpen + '" aria-label="Sort by"></button>'
     + '<h2 class="sort-q">Projects</h2><div class="sort-body">' + body + '</div></div></div>'

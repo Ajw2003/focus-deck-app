@@ -10,6 +10,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -276,7 +277,7 @@ await click('.rm-ask .dk-btn:first-child');
 check('r2x: Back keeps the project', !!(await proj()) && !(await page.$('.sort-drawer')));
 await click('.dk-choice.danger');
 await click('.rm-ask .dk-btn:last-child');
-check('r2x: Remove removes it and lands on the Projects tab', !(await proj()) && !!(await page.$('.pj-card[data-project="p1"]')));
+check('r2x: Remove removes it and lands on the Projects tab', !(await proj()) && !!(await page.$(everyFile('projects-tab', 'p1'))));
 await shot('r0');
 
 await browser.close();

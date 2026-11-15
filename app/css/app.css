@@ -176,9 +176,8 @@ a{color:inherit;}
   margin-bottom:18px;
 }
 .brand{display:flex; align-items:center; gap:10px;}
-/* The brand mark is the lamp: a small amber dot with a glow (the same light that falls on the focus area) */
-.brand-mark{display:inline-flex;}
-.lamp{width:10px; height:10px; border-radius:50%; background:var(--lamp-dot); box-shadow:0 0 12px 3px color-mix(in srgb, var(--lamp-dot) 55%, transparent);}
+/* The brand mark is the app icon (app/icon.svg): the oak drawer of files, the same as the filing cabinet */
+.brand-mark{display:block; width:28px; height:28px; flex-shrink:0;}
 .brand h1{font-size:var(--text-h); letter-spacing:-.01em;}
 /* The jotter: a notepad strip with binding holes along its top edge and a ruled line under the
    writing. The holes are the desk showing through (--hole); the add button is a small paper stamp so a
@@ -1132,7 +1131,7 @@ body.is-dragging-task .empty-note{display:none;}
   .topbar{display:grid; grid-template-columns:232px minmax(0, 1fr) 232px; column-gap:16px; align-items:center; margin-left:-280px; padding-left:14px; background:var(--bg); border-bottom:0;}
   .topbar .brand{padding-left:10px;}
   .topbar .brand h1{font-size:1.7rem;}
-  .topbar .lamp{width:12px; height:12px;}
+  .topbar .brand-mark{width:34px; height:34px;}
   .toast{bottom:calc(16px + env(safe-area-inset-bottom, 0px));}
   #app:has(> .screen){display:block;}
   .screen-focus{padding-top:28px;}
@@ -1709,3 +1708,79 @@ a.dk-choice{text-decoration:none;}
 /* A slip never blocks what is under it; only its own Open / Undo / close buttons take taps. */
 .toast{pointer-events:none;}
 .toast :is(button, a){pointer-events:auto;}
+
+/* ==== Layout fixes, 2026-11-13 (from Eden's screenshots on a phone in dark mode) ====
+   The clipboard paper is always light, so it always takes dark ink and light form controls; in dark mode it was
+   inheriting the light theme text (faint headings) and dark tick boxes. */
+.dk-paper{color:var(--dk-ink); color-scheme:light;}
+.dk-paper .sort-q{color:var(--dk-ink);}
+/* A long title makes its row taller; the list scrolls. The rows were squeezing to fit and drawing over each other. */
+.org-list > *, .pj-scroll > *{flex-shrink:0;}
+/* Sort's slip: about eight lines, then it scrolls inside, the dotted top scrolling with it so text never runs under it. */
+.sort-body > .jot-slip{flex-shrink:0; max-height:min(46vh, 300px); background-attachment:local;}
+/* Tidy up titles open Task details but read as handwriting, not as links. */
+.org-title{text-decoration:none; color:var(--dk-ink);}
+/* Task details: every receipt line names what it is, not only an emoji; Triage and Task details say what to do. */
+.td-panel .sort-receipt>div{display:flex; align-items:center; gap:10px; padding:6px 10px;}
+.td-what{flex:1; min-width:0; display:flex; flex-direction:column;}
+.td-label{font:700 13px var(--font-ui); letter-spacing:.05em; text-transform:uppercase; color:#5A6378;}
+.td-panel .sort-receipt em{white-space:normal; overflow-wrap:anywhere; color:var(--dk-ink);}
+.td-guide, .tr-guide{margin:2px 2px 6px; font:15px/1.35 var(--font-ui); color:#3A4354;}
+
+/* ==== The filing cabinet (2026-11-14): js/cabinet.js. Projects on Focus, Sort and the Projects tab are hanging files
+   in wooden drawers, one drawer per area. Design: docs/generated/filing-cabinet.html; see docs/4-systems/wallets.md */
+.cab{--oak:#8A5A33; --oak-hi:#B57D4A; --oak-lo:#5A381D; --cab-well:#24170E;
+  --grain:repeating-linear-gradient(90deg,rgba(60,30,10,.10) 0 1px,transparent 1px 6px,rgba(255,220,170,.06) 6px 7px,transparent 7px 13px);
+  flex:none; display:flex; flex-direction:column; gap:8px; outline:none; color-scheme:light;}
+.cab:focus-visible .cab-box{box-shadow:0 0 0 3px var(--dk-accent);}
+.cab-box{background:var(--grain),linear-gradient(90deg,var(--oak-lo),var(--oak) 8%,var(--oak-hi) 50%,var(--oak) 92%,var(--oak-lo)); border-radius:6px; padding:8px 8px 0; box-shadow:0 6px 12px -6px rgba(0,0,0,.6); overflow:hidden;}
+.cab-drawers{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; overscroll-behavior-x:contain;}
+.cab-drawers::-webkit-scrollbar{display:none;}
+.cab-drawer{flex:0 0 100%; scroll-snap-align:start; scroll-snap-stop:always; display:flex; flex-direction:column; min-width:0;}
+.cab-well{position:relative; background:linear-gradient(var(--cab-well),#3A2616); border-radius:3px 3px 0 0; box-shadow:inset 0 10px 14px -6px rgba(0,0,0,.8), inset 6px 0 8px -6px rgba(0,0,0,.7), inset -6px 0 8px -6px rgba(0,0,0,.7);}
+.cab-well::before, .cab-well::after{content:""; position:absolute; top:0; bottom:0; width:3px; background:linear-gradient(90deg,#E9D9A6,#8C6A22); z-index:200; pointer-events:none;}
+.cab-well::before{left:7px;} .cab-well::after{right:7px;}
+.cab-files{height:clamp(180px, calc(100vh - 580px), 400px); height:clamp(180px, calc(100dvh - 580px), 400px); overflow-y:auto; scrollbar-width:thin; padding:14px 18px 40px; perspective:620px; perspective-origin:50% 0; overscroll-behavior-y:contain;}
+.cab-file{display:block; position:relative; width:100%; height:122px; margin:0 0 -64px; border:0; padding:0; background:none; cursor:pointer; text-align:left; font:inherit; color:inherit;
+  transform-origin:50% 100%; will-change:transform; transition:margin .28s cubic-bezier(.2,.8,.25,1);}
+.cab-tab{position:absolute; top:0; left:6px; width:58%; height:28px; border-radius:6px 6px 0 0; background:color-mix(in srgb,var(--c) 50%,var(--dk-manila)); box-shadow:inset 0 2px 0 rgba(255,255,255,.35); filter:brightness(var(--shade,1));}
+.cab-tab b{display:block; margin:4px 6px 0; height:16px; padding:0 3px; background:#fff; border-radius:1px; font:800 13px/16px var(--font-paper); color:#3A2E14; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;}
+/* the progress meter: the old Projects ruler (paper, tick marks, the project's colour) at the top of each file's face */
+.cab-meter{display:flex; align-items:center; gap:8px; margin-top:1px;}
+.cab-bar i{display:block; height:100%; background:color-mix(in srgb,var(--c) 80%,#1C2438); box-shadow:inset 0 -2px 0 rgba(0,0,0,.18);}
+.cab-face{position:absolute; inset:26px 0 0; border-radius:3px 3px 0 0; padding:6px 12px 0; display:flex; flex-direction:column; gap:5px; filter:brightness(var(--shade,1));
+  background:linear-gradient(color-mix(in srgb,var(--c) 22%,var(--dk-manila)),color-mix(in srgb,var(--c) 34%,var(--dk-manila)) 70%); box-shadow:0 -3px 6px -2px rgba(0,0,0,.45);}
+.cab-face::before{content:""; position:absolute; left:-6px; right:-6px; top:-2px; height:4px; border-radius:2px; background:#8C6A22;}
+.cab-row{display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
+.cab-name{font:800 15px var(--font-paper); color:#1C2438; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.cab-file:not(.is-centre) .cab-name{visibility:hidden;}
+.cab-n{font:700 13px var(--font-ui); color:#4A3C1E; white-space:nowrap; font-variant-numeric:tabular-nums;}
+.cab-bar{flex:1; height:14px; border-radius:2px; overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,.3);
+  background:repeating-linear-gradient(90deg,#8C7A55 0 1px,transparent 1px 10%) 0 100%/100% 6px no-repeat,#F3E4B8;}
+.cab-pct{flex:none; min-width:38px; text-align:right; font:800 13px var(--font-ui); color:#4A3C1E; font-variant-numeric:tabular-nums;}
+.cab-file.is-centre{margin-bottom:6px;}
+.cab-file.is-centre .cab-face{box-shadow:0 0 0 2px var(--dk-pen), 0 -3px 6px -2px rgba(0,0,0,.45);}
+.cab-file.is-picked .cab-tab b::after{content:" ✓";}
+.cab-file:focus-visible{outline:3px solid var(--dk-brass); outline-offset:2px;}
+.cab-front{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 16px 12px; margin:0 -8px; border-top:2px solid #D29A63; background:var(--grain),linear-gradient(var(--oak-hi),var(--oak) 60%,var(--oak-lo));}
+.cab-plate{background:linear-gradient(#E9D9A6,#C9A24B); padding:3px; border-radius:2px; box-shadow:0 1px 2px rgba(0,0,0,.5); min-width:0;}
+.cab-plate span{display:block; background:#FFFEF4; padding:2px 10px; font:700 13px var(--dk-type); letter-spacing:.08em; text-transform:uppercase; color:#1C2438; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.cab-plate small{font:700 13px var(--font-ui); letter-spacing:0; text-transform:none; color:#5A6378; margin-left:6px;}
+.cab-handle{flex:none; width:44px; height:16px; border-radius:8px; background:linear-gradient(#EFE3BB,var(--dk-brass) 55%,#7E5F1E); box-shadow:0 2px 3px rgba(0,0,0,.5);}
+.cab-pos{flex:none; white-space:nowrap; font:700 13px var(--font-ui); color:#FFF8EC; text-shadow:0 1px 1px rgba(0,0,0,.5); font-variant-numeric:tabular-nums;}
+.cab-labels{position:relative; display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; padding:0 2px 2px;}
+.cab-labels::-webkit-scrollbar{display:none;}
+.cab-label{flex:none; min-height:36px; padding:6px 9px; border:0; border-radius:2px; background:#E6E2D6; color:#3A4354; font:700 13px var(--dk-type); letter-spacing:.06em; text-transform:uppercase; cursor:pointer; box-shadow:inset 0 -2px 0 var(--c);}
+.cab-label[aria-selected="true"]{background:var(--dk-ink); color:#fff;}
+/* Sort's step has the slip, Find and + New project around it, so its drawer is shorter and has no front (the labels name
+   the drawer): Back and Next stay on a 390x844 screen. Sort several also has the priority flags under it. */
+.sortflow .cab-front{display:none;}
+.sortflow .cab-box{padding-bottom:8px;}
+.sortflow .cab-files{height:clamp(120px, calc(100dvh - 678px), 400px);}
+.sortflow .wallet:has(~ .sort-flags) .cab-files{height:clamp(100px, calc(100dvh - 744px), 400px);}
+/* on a computer every drawer stands open side by side, so nothing needs swiping */
+@media (min-width:1100px){
+  .cab-drawers{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(220px,1fr); gap:8px; overflow-x:auto; scroll-snap-type:none;}
+  .cab-labels{display:none;}
+}
+@media (prefers-reduced-motion:reduce){.cab-file{transition:none; transform:none !important;}}

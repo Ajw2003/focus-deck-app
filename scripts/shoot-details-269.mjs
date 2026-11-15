@@ -10,6 +10,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -219,7 +220,7 @@ await click('.td-panel [data-action="detail-more"]');
 await click('.sort-drawer [data-action="detail-edit"][data-step="1"]');
 check('move: the Sort project step', (await text('.td-panel .sort-q')) === 'Which project?');
 await shot('e-move');
-const flip = async (key) => { const sel = '[data-wallet="tray-folders"] .sleeve[data-key="' + key + '"] .icard'; await page.$eval(sel, (el) => el.scrollIntoView({ block: 'center', inline: 'center' })); await page.waitForTimeout(300); const b = await (await page.$(sel)).boundingBox(); await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2); await page.waitForTimeout(450); };
+const flip = (key) => chooseFile(page, 'tray-folders', key); // projects are files in the filing cabinet (2026-11-15)
 await flip('p1');
 await save();
 check('move: Save moved the task to Garden', (await inProject('t1')) === 'p1' && (await text('.td-stamp-row .folder-chip')) === 'Garden');

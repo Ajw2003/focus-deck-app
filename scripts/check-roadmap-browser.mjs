@@ -11,6 +11,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -103,13 +104,13 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   // Projects tab: a card and a ruler per project; All, then Area
   await goProjects();
   check((await page.textContent('.sort-q')) === 'Projects', tag + 'the Projects clipboard is titled Projects');
-  check((await page.$$('.pj-card')).length === 4, tag + 'a card per project on All');
+  check((await fileKeys(page, 'projects-tab')).length === 4, tag + 'a card per project on All');
   await pickView('area', 'a1');
-  check((await page.$$('.pj-card')).length === 3, tag + 'Area Apps: three cards');
-  check((await page.getAttribute('.pj-card[data-project="p0"] .pj-ruler', 'aria-label')) === '37% done', tag + 'Focus Deck says 37% done (equal milestone shares: 40, 50, 33, 25)');
-  check((await page.getAttribute('.pj-card[data-project="p1"] .pj-ruler', 'aria-label')) === '50% done', tag + 'second project 50%');
+  check((await fileKeys(page, 'projects-tab')).length === 3, tag + 'Area Apps: three cards');
+  check((await page.getAttribute(everyFile('projects-tab', 'p0') + ' .cab-bar', 'aria-label')) === '37% done', tag + 'Focus Deck says 37% done (equal milestone shares: 40, 50, 33, 25)');
+  check((await page.getAttribute(everyFile('projects-tab', 'p1') + ' .cab-bar', 'aria-label')) === '50% done', tag + 'second project 50%');
   await noScroll('projects'); await shot('projects');
-  await page.click('.pj-card[data-project="p0"]'); await page.waitForSelector('.rm-main');
+  await chooseFile(page, 'projects-tab', 'p0'); await page.waitForSelector('.rm-main');
   check(!(await page.$('#new-panel-toggle')), tag + 'the Roadmap has no + New project (Projects owns it)');
 
   // the milestone on the clipboard
@@ -240,13 +241,16 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   await page.waitForSelector('.rm-main');
   check((await st()).projects.some((p) => p.name === 'Fresh start') && (await page.textContent('.sort-q')) === 'Fresh start', tag + 'New project makes it and opens its Roadmap');
   await goProjects();
-  check((await page.$$('.pj-card')).length === 5, tag + 'the new project is on the list');
+  // the Projects tab keeps its own area (Apps, picked above) since 2026-11-15; a Roadmap pick no longer resets it
+  check((await page.textContent('.vs-pick-name')).trim() === 'Apps', tag + 'the Projects tab is still on Apps after the Roadmap');
+  await pickView('all');
+  check((await fileKeys(page, 'projects-tab')).length === 5, tag + 'the new project is on the list');
   await noScroll('projects after new project'); await shot('all-with-new');
 
   // everything persists
   await page.reload(); await page.waitForSelector('.pj');
-  check((await page.$$('.pj-card')).length === 5, tag + 'after a reload: five cards');
-  await page.click('.pj-card[data-project="p0"]'); await page.waitForSelector('.rm-main');
+  check((await fileKeys(page, 'projects-tab')).length === 5, tag + 'after a reload: five cards');
+  await chooseFile(page, 'projects-tab', 'p0'); await page.waitForSelector('.rm-main');
   await page.click('.rm-all');
   check((await page.$$eval('.rm-sec-name', (e) => e.length)) === 3 && !!(await page.$('.rm-ms[data-ms-id="' + (nm || {}).id + '"]')), tag + 'after a reload: sections and milestones are still there');
   await noScroll('reload');

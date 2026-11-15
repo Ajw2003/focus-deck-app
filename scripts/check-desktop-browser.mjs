@@ -11,6 +11,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, fileKeys, chooseFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -47,7 +48,7 @@ async function open(scheme, viewport = { width: 1440, height: 900 }) {
   page.on('pageerror', (e) => check(`[${scheme}] no page error: ` + e.message, false));
   await page.addInitScript(([s, k]) => { if (!localStorage.getItem(k)) { localStorage.setItem('focusdeck-onboarding', 'done'); localStorage.setItem('focusdeck-screen', 'focus'); localStorage.setItem(k, JSON.stringify(s)); } }, [seed, STATE_KEY]);
   await page.goto(BASE);
-  await page.waitForSelector('.flip-track');
+  await page.waitForSelector('.cab');
   await page.waitForTimeout(400);
   return { ctx, page };
 }
@@ -56,6 +57,7 @@ const visibleCards = (page, w) => page.$$eval(`[data-wallet="${w}"] .sleeve`, (e
   const row = els[0].parentElement.getBoundingClientRect(); // the strip clips what is past its edge (#253)
   return els.filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left >= row.left - 2 && r.right <= row.right + 2; }).length;
 });
+const drawersShown = (page) => page.$$eval(cab('projects') + ' .cab-drawer', (ds) => ds.filter((d) => { const b = d.getBoundingClientRect(); return b.left >= 0 && b.right <= innerWidth; }).length);
 const click = async (page, w, key) => {
   const b = await (await page.$(`[data-wallet="${w}"] .sleeve[data-key="${key}"] .icard`)).boundingBox();
   await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
@@ -70,21 +72,21 @@ for (const scheme of ['dark', 'light']) {
   const rail = await (await page.$('.rail')).boundingBox();
   const screen = await (await page.$('.screen-focus')).boundingBox();
   check(`${tag} the rail sits on the left, beside the Focus screen`, rail.x + rail.width <= screen.x && rail.width < 300, JSON.stringify({ rail: Math.round(rail.x + rail.width), screen: Math.round(screen.x) }));
-  check(`${tag} the Focus screen shows only the picker: no tray, no folders`, !(await page.$('.inbox-card')) && !(await page.$('.pj-card')));
+  check(`${tag} the Focus screen shows only the picker: no tray, no folders`, !(await page.$('.inbox-card')) && !(await page.$(cab('projects-tab'))));
   check(`${tag} + Jot is in the header, no jot box`, await page.isVisible('#jot-open') && !(await page.$('#capture-input')));
   check(`${tag} Sort shows its count on the rail`, ((await page.$eval('.rail [data-screen="sort"]', (e) => e.textContent)) || '').includes('1'));
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   check(`${tag} no sideways page scroll`, wide <= 0, 'overflow ' + wide + 'px');
 
-  // wallets laid flat: every card showing at once
-  const projKeys = await keys(page, 'projects');
+  // the filing cabinet: every drawer showing at once on a wide screen (2026-11-15)
+  check(`${tag} every drawer shows at once`, (await drawersShown(page)) === (await page.$$(cab('projects') + ' .cab-drawer')).length);
   await page.screenshot({ path: OUT + `desktop-${scheme}.png` });
 
-  // one click picks a folder: the categories narrow to it, nothing drawn yet
-  await page.focus('[data-wallet="projects"]'); // Band is the sixth card, past the strip's five: type its name to jump (was: click it)
+  // typing a name opens its file: the categories narrow to it, nothing drawn yet
+  await page.focus(cab('projects'));
   await page.keyboard.type('band'); // Band: one task, category c3 (Art)
   await page.waitForTimeout(500);
-  check(`${tag} one click picks the folder`, (await page.$eval('[data-wallet="projects"] .sleeve.is-centre', (e) => e.dataset.key)) === 'p3' && !(await page.$('.focus-active')));
+  check(`${tag} typing a name opens that project's file`, (await openKey(page, 'projects')) === 'p3' && !(await page.$('.focus-active')));
   await page.click('[data-action="focus-next"]'); // the second question, "What kind of work?"
   await page.waitForSelector('[data-wallet="categories"] .sleeve');
   const catKeys = await keys(page, 'categories');
@@ -103,7 +105,7 @@ for (const scheme of ['dark', 'light']) {
   // the Projects tab: the project cards, nothing else
   await page.click('.rail [data-screen="projects"]');
   await page.waitForTimeout(300);
-  check(`${tag} Projects shows the project rows, not the picker or the tray`, (await page.$$('.pj-card')).length === 5 && !(await page.$('.focus-card')) && !(await page.$('.inbox-card')));
+  check(`${tag} Projects shows the project files, not the picker or the tray`, (await fileKeys(page, 'projects-tab')).length === 5 && !(await page.$('.focus-card')) && !(await page.$('.inbox-card')));
   await page.screenshot({ path: OUT + `desktop-${scheme}-projects.png` });
   await page.reload();
   await page.waitForTimeout(300);
@@ -116,10 +118,10 @@ for (const scheme of ['dark', 'light']) {
   const { ctx, page } = await open('dark');
   await page.click('.rail [data-screen="sort"]');
   await page.waitForTimeout(300);
-  check('Sort: its own screen, the tray alone', !!(await page.$('.screen-sort .inbox-card')) && !(await page.$('.focus-card')) && !(await page.$('.pj-card')));
+  check('Sort: its own screen, the tray alone', !!(await page.$('.screen-sort .inbox-card')) && !(await page.$('.focus-card')) && !(await page.$(cab('projects-tab'))));
   await page.click('[data-action="sort-next"]'); // the first Sort screen is the slip; step 1 is the project carousel
   await page.waitForSelector('[data-wallet="tray-folders"]');
-  await click(page, 'tray-folders', 'p1');
+  await chooseFile(page, 'tray-folders', 'p1');
   await page.click('.sort-foot .file-btn');
   await page.click('.sort-picks [data-field="priority"][data-value="high"]');
   await page.click('.sort-foot .file-btn');
@@ -138,18 +140,17 @@ for (const scheme of ['dark', 'light']) {
   await ctx.close();
 }
 
-// resizing: phone width brings back the flip-through wallets, and wide lays them flat again
+// resizing: phone width shows one drawer at a time with labels, and wide shows every drawer again
 {
   const { ctx, page } = await open('dark');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(500);
-  check('narrowed to a phone: the wallets flip again', !(await page.$('.flip-track.is-spread')) && (await visibleCards(page, 'projects')) < (await keys(page, 'projects')).length);
+  check('narrowed to a phone: one drawer at a time, with labels', (await drawersShown(page)) === 1 && await page.isVisible(cab('projects') + ' .cab-labels'));
   const bar = await page.evaluate(() => { const r = document.querySelector('.rail').getBoundingClientRect(); return { bottom: Math.round(r.bottom), width: Math.round(r.width) }; });
   check('narrowed to a phone: the rail becomes a bar along the bottom', bar.bottom === 844 && bar.width === 390, JSON.stringify(bar));
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.waitForTimeout(500);
-  const tracks = await page.$$eval('.flip-track', (els) => els.map((e) => e.classList.contains('is-spread')));
-  check('widened again: every wallet on screen laid flat again (one question per screen since #270)', tracks.length >= 1 && tracks.every(Boolean), JSON.stringify(tracks));
+  check('widened again: every drawer shows again, no labels', (await drawersShown(page)) === (await page.$$(cab('projects') + ' .cab-drawer')).length && !(await page.isVisible(cab('projects') + ' .cab-labels')));
   await ctx.close();
 }
 

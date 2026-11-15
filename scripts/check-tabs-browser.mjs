@@ -11,6 +11,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile, openFile, openKey } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -109,12 +110,12 @@ for (const [tag, w, h] of sizes) {
 
   // Projects tab (the clipboard list, #267)
   await go(page, '.rail-item[data-screen="projects"]');
-  await page.waitForSelector('.pj-card');
+  await page.waitForSelector(cab('projects-tab'));
   await jot('Projects'); check(`[${tag}] Projects: no sideways scroll`, await noSideways(page)); await shot('3-projects');
-  check(`[${tag}] row Projects grid: the Projects tab lists every project`, (await page.$$('.pj-card')).length === 3);
+  check(`[${tag}] row Projects grid: the Projects tab lists every project`, (await fileKeys(page, 'projects-tab')).length === 3);
   await page.fill('.pj-find', 'rep');
   await page.waitForTimeout(100);
-  check(`[${tag}] row Projects grid search: Find a project narrows the rows live`, (await page.$$('.pj-card')).length === 2, 'Report + Repo');
+  check(`[${tag}] row Projects grid search: Find a project narrows the rows live`, (await fileKeys(page, 'projects-tab')).length === 2, 'Report + Repo');
   await page.fill('.pj-find', '');
   const sortBy = async (label) => { await page.click('.pj-pull'); await page.click('.sort-drawer .dk-choice:has-text("' + label + '")'); await page.waitForTimeout(100); };
   await sortBy('My order');
@@ -126,13 +127,13 @@ for (const [tag, w, h] of sizes) {
   check(`[${tag}] row Projects grid sort and your own order: custom order, reordered with a button`, before.join() === 'Home,Report,Repo' && after.join() === 'Report,Home,Repo', before.join() + ' -> ' + after.join());
   await page.click('.dk-btn[data-action="proj-order-done"]');
   await sortBy('A–Z');
-  await page.reload(); await page.waitForSelector('.pj-card');
+  await page.reload(); await page.waitForSelector(cab('projects-tab'));
   check(`[${tag}] row Projects grid sort: the sort choice is remembered`, (await page.evaluate(() => localStorage.getItem('focusdeck-project-sort'))) === 'name');
   check(`[${tag}] row Projects grid area filter: the view tape is on Projects`, !!(await page.$('.vs-tape')));
   check(`[${tag}] row Projects: + New project is on the Projects tab`, !!(await page.$('#new-panel-toggle')));
 
   // Roadmap tab, project view: a project opened from Projects, then the Roadmap tab reopens the last one
-  await go(page, '.pj-card[data-project="pHome"]');
+  await chooseFile(page, 'projects-tab', 'pHome');
   await page.waitForSelector('.rm-project');
   check(`[${tag}] opening a project from Projects lands on the Roadmap tab`, (await page.$eval('.rail-item.is-on .rail-label', (e) => e.textContent)) === 'Roadmap');
   await go(page, '.rail-item[data-screen="projects"]'); await go(page, '.rail-item[data-screen="roadmap"]'); await page.waitForSelector('.rm-project');

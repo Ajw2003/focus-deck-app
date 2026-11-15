@@ -19,7 +19,8 @@ screen map is `docs/generated/friction-steps/feature-map.json`.
 
 Nothing on this tab is under 13px, there are no captions or hints, and every screen fits a 390x844 phone.
 
-- **Step 1, "Which project?" (f1).** Find, a manila-folder carousel (All projects first, then busiest first), a
+- **Step 1, "Which project?" (f1).** Find, the filing cabinet (one oak drawer per area, All projects first, then A to Z; see
+  [wallets.md](./wallets.md#the-filing-cabinet), 2026-11-15), a
   🎲 Pick for me tag and a Next stamp. The facing folder is saved to `focusdeck-focus-filter` as before. Choosing a folder
   card (second tap in Tap twice) is the same as Next (`ui.focusQ = 2`).
 - **Step 2, "What kind of work?" (f2).** Find, an index-card carousel for the chosen project (busiest first, Unlabelled,

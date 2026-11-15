@@ -11,6 +11,7 @@ import { mkdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { join, extname, normalize } from 'node:path';
+import { cab, everyFile, fileKeys, chooseFile } from './lib/cabinet.mjs';
 const require = createRequire('/opt/node22/lib/node_modules/');
 const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -84,7 +85,7 @@ await page.waitForTimeout(400);
 const stored = () => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STATE_KEY);
 const click = async (sel) => { await page.click(sel); await page.waitForTimeout(250); };
 const text = (sel) => page.textContent(sel);
-const names = () => page.$$eval('.pj-name', (e) => e.map((x) => x.textContent.replace('📁 ', '').trim()));
+const names = () => page.$$eval(everyFile('projects-tab') + ' .cab-tab b', (e) => e.map((x) => x.textContent.trim())); // projects are files in the filing cabinet (2026-11-15)
 // measure the screen: no vertical scroll of the page, no sideways scroll, no visible text under 13px
 async function shot(id) {
   await page.waitForTimeout(250);
@@ -109,8 +110,8 @@ const sortBy = async (label) => { await click('.pj-pull'); await click('.sort-dr
 
 // ---- the list and its sort orders ----
 await shot('r0');
-check('r0: a card per project with a ruler, Find, + New project, the drawer handle', (await names()).join() === 'Band,Garden,Home' && (await page.$$('.pj-ruler')).length === 3 && !!(await page.$('.pj-find')) && (await text('#new-panel-toggle')) === '+ New project' && !!(await page.$('.pj-pull')));
-check('r0: Home is 1 of 5 tasks done (20%)', (await page.getAttribute('.pj-card[data-project="pHome"] .pj-ruler', 'aria-label')) === '20% done');
+check('r0: a card per project with a ruler, Find, + New project, the drawer handle', (await names()).join() === 'Band,Garden,Home' && (await page.$$(everyFile('projects-tab') + ' .cab-bar')).length === 3 && !!(await page.$('.pj-find')) && (await text('#new-panel-toggle')) === '+ New project' && !!(await page.$('.pj-pull')));
+check('r0: Home is 1 of 5 tasks done (20%)', (await page.getAttribute(everyFile('projects-tab', 'pHome') + ' .cab-bar', 'aria-label')) === '20% done');
 await page.fill('.pj-find', 'ga'); await page.waitForTimeout(250);
 check('Find a project narrows the list and keeps focus', (await names()).join() === 'Garden' && (await page.evaluate(() => document.activeElement.classList.contains('pj-find'))));
 await page.fill('.pj-find', ''); await page.waitForTimeout(250);
@@ -136,7 +137,7 @@ await click('.pj-row:nth-child(1) [data-dir="1"]');
 check('↓ on the first row (Home) moves it down one', (await page.$$eval('.pj-row > span:first-child', (e) => e.map((x) => x.textContent.replace('📁 ', '').trim()))).join() === 'Garden,Home,Band');
 await click('.dk-btn[data-action="proj-order-done"]');
 check('Done: the list is in the person\'s order', (await names()).join() === 'Garden,Home,Band');
-await page.reload(); await page.waitForSelector('.pj-card');
+await page.reload(); await page.waitForSelector(cab('projects-tab'));
 check('after a reload My order is still Garden, Home, Band', (await names()).join() === 'Garden,Home,Band' && (await page.evaluate(() => localStorage.getItem('focusdeck-project-sort'))) === 'custom');
 await sortBy('A–Z');
 
@@ -200,7 +201,7 @@ check('the Roadmap\'s menu has no + New project (Projects owns it)', !(await pag
 check('it is the last-used project', (await page.evaluate(() => localStorage.getItem('focusdeck-last-project'))) === p.id);
 await click('[data-screen="projects"]');
 check('back on Projects the new project is in the list', (await names()).includes('Shed rebuild'));
-await page.fill('.pj-find', 'shed'); await page.waitForTimeout(250); await click('.pj-card[data-project="' + p.id + '"]');
+await page.fill('.pj-find', 'shed'); await page.waitForTimeout(250); await chooseFile(page, 'projects-tab', p.id);
 check('tapping its card opens it on the Roadmap', !!(await page.$('.rm-project')) && (await text('.vs-tape')).includes('Shed rebuild'));
 await click('[data-screen="projects"]'); await page.fill('.pj-find', ''); await page.waitForTimeout(250);
 
@@ -230,7 +231,7 @@ check('the list now has all four new projects', ['Shed rebuild', 'Plans', 'Boat 
 
 // 5. Back out, and a link GitHub refuses leaves nothing behind
 await click('#new-panel-toggle'); await click('.dk-back');
-check('Back on step 1 returns to the list', !!(await page.$('.pj-card')) && !(await page.$('.pj-flow')));
+check('Back on step 1 returns to the list', !!(await page.$(cab('projects-tab'))) && !(await page.$('.pj-flow')));
 const count = (await stored()).projects.length;
 await click('#new-panel-toggle'); await page.fill('[data-np-name]', 'Nope');
 for (let i = 0; i < 3; i++) await click('.dk-btn[data-action="np-next"]');
