@@ -1,5 +1,7 @@
 # Roadmap (#257)
 
+> **2026-11-15 (#284):** on a computer the four lists are columns side by side again; the first Up next task is a yellow "Next step" note; a list shows 8 tasks and a "Show more" button. See [desk-layout.md](./desk-layout.md).
+
 > **2026-11-12 (#268):** the Roadmap shows one project, one milestone at a time, on the desk-object clipboard. The sections below that describe four columns side by side, collapsed milestone rows, the inline add boxes, the Edit panel and the settings dialog are history; "How it works now" and "Milestone settings in two steps" replace them. The view tape picks the project; the Roadmap opens on the last-used one.
 
 > **2026-11-12 (#267):** the group view (a row per project, the "+ New project" button and the New panel) is gone from the Roadmap. The project list and New project are the Projects tab: see [projects-tab.md](./projects-tab.md). The Roadmap is one project; its menu has no "+ New project". Read the "Group view" and "+ New project" lines below as history.

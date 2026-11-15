@@ -157,6 +157,21 @@ test('the card: the thought on a slip with the ⋯ drawer, Sort several and a st
   assert.ok(one.includes('>1 to sort<') && !one.includes('Sort several'), 'nothing to sort several of');
 });
 
+test('the pile and After this one (#285): two edges with 3+ waiting, one with 2, none with 1; at most four titles then and N more', () => {
+  seed();
+  const html = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() });
+  assert.ok(html.includes('has-pile-2') && html.includes('After this one') && html.includes('<li>Email Ms Patel</li>') && !html.includes('and '.concat('1 more')), 'three wait: two edges and the next titles');
+  assert.ok(html.includes('class="dk-plain slip-more"') === false && html.includes('slip-more dk-plain') && html.includes('>Not this one<') && (html.match(/file-btn/g) || []).length === 1, 'one stamp; More and Not this one are plain buttons');
+  for (let i = 0; i < 5; i++) state.inbox.push({ id: 'x' + i, text: 'Extra ' + i, createdAt: Date.now() + i });
+  const many = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() });
+  assert.ok((many.match(/<li>/g) || []).length === 4 && /and \d+ more/.test(many), 'at most four titles');
+  state.inbox.length = 1; state.projects.forEach((p) => { p.tasks.length = 0; });
+  const lone = renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() });
+  assert.ok(!lone.includes('has-pile') && !lone.includes('After this one') && !lone.includes('>Not this one<'), 'one item: no pile, no column');
+  state.inbox.push({ id: 'z', text: 'Second', createdAt: Date.now() });
+  assert.ok(renderInTrayCard(state, { inboxOpen: true, unsorted: fresh() }).includes('has-pile-1'), 'two in total: one edge');
+});
+
 test('the ⋯ drawer holds Add notes, Done already, Later and Delete with the ids they act on', () => {
   seed();
   const html = card({ menu: true });
@@ -203,7 +218,7 @@ test('the card: the tray can be empty ("All sorted" with an Organize card), clos
 test('Later puts the front slip last in the rendered tray', () => {
   seed();
   const html = renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), { later: ['i:th1'] }) });
-  assert.ok(html.includes('Email Ms Patel') && !html.includes('Buy a card'));
+  assert.ok(html.includes('Email Ms Patel') && !html.includes('slip-text">Buy a card'), 'the front slip is the first one shown (the old front waits in After this one)');
 });
 
 const card = (u) => renderInTrayCard(state, { inboxOpen: true, unsorted: Object.assign(fresh(), u) });

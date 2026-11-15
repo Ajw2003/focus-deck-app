@@ -211,16 +211,41 @@ const freshUnsorted = () => ({ later: [], projectId: null, selected: [], newLabe
   assert.ok(html.includes('<div class="note-shadow"><div class="note">'), 'the shadow sits on a wrapper around the clipped note');
   assert.ok(html.includes('<h2 class="focus-title"><span class="ink">Reply to &lt;Sam&gt;</span></h2>'), 'the title is escaped and wrapped in the span the biro line is drawn on');
   assert.ok(html.includes('data-action="complete-focus"') && html.includes('✓ Done') && !html.includes('I&rsquo;ve done it'), 'Done is a rubber stamp');
-  assert.ok(html.includes('data-action="reroll"') && html.includes('↻ Another') && !html.includes('data-action="reroll" disabled'), 'Another is the second stamp');
+  assert.strictEqual((html.match(/class="dk-btn[^"]*"/g) || []).length, 1, 'Done is the only stamp');
+  assert.ok(html.includes('data-action="reroll">Not now') && html.includes('data-action="focus-choose">Choose…') && html.includes('data-action="focus-menu"') && (html.match(/dk-plain/g) || []).length === 3, 'three plain buttons under it');
+  assert.ok(renderFocus(st, findIn(st), { focusFilter: {}, focusChoosing: true }).includes('Which project?'), 'Choose… shows the questions even with a task focused');
+  assert.ok(renderFocus(st, findIn(st), { focusFilter: {}, focusChoosing: true }).includes('data-action="focus-choose-back"'), 'with a Back');
   // no pool to re-roll from: the Another stamp is off
   const single = mk({ taskId: 'x1', pool: ['x1'] }, [task('x1')]);
-  assert.ok(renderFocus(single, findIn(single), { focusFilter: {} }).includes('data-action="reroll" disabled'), 'with nothing to swap to Another is off');
+  assert.ok(renderFocus(single, findIn(single), { focusFilter: {} }).includes('data-action="reroll" disabled'), 'with nothing to swap to Not now is off');
   // a repaint mid-sequence redraws the phase it had reached, only for that task
   const mid = renderFocus(st, findIn(st), { focusFilter: {}, completing: { taskId: 'x1', phase: 'crossed' } });
   assert.ok(mid.includes('class="note is-crossed"') && mid.includes('focus-done is-ticked'), 'a repaint keeps the tick and the cross-out');
   const other = renderFocus(st, findIn(st), { focusFilter: {}, completing: { taskId: 'zzz', phase: 'peeling' } });
   assert.ok(!other.includes('is-peeling') && !other.includes('is-ticked'), "another task's sequence does not leak onto this note");
-  // nothing open: the empty desk, with the way on
+    // small notes: one per area (phone block), one per project (computer block); an area with nothing open has none
+  const two = { focus: { taskId: 'a1' }, categories: [], projectCategories: [{ id: 'A', name: 'Work', color: '#36c' }, { id: 'B', name: 'Empty', color: '#c33' }], projects: [
+    { id: 'p1', name: 'P1', categoryId: 'A', tasks: [{ id: 'a1', title: 'First', status: 'next' }, { id: 'a2', title: 'Second', status: 'next' }] },
+    { id: 'p2', name: 'P2', categoryId: 'A', tasks: [{ id: 'a3', title: 'Third', status: 'next' }] },
+    { id: 'p3', name: 'P3', categoryId: 'B', tasks: [{ id: 'a4', title: 'Gone', status: 'done' }] }] };
+  const find2 = (id) => { for (const p of two.projects) { const t = p.tasks.find((x) => x.id === id); if (t) return { task: t, project: p }; } return null; };
+  const nx = renderFocus(two, find2, { focusFilter: {} });
+  const [phoneB, deskB] = nx.split('class="nx nx-desk"');
+  assert.strictEqual((phoneB.match(/data-action="focus-area"/g) || []).length, 1, 'phone: one note per area with something open');
+  assert.strictEqual((deskB.match(/data-action="focus-set"/g) || []).length, 2, 'computer: one note per project');
+  assert.ok(!nx.includes('Empty') && !nx.includes('Gone'), 'an area with no open task has no note');
+  assert.ok(phoneB.includes('2 projects ›') && deskB.includes('1 more') && deskB.includes('class="nx-note is-now"'), 'counts, and the big note is marked is-now');
+  assert.ok(renderFocus(two, find2, { focusFilter: {}, focusArea: 'A' }).includes('‹ All areas'), 'an area opens as its projects');
+  assert.ok(!renderFocus(two, find2, { focusFilter: {}, focusQ: 2, focusChoosing: true }).includes('nx-note'), 'no small notes on the questions');
+  // more than four areas: a phone shows four notes and one button for the rest
+  const six = { focus: { taskId: 't0' }, categories: [], projectCategories: [0, 1, 2, 3, 4, 5].map((i) => ({ id: 'A' + i, name: 'Area ' + i, color: '#36c' })),
+    projects: [0, 1, 2, 3, 4, 5].map((i) => ({ id: 'p' + i, name: 'P' + i, categoryId: 'A' + i, tasks: [{ id: 't' + i, title: 'Task ' + i, status: 'next' }] })) };
+  const find6 = (id) => { for (const p of six.projects) { const t = p.tasks.find((x) => x.id === id); if (t) return { task: t, project: p }; } return null; };
+  const areasOf = (ui) => (renderFocus(six, find6, ui).split('class="nx nx-desk"')[0].match(/data-action="focus-area"/g) || []).length;
+  assert.strictEqual(areasOf({ focusFilter: {} }), 4, 'six areas: four notes on a phone');
+  assert.ok(renderFocus(six, find6, { focusFilter: {} }).includes('All 6 areas'), 'and a button for all six');
+  assert.strictEqual(areasOf({ focusFilter: {}, focusAllAreas: true }), 6, 'the button shows all six');
+// nothing open: the empty desk, with the way on
   const empty = mk(null, [task('x1', { status: 'done' })]);
   const emptyHtml = renderFocus(empty, () => null, { focusFilter: {} });
   assert.ok(emptyHtml.includes('Your desk is clear') && emptyHtml.includes('data-action="set-screen" data-screen="roadmap"'), 'the empty desk names the next step');

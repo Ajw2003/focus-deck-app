@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<!-- docs/generated/design-audit/mockups.html: drawings of the proposed layouts for docs/plans/design-audit.html.
+     Not app code. Each .frame is shot on its own by shoot-mockups.mjs. Sample data matches shoot.mjs. -->
+<html lang="en"><head><meta charset="UTF-8"><title>Design audit mockups</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap">
+<style>
+*{box-sizing:border-box;margin:0}
+body{background:#999;padding:20px;display:flex;flex-direction:column;gap:30px;font:500 15px Figtree,system-ui,sans-serif;color:#1C2438}
+.frame{background:#E4E8EF;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.phone{width:390px;height:844px}.desk{width:1440px;height:900px}
+.top{display:flex;align-items:center;gap:10px;padding:14px 18px;flex:none}
+.top h1{font:400 20px 'Young Serif',serif;flex:1}.desk .top h1{font-size:26px}
+.mark{width:28px;height:28px;border-radius:6px;background:#A8703C;box-shadow:inset 0 -9px #7C4F26}
+.jot{background:#fff;font:700 14px Kalam,cursive;color:#2447A8;padding:8px 12px;box-shadow:0 2px 4px #0003;transform:rotate(-2deg)}
+.dot{width:14px;height:14px;border-radius:50%;background:#2FB35B}.dial{width:32px;height:32px;border-radius:50%;background:#D9B24C}
+.tabs{flex:none;display:flex;gap:3px;background:#3A4152;padding:8px 4px 6px}
+.tabs b{flex:1;text-align:center;font:600 12px Figtree;padding:22px 0 6px;border-radius:6px 6px 0 0;background:#EAD7A4}
+.tabs b.on{margin-top:-6px;background:#F4C8BA}
+.rail{flex:none;width:232px;margin:0 16px 20px;background:#3A4152;border-radius:22px;padding:22px 10px;display:flex;flex-direction:column;gap:5px}
+.rail b{font:600 16px Figtree;padding:12px 16px;border-radius:6px;background:#EAD7A4}.rail b.on{margin-left:8px;margin-right:-8px}
+.rail b:nth-child(1){background:#F4DC8C}.rail b:nth-child(2){background:#BFDDC6}.rail b:nth-child(4){background:#C3D5F0}.rail b:nth-child(5){background:#F4C8BA}.rail b:nth-child(6){background:#DCCBE8}
+.row{display:flex;flex:1;min-height:0}.main{flex:1;min-width:0;padding:6px 28px 24px 12px;display:flex;gap:28px}
+.phone .main{flex-direction:column;padding:0 16px 12px;gap:12px}
+.eyebrow{font:800 12px Figtree;letter-spacing:.12em;text-transform:uppercase;color:#59627A;margin:2px 0 8px}
+/* A yellow sticky note is a task, everywhere. */
+.note{background:linear-gradient(#F1D56A 0 18px,#FFE27A 18px);padding:30px 18px 16px;box-shadow:0 8px 14px -6px #0005;transform:rotate(-.6deg);position:relative}
+.note h2{font:700 30px/1.15 Kalam,cursive}.note p{font:600 14px Figtree;color:#5B4A12;margin-top:10px}
+.note.big h2{font-size:54px}.note.big{padding:54px 30px 26px}.note.big p{font-size:18px}
+.chip{display:inline-block;font:700 12px Figtree;padding:2px 8px;border-radius:99px;background:#9F0C3D;color:#fff;margin-left:6px}
+/* The red rubber stamp is the one main action of a screen. */
+.stamp{display:block;text-align:center;background:#FFFEFA;color:#A3391B;font:800 20px Figtree;letter-spacing:.1em;text-transform:uppercase;padding:18px;box-shadow:0 2px 5px #0004,inset 0 0 0 4px #FFFEFA,inset 0 0 0 6px #A3391B,inset 0 0 0 9px #FFFEFA,inset 0 0 0 10px #A3391B;transform:rotate(-.5deg)}
+.stamp.ok{color:#1F7A44}.desk .stamp{font-size:24px;padding:24px}
+/* Everything else is a quiet plain button. */
+.quiet{display:flex;gap:8px}.quiet span{flex:1;text-align:center;font:600 15px Figtree;padding:11px 8px;border-radius:8px;background:#FBFAF7;border:1px solid #C7CEDB;color:#3A4460}
+/* A small coloured note is the next step of one area or project; the colour is the area. */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini{padding:9px 11px 10px;box-shadow:0 4px 7px -3px #0005;min-height:86px;display:flex;flex-direction:column}
+.mini i{font:800 11px Figtree;font-style:normal;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.mini h3{font:700 17px/1.2 Kalam,cursive;margin:3px 0;flex:1}.mini small{font:600 12px Figtree;opacity:.7}
+.work{background:#CFE0FA}.games{background:#E3D5F5}.home{background:#CFEBD3}.health{background:#F9D3CD}
+.cols{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-content:start}
+.cols h4{font:800 13px Figtree;letter-spacing:.1em;text-transform:uppercase;padding:0 0 6px;border-bottom:3px solid;margin-bottom:10px}
+.col{display:flex;flex-direction:column;gap:10px}
+.colW h4{border-color:#4D6FB8}.colG h4{border-color:#8A6FB8}.colH h4{border-color:#3E8E5E}.colF h4{border-color:#C9584F}
+/* Roadmap board */
+.board{flex:1;display:flex;flex-direction:column;min-width:0}
+.board>div>h2{font:400 26px 'Young Serif',serif}.ruler{height:12px;background:#EAD7A4;margin:8px 0 14px;border-radius:2px}.ruler u{display:block;height:100%;width:14%;background:#4D6FB8}
+.lanes{flex:1;display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:14px;min-height:0}
+.lane{background:#F3EFE4;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.lane h4{font:800 13px Figtree;letter-spacing:.1em;text-transform:uppercase;color:#59627A;display:flex;justify-content:space-between}
+.card{background:#FFFEFA;border-left:4px solid #C7CEDB;padding:10px 12px;font:600 15px Figtree;box-shadow:0 1px 2px #0002}
+.more{font:600 14px Figtree;color:#59627A;padding:6px 2px}
+.seg{display:flex;gap:4px}.seg span{flex:1;text-align:center;font:700 13px Figtree;padding:8px 0;background:#EAD7A4;border-radius:6px 6px 0 0}.seg span.on{background:#F4DC8C}
+.pile{position:relative}.pile::before,.pile::after{content:"";position:absolute;left:10px;right:10px;height:100%;background:#FFFEFA;box-shadow:0 2px 4px #0003;top:8px;z-index:0}.pile::after{left:20px;right:20px;top:16px}
+.slip{position:relative;z-index:1;background:#FFFEFA;padding:26px 20px 20px;box-shadow:0 3px 6px #0003;border-bottom:2px solid #B9C6E3}
+.slip h2{font:700 34px/1.15 Kalam,cursive;color:#2447A8}.slip p{font:600 14px Figtree;color:#59627A;margin-top:10px}.desk .slip h2{font-size:50px}.desk .slip{padding:44px 34px 34px}
+.queue{width:380px;flex:none;display:flex;flex-direction:column;gap:8px;padding-top:26px}.queue .card{opacity:.75}
+.legend{width:900px;background:#E4E8EF;padding:24px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;align-items:start}
+.legend div>b{display:block;font:700 14px Figtree;margin-top:12px}.legend div>em{font:500 13px Figtree;font-style:normal;color:#59627A}
+.clip{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;background:#FFFEFA;border:6px solid #A8703C;border-radius:10px;padding:26px 14px 14px;box-shadow:0 4px 10px #0004}
+.clip::before{content:"";position:absolute;top:-12px;left:50%;width:90px;height:20px;margin-left:-45px;border-radius:6px;background:linear-gradient(#D5DAE2,#9AA3B2);box-shadow:0 1px 2px #0005}
+.clip .fill{flex:1;min-height:0;display:flex;flex-direction:column}.clip .fill>*{flex:1}
+.desk .clip{padding:34px 22px 20px;gap:18px}
+</style></head><body>
+
+<!-- 1. Focus on a phone -->
+<div class="frame phone" id="focus-phone">
+  <div class="top"><span class="mark"></span><h1>Focus Deck</h1><span class="jot">+ Jot</span><span class="dot"></span><span class="dial"></span></div>
+  <div class="main">
+    <div class="clip" style="margin-top:8px"><div class="fill"><div class="note"><h2 style="font-size:36px">Reply to the invoice email</h2><p>Client site · Work <span class="chip">due today</span></p></div></div>
+    <span class="stamp ok">✓ Done</span>
+    <div class="quiet"><span>Not now</span><span>Choose…</span><span>More</span></div></div>
+    <div><div class="eyebrow" style="margin-top:2px">Next in each area</div>
+      <div class="grid">
+        <div class="mini work"><i>Work</i><h3>Fix the icon on mobile</h3><small>2 projects ›</small></div>
+        <div class="mini games"><i>Games</i><h3>Rig the boss model</h3><small>2 projects ›</small></div>
+        <div class="mini home"><i>Home</i><h3>Pay the phone bill</h3><small>3 projects ›</small></div>
+        <div class="mini health"><i>Health</i><h3>Book the dentist</h3><small>1 project ›</small></div>
+      </div></div>
+  </div>
+  <div class="tabs"><b>Sort</b><b>Organize</b><b>Projects</b><b>Roadmap</b><b class="on">Focus</b><b>Review</b></div>
+</div>
+
+<!-- 2. Focus on a computer -->
+<div class="frame desk" id="focus-desk">
+  <div class="top"><span class="mark"></span><h1>Focus Deck</h1><span class="jot">+ Jot</span><span class="dot"></span><span class="dial"></span></div>
+  <div class="row"><div class="rail"><b>Sort</b><b>Organize</b><b>Projects</b><b>Roadmap</b><b class="on">Focus</b><b>Review</b></div>
+  <div class="main">
+    <div class="clip" style="flex:0 0 600px;margin-top:10px"><div class="fill"><div class="note big"><h2>Reply to the invoice email</h2><p>Client site · Work <span class="chip">due today</span></p></div></div>
+      <span class="stamp ok">✓ Done</span>
+      <div class="quiet"><span>Not now</span><span>Choose…</span><span>More</span></div></div>
+    <div style="flex:1;min-width:0"><div class="eyebrow">Next in each project</div>
+      <div class="cols">
+        <div class="col colW"><h4>Work</h4><div class="mini work"><i>Focus Deck</i><h3>Fix the icon on mobile</h3><small>5 more</small></div><div class="mini work"><i>Client site</i><h3>Plan next sprint</h3><small>4 more</small></div></div>
+        <div class="col colG"><h4>Games</h4><div class="mini games"><i>Platformer</i><h3>Rig the boss model</h3><small>5 more</small></div><div class="mini games"><i>Souls-like</i><h3>Playtest level two</h3><small>5 more</small></div></div>
+        <div class="col colH"><h4>Home</h4><div class="mini home"><i>Finances</i><h3>Pay the phone bill</h3><small>5 more</small></div><div class="mini home"><i>House</i><h3>Clean the gutters</h3><small>5 more</small></div><div class="mini home"><i>Car</i><h3>Call about the car</h3><small>5 more</small></div></div>
+        <div class="col colF"><h4>Health</h4><div class="mini health"><i>Fitness</i><h3>Book the dentist</h3><small>5 more</small></div></div>
+      </div></div>
+  </div></div>
+</div>
+
+<!-- 3. Roadmap on a computer -->
+<div class="frame desk" id="roadmap-desk">
+  <div class="top"><span class="mark"></span><h1>Focus Deck</h1><span class="jot">+ Jot</span><span class="dot"></span><span class="dial"></span></div>
+  <div class="row"><div class="rail"><b>Sort</b><b>Organize</b><b>Projects</b><b class="on">Roadmap</b><b>Focus</b><b>Review</b></div>
+  <div class="main"><div class="board">
+    <div style="display:flex;align-items:baseline;gap:14px"><h2>Focus Deck</h2><span style="font:600 15px Figtree;color:#59627A">First playable · 1 of 7 done</span><span style="flex:1"></span><div class="quiet" style="width:300px"><span>‹ Milestone ›</span><span>More</span></div></div>
+    <div class="ruler"><u></u></div>
+    <div class="lanes">
+      <div class="lane"><h4>Up next <span>18</span></h4>
+        <div><div class="eyebrow" style="margin:4px 0 6px">Next step</div><div class="note"><h2>Reply to the invoice email</h2><p>Paperwork <span class="chip">due today</span></p></div></div>
+        <div class="card">Book the dentist</div><div class="card">Write the devlog</div><div class="card">Refactor the input system</div><div class="card">Buy cables</div><div class="card">Plan next sprint</div><div class="more">Show 12 more</div>
+        <span style="flex:1"></span><span class="stamp" style="font-size:16px;padding:14px">+ Add a task</span></div>
+      <div class="lane"><h4>Doing <span>3</span></h4><div class="card">Fix the icon on mobile</div><div class="card">Record audition tape</div><div class="card">Renew insurance</div></div>
+      <div class="lane"><h4>Review <span>2</span></h4><div class="card">Playtest level two</div><div class="card">Call about the car</div></div>
+      <div class="lane"><h4>Done <span>637</span></h4><div class="card" style="opacity:.6;text-decoration:line-through">Pay the phone bill</div><div class="card" style="opacity:.6;text-decoration:line-through">Clean the gutters</div><div class="card" style="opacity:.6;text-decoration:line-through">Rig the boss model</div><div class="more">Show all 637</div></div>
+    </div></div></div></div>
+</div>
+
+<!-- 4. Roadmap on a phone -->
+<div class="frame phone" id="roadmap-phone">
+  <div class="top"><span class="mark"></span><h1>Focus Deck</h1><span class="jot">+ Jot</span><span class="dot"></span><span class="dial"></span></div>
+  <div class="main">
+    <div class="board" style="flex:none"><div style="display:flex;align-items:baseline;gap:8px"><h2 style="font-size:22px">Focus Deck</h2><span style="font:600 13px Figtree;color:#59627A">First playable</span></div><div class="ruler" style="margin-bottom:4px"><u></u></div></div>
+    <div><div class="eyebrow">Next step</div><div class="note"><h2>Reply to the invoice email</h2><p>Paperwork <span class="chip">due today</span></p></div></div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-height:0"><div class="seg"><span class="on">Up next 17</span><span>Doing 3</span><span>Review 2</span><span>Done 637</span></div>
+      <div class="card">Book the dentist</div><div class="card">Write the devlog</div><div class="card">Refactor the input system</div><div class="card">Buy cables</div><div class="more">Show 13 more</div></div>
+    <span class="stamp" style="font-size:16px;padding:14px">+ Add a task</span>
+  </div>
+  <div class="tabs"><b>Sort</b><b>Organize</b><b>Projects</b><b class="on" style="background:#C3D5F0">Roadmap</b><b>Focus</b><b>Review</b></div>
+</div>
+
+<!-- 5. Sort on a phone -->
+<div class="frame phone" id="sort-phone">
+  <div class="top"><span class="mark"></span><h1>Focus Deck</h1><span class="jot">+ Jot</span><span class="dot"></span><span class="dial"></span></div>
+  <div class="main">
+    <div class="eyebrow">Sort · 1 of 5</div>
+    <div class="clip"><div class="pile" style="flex:1;display:flex;margin-bottom:18px"><div class="slip" style="flex:1"><h2>Idea for the boss fight</h2><p>A thought · no project yet · just now</p></div></div>
+    <span class="stamp">Sort this one</span>
+    <div class="quiet"><span>Not this one</span><span>Sort several</span><span>More</span></div></div>
+  </div>
+  <div class="tabs"><b class="on" style="background:#F4DC8C">Sort</b><b>Organize</b><b>Projects</b><b>Roadmap</b><b>Focus</b><b>Review</b></div>
+</div>
+
+<!-- 6. Review on a computer -->
+<div class="frame desk" id="review-desk">
+  <div class="top"><span class="mark"></span><h1>Focus Deck</h1><span class="jot">+ Jot</span><span class="dot"></span><span class="dial"></span></div>
+  <div class="row"><div class="rail"><b>Sort</b><b>Organize</b><b>Projects</b><b>Roadmap</b><b>Focus</b><b class="on">Review</b></div>
+  <div class="main">
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0"><div class="eyebrow">Finished? · 1 of 8</div>
+      <div class="clip" style="margin-top:8px"><div class="pile" style="flex:1;display:flex;margin-bottom:18px"><div class="slip" style="flex:1"><h2>Refactor the input system</h2><p>Focus Deck · Work</p></div></div>
+      <span class="stamp ok">✓ Looks good</span>
+      <div class="quiet"><span>More work</span><span>Done this week</span></div></div></div>
+    <div class="queue"><div class="eyebrow">After this one</div><div class="card">Playtest level two</div><div class="card">Call about the car</div><div class="card">Write the devlog</div><div class="card">Buy cables</div><div class="more">and 3 more</div></div>
+  </div></div>
+</div>
+
+<!-- 7. What each shape means -->
+<div class="frame legend" id="legend">
+  <div><div class="note" style="padding:26px 12px 10px"><h2 style="font-size:20px">Book the dentist</h2></div><b>Yellow sticky note</b><em>A task. The biggest one on a screen is the one to do next.</em></div>
+  <div><div class="mini home"><i>Home</i><h3>Pay the phone bill</h3></div><b>Small coloured note</b><em>The next step of one area or project. The colour is the area.</em></div>
+  <div><span class="stamp ok" style="font-size:15px;padding:14px">✓ Done</span><b>Rubber stamp</b><em>The one main action of a screen. Only one per screen.</em></div>
+  <div><div class="quiet"><span>Not now</span><span>More</span></div><b>Plain button</b><em>Everything else. Always has a word on it.</em></div>
+</div>
+</body></html>

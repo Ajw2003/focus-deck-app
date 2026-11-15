@@ -1075,3 +1075,25 @@ Eden's words: "Design approved: step by step 11 2*", with choice 2 answered in t
 - Dyslexia-friendly writing: kept at its size. A long Focus title may take 5 lines where the handwriting takes 3; `scripts/check-note-faces-browser.mjs` now allows hand + 2 lines (it was hand + 1) and still checks the title fits inside the note.
 - Roadmap rows stay plain: no priority or due chips; both are in the task's drawer and Task details.
 - "Make it a milestone" shows only for a task with smaller steps (`app/js/roadmap-view.js`, the task drawer).
+
+## 2026-11-15: Design audit approved
+
+Eden's words: "Design approved: design audit 1A 2A 3A 4* 5B", with choice 4 answered in their own words: "Keep the clip board make it bigger and make the notes expand to fill the board properly".
+
+- Choice 1 (what Focus opens on): A, the task, already picked, with next steps under it. "Choose…" still opens the two questions.
+- Choice 2 (the small notes on a phone): A, one per area; tapping one shows its projects. A computer shows one per project.
+- Choice 3 (Roadmap on a computer): A, the four lists side by side.
+- Choice 4 (the clipboard frame): Eden's own answer. The clipboard stays on Focus, Sort, Review and Organize, grows with the window, and the note or slip on it stretches to fill it. The drawings were redone to match (`docs/generated/design-audit/mockups.html`); the pictures on the approved page `docs/plans/design-audit.html` still show the version without the clipboard.
+- Choice 5 (build order): B, everything in one go, one test pass at the end.
+- Issues: #281 (parent), steps #282 to #286. Build plan: `docs/plans/design-audit-build.html`. How it works: `docs/4-systems/desk-layout.md`.
+
+**Status.** Approved, built, and passed QA the same day (see the entry below).
+
+## 2026-11-15: Design audit passed QA
+
+- Eden typed "QA passed: design audit" after testing from `docs/plans/design-audit-qa.html` and the published test copy. The page had no choices to pick.
+- Built as approved, with these differences from the drawings, all listed on the QA page: on a computer the Roadmap's "+ Add a task" and milestone arrows sit under the columns; Roadmap rows keep their grip and tick box; Review's heading says "N waiting"; a phone shows four area notes and an "All N areas" button when there are more than four.
+- Evidence at hand-over: 41 of 41 checks in `scripts/check-all.sh`, 332 unit tests, 40 of 40 final shots fit (`docs/generated/design-audit/final-checks.txt`, `final-shots.txt`, `final-fit.txt`).
+- Issues #281 to #286 stay `needs review` until Eden closes them after the merge.
+
+**Status.** Passed; pull request into main opened from `AjsAgent/design-audit`.

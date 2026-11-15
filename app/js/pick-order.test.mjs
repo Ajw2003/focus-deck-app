@@ -1,7 +1,7 @@
 // focus-deck-app/js/pick-order.test.mjs -- run with: node --test app/js/pick-order.test.mjs
 import test from 'node:test';
 import assert from 'node:assert';
-import { pickOrder, reasonOf } from './pick-order.js';
+import { pickOrder, reasonOf, nextStepOf, nextStepOfArea } from './pick-order.js';
 
 const st = { categories: [] };
 const e = (id, o = {}) => ({ t: Object.assign({ id, status: 'next', deadline: null, priority: null, categoryIds: [] }, o), p: {} });
@@ -41,4 +41,21 @@ test('reasonOf names the first rule that applies', () => {
   const r = (o) => reasonOf(e('x', o).t, st, '2026-11-12');
   assert.deepEqual([r({ status: 'review' }), r({ status: 'doing' }), r({ deadline: '2026-11-12' }), r({ deadline: '2026-11-01' }), r({ priority: 'urgent' }), r({ priority: 'high' }), r({ deadline: '2026-11-20' }), r({ priority: 'low' }), r({})],
     ['Needs review', 'In progress', 'Due today', 'Overdue', 'Urgent', 'High', 'Due Fri', 'Low', 'Oldest first']);
+});
+
+test('nextStepOf: a review task beats an urgent next task; only done tasks gives null', () => {
+  const t = (id, o) => Object.assign({ id, status: 'next', deadline: null, priority: null, categoryIds: [] }, o);
+  const p = { id: 'p', tasks: [t('u', { priority: 'urgent' }), t('r', { status: 'review' }), t('d', { status: 'done' })] };
+  assert.equal(nextStepOf(p, st, '2026-11-12').t.id, 'r');
+  assert.equal(nextStepOf({ id: 'q', tasks: [t('d', { status: 'done' })] }, st, '2026-11-12'), null);
+});
+
+test('nextStepOfArea: the single best task across the area; an unknown area gives null', () => {
+  const t = (id, o) => Object.assign({ id, status: 'next', deadline: null, priority: null, categoryIds: [] }, o);
+  const s = { categories: [], projectCategories: [{ id: 'a1' }], projects: [
+    { id: 'p1', categoryId: 'a1', tasks: [t('x', { priority: 'high' })] },
+    { id: 'p2', categoryId: 'a1', tasks: [t('y', { priority: 'urgent' })] },
+    { id: 'p3', tasks: [t('z', { status: 'review' })] }] };
+  assert.equal(nextStepOfArea('a1', s, '2026-11-12').t.id, 'y');
+  assert.equal(nextStepOfArea('nope', s, '2026-11-12'), null);
 });

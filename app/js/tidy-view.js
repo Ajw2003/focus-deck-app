@@ -10,7 +10,7 @@ import { stamp, foot, dots, choice } from './sort-flow-view.js';
 export const TIDY_STEPS = GROUPS.length; // step 5 is "Close these?"
 const back = (step) => '<button type="button" class="dk-back" data-action="tidy-step" data-step="' + step + '">‹ Back</button>';
 const skip = (step) => '<button type="button" class="dk-skip" data-action="tidy-skip" data-step="' + step + '">Skip</button>';
-export const board = (q, inner) => '<div class="dk-board sort-board"><div class="dk-paper sort-paper"><h2 class="sort-q">' + esc(q) + '</h2><div class="sort-body">' + inner + '</div></div></div>';
+export const board = (q, inner, extra = '') => '<div class="dk-board sort-board"><div class="dk-paper sort-paper"><h2 class="sort-q">' + esc(q) + extra + '</h2><div class="sort-body">' + inner + '</div></div></div>';
 const obj = (label, svg, mark, off) => '<button type="button" class="dk-obj" data-action="tidy-mark" data-mark="' + mark + '"' + (off ? ' disabled' : '') + '>' + SVG[svg] + esc(label) + '</button>';
 
 function tickRow(item, group, ticks) {

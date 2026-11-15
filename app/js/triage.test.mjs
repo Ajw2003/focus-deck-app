@@ -67,7 +67,9 @@ test('markup: top three as numbered cards with flags, Next/Later flags, Move; Cl
 test('the pick: one of the top three at a time with one question; past the last (or with none) it is the list', () => {
   const st = mk(Array.from({ length: 5 }, (_, i) => task('t' + i, { title: 'Task ' + i, priority: i === 0 ? 'urgent' : null })));
   const p = renderTriage(st, { view: all, triageStep: 'pick', triagePlace: 2 }, T);
-  assert.match(p, /Do this first\?/); assert.match(p, /Task 1/); assert.doesNotMatch(p, /Task 0|Task 2/);
+  assert.match(p, /Do this first\?/); assert.match(p, /Task 1/); assert.doesNotMatch(p, /Task 0/); assert.match(p, /has-pile-1/); assert.match(p, /<li>Task 2<\/li>/); assert.strictEqual((p.match(/file-btn/g) || []).length, 1);
+  assert.doesNotMatch(renderTriage(st, { view: all, triageStep: 'pick', triagePlace: 3 }, T), /has-pile|After this one/);
+  assert.match(renderTriage(st, { view: all, triageStep: 'pick', triagePlace: 1 }, T), /has-pile-2/);
   assert.match(p, /aria-label="Step 2 of 3"/);
   for (const a of ['triage-yes', 'triage-notnow', 'triage-check']) assert.match(p, new RegExp('data-action="' + a + '"'));
   assert.match(p, /data-action="triage-pick" data-place="1"/); // Back goes to the one before

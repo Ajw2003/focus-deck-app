@@ -101,11 +101,11 @@ const openTask = async (id) => click('.rm-task-title[data-id="' + id + '"]');
 // r2: the milestone on the clipboard
 check('r2: opens on the last-used project at its first milestone with open tasks', (await text('.sort-q')) === 'Start here screen');
 check('r2: four folder tabs, Up next on', (await page.$$eval('.rm-tab', (b) => b.map((x) => x.textContent.replace(/\s+/g, ' ').trim()).join('|'))) === 'Up next 2|Doing 1|Review 1|Done 1' && (await page.getAttribute('.rm-tab[data-col="next"]', 'aria-pressed')) === 'true');
-check('r2: the tasks of the chosen column as tick rows', (await page.$$eval('.rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Test on phone|Phone layout check');
+check('r2: the tasks of the chosen column as tick rows', (await page.$$eval('.rm-lane.on .rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Test on phone|Phone layout check');
 check('r2: a ruler and the flags', !!(await page.$('.pj-ruler')) && (await text('.rm-all')) === 'All milestones' && !!(await page.$('.rm-flag[aria-label="Next milestone"]:not([disabled])')) && !!(await page.$('.rm-flag[aria-label="Previous milestone"][disabled]')));
 await shot('r2');
 await click('.rm-tab[data-col="doing"]');
-check('r2: the Doing tab lists Open on Start here', (await text('.rm-task-title')) === 'Open on Start here');
+check('r2: the Doing tab lists Open on Start here', (await text('.rm-lane.on .rm-task-title')) === 'Open on Start here');
 await click('.rm-tab[data-col="next"]');
 await click('.rm-flag[aria-label="Next milestone"]');
 check('r2: › steps to the next milestone', (await text('.sort-q')) === 'Areas');
@@ -125,7 +125,7 @@ await shot('r4');
 await click('.rm-stamp[data-status="doing"]');
 check('r4: the Doing stamp moved the task to Doing', (await task('s1')).status === 'doing' && !(await page.$('.sort-drawer')));
 await click('.rm-tab[data-col="doing"]');
-check('r4: it is in the Doing tab', (await page.$$eval('.rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Test on phone|Open on Start here');
+check('r4: it is in the Doing tab', (await page.$$eval('.rm-lane.on .rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Test on phone|Open on Start here');
 
 // r4m: to another milestone
 await openTask('s1');
@@ -133,7 +133,7 @@ await click('.sort-drawer [data-action="rm-drawer"][data-drawer="move"]');
 check('r4m: Move to lists the milestones and Unplanned, this one marked', (await page.$$eval('.sort-drawer .dk-choice', (b) => b.map((x) => x.textContent.trim()).join('|'))) === 'Start here screen|Areas|Tidy up and Triage|Unplanned' && (await page.$$('.sort-drawer .dk-choice.on')).length === 1);
 await shot('r4m');
 await click('.sort-drawer [data-action="rm-move-to"][data-ms="mg2"]');
-check('r4m: the task is now in Areas', (await task('s1')).milestoneId === 'mg2' && (await page.$$eval('.rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Open on Start here');
+check('r4m: the task is now in Areas', (await task('s1')).milestoneId === 'mg2' && (await page.$$eval('.rm-lane.on .rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Open on Start here');
 await click('.rm-tab[data-col="next"]');
 
 // ◎ Focus and Details

@@ -29,6 +29,8 @@ try {
   await page.locator('[data-screen="focus"]:visible').first().click();
   await page.waitForTimeout(400);
   const focusTape = (await page.textContent('.vs-pick-name')).trim();
+  await page.click('[data-action="focus-choose"]'); // Focus opens on a task (#283); the folders are behind Choose
+  await page.waitForTimeout(300);
   const folders = (await fileKeys(page, 'projects')).length; // Everything: a file can also hang in its area's drawer
   await page.click('.vs-tape');
   const menu = await page.textContent('.vs-pop');

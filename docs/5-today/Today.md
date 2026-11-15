@@ -1,3 +1,29 @@
+# Today — 2026-11-15
+
+## Design audit of phone and computer (design only, nothing built)
+
+Eden asked for an audit and fix of the design on phone and computer: next steps always clear, the most important
+thing the biggest, good use of space, sticky notes for object permanence. The real app was shot on all seven tabs at
+390x844 and 1440x900 with 8 projects, 56 tasks and 5 thoughts (`docs/generated/design-audit/shoot.mjs`,
+`shoot-focus.mjs`). Measured: on Focus the paper covers 23% of the computer window and 51% of the phone window;
+Focus opens on "Which project?" with 34 controls and asks a second question before any task shows
+(`renderPicker`, `app/js/focus-view.js:56`); every screen is capped at 560px (`app/css/app.css:1391`, `:1408`, `:1425`).
+Proposal page: `docs/plans/design-audit.html` (from `design-audit.json`), drawn in
+`docs/generated/design-audit/mockups.html` and shot by `shoot-mockups.mjs`. Waiting on Eden's five answers
+(what Focus opens on, the small notes on a phone, Roadmap columns, the clipboard frame, build order).
+
+Approved the same day: "Design approved: design audit 1A 2A 3A 4* 5B", with Eden's own answer for the clipboard (keep it,
+make it bigger, the notes fill it); see Decisions. The four drawings that answer changes were redone. Issues #281
+(parent) and #282 to #286 (steps) are open; `docs/4-systems/desk-layout.md` says what the build must do. The build
+plan page `docs/plans/design-audit-build.html` is waiting on Eden's approval. No app code has changed.
+
+Build plan approved the same day; steps #282 to #285 built by builder helpers, each checked and touched up before the next.
+Step 5 (#286) shot the build in dark mode and with 26 projects and found four faults (unreadable Roadmap title and
+due chip in dark, phone Focus 200px too tall with 8 areas, phone Roadmap 33px too tall with a long list), all fixed.
+How it works: `docs/4-systems/desk-layout.md`. Results: `docs/generated/design-audit/final-checks.txt`,
+`final-shots.txt`, `final-fit.txt`. The checking page is `docs/plans/design-audit-qa.html`.
+Eden typed "QA passed: design audit"; pull request into main opened from `AjsAgent/design-audit`.
+
 # Today — 2026-11-11
 
 - 2026-11-12: step 11 of "tabs that follow the flow" (#259): five numbered tabs (Sort, Organize, Roadmap, Focus, Review), jot box on every tab with J on desktop, Board and Projects screens removed into the Roadmap; see `docs/4-systems/tabs.md`.

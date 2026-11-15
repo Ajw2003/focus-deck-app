@@ -4,7 +4,7 @@
 import { esc } from './state.js';
 import { dueDates } from './pick-bits.js';
 import { triageLists, NOW_SIZE } from './triage.js';
-import { stamp, foot, choice, dots } from './sort-flow-view.js';
+import { stamp, foot, choice, dots, pile, split } from './sort-flow-view.js';
 import { board } from './tidy-view.js';
 
 const flag = (t) => t.priority ? '<i class="pf" data-p="' + esc(t.priority) + '" aria-hidden="true"></i>' : '';
@@ -27,12 +27,13 @@ function renderPick(l, place, ui) {
   const chip = '<span class="folder-chip" style="--c:' + esc(r.project.color || '#8F5C2F') + '">' + esc(r.project.name) + '</span>';
   const slip = '<div class="jot-slip tr-slip"><p class="slip-text">' + esc(r.task.title) + '</p><div class="slip-dest">' + chip + '<span class="tr-why">' + esc(r.reason) + '</span>' + flag(r.task) + '</div></div>';
   const ids = ' data-task="' + esc(r.id) + '"';
-  const body = slip + choice('✓ Yes, do it first', { action: 'triage-yes', cls: ' tr-yes' })
-    + choice('⤵ Not now', { action: 'triage-notnow', attrs: ids + (l.total > NOW_SIZE ? '' : ' disabled') })
-    + choice('✎ Check it', { action: 'triage-check', attrs: ids }) + closedSlip(ui);
-  const prev = place > 1 ? '<button type="button" class="dk-back" data-action="triage-pick" data-place="' + (place - 1) + '">‹ Back</button>'
-    : '<button type="button" class="dk-back" data-action="set-screen" data-screen="tidy">‹ Back</button>';
-  return '<div class="org">' + dots(place, l.now.length) + board('Do this first?', body) + foot([prev, '<button type="button" class="dk-skip" data-action="triage-go" data-to="top">Skip</button>']) + '</div>';
+  const prev = place > 1 ? '<button type="button" class="dk-plain dk-back" data-action="triage-pick" data-place="' + (place - 1) + '">Back</button>'
+    : '<button type="button" class="dk-plain dk-back" data-action="set-screen" data-screen="tidy">Back</button>';
+  const body = pile(l.now.length - place + 1, slip) + '<div class="one-stamp">' + stamp('✓ Yes, do it first', { action: 'triage-yes', cls: ' tr-yes' }) + '</div>'
+    + '<div class="dk-plain-row"><button type="button" class="dk-plain" data-action="triage-notnow"' + ids + (l.total > NOW_SIZE ? '' : ' disabled') + '>Not now</button>'
+    + '<button type="button" class="dk-plain" data-action="triage-check"' + ids + '>Check it</button>'
+    + '<button type="button" class="dk-plain dk-skip" data-action="triage-go" data-to="top">Skip</button>' + prev + '</div>' + closedSlip(ui);
+  return '<div class="org">' + dots(place, l.now.length) + split(board('Do this first?', body), l.now.slice(place).map((x) => x.task.title)) + '</div>';
 }
 
 export function renderTriage(st, ui, today = dueDates().today) {

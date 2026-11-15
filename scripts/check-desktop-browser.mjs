@@ -48,6 +48,7 @@ async function open(scheme, viewport = { width: 1440, height: 900 }) {
   page.on('pageerror', (e) => check(`[${scheme}] no page error: ` + e.message, false));
   await page.addInitScript(([s, k]) => { if (!localStorage.getItem(k)) { localStorage.setItem('focusdeck-onboarding', 'done'); localStorage.setItem('focusdeck-screen', 'focus'); localStorage.setItem(k, JSON.stringify(s)); } }, [seed, STATE_KEY]);
   await page.goto(BASE);
+  await page.waitForSelector('.focus-active'); await page.click('[data-action="focus-choose"]'); // #283: Focus opens on a task; Choose… leads to the questions
   await page.waitForSelector('.cab');
   await page.waitForTimeout(400);
   return { ctx, page };

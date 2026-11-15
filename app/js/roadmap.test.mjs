@@ -92,6 +92,23 @@ test('an old save (no sections, milestones or milestoneId) loads: every task is 
   assert.ok(pv.includes('data-status="next"') && pv.includes('Unplanned') && !pv.includes('New project'), 'the Roadmap is one project, with no + New project (Projects owns it)');
 });
 
+// ---- four lists and the next-step note (#284) ----
+test('Roadmap: four lists, the first Up next task is the note, long lists show 8 then "Show N more"', () => {
+  const mk = (n) => ({ id: 'p', name: 'P', color: '#c55', tasks: Array.from({ length: n }, (_, i) => t('n' + i, 'next')).concat([t('d1', 'doing'), t('r1', 'review'), t('x1', 'done')]) });
+  const view = (p, ui = {}) => renderRoadmap({ projects: [p], projectCategories: [], categories: [] }, Object.assign({ view: { mode: 'project', id: 'p' } }, ui));
+  const rows = (h) => (h.match(/class="dk-choice rm-task/g) || []).length;
+  let h = view(mk(12));
+  assert.deepEqual(['next', 'doing', 'review', 'done'].map((k) => h.includes('class="rm-lane rm-col on" data-status="' + k) || h.includes('data-status="' + k + '" data-ms')), [true, true, true, true], 'all four lists are in the markup');
+  assert.ok(h.includes('Next step') && h.includes('class="note rm-note"') && /rm-note-title" data-action="rm-task" data-id="n0"/.test(h), 'the first Up next task is the note');
+  assert.ok(h.includes('Show 4 more') && !h.includes('Show fewer'));
+  assert.equal(rows(h), 7 + 1 + 1 + 1, '12 Up next: the note + 7 rows, plus one each in Doing, Review, Done');
+  h = view(mk(12), { rmMore: ['next'] });
+  assert.ok(h.includes('Show fewer') && !h.includes('Show 4 more'));
+  assert.equal(rows(h), 11 + 3, 'expanded: all 12 (the note + 11 rows)');
+  h = view(mk(0));
+  assert.ok(!h.includes('Next step') && !h.includes('rm-note'), 'an empty Up next has no note and no heading');
+});
+
 // ---- milestone settings (#258) ----
 const sum = (o) => Object.values(o).reduce((a, b) => a + b, 0);
 test('split always adds up, leftovers to the largest', () => {

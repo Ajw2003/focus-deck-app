@@ -763,6 +763,11 @@
      "scroll-to-task",
      "Jump to a task",
      "r2f"
+    ],
+    [
+     "rm-more",
+     "Show more / Show fewer in a list",
+     "r2"
     ]
    ]
   ],
@@ -973,6 +978,31 @@
      "clear-focus",
      "✕ Clear",
      "f4"
+    ],
+    [
+     "focus-choose",
+     "Choose…: open the two questions",
+     "f1 f3"
+    ],
+    [
+     "focus-choose-back",
+     "Back from the questions to the task",
+     "f1"
+    ],
+    [
+     "focus-area",
+     "A small area note: show that area's projects",
+     "f3"
+    ],
+    [
+     "focus-all-areas",
+     "All areas: show every area note",
+     "f3"
+    ],
+    [
+     "focus-set",
+     "A small project note: make its task the big note",
+     "f3"
     ]
    ]
   ],

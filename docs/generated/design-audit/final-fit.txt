@@ -1,0 +1,19 @@
+phone sort: page 0px taller than the window, 13 controls, 0 text elements under 13px
+phone tidy: page 0px taller than the window, 12 controls, 0 text elements under 13px
+phone triage: page 0px taller than the window, 14 controls, 0 text elements under 13px
+phone projects: page 0px taller than the window, 33 controls, 0 text elements under 13px
+phone roadmap: page 0px taller than the window, 30 controls, 0 text elements under 13px
+phone focus: page 0px taller than the window, 25 controls, 0 text elements under 13px
+phone review: page 0px taller than the window, 13 controls, 0 text elements under 13px
+desk sort: page 0px taller than the window, 13 controls, 0 text elements under 13px
+desk tidy: page 0px taller than the window, 12 controls, 0 text elements under 13px
+desk triage: page 0px taller than the window, 14 controls, 0 text elements under 13px
+desk projects: page 0px taller than the window, 33 controls, 0 text elements under 13px
+desk roadmap: page 0px taller than the window, 30 controls, 0 text elements under 13px
+desk focus: page 0px taller than the window, 25 controls, 0 text elements under 13px
+desk review: page 0px taller than the window, 13 controls, 0 text elements under 13px
+phone step1 (as opened): heading "Playtest level two", 15 visible controls, the paper covers 34% of the window, page 0px taller than window
+phone step3 (focus-area): heading "Playtest level two", 14 visible controls, the paper covers 39% of the window, page 0px taller than window
+phone step2 (focus-choose): heading "Which project?", 33 visible controls, the paper covers 49% of the window, page 0px taller than window
+desk step1 (as opened): heading "Playtest level two", 21 visible controls, the paper covers 29% of the window, page 0px taller than window
+desk step2 (focus-choose): heading "Which project?", 30 visible controls, the paper covers 38% of the window, page 0px taller than window

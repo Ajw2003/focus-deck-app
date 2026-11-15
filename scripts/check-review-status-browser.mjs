@@ -51,11 +51,12 @@ for (const phone of [true, false]) {
   const stateTask = async (id) => (await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')))).projects[0].tasks.find((x) => x.id === id);
   const click = async (sel) => { await page.click(sel); await page.waitForTimeout(250); };
   // a task is in a folder tab when that tab lists it
-  const where = async (k, id = 'n1') => { await click('.rm-tab[data-col="' + k + '"]'); return (await page.$$('.rm-task-title[data-id="' + id + '"]')).length === 1 && (await stateTask(id)).status === k; };
+  const tab = (k) => phone ? click('.rm-tab[data-col="' + k + '"]') : null; // a computer shows all four lists at once (#284)
+  const where = async (k, id = 'n1') => { await tab(k); return (await page.$$('.rm-lane[data-status="' + k + '"] .rm-task-title[data-id="' + id + '"]')).length === 1 && (await stateTask(id)).status === k; };
   const shot = (n) => page.screenshot({ path: OUT + 'review-' + (phone ? '390' : '1440') + '-' + n + '.png' });
   const tabs = await page.$$eval('.rm-tab', (e) => e.map((x) => x.dataset.col));
   check(tabs.join() === 'next,doing,review,done', tag + 'folder tabs in order', tabs.join());
-  const stamp = async (id, k) => { await click('.rm-tab[data-col="' + (await stateTask(id)).status + '"]'); await click('.rm-task-title[data-id="' + id + '"]'); await click('.rm-stamp[data-status="' + k + '"]'); };
+  const stamp = async (id, k) => { await tab((await stateTask(id)).status); await click('.rm-task-title[data-id="' + id + '"]'); await click('.rm-stamp[data-status="' + k + '"]'); };
   await stamp('n1', 'doing');
   check(await where('doing'), tag + 'Up next > Doing: task is in the Doing tab');
   await stamp('n1', 'review');

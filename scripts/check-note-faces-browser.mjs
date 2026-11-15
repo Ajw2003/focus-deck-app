@@ -59,10 +59,8 @@ async function open(face, scheme, { sw = false, url = BASE } = {}) {
 const fam = (page, sel) => page.$eval(sel, (e) => getComputedStyle(e).fontFamily);
 const size = (page, sel) => page.$eval(sel, (e) => parseFloat(getComputedStyle(e).fontSize));
 async function draw(page) {
-  await page.waitForSelector('.cab');
+  await page.waitForSelector('.focus-active'); // #283: Focus opens on a task by itself
   await page.waitForTimeout(300);
-  await page.click('[data-action="pick-for-me"]').catch(() => {}); // #270: Pick for me opens a task from the first question
-  await page.waitForSelector('.focus-active', { timeout: 4000 }).catch(() => {});
 }
 
 const sizes = {};
@@ -145,7 +143,7 @@ const CACHE_VERSION = readFileSync(join(ROOT, 'app/service-worker.js'), 'utf8').
 // OpenDyslexic OFFLINE: let the service worker install, go offline, reload, the font comes from cache.
 {
   const { ctx, page } = await open('dyslexic', 'dark', { sw: true });
-  await page.waitForSelector('.cab');
+  await page.waitForSelector('.focus-active'); // #283
   const swState = await page.evaluate(async () => { const r = await navigator.serviceWorker.ready; return r.active && r.active.state; });
   check('service worker installed and active', swState === 'activated' || swState === 'activating', swState);
   const cached = await page.evaluate(async () => { const r = await caches.match(new URL('fonts/opendyslexic-latin-700-normal.woff2', location.href)); const names = await caches.keys(); return { hit: !!r, names }; });

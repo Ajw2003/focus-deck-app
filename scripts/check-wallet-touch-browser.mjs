@@ -50,6 +50,7 @@ async function open(mode) {
     localStorage.setItem('focusdeck-state-v1', JSON.stringify({ ...s, choosingMode: { mode: m, updatedAt: 1 } }));
   }, [seed, mode]);
   await page.goto(BASE);
+  await page.waitForSelector('.focus-active'); await page.click('[data-action="focus-choose"]'); // #283: Focus opens on a task; Choose… leads to the questions
   await page.waitForSelector('.cab');
   // the project question is the filing cabinet now (2026-11-14; scripts/check-cabinet-browser.mjs); the flip strip is the kinds of work
   await page.click('[data-action="focus-next"]');

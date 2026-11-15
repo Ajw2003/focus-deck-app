@@ -1,0 +1,32 @@
+{
+ "title": "Design audit build plan",
+ "eyebrow": "Build plan for approval · your answers 1A, 2A, 3A and 5B, plus your own answer for the clipboard · issue #281 and its five steps, #282 to #286",
+ "approval": "Build plan approved: design audit",
+ "short": {
+  "lead": "This builds the design you approved. Your clipboard answer changed four pictures, so they are redrawn here: the clipboard stays, it is bigger, and the note fills it. Everything is built in one go and you test once at the end.",
+  "hint": "Tap a step to see what it builds. The pictures are drawings with sample data, in light mode.",
+  "key": [["Built by me", ""], ["You decide", "you"]],
+  "items": [
+   ["list", "Step 1", "A bigger clipboard, plain buttons with words, and a next step for each project (#282)", "", "The clipboard on Focus, Sort, Review and Organize grows with the window, and what sits on it stretches to fill it. The brass handle and the '⋯' tag become a plain button that says 'More'. One shared piece of code works out the next step of a project or an area, in the order 'Pick for me' already uses.", "Nothing from you.", {"src": "docs/generated/design-audit/after-legend.png", "alt": "The four shapes: yellow note, small coloured note, stamp, plain button", "caption": "The four shapes every screen uses."}],
+   ["list", "Step 2", "Focus opens on one task (#283)", "", "Focus shows one task straight away on a yellow note that fills the clipboard, with one Done stamp. 'Not now' gives another task, 'Choose…' opens the two questions, 'More' holds the rest. On a phone, one small note per area sits under the clipboard; tapping it shows that area's projects.", "Nothing from you.", {"src": "docs/generated/design-audit/after-focus-phone.png", "alt": "Focus on a phone: a clipboard filled by one yellow note, a Done stamp, three plain buttons, four area notes below", "caption": "Focus on a phone, with the clipboard kept."}],
+   ["list", "Step 2", "Focus on a computer (#283)", "", "The clipboard takes the left of the window and the note fills it. To the right, every project shows its next step in a column per area. Tapping a small note puts it on the clipboard as the big note.", "Nothing from you.", {"src": "docs/generated/design-audit/after-focus-desk.png", "alt": "Focus on a computer: a large clipboard on the left, a column of small notes per area on the right", "caption": "Focus on a computer."}],
+   ["list", "Step 3", "Roadmap: four columns and the next step on top (#284)", "", "On a computer, Up next, Doing, Review and Done sit side by side. The first Up next task is a yellow note marked 'Next step'. A long list shows its first few tasks and a 'Show more' line. On a phone the four lists stay as tabs under the next step note.", "Nothing from you.", {"src": "docs/generated/design-audit/after-roadmap-desk.png", "alt": "Roadmap on a computer with four columns", "caption": "Roadmap on a computer. This picture is unchanged from the design you approved."}],
+   ["list", "Step 4", "Sort, Review and Organize: the slip fills the clipboard (#285)", "", "The slip grows to fill the clipboard, and the edges of the waiting slips show behind it. It has one stamp and plain buttons. On a computer the next few slips are listed to the right under 'After this one'. What each button does stays the same.", "Nothing from you.", {"src": "docs/generated/design-audit/after-sort-phone.png", "alt": "Sort on a phone: a clipboard filled by one slip, a stamp and three plain buttons", "caption": "Sort on a phone, with the clipboard kept."}],
+   ["list", "Step 4", "Review on a computer (#285)", "", "Only Review is drawn for a computer; Sort and Organize use the same layout.", "Nothing from you.", {"src": "docs/generated/design-audit/after-review-desk.png", "alt": "Review on a computer: a large clipboard with one slip, and the next four listed on the right", "caption": "Review on a computer."}],
+   ["eye", "Step 5", "Check everything and hand it back (#286)", "", "I rerun every automatic check and update the ones that describe the old layout. I photograph each changed screen in the real app, before and after, on a phone and a computer, in light and dark, with 8 projects and with 26. Then I update the docs and publish one checking page with test steps for you.", "Nothing from you."],
+   ["lock", "Approve", "Say go", "you", "The build starts once you send the reply below.", "Reply \"Build plan approved: design audit\", or say what to change."]
+  ]
+ },
+ "changes": [
+  ["chg", "Focus, Roadmap, Sort, Review and Organize", "Their layout changes on a phone and a computer, as pictured.", null, "Files changed: `app/css/app.css`, `app/js/focus-view.js`, `app/js/roadmap-view.js`, `app/js/sort-flow-view.js`, `app/js/review-view.js`, `app/js/tidy-view.js`, `app/js/triage-view.js`, `app/js/pick-order.js`, `app/js/app.js`, their tests, and the browser checks in `scripts/`."],
+  ["keep", "What stays", "The six tabs, the + Jot button, sync, Settings, the Projects filing cabinet, Task details, dark mode and all your data.", null, "No new data is stored, so nothing needs converting and an older copy of the app reads the same data."]
+ ],
+ "choices": [],
+ "wrapup": {
+  "summary": "Five steps build the approved design: the shared pieces, Focus, Roadmap, the one-slip screens, then checking. After that I hand it to you to test.",
+  "changing": "Changing: the layout of Focus, Roadmap, Sort, Review and Organize. Not changing: the tabs, your data, Projects and Settings.",
+  "blocking": "Waiting on your approval of this plan. No app code has changed yet.",
+  "next": "After approval: I build steps 1 to 4 on the branch AjsAgent/design-audit, check them in step 5, and send you one checking page.",
+  "todo": ["Look at the redrawn pictures, especially the clipboard.", "Reply <b>Build plan approved: design audit</b>, or say what to change."]
+ }
+}

@@ -133,7 +133,7 @@ for (const [w, h] of [[360, 780], [390, 844], [1440, 900]]) {
   check((await page.$$('.rm-item')).length === 3 && (await page.$$('.rm-tick:checked')).length === 1, tag + 'reopened: the checklist and its tick'); for (let i = 0; i < 3; i++) await page.keyboard.press('Escape'); // checklist, step 2, step 1
 
   // a task's size, in Task details (the drawer's Details card)
-  await page.click('.rm-tab[data-col="next"]');
+  if (phone) await page.click('.rm-tab[data-col="next"]'); // no tab strip on a computer (#284)
   await page.click('.rm-task-title[data-id="a4"]'); await page.click('.sort-drawer [data-action="rm-details"]');
   await page.click('[data-action="detail-size-open"]');
   await page.click('[data-action="detail-size"][data-size="large"]');

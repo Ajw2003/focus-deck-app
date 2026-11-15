@@ -141,7 +141,7 @@ function loadView() {
 }
 function setView(view) {
   ui.view = normalizeView(view, state);
-  ui.rmMs = null; ui.rmScreen = null; ui.rmDrawer = null; ui.rmEditField = null; // another project: the Roadmap starts at its own milestone
+  ui.rmMs = null; ui.rmMore = []; ui.rmScreen = null; ui.rmDrawer = null; ui.rmEditField = null; // another project: the Roadmap starts at its own milestone
   try {
     localStorage.setItem(VIEW_KEY, JSON.stringify(ui.view));
     if (ui.view.mode === 'project') localStorage.setItem(LAST_PROJECT_KEY, ui.view.id);
@@ -173,7 +173,7 @@ export const ui = {
   edit: null, boardScreen: null, boardDrawer: null,
   onboarding: loadOnboarding(),
   rvDone: 0, rvLast: null, rvList: false, // Review (#271), memory only: tasks stamped this visit, the last stamp (for its Undo slip), the Done this week screen
-  rmCol: {}, rmMs: null, rmScreen: null, rmDrawer: null, rmTask: null, rmForm: {}, rmSet: null, rmEditField: null, // the Roadmap (#257, #268), memory only: the folder tab per milestone, the milestone on the clipboard, the screen over it (all / find / task / ms / sec / set / edit), the open drawer and its task, the form being typed, the settings draft, the Edit project field
+  rmCol: {}, rmMore: [], rmMs: null, rmScreen: null, rmDrawer: null, rmTask: null, rmForm: {}, rmSet: null, rmEditField: null, // the Roadmap (#257, #268), memory only: the folder tab per milestone, the milestone on the clipboard, the screen over it (all / find / task / ms / sec / set / edit), the open drawer and its task, the form being typed, the settings draft, the Edit project field
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectQuery: '', taskQuery: '', projectSort: loadProjectSort(), // the Roadmap's Find boxes and project order
@@ -262,7 +262,9 @@ const walletHooks = {
 const facingKey = (wallet) => { const c = document.querySelector('[data-wallet="' + wallet + '"] .sleeve.is-centre, [data-wallet="' + wallet + '"] .cab-file.is-centre'); return c ? c.getAttribute('data-key') : undefined; };
 function showFocus(key) {
   const categoryId = key && key !== R.ANY_CATEGORY_KEY ? key : null;
+  const was = ui.focusChoosing; ui.focusChoosing = false; // before the pick: its repaint must not draw the questions again
   if (M.pickFocus({ categoryId, projectId: R.focusProjectId(state, ui) })) { ui.focusQ = 1; ui.focusDone = null; return true; }
+  ui.focusChoosing = was;
   ui.notice = 'No open tasks match that label and project.';
   paint();
   return false;
@@ -384,6 +386,7 @@ function onRoadmapAction(action, el) {
   }
   if (action === 'rm-drawer') { const to = el.getAttribute('data-drawer'); ui.rmDrawer = ui.rmDrawer === to && to === 'menu' ? null : to; paint(); focusLater('.sort-drawer'); return true; }
   if (action === 'rm-drawer-close') { ui.rmDrawer = null; paint(); return true; }
+  if (action === 'rm-more') { const c = el.getAttribute('data-col'); ui.rmMore = ui.rmMore.includes(c) ? ui.rmMore.filter((x) => x !== c) : ui.rmMore.concat(c); paint(); return true; }
   if (action === 'rm-col') { ui.rmCol[el.getAttribute('data-ms')] = el.getAttribute('data-col'); paint(); return true; }
   if (action === 'rm-task') { ui.rmTask = id; ui.rmDrawer = 'task'; paint(); focusLater('.sort-drawer'); return true; }
   if (action === 'rm-task-to') { ui.rmDrawer = null; rmTask(ui.rmTask, el.getAttribute('data-status')); return true; }
@@ -391,8 +394,8 @@ function onRoadmapAction(action, el) {
   if (action === 'rm-move-to') { const to = el.getAttribute('data-ms'); M.setTaskMilestone(ui.rmTask, to === UNPLANNED ? '' : to); ui.rmDrawer = null; paint(); return true; }
   if (action === 'rm-details') { selectBoardTask(ui.rmTask); ui.rmDrawer = null; paint(); return true; }
   if (action === 'rm-make') { const m = M.editRoadmap(d.p.id, (p) => makeMilestone(p, p.tasks.find((t) => t.id === id))); ui.notice = m ? '“' + m.name + '” is now a milestone.' : 'It already is one.'; ui.rmDrawer = null; ui.rmScreen = 'all'; paint(); return true; }
-  if (action === 'rm-ms-go') { const all = d.r.milestones, n = all[all.indexOf(currentOf(d.r, ui)) + Number(el.getAttribute('data-dir'))]; if (n) ui.rmMs = n.id; paint(); return true; }
-  if (action === 'rm-ms-open') { ui.rmMs = id; ui.rmScreen = null; paint(); window.scrollTo(0, 0); return true; }
+  if (action === 'rm-ms-go') { const all = d.r.milestones, n = all[all.indexOf(currentOf(d.r, ui)) + Number(el.getAttribute('data-dir'))]; if (n) { ui.rmMs = n.id; ui.rmMore = []; } paint(); return true; }
+  if (action === 'rm-ms-open') { ui.rmMs = id; ui.rmMore = []; ui.rmScreen = null; paint(); window.scrollTo(0, 0); return true; }
   if (action === 'rm-ms-step') { const dir = Number(el.getAttribute('data-dir')); rmEdit('ms', id, (p) => stepMilestone(p, id, dir)); return true; }
   if (action === 'rm-sec-step') { const dir = Number(el.getAttribute('data-dir')); rmEdit('sec', id, (p) => stepSection(p, id, dir)); return true; }
   if (action === 'rm-add-task') { rmAddTask(false); return true; }
@@ -402,7 +405,7 @@ function onRoadmapAction(action, el) {
     const name = (ui.rmForm.name || '').trim();
     if (!name) return true;
     const sec = ui.rmForm.sec, m = M.editRoadmap(d.p.id, (p) => (action === 'rm-add-sec' ? addSection(p, name) : addMilestone(p, name, sec)));
-    if (m && action === 'rm-add-ms') ui.rmMs = m.id;
+    if (m && action === 'rm-add-ms') { ui.rmMs = m.id; ui.rmMore = []; }
     return go('all');
   }
   // Milestone settings, two steps on a draft; nothing is saved until Save
@@ -417,7 +420,7 @@ function onRoadmapAction(action, el) {
       if (text) s.checklist.push({ id: 'ck_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, done: false });
       paint(); focusLater('[data-rm-new]'); return true;
     }
-    else if (action === 'rm-set-save') { M.editRoadmap(d.p.id, (p) => applyMilestoneSettings(p, s.id, s)); ui.rmMs = s.id; ui.rmSet = null; ui.rmScreen = null; }
+    else if (action === 'rm-set-save') { M.editRoadmap(d.p.id, (p) => applyMilestoneSettings(p, s.id, s)); ui.rmMs = s.id; ui.rmMore = []; ui.rmSet = null; ui.rmScreen = null; }
     paint(); window.scrollTo(0, 0); focusLater('.pj-field'); return true;
   }
   // Edit project, a receipt with a pencil per line
@@ -484,6 +487,9 @@ export function paint() {
   const restoreSearch = active && active.matches && active.matches('.project-search')
     ? { start: active.selectionStart, end: active.selectionEnd }
     : null;
+  // Focus opens on a task: pick one (its persist repaints) unless the person is choosing, or the crossed-out note is showing
+  state._ui = ui; // pickForMe reads the view off it
+  if (ui.screen === 'focus' && !ui.onboarding && !state.focus && !ui.focusDone && !ui.focusChoosing && M.pickForMe()) return;
   document.getElementById('app').innerHTML = renderApp(state);
   paintHeaderControls();
   mountWallets(document.getElementById('app'), walletHooks);
@@ -849,7 +855,7 @@ function onAppClick(e) {
     }
   }
   else if (action === 'reroll') M.reroll();
-  else if (action === 'pick-for-me') { if (M.pickForMe()) { ui.focusQ = 1; ui.focusDone = null; } else { ui.notice = 'Nothing open to pick from here.'; paint(); } }
+  else if (action === 'pick-for-me') { const was = ui.focusChoosing; ui.focusChoosing = false; if (M.pickForMe()) { ui.focusQ = 1; ui.focusDone = null; } else { ui.focusChoosing = was; ui.notice = 'Nothing open to pick from here.'; paint(); } }
   else if (action === 'focus-next') { const k = facingKey('projects'); if (k) { ui.focusFilter.projectId = k === R.ALL_PROJECTS_KEY ? null : k; saveFocusFilter(); } ui.focusQ = 2; ui.focusCategory = undefined; ui.focusKindFind = ''; paint(); } // Focus (#270): project chosen, now the kind of work
   else if (action === 'focus-back') { ui.focusQ = 1; paint(); }
   else if (action === 'focus-show') showFocus(facingKey('categories') || ui.focusCategory);
@@ -861,7 +867,12 @@ function onAppClick(e) {
   else if (action === 'focus-menu') { const f = state.focus; ui.focusMenu = f && ui.focusMenu !== f.taskId ? f.taskId : null; paint(); }
   else if (action === 'focus-steps') { const f = state.focus; ui.focusMenu = null; ui.focusSteps = f ? f.taskId : null; ui.focusTick = null; paint(); }
   else if (action === 'focus-steps-back') { ui.focusSteps = null; paint(); }
-  else if (action === 'clear-focus') { M.clearFocus(); ui.focusQ = 1; ui.focusDone = null; }
+  else if (action === 'clear-focus') { ui.focusChoosing = true; M.clearFocus(); ui.focusQ = 1; ui.focusDone = null; }
+  else if (action === 'focus-choose') { ui.focusChoosing = true; ui.focusQ = 1; ui.focusMenu = null; paint(); }
+  else if (action === 'focus-choose-back') { ui.focusChoosing = false; ui.focusQ = 1; paint(); }
+  else if (action === 'focus-area') { ui.focusArea = el.getAttribute('data-area') || null; paint(); }
+  else if (action === 'focus-all-areas') { ui.focusAllAreas = !ui.focusAllAreas; paint(); }
+  else if (action === 'focus-set') { ui.focusArea = null; M.setFocus(taskId); }
   else if (action === 'focus-doing') {
     // same path as a board drop: lands at the end of In progress; the task stays in focus
     const f = state.focus && findTaskWithProject(state.focus.taskId);
