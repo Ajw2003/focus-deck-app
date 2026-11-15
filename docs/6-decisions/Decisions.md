@@ -1087,4 +1087,13 @@ Eden's words: "Design approved: design audit 1A 2A 3A 4* 5B", with choice 4 answ
 - Choice 5 (build order): B, everything in one go, one test pass at the end.
 - Issues: #281 (parent), steps #282 to #286. Build plan: `docs/plans/design-audit-build.html`. How it works: `docs/4-systems/desk-layout.md`.
 
-**Status.** Approved; build plan waiting on Eden.
+**Status.** Approved, built, and passed QA the same day (see the entry below).
+
+## 2026-11-15: Design audit passed QA
+
+- Eden typed "QA passed: design audit" after testing from `docs/plans/design-audit-qa.html` and the published test copy. The page had no choices to pick.
+- Built as approved, with these differences from the drawings, all listed on the QA page: on a computer the Roadmap's "+ Add a task" and milestone arrows sit under the columns; Roadmap rows keep their grip and tick box; Review's heading says "N waiting"; a phone shows four area notes and an "All N areas" button when there are more than four.
+- Evidence at hand-over: 41 of 41 checks in `scripts/check-all.sh`, 332 unit tests, 40 of 40 final shots fit (`docs/generated/design-audit/final-checks.txt`, `final-shots.txt`, `final-fit.txt`).
+- Issues #281 to #286 stay `needs review` until Eden closes them after the merge.
+
+**Status.** Passed; pull request into main opened from `AjsAgent/design-audit`.

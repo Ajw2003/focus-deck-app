@@ -22,6 +22,7 @@ Step 5 (#286) shot the build in dark mode and with 26 projects and found four fa
 due chip in dark, phone Focus 200px too tall with 8 areas, phone Roadmap 33px too tall with a long list), all fixed.
 How it works: `docs/4-systems/desk-layout.md`. Results: `docs/generated/design-audit/final-checks.txt`,
 `final-shots.txt`, `final-fit.txt`. The checking page is `docs/plans/design-audit-qa.html`.
+Eden typed "QA passed: design audit"; pull request into main opened from `AjsAgent/design-audit`.
 
 # Today — 2026-11-11
 

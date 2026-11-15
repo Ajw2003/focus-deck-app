@@ -1,6 +1,6 @@
 # Desk layout: the next step is the biggest thing (#281)
 
-> **Status: built 2026-11-15, waiting on Eden's test.** Approved the same day (see `docs/6-decisions/Decisions.md`).
+> **Status: built 2026-11-15, passed Eden's QA the same day.** Approved the same day (see `docs/6-decisions/Decisions.md`).
 > Steps #282 to #286. Each section says what was planned; "As built" at the end says where it is in the code.
 
 ## What it owns
