@@ -2,7 +2,7 @@
 // time on a clipboard (ruler, four folder tabs, tick rows, flags to the neighbours), All milestones, Find a task, the new task /
 // milestone / section screens, Edit project as a receipt, and the drawers. Milestone settings are js/milestone-steps.js. The project list and New project are the Projects tab (js/projects-view.js). The data is roadmapOf (js/roadmap.js); moves are js/roadmap-drag.js + app.js.
 // See docs/4-systems/roadmap.md and docs/4-systems/styling.md
-import { esc, PRIORITY } from './state.js';
+import { esc, PRIORITY, deadlineChip } from './state.js';
 import { effectivePriority, UNSORTED_ID } from './areas.js';
 import { roadmapOf, COLS, UNPLANNED, sectionsOf, milestoneOf } from './roadmap.js';
 import { noProject, COLOURS } from './projects-view.js';
@@ -12,6 +12,7 @@ import { renderSettings } from './milestone-steps.js';
 import { renderTaskDetails } from './task-details.js';
 import { subtasksOf } from './task-links.js';
 
+const CAP = 8; // tasks shown per list before "Show N more" (the next-step note counts as one)
 const back = () => '<button type="button" class="dk-back" data-action="rm-back">‹ Back</button>';
 const scroll = (inner) => '<div class="pj-scroll">' + inner + '</div>';
 const field = (attr, value, ph) => '<input type="text" class="pj-field" ' + attr + ' value="' + esc(value) + '" maxlength="200" placeholder="' + esc(ph) + '" aria-label="' + esc(ph) + '" autocomplete="off" spellcheck="false">';
@@ -32,15 +33,30 @@ function taskRow(t, p) {
     + '<button type="button" class="rm-task-title" data-action="rm-task" data-id="' + esc(t.id) + '">' + esc(t.title) + '</button></div>';
 }
 
+// The first Up next task as a yellow note: same tick, grip and title button as a row, plus its due chip.
+function nextNote(t, p) {
+  return '<div class="rm-next"><span class="rm-next-h">Next step</span><div class="note-shadow"><div class="note rm-note"><div class="rm-task rm-note-row" data-task-id="' + esc(t.id) + '">' + grip('task', t.id, t.title, 'Alt plus left or right arrow')
+    + '<input type="checkbox" class="rm-tick" data-action="toggle-task" data-task="' + esc(t.id) + '" data-project="' + esc(p.id) + '" aria-label="Done: ' + esc(t.title) + '">'
+    + '<button type="button" class="rm-task-title rm-note-title" data-action="rm-task" data-id="' + esc(t.id) + '">' + esc(t.title) + '</button></div>'
+    + (t.deadline ? '<p class="note-meta">' + deadlineChip(t.deadline, t) + '</p>' : '') + '</div></div></div>';
+}
+
 function main(st, ui, p, r) {
   const m = currentOf(r, ui), i = m ? r.milestones.indexOf(m) : -1;
   const flag = (label, dir, aria) => '<button type="button" class="dk-link rm-flag" data-action="rm-ms-go" data-dir="' + dir + '" aria-label="' + aria + '"' + (r.milestones[i + dir] ? '' : ' disabled') + '>' + label + '</button>';
   let body = '';
   if (m) {
-    const col = (ui.rmCol || {})[m.id] || 'next';
+    const col = (ui.rmCol || {})[m.id] || 'next', more = ui.rmMore || [];
     const tabs = COLS.map(([k, n]) => '<button type="button" class="rm-tab rm-col' + (k === col ? ' on' : '') + '" data-action="rm-col" data-ms="' + esc(m.id) + '" data-col="' + k + '" data-status="' + k + '" aria-pressed="' + (k === col) + '">' + n + ' <b>' + m.cols[k].length + '</b></button>').join('');
-    body = ruler(m.pct) + '<div class="rm-tabs" role="group" aria-label="Show a column">' + tabs + '</div>'
-      + '<div class="pj-scroll rm-list rm-col" data-status="' + col + '" data-ms="' + esc(m.id) + '">' + m.cols[col].map((t) => taskRow(t, p)).join('') + '</div>'
+    // All four lists are drawn; the stylesheet shows the picked one (phone) or all four side by side (computer).
+    const lanes = COLS.map(([k, n]) => {
+      const all = m.cols[k], open = more.includes(k), first = k === 'next' && all[0], rows = open ? all : all.slice(0, CAP);
+      return '<section class="rm-lane rm-col' + (k === col ? ' on' : '') + (open ? ' is-open' : '') + '" data-status="' + k + '" data-ms="' + esc(m.id) + '" aria-label="' + n + '">'
+        + '<h3 class="rm-lane-h">' + n + ' <b>' + all.length + '</b></h3>' + (first ? nextNote(first, p) : '')
+        + '<div class="pj-scroll rm-rows">' + rows.slice(first ? 1 : 0).map((t) => taskRow(t, p)).join('') + '</div>'
+        + (all.length > CAP ? '<button type="button" class="dk-plain rm-more" data-action="rm-more" data-col="' + k + '">' + (open ? 'Show fewer' : 'Show ' + (all.length - CAP) + ' more') + '</button>' : '') + '</section>';
+    }).join('');
+    body = ruler(m.pct) + '<div class="rm-tabs" role="group" aria-label="Show a column">' + tabs + '</div><div class="rm-lanes">' + lanes + '</div>'
       + '<div class="rm-nav">' + flag('‹', -1, 'Previous milestone') + '<button type="button" class="dk-link rm-flag rm-all" data-action="rm-screen"' + to('all') + '>All milestones</button>' + flag('›', 1, 'Next milestone') + '</div>';
   }
   return '<div class="pj rm-main"><div class="dk-board sort-board"><div class="dk-paper sort-paper pj-paper">'

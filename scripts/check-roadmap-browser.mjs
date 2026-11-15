@@ -90,6 +90,8 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
     await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2); await page.mouse.down();
     await page.mouse.move(g.x + 12, g.y + 12, { steps: 4 }); await page.mouse.move(r.x + Math.min(40, r.width / 2), r.y + dy, { steps: 10 }); await page.mouse.up();
   };
+  const tab = (k) => phone ? page.click('.rm-tab[data-col="' + k + '"]') : null; // a computer shows all four lists, no tab strip (#284)
+  const titles = (k) => page.$$eval('.rm-lane[data-status="' + k + '"] .rm-task-title', (b) => b.map((x) => x.textContent).join('|'));
   const secs = async () => (await proj('p0')).sections.slice().sort((a, b) => a.order - b.order).map((s) => s.id).join();
 
   // six tabs on the phone bar: every label whole
@@ -115,12 +117,12 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
 
   // the milestone on the clipboard
   check((await page.textContent('.sort-q')) === 'Start here screen', tag + 'the clipboard opens on the first milestone with open tasks');
-  check((await page.$$eval('.rm-tab', (b) => b.map((x) => x.dataset.status).join())) === 'next,doing,review,done' && (await page.$$eval('.rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Test on phone', tag + 'four folder tabs; Up next lists its task');
-  await page.click('.rm-tab[data-col="review"]');
-  check((await page.$$eval('.rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Pick one for me', tag + 'the Review tab shows its one task');
-  await page.click('.rm-tab[data-col="next"]');
+  check((await page.$$eval('.rm-tab', (b) => b.map((x) => x.dataset.status).join())) === 'next,doing,review,done' && (await titles('next')) === 'Test on phone', tag + 'four folder tabs; Up next lists its task');
+  await tab('review');
+  check((await titles('review')) === 'Pick one for me', tag + 'the Review tab shows its one task');
+  await tab('next');
   await page.click('.rm-flag[aria-label="Next milestone"]');
-  check((await page.textContent('.sort-q')) === 'Areas' && (await page.$$eval('.rm-task-title', (b) => b.map((x) => x.textContent).join('|'))) === 'Areas from GitHub', tag + '› steps to Areas; the GitHub-milestone task is in it');
+  check((await page.textContent('.sort-q')) === 'Areas' && (await titles('next')) === 'Areas from GitHub', tag + '› steps to Areas; the GitHub-milestone task is in it');
   await page.click('.rm-flag[aria-label="Previous milestone"]');
   await noScroll('clipboard'); await shot('project');
 
@@ -128,39 +130,39 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   await page.click('.rm-task-title[data-id="s1"]');
   await page.click('.rm-stamp[data-status="doing"]');
   check((await task('s1')).status === 'doing', tag + 'the Doing stamp moves Test on phone to Doing');
-  await page.click('.rm-tab[data-col="doing"]');
+  await tab('doing');
   await page.click('.rm-task-title[data-id="s1"]');
   await page.click('.rm-stamp[data-status="review"]');
   check((await task('s1')).status === 'review', tag + 'the Review stamp moves it on');
-  await page.click('.rm-tab[data-col="review"]');
+  await tab('review');
   await page.click('.rm-task-title[data-id="s1"]');
   await page.click('.rm-stamp[data-status="done"]');
   const s1 = await task('s1');
   check(s1.status === 'done' && typeof s1.completedAt === 'number', tag + 'the Done stamp sets completedAt');
-  await page.click('.rm-tab[data-col="done"]');
+  await tab('done');
   await page.click('.rm-task[data-task-id="s1"] .rm-tick');
   check((await task('s1')).status === 'next' && (await task('s1')).completedAt === undefined, tag + 'unticking a done task puts it back in Up next');
-  await page.click('.rm-tab[data-col="next"]');
+  await tab('next');
   await page.click('.rm-task[data-task-id="s1"] .rm-tick');
   check((await task('s1')).status === 'done', tag + 'ticking a task finishes it');
-  await page.click('.rm-tab[data-col="done"]');
+  await tab('done');
   await page.click('.rm-task[data-task-id="s1"] .rm-tick');
-  await page.click('.rm-tab[data-col="next"]');
+  await tab('next');
   if (!phone) {
-    await drag('.rm-task[data-task-id="s1"] .rm-grip', '.rm-tab[data-status="doing"]');
-    check((await task('s1')).status === 'doing', tag + 'mouse drag onto the Doing tab');
-    await page.click('.rm-tab[data-col="doing"]');
-    await drag('.rm-task[data-task-id="s1"] .rm-grip', '.rm-tab[data-status="next"]');
+    await drag('.rm-task[data-task-id="s1"] .rm-grip', '.rm-lane[data-status="doing"] .rm-lane-h');
+    check((await task('s1')).status === 'doing', tag + 'mouse drag onto the Doing column');
+    await tab('doing');
+    await drag('.rm-task[data-task-id="s1"] .rm-grip', '.rm-lane[data-status="next"] .rm-lane-h');
     check((await task('s1')).status === 'next', tag + 'and back onto Up next (any direction)');
-    await page.click('.rm-tab[data-col="next"]');
+    await tab('next');
     await page.focus('.rm-task[data-task-id="s1"] .rm-grip');
     await page.keyboard.press('Alt+ArrowRight');
     check((await task('s1')).status === 'doing', tag + 'Alt+Right moves it one column');
-    await page.click('.rm-tab[data-col="doing"]');
+    await tab('doing');
     await page.focus('.rm-task[data-task-id="s1"] .rm-grip');
     await page.keyboard.press('Alt+ArrowLeft');
     check((await task('s1')).status === 'next', tag + 'Alt+Left moves it back');
-    await page.click('.rm-tab[data-col="next"]');
+    await tab('next');
   }
   // to another milestone
   await page.click('.rm-task-title[data-id="s1"]');

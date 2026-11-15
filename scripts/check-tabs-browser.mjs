@@ -139,22 +139,23 @@ for (const [tag, w, h] of sizes) {
   check(`[${tag}] opening a project from Projects lands on the Roadmap tab`, (await page.$eval('.rail-item.is-on .rail-label', (e) => e.textContent)) === 'Roadmap');
   await go(page, '.rail-item[data-screen="projects"]'); await go(page, '.rail-item[data-screen="roadmap"]'); await page.waitForSelector('.rm-project');
   check(`[${tag}] the Roadmap tab opens the last-used project`, (await page.$eval('.vs-tape', (e) => e.textContent)).includes('Home'));
-  check(`[${tag}] row Projects one project (task list, add a task, done list): add link and Done column`, !!(await page.$('[data-action="rm-screen"][data-screen="task"]')) && (await page.$$('.rm-col[data-status="done"]')).length === 1);
+  check(`[${tag}] row Projects one project (task list, add a task, done list): add link and Done column`, !!(await page.$('[data-action="rm-screen"][data-screen="task"]')) && (await page.$$('.rm-lane[data-status="done"]')).length === 1);
   await go(page, '[data-action="rm-drawer"][data-drawer="menu"]');
   check(`[${tag}] row Projects New project, link or create a repo, edit, remove: Edit project`, !!(await page.$('.sort-drawer [data-action="rm-screen"][data-screen="edit"]')));
   await go(page, '.sort-drawer .vs-x');
   check(`[${tag}] row Board columns: Up next, In progress, Review, Done inside a milestone`, (await page.$$eval('.rm-project .rm-col', (els) => els.map((e) => e.dataset.status))).join().startsWith('next,doing,review,done'));
+  const tabGo = async (sel) => { if (await page.isVisible(sel)) await go(page, sel); }; // a computer has no tab strip: all four lists show (#284)
   const tick = () => page.evaluate(() => document.querySelector('.rm-task[data-task-id="t1"] input[type=checkbox]').click());
   await tick();
   await page.waitForTimeout(200);
-  await go(page, '.rm-tab[data-status="done"]'); // the Roadmap shows one status at a time
+  await tabGo('.rm-tab[data-status="done"]'); // a phone shows one status at a time
   check(`[${tag}] row Projects done list: a ticked task lands in the Done column`, await page.evaluate(() => !!document.querySelector('.rm-col[data-status="done"] .rm-task[data-task-id="t1"]')));
   await tick();
   await page.waitForTimeout(200);
-  await go(page, '.rm-tab[data-status="next"]');
+  await tabGo('.rm-tab[data-status="next"]');
   await go(page, '.rm-task-title[data-id="t1"]');
   await go(page, '.sort-drawer .rm-stamp[data-status="doing"]'); // the task's drawer moves it between columns
-  await go(page, '.rm-tab[data-status="doing"]');
+  await tabGo('.rm-tab[data-status="doing"]');
   check(`[${tag}] row Board drag between columns: a card moves between the four columns (the drawer's status stamps)`, await page.evaluate(() => !!document.querySelector('.rm-col[data-status="doing"] .rm-task[data-task-id="t1"]')));
   await go(page, '[data-action="rm-drawer"][data-drawer="menu"]');
   await go(page, '.sort-drawer [data-action="rm-screen"][data-screen="find"]');

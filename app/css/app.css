@@ -1696,6 +1696,37 @@ a.dk-choice{text-decoration:none;}
   .rm-project > .vs-pop.dk-sheet{position:static; transform:none; flex:none; width:420px; max-height:none; margin-top:44px;}
   .rm-project > .rm-detail{flex:none; width:440px;}
   .rm-detail .cw-detail.td-panel{position:static; width:100%; height:calc(100dvh - 210px); box-shadow:none; background:none; z-index:auto;}
+  /* Roadmap (#284): four lists side by side on the desk, no clipboard; the tab strip is for phones */
+  .rm-project > .pj.rm-main{flex:1 1 0; max-width:none;}
+  .rm-main .dk-board{background:none; box-shadow:none; padding:0; margin:0;}
+  .rm-main .dk-board:before{display:none;}
+  .rm-main .dk-paper{background:none; box-shadow:none; overflow:visible;}
+  .rm-main .sort-q{color:var(--ink);}
+  .rm-main .rm-tabs{display:none;}
+  .rm-main .pj-pull{top:-10px;} /* clear of the ruler under the title */
+  .rm-lanes{display:grid; grid-template-columns:1.25fr 1fr 1fr 1fr; gap:14px; align-items:start; min-height:0;}
+  .rm-lane{display:flex; flex-direction:column; gap:8px; min-width:0; padding:12px; border-radius:8px; background:var(--surface-2); overflow-y:auto; height:calc(100dvh - 400px);} /* every column is the full height, so the row reads as a board and each is a big drop target */
+  .rm-lane-h{display:flex; justify-content:space-between; margin:0; font:800 13px var(--font-ui); letter-spacing:.1em; text-transform:uppercase; color:var(--ink);}
+  .rm-main .rm-rows{max-height:none; overflow:visible; flex:none; padding:2px;}
+}
+.rm-next{display:flex; flex-direction:column; gap:6px; padding:0 2px;}
+.rm-next-h{font:800 13px var(--font-ui); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft);}
+.rm-note{min-height:0; padding:10px 12px 30px;}
+.rm-note-row{display:flex; align-items:center; gap:8px;}
+.rm-note-title{font-family:var(--note-font); font-weight:700; font-size:calc(22px * var(--note-scale, 1)); line-height:1.2; padding:6px 0;}
+.rm-note .note-meta{margin:2px 0 0 34px;}
+.rm-more{align-self:flex-start;}
+.pj .sort-q:has(~ .pj-pull), .pj .sort-q:has(+ .pj-pull){min-height:48px; padding-right:96px; display:flex; align-items:center;} /* room for the More / Sort by button, which is a full button now */
+@media (max-width:1099.98px){
+  .rm-main .sort-body{min-height:0;}
+  .rm-lanes, .rm-lane{display:contents;}
+  .rm-lane-h{display:none;}
+  .rm-next{order:1;}
+  .rm-tabs{order:2;}
+  .rm-main .rm-rows{order:3; max-height:calc(100dvh - 660px);}
+  .rm-more{order:4;}
+  .rm-nav{order:5;}
+  .rm-lane:not(.on) :is(.rm-rows, .rm-more){display:none;}
 }
 
 /* A slip (toast) must not make a phone page scroll: the screens above size themselves to fit 100dvh - 240px, and the toast's extra
