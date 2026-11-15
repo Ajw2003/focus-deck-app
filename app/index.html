@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=Kalam:wght@400;700&display=swap">
   <script>try{var f=JSON.parse(localStorage.getItem('focusdeck-state-v1')).noteFace.face;if(f==='hand'||f==='print'||f==='dyslexic')document.documentElement.setAttribute('data-note-face',f)}catch(e){}</script>
   <link rel="stylesheet" href="css/app.css">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/drawer-192.png">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -32,8 +32,14 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' }).catch(console.error);
+        navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' }).then((reg) => {
+          // An installed app left open on a phone never reloads, so it kept running old code for days.
+          // Coming back to it checks for a new version; the new worker takes over and the page reloads once.
+          document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(console.error); });
+        }).catch(console.error);
       });
+      let hadWorker = !!navigator.serviceWorker.controller; // the first install also changes controller: no reload for that
+      navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadWorker) location.reload(); hadWorker = true; });
     }
   </script>
 </body>

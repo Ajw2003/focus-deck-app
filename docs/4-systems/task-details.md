@@ -3,8 +3,9 @@
 Approved design: `docs/generated/friction-steps/prototype.html` screens d0 to d4 ("Design approved: step by step 11 2*").
 Standing rule: no small text, nothing under 13px, every screen fits 390x844 without scrolling.
 
-> **2026-11-15:** each receipt line has a bold label beside its value (`.td-label`), and opened from Triage the panel
-> starts with a `.td-guide` line: check the priority, due date and what it waits on, ✎ to change one, × to go back.
+> **2026-11-15:** each receipt line has a bold label beside its value (`.td-label`). The `.td-guide` paragraph shown
+> when opened from Triage was removed the same day: Triage's ✎ Check it now walks priority, due date and waits on one
+> screen at a time instead (see [triage.md](./triage.md)).
 
 ## What it is
 

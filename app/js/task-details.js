@@ -92,8 +92,6 @@ export function renderTaskDetails(st, ui, id, now = Date.now()) {
       ? drawer(t.title, choice('✏️ Rename', { action: 'detail-rename' }) + choice('📁 Move to another project', { action: 'detail-edit', attrs: ' data-step="1"' })
         + choice('🧩 Part of…', { action: 'detail-edit', attrs: ' data-step="5"' }) + choice('🚧 Holds up…', { action: 'detail-edit', attrs: ' data-step="8"' }) + choice('Delete', { action: 'detail-delete', cls: ' danger' }), 'detail-more')
       : '';
-  // opened from Triage: say what this screen is for and how to get back (Eden found it confusing to land here)
-  const guide = ui.screen === 'triage' ? '<p class="td-guide">Check what matters for this task: its priority, due date and what it waits on. Tap ✎ to change one, then × to go back to your list.</p>' : '';
-  return panel(board(t.title, stampRow + guide + receipt, '<button type="button" class="td-x" data-action="detail-close" aria-label="Close task details">×</button>')
+  return panel(board(t.title, stampRow + receipt, '<button type="button" class="td-x" data-action="detail-close" aria-label="Close task details">×</button>')
     + foot([stamp('⋯', { action: 'detail-more', attrs: ' aria-label="More about this task"', cls: ' td-more' }), stamp('◎ Focus', { action: 'detail-focus' })]) + drawers);
 }

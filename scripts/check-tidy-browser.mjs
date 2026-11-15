@@ -87,7 +87,7 @@ for (const phone of [true, false]) {
   check(await doneIds() === '', tag + 'nothing closed before the Confirm stamp');
   await noScroll('close-these'); await shot('close-these');
   await page.click('[data-action="tidy-confirm"]');
-  check(await page.isVisible('.tr-card') && (await page.textContent('.org-slip')).includes('Closed 3'), tag + 'the stamp leads to Triage with Closed 3');
+  check(await page.isVisible('.tr-slip') && (await page.textContent('.org-slip')).includes('Closed 3'), tag + 'the stamp leads to Triage\'s first question with Closed 3');
   check(await doneIds() === 'h1,h3,h5', tag + 'it closed only the three Home marks', await doneIds());
   await noScroll('after-stamp'); await shot('after-stamp');
   await page.click('.org-slip [data-action="tidy-undo"]');

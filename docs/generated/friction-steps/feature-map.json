@@ -385,6 +385,26 @@
      "r10"
     ],
     [
+     "triage-pick",
+     "Start Triage's one-at-a-time pick, or go back a place (#276)",
+     "r10"
+    ],
+    [
+     "triage-yes",
+     "Do this first? Yes: keep it in the top three (#276)",
+     "r10"
+    ],
+    [
+     "triage-notnow",
+     "Do this first? Not now: send it to the end of Next (#276)",
+     "r10"
+    ],
+    [
+     "triage-check",
+     "Do this first? Check it: priority, due date, waits on, one screen each (#276)",
+     "r10"
+    ],
+    [
      "triage-reset",
      "Reset to the rules",
      "r13"

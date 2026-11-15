@@ -63,9 +63,9 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   const rowsOf = () => page.$$eval('.tr-row', (r) => r.map((x) => x.dataset.taskId).join());
   const noScroll = async (n) => check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), tag + 'no sideways scroll ' + n);
   const pickArea = async (id) => { await page.click('.vs-tape'); await page.click('[data-action="view-step"][data-step="area"]'); await page.click('[data-action="view-pick"][data-id="' + id + '"]'); };
-  const goTriage = async () => { await page.click('.rail-item[data-go="tidy"]'); await page.waitForSelector('.org'); await page.click('[data-action="triage-go"][data-to="top"]'); await page.waitForSelector('.tr-card'); };
+  const goTriage = async () => { await page.click('.rail-item[data-go="tidy"]'); await page.waitForSelector('.org'); await page.click('[data-action="triage-pick"]'); await page.waitForSelector('.tr-slip'); await page.click('.dk-skip[data-to="top"]'); await page.waitForSelector('.tr-card'); };
   await goTriage();
-  check((await page.textContent('.sort-q')) === 'Do these first' && await cards() === 'rev1,doing1,past1', tag + 'top three by the seven rules', await cards());
+  check((await page.textContent('.sort-q')) === 'Your first three' && await cards() === 'rev1,doing1,past1', tag + 'top three by the seven rules', await cards());
   check((await page.textContent('.sort-row2')).replace(/\s+/g, ' ') === 'Next 8Later 3', tag + 'Next 8 and Later 3 flags');
   await noScroll('top'); await shot('top');
   await page.click('[data-action="triage-go"][data-to="next"]');
@@ -99,6 +99,26 @@ for (const [w, h] of [[390, 844], [360, 780], [1440, 900]]) {
   await page.click('[data-action="pick-for-me"]');
   const picked = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).focus.taskId);
   check(picked === 'rev1', tag + 'pick for me opens a first Now task', picked);
+  // the pick (#276): Organize -> Triage asks "Do this first?" about the top three, one at a time
+  const asked = () => page.getAttribute('[data-action="triage-notnow"]', 'data-task');
+  await page.click('.rail-item[data-go="tidy"]'); await page.click('[data-action="triage-pick"]'); await page.waitForSelector('.tr-slip');
+  check((await page.textContent('.sort-q')) === 'Do this first?' && await asked() === 'rev1', tag + 'the pick asks about the first of the three', await asked());
+  await noScroll('pick'); await shot('pick');
+  await page.click('[data-action="triage-yes"]');
+  check(await asked() === 'doing1', tag + 'Yes moves on to the second', await asked());
+  await page.click('[data-action="triage-notnow"]');
+  check(await asked() === 'past1', tag + 'Not now sends it down and the next in line takes its place', await asked());
+  await page.click('[data-action="triage-check"]');
+  check((await page.textContent('.td-panel .sort-q')) === 'How important?', tag + 'Check it opens priority first');
+  await noScroll('check'); await shot('check');
+  await page.click('.td-panel [data-action="edit-save"]');
+  check((await page.textContent('.td-panel .sort-q')) === 'When is it due?', tag + 'then due date');
+  await page.click('.td-panel [data-action="edit-save"]');
+  check((await page.textContent('.td-panel .sort-q')) === 'What has to happen first?', tag + 'then waits on');
+  await page.click('.td-panel [data-action="edit-save"]');
+  check(!(await page.$('.td-panel')) && await asked() === 'past1', tag + 'then back to the same question', await asked());
+  await page.click('[data-action="triage-yes"]'); await page.click('[data-action="triage-yes"]');
+  check(await cards() === 'rev1,past1,urgent1', tag + 'after the third, Your first three shows the picked three', await cards());
   await ctx.close();
 }
 await browser.close();

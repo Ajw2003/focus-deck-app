@@ -107,6 +107,7 @@ await shot('r10t');
 check('r10t: Triage with "Closed 5 ✓" and Undo; both ticked tasks and the rest are done', (await text('.org-slip')).includes('Closed 5 ✓') && (await status('rv1')) === 'done' && (await status('rv2')) === 'done' && (await status('sm1')) === 'done' && (await status('st1')) === 'done');
 await click('.org-slip [data-action="tidy-undo"]');
 check('Undo brings them back', (await status('rv1')) === 'review' && (await status('rp1')) === 'next' && (await status('sm1')) === 'next' && !(await page.$('.org-slip')));
+await click('.dk-skip[data-to="top"]'); // Triage opens on "Do this first?" (#276); Skip goes to the list
 await shot('r10');
 check('r10: three numbered cards with priority flags, Next and Later flags, a Move stamp', (await cards()).length === 3 && (await page.$$('.tr-card .pf')).length >= 1 && (await text('.sort-row2')).includes('Next 8') && !!(await page.$('.dk-btn[data-to="move"]')));
 await click('[data-action="triage-go"][data-to="next"]');
@@ -127,7 +128,7 @@ await click('.tr-row:nth-child(1) [data-dir="1"]');
 await click('.dk-btn[data-to="top"]');
 const after = await cards();
 check('Move keeps the new order', strip(after[0]) === strip(before[1]) && strip(after[1]) === strip(before[0]), before.join('|') + ' -> ' + after.join('|'));
-await page.reload(); await page.waitForSelector('.org'); await click('[data-action="triage-go"][data-to="top"]');
+await page.reload(); await page.waitForSelector('.org'); await click('[data-action="triage-pick"]'); await click('.dk-skip[data-to="top"]');
 check('the order survives a reload', (await cards()).join() === after.join());
 await browser.close();
 server.close();

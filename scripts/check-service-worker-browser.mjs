@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const BASE = 'http://127.0.0.1:8124/app/';
 // The icons are generated, not committed; without them the worker's install fails and every check below fails with it.
-if (!existsSync(join(ROOT, 'app/icons/icon-192.png'))) {
+if (!existsSync(join(ROOT, 'app/icons/drawer-192.png'))) {
   console.log('app/icons/ is missing: run `python3 generate_icons.py` from the repo root first (the deploy job does the same).');
   process.exit(1);
 }
