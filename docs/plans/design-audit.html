@@ -270,7 +270,7 @@ const EXAMPLE_PIC = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http
 const EXAMPLE_PIC_AFTER = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><rect width="320" height="180" fill="#dff3e8"/><rect x="100" y="50" width="120" height="80" rx="12" fill="#1f7a4d"/></svg>');
 const PAGE = {
   "title": "Design audit: phone and computer",
-  "eyebrow": "Design for approval · audit of all seven tabs · nothing built yet",
+  "eyebrow": "Design for approval · audit of all seven screens · nothing built yet",
   "approval": "Design approved: design audit",
   "short": {
     "lead": "I ran the real app at phone size (390 by 844) and computer size (1440 by 900) with 8 projects, 56 tasks and 5 thoughts, and compared it with the screenshot you sent. Three things fall short of the goal: the screen is mostly empty, the task is not the biggest thing, and no screen shows the next step for each area and project.",
@@ -291,7 +291,7 @@ const PAGE = {
         "Today",
         "On a computer, about a quarter of the window is used",
         "",
-        "On Focus the paper covers 23% of a 1440 by 900 window; the rest is blank desk. In your own screenshot the clipboard is a narrow column in a much wider window, and 18 Up next tasks scroll inside it.",
+        "On Focus the paper covers 23% of a 1440 by 900 window. The rest is blank desk. In your own screenshot the clipboard is a narrow column in a much wider window, and 18 Up next tasks scroll inside it.",
         "Nothing from you.",
         {
           "src": "design-audit-pics/now-desk-focus-step2.png",
@@ -304,7 +304,7 @@ const PAGE = {
         "Today",
         "Focus asks two questions before it shows a task",
         "",
-        "Opening Focus shows 'Which project?' with 34 things to tap, then 'What kind of work?'. Only then does a task appear, and its Done stamp is the same size as Another. Nothing tells you what is next in your other projects.",
+        "Opening Focus shows 'Which project?' with 34 things to tap, then 'What kind of work?'. Only then does a task appear, and its Done stamp is the same size as the Another button. Nothing tells you what is next in your other projects.",
         "Nothing from you.",
         {
           "src": "design-audit-pics/now-phone-focus.png",
@@ -383,9 +383,9 @@ const PAGE = {
       "The project's next step is a yellow note at the top; the four lists stay as tabs under it.",
       [
         "Three equal rows",
-        "Next step biggest, the rest under it"
+        "The next step biggest, the rest under it"
       ],
-      "The same tabs, rows and Add a task stamp as today.",
+      "The same tabs, rows and 'Add a task' stamp as today.",
       null,
       null,
       {
@@ -429,9 +429,9 @@ const PAGE = {
       "The slip is large on the left; the next few in the pile are listed faintly on the right.",
       [
         "A small clipboard in the middle",
-        "Slip and what comes after it"
+        "The slip, with the next ones beside it"
       ],
-      "Review is drawn; Sort and Organize follow the same layout.",
+      "Only Review is drawn; Sort and Organize would use the same layout.",
       null,
       null,
       {
@@ -472,7 +472,7 @@ const PAGE = {
           "Keeps the pick in your hands every time."
         ]
       ],
-      "Opening on an answer removes the decision that executive dysfunction stalls on; the choice is still one tap away."
+      "Opening on an answer removes the decision you can get stuck on; choosing is still one tap away."
     ],
     [
       "notes",
@@ -482,13 +482,13 @@ const PAGE = {
           "A",
           "One per area; tap to see its projects",
           1,
-          "At most as many notes as you have areas."
+          "No more notes than you have areas."
         ],
         [
           "B",
           "One per project, in a scrolling list",
           0,
-          "Everything visible, but 26 projects means 26 notes."
+          "Everything visible, but with 26 projects, as in your own data, that is 26 notes."
         ]
       ],
       "One per area keeps the screen short; a computer has room to show every project at once."
@@ -554,8 +554,8 @@ const PAGE = {
   "wrapup": {
     "summary": "The audit found empty space, a task that is not the biggest thing, and no view of the next step per area and project. The proposal fixes those on Focus, Roadmap, Sort, Review and Organize with four shapes that each mean one thing.",
     "changing": "Changed: the layout of Focus, Roadmap, Sort, Review and Organize on phone and computer. Not changed: tabs, data, Projects, Settings.",
-    "blocking": "Your five answers under Choices. Nothing is built until you approve.",
-    "next": "After approval: a parent GitHub issue with one issue per screen, then the build in the order you pick, then one QA page with before and after pictures from the real app.",
+    "blocking": "Waiting on your five answers under Choices. Nothing is built until you approve.",
+    "next": "After approval: one main GitHub issue with a smaller issue for each screen, then the build in the order you pick, then one checking page with before and after pictures from the real app.",
     "todo": [
       "Look at the pictures.",
       "Pick your answers under Choices.",
