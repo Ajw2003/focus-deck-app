@@ -1,5 +1,7 @@
 # The Focus tab (#270)
 
+> **2026-11-15 (#283):** Focus now opens on a task; the two questions below open from "Choose…", "Another" is the plain button "Not now", and the ⋯ tag is the plain button "More". See [desk-layout.md](./desk-layout.md).
+
 > Replaces the old "What's your focus right now?" card with two wallets on one page. The carousel, the "Choosing a card"
 > setting and the wide-screen strip are still in [wallets.md](./wallets.md); the pick order is in
 > [task-links.md](./task-links.md) and [triage.md](./triage.md).

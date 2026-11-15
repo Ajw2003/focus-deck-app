@@ -1,5 +1,7 @@
 # Project State
 
+> **2026-11-15 (#281):** design audit built, waiting on Eden's test: Focus opens on one task with the next step of every area and project beside it; Roadmap is four columns on a computer with the next step as a yellow note; on Sort, Review and Triage the slip fills a bigger clipboard with the pile behind it; plain buttons carry words. See `docs/4-systems/desk-layout.md`.
+
 > **2026-11-15:** projects are files in a wooden filing cabinet on Focus, Sort and the Projects tab (one drawer per area, A to Z, progress bars on the Projects tab); the app icon, favicon and top-bar mark are an oak drawer of files. Also fixed on Eden's data: choosing a project on the Roadmap no longer narrows Focus and Sort to it (2 of 26 folders); long rows no longer overlap; the clipboard keeps dark ink in dark mode; Sort has Not this one; Triage and Task details say what to do. See `docs/4-systems/wallets.md#the-filing-cabinet`, `view-switch.md`, `in-tray.md`, `triage.md`, `pwa-shell.md`.
 
 > **2026-11-13:** Organize no longer freezes with hundreds of open tasks (Tidy up's "The same?" check compared every pair of titles in full); Settings has *Save a copy of my data*. See `docs/4-systems/tidy-up.md`, `docs/4-systems/local-storage.md`.

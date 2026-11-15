@@ -1,7 +1,7 @@
 # Desk layout: the next step is the biggest thing (#281)
 
-> **Status: planned, not built.** Approved 2026-11-15 (see `docs/6-decisions/Decisions.md`). This file says what the
-> build must do; each section is rewritten to cite `file:line` as its step lands. Steps: #282 to #286.
+> **Status: built 2026-11-15, waiting on Eden's test.** Approved the same day (see `docs/6-decisions/Decisions.md`).
+> Steps #282 to #286. Each section says what was planned; "As built" at the end says where it is in the code.
 
 ## What it owns
 
@@ -48,7 +48,37 @@ marked "Next step" at both sizes. A list longer than its cap shows a "Show more"
 The slip fills the clipboard and the edges of the waiting slips show behind it. On a computer the next few are listed
 beside the clipboard under "After this one".
 
+## As built
+
+- **Plain button:** `.dk-plain` (`app/css/app.css`). The 560px caps named above are lifted on a computer by the block
+  headed "What sits on the clipboard stretches to fill the paper": the clipboard screens are `min(900px, 100%)` wide.
+  A title longer than 48 characters is written smaller (`.focus-title.is-long`) so a phone still fits.
+- **Next step:** `nextStepOf(project, st, today)` and `nextStepOfArea(areaId, st, today)` (`app/js/pick-order.js:52`).
+  A project with no area counts as Unsorted.
+- **Focus:** `paint()` calls `M.pickForMe()` when the Focus tab shows with no focus, no crossed-out note and no
+  `ui.focusChoosing` (`app/js/app.js:492`). "Choose…" is `focus-choose`; `renderFocus` then draws the two questions
+  (`app/js/focus-view.js:103`). ✕ Clear in the More drawer also leads to the questions. Small notes:
+  `renderNextNotes` (`app/js/focus-view.js:130`). A phone shows four area notes at most, then an "All N areas" button
+  (`focus-all-areas`); `focus-area` shows an area's projects; `focus-set` makes a project's next step the big note.
+  The task that is already the big note stays in the list, faded.
+- **Roadmap:** all four lists are drawn (`.rm-lane`, `app/js/roadmap-view.js`); the stylesheet shows the picked one
+  under the tab strip on a phone and all four as full-height columns on a computer, with no clipboard there. The
+  "Next step" note is `nextNote` (`:37`). A list shows 8 tasks (`CAP`, `:15`), then "Show N more" / "Show fewer"
+  (`rm-more`; `ui.rmMore` resets when the project or milestone changes).
+- **Sort, Review, Triage:** the first Sort screen, "Finished?" and "Do this first?" have one stamp and a row of plain
+  buttons. The pile is `pile` (`app/js/sort-flow-view.js:43`: two edges with three or more waiting, one with two,
+  none with one). "After this one" is `split` (`:44`); nothing in that list can be pressed. Tidy up and the later
+  Sort steps are unchanged.
+- **Checks:** `scripts/check-roadmap-columns-browser.mjs`; `docs/generated/design-audit/shoot.mjs` (every tab fits
+  390x844 and 1440x900, no text under 13px), `shoot-focus.mjs` (the Focus walk), `shoot-final.mjs` (light and dark,
+  8 and 26 projects).
+
 ## Traps
 
 - Every screen must still fit 390x844 with no text under 13px (the standing rule from #270 and #272).
-- The drawings are light mode with 8 projects. Dark mode and 26 projects are checked in the real app in #286.
+- `.wrap:has(.toast)` shrinks every clipboard screen by 64px while a notice shows (`app/css/app.css`, "A slip
+  (toast) must not make a phone page scroll"). A new screen wrapper must be added to that rule, as `.focus-split` was.
+- A due chip on a note needs paper colours in both themes (`.note .chip.deadline-chip:is(...)`); the theme's own
+  chip colours are unreadable on yellow in dark mode.
+- Every button the app can press must be listed in `docs/generated/friction-steps/feature-map.json`, or the
+  feature-map check fails.

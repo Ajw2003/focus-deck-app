@@ -17,6 +17,12 @@ make it bigger, the notes fill it); see Decisions. The four drawings that answer
 (parent) and #282 to #286 (steps) are open; `docs/4-systems/desk-layout.md` says what the build must do. The build
 plan page `docs/plans/design-audit-build.html` is waiting on Eden's approval. No app code has changed.
 
+Build plan approved the same day; steps #282 to #285 built by builder helpers, each checked and touched up before the next.
+Step 5 (#286) shot the build in dark mode and with 26 projects and found four faults (unreadable Roadmap title and
+due chip in dark, phone Focus 200px too tall with 8 areas, phone Roadmap 33px too tall with a long list), all fixed.
+How it works: `docs/4-systems/desk-layout.md`. Results: `docs/generated/design-audit/final-checks.txt`,
+`final-shots.txt`, `final-fit.txt`. The checking page is `docs/plans/design-audit-qa.html`.
+
 # Today — 2026-11-11
 
 - 2026-11-12: step 11 of "tabs that follow the flow" (#259): five numbered tabs (Sort, Organize, Roadmap, Focus, Review), jot box on every tab with J on desktop, Board and Projects screens removed into the Roadmap; see `docs/4-systems/tabs.md`.
