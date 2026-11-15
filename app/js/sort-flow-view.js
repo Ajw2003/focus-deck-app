@@ -207,7 +207,7 @@ export function renderSortFlow(st, u, ordered, { mode, now = new Date(), many = 
     return '<h2 class="tray-count sort-title">' + (n === 1 ? '1 to sort' : n + ' to sort') + '</h2>'
       + '<div class="dk-board sort-board"><div class="dk-paper sort-paper">' + slipHtml(c, true)
       + (many ? '<button type="button" class="dk-link sort-several" data-action="bulk-toggle">Sort several</button>' : '') + '</div></div>'
-      + foot([stamp('Sort this one')]) + drawer;
+      + foot([n > 1 ? '<button type="button" class="dk-skip" data-action="unsorted-skip">Not this one</button>' : '', stamp('Sort this one')]) + drawer; // Not this one: to the back of the queue, kept on this device
   }
   const bar = edit ? '' : dots(Math.max(step, 1)) + stepList(Math.max(step, 1));
   if (sub === 'notes') {

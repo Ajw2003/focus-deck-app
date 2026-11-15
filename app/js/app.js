@@ -78,6 +78,17 @@ function freshBulk(on) {
   return { on: !!on, step: 1, sub: null, fromReceipt: false, find: '', facingFolder: null, facingFlag: null, showAllFlags: false, priority: null, due: '', dateOpen: false, picked: [], projectId: null, selected: [], groupTitle: '', newLabel: '', why: '' };
 }
 
+// Not this one / Later on Sort: the order is kept on this device, so a skipped thought stays at the back after a reload.
+const SORT_LATER_KEY = 'focusdeck-sort-later';
+function loadSortLater() {
+  try { const v = JSON.parse(localStorage.getItem(SORT_LATER_KEY)); return Array.isArray(v) ? v.filter((k) => typeof k === 'string') : []; }
+  catch (e) { console.error('Could not read the Sort later list:', e); return []; }
+}
+function skipSort(key) {
+  ui.unsorted.later = sendToBack(ui.unsorted.later, key);
+  try { localStorage.setItem(SORT_LATER_KEY, JSON.stringify(ui.unsorted.later.slice(-500))); }
+  catch (e) { console.error('Could not save the Sort later list:', e); }
+}
 function freshUnsortedScratch(later) {
   return { later: later || [], priority: null, due: '', dateOpen: false, projectId: null, selected: [], step: 0, sub: null, menu: false, month: null, letter: null, dueStages: null, fromReceipt: false, find: '', title: null, notes: null, notesOpen: false, facingFolder: null, facingFlag: null, showAllFlags: false, currentKey: null,
     parent: null, subtasks: [], waitsOn: [], holdsUp: [], newSubtasks: [], picking: null, pickQuery: '', why: '' };
@@ -165,7 +176,7 @@ export const ui = {
   completing: null, // the sticky note's "I've done it" sequence in progress (js/focus-complete.js)
   inboxOpen: true, doneOpen: {}, pendingRemove: {}, syncing: false, syncError: null, notice: null, editingTask: null,
   projectQuery: '', taskQuery: '', projectSort: loadProjectSort(), // the Roadmap's Find boxes and project order
-  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, addDraft: {}, addPick: {}, unsorted: freshUnsortedScratch(), bulk: freshBulk(false),
+  focusFilter: loadFocusFilter(), editingProject: {}, addingTask: {}, addDraft: {}, addPick: {}, unsorted: freshUnsortedScratch(loadSortLater()), bulk: freshBulk(false),
  
   // The "+ New" panel (PR 7, Q29a) and the Edit panel's inline "Link to GitHub repo" chooser
   // (Q30c) -- neither persisted, both reset to closed on load.
@@ -780,7 +791,7 @@ function onAppClick(e) {
       ui.noticeAction = project && taskId ? { text: ui.notice, label: 'Open', action: 'open-added-task', attrs: { 'data-task': taskId, 'data-project': project.id } } : null;
       paint();
     } else if (done.outcome === 'later') {
-      ui.unsorted.later = sendToBack(ui.unsorted.later, cur.key);
+      skipSort(cur.key);
       paint();
     }
   }
@@ -788,7 +799,7 @@ function onAppClick(e) {
   else if (action.startsWith('bulk-')) onBulkAction(action, el);
   else if (action === 'unsorted-skip') {
     const cur = unsortedCurrent(state, ui.unsorted);
-    if (cur) ui.unsorted.later = sendToBack(ui.unsorted.later, cur.key);
+    if (cur) skipSort(cur.key);
     paint();
   }
   else if (action === 'unsorted-complete') {
