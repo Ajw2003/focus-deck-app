@@ -133,7 +133,15 @@ function setView(view) {
   try {
     localStorage.setItem(VIEW_KEY, JSON.stringify(ui.view));
     if (ui.view.mode === 'project') localStorage.setItem(LAST_PROJECT_KEY, ui.view.id);
+    else localStorage.setItem(WIDE_VIEW_KEY, JSON.stringify(ui.view));
   } catch (e) { console.error('Could not save the view switch:', e); }
+}
+// A project picked on the Roadmap stays the Roadmap's: every other tab shows Everything or an area,
+// the last one picked there. A single project here hid all but one folder on Focus and Sort.
+const WIDE_VIEW_KEY = 'focusdeck-wide-view';
+function loadWideView() {
+  try { return JSON.parse(localStorage.getItem(WIDE_VIEW_KEY)) || VIEW_ALL; }
+  catch (e) { console.error('Could not read the view switch:', e); return VIEW_ALL; }
 }
 // The Roadmap tab shows one project: the one picked last, else the first (#262).
 const LAST_PROJECT_KEY = 'focusdeck-last-project';
@@ -270,8 +278,9 @@ export function renderApp(st) {
   }
   ui.view = normalizeView(ui.view, st); // a gone area or project is All
   if (ui.screen === 'roadmap' && ui.view.mode !== 'project' && lastProjectId()) setView({ mode: 'project', id: lastProjectId() }); // the Roadmap is one project
+  if (ui.screen !== 'roadmap' && ui.view.mode === 'project') ui.view = normalizeView(loadWideView(), st);
   st._ui = ui;
-  const sw = renderViewSwitch(st, ui.view, ui.viewOpen);
+  const sw = renderViewSwitch(st, ui.view, ui.viewOpen, ui.screen === 'roadmap');
   const hasToken = !!getToken();
   // one activity at a time (#135): the rail, then only the chosen screen
   const rail = R.renderRail(ui.screen, R.unsortedQueue(st).length, reviewLists(st, null, Date.now()).waiting.length);
