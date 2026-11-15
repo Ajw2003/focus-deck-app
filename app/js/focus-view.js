@@ -132,7 +132,7 @@ export function renderNextNotes(st, ui, today = dueDates().today) {
   const areas = areaList(vs);
   const projectsOf = (a) => vs.projects.filter((p) => areaIdOf(vs, p) === a.id && openCount(p));
   const proj = (p, a) => { const n = nextStepOf(p, vs, today); return n && note(p.name, n.t, (openCount(p) - 1) + ' more', a.color || 'hsl(215 10% 55%)', 'focus-set', ' data-task="' + esc(n.t.id) + '"', st); };
-  let phone;
+  let phone, allBtn = ''; // the All areas button sits in the heading row, so it costs a phone no extra height
   const chosen = areas.find((a) => a.id === ui.focusArea && projectsOf(a).length);
   if (chosen) phone = '<button type="button" class="dk-plain nx-back" data-action="focus-area" data-area="">‹ All areas</button><div class="nx-grid">' + projectsOf(chosen).map((p) => proj(p, chosen)).join('') + '</div>';
   else { // four area notes fit a phone under the clipboard; the rest wait behind one button
@@ -141,10 +141,10 @@ export function renderNextNotes(st, ui, today = dueDates().today) {
       return n && note(a.name, n.t, c + (c === 1 ? ' project ›' : ' projects ›'), a.color || 'hsl(215 10% 55%)', 'focus-area', ' data-area="' + esc(a.id) + '"', st).replace('class="nx-note', 'class="nx-note nx-area');
     }).filter(Boolean);
     const all = ui.focusAllAreas || notes.length <= 4;
-    phone = '<div class="nx-grid">' + (all ? notes : notes.slice(0, 4)).join('') + '</div>'
-      + (notes.length > 4 ? '<button type="button" class="dk-plain nx-all" data-action="focus-all-areas">' + (all ? 'Show fewer areas' : 'All ' + notes.length + ' areas') + '</button>' : '');
+    phone = '<div class="nx-grid' + (notes.length > 4 ? ' is-tight' : '') + '">' + (all ? notes : notes.slice(0, 4)).join('') + '</div>';
+    if (notes.length > 4) allBtn = '<button type="button" class="dk-plain nx-all" data-action="focus-all-areas">' + (all ? 'Fewer areas' : 'All ' + notes.length + ' areas') + '</button>';
   }
   const desk = areas.filter((a) => projectsOf(a).length).map((a) => '<div class="nx-col"><h3 class="nx-head" style="--nx:' + esc(a.color || 'hsl(215 10% 55%)') + '">' + esc(a.name) + '</h3>' + projectsOf(a).map((p) => proj(p, a)).join('') + '</div>').join('');
   if (!desk) return '';
-  return '<div class="nx nx-phone"><h3 class="nx-h">Next in each area</h3>' + phone + '</div><div class="nx nx-desk"><h3 class="nx-h">Next in each project</h3><div class="nx-cols">' + desk + '</div></div>';
+  return '<div class="nx nx-phone"><div class="nx-hrow"><h3 class="nx-h">Next in each area</h3>' + allBtn + '</div>' + phone + '</div><div class="nx nx-desk"><h3 class="nx-h">Next in each project</h3><div class="nx-cols">' + desk + '</div></div>';
 }
