@@ -20,8 +20,10 @@
   nothing re-centres them. The drawer open last is remembered for the visit (`rememberedDrawer`), so a repaint reopens it.
 - **Files.** Every project is a file with its tab on the left, A to Z (the Projects tab passes
   `sort: () => 0` to keep its own Sort by order). Everything also carries the lead file, All projects, on
-  Focus. A file may show `detail` ("12 to do", "3 open", "chosen") and `pct`, which draws a progress bar on
-  the tab and the face (Projects tab only).
+  Focus. A file may show `detail` ("12 to do", "3 open", "chosen") and `pct`, which draws a progress meter
+  (Projects tab only): the old Projects ruler, 14px of paper with tick marks filled in the project's colour,
+  with the percent beside it. It sits at the top of the face, the strip of every file that stays in sight
+  below its tab, so every project's progress shows without opening it (asked for by Eden, 2026-11-14).
 - **Flicking.** Scrolling a drawer tips the files you pass back and leans the ones ahead (`flick`, transform
   and a `--shade` only, once per frame). It never moves the scroll, so it cannot fight a finger.
 - **Choosing.** A tap opens a file (`.is-centre`, in every drawer it hangs in) and calls `onFacing`; a tap on

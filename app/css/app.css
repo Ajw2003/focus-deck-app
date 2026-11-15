@@ -1745,8 +1745,9 @@ a.dk-choice{text-decoration:none;}
   transform-origin:50% 100%; will-change:transform; transition:margin .28s cubic-bezier(.2,.8,.25,1);}
 .cab-tab{position:absolute; top:0; left:6px; width:58%; height:28px; border-radius:6px 6px 0 0; background:color-mix(in srgb,var(--c) 50%,var(--dk-manila)); box-shadow:inset 0 2px 0 rgba(255,255,255,.35); filter:brightness(var(--shade,1));}
 .cab-tab b{display:block; margin:4px 6px 0; height:16px; padding:0 3px; background:#fff; border-radius:1px; font:800 13px/16px var(--font-paper); color:#3A2E14; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;}
-.cab-tab s{position:absolute; left:6px; right:6px; bottom:4px; height:3px; background:rgba(255,255,255,.7); border-radius:2px; overflow:hidden; text-decoration:none;}
-.cab-tab s i, .cab-bar i{display:block; height:100%; background:var(--dk-green);}
+/* the progress meter: the old Projects ruler (paper, tick marks, the project's colour) at the top of each file's face */
+.cab-meter{display:flex; align-items:center; gap:8px; margin-top:1px;}
+.cab-bar i{display:block; height:100%; background:color-mix(in srgb,var(--c) 80%,#1C2438); box-shadow:inset 0 -2px 0 rgba(0,0,0,.18);}
 .cab-face{position:absolute; inset:26px 0 0; border-radius:3px 3px 0 0; padding:6px 12px 0; display:flex; flex-direction:column; gap:5px; filter:brightness(var(--shade,1));
   background:linear-gradient(color-mix(in srgb,var(--c) 22%,var(--dk-manila)),color-mix(in srgb,var(--c) 34%,var(--dk-manila)) 70%); box-shadow:0 -3px 6px -2px rgba(0,0,0,.45);}
 .cab-face::before{content:""; position:absolute; left:-6px; right:-6px; top:-2px; height:4px; border-radius:2px; background:#8C6A22;}
@@ -1754,10 +1755,10 @@ a.dk-choice{text-decoration:none;}
 .cab-name{font:800 15px var(--font-paper); color:#1C2438; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .cab-file:not(.is-centre) .cab-name{visibility:hidden;}
 .cab-n{font:700 13px var(--font-ui); color:#4A3C1E; white-space:nowrap; font-variant-numeric:tabular-nums;}
-.cab-bar{display:none; height:9px; border-radius:2px; background:rgba(255,255,255,.65); box-shadow:inset 0 1px 2px rgba(0,0,0,.25); overflow:hidden;}
-.cab-pct{display:none; font:700 13px var(--font-ui); color:#4A3C1E; font-variant-numeric:tabular-nums;}
+.cab-bar{flex:1; height:14px; border-radius:2px; overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,.3);
+  background:repeating-linear-gradient(90deg,#8C7A55 0 1px,transparent 1px 10%) 0 100%/100% 6px no-repeat,#F3E4B8;}
+.cab-pct{flex:none; min-width:38px; text-align:right; font:800 13px var(--font-ui); color:#4A3C1E; font-variant-numeric:tabular-nums;}
 .cab-file.is-centre{margin-bottom:6px;}
-.cab-file.is-centre .cab-bar, .cab-file.is-centre .cab-pct{display:block;}
 .cab-file.is-centre .cab-face{box-shadow:0 0 0 2px var(--dk-pen), 0 -3px 6px -2px rgba(0,0,0,.45);}
 .cab-file.is-picked .cab-tab b::after{content:" ✓";}
 .cab-file:focus-visible{outline:3px solid var(--dk-brass); outline-offset:2px;}

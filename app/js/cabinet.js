@@ -31,10 +31,11 @@ export function startDrawer(drawers, rememberedId) {
 // One file. `detail` is the small text on its face ("12 to do"); `pct` (0-100, or null) draws a progress bar.
 function file(f, k, facing) {
   const pct = typeof f.pct === 'number' ? Math.max(0, Math.min(100, Math.round(f.pct))) : null;
-  const bar = pct === null ? '' : '<span class="cab-bar" role="img" aria-label="' + pct + '% done"><i style="width:' + pct + '%"></i></span><span class="cab-pct">' + pct + '% done</span>';
+  // the meter sits at the top of the face, the strip of each file that stays in sight below its tab
+  const bar = pct === null ? '' : '<span class="cab-meter"><span class="cab-bar" role="img" aria-label="' + pct + '% done"><i style="width:' + pct + '%"></i></span><span class="cab-pct">' + pct + '%</span></span>';
   return '<button type="button" class="cab-file' + (f.key === facing ? ' is-centre' : '') + (f.picked ? ' is-picked' : '') + '" data-key="' + esc(f.key) + '" data-speak="' + esc(f.speak || f.name) + '" style="--c:' + f.color + ';z-index:' + (k + 1) + '">'
-    + '<span class="cab-tab"><b>' + esc(f.name) + '</b>' + (pct === null ? '' : '<s><i style="width:' + pct + '%"></i></s>') + '</span>'
-    + '<span class="cab-face"><span class="cab-row"><span class="cab-name">' + esc(f.name) + '</span><span class="cab-n">' + esc(f.detail || '') + '</span></span>' + bar + '</span></button>';
+    + '<span class="cab-tab"><b>' + esc(f.name) + '</b></span>'
+    + '<span class="cab-face">' + bar + '<span class="cab-row"><span class="cab-name">' + esc(f.name) + '</span><span class="cab-n">' + esc(f.detail || '') + '</span></span></span></button>';
 }
 
 // wallet: the name the hooks get ('projects', 'tray-folders', 'projects-tab'). facing: the key of the open file.
