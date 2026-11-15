@@ -42,7 +42,7 @@ function list(st, ui) {
   const find = '<input type="search" class="sort-find project-search pj-find" data-action="set-project-query" value="' + esc(ui.projectQuery || '') + '" placeholder="Find a project…" aria-label="Find a project">';
   const body = find + (ps.length ? cabinet(st, ps) : '<p class="muted">No projects here yet.</p>');
   return '<div class="pj">' + '<div class="dk-board sort-board"><div class="dk-paper sort-paper pj-paper">'
-    + '<button type="button" class="slip-more pj-pull" data-action="proj-sort-menu" aria-haspopup="dialog" aria-expanded="' + !!ui.projSortOpen + '" aria-label="Sort by"></button>'
+    + '<button type="button" class="slip-more dk-plain pj-pull" data-action="proj-sort-menu" aria-haspopup="dialog" aria-expanded="' + !!ui.projSortOpen + '" aria-label="Sort by">Sort by</button>'
     + '<h2 class="sort-q">Projects</h2><div class="sort-body">' + body + '</div></div></div>'
     + foot([stamp('+ New project', { action: 'toggle-new-panel', attrs: ' id="new-panel-toggle"' })]) + '</div>' + (ui.projSortOpen ? sortDrawer(ui) : '');
 }

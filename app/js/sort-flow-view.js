@@ -48,7 +48,7 @@ function slipHtml(c, full) {
     + (!isThought && cur.task.issueNumber != null ? ' <span class="slip-issue">#' + cur.task.issueNumber + '</span>' : '');
   const flags = u.selected.map((token) => allCards.find((x) => x.token === token)).filter(Boolean)
     .map((x) => '<span class="slip-flag" title="' + esc(x.name) + '" style="--c:' + mutedChip(x.color) + '">' + esc(x.name) + '</span>').join('');
-  return '<div class="jot-slip' + (full ? '' : ' compact') + '">' + (c.edit ? '' : '<button type="button" class="slip-more" data-action="sort-menu" aria-haspopup="dialog" aria-expanded="' + !!u.menu + '" aria-label="More: add notes, done already, later, delete"></button>')
+  return '<div class="jot-slip' + (full ? '' : ' compact') + '">' + (c.edit ? '' : '<button type="button" class="slip-more dk-plain" data-action="sort-menu" aria-haspopup="dialog" aria-expanded="' + !!u.menu + '" aria-label="More: add notes, done already, later, delete">More</button>')
     + '<p class="slip-text"' + (editable ? ' contenteditable="true" spellcheck="false" data-slip-title' : '') + '>' + esc(text) + '</p>'
     + '<div class="slip-dest">' + dest + '</div>' + (flags ? '<div class="slip-flags">' + flags + '</div>' : '')
     + (full && isThought ? '<div class="slip-when">Thought · ' + relTime(cur.item.createdAt) + '</div>' : '')

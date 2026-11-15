@@ -93,5 +93,5 @@ export function renderTaskDetails(st, ui, id, now = Date.now()) {
         + choice('🧩 Part of…', { action: 'detail-edit', attrs: ' data-step="5"' }) + choice('🚧 Holds up…', { action: 'detail-edit', attrs: ' data-step="8"' }) + choice('Delete', { action: 'detail-delete', cls: ' danger' }), 'detail-more')
       : '';
   return panel(board(t.title, stampRow + receipt, '<button type="button" class="td-x" data-action="detail-close" aria-label="Close task details">×</button>')
-    + foot([stamp('⋯', { action: 'detail-more', attrs: ' aria-label="More about this task"', cls: ' td-more' }), stamp('◎ Focus', { action: 'detail-focus' })]) + drawers);
+    + foot([stamp('More', { action: 'detail-more', attrs: ' aria-label="More about this task"', cls: ' td-more dk-plain' }), stamp('◎ Focus', { action: 'detail-focus' })]) + drawers);
 }

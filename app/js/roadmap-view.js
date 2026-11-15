@@ -44,7 +44,7 @@ function main(st, ui, p, r) {
       + '<div class="rm-nav">' + flag('‹', -1, 'Previous milestone') + '<button type="button" class="dk-link rm-flag rm-all" data-action="rm-screen"' + to('all') + '>All milestones</button>' + flag('›', 1, 'Next milestone') + '</div>';
   }
   return '<div class="pj rm-main"><div class="dk-board sort-board"><div class="dk-paper sort-paper pj-paper">'
-    + '<button type="button" class="slip-more pj-pull" data-action="rm-drawer" data-drawer="menu" aria-haspopup="dialog" aria-expanded="' + (ui.rmDrawer === 'menu') + '" aria-label="More"></button>'
+    + '<button type="button" class="slip-more dk-plain pj-pull" data-action="rm-drawer" data-drawer="menu" aria-haspopup="dialog" aria-expanded="' + (ui.rmDrawer === 'menu') + '" aria-label="More">More</button>'
     + '<h2 class="sort-q">' + esc(m ? m.name : p.name) + '</h2><div class="sort-body">' + body + '</div></div></div>'
     + foot([stamp('+ Add a task', { action: 'rm-screen', attrs: to('task') })]) + '</div>';
 }

@@ -3,7 +3,7 @@
 // (Urgent, High, Medium/none, Low), 5 holds up other open tasks (most first), 6 due soonest, 7 oldest.
 // Also the ranking under Triage (#256). Pure. shortcut: tasks carry no created time, so "oldest" is the
 // order they sit in (project order, then task order); upgrade when tasks get a createdAt.
-import { effectivePriority } from './areas.js';
+import { effectivePriority, areaIdOf } from './areas.js';
 
 // open tasks that wait on each task id (the same count as task-links.js holdsUp, done once for the list)
 function holdCounts(st) {
@@ -46,3 +46,8 @@ export function pickOrder(entries, st, today) {
     return a.i - b.i;
   }).map((x) => x.e);
 }
+
+// The next step of a project / of an area: the best open task (null when none). Tasks carry no area; the project does.
+const openOf = (p) => (p.tasks || []).filter((t) => t.status !== 'done').map((t) => ({ t, p }));
+export const nextStepOf = (project, st, today) => pickOrder(openOf(project), st, today)[0] || null;
+export const nextStepOfArea = (areaId, st, today) => pickOrder(((st && st.projects) || []).filter((p) => areaIdOf(st, p) === areaId).flatMap(openOf), st, today)[0] || null;

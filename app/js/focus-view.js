@@ -16,7 +16,7 @@ import { stamp, foot, dots } from './sort-flow-view.js';
 
 const paper = (q, inner) => '<div class="dk-board sort-board"><div class="dk-paper sort-paper">' + (q ? '<h2 class="sort-q">' + esc(q) + '</h2>' : '') + '<div class="sort-body">' + inner + '</div></div></div>';
 const back = (action) => '<button type="button" class="dk-back" data-action="' + action + '">‹ Back</button>';
-const tag = (label, action, extra = '') => '<button type="button" class="dk-tag focus-tag" data-action="' + action + '"' + extra + '>' + label + '</button>';
+const tag = (label, action, extra = '', cls = '') => '<button type="button" class="dk-tag focus-tag' + cls + '" data-action="' + action + '"' + extra + '>' + label + '</button>';
 const find = (kind, value, placeholder) => '<input type="search" class="sort-find" data-car-find="' + kind + '" value="' + esc(value || '') + '" placeholder="' + placeholder + '" aria-label="' + placeholder.replace('…', '') + '">';
 
 // The project strip, narrowed by the Find box (ui.focusFind). Re-rendered on its own as the text changes, so the
@@ -111,6 +111,6 @@ export function renderFocus(st, findTaskWithProject, ui) {
     + paper('', '<div class="note-shadow"><div class="note' + leaving.note + '"><h2 class="focus-title"><span class="ink">' + esc(t.title) + '</span></h2></div></div>'
       + '<div class="dk-stamps focus-stamps">' + stamp('✓ Done', { action: 'complete-focus', cls: ' rv-ok focus-done' + leaving.button })
       + stamp('↻ Another', { action: 'reroll', disabled: !canReroll, cls: ' focus-another' }) + '</div>')
-    + foot([tag('⋯', 'focus-menu', ' aria-haspopup="dialog" aria-expanded="' + !!(ui && ui.focusMenu === t.id) + '" aria-label="More: start it, smaller steps, details, project, clear"')]) + '</div>'
+    + foot([tag('More', 'focus-menu', ' aria-haspopup="dialog" aria-expanded="' + !!(ui && ui.focusMenu === t.id) + '" aria-label="More: start it, smaller steps, details, project, clear"', ' dk-plain')]) + '</div>'
     + (ui && ui.focusMenu === t.id ? drawer(t, p, open) : '');
 }
