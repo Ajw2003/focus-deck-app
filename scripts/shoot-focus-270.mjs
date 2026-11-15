@@ -55,6 +55,8 @@ await page.addInitScript(([s, key]) => {
   localStorage.setItem('focusdeck-screen', 'focus');
 }, [seed(), STATE_KEY]);
 await page.goto(BASE);
+await page.waitForSelector('.focus-active'); // Focus opens on a task (#283); Choose… leads to the two questions
+await page.click('[data-action="focus-choose"]');
 await page.waitForSelector('[data-wallet="projects"]');
 await page.waitForTimeout(400);
 
@@ -94,7 +96,7 @@ await shot('f1');
 // Pick for me
 await click('[data-action="pick-for-me"]');
 const picked = await title();
-check('f3 (Pick for me): one task on its sticky note with Done and Another stamps', picked.length > 0 && (await text('.focus-stamps')) === '✓ Done↻ Another' && (await saved()).focus.ordered === true, picked);
+check('f3 (Pick for me): one task on its sticky note with the Done stamp', picked.length > 0 && (await text('.focus-stamps')) === '✓ Done' && (await saved()).focus.ordered === true, picked);
 await shot('f3-pick-for-me');
 // the drawer, then Clear
 await click('[data-action="focus-menu"]');
@@ -149,7 +151,7 @@ await page.waitForTimeout(300);
 check('f5: Done crossed the note out and completed the step', (await task('s2')).status === 'done' && (await text('.sort-foot .file-btn')) === 'Next one');
 await shot('f5');
 await click('[data-action="focus-next-one"]');
-check('Next one picks another task', !!(await saved()).focus && (await page.$$('.focus-stamps .dk-btn')).length === 2, await title());
+check('Next one picks another task', !!(await saved()).focus && (await page.$$('.focus-stamps .dk-btn')).length === 1, await title());
 // Clear again, from the drawer
 await click('[data-action="focus-menu"]');
 await click('.sort-drawer [data-action="clear-focus"]');

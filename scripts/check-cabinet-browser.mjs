@@ -25,6 +25,7 @@ try {
   const errors = []; page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript((s) => { if (localStorage.getItem('focusdeck-state-v1')) return; localStorage.setItem('focusdeck-state-v1', s); localStorage.setItem('focusdeck-onboarding', JSON.stringify({ done: true })); localStorage.setItem('focusdeck-screen', 'focus'); }, seed);
   await page.goto('http://127.0.0.1:' + PORT + '/app/');
+  await page.waitForSelector('.focus-active'); await page.click('[data-action="focus-choose"]'); // #283: Focus opens on a task; Choose… leads to the questions
   await page.waitForSelector('.cab[data-wallet="projects"]');
   await page.waitForTimeout(400);
   const cab = (w) => '.cab[data-wallet="' + w + '"]';

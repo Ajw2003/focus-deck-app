@@ -262,7 +262,9 @@ const walletHooks = {
 const facingKey = (wallet) => { const c = document.querySelector('[data-wallet="' + wallet + '"] .sleeve.is-centre, [data-wallet="' + wallet + '"] .cab-file.is-centre'); return c ? c.getAttribute('data-key') : undefined; };
 function showFocus(key) {
   const categoryId = key && key !== R.ANY_CATEGORY_KEY ? key : null;
+  const was = ui.focusChoosing; ui.focusChoosing = false; // before the pick: its repaint must not draw the questions again
   if (M.pickFocus({ categoryId, projectId: R.focusProjectId(state, ui) })) { ui.focusQ = 1; ui.focusDone = null; return true; }
+  ui.focusChoosing = was;
   ui.notice = 'No open tasks match that label and project.';
   paint();
   return false;
@@ -484,6 +486,9 @@ export function paint() {
   const restoreSearch = active && active.matches && active.matches('.project-search')
     ? { start: active.selectionStart, end: active.selectionEnd }
     : null;
+  // Focus opens on a task: pick one (its persist repaints) unless the person is choosing, or the crossed-out note is showing
+  state._ui = ui; // pickForMe reads the view off it
+  if (ui.screen === 'focus' && !ui.onboarding && !state.focus && !ui.focusDone && !ui.focusChoosing && M.pickForMe()) return;
   document.getElementById('app').innerHTML = renderApp(state);
   paintHeaderControls();
   mountWallets(document.getElementById('app'), walletHooks);
@@ -849,7 +854,7 @@ function onAppClick(e) {
     }
   }
   else if (action === 'reroll') M.reroll();
-  else if (action === 'pick-for-me') { if (M.pickForMe()) { ui.focusQ = 1; ui.focusDone = null; } else { ui.notice = 'Nothing open to pick from here.'; paint(); } }
+  else if (action === 'pick-for-me') { const was = ui.focusChoosing; ui.focusChoosing = false; if (M.pickForMe()) { ui.focusQ = 1; ui.focusDone = null; } else { ui.focusChoosing = was; ui.notice = 'Nothing open to pick from here.'; paint(); } }
   else if (action === 'focus-next') { const k = facingKey('projects'); if (k) { ui.focusFilter.projectId = k === R.ALL_PROJECTS_KEY ? null : k; saveFocusFilter(); } ui.focusQ = 2; ui.focusCategory = undefined; ui.focusKindFind = ''; paint(); } // Focus (#270): project chosen, now the kind of work
   else if (action === 'focus-back') { ui.focusQ = 1; paint(); }
   else if (action === 'focus-show') showFocus(facingKey('categories') || ui.focusCategory);
@@ -861,7 +866,11 @@ function onAppClick(e) {
   else if (action === 'focus-menu') { const f = state.focus; ui.focusMenu = f && ui.focusMenu !== f.taskId ? f.taskId : null; paint(); }
   else if (action === 'focus-steps') { const f = state.focus; ui.focusMenu = null; ui.focusSteps = f ? f.taskId : null; ui.focusTick = null; paint(); }
   else if (action === 'focus-steps-back') { ui.focusSteps = null; paint(); }
-  else if (action === 'clear-focus') { M.clearFocus(); ui.focusQ = 1; ui.focusDone = null; }
+  else if (action === 'clear-focus') { ui.focusChoosing = true; M.clearFocus(); ui.focusQ = 1; ui.focusDone = null; }
+  else if (action === 'focus-choose') { ui.focusChoosing = true; ui.focusQ = 1; ui.focusMenu = null; paint(); }
+  else if (action === 'focus-choose-back') { ui.focusChoosing = false; ui.focusQ = 1; paint(); }
+  else if (action === 'focus-area') { ui.focusArea = el.getAttribute('data-area') || null; paint(); }
+  else if (action === 'focus-set') { ui.focusArea = null; M.setFocus(taskId); }
   else if (action === 'focus-doing') {
     // same path as a board drop: lands at the end of In progress; the task stays in focus
     const f = state.focus && findTaskWithProject(state.focus.taskId);

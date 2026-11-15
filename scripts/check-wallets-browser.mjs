@@ -59,6 +59,7 @@ async function open(mode, scheme, extraStorage = {}) {
     for (const [k, v] of Object.entries(extra)) if (!localStorage.getItem(k)) localStorage.setItem(k, v);
   }, [seed(mode), extraStorage]);
   await page.goto(BASE);
+  await page.waitForSelector('.focus-active'); await page.click('[data-action="focus-choose"]'); // #283: Focus opens on a task; Choose… leads to the questions
   await page.waitForSelector('.cab');
   await page.waitForTimeout(400);
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -104,7 +105,7 @@ const catNarrow = await keysOf(page, 'categories');
 check('category cards narrowed to that project', catNarrow.length < catAll.length, catNarrow.join());
 await toQ1(page);
 // remembered on reload
-await page.reload(); await page.waitForSelector('.cab'); await page.waitForTimeout(400);
+await page.reload(); await page.waitForSelector('.focus-active'); await page.click('[data-action="focus-choose"]'); await page.waitForSelector('.cab'); await page.waitForTimeout(400);
 check('after reload the remembered project is open', (await openKey(page, 'projects')) === f1);
 check('markup carries data-facing', (await page.$eval('[data-wallet="projects"]', (t) => t.dataset.facing)) === f1);
 await ctx.close();
@@ -177,7 +178,7 @@ await page.screenshot({ path: OUT + 'dark-settings.png', fullPage: false });
 await page.check('.choosing-modes input[value="tap"]');
 const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('focusdeck-state-v1')).choosingMode);
 check('choosing Tap is stored with a stamp', stored.mode === 'tap' && stored.updatedAt > 1, JSON.stringify(stored));
-await page.goto(BASE); await page.waitForSelector('.cab'); await toQ2(page);
+await page.goto(BASE); await page.waitForSelector('.focus-active'); await page.click('[data-action="focus-choose"]'); await page.waitForSelector('.cab'); await toQ2(page);
 check('the wallets follow the setting', (await page.$eval('[data-wallet="categories"]', (t) => t.dataset.mode)) === 'tap');
 check('and there is no hint line (nothing explains the mode on the screen)', !(await page.$('.flip-hint')));
 await ctx.close();

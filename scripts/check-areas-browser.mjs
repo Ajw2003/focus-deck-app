@@ -110,6 +110,7 @@ for (const size of ['phone', 'desktop']) {
     await page.screenshot({ path: OUT + `${size}-kinds.png`, fullPage: size === 'phone' });
     await page.goto(BASE + 'index.html');
     await page.click('[data-action="set-screen"][data-screen="focus"]');
+    await page.click('[data-action="focus-choose"]'); // #283: Focus opens on a task; Choose… leads to the questions
     await page.click('[data-action="focus-next"]'); // Focus's second question, "What kind of work?", holds the kinds strip
     await page.waitForSelector('[data-wallet="categories"] .sleeve', { state: 'attached' });
     const keys = await page.$$eval('[data-wallet="categories"] .sleeve', (els) => els.map((e) => e.dataset.key));

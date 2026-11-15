@@ -1701,7 +1701,8 @@ a.dk-choice{text-decoration:none;}
 /* A slip (toast) must not make a phone page scroll: the screens above size themselves to fit 100dvh - 240px, and the toast's extra
    room under them is 64px, so they give those 64px back while it shows (#272). */
 @media (max-width:1099.98px){
-  .wrap:has(.toast) :is(.pj, .org, .sortflow){min-height:calc(100dvh - 304px - env(safe-area-inset-bottom, 0px));}
+  .wrap:has(.toast) :is(.pj, .org, .sortflow, .focus-split){min-height:calc(100dvh - 304px - env(safe-area-inset-bottom, 0px));}
+  .wrap:has(.toast) .focus-split .focusflow{min-height:0;} /* the clipboard inside the split is sized by the split, not by the rule above */
   .wrap:has(.toast) .screen-projects .pj-find + .pj-scroll{max-height:calc(100dvh - 489px);} /* a long project list gives them back too */
 }
 
@@ -1809,4 +1810,33 @@ a.dk-choice{text-decoration:none;}
   .focus-title{font-size:calc(54px * var(--note-scale, 1));}
   .jot-slip:not(.compact) .slip-text{font-size:calc(50px * var(--note-scale, 1));}
   .screen-review .rv-title{font-size:50px;}
+}
+/* Focus opens on a task (#283): the plain buttons, the where-line, and the small notes (next step of each area / project). */
+.focus-stamps{grid-template-columns:1fr;}
+.focus-plain{display:flex; gap:8px; margin:10px 6px 6px;}
+.focus-plain .dk-plain{flex:1; padding:8px 4px;}
+.focus-meta{margin:10px 0 0; font:600 15px var(--font-ui); display:flex; flex-wrap:wrap; align-items:center; gap:6px; color:#1C2438;}
+.focus-split{display:flex; flex-direction:column; gap:10px; width:100%; max-width:560px; margin:0 auto; min-height:calc(100dvh - 250px - env(safe-area-inset-bottom, 0px));}
+.focus-split .focusflow{flex:1; min-height:0; max-width:none; margin:0;} /* the clipboard takes what the small notes leave */
+.focus-title.is-long{font-size:calc(24px * var(--note-scale, 1));} /* a long title is written smaller so the note still fits a phone */
+.nx{min-width:0;}
+.nx-desk{display:none;}
+.nx-h{margin:0 0 8px; font:700 13px var(--font-ui); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint);}
+.nx-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.nx-back{margin-bottom:8px;}
+.nx-note{display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; min-height:44px; padding:8px 10px; border:0; border-radius:3px; background:color-mix(in srgb, var(--nx) 28%, #fff); color:#1C2438; font:inherit; box-shadow:0 2px 5px rgba(40,52,80,.25); cursor:pointer;}
+.nx-note.is-now{opacity:.6;}
+.nx-label{font:700 13px var(--font-ui); letter-spacing:.06em; text-transform:uppercase; opacity:.8;}
+.nx-title{font-family:var(--note-font); font-weight:700; font-size:17px; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.nx-count{font:600 13px var(--font-ui); opacity:.8; margin-top:auto;}
+@media (min-width:1100px){
+  .focus-split{flex-direction:row; align-items:flex-start; gap:24px; max-width:none; margin:0;}
+  .focus-split .focusflow{flex:none; width:min(600px, 100%); min-height:calc(100dvh - 225px);}
+  .nx-phone{display:none;}
+  .nx-desk{display:block; flex:1; min-width:0; max-height:calc(100dvh - 225px); overflow-y:auto;}
+  .focus-split{min-height:0;}
+  .focus-title.is-long{font-size:calc(40px * var(--note-scale, 1));}
+  .nx-cols{display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:16px; align-items:start;}
+  .nx-col{display:flex; flex-direction:column; gap:10px; min-width:0;}
+  .nx-head{margin:0; padding-bottom:4px; font:700 13px var(--font-ui); letter-spacing:.08em; text-transform:uppercase; border-bottom:3px solid var(--nx);}
 }

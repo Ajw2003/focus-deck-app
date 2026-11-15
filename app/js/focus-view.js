@@ -3,9 +3,11 @@
 // note out and "Next one" picks again. What a tap does is in js/app.js (the mutations are in js/mutations.js: pickFocus,
 // pickForMe, reroll, completeFocus, setFocus, clearFocus); the blockers-first pick order is js/pick-order.js. Same clipboard,
 // stamps and carousels as Sort and Organize. See docs/4-systems/focus.md
-import { state, esc, formatLabelName, UNLABELLED } from './state.js';
+import { state, esc, formatLabelName, UNLABELLED, deadlineChip } from './state.js';
 import { findFilter } from './wallet.js';
-import { kindsOfWork, areaIdOf } from './areas.js';
+import { kindsOfWork, areaIdOf, UNSORTED_ID } from './areas.js';
+import { nextStepOf, nextStepOfArea } from './pick-order.js';
+import { dueDates } from './pick-bits.js';
 import { areaList } from './view-switch.js';
 import { cabinetInner, cabinetDrawers, rememberedDrawer } from './cabinet.js';
 import { viewState } from './view-switch.js';
@@ -65,7 +67,7 @@ function renderPicker(full, ui) {
   }
   return '<div class="org focusflow">' + dots(1, 2)
     + paper('Which project?', find('projects', ui.focusFind, 'Find a project…') + '<div class="wallet" id="project-wallet">' + renderProjectWalletInner(st, ui) + '</div><div class="sr-only" id="wallet-live" aria-live="polite"></div>')
-    + foot([tag('🎲 Pick for me', 'pick-for-me'), stamp('Next', { action: 'focus-next', cls: ' focus-go' })]) + '</div>';
+    + foot([ui.focusChoosing ? back('focus-choose-back') : '', tag('🎲 Pick for me', 'pick-for-me'), stamp('Next', { action: 'focus-next', cls: ' focus-go' })]) + '</div>';
 }
 
 // the ⋯ drawer (a card-index drawer, as on Sort): Start it, Smaller steps, Details, the project, Clear
@@ -97,8 +99,8 @@ export function renderFocus(st, findTaskWithProject, ui) {
       return '<div class="org focusflow">' + paper('', '<div class="note-shadow"><div class="note is-crossed is-done"><h2 class="focus-title"><span class="ink">' + esc(ui.focusDone.title) + '</span></h2></div></div>')
         + foot([stamp('Next one', { action: 'focus-next-one' })]) + '</div>';
     }
-    return renderPicker(st, ui || {});
   }
+  if (!st.focus || (ui && ui.focusChoosing)) return renderPicker(st, ui || {});
   const found = findTaskWithProject(st.focus.taskId);
   if (!found) { state.focus = null; return renderFocus(st, findTaskWithProject, ui); }
   const t = found.task, p = found.project;
@@ -107,10 +109,37 @@ export function renderFocus(st, findTaskWithProject, ui) {
   const canReroll = st.focus.pool && st.focus.pool.length > 1;
   // a repaint during the Done sequence (js/focus-complete.js) draws the phase it had reached
   const leaving = ui && ui.completing && ui.completing.taskId === t.id ? phaseClasses(ui.completing.phase) : { button: '', note: '' };
-  return '<div class="org focusflow focus-active">'
-    + paper('', '<div class="note-shadow"><div class="note' + leaving.note + '"><h2 class="focus-title"><span class="ink">' + esc(t.title) + '</span></h2></div></div>'
-      + '<div class="dk-stamps focus-stamps">' + stamp('✓ Done', { action: 'complete-focus', cls: ' rv-ok focus-done' + leaving.button })
-      + stamp('↻ Another', { action: 'reroll', disabled: !canReroll, cls: ' focus-another' }) + '</div>')
-    + foot([tag('More', 'focus-menu', ' aria-haspopup="dialog" aria-expanded="' + !!(ui && ui.focusMenu === t.id) + '" aria-label="More: start it, smaller steps, details, project, clear"', ' dk-plain')]) + '</div>'
+  const area = (areaList(st).find((c) => c.id === areaIdOf(st, p) && c.id !== UNSORTED_ID) || {}).name;
+  const where = '<p class="focus-meta">' + esc(p.name) + (area ? ' · ' + esc(area) : '') + (t.deadline ? ' ' + deadlineChip(t.deadline, t) : '') + '</p>';
+  return '<div class="focus-split"><div class="org focusflow focus-active">'
+    + paper('', '<div class="note-shadow"><div class="note' + leaving.note + '"><h2 class="focus-title' + (t.title.length > 48 ? ' is-long' : '') + '"><span class="ink">' + esc(t.title) + '</span></h2>' + where + '</div></div>'
+      + '<div class="dk-stamps focus-stamps">' + stamp('✓ Done', { action: 'complete-focus', cls: ' rv-ok focus-done' + leaving.button }) + '</div>'
+      + '<div class="focus-plain">'
+      + '<button type="button" class="dk-plain" data-action="reroll"' + (canReroll ? '' : ' disabled') + '>Not now</button>'
+      + '<button type="button" class="dk-plain" data-action="focus-choose">Choose…</button>'
+      + tag('More', 'focus-menu', ' aria-haspopup="dialog" aria-expanded="' + !!(ui && ui.focusMenu === t.id) + '" aria-label="More: start it, smaller steps, details, project, clear"', ' dk-plain') + '</div>')
+    + '</div>' + renderNextNotes(st, ui || {}) + '</div>'
     + (ui && ui.focusMenu === t.id ? drawer(t, p, open) : '');
+}
+
+// Small notes: the next step of each area (phone) and of each project under its area (computer). Both are drawn;
+// the stylesheet shows one. The task that is the big note stays, faded (is-now), so the list does not jump.
+const note = (label, t, line, color, action, attrs, st) => '<button type="button" class="nx-note' + (st.focus && st.focus.taskId === t.id ? ' is-now' : '') + '" style="--nx:' + esc(color) + '" data-action="' + action + '"' + attrs + '>'
+  + '<span class="nx-label">' + esc(label) + '</span><span class="nx-title">' + esc(t.title) + '</span><span class="nx-count">' + line + '</span></button>';
+const openCount = (p) => p.tasks.filter((t) => t.status !== 'done').length;
+export function renderNextNotes(st, ui, today = dueDates().today) {
+  const vs = viewState(st);
+  const areas = areaList(vs);
+  const projectsOf = (a) => vs.projects.filter((p) => areaIdOf(vs, p) === a.id && openCount(p));
+  const proj = (p, a) => { const n = nextStepOf(p, vs, today); return n && note(p.name, n.t, (openCount(p) - 1) + ' more', a.color || 'hsl(215 10% 55%)', 'focus-set', ' data-task="' + esc(n.t.id) + '"', st); };
+  let phone;
+  const chosen = areas.find((a) => a.id === ui.focusArea && projectsOf(a).length);
+  if (chosen) phone = '<button type="button" class="dk-plain nx-back" data-action="focus-area" data-area="">‹ All areas</button><div class="nx-grid">' + projectsOf(chosen).map((p) => proj(p, chosen)).join('') + '</div>';
+  else phone = '<div class="nx-grid">' + areas.map((a) => {
+    const n = nextStepOfArea(a.id, vs, today), c = projectsOf(a).length;
+    return n && note(a.name, n.t, c + (c === 1 ? ' project ›' : ' projects ›'), a.color || 'hsl(215 10% 55%)', 'focus-area', ' data-area="' + esc(a.id) + '"', st).replace('class="nx-note', 'class="nx-note nx-area');
+  }).join('') + '</div>';
+  const desk = areas.filter((a) => projectsOf(a).length).map((a) => '<div class="nx-col"><h3 class="nx-head" style="--nx:' + esc(a.color || 'hsl(215 10% 55%)') + '">' + esc(a.name) + '</h3>' + projectsOf(a).map((p) => proj(p, a)).join('') + '</div>').join('');
+  if (!desk) return '';
+  return '<div class="nx nx-phone"><h3 class="nx-h">Next in each area</h3>' + phone + '</div><div class="nx nx-desk"><h3 class="nx-h">Next in each project</h3><div class="nx-cols">' + desk + '</div></div>';
 }

@@ -55,6 +55,7 @@ async function open(vp, screen, touch) {
     localStorage.setItem('focusdeck-onboarding', 'done');
   }, [STATE_KEY, JSON.stringify(seed()), screen]);
   await page.goto(BASE);
+  if (screen === 'focus') { await page.waitForSelector('.focus-active'); await page.click('[data-action="focus-choose"]'); } // #283: Focus opens on a task; Choose… leads to the questions
   await page.waitForSelector(screen === 'sort' ? '.jot-slip' : '.cab');
   if (screen === 'sort') await page.click('[data-action="sort-next"]'); // the first Sort screen is the slip; step 1 is the project carousel
   return page;

@@ -50,7 +50,7 @@ const screen = async (page, name) => { await page.click(`[data-action="set-scree
 const rmNames = (page) => page.$$eval(everyFile('projects-tab') + ' .cab-tab b', (els) => els.map((e) => e.textContent.trim()));
 const rmTaskTitles = (page) => page.$$eval('.rm-project .rm-task-title', (els) => els.map((e) => e.textContent));
 const folderKeys = (page) => fileKeys(page, 'tray-folders');
-const wallet = (page) => fileKeys(page, 'projects');
+const wallet = async (page) => { if (!(await page.$('.cab'))) await page.click('[data-action="focus-choose"]'); return fileKeys(page, 'projects'); }; // #283: Focus opens on a task; Choose… leads to the questions
 const pickBtn = (page) => page.$eval('.vs-tape', (b) => b.textContent.replace(/\s+/g, ' ').trim());
 const openList = async (page, step) => { await page.click('.vs-tape'); await page.click(`[data-action="view-step"][data-step="${step}"]`); await page.waitForSelector('.vs-pop .vs-item'); };
 
