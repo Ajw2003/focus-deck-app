@@ -84,8 +84,8 @@ confirmation card (the one `confirmMove` in `app/js/move-dialog.js` shows before
 'Delete "<thought>"? It leaves the tray for good.' with Cancel and Delete. Cancel, Escape or the
 backdrop keeps the thought; Delete discards it and shows the "Deleted" notice as before. Done
 already and Later are unchanged. Built: the `unsorted-delete` branch awaits the card
-(`app/js/app.js:536`), and `renderMoveDialog` takes the button's label, "Move" by default
-(`app/js/render.js:604`). If the thought has gone by the time Delete is pressed, it only repaints.
+(`app/js/app.js:840`), and `renderMoveDialog` takes the button's label, "Move" by default
+(`app/js/render.js:375`). If the thought has gone by the time Delete is pressed, it only repaints.
 `scripts/check-in-tray-browser.mjs` presses Cancel, then Delete.
 
 ## Three parts (#189)

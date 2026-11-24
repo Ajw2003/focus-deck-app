@@ -482,7 +482,7 @@ git commit -m "feat: show Claude created/completed chips on task rows"
 - [x] **Step 2: Update the index** — append to `docs/4-systems/README.md`:
 
 ```markdown
-- [claude-integration.md](./claude-integration.md) — the contract for Claude acting on Focus Deck via
+- [claude-integration.md](../4-systems/claude-integration.md) — the contract for Claude acting on Focus Deck via
   GitHub Issues (create/comment/close/reopen only, never delete) and the provenance labels
   (`js/github-sync.js`, `js/render.js`).
 ```

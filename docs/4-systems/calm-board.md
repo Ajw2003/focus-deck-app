@@ -21,7 +21,7 @@ Status: designed and approved (docs/6-decisions/Decisions.md, 2026-10-19) and bu
   filter were removed. Cards come in groups of "Cards at once"
   with "Show N more". Up next cards carry "→ In progress"; In progress cards "← Up next" and "→ Review"; Review cards "← In progress"; ticking a card marks it done, and Task details' status menu moves between all four (#250: Review is the fourth status, between In progress and Done; project cards get a Review group between In progress and Up next). A
   card shows its project's name unless the switch is on one Project. Subtasks show inside their parent, not as cards.
-  Built: `boardList` (`app/js/board.js:46`) makes the list, `renderBoard` (`app/js/board-view.js:64`) the markup;
+  Built: `boardList` (`app/js/board.js:46`) makes the list, `renderBoard` (`_to_delete/app/js/board-view.js:64`) the markup;
   the Board's memory-only state is `ui.board*` in `app/js/app.js` (tab, find, filter, shown, and
   `boardSelected`, which Task details renders from). The move buttons go through `moveTaskTo`, so they
   save and sync like a drop did (`moveTaskTo`, `app/js/app.js:326`). There is no "+ New" on the Board (the real app adds tasks from a
@@ -34,18 +34,18 @@ Status: designed and approved (docs/6-decisions/Decisions.md, 2026-10-19) and bu
   that project's name, after a dot in its colour, with a bar in its colour down its left edge and a
   small "Board · one project" line under it. With anything else the heading stays "Board".
   The counts and the list share one filter, `shown`, in `boardList` (`app/js/board.js:46`). The
-  heading and the menu's `is-picked` class are set in `renderBoard` (`app/js/board-view.js:99`), and
-  styled at `app/css/app.css:1178`. `scripts/check-board-browser.mjs` checks both, with Home picked.
+  heading and the menu's `is-picked` class are set in `renderBoard` (`_to_delete/app/js/board-view.js:99`), and
+  styled at `app/css/app.css:1178`. `_to_delete/scripts/check-board-browser.mjs` checks both, with Home picked.
 - **Card colour (#202).** Each card shows one chip and takes its edge colour from it: the first entry
   in the Card colour list that the task has. Entries are `category` (the task's first label),
   `priority`, `due`, and `label:<id>`. A task with none shows "No category" in grey. The edge colour
-  Built in `cardKey` (`app/js/card-key.js:22`), shown by `board-view.js`. The list is edited in Settings,
+  Built in `cardKey` (`app/js/card-key.js:22`), shown by `_to_delete/app/js/board-view.js`. The list is edited in Settings,
   Comfort, Card colour (`app/settings.html:67`; reorder and add a label at `:539` and `:543`, saved
   through `setColourBy`, `app/js/mutations.js:393`). Every card with a priority or a due date also
   shows one line under its label (#211, design 1A of 2026-10-20): a flag and the priority word in
   `PRIORITY_COLOURS`, then the same `deadlineChip` Projects uses, so a late date reads amber or red as
   Comfort chooses. Each half is left out when the card's label already is that source, and a done task
-  shows no date (`glanceLine`, `app/js/board-view.js:52`; `.gl-glance`, `app/css/app.css`). The edge colour
+  shows no date (`glanceLine`, `_to_delete/app/js/board-view.js:52`; `.gl-glance`, `app/css/app.css`). The edge colour
   must be set through `--proj-color`, because `.board-card`'s `border-left` shorthand uses that
   variable and an undefined variable drops the whole border to zero width.
 - **Task details (#201).** Selecting a card opens a panel headed "Task details": the title and a status

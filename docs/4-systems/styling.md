@@ -605,7 +605,7 @@ still sets `'doing'`. `board-swipe.js` is kept but no longer called.
 
 Moving a card calls `setTaskStatus` (`app/js/mutations.js:157`), which stamps `completedAt` going to
 Done and clears it coming back. A move to In progress writes no GitHub label, like the project
-folders (`docs/6-decisions/Decisions.md`, 2026-10-10). Checked by `scripts/check-board-browser.mjs`
+folders (`docs/6-decisions/Decisions.md`, 2026-10-10). Checked by `_to_delete/scripts/check-board-browser.mjs`
 and `scripts/check-focus-doing-browser.mjs`.
 
 ### Projects on paper (#129)
