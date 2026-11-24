@@ -43,3 +43,7 @@ Tier-4 documents: what each system owns, how it works, its invariants, and its t
 
 - [tabs.md](./tabs.md): the five numbered tabs, the jot box and J key, Task details from every tab, what replaced the Board and Projects screens (2026-11-12, #259).
 - [desk-layout.md](./desk-layout.md): the layout of Focus, Roadmap, Sort, Review and Organize on a phone and a computer, and the four shapes (built 2026-11-15, #281).
+- [areas.md](./areas.md): areas and kinds of work (partly history since the five-tab change, #259).
+- [review-tab.md](./review-tab.md): the Review tab (#254; partly history since #259).
+- [tidy-up.md](./tidy-up.md): Tidy up on Organize, four tick lists and "Close these?" (#255, `js/tidy.js`, `js/tidy-view.js`).
+- [triage.md](./triage.md): Triage, one question per screen (#256, `js/triage.js`, `js/triage-view.js`).

@@ -1,3 +1,13 @@
+# Today — 2026-11-24
+
+Documentation audit only; no app code changed. The six tiers were already in place, so this was a check of them against the code.
+Fixed: two line references in `docs/4-systems/in-tray.md` (`app/js/app.js:840`, `app/js/render.js:375`), one broken link in
+`docs/archive/2026-09-21-claude-issues-provenance.md`, `docs/4-systems/calm-board.md` and `styling.md` now point at the removed Board
+code under `_to_delete/`, and four systems (areas, review-tab, tidy-up, triage) were added to `docs/4-systems/README.md`.
+Not done: this file is a 600-line running log, but the spec says it is rewritten each session; moving the old days into Decisions
+and the changelog is a larger edit that waits on Eden's say-so. `ProjectState.md` and `Decisions.md` still cite `board-view.js`
+as it was when written; left as dated history. Next: pick the next roadmap step (nothing is in progress after PR #287).
+
 # Today — 2026-11-15
 
 ## Design audit of phone and computer (design only, nothing built)

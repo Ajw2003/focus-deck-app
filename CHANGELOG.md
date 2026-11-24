@@ -5,6 +5,7 @@ Started 2026-11-15; earlier changes are in the git history and in `docs/3-state/
 
 ## Unreleased
 
+- Docs audit: fixed stale line references and one broken link, pointed Board docs at `_to_delete/`, and indexed four missing systems in `docs/4-systems/README.md`.
 - Focus opens on one task, with the next step of every area (phone) or project (computer) beside it; "Choose…" opens the two questions (#283, `app/js/focus-view.js`, `app/js/app.js`).
 - Roadmap shows four columns on a computer and the next step as a yellow note; a list shows 8 tasks and a "Show more" button (#284, `app/js/roadmap-view.js`).
 - On Sort, Review and Triage the slip fills the clipboard with the pile behind it, one stamp and plain buttons; "After this one" is listed beside it on a computer (#285).
