@@ -1,5 +1,7 @@
 # Today — 2026-11-24
 
+Later the same day, Eden asked for a visual design document and pitch page. Built `docs/plans/focus-deck-pitch.html` (one file, images embedded) from the docs, with 14 real screenshots shot by `docs/generated/pitch/shoot.mjs` (phone and computer, light and dark, seeded with 8 projects and 56 tasks). The app has no game in it, so Eden chose Focus Deck itself in game-design-document form. Checked at 375px and 1280px: no sideways scroll, all 13 images load. Not checked: the milestone percentages on the page are copied from `ProjectState.md`, which predates the design audit merge.
+
 Documentation audit only; no app code changed. The six tiers were already in place, so this was a check of them against the code.
 Fixed: two line references in `docs/4-systems/in-tray.md` (`app/js/app.js:840`, `app/js/render.js:375`), one broken link in
 `docs/archive/2026-09-21-claude-issues-provenance.md`, `docs/4-systems/calm-board.md` and `styling.md` now point at the removed Board
